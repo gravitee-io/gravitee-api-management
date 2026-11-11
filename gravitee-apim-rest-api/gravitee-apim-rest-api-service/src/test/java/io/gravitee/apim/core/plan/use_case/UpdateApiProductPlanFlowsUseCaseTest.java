@@ -19,9 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +29,7 @@ import fixtures.core.model.PlanFixtures;
 import inmemory.ApiProductCrudServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
+import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -39,12 +40,13 @@ import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -143,29 +145,84 @@ class UpdateApiProductPlanFlowsUseCaseTest {
     }
 
     @Test
-    void should_check_closed_plans_against_the_statuses_of_the_plans_being_written() {
+    void should_refuse_a_closed_plan_and_write_nothing() {
         planQueryService.initWith(List.of(productPlan("plan-1", PlanStatus.PUBLISHED), productPlan("plan-2", PlanStatus.CLOSED)));
-        when(updatePlanDomainService.updatePlanForApiProduct(any(), any(), any(), any())).thenAnswer(invocation ->
-            invocation.getArgument(0)
-        );
 
-        useCase.execute(
-            new UpdateApiProductPlanFlowsUseCase.Input(
-                API_PRODUCT_ID,
-                List.of(
-                    new UpdateApiProductPlanFlowsUseCase.PlanFlows("plan-1", null, List.of()),
-                    new UpdateApiProductPlanFlowsUseCase.PlanFlows("plan-2", null, List.of())
-                ),
-                AUDIT_INFO
+        assertThatThrownBy(() ->
+            useCase.execute(
+                new UpdateApiProductPlanFlowsUseCase.Input(
+                    API_PRODUCT_ID,
+                    List.of(
+                        new UpdateApiProductPlanFlowsUseCase.PlanFlows("plan-1", null, List.of()),
+                        new UpdateApiProductPlanFlowsUseCase.PlanFlows("plan-2", null, List.of())
+                    ),
+                    AUDIT_INFO
+                )
             )
-        );
+        )
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("plan-2")
+            .hasMessageContaining("closed");
+        verify(updatePlanDomainService, never()).updatePlanForApiProduct(any(), any(), any(), any());
+    }
 
-        verify(updatePlanDomainService, times(2)).updatePlanForApiProduct(
-            any(),
-            eq(Map.of("plan-1", PlanStatus.PUBLISHED, "plan-2", PlanStatus.CLOSED)),
-            eq(API_PRODUCT),
-            eq(AUDIT_INFO)
-        );
+    @Test
+    void should_write_nothing_when_a_flow_has_a_publish_or_subscribe_step() {
+        planQueryService.initWith(List.of(productPlan("plan-1", PlanStatus.PUBLISHED), productPlan("plan-2", PlanStatus.PUBLISHED)));
+        var withSubscribe = Flow.builder().name("with-subscribe").subscribe(List.of(aStep())).build();
+
+        assertThatThrownBy(() ->
+            useCase.execute(
+                new UpdateApiProductPlanFlowsUseCase.Input(
+                    API_PRODUCT_ID,
+                    List.of(
+                        new UpdateApiProductPlanFlowsUseCase.PlanFlows("plan-1", null, List.of()),
+                        new UpdateApiProductPlanFlowsUseCase.PlanFlows("plan-2", null, List.of(withSubscribe))
+                    ),
+                    AUDIT_INFO
+                )
+            )
+        )
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("with-subscribe")
+            .hasMessageContaining("request and response");
+        verify(updatePlanDomainService, never()).updatePlanForApiProduct(any(), any(), any(), any());
+    }
+
+    @Test
+    void should_write_nothing_when_a_flow_is_invalid_for_a_proxy_api() {
+        planQueryService.initWith(List.of(productPlan("plan-1", PlanStatus.PUBLISHED)));
+        var channelSelector = new ChannelSelector();
+        channelSelector.setChannel("/orders");
+        var withChannel = Flow.builder().name("with-channel").selectors(List.of(channelSelector)).build();
+
+        assertThatThrownBy(() ->
+            useCase.execute(
+                new UpdateApiProductPlanFlowsUseCase.Input(
+                    API_PRODUCT_ID,
+                    List.of(new UpdateApiProductPlanFlowsUseCase.PlanFlows("plan-1", null, List.of(withChannel))),
+                    AUDIT_INFO
+                )
+            )
+        ).isInstanceOf(InvalidFlowException.class);
+        verify(updatePlanDomainService, never()).updatePlanForApiProduct(any(), any(), any(), any());
+    }
+
+    @Test
+    void should_not_find_a_product_of_another_environment() {
+        planQueryService.initWith(List.of(productPlan("plan-1", PlanStatus.PUBLISHED)));
+        var otherEnvironment = new AuditInfo("org-id", "other-env-id", AuditActor.builder().userId("user-id").build());
+
+        assertThatThrownBy(() ->
+            useCase.execute(
+                new UpdateApiProductPlanFlowsUseCase.Input(
+                    API_PRODUCT_ID,
+                    List.of(new UpdateApiProductPlanFlowsUseCase.PlanFlows("plan-1", null, List.of())),
+                    otherEnvironment
+                )
+            )
+        ).isInstanceOf(ApiProductNotFoundException.class);
+        verify(updatePlanDomainService, never()).updatePlanForApiProduct(any(), any(), any(), any());
     }
 
     @Test
@@ -239,6 +296,36 @@ class UpdateApiProductPlanFlowsUseCaseTest {
     }
 
     @Test
+    void should_write_nothing_when_the_plan_checks_refuse_a_later_plan() {
+        planQueryService.initWith(List.of(productPlan("plan-1", PlanStatus.PUBLISHED), productPlan("plan-2", PlanStatus.PUBLISHED)));
+        doAnswer(invocation -> {
+            Plan plan = invocation.getArgument(0);
+            if (plan.getId().equals("plan-2")) {
+                throw new ValidationDomainException("Plan 'plan-2' has tags the product does not have");
+            }
+            return null;
+        })
+            .when(updatePlanDomainService)
+            .updatePreFlightChecksForApiProduct(any(), any(), any(), any());
+
+        assertThatThrownBy(() ->
+            useCase.execute(
+                new UpdateApiProductPlanFlowsUseCase.Input(
+                    API_PRODUCT_ID,
+                    List.of(
+                        new UpdateApiProductPlanFlowsUseCase.PlanFlows("plan-1", null, List.of()),
+                        new UpdateApiProductPlanFlowsUseCase.PlanFlows("plan-2", null, List.of())
+                    ),
+                    AUDIT_INFO
+                )
+            )
+        )
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("plan-2");
+        verify(updatePlanDomainService, never()).updatePlanForApiProduct(any(), any(), any(), any());
+    }
+
+    @Test
     void should_refuse_a_plan_without_an_http_v4_definition() {
         planQueryService.initWith(List.of(productPlan("plan-1", PlanStatus.PUBLISHED).toBuilder().planDefinitionHttpV4(null).build()));
 
@@ -261,6 +348,10 @@ class UpdateApiProductPlanFlowsUseCaseTest {
         assertThatThrownBy(() -> new UpdateApiProductPlanFlowsUseCase.PlanFlows("plan-1", null, null))
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("plan-1");
+    }
+
+    private static Step aStep() {
+        return Step.builder().name("step").policy("transform-headers").configuration("{}").build();
     }
 
     private static Plan productPlan(String id, PlanStatus status) {

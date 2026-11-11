@@ -16,6 +16,8 @@
 package io.gravitee.apim.core.api_product.model;
 
 import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.resource.Resource;
 import java.util.List;
@@ -42,7 +44,27 @@ public class ApiProductDeploymentPayload {
     private Set<String> tags;
     private List<Plan> plans;
     private Analytics analytics;
+    private List<Flow> flows;
+    private FlowExecution flowExecution;
 
     @ToString.Exclude
     private List<Resource> resources;
+
+    /** A product that never saved a flow mode runs its flows in the default one. */
+    public static ApiProductDeploymentPayload of(ApiProduct apiProduct, List<Plan> plans, List<Flow> flows) {
+        return ApiProductDeploymentPayload.builder()
+            .id(apiProduct.getId())
+            .name(apiProduct.getName())
+            .description(apiProduct.getDescription())
+            .version(apiProduct.getVersion())
+            .apiIds(apiProduct.getApiIds())
+            .environmentId(apiProduct.getEnvironmentId())
+            .tags(apiProduct.getTags())
+            .plans(plans)
+            .analytics(apiProduct.getAnalytics())
+            .flows(flows)
+            .flowExecution(apiProduct.getFlowExecution() != null ? apiProduct.getFlowExecution() : new FlowExecution())
+            .resources(apiProduct.getResources())
+            .build();
+    }
 }

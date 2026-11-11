@@ -28,6 +28,7 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
+import inmemory.EventLatestQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
@@ -35,10 +36,15 @@ import io.gravitee.apim.core.api_product.model.ApiProductDeploymentPayload;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
+import io.gravitee.apim.core.event.model.Event;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -61,6 +67,7 @@ class RemoveApiFromApiProductsDomainServiceTest extends AbstractUseCaseTest {
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     private final EventCrudService eventCrudService = mock(EventCrudService.class);
     private final EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
+    private final EventLatestQueryServiceInMemory eventLatestQueryService = new EventLatestQueryServiceInMemory();
 
     private RemoveApiFromApiProductsDomainService domainService;
 
@@ -77,7 +84,9 @@ class RemoveApiFromApiProductsDomainServiceTest extends AbstractUseCaseTest {
             planQueryService,
             eventCrudService,
             eventLatestCrudService,
-            new FlowCrudServiceInMemory()
+            eventLatestQueryService,
+            new FlowCrudServiceInMemory(),
+            GraviteeJacksonMapper.getInstance()
         );
         domainService = new RemoveApiFromApiProductsDomainService(
             apiProductQueryService,
@@ -173,6 +182,25 @@ class RemoveApiFromApiProductsDomainServiceTest extends AbstractUseCaseTest {
 
                 verify(eventCrudService, times(2)).createEvent(any(), any(), any(), any(), any(), any());
                 verify(eventLatestCrudService, times(2)).createOrPatchLatestEvent(any(), any(), any());
+            }
+
+            @Test
+            void should_still_remove_the_api_when_the_last_deployed_version_cannot_be_read() {
+                eventLatestQueryService.initWith(
+                    List.of(
+                        Event.builder()
+                            .id("unreadable")
+                            .type(EventType.DEPLOY_API_PRODUCT)
+                            .properties(new EnumMap<>(Map.of(Event.EventProperties.API_PRODUCT_ID, PRODUCT_1)))
+                            .payload("not json")
+                            .build()
+                    )
+                );
+
+                domainService.removeApiFromApiProducts(API_ID, ORG_ID, ENV_ID, USER_ID);
+
+                apiProductCrudService.storage().forEach(product -> assertThat(product.getApiIds()).doesNotContain(API_ID));
+                verify(eventCrudService, times(1)).createEvent(any(), any(), any(), any(), any(), any());
             }
 
             @Test

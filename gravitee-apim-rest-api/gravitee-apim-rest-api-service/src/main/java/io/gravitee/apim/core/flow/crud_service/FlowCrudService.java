@@ -36,6 +36,9 @@ public interface FlowCrudService {
 
     Map<String, List<Flow>> getPlanV4Flows(Set<String> planIds);
 
+    /** The flows of each product, keyed by product id; a product without flows has no entry. */
+    Map<String, List<Flow>> getApiProductFlows(Set<String> apiProductIds);
+
     List<io.gravitee.definition.model.flow.Flow> getApiV2Flows(String apiId);
 
     List<io.gravitee.definition.model.flow.Flow> getPlanV2Flows(String planId);

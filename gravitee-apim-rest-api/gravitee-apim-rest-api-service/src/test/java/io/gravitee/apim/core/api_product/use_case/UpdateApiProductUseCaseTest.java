@@ -157,7 +157,8 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         );
 
         verify(apiProductIndexerDomainService).index(any(), eq(output.apiProduct()), any());
-        verify(deployApiProductDomainService).deploy(AUDIT_INFO, output.apiProduct());
+        verify(deployApiProductDomainService).deployApiList(AUDIT_INFO, output.apiProduct());
+        verify(deployApiProductDomainService, never()).deploy(any(), any());
     }
 
     @Test
@@ -749,6 +750,7 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
 
         assertThat(output.apiProduct().getApiIds()).containsExactlyInAnyOrder("api-1", "api-2");
         verify(deployApiProductDomainService, never()).deploy(any(), any());
+        verify(deployApiProductDomainService, never()).deployApiList(any(), any());
     }
 
     @Test
@@ -771,7 +773,8 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         var toUpdate = UpdateApiProduct.builder().apiIds(Set.of("api-1", "api-2")).build();
         var output = updateApiProductUseCase.execute(new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
 
-        verify(deployApiProductDomainService).deploy(AUDIT_INFO, output.apiProduct());
+        verify(deployApiProductDomainService).deployApiList(AUDIT_INFO, output.apiProduct());
+        verify(deployApiProductDomainService, never()).deploy(any(), any());
     }
 
     @Test
@@ -792,6 +795,8 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         updateApiProductUseCase.execute(new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
 
         verify(deployApiProductDomainService, never()).deploy(any(), any());
+
+        verify(deployApiProductDomainService, never()).deployApiList(any(), any());
     }
 
     @Test

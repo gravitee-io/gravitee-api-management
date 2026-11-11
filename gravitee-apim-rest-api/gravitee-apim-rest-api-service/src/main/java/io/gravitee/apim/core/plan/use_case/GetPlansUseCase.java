@@ -20,6 +20,7 @@ import static java.util.Comparator.comparingInt;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.plan.domain_service.PlanExcludedGroupsDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanSearchQueryService;
@@ -31,6 +32,7 @@ import io.gravitee.rest.api.model.v4.plan.PlanQuery;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +46,7 @@ public class GetPlansUseCase {
     private final SubscriptionQueryService subscriptionQueryService;
     private final ApiProductCrudService apiProductCrudService;
     private final PlanExcludedGroupsDomainService planExcludedGroupsDomainService;
+    private final FlowCrudService flowCrudService;
 
     public Output execute(Input input) {
         log.debug("Getting plans for reference {} (planId={})", input.referenceId, input.planId);
@@ -91,7 +94,7 @@ public class GetPlansUseCase {
                 );
             }
 
-            List<Plan> plans = plansStream.toList();
+            List<Plan> plans = withFlows(plansStream.toList());
             log.debug("Found {} plans for reference {}", plans.size(), input.referenceId);
             return Output.multiple(plans);
         } else {
@@ -102,8 +105,18 @@ public class GetPlansUseCase {
                 input.referenceType
             );
 
-            return Output.single(Optional.of(plan));
+            return Output.single(Optional.of(withFlows(List.of(plan)).getFirst()));
         }
+    }
+
+    /** Plans are stored without their flows, which live in the flows table. */
+    private List<Plan> withFlows(List<Plan> plans) {
+        var flowsByPlanId = flowCrudService.getPlanV4Flows(plans.stream().map(Plan::getId).collect(Collectors.toSet()));
+        plans
+            .stream()
+            .filter(plan -> plan.getPlanDefinitionHttpV4() != null)
+            .forEach(plan -> plan.getPlanDefinitionHttpV4().setFlows(flowsByPlanId.getOrDefault(plan.getId(), List.of())));
+        return plans;
     }
 
     public record Input(

@@ -172,6 +172,63 @@ class ApiProductMapperTest {
 
         @SneakyThrows
         @Test
+        void should_map_a_payload_carrying_product_flows_and_their_flow_mode() {
+            // A Management API that deploys product flows may run beside gateways that predate them.
+            Organization organization = new Organization();
+            organization.setId("org-id");
+            organization.setHrids(List.of("org-hrid"));
+            when(organizationRepository.findById(organization.getId())).thenReturn(Optional.of(organization));
+
+            Environment environment = new Environment();
+            environment.setId("env-id");
+            environment.setHrids(List.of("env-hrid"));
+            environment.setOrganizationId(organization.getId());
+            when(environmentRepository.findById("env-id")).thenReturn(Optional.of(environment));
+
+            Event event = new Event();
+            event.setCreatedAt(new Date());
+            event.setPayload(
+                objectMapper.writeValueAsString(
+                    Map.of(
+                        "id",
+                        "api-product-with-flows",
+                        "name",
+                        "Product with flows",
+                        "apiIds",
+                        Set.of("api-1"),
+                        "environmentId",
+                        "env-id",
+                        "flows",
+                        List.of(
+                            Map.of(
+                                "name",
+                                "first",
+                                "enabled",
+                                true,
+                                "request",
+                                List.of(Map.of("policy", "transform-headers", "configuration", Map.of()))
+                            )
+                        ),
+                        "flowExecution",
+                        Map.of("mode", "best-match", "matchRequired", true)
+                    )
+                )
+            );
+
+            cut
+                .to(event)
+                .test()
+                .assertValue(reactableApiProduct -> {
+                    assertThat(reactableApiProduct.getId()).isEqualTo("api-product-with-flows");
+                    assertThat(reactableApiProduct.getName()).isEqualTo("Product with flows");
+                    assertThat(reactableApiProduct.getApiIds()).containsExactly("api-1");
+                    return true;
+                })
+                .assertComplete();
+        }
+
+        @SneakyThrows
+        @Test
         void should_map_api_product_with_minimal_fields() {
             Organization organization = new Organization();
             organization.setId("org-id");

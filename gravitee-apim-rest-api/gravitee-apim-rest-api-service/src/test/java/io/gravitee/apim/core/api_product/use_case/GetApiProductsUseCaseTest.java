@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import inmemory.AbstractUseCaseTest;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.EventLatestQueryServiceInMemory;
+import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
@@ -30,6 +31,7 @@ import inmemory.PlanQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductDeploymentStateDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.model.ApiProductDeploymentPayload;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
@@ -104,7 +106,12 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
         getApiProductsUseCase = new GetApiProductsUseCase(
             apiProductQueryService,
             apiProductPrimaryOwnerDomainService,
-            new ApiProductDeploymentStateDomainService(eventLatestQueryService, planQueryService, objectMapper),
+            new ApiProductDeploymentStateDomainService(
+                eventLatestQueryService,
+                planQueryService,
+                new FlowCrudServiceInMemory(),
+                objectMapper
+            ),
             apiProductAccessibleIdsDomainService
         );
     }
@@ -330,8 +337,9 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
                 .updatedAt(BEFORE_DEPLOY.atZone(ZoneId.systemDefault()))
                 .build();
             apiProductQueryService.initWith(List.of(product));
-            eventLatestQueryService.initWith(List.of(aDeployApiProductEvent(API_PRODUCT_ID, DEPLOYED_AT, product)));
-            planQueryService.initWith(List.of(aPublishedApiProductPlan(API_PRODUCT_ID, BEFORE_DEPLOY)));
+            var plan = aPublishedApiProductPlan(API_PRODUCT_ID, BEFORE_DEPLOY);
+            eventLatestQueryService.initWith(List.of(aDeployApiProductEvent(API_PRODUCT_ID, DEPLOYED_AT, product, List.of(plan))));
+            planQueryService.initWith(List.of(plan));
 
             var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, API_PRODUCT_ID, ORG_ID));
 
@@ -446,8 +454,9 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
                 .updatedAt(BEFORE_DEPLOY.atZone(ZoneId.systemDefault()))
                 .build();
             apiProductQueryService.initWith(List.of(product));
-            eventLatestQueryService.initWith(List.of(aDeployApiProductEvent(API_PRODUCT_ID, DEPLOYED_AT, product)));
-            planQueryService.initWith(List.of(aPublishedApiProductPlan(API_PRODUCT_ID, BEFORE_DEPLOY)));
+            var plan = aPublishedApiProductPlan(API_PRODUCT_ID, BEFORE_DEPLOY);
+            eventLatestQueryService.initWith(List.of(aDeployApiProductEvent(API_PRODUCT_ID, DEPLOYED_AT, product, List.of(plan))));
+            planQueryService.initWith(List.of(plan));
 
             var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, ORG_ID, USER_ID, true));
 
@@ -495,8 +504,9 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
                 .environmentId(ENV_ID)
                 .apiIds(Set.of("api-1"))
                 .build();
-            eventLatestQueryService.initWith(List.of(aDeployApiProductEvent(API_PRODUCT_ID, DEPLOYED_AT, deployedProduct)));
-            planQueryService.initWith(List.of(aPublishedApiProductPlan(API_PRODUCT_ID, BEFORE_DEPLOY)));
+            var plan = aPublishedApiProductPlan(API_PRODUCT_ID, BEFORE_DEPLOY);
+            eventLatestQueryService.initWith(List.of(aDeployApiProductEvent(API_PRODUCT_ID, DEPLOYED_AT, deployedProduct, List.of(plan))));
+            planQueryService.initWith(List.of(plan));
 
             var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, API_PRODUCT_ID, ORG_ID));
 
@@ -504,6 +514,11 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
         }
 
         private Event aDeployApiProductEvent(String apiProductId, Instant updatedAt, ApiProduct deployedPayload) throws Exception {
+            return aDeployApiProductEvent(apiProductId, updatedAt, deployedPayload, List.of());
+        }
+
+        private Event aDeployApiProductEvent(String apiProductId, Instant updatedAt, ApiProduct deployedPayload, List<Plan> deployedPlans)
+            throws Exception {
             Event.EventBuilder builder = Event.builder()
                 .id("event-" + apiProductId)
                 .type(EventType.DEPLOY_API_PRODUCT)
@@ -514,7 +529,15 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
                 .createdAt(updatedAt.atZone(ZoneId.systemDefault()))
                 .updatedAt(updatedAt.atZone(ZoneId.systemDefault()));
             if (deployedPayload != null) {
-                builder.payload(objectMapper.writeValueAsString(deployedPayload));
+                var plans = deployedPlans
+                    .stream()
+                    .map(plan -> {
+                        var definition = plan.getPlanDefinitionHttpV4();
+                        definition.setFlows(List.of());
+                        return definition;
+                    })
+                    .toList();
+                builder.payload(objectMapper.writeValueAsString(ApiProductDeploymentPayload.of(deployedPayload, plans, List.of())));
             }
             return builder.build();
         }

@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
@@ -125,6 +126,14 @@ class ApiProductAdapterTest {
                 soft.assertThat(flowExecution.getMode()).isEqualTo(FlowMode.BEST_MATCH);
                 soft.assertThat(flowExecution.isMatchRequired()).isTrue();
             });
+        }
+
+        @Test
+        void should_fail_rather_than_read_an_unreadable_flow_execution_as_the_default_mode() {
+            // Read as absent, a best-match product would be deployed and shown in the default mode.
+            var repository = apiProduct().flowExecution("{not json").build();
+
+            assertThatThrownBy(() -> ApiProductAdapter.INSTANCE.toModel(repository)).isInstanceOf(IllegalStateException.class);
         }
 
         @Test

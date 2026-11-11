@@ -93,13 +93,22 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
 
     @Override
     public Map<String, List<Flow>> getPlanV4Flows(Set<String> planIds) {
-        if (planIds == null || planIds.isEmpty()) {
+        return getHttpV4ByReferences(FlowReferenceType.PLAN, planIds);
+    }
+
+    @Override
+    public Map<String, List<Flow>> getApiProductFlows(Set<String> apiProductIds) {
+        return getHttpV4ByReferences(FlowReferenceType.API_PRODUCT, apiProductIds);
+    }
+
+    private Map<String, List<Flow>> getHttpV4ByReferences(FlowReferenceType referenceType, Set<String> referenceIds) {
+        if (referenceIds == null || referenceIds.isEmpty()) {
             return Map.of();
         }
         try {
             List<io.gravitee.repository.management.model.flow.Flow> repoFlows = flowRepository.findByReferences(
-                FlowReferenceType.PLAN,
-                planIds
+                referenceType,
+                referenceIds
             );
             return repoFlows
                 .stream()
@@ -113,7 +122,7 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
                     )
                 );
         } catch (TechnicalException ex) {
-            throw new TechnicalDomainException("An error occurs while trying to get v4 plan flows", ex);
+            throw new TechnicalDomainException("An error occurs while trying to get v4 " + referenceType + " flows", ex);
         }
     }
 
