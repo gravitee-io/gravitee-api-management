@@ -35,6 +35,7 @@ import inmemory.ThemeQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalContentOwnershipDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
@@ -51,6 +52,7 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncD
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -124,7 +126,8 @@ class DeletePortalUseCaseTest {
             scopeEnforcer,
             themeCrudService,
             currentThemeDomainService,
-            portalUrlDomainService
+            portalUrlDomainService,
+            new PortalContentOwnershipDomainService(portalCrudService, navCrudService)
         );
         useCase = new DeletePortalUseCase(portalCrudService, navSync, themeCrudService, currentThemeDomainService);
     }
@@ -233,6 +236,39 @@ class DeletePortalUseCaseTest {
 
         assertThat(portalCrudService.storage()).extracting(Portal::getId).containsExactly(portalB.getId());
         assertThat(navCrudService.storage()).extracting(PortalNavigationItem::getTitle).containsExactly("beta");
+    }
+
+    @Test
+    void should_keep_console_authored_rows_moved_onto_an_automation_portal() {
+        var portal = PortalFixtures.aPortal();
+        setupUseCase.execute(
+            new CreateOrUpdatePortalUseCase.Input(
+                AUDIT_INFO,
+                portal.getId(),
+                portal.getName(),
+                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/synced", null))),
+                null
+            )
+        );
+        var consoleRow = PortalNavigationLink.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId(AUDIT_INFO.organizationId())
+            .environmentId(AUDIT_INFO.environmentId())
+            .title("Console link")
+            .segment("console-link")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(1)
+            .url("https://example.com")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+        navCrudService.create(consoleRow);
+        navCrudService.updatePortalReferences(AUDIT_INFO.environmentId(), List.of(PortalId.ZERO), portal.getId());
+        assertThat(consoleRow.getReference()).isEqualTo(new NavigationItemReference.PortalReference(portal.getId()));
+
+        useCase.execute(new DeletePortalUseCase.Input(AUDIT_INFO, portal.getId()));
+
+        assertThat(navCrudService.storage()).containsExactly(consoleRow);
     }
 
     @Test

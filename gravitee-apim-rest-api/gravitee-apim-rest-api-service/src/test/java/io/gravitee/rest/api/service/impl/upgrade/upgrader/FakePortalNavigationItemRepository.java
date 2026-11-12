@@ -22,10 +22,12 @@ import io.gravitee.repository.management.model.AutomationTargetReferenceType;
 import io.gravitee.repository.management.model.PortalNavigationItem;
 import io.gravitee.repository.management.model.PortalNavigationReferenceType;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 class FakePortalNavigationItemRepository implements PortalNavigationItemRepository {
 
@@ -163,6 +165,47 @@ class FakePortalNavigationItemRepository implements PortalNavigationItemReposito
                 return true;
             })
             .orElse(false);
+    }
+
+    @Override
+    public Set<String> findPortalReferenceIdsByEnvironmentId(String environmentId) {
+        return items
+            .stream()
+            .filter(item -> environmentId.equals(item.getEnvironmentId()))
+            .filter(item -> item.getReferenceType() == PortalNavigationReferenceType.PORTAL)
+            .map(PortalNavigationItem::getReferenceId)
+            .collect(Collectors.toSet());
+    }
+
+    @Override
+    public long updatePortalReferences(String environmentId, Collection<String> fromPortalIds, String toPortalId) {
+        var moved = items
+            .stream()
+            .filter(item -> environmentId.equals(item.getEnvironmentId()))
+            .filter(item -> item.getReferenceType() == PortalNavigationReferenceType.PORTAL)
+            .filter(item -> item.getAutomationMetadata() == null)
+            .filter(item -> fromPortalIds.contains(item.getReferenceId()))
+            .toList();
+        moved.forEach(item -> item.setReferenceId(toPortalId));
+        return moved.size();
+    }
+
+    @Override
+    public long updateAutomationPortalReferences(String environmentId, Collection<String> fromPortalIds, String portalId) {
+        var moved = items
+            .stream()
+            .filter(item -> environmentId.equals(item.getEnvironmentId()))
+            .filter(item -> item.getReferenceType() == PortalNavigationReferenceType.PORTAL)
+            .filter(item -> fromPortalIds.contains(item.getReferenceId()))
+            .filter(
+                item ->
+                    item.getAutomationMetadata() != null &&
+                    item.getAutomationMetadata().getReferenceType() == AutomationTargetReferenceType.PORTAL &&
+                    portalId.equals(item.getAutomationMetadata().getReferenceId())
+            )
+            .toList();
+        moved.forEach(item -> item.setReferenceId(portalId));
+        return moved.size();
     }
 
     @Override

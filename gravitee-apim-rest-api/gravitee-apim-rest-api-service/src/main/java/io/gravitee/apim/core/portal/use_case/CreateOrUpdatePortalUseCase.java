@@ -20,6 +20,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalContentOwnershipDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
@@ -54,6 +55,7 @@ public class CreateOrUpdatePortalUseCase {
     private final ThemeCrudService themeCrudService;
     private final CurrentThemeDomainService currentThemeDomainService;
     private final PortalUrlDomainService portalUrlDomainService;
+    private final PortalContentOwnershipDomainService portalContentOwnershipDomainService;
 
     /** The portal as the Automation API declares it: no URL, a new portal is served at its environment's portal URL. */
     public record Input(AuditInfo auditInfo, PortalId portalId, String name, PortalNavigationStructure structure, String activeThemeHrid) {}
@@ -90,6 +92,11 @@ public class CreateOrUpdatePortalUseCase {
         var portalToSave = existing.orElseGet(() -> newPortal(input));
         portalToSave.update(input.name(), sanitized.structure(), resolvedActiveThemeId);
         var saved = existing.isPresent() ? portalCrudService.update(portalToSave) : portalCrudService.create(portalToSave);
+        if (existing.isEmpty()) {
+            // Any new portal adopts the orphans, onto the default portal, else the only one: an environment the upgrade
+            // skipped for lack of a portal gets them on its first portal
+            portalContentOwnershipDomainService.moveOrphans(input.auditInfo().environmentId());
+        }
         var portalExists = portalAutomationScopeEnforcer.portalExistsInEnvironment(input.auditInfo(), saved.getId());
         if (portalExists) {
             portalNavigationSyncDomainService.sync(input.auditInfo(), saved.getId(), previouslyPersisted, sanitized.structure());

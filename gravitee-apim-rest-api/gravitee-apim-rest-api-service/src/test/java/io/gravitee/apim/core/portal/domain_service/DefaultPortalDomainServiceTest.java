@@ -20,11 +20,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
+import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import io.gravitee.apim.core.portal.exception.DefaultPortalNotFoundException;
 import io.gravitee.apim.core.portal.exception.SeveralPortalsInEnvironmentException;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import java.net.URI;
 import java.net.URL;
 import java.util.List;
@@ -48,13 +54,38 @@ class DefaultPortalDomainServiceTest {
 
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
     private final InstallationAccessQueryServiceInMemory installationAccessQueryService = new InstallationAccessQueryServiceInMemory();
+    private final PortalNavigationItemsCrudServiceInMemory navigationItemCrudService = new PortalNavigationItemsCrudServiceInMemory();
     private DefaultPortalDomainService cut;
 
     @BeforeEach
     void setUp() {
         portalCrudService.reset();
         installationAccessQueryService.reset();
-        cut = new DefaultPortalDomainService(portalCrudService, new PortalUrlDomainService(installationAccessQueryService));
+        navigationItemCrudService.reset();
+        cut = new DefaultPortalDomainService(
+            portalCrudService,
+            new PortalUrlDomainService(installationAccessQueryService),
+            contentOwnership(portalCrudService)
+        );
+    }
+
+    private PortalContentOwnershipDomainService contentOwnership(PortalCrudServiceInMemory portals) {
+        return new PortalContentOwnershipDomainService(portals, navigationItemCrudService);
+    }
+
+    private PortalNavigationFolder anItemOnTheZeroUuid() {
+        return PortalNavigationFolder.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .reference(NavigationItemReference.defaultReference())
+            .title("Docs")
+            .segment("docs")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
     }
 
     @SneakyThrows
@@ -195,6 +226,39 @@ class DefaultPortalDomainServiceTest {
                 .hasMessageContaining("Automation Portal");
             assertThat(storedState()).isEqualTo(before);
         }
+
+        @Test
+        void should_move_orphan_content_onto_a_default_portal_it_creates() {
+            installationAccessQueryService.withPortalUrl(ENV_ID, "https://portal.acme.io");
+            var item = anItemOnTheZeroUuid();
+            navigationItemCrudService.initWith(List.of(item));
+
+            var created = cut.ensureDefault(ORG_ID, ENV_ID).orElseThrow();
+
+            assertThat(item.getReference()).isEqualTo(new NavigationItemReference.PortalReference(created.getId()));
+        }
+
+        @Test
+        void should_not_move_content_when_the_default_portal_already_exists() {
+            installationAccessQueryService.withPortalUrl(ENV_ID, "https://portal.acme.io");
+            portalCrudService.initWith(List.of(aDefaultPortal(url("https://portal.acme.io/next"))));
+            var item = anItemOnTheZeroUuid();
+            navigationItemCrudService.initWith(List.of(item));
+
+            cut.ensureDefault(ORG_ID, ENV_ID);
+
+            assertThat(item.getReference()).isEqualTo(NavigationItemReference.defaultReference());
+        }
+
+        @Test
+        void should_move_nothing_while_the_default_portal_is_postponed() {
+            var item = anItemOnTheZeroUuid();
+            navigationItemCrudService.initWith(List.of(item));
+
+            cut.ensureDefault(ORG_ID, ENV_ID);
+
+            assertThat(item.getReference()).isEqualTo(NavigationItemReference.defaultReference());
+        }
     }
 
     @Nested
@@ -298,7 +362,11 @@ class DefaultPortalDomainServiceTest {
                 }
             };
             countingCrudService.initWith(List.of(aDefaultPortal(url("https://portal.acme.io/next"))));
-            var service = new DefaultPortalDomainService(countingCrudService, new PortalUrlDomainService(installationAccessQueryService));
+            var service = new DefaultPortalDomainService(
+                countingCrudService,
+                new PortalUrlDomainService(installationAccessQueryService),
+                contentOwnership(countingCrudService)
+            );
 
             service.syncUrl(ENV_ID);
 

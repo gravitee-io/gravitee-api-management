@@ -22,7 +22,9 @@ import static org.mockito.Mockito.when;
 
 import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
+import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalContentOwnershipDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
@@ -71,8 +73,16 @@ class DefaultPortalUpgraderTest {
             .withPortalUrl(ENV_C.getId(), "https://c.acme.io");
         upgrader = new DefaultPortalUpgrader(
             environmentRepository,
-            new DefaultPortalDomainService(portalCrudService, new PortalUrlDomainService(installationAccessQueryService))
+            new DefaultPortalDomainService(
+                portalCrudService,
+                new PortalUrlDomainService(installationAccessQueryService),
+                contentOwnership()
+            )
         );
+    }
+
+    private PortalContentOwnershipDomainService contentOwnership() {
+        return new PortalContentOwnershipDomainService(portalCrudService, new PortalNavigationItemsCrudServiceInMemory());
     }
 
     @AfterEach
@@ -150,7 +160,7 @@ class DefaultPortalUpgraderTest {
         memoizingInstallationAccess.withPortalUrl(ENV_A.getId(), "https://a.acme.io").withPortalUrl(ENV_B.getId(), "https://b.acme.io");
         upgrader = new DefaultPortalUpgrader(
             environmentRepository,
-            new DefaultPortalDomainService(portalCrudService, new PortalUrlDomainService(memoizingInstallationAccess))
+            new DefaultPortalDomainService(portalCrudService, new PortalUrlDomainService(memoizingInstallationAccess), contentOwnership())
         );
         givenEnvironments(ENV_A, ENV_B);
         // a value memoized on this thread before the upgrader runs, e.g. by an earlier upgrader

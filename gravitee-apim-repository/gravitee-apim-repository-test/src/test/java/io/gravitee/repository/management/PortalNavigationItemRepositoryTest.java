@@ -1361,4 +1361,139 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             portalNavigationItemRepository.delete("automation-reference-none");
         }
     }
+
+    //////////////////////////////////////
+    ////   PORTAL REFERENCES
+    //////////////////////////////////////
+
+    private static final String ORPHANS_ENV = "env-orphan-references";
+    private static final String ZERO_UUID = "00000000-0000-0000-0000-000000000000";
+    private static final List<String> DEAD_PORTALS = List.of(ZERO_UUID, "deleted-portal");
+
+    private PortalNavigationItem storedItem(String id) throws Exception {
+        return portalNavigationItemRepository.findById(id).orElseThrow();
+    }
+
+    @Test
+    public void should_find_the_distinct_portal_references_of_an_environment() throws Exception {
+        assertThat(portalNavigationItemRepository.findPortalReferenceIdsByEnvironmentId(ORPHANS_ENV)).containsExactlyInAnyOrder(
+            ZERO_UUID,
+            "deleted-portal",
+            "deleted-automation-portal",
+            "existing-portal"
+        );
+    }
+
+    @Test
+    public void should_find_no_portal_reference_in_an_environment_without_items() throws Exception {
+        assertThat(portalNavigationItemRepository.findPortalReferenceIdsByEnvironmentId("env-without-items")).isEmpty();
+    }
+
+    @Test
+    public void should_update_the_listed_portal_references() throws Exception {
+        portalNavigationItemRepository.updatePortalReferences(ORPHANS_ENV, DEAD_PORTALS, "target-portal");
+
+        assertThat(storedItem("orphan-zero-uuid").getReferenceId()).isEqualTo("target-portal");
+        assertThat(storedItem("orphan-homepage").getReferenceId()).isEqualTo("target-portal");
+        assertThat(storedItem("orphan-dead-portal").getReferenceId()).isEqualTo("target-portal");
+    }
+
+    @Test
+    public void should_leave_items_on_an_unlisted_portal_untouched() throws Exception {
+        portalNavigationItemRepository.updatePortalReferences(ORPHANS_ENV, DEAD_PORTALS, "target-portal");
+
+        assertThat(storedItem("on-existing-portal").getReferenceId()).isEqualTo("existing-portal");
+    }
+
+    @Test
+    public void should_not_touch_api_references_even_when_listed() throws Exception {
+        portalNavigationItemRepository.updatePortalReferences(ORPHANS_ENV, List.of(ZERO_UUID, "some-api"), "target-portal");
+
+        assertThat(storedItem("on-api").getReferenceType()).isEqualTo(PortalNavigationReferenceType.API);
+        assertThat(storedItem("on-api").getReferenceId()).isEqualTo("some-api");
+    }
+
+    @Test
+    public void should_leave_items_managed_by_the_automation_api_untouched() throws Exception {
+        portalNavigationItemRepository.updatePortalReferences(ORPHANS_ENV, List.of("deleted-automation-portal"), "target-portal");
+
+        assertThat(storedItem("automation-on-dead-portal").getReferenceId()).isEqualTo("deleted-automation-portal");
+        assertThat(storedItem("legacy-automation-on-zero-uuid").getReferenceId()).isEqualTo(ZERO_UUID);
+    }
+
+    @Test
+    public void should_point_automation_items_at_the_portal_they_were_synced_for() throws Exception {
+        var before = storedItem("legacy-automation-on-zero-uuid");
+
+        var changed = portalNavigationItemRepository.updateAutomationPortalReferences(ORPHANS_ENV, DEAD_PORTALS, "existing-portal");
+
+        assertThat(changed).isEqualTo(1L);
+        var after = storedItem("legacy-automation-on-zero-uuid");
+        assertThat(after.getReferenceId()).isEqualTo("existing-portal");
+        assertThat(after).usingRecursiveComparison().ignoringFields("referenceId").isEqualTo(before);
+        assertThat(storedItem("orphan-zero-uuid").getReferenceId()).isEqualTo(ZERO_UUID);
+    }
+
+    @Test
+    public void should_not_point_items_synced_for_an_api_at_a_portal() throws Exception {
+        portalNavigationItemRepository.updateAutomationPortalReferences(ORPHANS_ENV, DEAD_PORTALS, "existing-portal");
+
+        assertThat(storedItem("api-synced-on-zero-uuid").getReferenceId()).isEqualTo(ZERO_UUID);
+    }
+
+    @Test
+    public void should_not_point_automation_items_at_another_portal() throws Exception {
+        portalNavigationItemRepository.updateAutomationPortalReferences(
+            ORPHANS_ENV,
+            List.of(ZERO_UUID, "deleted-automation-portal"),
+            "target-portal"
+        );
+
+        assertThat(storedItem("legacy-automation-on-zero-uuid").getReferenceId()).isEqualTo(ZERO_UUID);
+        assertThat(storedItem("automation-on-dead-portal").getReferenceId()).isEqualTo("deleted-automation-portal");
+    }
+
+    @Test
+    public void should_change_no_automation_item_for_an_empty_list() throws Exception {
+        assertThat(portalNavigationItemRepository.updateAutomationPortalReferences(ORPHANS_ENV, List.of(), "existing-portal")).isZero();
+    }
+
+    @Test
+    public void should_not_touch_another_environment() throws Exception {
+        portalNavigationItemRepository.updatePortalReferences(ORPHANS_ENV, DEAD_PORTALS, "target-portal");
+
+        assertThat(storedItem("orphan-other-environment").getReferenceId()).isEqualTo(ZERO_UUID);
+    }
+
+    @Test
+    public void should_only_change_the_reference() throws Exception {
+        var withCategories = storedItem("orphan-zero-uuid");
+        withCategories.setCategoryIds(List.of("orphan-category"));
+        portalNavigationItemRepository.update(withCategories);
+        var before = storedItem("orphan-zero-uuid");
+
+        try {
+            portalNavigationItemRepository.updatePortalReferences(ORPHANS_ENV, DEAD_PORTALS, "target-portal");
+
+            var after = storedItem("orphan-zero-uuid");
+            assertThat(after.getReferenceId()).isEqualTo("target-portal");
+            assertThat(after).usingRecursiveComparison().ignoringFields("referenceId").isEqualTo(before);
+        } finally {
+            // Removes the category row too: the JDBC test tear-down does not empty that table.
+            portalNavigationItemRepository.delete("orphan-zero-uuid");
+        }
+    }
+
+    @Test
+    public void should_return_the_number_of_rows_changed_and_zero_once_moved() throws Exception {
+        assertThat(portalNavigationItemRepository.updatePortalReferences(ORPHANS_ENV, DEAD_PORTALS, "target-portal")).isEqualTo(3L);
+        assertThat(portalNavigationItemRepository.updatePortalReferences(ORPHANS_ENV, DEAD_PORTALS, "target-portal")).isZero();
+    }
+
+    @Test
+    public void should_change_nothing_for_an_empty_list() throws Exception {
+        assertThat(portalNavigationItemRepository.updatePortalReferences(ORPHANS_ENV, List.of(), "target-portal")).isZero();
+
+        assertThat(storedItem("orphan-zero-uuid").getReferenceId()).isEqualTo(ZERO_UUID);
+    }
 }

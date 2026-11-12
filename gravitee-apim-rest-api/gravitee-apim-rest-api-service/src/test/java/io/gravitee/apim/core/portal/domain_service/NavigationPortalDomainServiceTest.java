@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
+import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
@@ -50,7 +51,11 @@ class NavigationPortalDomainServiceTest {
         portalCrudService.reset();
         installationAccessQueryService.reset();
         cut = new NavigationPortalDomainService(
-            new DefaultPortalDomainService(portalCrudService, new PortalUrlDomainService(installationAccessQueryService)),
+            new DefaultPortalDomainService(
+                portalCrudService,
+                new PortalUrlDomainService(installationAccessQueryService),
+                new PortalContentOwnershipDomainService(portalCrudService, new PortalNavigationItemsCrudServiceInMemory())
+            ),
             portalCrudService
         );
     }
