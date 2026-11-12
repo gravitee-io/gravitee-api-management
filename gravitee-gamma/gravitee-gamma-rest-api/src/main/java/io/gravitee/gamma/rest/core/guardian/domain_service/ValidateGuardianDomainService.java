@@ -72,7 +72,7 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
 
     private final GuardianRepository guardianRepository;
 
-    private static final ApiType SUPPORTED_API_TYPE = ApiType.LLM_PROXY;
+    public static final ApiType SUPPORTED_API_TYPE = ApiType.LLM_PROXY;
     private final PolicyPluginProvider policyPluginProvider;
     private final JsonDeserializer jsonDeserializer;
 

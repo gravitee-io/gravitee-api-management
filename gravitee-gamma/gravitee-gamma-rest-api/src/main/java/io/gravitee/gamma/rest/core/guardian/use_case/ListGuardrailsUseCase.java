@@ -15,6 +15,8 @@
  */
 package io.gravitee.gamma.rest.core.guardian.use_case;
 
+import static io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService.SUPPORTED_API_TYPE;
+
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.definition.model.v4.ApiType;
@@ -33,7 +35,8 @@ import lombok.RequiredArgsConstructor;
  *
  * <p>The API type and the phase arrive as the wire values a Guardian carries ({@code llm-proxy},
  * {@code REQUEST}); an unknown or missing one answers 400 rather than an empty list, which would read
- * as "nothing is installed".
+ * as "nothing is installed". A known API type no Guardian can be created for lists nothing: no
+ * guardrail can run there.
  *
  * @author GraviteeSource Team
  */
@@ -48,8 +51,12 @@ public class ListGuardrailsUseCase {
     public record Output(List<Guardrail> guardrails) {}
 
     public Output execute(Input input) {
-        var apiTypes = Set.of(apiType(input.apiType()));
+        var apiType = apiType(input.apiType());
         var phase = phase(input.phase());
+        if (apiType != SUPPORTED_API_TYPE) {
+            return new Output(List.of());
+        }
+        var apiTypes = Set.of(apiType);
         var guardrails = policyPluginProvider
             .findAllCapabilities()
             .entrySet()

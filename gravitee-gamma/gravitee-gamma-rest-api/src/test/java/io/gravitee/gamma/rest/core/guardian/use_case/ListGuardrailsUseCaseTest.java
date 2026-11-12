@@ -67,6 +67,15 @@ class ListGuardrailsUseCaseTest {
         assertThat(useCase.execute(new ListGuardrailsUseCase.Input("llm-proxy", "RESPONSE")).guardrails()).isEmpty();
     }
 
+    @Test
+    void should_list_nothing_for_an_api_type_no_guardian_can_be_created_for() {
+        policies.put("tool-guard", new PolicyCapabilities("Tool guard", true, Map.of(ApiType.MCP_PROXY, Set.of(Phase.REQUEST))));
+
+        assertThat(useCase.execute(new ListGuardrailsUseCase.Input("mcp-proxy", "REQUEST")).guardrails())
+            .as("a guardrail declaring an unsupported API type can never run in a Guardian")
+            .isEmpty();
+    }
+
     @ParameterizedTest
     @CsvSource(
         nullValues = "null",
