@@ -162,15 +162,25 @@ class SaslMechanismTest {
         value = {
             "GSSAPI | com.sun.security.auth.module.JndiLoginModule required; | The JAAS configuration of GSSAPI must use the login module com.sun.security.auth.module.Krb5LoginModule, not com.sun.security.auth.module.JndiLoginModule.",
             "AWS_MSK_IAM | com.sun.security.auth.module.Krb5LoginModule required; | The JAAS configuration of AWS_MSK_IAM must use the login module software.amazon.msk.auth.iam.IAMLoginModule, not com.sun.security.auth.module.Krb5LoginModule.",
-            "GSSAPI | ' ' | GSSAPI needs a JAAS configuration.",
-            "AWS_MSK_IAM | | AWS_MSK_IAM needs a JAAS configuration.",
         }
     )
-    void should_refuse_a_jaas_config_with_another_or_no_login_module(String type, String saslJaasConfig, String reason) {
+    void should_refuse_a_jaas_config_with_another_login_module(String type, String saslJaasConfig, String reason) {
         SaslMechanism mechanism = jaas(type, saslJaasConfig);
 
         assertThat(mechanism.unsupportedReason()).isEqualTo(reason);
         assertThat(mechanism.resolvedUnsupportedReason()).isEqualTo(reason);
+    }
+
+    @ParameterizedTest
+    @CsvSource(delimiter = '|', value = { "GSSAPI | ' '", "AWS_MSK_IAM | " })
+    void should_refuse_a_missing_jaas_config_and_tell_how_to_fix_a_stored_cluster(String type, String saslJaasConfig) {
+        SaslMechanism mechanism = jaas(type, saslJaasConfig);
+
+        assertThat(mechanism.unsupportedReason()).isEqualTo(
+            type + " needs a JAAS configuration: give it again if this cluster was saved before it was kept."
+        );
+        // On the gateway, the configuration comes from a resolved cluster, not from storage.
+        assertThat(mechanism.resolvedUnsupportedReason()).isEqualTo(type + " needs a JAAS configuration.");
     }
 
     @Test
