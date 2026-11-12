@@ -17,9 +17,12 @@ package io.gravitee.gamma.rest.resources.guardian;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gamma.rest.core.guardian.use_case.DeleteGuardianUseCase;
+import io.gravitee.gamma.rest.core.guardian.use_case.DeployGuardianUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.GetGuardianUseCase;
+import io.gravitee.gamma.rest.core.guardian.use_case.UndeployGuardianUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.UpdateGuardianUseCase;
 import io.gravitee.gamma.rest.resources.CurrentAuditInfo;
+import io.gravitee.gamma.rest.resources.guardian.dto.DeployGuardianRequestDto;
 import io.gravitee.gamma.rest.resources.guardian.dto.GuardianDto;
 import io.gravitee.gamma.rest.resources.guardian.dto.UpdateGuardianRequestDto;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -28,11 +31,14 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
@@ -48,8 +54,11 @@ import jakarta.ws.rs.core.Response;
  *       exists elsewhere.</li>
  *   <li>{@code PUT} — replaces the whole definition. A field the payload leaves out is left out of
  *       the stored definition too; only the identity and the deployment stamp are kept back.</li>
- *   <li>{@code DELETE} — {@code 204}. The PRD's refusal to delete a Guardian enabled on an API
- *       waits on the API-Guardian association (AIAM-1533).</li>
+ *   <li>{@code POST /_deploy} — publishes the current draft with an optional deployment label.</li>
+ *   <li>{@code POST /_undeploy} — withdraws the publication while preserving the draft.</li>
+ *   <li>{@code DELETE} — {@code 204}, or {@code 409} while the Guardian has an active publication:
+ *       {@code _undeploy} withdraws it first. The PRD's refusal to delete a Guardian enabled on an
+ *       API waits on the API-Guardian association (AIAM-1533).</li>
  * </ul>
  *
  * @author GraviteeSource Team
@@ -65,6 +74,31 @@ public class GuardianResource {
 
     @Inject
     private DeleteGuardianUseCase deleteGuardianUseCase;
+
+    @Inject
+    private DeployGuardianUseCase deployGuardianUseCase;
+
+    @Inject
+    private UndeployGuardianUseCase undeployGuardianUseCase;
+
+    @POST
+    @Path("/_undeploy")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GUARDIAN, acls = { RolePermissionAction.UPDATE }) })
+    public GuardianDto undeploy(@PathParam("guardianId") String guardianId) {
+        var output = undeployGuardianUseCase.execute(new UndeployGuardianUseCase.Input(CurrentAuditInfo.of(), guardianId));
+        return GuardianDto.from(output.guardian());
+    }
+
+    @POST
+    @Path("/_deploy")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GUARDIAN, acls = { RolePermissionAction.UPDATE }) })
+    public GuardianDto deploy(@PathParam("guardianId") String guardianId, @Valid DeployGuardianRequestDto request) {
+        var output = deployGuardianUseCase.execute(
+            new DeployGuardianUseCase.Input(CurrentAuditInfo.of(), guardianId, request == null ? null : request.deploymentLabel())
+        );
+        return GuardianDto.from(output.guardian());
+    }
 
     @GET
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GUARDIAN, acls = { RolePermissionAction.READ }) })

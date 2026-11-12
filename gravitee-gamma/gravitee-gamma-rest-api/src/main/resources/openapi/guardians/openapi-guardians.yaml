@@ -2,9 +2,9 @@ openapi: 3.0.3
 info:
     title: Gravitee.io Gamma - Guardians
     description: |
-        CRUD for Guardians: named, reusable guardrail sequences defined at environment level and
-        attached to LLM proxies. A Guardian is stored and edited here; deploying it to the gateway
-        is a separate concern and no endpoint on this surface deploys anything.
+        Manage and deploy Guardians: named, reusable guardrail sequences defined at environment
+        level and attached to LLM proxies. Saving a Guardian updates its draft; the `_deploy`
+        endpoint publishes that draft to the gateway.
 
         **What this surface does not carry.** Two fields the domain holds are deliberately absent
         from every payload. The environment, because it is already in the path. And the serialized
@@ -24,7 +24,7 @@ info:
         **A Guardian is its definition.** Creation and update both carry the whole thing — name,
         phase, API types, guardrail sequence and resources — and a `PUT` replaces it rather than
         patching it. Five fields are the store's and not the caller's: `id`, which comes from the
-        path, `lifecycleState` and `deployedAt`, which only a deployment writes, and `createdAt` and
+        path, `lifecycleState` and `deployedAt`, which come from the latest deployment, and `createdAt` and
         `updatedAt`. An update accepts all five and ignores them, so the response of a `GET` can be
         sent straight back.
 
@@ -105,10 +105,8 @@ paths:
                       value is refused with 400 rather than silently ignored.
 
                       `apiType` is absent because a Guardian carries its API types as a set: there is
-                      no single value to order rows by. `deployedAt` is absent because every value is
-                      null until the deployment path lands, and the backends disagree on where nulls
-                      sort — Postgres last on an ascending sort, MySQL and Mongo first. It can be
-                      offered once that is settled.
+                      no single value to order rows by. `deployedAt` is derived from the latest
+                      publication when the page is read, so it is not a sortable stored draft field.
                   schema:
                       type: string
                       default: "-updatedAt"
@@ -265,7 +263,9 @@ paths:
                 - Guardians
             summary: Delete a Guardian
             description: |
-                Deletes it outright. The PRD's rule — refusing to delete a Guardian that is enabled
+                Refuses deletion with 409 while the Guardian has an active publication, whether its
+                draft is DEPLOYED or PENDING. Deleting an unpublished draft does not withdraw an event.
+                The PRD's rule — refusing to delete a Guardian that is enabled
                 on an API, with the list of those APIs — is **not implemented yet**: the association
                 between an API and a Guardian lands with AIAM-1533, so there is nothing to look it
                 up in.
@@ -273,6 +273,77 @@ paths:
             responses:
                 "204":
                     description: Deleted. The body is empty.
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+                "409":
+                    description: The Guardian has an active publication and cannot be deleted.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /organizations/{orgId}/environments/{envId}/guardians/{guardianId}/_deploy:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/guardianIdParam"
+        post:
+            tags:
+                - Guardians
+            summary: Publish the current Guardian draft to the gateways
+            description: |
+                Requires ENVIRONMENT_GUARDIAN UPDATE. Publishes a new revision, including when the
+                definition is unchanged, and records an audit entry. The returned state compares the
+                current draft with the latest publication; it is not an acknowledgement from each gateway.
+                The stored draft is published as is: it was validated when created or updated, so a policy
+                that has become incompatible since, uninstalled or downgraded, is only refused when the
+                gateways start the Guardian.
+            operationId: deployGuardian
+            requestBody:
+                required: false
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/DeployGuardian"
+            responses:
+                "200":
+                    description: The Guardian with its current publication state and deployment date.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Guardian"
+                "400":
+                    $ref: "#/components/responses/BadRequest"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /organizations/{orgId}/environments/{envId}/guardians/{guardianId}/_undeploy:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/guardianIdParam"
+        post:
+            tags:
+                - Guardians
+            summary: Withdraw the Guardian publication from the gateways
+            description: |
+                Requires ENVIRONMENT_GUARDIAN UPDATE. Withdraws the active publication and records
+                an audit entry, preserving the current draft and the last deployment date. Updates
+                updatedAt when a publication is withdrawn. Already undeployed Guardians are returned
+                unchanged without another event or audit entry. The returned UNDEPLOYED state is
+                not an acknowledgement from each gateway.
+            operationId: undeployGuardian
+            responses:
+                "200":
+                    description: The Guardian with no active publication and its last deployment date.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Guardian"
                 "403":
                     $ref: "#/components/responses/Forbidden"
                 "404":
@@ -523,12 +594,12 @@ components:
                     allOf:
                         - $ref: "#/components/schemas/GuardianLifecycleState"
                     readOnly: true
-                    description: Ignored — only a deployment moves the lifecycle.
+                    description: Ignored — derived from the latest deployment.
                 deployedAt:
                     allOf:
                         - $ref: "#/components/schemas/Timestamp"
                     readOnly: true
-                    description: Ignored — only a deployment writes the stamp.
+                    description: Ignored — the date of the latest deployment.
                 createdAt:
                     allOf:
                         - $ref: "#/components/schemas/Timestamp"
@@ -675,11 +746,22 @@ components:
                 - REQUEST
                 - RESPONSE
 
+        DeployGuardian:
+            type: object
+            additionalProperties: false
+            properties:
+                deploymentLabel:
+                    type: string
+                    maxLength: 256
+                    description: Optional label retained with this deployment in the event history.
+
         GuardianLifecycleState:
             type: string
             description: |
-                Whether the gateway is running this Guardian. Set by the deployment path, never by
-                this surface: a Guardian created here is always `UNDEPLOYED`.
+                Whether the current draft matches its latest publication. UNDEPLOYED means no active
+                publication, DEPLOYED means the draft matches it, and PENDING means it differs.
+                This is not an acknowledgement that every gateway has started the revision.
+                A newly created Guardian is UNDEPLOYED.
             enum:
                 - DEPLOYED
                 - UNDEPLOYED
