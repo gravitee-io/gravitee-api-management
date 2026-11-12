@@ -221,4 +221,65 @@ tests:
                   sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="username" password="password";
                   sasl.mechanism: PLAIN
                   security.protocol: SASL_SSL
-
+  - it: Enable Kafka and set the backend login pool
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          requestTimeout: 42
+          backendLogin:
+            threads: 6
+            queueCapacity: 100
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            kafka:
+              enabled: true
+              requestTimeout: 42
+              backendLogin:
+                threads: 6
+                queueCapacity: 100
+  - it: Enable Kafka and set only the backend login threads
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          backendLogin:
+            threads: 6
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            backendLogin:
+                threads: 6
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "queueCapacity"
+  - it: Enable Kafka and set only the backend login queue capacity
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          backendLogin:
+            queueCapacity: 100
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "backendLogin:\\n\\s+queueCapacity: 100\\n"
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "backendLogin:(\\n\\s{4}\\S.*)*\\n\\s{4}threads"
+  - it: Enable Kafka and keep the backend login pool unset by default
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "backendLogin"

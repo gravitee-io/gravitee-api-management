@@ -3,6 +3,9 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.10.36
+- Add `gateway.kafka.backendLogin.threads` and `gateway.kafka.backendLogin.queueCapacity`, rendered as `kafka.backendLogin.threads` and `kafka.backendLogin.queueCapacity` in the gateway `gravitee.yml`. The chart only renders the Kafka keys it knows, so they could not be set from the values. They are read only by a gateway whose native Kafka reactor includes the backend login pool; an earlier reactor ignores them. They size the pool that runs the blocking login to a Kafka backend (such as an OAUTHBEARER token endpoint call) away from the event loops: `threads` (default 4) and the logins that may wait for a thread, `queueCapacity` (default 64). Both are unset by default, so the gateway keeps its defaults and nothing changes.
+
 ### 4.10.34
 - Add `ldap.lookup.activations`, a list of organization ids or `organization id:environment id` pairs that restricts where the LDAP user search of the Management API is allowed, mirroring the `lookup.activations` key of the `ldap` identity provider in `gravitee.yml` (FOUND-370). Empty by default, so the directory stays searchable from every organization and portal as before. Authentication is not affected.
 
