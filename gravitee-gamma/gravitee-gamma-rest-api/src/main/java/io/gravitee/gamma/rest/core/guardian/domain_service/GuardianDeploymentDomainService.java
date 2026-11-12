@@ -27,6 +27,7 @@ import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianDeployment;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -58,23 +59,26 @@ public class GuardianDeploymentDomainService {
     public Guardian state(Guardian guardian, GuardianDeployment publication) {
         return switch (publication) {
             case null -> guardian.toBuilder().lifecycleState(GuardianLifecycleState.UNDEPLOYED).deployedAt(null).build();
-            case GuardianDeployment.Published published -> advancedTo(guardian, published)
+            case GuardianDeployment.Published published -> guardian
+                .toBuilder()
+                .updatedAt(advancedTo(guardian, published))
                 .lifecycleState(matches(guardian, published) ? GuardianLifecycleState.DEPLOYED : GuardianLifecycleState.PENDING)
                 .deployedAt(published.at())
                 .build();
-            case GuardianDeployment.Withdrawn withdrawn -> advancedTo(guardian, withdrawn)
+            case GuardianDeployment.Withdrawn withdrawn -> guardian
+                .toBuilder()
+                .updatedAt(advancedTo(guardian, withdrawn))
                 .lifecycleState(GuardianLifecycleState.UNDEPLOYED)
                 .deployedAt(withdrawn.deployedAt())
                 .build();
         };
     }
 
-    private static Guardian.GuardianBuilder advancedTo(Guardian guardian, GuardianDeployment deployment) {
-        var builder = guardian.toBuilder();
+    private static Instant advancedTo(Guardian guardian, GuardianDeployment deployment) {
         if (guardian.getUpdatedAt() == null || guardian.getUpdatedAt().isBefore(deployment.at())) {
-            builder.updatedAt(deployment.at());
+            return deployment.at();
         }
-        return builder;
+        return guardian.getUpdatedAt();
     }
 
     public Guardian state(Guardian guardian) {
