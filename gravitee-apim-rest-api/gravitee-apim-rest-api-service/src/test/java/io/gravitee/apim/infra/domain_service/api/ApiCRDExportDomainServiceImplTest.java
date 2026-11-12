@@ -154,9 +154,39 @@ class ApiCRDExportDomainServiceImplTest {
                 false
             )
         )
-            .isInstanceOfSatisfying(MissingPermissionException.class, e -> assertThat(e.getHttpStatusCode()).isEqualTo(403))
-            .hasMessage("Missing permission API_PLAN[READ] on [api-id]");
+            .isInstanceOfSatisfying(MissingPermissionException.class, e -> {
+                assertThat(e.getHttpStatusCode()).isEqualTo(403);
+                assertThat(e.getTechnicalCode()).isEqualTo("permission.missing");
+                assertThat(e.getParameters()).containsExactlyInAnyOrderEntriesOf(
+                    Map.of("permission", "API_PLAN", "action", "READ", "referenceId", API_ID)
+                );
+            })
+            .hasMessage("Missing permission API_PLAN[READ] on [" + API_ID + "]");
         verify(exportService, never()).exportApi(any(), any(), any(), any());
+    }
+
+    @Test
+    void should_export_when_the_caller_can_read_the_definition_and_the_plans() {
+        givenTheCallerIsAnApiMemberWithRole(
+            Map.of(
+                RolePermission.API_DEFINITION,
+                Set.of(RolePermissionAction.READ),
+                RolePermission.API_PLAN,
+                Set.of(RolePermissionAction.READ)
+            )
+        );
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of())).thenReturn(
+            exportApiEntity(apiEntity().build())
+        );
+
+        var spec = apiCRDExportDomainService.export(
+            API_ID,
+            IDExportStrategy.ALL,
+            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build(),
+            false
+        );
+
+        assertThat(spec.getPlans()).containsOnlyKeys("plan-name");
     }
 
     private void givenTheCallerIsAnApiMemberWithRole(Map<RolePermission, Set<RolePermissionAction>> role) {
