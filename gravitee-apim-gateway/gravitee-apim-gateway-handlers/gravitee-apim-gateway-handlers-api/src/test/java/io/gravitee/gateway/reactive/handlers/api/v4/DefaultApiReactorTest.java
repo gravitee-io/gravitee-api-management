@@ -1432,7 +1432,8 @@ class DefaultApiReactorTest {
                 .when(ctx)
                 .removeInternalAttribute(ApiProductRuntime.ATTR_INTERNAL_API_PRODUCT_RUNTIME);
             lenient().when(runtime.productPlanFlowChain(false)).thenReturn(productPlanFlowChain);
-            lenient().when(productPlanFlowChain.execute(eq(ctx), any())).thenReturn(Completable.complete());
+            lenient().when(runtime.resourceManager()).thenReturn(mock(ResourceLifecycleManager.class));
+            lenient().when(productPlanFlowChain.execute(any(), any())).thenReturn(Completable.complete());
         }
 
         @Test
@@ -1446,8 +1447,8 @@ class DefaultApiReactorTest {
 
             InOrder inOrder = inOrder(runtime, productPlanFlowChain);
             inOrder.verify(runtime).extractPathParameters(ctx);
-            inOrder.verify(productPlanFlowChain).execute(ctx, ExecutionPhase.REQUEST);
-            inOrder.verify(productPlanFlowChain).execute(ctx, RESPONSE);
+            inOrder.verify(productPlanFlowChain).execute(any(), eq(ExecutionPhase.REQUEST));
+            inOrder.verify(productPlanFlowChain).execute(any(), eq(RESPONSE));
             inOrder.verify(runtime).release();
             verify(apiProductRuntimeRegistry, times(1)).acquire(PRODUCT_ID, ENVIRONMENT_ID);
         }
@@ -1457,7 +1458,7 @@ class DefaultApiReactorTest {
             givenInternalSubscriptionOfProduct(PRODUCT_ID);
             when(apiProductRuntimeRegistry.acquire(PRODUCT_ID, ENVIRONMENT_ID)).thenReturn(runtime);
             when(runtime.servesApi(API_ID)).thenReturn(true);
-            when(productPlanFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(
+            when(productPlanFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenReturn(
                 Completable.error(new IllegalStateException("policy failed"))
             );
             cut = buildApiReactor(apiProductRuntimeRegistry);
@@ -1494,7 +1495,7 @@ class DefaultApiReactorTest {
 
             verify(apiProductRuntimeRegistry, never()).acquire(any(), any());
             verify(runtime).extractPathParameters(ctx);
-            verify(productPlanFlowChain).execute(ctx, ExecutionPhase.REQUEST);
+            verify(productPlanFlowChain).execute(any(), eq(ExecutionPhase.REQUEST));
             verify(runtime, times(1)).release();
         }
 
@@ -1567,7 +1568,7 @@ class DefaultApiReactorTest {
 
             cut.handle(ctx).test().assertComplete();
 
-            verify(productPlanFlowChain).execute(ctx, ExecutionPhase.REQUEST);
+            verify(productPlanFlowChain).execute(any(), eq(ExecutionPhase.REQUEST));
             verify(runtime, times(1)).release();
             verifyNoInteractions(unusedFactory);
         }

@@ -45,6 +45,7 @@ import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntime;
 import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeRegistry;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
+import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.configuration.Configuration;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -88,6 +89,7 @@ class HttpSecurityChainTest {
                     null,
                     null,
                     List.of(componentByProduct.computeIfAbsent(product.getId(), id -> mock(LifecycleComponent.class))),
+                    mock(ResourceLifecycleManager.class),
                     () -> securityPlansByProduct.getOrDefault(product.getId(), List.of())
                 );
             });

@@ -21,6 +21,7 @@ import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.handlers.api.security.plan.HttpSecurityPlan;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChain;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.pathparameters.PathParametersExtractor;
+import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
@@ -41,6 +42,7 @@ public class ApiProductRuntime {
     private final FlowChain tracedProductPlanFlowChain;
     private final PathParametersExtractor pathParametersExtractor;
     private final List<LifecycleComponent<?>> components;
+    private final ResourceLifecycleManager resourceManager;
     private final Supplier<List<HttpSecurityPlan>> securityPlansBuilder;
     private volatile List<HttpSecurityPlan> securityPlans = List.of();
     private final AtomicInteger inFlight = new AtomicInteger();
@@ -59,6 +61,7 @@ public class ApiProductRuntime {
         FlowChain tracedProductPlanFlowChain,
         PathParametersExtractor pathParametersExtractor,
         List<LifecycleComponent<?>> components,
+        ResourceLifecycleManager resourceManager,
         Supplier<List<HttpSecurityPlan>> securityPlansBuilder
     ) {
         this.product = product;
@@ -66,7 +69,16 @@ public class ApiProductRuntime {
         this.tracedProductPlanFlowChain = tracedProductPlanFlowChain;
         this.pathParametersExtractor = pathParametersExtractor;
         this.components = List.copyOf(components);
+        this.resourceManager = resourceManager;
         this.securityPlansBuilder = securityPlansBuilder;
+    }
+
+    /**
+     * The resource manager this runtime exposes during its product plan flow: the product's started
+     * manager, or {@link EmptyProductResourceLifecycleManager} when the product has no resources.
+     */
+    public ResourceLifecycleManager resourceManager() {
+        return resourceManager;
     }
 
     public ReactableApiProduct product() {
