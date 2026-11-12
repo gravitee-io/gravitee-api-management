@@ -47,10 +47,13 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
     private final PlanValidatorDomainService planValidator;
     private final PlanCrudService planCrudService;
 
-    public record Input(AuditInfo auditInfo, ApiCRDSpec apiCRDSpec, Map<String, PlanCRD> plans, List<Page> pages) implements
+    /**
+     * @param apiId the API the import updates, or the spec id when it creates one
+     */
+    public record Input(AuditInfo auditInfo, ApiCRDSpec apiCRDSpec, String apiId, Map<String, PlanCRD> plans, List<Page> pages) implements
         Validator.Input {
         ValidatePlanDomainService.Input sanitized(Map<String, PlanCRD> sanitizedPlans) {
-            return new ValidatePlanDomainService.Input(auditInfo, apiCRDSpec, sanitizedPlans, pages);
+            return new ValidatePlanDomainService.Input(auditInfo, apiCRDSpec, apiId, sanitizedPlans, pages);
         }
     }
 
@@ -66,7 +69,7 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
         Map<String, PlanCRD> sanitizedPlans = new HashMap<>();
 
         input.plans.forEach((k, planCRD) -> {
-            if (belongsToAnotherReference(planCRD.getId(), input.apiCRDSpec.getId())) {
+            if (belongsToAnotherReference(planCRD.getId(), input.apiId)) {
                 errors.add(Error.severe("invalid plan [%s]. Error: plan id [%s] does not belong to this API", k, planCRD.getId()));
                 return;
             }
