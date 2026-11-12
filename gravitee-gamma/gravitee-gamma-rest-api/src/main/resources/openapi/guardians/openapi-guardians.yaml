@@ -796,10 +796,9 @@ components:
                     description: The policy plugin id, the value a guardrail step carries in `policy`.
                 name:
                     type: string
-                    description: The plugin name, for display.
+                    description: The plugin name, for display. Absent when the plugin manifest declares none.
             required:
                 - id
-                - name
             example:
                 id: data-logging-masking
                 name: Data logging masking
