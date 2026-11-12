@@ -39,6 +39,7 @@ import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.service.notification.ApiProductTemplateModel;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notifiers.WebNotifierService;
+import io.gravitee.rest.api.service.notifiers.WebhookNotifierPolicy;
 import io.gravitee.rest.api.service.notifiers.WebhookNotifierService;
 import io.vertx.core.json.JsonObject;
 import java.util.HashMap;
@@ -58,6 +59,9 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
     @Autowired
     WebNotifierService webNotifierService;
 
+    @Autowired
+    WebhookNotifierPolicy webhookNotifierPolicy;
+
     @Override
     public void trigger(
         String organizationId,
@@ -65,6 +69,14 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
         GenericNotificationConfig genericNotificationConfig,
         final Map<String, Object> params
     ) {
+        if (!webhookNotifierPolicy.isAllowed(genericNotificationConfig.getConfig())) {
+            log.warn(
+                "Webhook notification {} not sent: webhook notifiers are disabled or its URL is not in notifiers.webhook.whitelist",
+                genericNotificationConfig.getId()
+            );
+            return;
+        }
+
         //body
         String body = toJson(hook, params);
 

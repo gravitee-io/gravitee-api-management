@@ -27,6 +27,7 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.BadNotificationConfigException;
 import io.gravitee.rest.api.service.exceptions.NotificationConfigNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.notifiers.WebhookNotifierPolicy;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -45,15 +46,21 @@ import org.springframework.stereotype.Component;
 @Component
 public class GenericNotificationConfigServiceImpl extends AbstractService implements GenericNotificationConfigService {
 
+    private static final String WEBHOOK_NOTIFIER_ID = "default-webhook";
+
     @Lazy
     @Autowired
     GenericNotificationConfigRepository genericNotificationConfigRepository;
+
+    @Autowired
+    WebhookNotifierPolicy webhookNotifierPolicy;
 
     @Override
     public GenericNotificationConfigEntity create(GenericNotificationConfigEntity entity) {
         if (entity.getNotifier() == null || entity.getNotifier().isEmpty() || entity.getName() == null || entity.getName().isEmpty()) {
             throw new BadNotificationConfigException();
         }
+        assertWebhookAllowed(entity);
         try {
             GenericNotificationConfig notificationConfig = convert(entity);
             notificationConfig.setId(UuidString.generateRandom());
@@ -75,6 +82,7 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
             if (entity.getId() == null || entity.getId().isEmpty()) {
                 throw new NotificationConfigNotFoundException();
             }
+            assertWebhookAllowed(entity);
             GenericNotificationConfig existingConfig = genericNotificationConfigRepository
                 .findById(entity.getId())
                 .filter(config -> belongsTo(config, entity.getReferenceType(), entity.getReferenceId()))
@@ -107,6 +115,12 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
             genericNotificationConfigRepository.delete(id);
         } catch (TechnicalException te) {
             throw new TechnicalManagementException("An error occurs while trying to delete the generic notification " + id, te);
+        }
+    }
+
+    private void assertWebhookAllowed(GenericNotificationConfigEntity entity) {
+        if (WEBHOOK_NOTIFIER_ID.equals(entity.getNotifier())) {
+            webhookNotifierPolicy.assertAllowed(entity.getConfig());
         }
     }
 
