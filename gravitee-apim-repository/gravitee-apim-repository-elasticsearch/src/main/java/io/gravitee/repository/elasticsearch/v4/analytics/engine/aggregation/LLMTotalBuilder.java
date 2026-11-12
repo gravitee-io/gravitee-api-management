@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation;
 
+import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs;
 import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys;
 import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query;
@@ -22,11 +23,12 @@ import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Tokens;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * An LLM total: the sent and the received value of a request added together, a side the request does not carry
- * counting for nothing. A request carrying neither has no total, so it is left out of the average, as a request without
- * the value is on every other metric.
+ * counting for nothing. A request carrying neither has no total, so it is left out of the count and of the average,
+ * as a request without the value is on every other metric.
  */
 public record LLMTotalBuilder(String sentField, String receivedField) {
     private static final String SCRIPT = """
@@ -38,12 +40,13 @@ public record LLMTotalBuilder(String sentField, String receivedField) {
         return total;
         """;
 
-    public Map<String, JsonObject> buildSum(String aggName) {
-        return scripted(aggName, Aggs.SUM);
-    }
-
-    public Map<String, JsonObject> buildAvg(String aggName) {
-        return scripted(aggName, Aggs.AVG);
+    public Optional<Map<String, JsonObject>> build(String aggName, Measure measure) {
+        return switch (measure) {
+            case COUNT -> Optional.of(scripted(aggName, Aggs.VALUE_COUNT));
+            case SUM -> Optional.of(scripted(aggName, Aggs.SUM));
+            case AVG -> Optional.of(scripted(aggName, Aggs.AVG));
+            case MIN, MAX, P50, P90, P95, P99, PERCENTAGE -> Optional.empty();
+        };
     }
 
     /** The requests carrying at least one of the two values. */

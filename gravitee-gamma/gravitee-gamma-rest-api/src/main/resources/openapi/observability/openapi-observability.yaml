@@ -1666,7 +1666,7 @@ paths:
                                             label: "Total token count"
                                             unit: "TOKENS"
                                             apiTypes: ["LLM"]
-                                            measures: ["COUNT", "AVG"]
+                                            measures: ["COUNT", "SUM", "AVG"]
                                             facets: ["API", "LLM_PROXY_MODEL"]
                                             filters: ["API", "API_TYPE", "LLM_PROXY_MODEL"]
                                             origin: "BUILT_IN"
@@ -1675,7 +1675,7 @@ paths:
                                             unit: "CURRENCY"
                                             currency: "USD"
                                             apiTypes: ["LLM"]
-                                            measures: ["COUNT", "AVG"]
+                                            measures: ["COUNT", "SUM", "AVG"]
                                             facets: ["API", "LLM_PROXY_MODEL"]
                                             filters: ["API", "API_TYPE", "LLM_PROXY_MODEL"]
                                             origin: "BUILT_IN"
@@ -3648,8 +3648,14 @@ components:
                     type: array
                     description: |
                         Aggregation functions to apply. Valid values: `COUNT`, `AVG`, `MIN`, `MAX`,
-                        `SUM`, `P50`, `P90`, `P95`, `P99`, `PERCENTAGE`. An additional metric field takes
-                        all but `PERCENTAGE`; its `COUNT` counts the requests carrying it.
+                        `SUM`, `P50`, `P90`, `P95`, `P99`, `PERCENTAGE`, among those the metric's definition
+                        lists; an additional metric field takes all but `PERCENTAGE`. `COUNT` counts the requests
+                        carrying the metric's value (messages on a message metric) and `SUM` totals the value: the
+                        token or cost total on an LLM metric (`LLM_PROMPT_TOKEN_SENT`, …), the field's total on an
+                        additional metric field. `AVG`, `MIN`, `MAX` and the percentiles are computed over the
+                        documents carrying the value. An LLM total (`LLM_PROMPT_TOTAL_TOKEN`,
+                        `LLM_PROMPT_TOKEN_TOTAL_COST`) adds the sent and received values of each request carrying at
+                        least one of them.
                     items:
                         type: string
                     example: ["COUNT"]
@@ -3879,8 +3885,12 @@ components:
                 unit:
                     type: string
                     description: |
-                        Unit of the metric values, one of the named units of `MetricDefinition.unit`. Absent
-                        for an additional metric field: its declared unit is served by the metric definitions.
+                        Unit of the metric values, one of the named units of `MetricDefinition.unit`. A `COUNT`
+                        is a number of requests (messages on a message metric) whatever the metric's unit: an
+                        entry reading `COUNT` only is served `COUNT`, without `currency`, on a built-in and an
+                        additional metric alike. An entry mixing `COUNT` with other measures keeps the metric's
+                        unit, which applies to its measures other than `COUNT`; on an additional metric field it
+                        is then absent: the field's declared unit is served by the metric definitions.
                     example: "COUNT"
                 currency:
                     type: string
@@ -3962,8 +3972,12 @@ components:
                 unit:
                     type: string
                     description: |
-                        Unit of the metric values, one of the named units of `MetricDefinition.unit`. Absent
-                        for an additional metric field.
+                        Unit of the metric values, one of the named units of `MetricDefinition.unit`. A `COUNT`
+                        is a number of requests (messages on a message metric) whatever the metric's unit: an
+                        entry reading `COUNT` only is served `COUNT`, without `currency`, on a built-in and an
+                        additional metric alike. An entry mixing `COUNT` with other measures keeps the metric's
+                        unit, which applies to its measures other than `COUNT`; on an additional metric field it
+                        is then absent.
                     example: "COUNT"
                 currency:
                     type: string
@@ -4041,8 +4055,12 @@ components:
                 unit:
                     type: string
                     description: |
-                        Unit of the metric values, one of the named units of `MetricDefinition.unit`. Absent
-                        for an additional metric field.
+                        Unit of the metric values, one of the named units of `MetricDefinition.unit`. A `COUNT`
+                        is a number of requests (messages on a message metric) whatever the metric's unit: an
+                        entry reading `COUNT` only is served `COUNT`, without `currency`, on a built-in and an
+                        additional metric alike. An entry mixing `COUNT` with other measures keeps the metric's
+                        unit, which applies to its measures other than `COUNT`; on an additional metric field it
+                        is then absent.
                     example: "COUNT"
                 currency:
                     type: string
@@ -4152,9 +4170,10 @@ components:
                     type: string
                     description: |
                         Unit of the metric values, in the vocabulary of `MetricDefinitionEntry.unit`. On a built-in,
-                        a named unit: the same value the measures, facets and time-series responses carry for it.
-                        On a `DECLARED` entry, the record's unit, as `GET /metric-definitions` serves it. Absent when
-                        none is known, so on every `DISCOVERED` entry and on a record without a unit.
+                        a named unit: the same value the measures, facets and time-series responses carry for it,
+                        except on an entry reading `COUNT` only, served `COUNT` without `currency`. On a `DECLARED`
+                        entry, the record's unit, as `GET /metric-definitions` serves it. Absent when none is known,
+                        so on every `DISCOVERED` entry and on a record without a unit.
                     example: "MILLISECONDS"
                 currency:
                     type: string

@@ -71,20 +71,28 @@ class AnalyticsElasticsearchRepositoryBuiltInMeasuresTest extends AbstractElasti
     private static final AdditionalMetric TOKENS_SENT_KEY = new AdditionalMetric(
         new AdditionalMetricField(ValueType.LONG, "long_llm-proxy_tokens-sent")
     );
+    private static final Set<Measure> FIELD_MEASURES = Set.of(
+        Measure.COUNT,
+        Measure.SUM,
+        Measure.AVG,
+        Measure.MIN,
+        Measure.MAX,
+        Measure.P99
+    );
 
     @Autowired
     private AnalyticsElasticsearchRepository cut;
 
     @Test
     void should_measure_a_built_in_and_the_additional_metric_it_reads_alike() {
-        var measured = Set.of(Measure.SUM, Measure.AVG, Measure.MIN, Measure.MAX, Measure.P99);
-        var builtIn = new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_SENT, measured);
-        var key = new MetricMeasuresQuery(TOKENS_SENT_KEY, measured);
+        var builtIn = new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_SENT, FIELD_MEASURES);
+        var key = new MetricMeasuresQuery(TOKENS_SENT_KEY, FIELD_MEASURES);
 
         var result = measures(builtIn, key);
 
         // Over lp-001, lp-002 and lp-003 (100, 300, 40): lp-004 and lp-005 send no token and count for nothing.
         var sent = measuresOf(result, Metric.LLM_PROMPT_TOKEN_SENT);
+        assertThat(sent.get(Measure.COUNT).longValue()).isEqualTo(3L);
         assertThat(sent.get(Measure.SUM).doubleValue()).isEqualTo(440.0);
         assertThat(sent.get(Measure.AVG).doubleValue()).isCloseTo(440.0 / 3, within(1e-9));
         assertThat(sent.get(Measure.MIN).doubleValue()).isEqualTo(40.0);
@@ -93,16 +101,49 @@ class AnalyticsElasticsearchRepositoryBuiltInMeasuresTest extends AbstractElasti
         assertThat(measuresOf(result, TOKENS_SENT_KEY)).isEqualTo(sent);
     }
 
-    /** lp-003 carries only sent tokens and cost, lp-005 only received ones: both are counted; lp-004 carries neither. */
     @Test
-    void should_average_an_llm_total_over_the_requests_carrying_either_of_its_two_values() {
+    void should_count_the_requests_carrying_an_llm_value_and_total_it() {
         var result = measures(
-            new MetricMeasuresQuery(Metric.LLM_PROMPT_TOTAL_TOKEN, Set.of(Measure.AVG)),
-            new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_TOTAL_COST, Set.of(Measure.AVG))
+            new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_RECEIVED, Set.of(Measure.COUNT, Measure.SUM, Measure.AVG)),
+            new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_SENT_COST, Set.of(Measure.COUNT, Measure.SUM, Measure.AVG)),
+            new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_RECEIVED_COST, Set.of(Measure.COUNT, Measure.SUM, Measure.AVG))
         );
 
-        assertThat(measuresOf(result, Metric.LLM_PROMPT_TOTAL_TOKEN).get(Measure.AVG).doubleValue()).isCloseTo(200.0, within(1e-9));
-        assertThat(measuresOf(result, Metric.LLM_PROMPT_TOKEN_TOTAL_COST).get(Measure.AVG).doubleValue()).isCloseTo(0.002, within(1e-9));
+        assertThat(measuresOf(result, Metric.LLM_PROMPT_TOKEN_RECEIVED)).satisfies(received -> {
+            assertThat(received.get(Measure.COUNT).longValue()).isEqualTo(3L);
+            assertThat(received.get(Measure.SUM).doubleValue()).isEqualTo(360.0);
+            assertThat(received.get(Measure.AVG).doubleValue()).isCloseTo(120.0, within(1e-9));
+        });
+        assertThat(measuresOf(result, Metric.LLM_PROMPT_TOKEN_SENT_COST)).satisfies(sentCost -> {
+            assertThat(sentCost.get(Measure.COUNT).longValue()).isEqualTo(3L);
+            assertThat(sentCost.get(Measure.SUM).doubleValue()).isCloseTo(0.0044, within(1e-9));
+            assertThat(sentCost.get(Measure.AVG).doubleValue()).isCloseTo(0.0044 / 3, within(1e-9));
+        });
+        assertThat(measuresOf(result, Metric.LLM_PROMPT_TOKEN_RECEIVED_COST)).satisfies(receivedCost -> {
+            assertThat(receivedCost.get(Measure.COUNT).longValue()).isEqualTo(3L);
+            assertThat(receivedCost.get(Measure.SUM).doubleValue()).isCloseTo(0.0036, within(1e-9));
+            assertThat(receivedCost.get(Measure.AVG).doubleValue()).isCloseTo(0.0012, within(1e-9));
+        });
+    }
+
+    /** lp-003 carries only sent tokens and cost, lp-005 only received ones: both are counted; lp-004 carries neither. */
+    @Test
+    void should_measure_an_llm_total_over_the_requests_carrying_either_of_its_two_values() {
+        var result = measures(
+            new MetricMeasuresQuery(Metric.LLM_PROMPT_TOTAL_TOKEN, Set.of(Measure.COUNT, Measure.SUM, Measure.AVG)),
+            new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_TOTAL_COST, Set.of(Measure.COUNT, Measure.SUM, Measure.AVG))
+        );
+
+        assertThat(measuresOf(result, Metric.LLM_PROMPT_TOTAL_TOKEN)).satisfies(tokens -> {
+            assertThat(tokens.get(Measure.COUNT).longValue()).isEqualTo(4L);
+            assertThat(tokens.get(Measure.SUM).doubleValue()).isEqualTo(800.0);
+            assertThat(tokens.get(Measure.AVG).doubleValue()).isCloseTo(200.0, within(1e-9));
+        });
+        assertThat(measuresOf(result, Metric.LLM_PROMPT_TOKEN_TOTAL_COST)).satisfies(cost -> {
+            assertThat(cost.get(Measure.COUNT).longValue()).isEqualTo(4L);
+            assertThat(cost.get(Measure.SUM).doubleValue()).isCloseTo(0.008, within(1e-9));
+            assertThat(cost.get(Measure.AVG).doubleValue()).isCloseTo(0.002, within(1e-9));
+        });
     }
 
     /** lp-004 has no endpoint response time: neither the average, the bounds nor a percentile reads it as 0. */
@@ -127,7 +168,7 @@ class AnalyticsElasticsearchRepositoryBuiltInMeasuresTest extends AbstractElasti
     void should_read_no_value_but_a_zero_count_and_sum_on_a_window_no_request_carries_the_value_in(Metric metric) {
         var empty = new TimeRange(DAY.minus(Duration.ofDays(1)), DAY);
         var measured = metric == Metric.LLM_PROMPT_TOTAL_TOKEN
-            ? Set.of(Measure.COUNT, Measure.AVG)
+            ? Set.of(Measure.COUNT, Measure.SUM, Measure.AVG)
             : Set.of(Measure.COUNT, Measure.SUM, Measure.AVG, Measure.MIN, Measure.MAX, Measure.P99);
 
         var result = cut.searchHTTPMeasures(
@@ -148,7 +189,7 @@ class AnalyticsElasticsearchRepositoryBuiltInMeasuresTest extends AbstractElasti
     @Test
     void should_read_no_value_in_a_time_bucket_no_request_carries_the_value_in() {
         var morning = new TimeRange(DAY.plus(Duration.ofHours(8)), DAY.plus(Duration.ofHours(10)).minusMillis(1));
-        var tokens = new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_SENT, Set.of(Measure.SUM, Measure.AVG));
+        var tokens = new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_SENT, Set.of(Measure.COUNT, Measure.SUM, Measure.AVG));
 
         var result = cut.searchHTTPTimeSeries(
             QUERY_CONTEXT,
@@ -157,7 +198,10 @@ class AnalyticsElasticsearchRepositoryBuiltInMeasuresTest extends AbstractElasti
 
         assertThat(result.metrics().getFirst().buckets())
             .extracting(TimeSeriesBucketResult::measures)
-            .containsExactly(Map.of(Measure.SUM, 440.0, Measure.AVG, 440.0 / 3), mapOfNullable(Measure.SUM, 0.0, Measure.AVG, null));
+            .containsExactly(
+                Map.of(Measure.COUNT, 3.0, Measure.SUM, 440.0, Measure.AVG, 440.0 / 3),
+                mapOfNullable(Measure.COUNT, 0.0, Measure.SUM, 0.0, Measure.AVG, null)
+            );
     }
 
     /**
@@ -219,10 +263,11 @@ class AnalyticsElasticsearchRepositoryBuiltInMeasuresTest extends AbstractElasti
             .measures();
     }
 
-    private static Map<Measure, Number> mapOfNullable(Measure k1, Number v1, Measure k2, Number v2) {
+    private static Map<Measure, Number> mapOfNullable(Measure k1, Number v1, Measure k2, Number v2, Measure k3, Number v3) {
         var map = new HashMap<Measure, Number>();
         map.put(k1, v1);
         map.put(k2, v2);
+        map.put(k3, v3);
         return map;
     }
 }
