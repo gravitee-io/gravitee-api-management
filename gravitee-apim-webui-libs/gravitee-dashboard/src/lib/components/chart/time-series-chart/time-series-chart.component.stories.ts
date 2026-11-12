@@ -126,6 +126,65 @@ export const SparseDataBar: StoryObj<TimeSeriesChartStoryArgs> = {
   },
 };
 
+export const LowTrafficAverageLine: StoryObj<TimeSeriesChartStoryArgs> = {
+  args: { storyId: 'low-traffic-average-line', type: 'time-series-line', dataPoints: [] },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'An average over daily buckets where most days carry no request: the days without a value are gaps, and a day whose neighbors have none is drawn as a point.',
+      },
+    },
+  },
+  render: args => {
+    const averages = [
+      null,
+      null,
+      180,
+      null,
+      null,
+      null,
+      95,
+      120,
+      null,
+      null,
+      null,
+      null,
+      240,
+      null,
+      null,
+      null,
+      null,
+      60,
+      75,
+      90,
+      null,
+      null,
+      null,
+      150,
+    ];
+    const metricBuckets = averages.map((value, day) => {
+      const timestamp = new Date(Date.UTC(2025, 0, 1 + day)).toISOString();
+      return { key: timestamp, name: timestamp, timestamp: new Date(timestamp), measures: [{ name: 'AVG' as const, value }] };
+    });
+
+    const timeSeriesData: TimeSeriesResponse = {
+      interval: '1d',
+      metrics: [{ name: 'HTTP_ENDPOINT_RESPONSE_TIME', unit: 'MILLISECONDS', buckets: metricBuckets }],
+      buckets: metricBuckets.map(({ key, name, timestamp }) => ({ key, name, timestamp })),
+    };
+
+    return {
+      template: `
+        <div style="height: 100vh; width: 100vw; position: absolute; top: 0; left: 0;">
+          <gd-time-series-chart [type]="type" [data]="timeSeriesData" />
+        </div>
+      `,
+      props: { type: args.type, timeSeriesData },
+    };
+  },
+};
+
 export const StackedBar: StoryObj<TimeSeriesChartStoryArgs> = {
   args: { storyId: 'stacked-bar', type: 'time-series-bar', dataPoints: [] },
   render: args => {

@@ -199,5 +199,37 @@ describe('TimeSeriesChartComponent', () => {
       expect(barDataset.tension).toBeUndefined();
       expect(barDataset.fill).toBeUndefined();
     });
+
+    describe('point radius', () => {
+      const createAverageBucket = (key: string, value: number | null): TimeSeriesBucket =>
+        createBaseBucket(key, { measures: [{ name: 'AVG', value }] });
+
+      const radiiOf = (values: (number | null)[]): number[] => {
+        const data = createTimeSeriesResponse(values.map((value, index) => createAverageBucket(`2025-10-0${index + 1}T06:00:00Z`, value)));
+        setChartData(data, 'time-series-line');
+        const dataset = component.dataFormatted().datasets[0] as ChartDataset<'line', (number | null)[]>;
+        const pointRadius = dataset.pointRadius as (context: { dataIndex: number; dataset: typeof dataset }) => number;
+        return values.map((_, dataIndex) => pointRadius({ dataIndex, dataset }));
+      };
+
+      it('should show a value between two buckets without a value as a point, since no segment reaches it', () => {
+        const [before, isolated, after] = radiiOf([null, 5, null]);
+
+        expect(isolated).toBeGreaterThan(0);
+        expect(before).toBe(0);
+        expect(after).toBe(0);
+      });
+
+      it('should show a value at an edge of the series, next to a bucket without a value, as a point', () => {
+        const [first, , last] = radiiOf([5, null, 7]);
+
+        expect(first).toBeGreaterThan(0);
+        expect(last).toBeGreaterThan(0);
+      });
+
+      it('should draw no point on a value a segment reaches', () => {
+        expect(radiiOf([3, 5, null])).toEqual([0, 0, 0]);
+      });
+    });
   });
 });

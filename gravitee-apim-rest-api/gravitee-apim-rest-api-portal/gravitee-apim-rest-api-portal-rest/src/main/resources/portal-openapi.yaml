@@ -7504,8 +7504,12 @@ components:
                 name:
                     $ref: "#/components/schemas/AnalyticsMeasureName"
                 value:
-                    description: Measure value.
+                    description: |
+                        Measure value. `AVG`, `MIN`, `MAX` and the percentiles are computed over the documents carrying
+                        the metric's value; over a window or bucket without any such document they are `null`, where
+                        `COUNT`, `SUM` and `PERCENTAGE` are 0, on every metric.
                     type: number
+                    nullable: true
         AnalyticsMeasuresResponse:
             description: Response containing one entry per metric with their aggregated measures.
             type: object

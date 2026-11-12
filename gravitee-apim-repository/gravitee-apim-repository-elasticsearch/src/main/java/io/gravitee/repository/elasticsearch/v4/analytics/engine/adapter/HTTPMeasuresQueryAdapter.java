@@ -15,19 +15,18 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
-import io.gravitee.repository.analytics.engine.api.metric.AdditionalMetric;
 import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.metric.MetricName;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
+import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query;
+import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Tokens;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
-import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.AdditionalMetricMeasureBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.CountBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.CountWithSumBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.HttpErrorRateBuilder;
-import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.LLMTotalCostBuilder;
-import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.LLMTotalTokenBuilder;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.LLMTotalBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleAVGBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleCountBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleMaxBuilder;
@@ -43,8 +42,12 @@ import io.vertx.core.json.JsonObject;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
+ * The measures of the HTTP request documents. A built-in reading a field and an additional metric field are aggregated
+ * alike, over the requests carrying the field.
+ *
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
@@ -56,16 +59,29 @@ public class HTTPMeasuresQueryAdapter {
     private final SimpleP50Builder p50Builder = new SimpleP50Builder();
     private final SimpleMinBuilder minBuilder = new SimpleMinBuilder();
     private final SimpleMaxBuilder maxBuilder = new SimpleMaxBuilder();
-    private final SimpleCountBuilder simpleCountBuilder = new SimpleCountBuilder();
+    private final SimpleCountBuilder countBuilder = new SimpleCountBuilder();
     private final CountBuilder countWithSumBuilder = new CountWithSumBuilder();
     private final SimpleAVGBuilder avgBuilder = new SimpleAVGBuilder();
     private final SimpleSUMBuilder sumBuilder = new SimpleSUMBuilder();
     private final HttpErrorRateBuilder errorRateBuilder = new HttpErrorRateBuilder();
-    private final LLMTotalTokenBuilder llmTotalTokenBuilder = new LLMTotalTokenBuilder();
-    private final LLMTotalCostBuilder llmTotalCostBuilder = new LLMTotalCostBuilder();
-    private final AdditionalMetricMeasureBuilder additionalMetricBuilder = new AdditionalMetricMeasureBuilder();
+
+    private static final Set<Metric> SUMMED_BY_COUNT = Set.of(
+        Metric.LLM_PROMPT_TOKEN_SENT,
+        Metric.LLM_PROMPT_TOKEN_RECEIVED,
+        Metric.LLM_PROMPT_TOKEN_SENT_COST,
+        Metric.LLM_PROMPT_TOKEN_RECEIVED_COST
+    );
 
     private final FieldResolver fieldResolver = new HTTPFieldResolver();
+
+    private final LLMTotalBuilder llmTotalTokenBuilder = new LLMTotalBuilder(
+        fieldResolver.fromMetric(Metric.LLM_PROMPT_TOKEN_SENT),
+        fieldResolver.fromMetric(Metric.LLM_PROMPT_TOKEN_RECEIVED)
+    );
+    private final LLMTotalBuilder llmTotalCostBuilder = new LLMTotalBuilder(
+        fieldResolver.fromMetric(Metric.LLM_PROMPT_TOKEN_SENT_COST),
+        fieldResolver.fromMetric(Metric.LLM_PROMPT_TOKEN_RECEIVED_COST)
+    );
 
     private final FilterAdapter filterAdapter = new FilterAdapter(fieldResolver);
 
@@ -149,124 +165,69 @@ public class HTTPMeasuresQueryAdapter {
         };
     }
 
+    /**
+     * The requests carrying a value of the metric, which a facet ranked by a measure that reads no value on a bucket
+     * without one is restricted to; empty for the error rate, a percentage of every request.
+     */
+    Optional<JsonObject> carrying(MetricName metric) {
+        return switch (metric) {
+            case Metric.LLM_PROMPT_TOTAL_TOKEN -> Optional.of(llmTotalTokenBuilder.carrying());
+            case Metric.LLM_PROMPT_TOKEN_TOTAL_COST -> Optional.of(llmTotalCostBuilder.carrying());
+            case Metric.HTTP_ERROR_RATE -> Optional.empty();
+            default -> Optional.of(JsonObject.of(Query.EXISTS, JsonObject.of(Tokens.FIELD, fieldResolver.fromMetric(metric))));
+        };
+    }
+
     private JsonObject buildMeasureAggs(MetricMeasuresQuery metric, List<Measure> measures) {
         var aggs = new JsonObject();
         for (var measure : measures) {
             var aggName = AggregationAdapter.adaptName(metric.metric(), measure);
-            var measureAgg = switch (metric.metric()) {
-                case Metric builtIn -> aggregate(
-                    aggName,
-                    isComputedMetric(builtIn) ? null : fieldResolver.fromMetric(builtIn),
-                    builtIn,
-                    measure
-                );
-                case AdditionalMetric additionalMetric -> additionalMetricBuilder.build(
-                    aggName,
-                    fieldResolver.fromMetric(additionalMetric),
-                    measure
-                );
-            };
-            measureAgg.ifPresent(agg -> {
+            aggregate(aggName, metric.metric(), measure).ifPresent(agg -> {
                 aggs.put(agg.keySet().iterator().next(), agg.values().iterator().next());
             });
         }
         return aggs;
     }
 
-    private boolean isComputedMetric(Metric metric) {
+    private Optional<Map<String, JsonObject>> aggregate(String aggName, MetricName metric, Measure measure) {
         return switch (metric) {
-            case LLM_PROMPT_TOTAL_TOKEN, LLM_PROMPT_TOKEN_TOTAL_COST, HTTP_ERROR_RATE -> true;
-            default -> false;
+            case Metric.LLM_PROMPT_TOTAL_TOKEN -> aggregateLLMTotal(llmTotalTokenBuilder, aggName, measure);
+            case Metric.LLM_PROMPT_TOKEN_TOTAL_COST -> aggregateLLMTotal(llmTotalCostBuilder, aggName, measure);
+            case Metric.HTTP_ERROR_RATE -> aggregateHTTPErrorRate(aggName, measure);
+            case Metric builtIn when measure == Measure.COUNT && SUMMED_BY_COUNT.contains(builtIn) -> Optional.of(
+                countWithSumBuilder.build(aggName, fieldResolver.fromMetric(builtIn))
+            );
+            default -> aggregateByMeasure(aggName, fieldResolver.fromMetric(metric), measure);
         };
     }
 
-    private Optional<Map<String, JsonObject>> aggregate(String aggName, String field, Metric metric, Measure measure) {
-        return switch (metric) {
-            case LLM_PROMPT_TOTAL_TOKEN -> aggregateLLMTotalToken(aggName, measure);
-            case LLM_PROMPT_TOKEN_TOTAL_COST -> aggregateLLMTotalCost(aggName, measure);
-            case HTTP_ERROR_RATE -> aggregateHTTPErrorRate(aggName, measure);
-            default -> aggregateByMeasure(aggName, field, metric, measure);
-        };
-    }
-
-    private Optional<Map<String, JsonObject>> aggregateLLMTotalToken(String aggName, Measure measure) {
+    private Optional<Map<String, JsonObject>> aggregateLLMTotal(LLMTotalBuilder builder, String aggName, Measure measure) {
         return switch (measure) {
-            case COUNT -> Optional.of(llmTotalTokenBuilder.buildSum(aggName));
-            case AVG -> Optional.of(llmTotalTokenBuilder.buildAvg(aggName));
-            default -> Optional.empty();
-        };
-    }
-
-    private Optional<Map<String, JsonObject>> aggregateLLMTotalCost(String aggName, Measure measure) {
-        return switch (measure) {
-            case COUNT -> Optional.of(llmTotalCostBuilder.buildSum(aggName));
-            case AVG -> Optional.of(llmTotalCostBuilder.buildAvg(aggName));
+            case COUNT -> Optional.of(builder.buildSum(aggName));
+            case AVG -> Optional.of(builder.buildAvg(aggName));
             default -> Optional.empty();
         };
     }
 
     private Optional<Map<String, JsonObject>> aggregateHTTPErrorRate(String aggName, Measure measure) {
         return switch (measure) {
-            case PERCENTAGE -> errorRate().map(errorRate -> errorRate.build(aggName, null));
+            case PERCENTAGE -> Optional.of(errorRateBuilder.build(aggName, null));
             default -> Optional.empty();
         };
     }
 
-    private Optional<Map<String, JsonObject>> aggregateByMeasure(String aggName, String field, Metric metric, Measure measure) {
+    private Optional<Map<String, JsonObject>> aggregateByMeasure(String aggName, String field, Measure measure) {
         return switch (measure) {
-            case AVG -> avg().map(avg -> avg.build(aggName, field));
-            case COUNT -> count(metric).map(count -> count.build(aggName, field));
-            case MAX -> max().map(max -> max.build(aggName, field));
-            case MIN -> min().map(min -> min.build(aggName, field));
-            case P50 -> p50().map(p50 -> p50.build(aggName, field));
-            case P90 -> p90().map(p90 -> p90.build(aggName, field));
-            case P95 -> p95().map(p95 -> p95.build(aggName, field));
-            case P99 -> p99().map(p99 -> p99.build(aggName, field));
+            case AVG -> Optional.of(avgBuilder.build(aggName, field));
+            case COUNT -> Optional.of(countBuilder.build(aggName, field));
+            case MAX -> Optional.of(maxBuilder.build(aggName, field));
+            case MIN -> Optional.of(minBuilder.build(aggName, field));
+            case P50 -> Optional.of(p50Builder.build(aggName, field));
+            case P90 -> Optional.of(p90Builder.build(aggName, field));
+            case P95 -> Optional.of(p95Builder.build(aggName, field));
+            case P99 -> Optional.of(p99Builder.build(aggName, field));
             case SUM -> Optional.of(sumBuilder.build(aggName, field));
-            default -> Optional.empty();
+            case PERCENTAGE -> Optional.empty();
         };
-    }
-
-    private Optional<CountBuilder> count(Metric metric) {
-        return switch (metric) {
-            case
-                LLM_PROMPT_TOKEN_SENT,
-                LLM_PROMPT_TOKEN_RECEIVED,
-                LLM_PROMPT_TOKEN_SENT_COST,
-                LLM_PROMPT_TOKEN_RECEIVED_COST -> Optional.of(countWithSumBuilder);
-            default -> Optional.of(simpleCountBuilder);
-        };
-    }
-
-    private Optional<SimpleMaxBuilder> max() {
-        return Optional.of(maxBuilder);
-    }
-
-    private Optional<SimpleMinBuilder> min() {
-        return Optional.of(minBuilder);
-    }
-
-    private Optional<SimpleAVGBuilder> avg() {
-        return Optional.of(avgBuilder);
-    }
-
-    private Optional<SimpleP99Builder> p99() {
-        return Optional.of(p99Builder);
-    }
-
-    private Optional<SimpleP95Builder> p95() {
-        return Optional.of(p95Builder);
-    }
-
-    private Optional<SimpleP90Builder> p90() {
-        return Optional.of(p90Builder);
-    }
-
-    private Optional<SimpleP50Builder> p50() {
-        return Optional.of(p50Builder);
-    }
-
-    private Optional<HttpErrorRateBuilder> errorRate() {
-        return Optional.of(errorRateBuilder);
     }
 }

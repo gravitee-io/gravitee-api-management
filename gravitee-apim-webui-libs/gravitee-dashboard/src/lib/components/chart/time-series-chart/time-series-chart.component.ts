@@ -22,8 +22,10 @@ import { TimeSeriesConverterService } from './converter/time-series-converter.se
 import { TimeSeriesResponse } from '../../widget/model/response/time-series-response';
 import { TimeSeriesType } from '../../widget/model/widget/widget.model';
 import { assignChartColors } from '../shared/chart-colors';
+import { isolatedPointRadius } from '../shared/isolated-point-radius';
 
 type ChartJsTimeSeriesType = 'line' | 'bar';
+type LineDataset = ChartDataset<'line', (number | null)[]>;
 
 function toChartJsType(type: TimeSeriesType): ChartJsTimeSeriesType {
   return type === 'time-series-line' ? 'line' : 'bar';
@@ -49,10 +51,11 @@ export class TimeSeriesChartComponent {
 
     if (this.chartJsType() === 'line') {
       chartData.datasets.forEach(dataset => {
-        const lineDataset = dataset as ChartDataset<'line', number[]>;
+        const lineDataset = dataset as LineDataset;
         lineDataset.tension = 0.4;
         lineDataset.fill = 'start';
         lineDataset.borderWidth = 1;
+        lineDataset.pointRadius = isolatedPointRadius;
       });
     }
 

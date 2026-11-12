@@ -18,7 +18,6 @@ package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.MessageFacetExtractor.REQUEST_ID_AGG_NAME;
 
 import io.gravitee.repository.analytics.engine.api.metric.AdditionalMetric;
-import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.FacetName;
@@ -26,9 +25,7 @@ import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.NumberRange;
 import io.gravitee.repository.analytics.engine.api.query.Query;
-import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl;
 import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys;
-import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Tokens;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -72,27 +69,32 @@ public class HTTPFacetsQueryAdapter {
     }
 
     /**
-     * The facets of an additional metric only hold the documents carrying its field, unwrapped by
-     * {@link AuthzScopedFacetAggregation#unwrap}: a bucket without one would read no value, which Elasticsearch orders as
-     * +Infinity for a minimum and -Infinity for a maximum, so it would rank first and fill the limit. A facets search
-     * builds one aggregation tree per metric, so the scope reaches no other metric's buckets.
+     * The facets of a metric hold only the documents carrying its value, unwrapped by
+     * {@link AuthzScopedFacetAggregation#unwrap}, when a bucket without one would read no value and rank first: always
+     * for an additional metric, for a built-in when its buckets are ranked by an average, a bound or a percentile.
+     * Elasticsearch orders that missing value as +Infinity for a minimum, -Infinity for a maximum and NaN, above any
+     * number, for an average, so it would fill the limit. Ranked by a count or a sum, a built-in keeps the buckets of
+     * every request. A facets search builds one aggregation tree per metric, so the scope reaches no other metric's
+     * buckets.
      */
     public JsonObject adaptFacets(MetricMeasuresQuery metric, List<FacetName> queryFacets, Integer limit, List<NumberRange> ranges) {
         var facets = facetTree(metric, queryFacets, limit, ranges);
-        return switch (metric.metric()) {
-            case Metric _ -> facets;
-            case AdditionalMetric additionalMetric -> facets.isEmpty()
-                ? facets
-                : json().put(
-                    AuthzMeasuresQueryAdapter.scopeAggName(additionalMetric),
-                    json()
-                        .put(
-                            Keys.FILTER,
-                            json().put(ElasticsearchDsl.Query.EXISTS, json().put(Tokens.FIELD, fieldResolver.fromMetric(additionalMetric)))
-                        )
-                        .put(Keys.AGGS, facets)
-                );
-        };
+        if (facets.isEmpty() || !restrictedToTheDocumentsCarryingAValue(metric)) {
+            return facets;
+        }
+        return measuresAdapter
+            .carrying(metric.metric())
+            .map(carrying ->
+                json().put(
+                    AuthzMeasuresQueryAdapter.scopeAggName(metric.metric()),
+                    json().put(Keys.FILTER, carrying).put(Keys.AGGS, facets)
+                )
+            )
+            .orElse(facets);
+    }
+
+    private static boolean restrictedToTheDocumentsCarryingAValue(MetricMeasuresQuery metric) {
+        return metric.metric() instanceof AdditionalMetric || AggregationAdapter.rankedByAMeasureReadingNoValueWhenEmpty(metric);
     }
 
     private JsonObject facetTree(MetricMeasuresQuery metric, List<FacetName> queryFacets, Integer limit, List<NumberRange> ranges) {

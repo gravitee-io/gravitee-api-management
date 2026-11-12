@@ -19,6 +19,8 @@ import { Converter } from '../../../converter';
 import { MeasuresResponse } from '../../../widget/model/response/measures-response';
 import { UnitLabel } from '../../../widget/model/response/response';
 
+const NO_VALUE = '—';
+
 @Injectable({
   providedIn: 'root',
 })
@@ -29,6 +31,9 @@ export class StatsConverterService implements Converter {
 
     const unitLabel = metric.unit ? UnitLabel[metric.unit] : '';
     return metric.measures.map(({ value }) => {
+      if (value === null || value === undefined) {
+        return NO_VALUE;
+      }
       const formattedValue = Math.round(value).toLocaleString();
       return unitLabel ? `${formattedValue} ${unitLabel}` : formattedValue;
     });
