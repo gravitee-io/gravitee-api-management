@@ -290,6 +290,16 @@ data:
       {{- if hasKey .Values.gateway.kafka "requestTimeout" }}
       requestTimeout: {{ .Values.gateway.kafka.requestTimeout }}
       {{- end}}
+      {{- $kafkaBackendLogin := .Values.gateway.kafka.backendLogin | default dict }}
+      {{- if or (hasKey $kafkaBackendLogin "threads") (hasKey $kafkaBackendLogin "queueCapacity") }}
+      backendLogin:
+        {{- if hasKey $kafkaBackendLogin "threads" }}
+        threads: {{ $kafkaBackendLogin.threads }}
+        {{- end}}
+        {{- if hasKey $kafkaBackendLogin "queueCapacity" }}
+        queueCapacity: {{ $kafkaBackendLogin.queueCapacity }}
+        {{- end}}
+      {{- end}}
       {{- if hasKey .Values.gateway.kafka "secured" }}
       secured: {{ .Values.gateway.kafka.secured }}
       {{- end}}

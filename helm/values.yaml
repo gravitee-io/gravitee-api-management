@@ -1611,6 +1611,15 @@ gateway:
 #    tcpKeepAlive: true
 #    instances: 0
 #    requestTimeout: 35_000 # default is 35_000 ms
+#
+#    # Pool that runs the blocking login to a Kafka backend (OAUTHBEARER token endpoint call) away from the
+#    # event loops. Unset keeps the gateway defaults. A value below 1 falls back to the default.
+#    backendLogin:
+#      # Number of threads (default 4). One API never runs more than half of them at once.
+#      threads: 4
+#      # Logins that may wait for a thread (default 64); one API may keep at most half of them waiting.
+#      # Past that, a login is refused and a warning names these keys.
+#      queueCapacity: 64
 #    # Forced to `true` when routingMode is `host`
 #    secured: true
 #    ssl:

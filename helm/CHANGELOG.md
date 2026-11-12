@@ -4,6 +4,7 @@
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
 ### 4.12.27
+- Add `gateway.kafka.backendLogin.threads` and `gateway.kafka.backendLogin.queueCapacity`, rendered as `kafka.backendLogin.threads` and `kafka.backendLogin.queueCapacity` in the gateway `gravitee.yml`. The chart only renders the Kafka keys it knows, so they could not be set from the values. They are read only by a gateway whose native Kafka reactor includes the backend login pool; an earlier reactor ignores them. They size the pool that runs the blocking login to a Kafka backend (such as an OAUTHBEARER token endpoint call) away from the event loops: `threads` (default 4) and the logins that may wait for a thread, `queueCapacity` (default 64). Both are unset by default, so the gateway keeps its defaults and nothing changes.
 - Bump the Gravitee node Hazelcast cache and cluster plugins to 9.16.5, to stay consistent with `gravitee-node.version` in the APIM `pom.xml`.
 
 ### 4.12.26
