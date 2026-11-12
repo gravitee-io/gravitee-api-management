@@ -31,6 +31,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -201,6 +202,25 @@ public class ApiKeyCacheServiceTest {
 
     @Nested
     class getTest {
+
+        @Test
+        void should_get_all_cached_api_keys() {
+            ApiKey active = buildApiKey("my-api", "my-key", true);
+            ApiKey otherApi = buildApiKey("my-other-api", "my-other-key", true);
+            apiKeyService.register(active);
+            apiKeyService.register(otherApi);
+            apiKeyService.register(buildApiKey("my-api", "my-inactive-key", false));
+
+            Assertions.assertThat(apiKeyService.getAll()).containsExactlyInAnyOrder(active, otherApi);
+        }
+
+        @Test
+        void should_not_allow_changing_the_cache_through_all() {
+            apiKeyService.register(buildApiKey("my-api", "my-key", true));
+
+            Assertions.assertThatThrownBy(() -> apiKeyService.getAll().clear()).isInstanceOf(UnsupportedOperationException.class);
+            assertThat(apiKeyService.getByApiAndKey("my-api", "my-key")).isPresent();
+        }
 
         @Test
         void should_get_apiKey_when_registered() {

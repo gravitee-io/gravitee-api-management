@@ -19,6 +19,8 @@ import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -160,6 +162,14 @@ public class ApiKeyCacheService implements ApiKeyService {
                 }
             });
         }
+    }
+
+    /**
+     * Every active API key this gateway holds, as a read-only live view: no copy is made, and a key registered or removed
+     * while the view is iterated may or may not be seen.
+     */
+    public Collection<ApiKey> getAll() {
+        return Collections.unmodifiableCollection(cacheApiKeys.values());
     }
 
     @Override

@@ -16,6 +16,7 @@
 package io.gravitee.gateway.handlers.api.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
@@ -615,6 +616,36 @@ class SubscriptionCacheServiceTest {
 
     @Nested
     class GetTest {
+
+        @Test
+        void should_get_all_registered_subscriptions_whatever_their_scope() {
+            Subscription onApi = buildAcceptedSubscription(SUB_ID, API_ID);
+            Subscription onProduct = buildAcceptedProductSubscriptionWithClientId(SUB_ID_2, PRODUCT_ID, CLIENT_ID, PLAN_ID_2);
+            subscriptionService.register(onApi);
+            subscriptionService.register(onProduct);
+
+            assertThat(subscriptionService.getAll()).containsExactlyInAnyOrder(onApi, onProduct);
+        }
+
+        @Test
+        void should_not_get_an_unregistered_subscription_in_all() {
+            Subscription kept = buildAcceptedSubscription(SUB_ID, API_ID);
+            Subscription removed = buildAcceptedSubscription(SUB_ID_2, API_ID_2);
+            subscriptionService.register(kept);
+            subscriptionService.register(removed);
+
+            subscriptionService.unregister(removed);
+
+            assertThat(subscriptionService.getAll()).containsExactly(kept);
+        }
+
+        @Test
+        void should_not_allow_changing_the_cache_through_all() {
+            subscriptionService.register(buildAcceptedSubscription(SUB_ID, API_ID));
+
+            assertThatThrownBy(() -> subscriptionService.getAll().clear()).isInstanceOf(UnsupportedOperationException.class);
+            assertThat(subscriptionService.getById(SUB_ID)).isPresent();
+        }
 
         @Test
         void should_get_subscriptions_by_id() {

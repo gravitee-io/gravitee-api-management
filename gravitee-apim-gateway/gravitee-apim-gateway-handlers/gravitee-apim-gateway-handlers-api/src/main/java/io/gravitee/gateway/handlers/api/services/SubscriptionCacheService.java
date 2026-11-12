@@ -155,6 +155,14 @@ public class SubscriptionCacheService implements SubscriptionService {
         return Optional.ofNullable(cacheById.get(subscriptionId));
     }
 
+    /**
+     * Every subscription this gateway enforces, API and API Product ones alike, as a read-only live view: no copy is made,
+     * and a subscription registered or removed while the view is iterated may or may not be seen.
+     */
+    public Collection<Subscription> getAll() {
+        return Collections.unmodifiableCollection(cacheById.values());
+    }
+
     @Override
     public void register(final Subscription subscription) {
         // only once per synchronization window

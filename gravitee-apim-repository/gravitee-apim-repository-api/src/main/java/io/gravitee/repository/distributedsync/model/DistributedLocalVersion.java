@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.distributedsync.model;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -48,6 +49,12 @@ public class DistributedLocalVersion {
     private String localPayload;
     /** {@code false} when the local version stops an API. */
     private boolean running;
+    /**
+     * For a subscription, the IDs of its API keys when it was paused. Restore publishes their events again: a primary that loads
+     * subscriptions from the control plane during the pause leaves out the keys of the paused one, and only a key event brings
+     * them back.
+     */
+    private List<String> apiKeyIds;
     private String change;
     private String author;
     private String reason;
