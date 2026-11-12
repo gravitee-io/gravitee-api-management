@@ -20,6 +20,7 @@ import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChain;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.pathparameters.PathParametersExtractor;
+import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -39,6 +40,7 @@ public class ApiProductRuntime {
     private final FlowChain tracedProductPlanFlowChain;
     private final PathParametersExtractor pathParametersExtractor;
     private final List<LifecycleComponent<?>> components;
+    private final ResourceLifecycleManager resourceManager;
     private final AtomicInteger inFlight = new AtomicInteger();
     private volatile boolean retired;
 
@@ -51,13 +53,23 @@ public class ApiProductRuntime {
         FlowChain productPlanFlowChain,
         FlowChain tracedProductPlanFlowChain,
         PathParametersExtractor pathParametersExtractor,
-        List<LifecycleComponent<?>> components
+        List<LifecycleComponent<?>> components,
+        ResourceLifecycleManager resourceManager
     ) {
         this.product = product;
         this.productPlanFlowChain = productPlanFlowChain;
         this.tracedProductPlanFlowChain = tracedProductPlanFlowChain;
         this.pathParametersExtractor = pathParametersExtractor;
         this.components = List.copyOf(components);
+        this.resourceManager = resourceManager;
+    }
+
+    /**
+     * The resource manager this runtime exposes during its product plan flow: the product's started
+     * manager, or {@link EmptyProductResourceLifecycleManager} when the product has no resources.
+     */
+    public ResourceLifecycleManager resourceManager() {
+        return resourceManager;
     }
 
     public ReactableApiProduct product() {
