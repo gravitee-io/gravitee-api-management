@@ -364,6 +364,37 @@ class ValidateApiCRDDomainServiceTest {
     }
 
     @Test
+    void should_report_a_state_in_lower_case() {
+        givenEveryValidatorAccepts();
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+        var spec = aNativeSpecBoundTo("plain").toBuilder().state("started").build();
+
+        assertThat(severeErrorsOf(systemCall, spec)).anySatisfy(error -> assertThat(error).contains("State [started] is invalid"));
+    }
+
+    @Test
+    void should_report_a_stored_started_native_api_bound_to_a_cluster_that_is_not_deployed_when_the_spec_has_no_state() {
+        givenTheClusterIsUndeployed();
+        givenEveryValidatorAccepts();
+        givenAStoredNativeApi(Api.LifecycleState.STARTED);
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+        var spec = aNativeSpecBoundTo("plain").toBuilder().state(null).build();
+
+        assertThat(severeErrorsOf(systemCall, spec)).singleElement(STRING).contains("its cluster {prod} is not deployed");
+    }
+
+    @Test
+    void should_accept_a_stored_stopped_native_api_bound_to_a_cluster_that_is_not_deployed_when_the_spec_has_no_state() {
+        givenTheClusterIsUndeployed();
+        givenEveryValidatorAccepts();
+        givenAStoredNativeApi(Api.LifecycleState.STOPPED);
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+        var spec = aNativeSpecBoundTo("plain").toBuilder().state(null).build();
+
+        assertThat(severeErrorsOf(systemCall, spec)).isEmpty();
+    }
+
+    @Test
     void should_accept_a_spec_without_state() {
         givenEveryValidatorAccepts();
         var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
@@ -408,6 +439,17 @@ class ValidateApiCRDDomainServiceTest {
                     .type(ClusterType.KAFKA_CLUSTER)
                     .environmentId(ENV_ID)
                     .lifecycleState(ClusterLifecycleState.UNDEPLOYED)
+                    .build()
+            )
+        );
+    }
+
+    private void givenAStoredNativeApi(Api.LifecycleState lifecycleState) {
+        apiQueryService.initWith(
+            List.of(
+                ApiFixtures.aNativeApiBoundToCluster("api-id", ENV_ID, lifecycleState, "prod", "plain")
+                    .toBuilder()
+                    .crossId(API_CROSS_ID)
                     .build()
             )
         );
