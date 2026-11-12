@@ -645,6 +645,26 @@ class ImportApiCRDUseCaseTest {
         }
 
         @Test
+        void should_refuse_a_plan_id_of_another_api() {
+            var otherApi = aProxyApiV4().toBuilder().id("other-api-id").environmentId(ENVIRONMENT_ID).crossId("other-api-cross-id").build();
+            apiQueryService.initWith(List.of(otherApi));
+            var otherApiPlan = Update.API_KEY.toBuilder()
+                .id("other-api-plan-id")
+                .apiId(otherApi.getId())
+                .referenceId(otherApi.getId())
+                .build();
+            givenExistingPlans(List.of(otherApiPlan));
+
+            var throwable = catchThrowable(() ->
+                useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRDWithPlanId(otherApiPlan.getId())))
+            );
+
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining(otherApiPlan.getId());
+            assertThat(planCrudService.storage()).containsExactly(otherApiPlan);
+            assertThat(apiCrudService.storage()).containsExactly(otherApi);
+        }
+
+        @Test
         void should_store_encryptable_properties_encrypted() throws GeneralSecurityException {
             when(dataEncryptor.encrypt("prop-value")).thenReturn("ciphertext");
 
@@ -1521,6 +1541,31 @@ class ImportApiCRDUseCaseTest {
                 .satisfies(plan -> assertThat(plan.getPlanSecurity().getConfiguration()).contains("other-api-jwt-config"));
             verify(updateApiDomainService, never()).update(any(), any(), any());
             assertThat(auditCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_accept_the_plan_ids_of_the_api_found_by_cross_id_when_the_spec_has_no_id() {
+            // Its id is not derived from the HRID: only the cross id finds it
+            var apiFoundByCrossId = API_PROXY_V4.toBuilder().id("api-found-by-cross-id").build();
+            apiQueryService.initWith(List.of(apiFoundByCrossId));
+            var ownPlan = KEYLESS.toBuilder()
+                .id("own-plan-id")
+                .apiId(apiFoundByCrossId.getId())
+                .referenceId(apiFoundByCrossId.getId())
+                .build();
+            givenExistingPlans(List.of(ownPlan));
+            when(updateApiDomainService.update(any(), any(), any())).thenReturn(apiFoundByCrossId);
+
+            var throwable = catchThrowable(() ->
+                useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRDWithPlanId(ownPlan.getId()).toBuilder().id(null).build()))
+            );
+
+            assertThat(throwable).isNull();
+            verify(updateApiDomainService).update(eq(apiFoundByCrossId.getId()), any(), any());
+            assertThat(planCrudService.storage())
+                .filteredOn(plan -> plan.getId().equals(ownPlan.getId()))
+                .singleElement()
+                .satisfies(plan -> assertThat(plan.getReferenceId()).isEqualTo(apiFoundByCrossId.getId()));
         }
 
         @Test
