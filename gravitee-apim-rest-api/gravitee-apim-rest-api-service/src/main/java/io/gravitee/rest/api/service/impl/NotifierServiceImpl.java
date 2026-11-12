@@ -316,7 +316,7 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
                         if (!CollectionUtils.isEmpty(data.recipients)) {
                             var emailAdditionalRecipients = data.recipients
                                 .stream()
-                                .filter(r -> r.type().equals(DEFAULT_EMAIL_NOTIFIER_ID))
+                                .filter(r -> notifier.type().name().equals(r.type()))
                                 .map(Recipient::value)
                                 .toList();
                             recipients.addAll(emailAdditionalRecipients);
