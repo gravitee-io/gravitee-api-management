@@ -41,7 +41,7 @@ import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
 import jakarta.validation.ConstraintViolationException;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,7 +54,7 @@ import org.mockito.ArgumentCaptor;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class UpdateGuardianUseCaseTest {
 
-    private static final Date DEPLOYED_AT = Date.from(java.time.Instant.parse("2026-03-01T10:00:00Z"));
+    private static final Instant DEPLOYED_AT = Instant.parse("2026-03-01T10:00:00Z");
 
     private final InMemoryGuardianRepository guardianRepository = new InMemoryGuardianRepository();
     private final AuditDomainService auditDomainService = mock(AuditDomainService.class);

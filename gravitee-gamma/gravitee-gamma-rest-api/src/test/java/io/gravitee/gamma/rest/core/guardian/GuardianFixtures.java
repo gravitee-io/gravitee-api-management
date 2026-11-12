@@ -28,7 +28,7 @@ import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -128,7 +128,7 @@ public final class GuardianFixtures {
             .definition(aGuardianDefinition().build())
             .description("Blocks a reply that echoes an API key.")
             .lifecycleState(GuardianLifecycleState.UNDEPLOYED)
-            .createdAt(ZonedDateTime.parse("2026-02-01T20:22:02Z"))
-            .updatedAt(ZonedDateTime.parse("2026-02-02T20:22:02Z"));
+            .createdAt(Instant.parse("2026-02-01T20:22:02Z"))
+            .updatedAt(Instant.parse("2026-02-02T20:22:02Z"));
     }
 }

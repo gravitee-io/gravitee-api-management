@@ -18,7 +18,7 @@ info:
         kept in step with them by hand. If the two ever disagree, the records are the truth.
 
         **Timestamps are ISO 8601 strings in UTC** — `"2026-11-07T10:00:01.119Z"`. The host's object
-        mapper would write a `ZonedDateTime` as a fractional epoch number, so the DTOs of this surface
+        mapper would write a date as a fractional epoch number, so the DTOs of this surface
         set the format themselves; the offset is always `Z`, never the server's.
 
         **A Guardian is its definition.** Creation and update both carry the whole thing — name,

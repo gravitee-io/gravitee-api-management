@@ -20,8 +20,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.definition.model.v4.resource.Resource;
-import java.time.ZonedDateTime;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -55,9 +54,9 @@ public class Guardian {
 
     private String description;
     private GuardianLifecycleState lifecycleState;
-    private Date deployedAt;
-    private ZonedDateTime createdAt;
-    private ZonedDateTime updatedAt;
+    private Instant deployedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     /**
      * The Guardian a creation payload describes, scoped to the environment it is created in — which
@@ -79,7 +78,7 @@ public class Guardian {
         return this.toBuilder()
             .definition(command.getDefinition().toBuilder().id(getId()).environmentId(getEnvironmentId()).build())
             .description(command.getDescription())
-            .updatedAt(TimeProvider.now())
+            .updatedAt(TimeProvider.instantNow())
             .build();
     }
 

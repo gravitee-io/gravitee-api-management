@@ -35,8 +35,6 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
-import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -632,32 +630,12 @@ class GuardiansResourceTest extends AbstractResourceTest {
             assertThat(dto.get("updatedAt").isNumber()).isFalse();
         }
 
-        /**
-         * Stored in another zone, written in UTC: otherwise the offset would depend on the server's time
-         * zone and two nodes would describe the same instant differently.
-         */
-        @Test
-        void should_write_an_instant_from_another_zone_in_utc() {
-            guardianRepository.reset();
-            guardianRepository.givenGuardian(
-                GuardianFixtures.aGuardian(d -> d.id(GUARDIAN_ID).environmentId(ENVIRONMENT))
-                    .createdAt(ZonedDateTime.parse("2026-02-01T21:22:02+01:00"))
-                    .build()
-            );
-
-            JsonNode dto = rootTarget("/" + GUARDIAN_ID).request().get().readEntity(JsonNode.class);
-
-            // the same instant as 20:22:02Z
-            assertThat(dto.get("createdAt").asText()).isEqualTo(CREATED_AT);
-        }
-
-        /** The deployment stamp comes off the store as a {@code Date}, down a different path. */
         @Test
         void should_write_the_deployment_stamp_as_an_iso_8601_string_in_utc() {
             guardianRepository.reset();
             guardianRepository.givenGuardian(
                 GuardianFixtures.aGuardian(d -> d.id(GUARDIAN_ID).environmentId(ENVIRONMENT))
-                    .deployedAt(Date.from(Instant.parse("2026-02-03T20:22:02Z")))
+                    .deployedAt(Instant.parse("2026-02-03T20:22:02Z"))
                     .build()
             );
 

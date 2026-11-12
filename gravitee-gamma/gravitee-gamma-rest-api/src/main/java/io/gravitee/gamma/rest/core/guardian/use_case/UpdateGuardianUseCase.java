@@ -28,6 +28,7 @@ import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
+import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.Builder;
@@ -91,7 +92,7 @@ public class UpdateGuardianUseCase {
                 .actor(input.auditInfo().actor())
                 .oldValue(existingGuardian)
                 .newValue(updatedGuardian)
-                .createdAt(updatedGuardian.getUpdatedAt())
+                .createdAt(updatedGuardian.getUpdatedAt().atZone(ZoneOffset.UTC))
                 .properties(Map.of(AuditProperties.GUARDIAN, updatedGuardian.getId()))
                 .build()
         );
