@@ -40,7 +40,7 @@
           <h2>{{ 'apiSubscribe.plans.title' | translate }}</h2>
           <p>{{ 'apiSubscribe.plans.description' | translate }}</p>
 
-          <gv-plans [plans]="plans" formControlName="plan" name="plan" ngDefaultControl></gv-plans>
+          <gv-plans data-testid="api-subscribe-plans" [plans]="plans" formControlName="plan" name="plan" ngDefaultControl></gv-plans>
 
           <div *ngIf="isSubscription()">
             <h3>{{ 'apiSubscribe.planSubscription.title' | translate }}</h3>
@@ -102,6 +102,7 @@
 
           <gv-select
             *ngIf="hasAvailableApplications()"
+            data-testid="api-subscribe-application"
             label="{{ 'apiSubscribe.apps.chooseApp' | translate }}"
             [options]="availableApplications"
             required
@@ -156,7 +157,7 @@
             <p [innerHTML]="'apiSubscribe.validate.information' | translate: { hasAutoValidation: hasAutoValidation() }"></p>
           </div>
 
-          <div class="message" *ngIf="hasSubscriptionError">
+          <div class="message" *ngIf="hasSubscriptionError" data-testid="api-subscribe-error">
             <gv-icon shape="appliances:highvoltage"></gv-icon>
             <h2>{{ 'apiSubscribe.errors.sorry' | translate }}</h2>
             <p [innerHTML]="'apiSubscribe.errors.information' | translate"></p>
@@ -164,7 +165,7 @@
           </div>
 
           <div *ngIf="hasSubscriptionAccepted()">
-            <div class="message subscription-accepted">
+            <div class="message subscription-accepted" data-testid="api-subscribe-accepted">
               <gv-icon class="success-icon" shape="general:thunder"></gv-icon>
               <h2>{{ 'apiSubscribe.success.congratulations' | translate }}</h2>
               <p
@@ -200,7 +201,7 @@
             </div>
           </div>
 
-          <div class="message" *ngIf="hasSubscriptionPending()">
+          <div class="message" *ngIf="hasSubscriptionPending()" data-testid="api-subscribe-pending">
             <gv-icon class="success-icon" shape="home:timer"></gv-icon>
             <h2>{{ 'apiSubscribe.success.congratulations' | translate }}</h2>
             <p
@@ -247,11 +248,17 @@
         >
       </div>
 
-      <gv-button *ngIf="hasNextAction()" (:gv-button:click)="onNext()" primary icon-right="navigation:angle-right">{{
-        'apiSubscribe.nextStep' | translate
-      }}</gv-button>
+      <gv-button
+        *ngIf="hasNextAction()"
+        data-testid="api-subscribe-next"
+        (:gv-button:click)="onNext()"
+        primary
+        icon-right="navigation:angle-right"
+        >{{ 'apiSubscribe.nextStep' | translate }}</gv-button
+      >
       <gv-button
         *ngIf="hasValidateAction()"
+        data-testid="api-subscribe-validate"
         (:gv-button:click)="onValidate()"
         primary
         [disabled]="!subscribeForm.valid"
