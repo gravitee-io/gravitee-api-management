@@ -6,12 +6,9 @@ info:
         level and attached to LLM proxies. Saving a Guardian updates its draft; the `_deploy`
         endpoint publishes that draft to the gateway.
 
-        **What this surface does not carry.** Two fields the domain holds are deliberately absent
-        from every payload. The environment, because it is already in the path. And the serialized
-        guardrail sequence (`definition`), because it belongs to the Design tab and to its own
-        story — putting a blob the list never renders into every row would only make the payload
-        heavier. A general-settings update therefore carries the sequence over untouched: renaming
-        a Guardian cannot disturb what it enforces.
+        **The environment is carried by the path.** Request and response payloads expose the
+        guardrail sequence and resources as structured fields, rather than a serialized `definition`
+        blob. A `PUT` replaces the complete draft, including its sequence and resources.
 
         **Nothing here is generated.** The gamma rest-api has no OpenAPI generator wired, so the
         request and response bodies are hand-written Java records and this file is documentation
