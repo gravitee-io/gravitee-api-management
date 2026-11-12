@@ -201,8 +201,12 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
         if (sanitizedSpec.getState() != null && !isLifecycleState(sanitizedSpec.getState())) {
             errors.add(Error.severe("State [%s] is invalid, expected STARTED or STOPPED", sanitizedSpec.getState()));
         }
-        // The import persists the API before starting it: refuse here, or a start failure leaves it saved STARTED but not deployed
-        if (Api.LifecycleState.STARTED.name().equalsIgnoreCase(sanitizedSpec.getState())) {
+        // The import persists the API before starting or deploying it: refuse here, or a failure leaves it saved but not deployed.
+        // A spec without state keeps the stored one, so a stored STARTED API is checked too.
+        var lifecycleState = sanitizedSpec.getState() != null
+            ? sanitizedSpec.getState()
+            : existingApi.map(Api::getLifecycleState).map(Enum::name).orElse(null);
+        if (Api.LifecycleState.STARTED.name().equalsIgnoreCase(lifecycleState)) {
             try {
                 apiClusterBindingValidator.validateStartable(
                     sanitizedSpec.getId(),
