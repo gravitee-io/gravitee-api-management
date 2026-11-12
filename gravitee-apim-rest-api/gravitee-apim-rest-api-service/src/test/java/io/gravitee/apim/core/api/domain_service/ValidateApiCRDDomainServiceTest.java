@@ -395,6 +395,17 @@ class ValidateApiCRDDomainServiceTest {
     }
 
     @Test
+    void should_accept_a_stopped_spec_of_a_stored_started_native_api_bound_to_a_cluster_that_is_not_deployed() {
+        givenTheClusterIsUndeployed();
+        givenEveryValidatorAccepts();
+        givenAStoredNativeApi(Api.LifecycleState.STARTED);
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+        var spec = aNativeSpecBoundTo("plain").toBuilder().state("STOPPED").build();
+
+        assertThat(severeErrorsOf(systemCall, spec)).isEmpty();
+    }
+
+    @Test
     void should_accept_a_spec_without_state() {
         givenEveryValidatorAccepts();
         var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
