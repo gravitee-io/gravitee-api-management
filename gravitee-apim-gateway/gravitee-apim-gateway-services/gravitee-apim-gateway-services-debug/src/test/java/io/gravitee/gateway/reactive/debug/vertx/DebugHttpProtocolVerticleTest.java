@@ -50,6 +50,8 @@ class DebugHttpProtocolVerticleTest {
     private VertxHttpServerOptions httpOptions;
     private HttpRequestDispatcher mockRequestDispatcher;
     private VertxHttpServer vertxHttpServer;
+    // Vert.x closes a client it finds unreachable on GC: a local client may be closed mid-request.
+    private HttpClient client;
 
     @BeforeEach
     @DisplayName("Deploy a new http protocol verticle")
@@ -71,6 +73,7 @@ class DebugHttpProtocolVerticleTest {
             .build();
         vertxHttpServer = vertxHttpServerFactory.create(httpOptions);
 
+        client = vertx.createHttpClient();
         mockRequestDispatcher = spy(new DummyHttpRequestDispatcher());
         vertx
             .deployVerticle(new DebugHttpProtocolVerticle(vertxHttpServer, mockRequestDispatcher))
@@ -79,13 +82,13 @@ class DebugHttpProtocolVerticleTest {
 
     @AfterEach
     @DisplayName("Check that the verticle is still there")
-    void lastChecks(Vertx vertx) {
+    void lastChecks(Vertx vertx, VertxTestContext testContext) {
         assertThat(vertx.deploymentIDs()).isNotEmpty().hasSize(1);
+        client.close().onComplete(testContext.succeedingThenComplete());
     }
 
     @Test
     void http_server_should_listen(Vertx vertx, VertxTestContext testContext) {
-        HttpClient client = vertx.createHttpClient();
         client
             .request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
             .compose(HttpClientRequest::send)
@@ -105,7 +108,6 @@ class DebugHttpProtocolVerticleTest {
             .doCallRealMethod()
             .when(mockRequestDispatcher)
             .dispatch(any(), anyString());
-        HttpClient client = vertx.createHttpClient();
         client
             .request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
             .compose(HttpClientRequest::send)
@@ -131,7 +133,6 @@ class DebugHttpProtocolVerticleTest {
         doReturn(Completable.timer(2, TimeUnit.SECONDS).doOnDispose(testContext::completeNow))
             .when(mockRequestDispatcher)
             .dispatch(any(), anyString());
-        HttpClient client = vertx.createHttpClient();
         client
             .request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
             .compose(request -> {
@@ -154,7 +155,6 @@ class DebugHttpProtocolVerticleTest {
             .when(mockRequestDispatcher)
             .dispatch(any(), anyString());
 
-        HttpClient client = vertx.createHttpClient();
         client
             .request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
             .compose(HttpClientRequest::send)
