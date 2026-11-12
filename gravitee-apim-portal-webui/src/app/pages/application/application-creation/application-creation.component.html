@@ -80,11 +80,17 @@
         </gv-button>
       </div>
 
-      <gv-button primary (:gv-button:click)="onNext()" *ngIf="hasNext()" icon-right="navigation:angle-right">{{
-        'applicationCreation.step.next' | translate
-      }}</gv-button>
+      <gv-button
+        primary
+        data-testid="application-creation-next"
+        (:gv-button:click)="onNext()"
+        *ngIf="hasNext()"
+        icon-right="navigation:angle-right"
+        >{{ 'applicationCreation.step.next' | translate }}</gv-button
+      >
       <gv-button
         *ngIf="hasCreate()"
+        data-testid="application-creation-create"
         [disabled]="!canValidate()"
         [loading]="creationInProgress"
         (:gv-button:click)="createApp()"

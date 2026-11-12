@@ -80,7 +80,7 @@
     <h2>{{ 'applicationCreation.validation.pending.title' | translate }}</h2>
     <p [innerHTML]="'applicationCreation.validation.pending.description' | translate"></p>
   </div>
-  <div class="message message-full message-confirm" *ngIf="creationSuccess">
+  <div class="message message-full message-confirm" *ngIf="creationSuccess" data-testid="application-creation-success">
     <gv-icon shape="general:smile"></gv-icon>
     <h2>{{ 'apiSubscribe.success.congratulations' | translate }}</h2>
     <div *ngIf="this.subscriptionErrors && this.subscriptionErrors.length > 0" class="application-creation__subscription-errors">
@@ -98,7 +98,7 @@
     }}</gv-button>
   </div>
 
-  <div class="message message-full message-error" *ngIf="creationError">
+  <div class="message message-full message-error" *ngIf="creationError" data-testid="application-creation-error">
     <gv-icon shape="general:smile"></gv-icon>
     <h2>{{ 'applicationCreation.validation.error.title' | translate }}</h2>
     <div [innerHTML]="'applicationCreation.validation.error.description' | translate"></div>
