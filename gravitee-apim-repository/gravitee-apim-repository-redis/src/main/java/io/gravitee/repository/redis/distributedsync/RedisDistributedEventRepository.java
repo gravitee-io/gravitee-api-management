@@ -20,6 +20,7 @@ import static io.gravitee.repository.redis.distributedsync.RedisDistributedSyncR
 import io.gravitee.common.utils.RxHelper;
 import io.gravitee.repository.distributedsync.api.DistributedEventRepository;
 import io.gravitee.repository.distributedsync.api.search.DistributedEventCriteria;
+import io.gravitee.repository.distributedsync.api.search.DistributedEventKey;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
@@ -150,7 +151,16 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
         if (distributedEvent.getClusterId() == null || distributedEvent.getClusterId().isBlank()) {
             return Completable.error(new IllegalArgumentException(CLUSTER_ID_REQUIRED_MESSAGE));
         }
-        return createOrUpdateKey(buildEventKey(distributedEvent), distributedEvent);
+        return createOrUpdateKey(
+            buildEventKey(
+                distributedEvent.getClusterId(),
+                distributedEvent.getRefType(),
+                distributedEvent.getRefId(),
+                distributedEvent.getType(),
+                distributedEvent.getId()
+            ),
+            distributedEvent
+        );
     }
 
     @Override
@@ -186,14 +196,17 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
     }
 
     @Override
-    public Maybe<DistributedEvent> find(final String clusterId, final DistributedEventType type, final String id) {
-        if (clusterId == null || clusterId.isBlank()) {
-            return Maybe.error(new IllegalArgumentException(CLUSTER_ID_PARAMETER_REQUIRED_MESSAGE));
-        }
-        String key = buildEventKey(DistributedEvent.builder().clusterId(clusterId).type(type).id(id).build());
-        return send(redisAPI -> redisAPI.hgetall(key))
+    public Maybe<DistributedEvent> find(final DistributedEventKey key) {
+        String redisKey = buildEventKey(key.getClusterId(), key.getRefType(), key.getRefId(), key.getType(), key.getId());
+        return send(redisAPI -> redisAPI.hgetall(redisKey))
             .filter(response -> response.type() == ResponseType.MULTI && response.size() != 0)
-            .map(this::mapSearchResponse);
+            .map(response -> {
+                // The reference only lives in the key, never in the stored fields.
+                DistributedEvent event = mapSearchResponse(response);
+                event.setRefType(key.getRefType());
+                event.setRefId(key.getRefId());
+                return event;
+            });
     }
 
     private Completable createOrUpdateKey(final String key, final DistributedEvent distributedEvent) {
@@ -447,23 +460,21 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
         return distributedEventBuilder.build();
     }
 
-    private String buildEventKey(DistributedEvent distributedEvent) {
-        var builder = new StringBuilder().append(REDIS_KEY_PREFIX).append(distributedEvent.getClusterId());
+    /** The one place a key is built, so what {@link #createOrUpdate} stores is what {@link #find} reads. */
+    private static String buildEventKey(
+        final String clusterId,
+        final DistributedEventType refType,
+        final String refId,
+        final DistributedEventType type,
+        final String id
+    ) {
+        var builder = new StringBuilder().append(REDIS_KEY_PREFIX).append(clusterId);
 
-        if (distributedEvent.getRefId() != null && distributedEvent.getRefType() != null) {
-            builder
-                .append(REDIS_KEY_SEPARATOR)
-                .append(distributedEvent.getRefType().name())
-                .append(REDIS_KEY_SEPARATOR)
-                .append(distributedEvent.getRefId());
+        if (refId != null && refType != null) {
+            builder.append(REDIS_KEY_SEPARATOR).append(refType.name()).append(REDIS_KEY_SEPARATOR).append(refId);
         }
 
-        return builder
-            .append(REDIS_KEY_SEPARATOR)
-            .append(distributedEvent.getType().name())
-            .append(REDIS_KEY_SEPARATOR)
-            .append(distributedEvent.getId())
-            .toString();
+        return builder.append(REDIS_KEY_SEPARATOR).append(type.name()).append(REDIS_KEY_SEPARATOR).append(id).toString();
     }
 
     /*

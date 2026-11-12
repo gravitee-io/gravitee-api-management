@@ -16,6 +16,7 @@
 package io.gravitee.repository.distributedsync.api;
 
 import io.gravitee.repository.distributedsync.api.search.DistributedEventCriteria;
+import io.gravitee.repository.distributedsync.api.search.DistributedEventKey;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
@@ -32,15 +33,14 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public interface DistributedEventRepository {
     /**
-     * Find the {@link DistributedEvent} that has no reference to another event, from its identity.
+     * Reads the event that {@link #createOrUpdate(DistributedEvent)} stored under this key. An event stored with a reference
+     * (a subscription or an API key under its API) is only found with that same reference.
      *
-     * @param clusterId cluster identifier used to scope distributed events
-     * @param type {@link DistributedEventType} of the event
-     * @param id identifier of the event
+     * @param key identity of the event
      *
-     * @return the {@link DistributedEvent} found or not.
+     * @return the event, carrying the reference of the key, or empty when nothing is stored under this key.
      */
-    Maybe<DistributedEvent> find(final String clusterId, final DistributedEventType type, final String id);
+    Maybe<DistributedEvent> find(final DistributedEventKey key);
 
     /**
      * Search for {@link DistributedEvent} matching the corresponding criteria.

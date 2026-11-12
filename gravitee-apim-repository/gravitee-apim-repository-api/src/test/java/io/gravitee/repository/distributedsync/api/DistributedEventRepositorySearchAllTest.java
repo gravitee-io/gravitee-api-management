@@ -18,6 +18,7 @@ package io.gravitee.repository.distributedsync.api;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.repository.distributedsync.api.search.DistributedEventCriteria;
+import io.gravitee.repository.distributedsync.api.search.DistributedEventKey;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
@@ -43,7 +44,7 @@ class DistributedEventRepositorySearchAllTest {
     private DistributedEventRepository repositoryOf(final List<DistributedEvent> events) {
         return new DistributedEventRepository() {
             @Override
-            public Maybe<DistributedEvent> find(String clusterId, DistributedEventType type, String id) {
+            public Maybe<DistributedEvent> find(DistributedEventKey key) {
                 return Maybe.empty();
             }
 

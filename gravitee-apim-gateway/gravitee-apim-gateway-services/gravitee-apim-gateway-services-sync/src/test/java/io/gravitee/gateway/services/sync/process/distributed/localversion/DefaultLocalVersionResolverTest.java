@@ -37,6 +37,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMa
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.distributedsync.api.DistributedEventRepository;
+import io.gravitee.repository.distributedsync.api.search.DistributedEventKey;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedLocalVersion;
@@ -108,7 +109,7 @@ class DefaultLocalVersionResolverTest {
             .localPayload(objectMapper.writeValueAsString(local))
             .running(running)
             .build();
-        when(repository.find(RECORDS_CLUSTER, DistributedEventType.API, "api")).thenReturn(
+        when(repository.find(recordKey(DistributedEventType.API, "api"))).thenReturn(
             Maybe.just(DistributedEvent.builder().payload(objectMapper.writeValueAsString(record)).syncAction(recordAction).build())
         );
     }
@@ -118,7 +119,7 @@ class DefaultLocalVersionResolverTest {
 
         @Test
         void should_keep_the_control_plane_version_when_there_is_no_local_version() {
-            when(repository.find(RECORDS_CLUSTER, DistributedEventType.API, "api")).thenReturn(Maybe.empty());
+            when(repository.find(recordKey(DistributedEventType.API, "api"))).thenReturn(Maybe.empty());
             var controlPlane = api("12", BASE, true);
 
             cut.resolveDeployment(controlPlane).test().assertValue(controlPlane);
@@ -166,9 +167,7 @@ class DefaultLocalVersionResolverTest {
 
         @Test
         void should_fail_rather_than_deploy_when_the_record_cannot_be_read() {
-            when(repository.find(RECORDS_CLUSTER, DistributedEventType.API, "api")).thenReturn(
-                Maybe.error(new RuntimeException("redis down"))
-            );
+            when(repository.find(recordKey(DistributedEventType.API, "api"))).thenReturn(Maybe.error(new RuntimeException("redis down")));
 
             cut.resolveDeployment(api("12", BASE, true)).test().assertError(RuntimeException.class);
         }
@@ -210,7 +209,7 @@ class DefaultLocalVersionResolverTest {
                 .localPayload(objectMapper.writeValueAsString(dictionary(BASE + 1)))
                 .running(true)
                 .build();
-            when(repository.find(RECORDS_CLUSTER, DistributedEventType.DICTIONARY, "dict")).thenReturn(
+            when(repository.find(recordKey(DistributedEventType.DICTIONARY, "dict"))).thenReturn(
                 Maybe.just(
                     DistributedEvent.builder()
                         .payload(objectMapper.writeValueAsString(record))
@@ -356,5 +355,9 @@ class DefaultLocalVersionResolverTest {
                 .test()
                 .assertError(RuntimeException.class);
         }
+    }
+
+    private static DistributedEventKey recordKey(final DistributedEventType type, final String id) {
+        return DistributedEventKey.builder().clusterId(RECORDS_CLUSTER).type(type).id(id).build();
     }
 }

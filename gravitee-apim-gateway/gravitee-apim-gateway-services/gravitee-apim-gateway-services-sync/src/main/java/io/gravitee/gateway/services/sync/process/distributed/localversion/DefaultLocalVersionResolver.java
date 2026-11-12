@@ -25,6 +25,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.diction
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.distributedsync.api.DistributedEventRepository;
 import io.gravitee.repository.distributedsync.api.search.DistributedEventCriteria;
+import io.gravitee.repository.distributedsync.api.search.DistributedEventKey;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedLocalVersion;
@@ -146,7 +147,13 @@ public class DefaultLocalVersionResolver implements LocalVersionResolver {
 
     private Single<Optional<DistributedLocalVersion>> activeLocalVersion(final DistributedEventType type, final String id) {
         return distributedEventRepository
-            .find(DistributedLocalVersion.recordsClusterId(clusterManager.clusterId()), type, id)
+            .find(
+                DistributedEventKey.builder()
+                    .clusterId(DistributedLocalVersion.recordsClusterId(clusterManager.clusterId()))
+                    .type(type)
+                    .id(id)
+                    .build()
+            )
             .filter(event -> event.getSyncAction() == DistributedSyncAction.DEPLOY)
             .map(event -> Optional.of(objectMapper.readValue(event.getPayload(), DistributedLocalVersion.class)))
             .defaultIfEmpty(Optional.empty());

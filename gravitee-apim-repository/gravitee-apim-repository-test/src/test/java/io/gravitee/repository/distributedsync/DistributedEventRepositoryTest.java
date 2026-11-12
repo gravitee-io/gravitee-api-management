@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.distributedsync.api.DistributedEventRepository;
 import io.gravitee.repository.distributedsync.api.search.DistributedEventCriteria;
+import io.gravitee.repository.distributedsync.api.search.DistributedEventKey;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
@@ -450,7 +451,7 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void should_find_event_by_identity() throws InterruptedException {
         distributedEventRepository
-            .find("test-cluster", DistributedEventType.API, "1")
+            .find(key(DistributedEventType.API, "1"))
             .test()
             .await()
             .assertValue(event -> {
@@ -458,17 +459,80 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
                 assertThat(event.getType()).isEqualTo(DistributedEventType.API);
                 assertThat(event.getPayload()).isEqualTo("payload");
                 assertThat(event.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
+                assertThat(event.getRefType()).isNull();
+                assertThat(event.getRefId()).isNull();
                 return true;
             });
     }
 
     @Test
     public void should_not_find_event_with_unknown_identity() throws InterruptedException {
+        distributedEventRepository.find(key(DistributedEventType.API, "unknown")).test().await().assertNoValues().assertComplete();
+    }
+
+    @Test
+    public void should_find_event_stored_with_a_reference_and_return_its_reference() throws InterruptedException {
         distributedEventRepository
-            .find("test-cluster", DistributedEventType.API, "unknown")
+            .find(keyWithReference(DistributedEventType.SUBSCRIPTION, "5", "1"))
+            .test()
+            .await()
+            .assertValue(event -> {
+                assertThat(event.getId()).isEqualTo("5");
+                assertThat(event.getType()).isEqualTo(DistributedEventType.SUBSCRIPTION);
+                assertThat(event.getPayload()).isEqualTo("payload");
+                assertThat(event.getRefType()).isEqualTo(DistributedEventType.API);
+                assertThat(event.getRefId()).isEqualTo("1");
+                return true;
+            });
+    }
+
+    @Test
+    public void should_not_find_event_stored_with_a_reference_without_it() throws InterruptedException {
+        distributedEventRepository.find(key(DistributedEventType.SUBSCRIPTION, "5")).test().await().assertNoValues().assertComplete();
+    }
+
+    @Test
+    public void should_not_find_event_stored_with_another_reference() throws InterruptedException {
+        distributedEventRepository
+            .find(keyWithReference(DistributedEventType.SUBSCRIPTION, "5", "2"))
             .test()
             .await()
             .assertNoValues()
             .assertComplete();
+    }
+
+    @Test
+    public void should_find_event_stored_with_a_reference_from_the_same_identity() throws InterruptedException {
+        DistributedEvent stored = DistributedEvent.builder()
+            .clusterId(TEST_CLUSTER_ID)
+            .refType(DistributedEventType.API)
+            .refId("api-of-the-key")
+            .type(DistributedEventType.SUBSCRIPTION)
+            .id("subscription-of-the-key")
+            .payload("stored payload")
+            .syncAction(DistributedSyncAction.DEPLOY)
+            .updatedAt(new Date())
+            .build();
+        distributedEventRepository.createOrUpdate(stored).blockingAwait();
+
+        distributedEventRepository
+            .find(keyWithReference(DistributedEventType.SUBSCRIPTION, "subscription-of-the-key", "api-of-the-key"))
+            .test()
+            .await()
+            .assertValue(event -> "stored payload".equals(event.getPayload()));
+    }
+
+    private static DistributedEventKey key(final DistributedEventType type, final String id) {
+        return DistributedEventKey.builder().clusterId(TEST_CLUSTER_ID).type(type).id(id).build();
+    }
+
+    private static DistributedEventKey keyWithReference(final DistributedEventType type, final String id, final String apiId) {
+        return DistributedEventKey.builder()
+            .clusterId(TEST_CLUSTER_ID)
+            .refType(DistributedEventType.API)
+            .refId(apiId)
+            .type(type)
+            .id(id)
+            .build();
     }
 }
