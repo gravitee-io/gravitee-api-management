@@ -82,6 +82,17 @@ class ValidatePlanDomainServiceTest {
     }
 
     @Test
+    void should_accept_a_plan_without_id() {
+        ApiCRDSpec spec = ApiCRDFixtures.newBaseSpec().type("PROXY").build();
+        var planWithoutId = spec.getPlans().get(ApiCRDFixtures.PLAN_NAME).toBuilder().id(null).build();
+
+        var result = validatePlans(spec, Map.of(ApiCRDFixtures.PLAN_NAME, planWithoutId));
+
+        assertThat(errorMessages(result)).isEmpty();
+        assertThat(result.value()).hasValueSatisfying(sanitized -> assertThat(sanitized.plans()).containsKey(ApiCRDFixtures.PLAN_NAME));
+    }
+
+    @Test
     void should_reject_native_keyless_plan_coexisting_with_active_auth_plan() {
         ApiCRDSpec spec = ApiCRDFixtures.newBaseNativeSpec().build();
         Map<String, PlanCRD> plans = Map.of(
@@ -91,7 +102,7 @@ class ValidatePlanDomainServiceTest {
             nativePlan("apikey", "api-key", PlanStatus.PUBLISHED)
         );
 
-        var result = service.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, plans, List.of()));
+        var result = validatePlans(spec, plans);
 
         assertThat(hasMutualExclusivityError(result)).isTrue();
     }
@@ -106,7 +117,7 @@ class ValidatePlanDomainServiceTest {
             nativePlan("apikey", "api-key", PlanStatus.DEPRECATED)
         );
 
-        var result = service.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, plans, List.of()));
+        var result = validatePlans(spec, plans);
 
         assertThat(hasMutualExclusivityError(result)).isTrue();
     }
@@ -121,7 +132,7 @@ class ValidatePlanDomainServiceTest {
             nativePlan("apikey", "api-key", PlanStatus.CLOSED)
         );
 
-        var result = service.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, plans, List.of()));
+        var result = validatePlans(spec, plans);
 
         assertThat(hasMutualExclusivityError(result)).isFalse();
     }
@@ -136,7 +147,7 @@ class ValidatePlanDomainServiceTest {
             nativePlan("jwt", "jwt", PlanStatus.PUBLISHED)
         );
 
-        var result = service.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, plans, List.of()));
+        var result = validatePlans(spec, plans);
 
         assertThat(hasMutualExclusivityError(result)).isFalse();
     }
@@ -156,7 +167,11 @@ class ValidatePlanDomainServiceTest {
 
     private Validator.Result<ValidatePlanDomainService.Input> validateBaseSpecPlans() {
         ApiCRDSpec spec = ApiCRDFixtures.newBaseSpec().type("PROXY").build();
-        return service.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, spec.getPlans(), List.of()));
+        return validatePlans(spec, spec.getPlans());
+    }
+
+    private Validator.Result<ValidatePlanDomainService.Input> validatePlans(ApiCRDSpec spec, Map<String, PlanCRD> plans) {
+        return service.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, spec.getId(), plans, List.of()));
     }
 
     private static List<String> errorMessages(Validator.Result<ValidatePlanDomainService.Input> result) {
