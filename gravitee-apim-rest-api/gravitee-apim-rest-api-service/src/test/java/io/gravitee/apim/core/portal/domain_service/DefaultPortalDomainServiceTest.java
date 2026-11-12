@@ -304,6 +304,40 @@ class DefaultPortalDomainServiceTest {
     }
 
     @Nested
+    class FindDefaultOrOnly {
+
+        @Test
+        void should_find_the_default_portal() {
+            portalCrudService.initWith(List.of(anAutomationPortal(STALE_URL), aDefaultPortal(STALE_URL)));
+
+            assertThat(cut.findDefaultOrOnly(ENV_ID)).hasValueSatisfying(portal -> assertThat(portal.getId()).isEqualTo(DEFAULT_PORTAL_ID));
+        }
+
+        @Test
+        void should_find_the_only_portal_when_none_is_default() {
+            portalCrudService.initWith(List.of(anAutomationPortal(STALE_URL)));
+
+            assertThat(cut.findDefaultOrOnly(ENV_ID)).hasValueSatisfying(portal ->
+                assertThat(portal.getId()).isEqualTo(AUTOMATION_PORTAL_ID)
+            );
+        }
+
+        @Test
+        void should_find_nothing_with_several_portals_and_none_default() {
+            portalCrudService.initWith(
+                List.of(anAutomationPortal(STALE_URL), aPortal(DEFAULT_PORTAL_ID, ENV_ID, "Second Automation Portal", false, STALE_URL))
+            );
+
+            assertThat(cut.findDefaultOrOnly(ENV_ID)).isEmpty();
+        }
+
+        @Test
+        void should_find_nothing_without_portal() {
+            assertThat(cut.findDefaultOrOnly(ENV_ID)).isEmpty();
+        }
+    }
+
+    @Nested
     class GetDefault {
 
         @Test

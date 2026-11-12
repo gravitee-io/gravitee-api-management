@@ -56,13 +56,17 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.theme.domain_service.CurrentThemeDomainService;
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.core.theme.model.ThemeType;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class CreateOrUpdatePortalUseCaseTest {
@@ -72,6 +76,8 @@ class CreateOrUpdatePortalUseCaseTest {
         .environmentId("environment-id")
         .actor(AuditActor.builder().userId("user-id").build())
         .build();
+
+    private static final PortalId DEFAULT_PORTAL_ID = PortalId.of("00000000-0000-0000-0000-0000000000d1");
 
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
     private final InstallationAccessQueryServiceInMemory installationAccessQueryService = new InstallationAccessQueryServiceInMemory();
@@ -90,14 +96,14 @@ class CreateOrUpdatePortalUseCaseTest {
     void setUp() {
         installationAccessQueryService.withPortalUrl(AUDIT_INFO.environmentId(), "https://portal.acme.io");
         installationAccessQueryService.withPortalUrl("other-env", "https://other.acme.io");
-        useCase = aUseCase(() -> false);
+        useCase = aUseCase(portalCrudService, () -> false);
     }
 
-    private CreateOrUpdatePortalUseCase aUseCase(PortalAutomationProperties properties) {
-        var scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService, properties);
+    private CreateOrUpdatePortalUseCase aUseCase(PortalCrudServiceInMemory portals, PortalAutomationProperties properties) {
+        var scopeEnforcer = new PortalAutomationScopeDomainService(portals, properties);
         return new CreateOrUpdatePortalUseCase(
             new ValidatePortalDomainService(scopeEnforcer, new PortalUrlDomainService(installationAccessQueryService)),
-            portalCrudService,
+            portals,
             new PortalNavigationSyncDomainService(
                 navQueryService,
                 new AutomationManagedNavigationItemsQueryService(portalListingCrudService, navQueryService),
@@ -115,7 +121,7 @@ class CreateOrUpdatePortalUseCaseTest {
             themeCrudService,
             new CurrentThemeDomainService(themeQueryService, themeCrudService),
             new PortalUrlDomainService(installationAccessQueryService),
-            new PortalContentOwnershipDomainService(portalCrudService, navCrudService)
+            new PortalContentOwnershipDomainService(portals, navCrudService)
         );
     }
 
@@ -194,7 +200,7 @@ class CreateOrUpdatePortalUseCaseTest {
     }
 
     @Test
-    void should_give_orphan_content_to_the_default_portal_when_another_portal_is_created() throws Exception {
+    void should_give_orphan_content_to_the_default_portal_when_a_portal_is_created_next_to_others() throws Exception {
         var legacyFolder = aLegacyFolder();
         var defaultPortal = Portal.of(
             PortalId.of("00000000-0000-0000-0000-0000000000d1"),
@@ -206,22 +212,29 @@ class CreateOrUpdatePortalUseCaseTest {
             true,
             URI.create("https://portal.acme.io/next").toURL()
         );
-        portalCrudService.initWith(List.of(defaultPortal));
+        // Not alone, so the default portal is kept rather than replaced
+        var otherPortal = PortalFixtures.aPortal(
+            PortalId.of("00000000-0000-0000-0000-0000000000b2"),
+            AUDIT_INFO.environmentId(),
+            AUDIT_INFO.organizationId(),
+            "Other portal"
+        );
+        portalCrudService.initWith(List.of(defaultPortal, otherPortal));
 
-        aUseCase(() -> true).execute(inputFor(AUDIT_INFO, PortalFixtures.aPortal()));
+        aUseCase(portalCrudService, () -> true).execute(inputFor(AUDIT_INFO, PortalFixtures.aPortal()));
 
         assertThat(storedReferenceOf(legacyFolder)).isEqualTo(new NavigationItemReference.PortalReference(defaultPortal.getId()));
     }
 
     @Test
-    void should_leave_orphan_content_alone_when_updating_an_existing_portal() {
+    void should_adopt_orphan_content_left_by_an_interrupted_replacement_on_the_next_put() {
         var legacyFolder = aLegacyFolder();
         var existing = PortalFixtures.aPortal();
         portalCrudService.initWith(List.of(existing));
 
         useCase.execute(inputFor(AUDIT_INFO, existing));
 
-        assertThat(storedReferenceOf(legacyFolder)).isEqualTo(NavigationItemReference.defaultReference());
+        assertThat(storedReferenceOf(legacyFolder)).isEqualTo(new NavigationItemReference.PortalReference(existing.getId()));
     }
 
     @Test
@@ -446,6 +459,182 @@ class CreateOrUpdatePortalUseCaseTest {
             .isInstanceOf(ValidationDomainException.class)
             .hasMessageContaining("hrid")
             .hasMessageContaining("established portal");
+    }
+
+    private static Portal aDefaultPortal(PortalNavigationStructure structure, String activeThemeId) {
+        return Portal.of(
+            DEFAULT_PORTAL_ID,
+            AUDIT_INFO.environmentId(),
+            AUDIT_INFO.organizationId(),
+            "Developer Portal",
+            structure,
+            activeThemeId,
+            true,
+            PortalFixtures.PORTAL_URL
+        );
+    }
+
+    private static Portal aDefaultPortal() {
+        return aDefaultPortal(PortalNavigationStructure.empty(), null);
+    }
+
+    private PortalNavigationItem aFolderOfTheDefaultPortal(int order, PortalVisibility visibility) {
+        var folder = PortalNavigationItemFixtures.aFolder("Seeded")
+            .toBuilder()
+            .environmentId(AUDIT_INFO.environmentId())
+            .reference(new NavigationItemReference.PortalReference(DEFAULT_PORTAL_ID))
+            .order(order)
+            .visibility(visibility)
+            .build();
+        navCrudService.initWith(List.of(folder));
+        return folder;
+    }
+
+    @Test
+    void should_replace_the_default_portal_when_it_is_alone() {
+        portalCrudService.initWith(List.of(aDefaultPortal()));
+        var portal = PortalFixtures.aPortal();
+
+        var output = useCase.execute(inputFor(AUDIT_INFO, portal));
+
+        assertThat(output.portal().getId()).isEqualTo(portal.getId());
+        assertThat(output.portal().isDefault()).isFalse();
+        assertThat(portalCrudService.storage())
+            .singleElement()
+            .satisfies(stored -> {
+                assertThat(stored.getId()).isEqualTo(portal.getId());
+                assertThat(stored.isDefault()).isFalse();
+            });
+    }
+
+    @Test
+    void should_replace_the_default_portal_with_multiple_portals_allowed() {
+        portalCrudService.initWith(List.of(aDefaultPortal()));
+        var portal = PortalFixtures.aPortal();
+
+        aUseCase(portalCrudService, () -> true).execute(inputFor(AUDIT_INFO, portal));
+
+        assertThat(portalCrudService.storage()).singleElement().extracting(Portal::getId).isEqualTo(portal.getId());
+    }
+
+    @Test
+    void should_not_replace_the_default_portal_when_it_is_not_alone() {
+        var otherPortal = PortalFixtures.aPortal(
+            PortalId.of("00000000-0000-0000-0000-0000000000b1"),
+            AUDIT_INFO.environmentId(),
+            AUDIT_INFO.organizationId(),
+            "Other"
+        );
+        portalCrudService.initWith(List.of(aDefaultPortal(), otherPortal));
+        var portal = PortalFixtures.aPortal();
+
+        aUseCase(portalCrudService, () -> true).execute(inputFor(AUDIT_INFO, portal));
+
+        assertThat(portalCrudService.storage())
+            .extracting(Portal::getId)
+            .containsExactlyInAnyOrder(DEFAULT_PORTAL_ID, otherPortal.getId(), portal.getId());
+    }
+
+    @Test
+    void should_not_touch_the_default_portal_on_an_update() {
+        var defaultPortal = aDefaultPortal();
+        portalCrudService.initWith(List.of(defaultPortal));
+        var folder = aFolderOfTheDefaultPortal(0, PortalVisibility.PUBLIC);
+
+        useCase.execute(inputFor(AUDIT_INFO, defaultPortal));
+
+        assertThat(portalCrudService.storage())
+            .singleElement()
+            .satisfies(stored -> {
+                assertThat(stored.getId()).isEqualTo(DEFAULT_PORTAL_ID);
+                assertThat(stored.isDefault()).isTrue();
+            });
+        assertThat(storedReferenceOf(folder)).isEqualTo(new NavigationItemReference.PortalReference(DEFAULT_PORTAL_ID));
+    }
+
+    @Test
+    void should_keep_the_declared_structure_and_theme_when_replacing() {
+        var declaredThemeHrid = "brand-theme";
+        var declaredThemeId = HRIDToUUID.portalTheme().context(AUDIT_INFO).hrid(declaredThemeHrid).id();
+        var defaultPortalThemeId = "44444444-4444-4444-4444-444444444444";
+        themeCrudService.initWith(
+            List.of(aTheme(declaredThemeId, ThemeType.PORTAL_NEXT, false), aTheme(defaultPortalThemeId, ThemeType.PORTAL_NEXT, true))
+        );
+        portalCrudService.initWith(
+            List.of(aDefaultPortal(PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/old", "Old"))), defaultPortalThemeId))
+        );
+        var declared = PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/docs", "Docs")));
+
+        var output = useCase.execute(inputFor(AUDIT_INFO, PortalFixtures.aPortal(), declared, declaredThemeHrid));
+
+        assertThat(output.structure()).isEqualTo(declared);
+        assertThat(output.activeThemeHrid()).isEqualTo(declaredThemeHrid);
+        assertThat(portalCrudService.storage())
+            .singleElement()
+            .satisfies(stored -> {
+                assertThat(stored.getNavigationStructure()).isEqualTo(declared);
+                assertThat(stored.getActiveThemeId()).isEqualTo(declaredThemeId);
+            });
+    }
+
+    @Test
+    void should_move_the_default_portals_navigation_onto_the_new_portal() {
+        portalCrudService.initWith(List.of(aDefaultPortal()));
+        var folder = aFolderOfTheDefaultPortal(7, PortalVisibility.PRIVATE);
+        var portal = PortalFixtures.aPortal();
+
+        useCase.execute(inputFor(AUDIT_INFO, portal));
+
+        assertThat(navCrudService.storage())
+            .singleElement()
+            .satisfies(stored -> {
+                assertThat(stored.getId()).isEqualTo(folder.getId());
+                assertThat(stored.getReference()).isEqualTo(new NavigationItemReference.PortalReference(portal.getId()));
+                assertThat(stored.getOrder()).isEqualTo(7);
+                assertThat(stored.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
+            });
+    }
+
+    @Test
+    void should_keep_the_default_portal_when_the_new_one_cannot_be_created() {
+        var failingPortals = new PortalCrudServiceInMemory() {
+            @Override
+            public Portal create(Portal portal) {
+                throw new IllegalStateException("portal store is down");
+            }
+        };
+        failingPortals.initWith(List.of(aDefaultPortal()));
+        var failingUseCase = aUseCase(failingPortals, () -> false);
+
+        assertThatThrownBy(() -> failingUseCase.execute(inputFor(AUDIT_INFO, PortalFixtures.aPortal()))).hasMessage("portal store is down");
+
+        assertThat(failingPortals.storage()).singleElement().extracting(Portal::getId).isEqualTo(DEFAULT_PORTAL_ID);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    void should_finish_an_interrupted_replacement_on_the_next_put(boolean multiplePortalsAllowed) {
+        var deleteFails = new AtomicBoolean(true);
+        var portals = new PortalCrudServiceInMemory() {
+            @Override
+            public void delete(PortalId portalId) {
+                if (deleteFails.get()) {
+                    throw new IllegalStateException("portal store is down");
+                }
+                super.delete(portalId);
+            }
+        };
+        portals.initWith(List.of(aDefaultPortal()));
+        var replacing = aUseCase(portals, () -> multiplePortalsAllowed);
+        var portal = PortalFixtures.aPortal();
+
+        assertThatThrownBy(() -> replacing.execute(inputFor(AUDIT_INFO, portal))).hasMessage("portal store is down");
+        assertThat(portals.storage()).extracting(Portal::getId).containsExactlyInAnyOrder(DEFAULT_PORTAL_ID, portal.getId());
+
+        deleteFails.set(false);
+        replacing.execute(inputFor(AUDIT_INFO, portal));
+
+        assertThat(portals.storage()).singleElement().extracting(Portal::getId).isEqualTo(portal.getId());
     }
 
     @Test
