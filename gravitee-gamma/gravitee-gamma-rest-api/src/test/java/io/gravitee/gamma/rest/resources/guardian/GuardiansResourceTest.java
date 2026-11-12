@@ -154,6 +154,77 @@ class GuardiansResourceTest extends AbstractResourceTest {
     }
 
     @Nested
+    class ListGuardrails {
+
+        @Test
+        void should_return_the_guardrails_a_guardian_of_that_api_type_and_phase_can_run() {
+            Response response = rootTarget("/_guardrails")
+                .queryParam("apiType", "llm-proxy")
+                .queryParam("phase", "REQUEST")
+                .request()
+                .get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            assertThat(response.readEntity(JsonNode.class))
+                .singleElement()
+                .satisfies(guardrail -> {
+                    assertThat(guardrail.get("id").asText()).isEqualTo("data-logging-masking");
+                    assertThat(guardrail.get("name").asText()).isEqualTo("Data logging masking");
+                });
+        }
+
+        @Test
+        void should_not_be_read_as_a_guardian_id() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+
+            JsonNode body = rootTarget("/_guardrails")
+                .queryParam("apiType", "llm-proxy")
+                .queryParam("phase", "RESPONSE")
+                .request()
+                .get()
+                .readEntity(JsonNode.class);
+
+            assertThat(body.isArray()).as("the literal segment wins over {guardianId}").isTrue();
+        }
+
+        @Test
+        void should_return_400_on_a_missing_or_unknown_api_type_or_phase() {
+            SoftAssertions.assertSoftly(softly -> {
+                softly
+                    .assertThat(rootTarget("/_guardrails").queryParam("phase", "REQUEST").request().get().getStatus())
+                    .as("missing apiType")
+                    .isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+                softly
+                    .assertThat(rootTarget("/_guardrails").queryParam("apiType", "llm-proxy").request().get().getStatus())
+                    .as("missing phase")
+                    .isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+                softly
+                    .assertThat(
+                        rootTarget("/_guardrails")
+                            .queryParam("apiType", "unknown")
+                            .queryParam("phase", "REQUEST")
+                            .request()
+                            .get()
+                            .getStatus()
+                    )
+                    .as("unknown apiType")
+                    .isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+                softly
+                    .assertThat(
+                        rootTarget("/_guardrails")
+                            .queryParam("apiType", "llm-proxy")
+                            .queryParam("phase", "INTERACT")
+                            .request()
+                            .get()
+                            .getStatus()
+                    )
+                    .as("unknown phase")
+                    .isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            });
+        }
+    }
+
+    @Nested
     class ListGuardians {
 
         @Test
@@ -845,6 +916,17 @@ class GuardiansResourceTest extends AbstractResourceTest {
         @Test
         void should_return_403_on_list_without_the_read_permission() {
             assertThat(rootTarget().request().get().getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
+        }
+
+        @Test
+        void should_return_403_on_guardrails_without_the_read_permission() {
+            Response response = rootTarget("/_guardrails")
+                .queryParam("apiType", "llm-proxy")
+                .queryParam("phase", "REQUEST")
+                .request()
+                .get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
         }
 
         @Test

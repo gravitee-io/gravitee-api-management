@@ -17,11 +17,13 @@ package io.gravitee.gamma.rest.resources.guardian;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gamma.rest.core.guardian.use_case.CreateGuardianUseCase;
+import io.gravitee.gamma.rest.core.guardian.use_case.ListGuardrailsUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.SearchGuardianUseCase;
 import io.gravitee.gamma.rest.resources.CurrentAuditInfo;
 import io.gravitee.gamma.rest.resources.guardian.dto.CreateGuardianRequestDto;
 import io.gravitee.gamma.rest.resources.guardian.dto.GuardianDto;
 import io.gravitee.gamma.rest.resources.guardian.dto.GuardianSummaryDto;
+import io.gravitee.gamma.rest.resources.guardian.dto.GuardrailDto;
 import io.gravitee.gamma.rest.resources.tracing.dto.PaginatedResponseDto;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -40,6 +42,7 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import java.util.List;
 
 /**
  * Guardian collection endpoints, mounted under
@@ -53,6 +56,8 @@ import jakarta.ws.rs.core.UriInfo;
  *   <li>{@code POST /} — creates a Guardian from a whole definition and answers {@code 201} with a
  *       {@code Location} header. The new Guardian is {@code UNDEPLOYED}: this stores a definition, it
  *       does not deploy it.</li>
+ *   <li>{@code GET /_guardrails?apiType=&phase=} — the installed guardrails a Guardian of that API
+ *       type and phase can run, sorted by name. A missing or unknown value answers 400.</li>
  *   <li>{@code GET|PUT|DELETE /{guardianId}} — see {@link GuardianResource}.</li>
  * </ul>
  *
@@ -76,6 +81,9 @@ public class GuardiansResource {
 
     @Inject
     private CreateGuardianUseCase createGuardianUseCase;
+
+    @Inject
+    private ListGuardrailsUseCase listGuardrailsUseCase;
 
     @GET
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GUARDIAN, acls = { RolePermissionAction.READ }) })
@@ -115,6 +123,18 @@ public class GuardiansResource {
 
         var created = GuardianDto.from(output.guardian());
         return Response.created(uriInfo.getAbsolutePathBuilder().path(created.id()).build()).entity(created).build();
+    }
+
+    @GET
+    @Path("/_guardrails")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GUARDIAN, acls = { RolePermissionAction.READ }) })
+    public List<GuardrailDto> listGuardrails(@QueryParam("apiType") String apiType, @QueryParam("phase") String phase) {
+        return listGuardrailsUseCase
+            .execute(new ListGuardrailsUseCase.Input(apiType, phase))
+            .guardrails()
+            .stream()
+            .map(GuardrailDto::from)
+            .toList();
     }
 
     @Path("/{guardianId}")

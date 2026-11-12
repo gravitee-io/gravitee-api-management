@@ -53,6 +53,7 @@ class DefaultPolicyPluginProviderTest {
 
     private static PolicyPlugin<?> a_policy(String id, Class<?> policyClass, String category, Map<String, String> properties) {
         var manifest = mock(PluginManifest.class);
+        when(manifest.name()).thenReturn("Name of " + id);
         when(manifest.category()).thenReturn(category);
         when(manifest.properties()).thenReturn(properties);
         PolicyPlugin<?> plugin = mock(PolicyPlugin.class);
@@ -77,7 +78,11 @@ class DefaultPolicyPluginProviderTest {
             .containsOnlyKeys("rule-guardrail")
             .containsEntry(
                 "rule-guardrail",
-                new PolicyCapabilities(true, Map.of(ApiType.LLM_PROXY, Set.of(Phase.RESPONSE), ApiType.MCP_PROXY, Set.of(Phase.REQUEST)))
+                new PolicyCapabilities(
+                    "Name of rule-guardrail",
+                    true,
+                    Map.of(ApiType.LLM_PROXY, Set.of(Phase.RESPONSE), ApiType.MCP_PROXY, Set.of(Phase.REQUEST))
+                )
             );
     }
 
@@ -96,6 +101,7 @@ class DefaultPolicyPluginProviderTest {
             .as("phases are trimmed, and flow phases a Guardian never runs in are dropped")
             .isEqualTo(
                 new PolicyCapabilities(
+                    "Name of rule-guardrail",
                     true,
                     Map.of(
                         ApiType.LLM_PROXY,
@@ -142,7 +148,10 @@ class DefaultPolicyPluginProviderTest {
     void should_not_classify_a_conventional_policy_as_a_guardrail_from_its_category() {
         given_installed_policies(a_policy("ordinary-policy", HttpPolicy.class, "guardrail", Map.of()));
 
-        assertThat(provider.findAllCapabilities()).containsEntry("ordinary-policy", new PolicyCapabilities(false, Map.of()));
+        assertThat(provider.findAllCapabilities()).containsEntry(
+            "ordinary-policy",
+            new PolicyCapabilities("Name of ordinary-policy", false, Map.of())
+        );
     }
 
     @Test
@@ -173,8 +182,10 @@ class DefaultPolicyPluginProviderTest {
         var policies = provider.findAllCapabilities();
 
         SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(policies).containsEntry("transform-headers", new PolicyCapabilities(false, Map.of()));
-            softly.assertThat(policies).containsEntry("rule-guardrail", new PolicyCapabilities(true, Map.of()));
+            softly
+                .assertThat(policies)
+                .containsEntry("transform-headers", new PolicyCapabilities("Name of transform-headers", false, Map.of()));
+            softly.assertThat(policies).containsEntry("rule-guardrail", new PolicyCapabilities("Name of rule-guardrail", true, Map.of()));
         });
     }
 }

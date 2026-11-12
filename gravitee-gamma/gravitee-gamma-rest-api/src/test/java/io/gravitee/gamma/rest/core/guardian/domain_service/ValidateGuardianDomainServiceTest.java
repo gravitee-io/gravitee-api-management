@@ -41,7 +41,10 @@ import org.junit.jupiter.api.Test;
 class ValidateGuardianDomainServiceTest {
 
     private final Map<String, PolicyCapabilities> policies = new LinkedHashMap<>(
-        Map.of("data-logging-masking", new PolicyCapabilities(true, Map.of(ApiType.LLM_PROXY, Set.of(Phase.REQUEST, Phase.RESPONSE))))
+        Map.of(
+            "data-logging-masking",
+            new PolicyCapabilities("Data logging masking", true, Map.of(ApiType.LLM_PROXY, Set.of(Phase.REQUEST, Phase.RESPONSE)))
+        )
     );
     private final ValidateGuardianDomainService validator = new ValidateGuardianDomainService(
         new InMemoryGuardianRepository(),
@@ -56,8 +59,14 @@ class ValidateGuardianDomainServiceTest {
 
     @Test
     void should_name_each_incompatible_guardrail_and_the_required_protocol() {
-        policies.put("data-logging-masking", new PolicyCapabilities(true, Map.of(ApiType.MCP_PROXY, Set.of(Phase.REQUEST))));
-        policies.put("other-guardrail", new PolicyCapabilities(true, Map.of(ApiType.A2A_PROXY, Set.of(Phase.REQUEST))));
+        policies.put(
+            "data-logging-masking",
+            new PolicyCapabilities("Data logging masking", true, Map.of(ApiType.MCP_PROXY, Set.of(Phase.REQUEST)))
+        );
+        policies.put(
+            "other-guardrail",
+            new PolicyCapabilities("Data logging masking", true, Map.of(ApiType.A2A_PROXY, Set.of(Phase.REQUEST)))
+        );
         var guardian = aGuardian(definition ->
             definition.policies(List.of(aPolicy(), step("Other guardrail", "other-guardrail", true)))
         ).build();
@@ -79,7 +88,10 @@ class ValidateGuardianDomainServiceTest {
 
     @Test
     void should_refuse_a_guardrail_that_does_not_run_in_the_guardian_phase() {
-        policies.put("data-logging-masking", new PolicyCapabilities(true, Map.of(ApiType.LLM_PROXY, Set.of(Phase.RESPONSE))));
+        policies.put(
+            "data-logging-masking",
+            new PolicyCapabilities("Data logging masking", true, Map.of(ApiType.LLM_PROXY, Set.of(Phase.RESPONSE)))
+        );
         var guardian = aGuardian(definition -> definition.phase(Phase.REQUEST)).build();
 
         assertThat(validate(guardian).severe().orElseThrow())
@@ -91,7 +103,10 @@ class ValidateGuardianDomainServiceTest {
 
     @Test
     void should_accept_a_guardrail_that_runs_in_the_guardian_phase() {
-        policies.put("data-logging-masking", new PolicyCapabilities(true, Map.of(ApiType.LLM_PROXY, Set.of(Phase.RESPONSE))));
+        policies.put(
+            "data-logging-masking",
+            new PolicyCapabilities("Data logging masking", true, Map.of(ApiType.LLM_PROXY, Set.of(Phase.RESPONSE)))
+        );
         var guardian = aGuardian(definition -> definition.phase(Phase.RESPONSE)).build();
 
         assertThat(validate(guardian).severe()).isEmpty();
@@ -99,7 +114,10 @@ class ValidateGuardianDomainServiceTest {
 
     @Test
     void should_ignore_the_phases_of_a_conventional_policy() {
-        policies.put("data-logging-masking", new PolicyCapabilities(false, Map.of(ApiType.LLM_PROXY, Set.of(Phase.RESPONSE))));
+        policies.put(
+            "data-logging-masking",
+            new PolicyCapabilities("Data logging masking", false, Map.of(ApiType.LLM_PROXY, Set.of(Phase.RESPONSE)))
+        );
         var guardian = aGuardian(definition -> definition.phase(Phase.REQUEST)).build();
 
         assertThat(validate(guardian).severe()).isEmpty();
@@ -118,7 +136,7 @@ class ValidateGuardianDomainServiceTest {
 
     @Test
     void should_refuse_a_guardrail_without_protocol_metadata() {
-        policies.put("data-logging-masking", new PolicyCapabilities(true, Map.of()));
+        policies.put("data-logging-masking", new PolicyCapabilities("Data logging masking", true, Map.of()));
 
         assertThat(validate(aGuardian().build()).severe().orElseThrow())
             .singleElement()
@@ -137,7 +155,7 @@ class ValidateGuardianDomainServiceTest {
 
     @Test
     void should_keep_supporting_known_conventional_policies() {
-        policies.put("data-logging-masking", new PolicyCapabilities(false, Map.of()));
+        policies.put("data-logging-masking", new PolicyCapabilities("Data logging masking", false, Map.of()));
 
         assertThat(validate(aGuardian().build()).severe()).isEmpty();
     }

@@ -27,9 +27,14 @@ import java.util.Set;
  *     type may be declared with no Guardian phase, when the manifest only lists flow phases a Guardian
  *     never runs in.
  */
-public record PolicyCapabilities(boolean guardrail, Map<ApiType, Set<Phase>> phases) {
+public record PolicyCapabilities(String name, boolean guardrail, Map<ApiType, Set<Phase>> phases) {
     public boolean supports(Set<ApiType> apiTypes) {
         return phases.keySet().containsAll(apiTypes);
+    }
+
+    /** Whether a Guardian of these API types and phase can run this policy as one of its guardrails. */
+    public boolean isGuardrailFor(Set<ApiType> apiTypes, Phase phase) {
+        return guardrail && runsIn(apiTypes, phase);
     }
 
     public boolean runsIn(Set<ApiType> apiTypes, Phase phase) {
