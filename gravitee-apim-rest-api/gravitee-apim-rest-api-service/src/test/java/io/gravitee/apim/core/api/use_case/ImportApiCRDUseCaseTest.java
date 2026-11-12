@@ -1389,7 +1389,7 @@ class ImportApiCRDUseCaseTest {
 
         @Test
         void should_accept_the_plan_ids_of_the_api_found_by_cross_id_when_the_spec_has_no_id() {
-            // Its id is not derived from the HRID: only the cross id finds it
+            // The spec has no id (mgmt-v2 _import/crd): only the cross id finds the API
             var apiFoundByCrossId = API_PROXY_V4.toBuilder().id("api-found-by-cross-id").build();
             apiQueryService.initWith(List.of(apiFoundByCrossId));
             var ownPlan = KEYLESS.toBuilder()
