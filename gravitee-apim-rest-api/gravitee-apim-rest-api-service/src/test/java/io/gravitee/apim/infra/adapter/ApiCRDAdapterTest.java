@@ -15,9 +15,11 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import static java.util.stream.Collectors.toMap;
 import static org.assertj.core.api.Assertions.*;
 
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
+import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -36,9 +38,8 @@ import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
-import java.sql.Date;
-import java.time.Instant;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -223,33 +224,31 @@ class ApiCRDAdapterTest {
 
     @Test
     void should_resolve_conflicts_with_plan_names_in_crd_spec() {
-        var export = exportEntity(false);
-        var then = Instant.now();
-        var plansWithConflictingNames = Set.of(
-            PlanEntity.builder()
-                .createdAt(Date.from(then))
-                .id("api-123-plan-1")
-                .hrid("plan-1")
-                .name("api key")
-                .security(PlanSecurity.builder().type("API_KEY").build())
-                .build(),
-            PlanEntity.builder()
-                .createdAt(Date.from(then.plusMillis(1)))
-                .id("api-123-plan-2")
-                .name("api key")
-                .security(PlanSecurity.builder().type("API_KEY").build())
-                .build(),
-            PlanEntity.builder()
-                .createdAt(Date.from(then.plusMillis(2)))
-                .id("api-123-plan-3")
-                .name("api key")
-                .security(PlanSecurity.builder().type("API_KEY").build())
-                .build()
-        );
-        export.setPlans(plansWithConflictingNames);
-        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity(), null);
-        assertThat(spec.getPlans()).hasSize(3);
-        assertThat(spec.getPlans()).containsKey("api-key");
+        var hridPlan = plan("api-123-plan-1", "plan-1", "api key");
+        var firstPlan = plan("api-123-plan-2", null, "api key");
+        var secondPlan = plan("api-123-plan-3", null, "api key");
+
+        var plans = toCRDSpec(secondPlan, hridPlan, firstPlan).getPlans();
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(keysById(plans)).containsOnlyKeys("api-123-plan-1", "api-123-plan-2", "api-123-plan-3");
+            soft.assertThat(keysById(plans)).containsEntry("api-123-plan-1", "plan-1").containsEntry("api-123-plan-2", "api-key");
+            soft.assertThat(keysById(plans).get("api-123-plan-3")).matches("api-key-\\d{8}");
+        });
+    }
+
+    @Test
+    void should_give_each_plan_the_same_key_whatever_the_order_of_the_plans() {
+        var hridPlan = plan("plan-a", "jwt", "JWT (deprecated)");
+        var namePlan = plan("plan-b", null, "jwt");
+
+        var oneOrder = keysById(toCRDSpec(hridPlan, namePlan).getPlans());
+        var otherOrder = keysById(toCRDSpec(namePlan, hridPlan).getPlans());
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(oneOrder).containsEntry("plan-a", "jwt");
+            soft.assertThat(otherOrder).isEqualTo(oneOrder);
+        });
     }
 
     @ParameterizedTest
@@ -259,11 +258,12 @@ class ApiCRDAdapterTest {
         Example Plan, Example-Plan
         API Key,      API-Key
         '  JWT  ',    JWT
-        plan.v1,      plan.v1
+        Gold 2.0,     Gold-2-0
+        plan.v1,      plan-v1
         """
     )
     void should_keep_the_name_based_plan_key_and_its_case(String planName, String expectedKey) {
-        var spec = toCRDSpecWithPlan(null, planName);
+        var spec = toCRDSpec(plan("plan-id", null, planName));
 
         assertThat(spec.getPlans()).containsOnlyKeys(expectedKey);
     }
@@ -276,7 +276,7 @@ class ApiCRDAdapterTest {
         """
     )
     void should_slugify_the_plan_key_when_the_name_based_key_is_not_an_hrid(String planName, String expectedKey) {
-        var spec = toCRDSpecWithPlan(null, planName);
+        var spec = toCRDSpec(plan("plan-id", null, planName));
 
         assertThat(spec.getPlans()).containsOnlyKeys(expectedKey);
     }
@@ -284,41 +284,76 @@ class ApiCRDAdapterTest {
     @ParameterizedTest
     @CsvSource(
         textBlock = """
-        ExamplePlan, Example Plan v2, ExamplePlan
-        exampleplan, ExamplePlan,     exampleplan
+        ExamplePlan,                          Example Plan v2, ExamplePlan
+        exampleplan,                          ExamplePlan,     exampleplan
+        API Key,                              Gold,            API-Key
+        3f1c2a9e-7b4d-4c1e-9a2f-5d6e7f8a9b0c, ExamplePlan,     3f1c2a9e-7b4d-4c1e-9a2f-5d6e7f8a9b0c
         """
     )
     void should_key_a_plan_by_its_hrid(String planHrid, String planName, String expectedKey) {
-        var spec = toCRDSpecWithPlan(planHrid, planName);
+        var spec = toCRDSpec(plan("plan-id", planHrid, planName));
 
         assertThat(spec.getPlans()).containsOnlyKeys(expectedKey);
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = { "3f1c2a9e-7b4d-4c1e-9a2f-5d6e7f8a9b0c", "Example Plan (v2)" })
-    void should_key_a_plan_by_its_name_when_its_hrid_is_a_uuid_or_not_an_hrid(String planHrid) {
-        var spec = toCRDSpecWithPlan(planHrid, "ExamplePlan");
+    @Test
+    void should_key_a_plan_by_its_name_when_its_hrid_is_the_plan_id_the_upgrader_copied() {
+        var planId = "3f1c2a9e-7b4d-4c1e-9a2f-5d6e7f8a9b0c";
+
+        var spec = toCRDSpec(plan(planId, planId, "ExamplePlan"));
+
+        assertThat(spec.getPlans()).containsOnlyKeys("ExamplePlan");
+    }
+
+    @Test
+    void should_key_a_plan_by_its_name_when_its_hrid_cannot_be_an_hrid() {
+        var spec = toCRDSpec(plan("plan-id", "Example Plan (v2)", "ExamplePlan"));
 
         assertThat(spec.getPlans()).containsOnlyKeys("ExamplePlan");
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "(!)", "A" })
-    void should_randomize_plan_key_when_name_cannot_be_an_hrid(String planName) {
-        var export = exportEntity(false);
-        export.setPlans(Set.of(PlanEntity.builder().id("plan-id").name(planName).security(new PlanSecurity("key-less", "{}")).build()));
+    @ValueSource(strings = { "ExamplePlan", "Example Plan", "Gold 2.0", "plan.v1", "Default Keyless (UNSECURED)", "Café Plan" })
+    void should_export_the_same_key_once_gko_stored_it_as_the_plan_hrid(String planName) {
+        var exportedKey = singleKey(toCRDSpec(plan("plan-id", null, planName)));
 
-        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity(), null);
+        var reExportedKey = singleKey(toCRDSpec(plan("plan-id", gkoHrid(exportedKey), planName)));
 
-        assertThat(spec.getPlans().keySet()).singleElement().asString().matches("plan-\\d{8}");
+        assertThat(reExportedKey).isEqualTo(exportedKey);
     }
 
-    private static ApiCRDSpec toCRDSpecWithPlan(String planHrid, String planName) {
+    @ParameterizedTest
+    @ValueSource(strings = { "(!)", "A" })
+    void should_key_a_plan_by_an_id_based_suffix_when_its_name_cannot_be_an_hrid(String planName) {
+        var key = singleKey(toCRDSpec(plan("plan-id", null, planName)));
+
+        assertThat(key).matches("plan-\\d{8}").isEqualTo(singleKey(toCRDSpec(plan("plan-id", null, planName))));
+    }
+
+    /**
+     * Mirrors GKO's NameToValidHRID, which turns the spaces and dots of a plan key into dashes to build the plan HRID.
+     */
+    private static String gkoHrid(String key) {
+        return key.replace(' ', '-').replace('.', '-');
+    }
+
+    private static GenericPlanEntity plan(String id, String hrid, String name) {
+        return PlanEntity.builder().id(id).hrid(hrid).name(name).security(new PlanSecurity("key-less", "{}")).build();
+    }
+
+    private static ApiCRDSpec toCRDSpec(GenericPlanEntity... plans) {
         var export = exportEntity(false);
-        export.setPlans(
-            Set.of(PlanEntity.builder().id("plan-id").hrid(planHrid).name(planName).security(new PlanSecurity("key-less", "{}")).build())
-        );
+        export.setPlans(new LinkedHashSet<>(List.of(plans)));
         return ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity(), null);
+    }
+
+    private static Map<String, String> keysById(Map<String, PlanCRD> plans) {
+        return plans.entrySet().stream().collect(toMap(entry -> entry.getValue().getId(), Map.Entry::getKey));
+    }
+
+    private static String singleKey(ApiCRDSpec spec) {
+        assertThat(spec.getPlans()).hasSize(1);
+        return spec.getPlans().keySet().iterator().next();
     }
 
     private static ExportApiEntity exportEntity(boolean withHrid) {

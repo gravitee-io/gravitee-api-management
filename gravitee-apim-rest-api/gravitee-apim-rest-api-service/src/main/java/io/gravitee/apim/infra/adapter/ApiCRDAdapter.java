@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.adapter;
 
 import static com.google.common.base.Functions.identity;
+import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -47,7 +48,6 @@ import java.util.SequencedSet;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -68,8 +68,6 @@ public interface ApiCRDAdapter {
      * HRID pattern of the Automation API.
      */
     Pattern HRID_PATTERN = Pattern.compile("^[a-zA-Z0-9][a-zA-Z0-9_.-]+[a-zA-Z0-9]$");
-
-    Pattern UUID_PATTERN = Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
     @Mapping(target = "version", source = "apiEntity.apiVersion")
     @Mapping(target = "metadata", source = "exportEntity.metadata")
@@ -124,15 +122,17 @@ public interface ApiCRDAdapter {
 
     default Map<String, PlanCRD> mapPlans(ExportApiEntity definition) {
         var plansMap = new HashMap<String, PlanCRD>();
+        // Plans keyed by their HRID claim their keys before any name can, and a tie goes to the same plan on every export.
         var nonClosedPlans = definition
             .getPlans()
             .stream()
             .filter(plan -> !plan.isClosed())
+            .sorted(comparing((GenericPlanEntity plan) -> chosenHrid(plan) == null).thenComparing(GenericPlanEntity::getId))
             .toList();
         for (var plan : nonClosedPlans) {
             var key = planKey(plan);
             if (plansMap.containsKey(key)) {
-                key = randomize(key);
+                key = key + "-" + stableSuffix(plan);
             }
             plansMap.put(key, toCRDPlan(plan));
         }
@@ -221,28 +221,40 @@ public interface ApiCRDAdapter {
 
     /**
      * GKO identifies a plan by its key, so exporting the same plan twice must give the same key: the plan HRID
-     * first, then the name-based key exports produced before keys had to match the HRID pattern.
+     * first, then the plan name with its case kept, as exports did before keys had to match the HRID pattern,
+     * then the slugified name.
      */
     private static String planKey(GenericPlanEntity plan) {
-        return Stream.of(chosenHrid(plan), nameBasedKey(plan.getName()), StringUtils.slugify(plan.getName()))
-            .filter(key -> key != null && HRID_PATTERN.matcher(key).matches())
+        return Stream.of(chosenHrid(plan), plan.getName(), StringUtils.slugify(plan.getName()))
+            .filter(Objects::nonNull)
+            .map(ApiCRDAdapter::asGkoHrid)
+            .filter(key -> HRID_PATTERN.matcher(key).matches())
             .findFirst()
-            .orElseGet(() -> randomize("plan"));
+            .orElseGet(() -> "plan-" + stableSuffix(plan));
     }
 
     /**
-     * A UUID HRID was written by the plan HRID upgrader or copied by an API duplication, so it is not a key anyone chose.
+     * The plan HRID upgrader set every plan's HRID to its id, a placeholder nobody applied as a key. An API
+     * duplication copies it to a plan with a new id, where it is kept: dropping every UUID would also drop the
+     * keys GKO applied from exports keyed by plan id.
      */
     private static String chosenHrid(GenericPlanEntity plan) {
         var hrid = plan.getHrid();
-        return hrid == null || UUID_PATTERN.matcher(hrid).matches() ? null : hrid;
+        return hrid == null || hrid.equals(plan.getId()) ? null : hrid;
     }
 
-    private static String nameBasedKey(String name) {
-        return name == null ? null : name.trim().replace(" ", "-");
+    /**
+     * GKO builds a plan HRID from its key by turning spaces and dots into dashes, so a key built the same way
+     * comes back unchanged once GKO has applied it.
+     */
+    private static String asGkoHrid(String key) {
+        return key.trim().replace(' ', '-').replace('.', '-');
     }
 
-    private static String randomize(String strToRandomize) {
-        return strToRandomize + "-" + RandomStringUtils.secure().nextNumeric(8);
+    /**
+     * Derived from the plan id rather than random, so the plan keeps its key from one export to the next.
+     */
+    private static String stableSuffix(GenericPlanEntity plan) {
+        return String.format("%08d", Math.floorMod(plan.getId().hashCode(), 100_000_000));
     }
 }
