@@ -103,6 +103,17 @@ public record MetricSpec(
         P99,
         P95,
         P90,
-        SUM,
+        SUM;
+
+        /**
+         * What the measure reads when no request carries the value, on a built-in and an additional metric alike: 0
+         * for a count, a sum or a percentage, no value for an average, a bound or a percentile.
+         */
+        public Number emptyValue() {
+            return switch (this) {
+                case COUNT, SUM, PERCENTAGE -> 0;
+                case AVG, MAX, MIN, P50, P99, P95, P90 -> null;
+            };
+        }
     }
 }

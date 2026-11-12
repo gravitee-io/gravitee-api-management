@@ -84,6 +84,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.DoublePredicate;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -2518,6 +2519,36 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     .extracting(bucket -> bucket.key(), bucket -> bucket.measures().get(Measure.COUNT).longValue())
                     .containsExactlyInAnyOrder(tuple("subscribe", 308L), tuple("publish", 102L));
             }
+
+            /**
+             * Only the subscribe messages carry a gateway latency. Ranked by its average, the publish bucket would read no
+             * value, which Elasticsearch ranks first: the ranked buckets are the ones carrying a latency, on the direct
+             * and on the joined path alike.
+             */
+            @ParameterizedTest
+            @ValueSource(booleans = { false, true })
+            void should_rank_the_operations_by_an_average_over_the_messages_carrying_a_latency(boolean joined) {
+                var everyEntrypoint = new Filter(
+                    Filter.Name.ENTRYPOINT,
+                    Filter.Operator.IN,
+                    List.of("http-post", "http-get", "websocket", "sse")
+                );
+                var latency = new MetricMeasuresQuery(
+                    Metric.MESSAGE_GATEWAY_LATENCY,
+                    Set.of(Measure.AVG),
+                    List.of(new MetricMeasuresQuery.Sort(Measure.AVG, MetricMeasuresQuery.Sort.Order.DESC))
+                );
+                var filters = joined ? List.of(api(), everyEntrypoint) : List.of(api());
+
+                var result = cut.searchMessageFacets(
+                    QUERY_CONTEXT,
+                    new FacetsQuery(buildTimeRange(), filters, List.of(latency), List.of(Facet.MESSAGE_OPERATION_TYPE), 1)
+                );
+
+                assertThat(result.metrics().getFirst().buckets())
+                    .extracting(bucket -> bucket.key(), bucket -> bucket.measures().get(Measure.AVG).doubleValue())
+                    .containsExactly(tuple("subscribe", 5.0));
+            }
         }
 
         /**
@@ -2557,6 +2588,49 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     .sum();
 
                 assertThat(total).isEqualTo(MessageMeasures.MESSAGES_IN_FULL_WINDOW);
+            }
+
+            /** Only the subscribe messages carry a gateway latency: the operations ranked in each interval carry one. */
+            @ParameterizedTest
+            @ValueSource(booleans = { false, true })
+            void should_break_the_latency_down_by_operation_over_the_messages_carrying_one(boolean joined) {
+                var api = new Filter(
+                    Filter.Name.API,
+                    Filter.Operator.IN,
+                    List.of(MessageMeasures.MESSAGE_API, MessageMeasures.PUBLISH_API)
+                );
+                var everyEntrypoint = new Filter(
+                    Filter.Name.ENTRYPOINT,
+                    Filter.Operator.IN,
+                    List.of("http-post", "http-get", "websocket", "sse")
+                );
+                var latency = new MetricMeasuresQuery(
+                    Metric.MESSAGE_GATEWAY_LATENCY,
+                    Set.of(Measure.AVG),
+                    List.of(new MetricMeasuresQuery.Sort(Measure.AVG, MetricMeasuresQuery.Sort.Order.DESC))
+                );
+                var query = new TimeSeriesQuery(
+                    buildTimeRange(),
+                    joined ? List.of(api, everyEntrypoint) : List.of(api),
+                    Duration.ofHours(1).toMillis(),
+                    List.of(latency),
+                    List.of(Facet.MESSAGE_OPERATION_TYPE),
+                    1,
+                    List.of()
+                );
+
+                var result = cut.searchMessageTimeSeries(QUERY_CONTEXT, query);
+
+                var keys = result
+                    .metrics()
+                    .getFirst()
+                    .buckets()
+                    .stream()
+                    .flatMap(bucket -> bucket.buckets() == null ? Stream.empty() : bucket.buckets().stream())
+                    .map(bucket -> bucket.key())
+                    .distinct()
+                    .toList();
+                assertThat(keys).containsExactly("subscribe");
             }
         }
 

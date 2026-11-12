@@ -257,15 +257,6 @@ class AnalyticsElasticsearchRepositoryAdditionalMetricsTest extends AbstractElas
     }
 
     @Test
-    void should_keep_counting_a_request_without_a_built_in_field_as_zero() {
-        var tokens = new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_SENT, Set.of(Measure.AVG));
-
-        var result = cut.searchHTTPMeasures(QUERY_CONTEXT, new MeasuresQuery(TIME_RANGE, List.of(BY_API), List.of(tokens)));
-
-        assertThat(measuresOf(result, Metric.LLM_PROMPT_TOKEN_SENT).get(Measure.AVG).doubleValue()).isZero();
-    }
-
-    @Test
     void should_measure_a_number_per_value_of_a_keyword_ordered_by_a_percentile() {
         var failovers = new MetricMeasuresQuery(
             FAILOVER_METRIC,

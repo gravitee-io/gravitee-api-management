@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -197,16 +198,25 @@ class AdditionalMetricFieldAdapterTest extends AbstractQueryAdapterTest {
         }
 
         @Test
-        void should_keep_counting_a_document_without_the_field_as_zero_for_a_built_in() throws JsonProcessingException {
-            var builtIn = new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_SENT, Set.of(Measure.AVG, Measure.P95, Measure.SUM));
+        void should_aggregate_a_built_in_and_the_additional_metric_it_reads_alike() throws JsonProcessingException {
+            var key = new AdditionalMetric(new AdditionalMetricField(ValueType.LONG, "long_llm-proxy_tokens-sent"));
+            var measured = MEASURED.stream()
+                .filter(measure -> measure != Measure.COUNT)
+                .collect(Collectors.toSet());
+            var query = measures(new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_SENT, measured), new MetricMeasuresQuery(key, measured));
 
-            var aggs = JSON.readTree(adapter.adapt(measures(builtIn))).at("/aggs");
+            var aggs = JSON.readTree(adapter.adapt(query)).at("/aggs");
 
-            assertThat(aggs.at("/LLM_PROMPT_TOKEN_SENT#__MEASURED__/aggs/LLM_PROMPT_TOKEN_SENT#AVG/avg/missing").asInt(-1)).isZero();
-            assertThat(
-                aggs.at("/LLM_PROMPT_TOKEN_SENT#__MEASURED__/aggs/LLM_PROMPT_TOKEN_SENT#P95/percentiles/missing").asInt(-1)
-            ).isZero();
-            assertThat(aggs.at("/LLM_PROMPT_TOKEN_SENT#__MEASURED__/aggs/LLM_PROMPT_TOKEN_SENT#SUM/sum/missing").asInt(-1)).isZero();
+            var builtInEnvelope = aggs.get("LLM_PROMPT_TOKEN_SENT#__MEASURED__");
+            var additionalEnvelope = aggs.get("additional-metrics_long_llm-proxy_tokens-sent#__MEASURED__");
+            assertThat(builtInEnvelope.get("filter")).isEqualTo(additionalEnvelope.get("filter"));
+            assertThat(measured).allSatisfy(measure ->
+                assertThat(builtInEnvelope.at("/aggs/LLM_PROMPT_TOKEN_SENT#" + measure))
+                    .as(measure.name())
+                    .isNotEmpty()
+                    .isEqualTo(additionalEnvelope.at("/aggs/additional-metrics.long_llm-proxy_tokens-sent#" + measure))
+            );
+            assertThat(aggs.findValues("missing")).isEmpty();
         }
 
         @Test
@@ -242,20 +252,43 @@ class AdditionalMetricFieldAdapterTest extends AbstractQueryAdapterTest {
         }
 
         @Test
-        void should_keep_reading_zero_for_a_built_in_elasticsearch_answers_none_for() throws JsonProcessingException {
-            var query = measures(new MetricMeasuresQuery(Metric.HTTP_GATEWAY_LATENCY, Set.of(Measure.AVG)));
-            var aggregations = Map.of("HTTP_GATEWAY_LATENCY#AVG", JSON.readValue("{\"value\":null}", Aggregation.class));
+        void should_read_no_value_for_a_built_in_where_elasticsearch_answers_none_or_nan() throws JsonProcessingException {
+            var query = measures(
+                new MetricMeasuresQuery(
+                    Metric.HTTP_GATEWAY_LATENCY,
+                    Set.of(Measure.AVG, Measure.MAX, Measure.P95, Measure.SUM, Measure.COUNT)
+                )
+            );
+            var aggregations = Map.of(
+                "HTTP_GATEWAY_LATENCY#AVG",
+                JSON.readValue("{\"value\":null}", Aggregation.class),
+                "HTTP_GATEWAY_LATENCY#MAX",
+                JSON.readValue("{\"value\":\"NaN\"}", Aggregation.class),
+                "HTTP_GATEWAY_LATENCY#P95",
+                JSON.readValue("{\"values\":{\"95.0\":null}}", Aggregation.class),
+                "HTTP_GATEWAY_LATENCY#SUM",
+                JSON.readValue("{\"value\":0.0}", Aggregation.class),
+                "HTTP_GATEWAY_LATENCY#COUNT",
+                JSON.readValue("{\"value\":0}", Aggregation.class)
+            );
 
             var measures = AggregationAdapter.toMetricsAndMeasures(aggregations, query).get(Metric.HTTP_GATEWAY_LATENCY);
 
-            assertThat(measures).containsEntry(Measure.AVG, 0.0);
+            assertThat(measures)
+                .containsEntry(Measure.AVG, null)
+                .containsEntry(Measure.MAX, null)
+                .containsEntry(Measure.P95, null)
+                .containsEntry(Measure.SUM, 0.0)
+                .containsEntry(Measure.COUNT, 0.0);
         }
 
+        /** A percentage is computed by the engine itself, never left without a value: it reads 0 over no document. */
         @Test
         void should_read_the_measures_of_an_unanswered_query_as_elasticsearch_would_over_no_document() {
             var query = measures(
                 new MetricMeasuresQuery(FAILOVER_METRIC, MEASURED),
-                new MetricMeasuresQuery(Metric.HTTP_GATEWAY_LATENCY, Set.of(Measure.AVG))
+                new MetricMeasuresQuery(Metric.HTTP_GATEWAY_LATENCY, MEASURED),
+                new MetricMeasuresQuery(Metric.HTTP_ERROR_RATE, Set.of(Measure.PERCENTAGE))
             );
 
             var result = new MeasuresResponseAdapter().empty(query).measures();
@@ -266,7 +299,11 @@ class AdditionalMetricFieldAdapterTest extends AbstractQueryAdapterTest {
             expected.put(Measure.COUNT, 0);
             assertThat(result)
                 .extracting(r -> r.metric(), r -> r.measures())
-                .containsExactly(tuple(FAILOVER_METRIC, expected), tuple(Metric.HTTP_GATEWAY_LATENCY, Map.of(Measure.AVG, 0)));
+                .containsExactly(
+                    tuple(FAILOVER_METRIC, expected),
+                    tuple(Metric.HTTP_GATEWAY_LATENCY, expected),
+                    tuple(Metric.HTTP_ERROR_RATE, Map.of(Measure.PERCENTAGE, 0))
+                );
         }
 
         @Test
@@ -274,7 +311,10 @@ class AdditionalMetricFieldAdapterTest extends AbstractQueryAdapterTest {
             var query = new FacetsQuery(
                 buildTimeRange(),
                 List.of(),
-                List.of(new MetricMeasuresQuery(FAILOVER_METRIC, Set.of(Measure.AVG, Measure.COUNT))),
+                List.of(
+                    new MetricMeasuresQuery(FAILOVER_METRIC, Set.of(Measure.AVG, Measure.COUNT)),
+                    new MetricMeasuresQuery(Metric.HTTP_GATEWAY_LATENCY, Set.of(Measure.AVG, Measure.COUNT))
+                ),
                 List.of(TIER)
             );
             var empty = JSON.createObjectNode().put("key", "low").put("doc_count", 0);
@@ -282,12 +322,20 @@ class AdditionalMetricFieldAdapterTest extends AbstractQueryAdapterTest {
             facetAgg.setBuckets(List.of(empty));
 
             var result = AggregationAdapter.toMetricsAndBuckets(
-                Map.of("additional-metrics.long_failover_count#additional-metrics.keyword_fraud-check_tier", facetAgg),
+                Map.of(
+                    "additional-metrics.long_failover_count#additional-metrics.keyword_fraud-check_tier",
+                    facetAgg,
+                    "HTTP_GATEWAY_LATENCY#additional-metrics.keyword_fraud-check_tier",
+                    facetAgg
+                ),
                 query
             );
 
-            assertThat(result.getFirst().metric()).isEqualTo(FAILOVER_METRIC);
-            assertThat(result.getFirst().buckets().getFirst().measures()).containsEntry(Measure.AVG, null).containsEntry(Measure.COUNT, 0);
+            assertThat(result)
+                .hasSize(2)
+                .allSatisfy(metric ->
+                    assertThat(metric.buckets().getFirst().measures()).containsEntry(Measure.AVG, null).containsEntry(Measure.COUNT, 0)
+                );
         }
 
         @Test
@@ -340,6 +388,63 @@ class AdditionalMetricFieldAdapterTest extends AbstractQueryAdapterTest {
             assertThat(aggs.has("HTTP_REQUESTS#additional-metrics.keyword_fraud-check_tier")).isTrue();
         }
 
+        /** Elasticsearch ranks a bucket without a value first by a descending average or minimum, or an ascending maximum. */
+        @ParameterizedTest
+        @MethodSource("measuresReadingNoValueOnABucketWithoutOne")
+        void should_rank_the_facets_of_a_built_in_over_the_documents_carrying_its_value(Measure measure) throws JsonProcessingException {
+            var aggs = JSON.readTree(new HTTPFacetsQueryAdapter().adapt(facets(sorted(Metric.HTTP_GATEWAY_LATENCY, measure)))).at("/aggs");
+
+            var scope = aggs.at("/HTTP_GATEWAY_LATENCY#__FILTER__");
+            assertThat(scope.at("/filter")).isEqualTo(JSON.readTree("{\"exists\":{\"field\":\"gateway-latency-ms\"}}"));
+            assertThat(scope.at("/aggs/HTTP_GATEWAY_LATENCY#additional-metrics.keyword_fraud-check_tier/terms/order").isObject()).isTrue();
+        }
+
+        @Test
+        void should_rank_the_facets_of_an_llm_total_over_the_documents_carrying_either_of_its_values() throws JsonProcessingException {
+            var aggs = JSON.readTree(new HTTPFacetsQueryAdapter().adapt(facets(sorted(Metric.LLM_PROMPT_TOTAL_TOKEN, Measure.AVG)))).at(
+                "/aggs"
+            );
+
+            assertThat(aggs.at("/LLM_PROMPT_TOTAL_TOKEN#__FILTER__/filter")).isEqualTo(
+                JSON.readTree(
+                    "{\"bool\":{\"should\":[" +
+                        "{\"exists\":{\"field\":\"additional-metrics.long_llm-proxy_tokens-sent\"}}," +
+                        "{\"exists\":{\"field\":\"additional-metrics.long_llm-proxy_tokens-received\"}}" +
+                        "],\"minimum_should_match\":1}}"
+                )
+            );
+        }
+
+        /** Every bucket reads a count or a sum, 0 included, so the facets keep the buckets of every request. */
+        @ParameterizedTest
+        @MethodSource("measuresReadingZeroOnABucketWithoutAValue")
+        void should_keep_the_facets_of_a_built_in_over_every_request_when_ranked_by_a_count_or_a_sum(Measure measure)
+            throws JsonProcessingException {
+            var ranked = JSON.readTree(new HTTPFacetsQueryAdapter().adapt(facets(sorted(Metric.LLM_PROMPT_TOKEN_SENT, measure)))).at(
+                "/aggs"
+            );
+            var unranked = JSON.readTree(
+                new HTTPFacetsQueryAdapter().adapt(facets(new MetricMeasuresQuery(Metric.HTTP_GATEWAY_LATENCY, Set.of(Measure.AVG))))
+            ).at("/aggs");
+
+            assertThat(ranked.has("LLM_PROMPT_TOKEN_SENT#additional-metrics.keyword_fraud-check_tier")).isTrue();
+            assertThat(unranked.has("HTTP_GATEWAY_LATENCY#additional-metrics.keyword_fraud-check_tier")).isTrue();
+            assertThat(ranked.findValues("exists")).isEmpty();
+            assertThat(unranked.findValues("exists")).isEmpty();
+        }
+
+        static Stream<Measure> measuresReadingNoValueOnABucketWithoutOne() {
+            return Stream.of(Measure.AVG, Measure.MIN, Measure.MAX, Measure.P50, Measure.P90, Measure.P95, Measure.P99);
+        }
+
+        static Stream<Measure> measuresReadingZeroOnABucketWithoutAValue() {
+            return Stream.of(Measure.COUNT, Measure.SUM);
+        }
+
+        private FacetsQuery facets(MetricMeasuresQuery metric) {
+            return new FacetsQuery(buildTimeRange(), List.of(), List.of(metric), List.of(TIER));
+        }
+
         @Test
         void should_name_the_time_series_of_a_field_after_its_wire_name() throws JsonProcessingException {
             var query = new TimeSeriesQuery(
@@ -375,9 +480,8 @@ class AdditionalMetricFieldAdapterTest extends AbstractQueryAdapterTest {
         private JsonNode order(MetricMeasuresQuery metric) throws JsonProcessingException {
             var query = new FacetsQuery(buildTimeRange(), List.of(), List.of(metric), List.of(TIER));
             var aggs = JSON.readTree(new HTTPFacetsQueryAdapter().adapt(query)).at("/aggs");
-            var facets = metric.metric() instanceof AdditionalMetric
-                ? aggs.at("/" + AuthzMeasuresQueryAdapter.scopeAggName(metric.metric()) + "/aggs")
-                : aggs;
+            var scope = aggs.at("/" + AuthzMeasuresQueryAdapter.scopeAggName(metric.metric()) + "/aggs");
+            var facets = scope.isMissingNode() ? aggs : scope;
             return facets.at("/" + AggregationAdapter.adaptName(metric.metric(), TIER).replace("/", "~1") + "/terms/order");
         }
     }

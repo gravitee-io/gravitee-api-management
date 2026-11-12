@@ -619,7 +619,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
             log.debug("Message - unjoined Facets query: {}", unjoined);
             return client
                 .search(messageIndex, null, unjoined)
-                .map(response -> facetsResponseAdapter.adapt(response, query))
+                .map(response -> facetsResponseAdapter.adapt(AuthzScopedFacetAggregation.unwrap(response, query), query))
                 .blockingGet();
         }
 
@@ -635,7 +635,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         return client
             .search(messageIndex, null, messageQuery)
-            .map(response -> facetsResponseAdapter.adapt(response, query))
+            .map(response -> facetsResponseAdapter.adapt(AuthzScopedFacetAggregation.unwrap(response, query), query))
             .blockingGet();
     }
 
@@ -652,7 +652,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
             log.debug("Message - unjoined Time series query: {}", unjoined);
             return client
                 .search(messageIndex, null, unjoined)
-                .map(response -> timeSeriesResponseAdapter.adapt(response, query))
+                .map(response -> timeSeriesResponseAdapter.adapt(AuthzScopedFacetAggregation.unwrap(response, query), query))
                 .blockingGet();
         }
 
@@ -668,7 +668,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         return client
             .search(messageIndex, null, messageQuery)
-            .map(response -> timeSeriesResponseAdapter.adapt(response, query))
+            .map(response -> timeSeriesResponseAdapter.adapt(AuthzScopedFacetAggregation.unwrap(response, query), query))
             .blockingGet();
     }
 

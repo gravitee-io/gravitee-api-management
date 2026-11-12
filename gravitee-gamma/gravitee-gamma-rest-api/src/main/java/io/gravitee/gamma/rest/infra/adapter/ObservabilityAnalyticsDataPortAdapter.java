@@ -191,7 +191,7 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
                             metric
                                 .getValue()
                                 .stream()
-                                .map(measure -> new Measure(measure, MetricName.emptyValue(metric.getKey(), measure)))
+                                .map(measure -> new Measure(measure, measure.emptyValue()))
                                 .toList(),
                             List.of()
                         )

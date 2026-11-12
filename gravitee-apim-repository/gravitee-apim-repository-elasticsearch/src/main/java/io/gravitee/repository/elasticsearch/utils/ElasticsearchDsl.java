@@ -54,6 +54,8 @@ public final class ElasticsearchDsl {
         public static final String LTE = "lte";
         public static final String LT = "lt";
         public static final String EXISTS = "exists";
+        public static final String SHOULD = "should";
+        public static final String MINIMUM_SHOULD_MATCH = "minimum_should_match";
 
         private Query() {}
     }
@@ -73,9 +75,10 @@ public final class ElasticsearchDsl {
         public static final String VALUE_COUNT = "value_count";
         public static final String PERCENTILES = "percentiles";
         public static final String PERCENTS = "percents";
-        public static final String MISSING = "missing";
         public static final String TOP_HITS = "top_hits";
         public static final String ORDER = "order";
+        public static final String SCRIPT = "script";
+        public static final String SCRIPT_SOURCE = "source";
 
         private Aggs() {}
     }

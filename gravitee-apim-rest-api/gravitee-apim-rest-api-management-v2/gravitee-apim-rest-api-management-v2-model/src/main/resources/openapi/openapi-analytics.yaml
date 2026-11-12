@@ -1663,7 +1663,11 @@ components:
                     $ref: "#/components/schemas/MeasureName"
                 value:
                     type: number
-                    description: The measure value.
+                    nullable: true
+                    description: |
+                        The measure value. `AVG`, `MIN`, `MAX` and the percentiles are computed over the documents
+                        carrying the metric's value. On every metric, a window or bucket without any such document
+                        reads 0 for `COUNT`, `SUM` and `PERCENTAGE`, and `null` for the other measures.
                     example: 2984
             example:
                 name: "COUNT"

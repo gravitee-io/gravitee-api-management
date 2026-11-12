@@ -16,8 +16,11 @@
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
 import io.gravitee.repository.analytics.engine.api.metric.Measure;
+import io.gravitee.repository.analytics.engine.api.metric.MetricName;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
+import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query;
+import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Tokens;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.CountBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.CountWithSumBuilder;
@@ -93,6 +96,11 @@ public class MessageMeasuresQueryAdapter {
 
     FieldResolver fieldResolver() {
         return fieldResolver;
+    }
+
+    /** The messages carrying a value of the metric. */
+    JsonObject carrying(MetricName metric) {
+        return JsonObject.of(Query.EXISTS, JsonObject.of(Tokens.FIELD, fieldResolver.fromMetric(metric)));
     }
 
     JsonObject adaptMetrics(List<MetricMeasuresQuery> metrics) {

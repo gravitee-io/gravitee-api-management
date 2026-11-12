@@ -148,6 +148,25 @@ describe('StatsConverterService', () => {
       expect(result).toEqual(['0', '0', '0']);
     });
 
+    it('should show a dash, without unit, for a measure no request carries a value for', () => {
+      const data: MeasuresResponse = {
+        metrics: [
+          {
+            name: 'HTTP_GATEWAY_LATENCY',
+            unit: 'MILLISECONDS',
+            measures: [
+              { name: 'AVG', value: null },
+              { name: 'SUM', value: 0 },
+            ],
+          },
+        ],
+      };
+
+      const result = service.convert(data);
+
+      expect(result).toEqual(['—', '0 ms']);
+    });
+
     it('should handle negative values', () => {
       const data: MeasuresResponse = {
         metrics: [

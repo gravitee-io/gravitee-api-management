@@ -23,6 +23,9 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.analytics_engine.model.FacetBucketResponse;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
@@ -153,6 +156,33 @@ public class PortalAnalyticsComputationResourceTest extends AbstractResourceTest
         assertThat(body.getMetrics().getFirst().getMeasures()).hasSize(1);
         assertThat(body.getMetrics().getFirst().getMeasures().getFirst().getName()).isEqualTo(AnalyticsMeasureName.COUNT);
         verify(computeMeasuresUseCase).execute(any());
+    }
+
+    /** An average over a window where no request carries the value has no value: it is served as null, not 0. */
+    @Test
+    void post_measures_serves_an_average_no_request_carries_a_value_for_as_null() {
+        when(computeMeasuresUseCase.execute(any())).thenReturn(
+            new ComputeMeasuresUseCase.Output(
+                new MeasuresResponse(
+                    List.of(
+                        new MetricMeasuresResponse(
+                            MetricSpec.Name.HTTP_GATEWAY_LATENCY,
+                            MetricSpec.Unit.MILLISECONDS,
+                            List.of(new Measure(MetricSpec.Measure.AVG, null)),
+                            List.of()
+                        )
+                    )
+                )
+            )
+        );
+
+        final var response = target().path("measures").request().post(Entity.json(aMeasuresRequest()));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        final var measure = readTree(response.readEntity(String.class)).at("/metrics/0/measures/0");
+        assertThat(measure.get("name").asText()).isEqualTo("AVG");
+        assertThat(measure.has("value")).isTrue();
+        assertThat(measure.get("value").isNull()).isTrue();
     }
 
     @Test
@@ -381,5 +411,13 @@ public class PortalAnalyticsComputationResourceTest extends AbstractResourceTest
                     new AnalyticsFacetMetricRequest().name(AnalyticsMetricName.HTTP_REQUESTS).measures(List.of(AnalyticsMeasureName.COUNT))
                 )
             );
+    }
+
+    private static JsonNode readTree(String json) {
+        try {
+            return new ObjectMapper().readTree(json);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Response is not JSON: " + json, e);
+        }
     }
 }

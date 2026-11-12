@@ -84,5 +84,25 @@ describe('CategoryConverterService', () => {
       expect(result.labels).toEqual(['tools/call', 'tools/list']);
       expect(result.datasets[0].data).toEqual([17, 14]);
     });
+
+    it('should keep a bucket reading no value as a gap rather than a zero', () => {
+      const data: FacetsResponse = {
+        metrics: [
+          {
+            name: 'HTTP_GATEWAY_LATENCY',
+            unit: 'MILLISECONDS',
+            buckets: [
+              { key: 'api-1', name: 'api-1', measures: [{ name: 'AVG', value: 12 }] },
+              { key: 'api-2', name: 'api-2', measures: [{ name: 'AVG', value: null }] },
+            ],
+          },
+        ],
+      };
+
+      const result = service.convert(data);
+
+      expect(result.labels).toEqual(['api-1', 'api-2']);
+      expect(result.datasets[0].data).toEqual([12, null]);
+    });
   });
 });

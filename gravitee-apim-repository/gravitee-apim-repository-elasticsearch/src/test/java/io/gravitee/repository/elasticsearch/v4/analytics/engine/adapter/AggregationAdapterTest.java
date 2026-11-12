@@ -295,6 +295,55 @@ class AggregationAdapterTest {
         );
     }
 
+    @ParameterizedTest(name = "{0} reads {1}")
+    @MethodSource("emptyValues")
+    void should_read_zero_for_a_count_a_sum_or_a_percentage_and_no_value_for_the_others_over_no_document(Measure measure, Number expected) {
+        assertThat(AggregationAdapter.emptyValue(measure)).isEqualTo(expected);
+    }
+
+    static Stream<Arguments> emptyValues() {
+        return Stream.of(
+            arguments(Measure.COUNT, 0),
+            arguments(Measure.SUM, 0),
+            arguments(Measure.PERCENTAGE, 0),
+            arguments(Measure.AVG, null),
+            arguments(Measure.MIN, null),
+            arguments(Measure.MAX, null),
+            arguments(Measure.P50, null),
+            arguments(Measure.P90, null),
+            arguments(Measure.P95, null),
+            arguments(Measure.P99, null)
+        );
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("rankings")
+    void should_tell_whether_buckets_are_ranked_by_a_measure_reading_no_value_over_no_document(
+        String ranking,
+        List<MetricMeasuresQuery.Sort> sorts,
+        boolean expected
+    ) {
+        var metric = new MetricMeasuresQuery(Metric.HTTP_GATEWAY_RESPONSE_TIME, Set.of(Measure.COUNT, Measure.AVG), List.of(), sorts);
+
+        assertThat(AggregationAdapter.rankedByAMeasureReadingNoValueWhenEmpty(metric)).isEqualTo(expected);
+    }
+
+    static Stream<Arguments> rankings() {
+        return Stream.of(
+            arguments("no sort", null, false),
+            arguments("empty sorts", List.of(), false),
+            arguments("by COUNT", List.of(sort(Measure.COUNT)), false),
+            arguments("by SUM", List.of(sort(Measure.SUM)), false),
+            arguments("by AVG", List.of(sort(Measure.AVG)), true),
+            arguments("by P95", List.of(sort(Measure.P95)), true),
+            arguments("by COUNT then MAX", List.of(sort(Measure.COUNT), sort(Measure.MAX)), true)
+        );
+    }
+
+    private static MetricMeasuresQuery.Sort sort(Measure measure) {
+        return new MetricMeasuresQuery.Sort(measure, MetricMeasuresQuery.Sort.Order.DESC);
+    }
+
     private static ObjectNode buildBucketWithFilterAgg(String key, int docCount, String metricName, String measureName, double value) {
         var bucket = JSON.createObjectNode().put("key", key).put("doc_count", docCount);
         var filterAgg = bucket.putObject(metricName + "#__FILTER__").put("doc_count", (int) value);

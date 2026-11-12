@@ -3843,11 +3843,10 @@ components:
                 value:
                     type: number
                     description: |
-                        Computed value. A built-in metric counts a request without its field as 0. An
-                        additional metric field counts only the requests carrying it: `value` is absent
-                        for `AVG`, `MIN`, `MAX` and the percentiles when the window has no document carrying
-                        the field, while `SUM` and `COUNT` are 0. Values are numbers of double precision, so
-                        a whole number above 2^53 is rounded.
+                        Computed value. `AVG`, `MIN`, `MAX` and the percentiles are computed over the documents
+                        carrying the metric's value. On every metric, built-in or additional, `value` is absent for
+                        them over a window or bucket without any such document, while `COUNT`, `SUM` and `PERCENTAGE`
+                        are 0. Values are numbers of double precision, so a whole number above 2^53 is rounded.
                     example: 42
 
         MetricResult:

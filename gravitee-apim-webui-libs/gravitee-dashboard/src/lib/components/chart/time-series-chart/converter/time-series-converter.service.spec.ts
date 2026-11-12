@@ -143,6 +143,45 @@ describe('TimeSeriesConverterService', () => {
       expect(result.datasets[0].data).toEqual([100, 0, 300]);
     });
 
+    it('should leave a gap for a time bucket without a value', () => {
+      const data: TimeSeriesResponse = makeResponse([
+        {
+          name: 'HTTP_GATEWAY_LATENCY',
+          unit: 'MILLISECONDS',
+          buckets: [
+            makeBaseBucket('2025-10-07T06:00:00Z', { measures: [{ name: 'AVG', value: 20 }] }),
+            makeBaseBucket('2025-10-08T06:00:00Z', { measures: [{ name: 'AVG', value: null }] }),
+            makeBaseBucket('2025-10-09T06:00:00Z', { measures: [{ name: 'AVG', value: 30 }] }),
+          ],
+        },
+      ]);
+
+      const result = service.convert(data);
+
+      expect(result.datasets[0].data).toEqual([20, null, 30]);
+    });
+
+    it('should leave a gap where a group has no value, and keep 0 where a counted group is absent', () => {
+      const averageOf = (value: number | null) => ({ key: 'gpt-4', name: 'gpt-4', measures: [{ name: 'AVG' as const, value }] });
+      const countOf = (value: number) => ({ key: 'claude-3', name: 'claude-3', measures: [{ name: 'COUNT' as const, value }] });
+      const data: TimeSeriesResponse = makeResponse([
+        {
+          name: 'HTTP_GATEWAY_LATENCY',
+          unit: 'MILLISECONDS',
+          buckets: [
+            makeBaseBucket('2025-10-07T06:00:00Z', { buckets: [averageOf(20), countOf(3)] }),
+            makeBaseBucket('2025-10-08T06:00:00Z', { buckets: [averageOf(null)] }),
+            makeBaseBucket('2025-10-09T06:00:00Z', { buckets: [] }),
+          ],
+        },
+      ]);
+
+      const result = service.convert(data);
+
+      expect(result.datasets.find(dataset => dataset.label === 'gpt-4')?.data).toEqual([20, null, null]);
+      expect(result.datasets.find(dataset => dataset.label === 'claude-3')?.data).toEqual([3, 0, 0]);
+    });
+
     it('should use timestamp when available, otherwise fallback to key', () => {
       const data: TimeSeriesResponse = makeResponse([
         {

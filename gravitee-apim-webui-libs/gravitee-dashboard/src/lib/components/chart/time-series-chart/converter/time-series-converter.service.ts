@@ -16,14 +16,18 @@
 import { Injectable } from '@angular/core';
 import { ChartData } from 'chart.js';
 
-import { Converter } from '../../../converter';
+import { ChartValues, Converter } from '../../../converter';
+import { MeasureName } from '../../../widget/model/request/enum/measure-name';
 import { TimeSeries, TimeSeriesBucket, TimeSeriesResponse } from '../../../widget/model/response/time-series-response';
+
+/** The measures that read 0, not no value, over no request, as the analytics engine serves them (`MetricSpec.Measure#emptyValue`). */
+const COUNTED_MEASURES: MeasureName[] = ['COUNT', 'SUM', 'PERCENTAGE'];
 
 @Injectable({
   providedIn: 'root',
 })
 export class TimeSeriesConverterService implements Converter {
-  public convert(data: TimeSeriesResponse): ChartData<'line' | 'bar', number[], string> {
+  public convert(data: TimeSeriesResponse): ChartData<'line' | 'bar', ChartValues, string> {
     if (!data?.metrics?.length) {
       return { labels: [], datasets: [] };
     }
@@ -46,11 +50,11 @@ export class TimeSeriesConverterService implements Converter {
     return labels;
   }
 
-  private processAllMetrics(data: TimeSeriesResponse): ChartData<'line' | 'bar', number[], string>['datasets'] {
+  private processAllMetrics(data: TimeSeriesResponse): ChartData<'line' | 'bar', ChartValues, string>['datasets'] {
     return (data.metrics ?? []).flatMap((metric, metricIndex) => this.processMetric(metric, metricIndex));
   }
 
-  private processMetric(metric: TimeSeries, metricIndex: number): ChartData<'line' | 'bar', number[], string>['datasets'] {
+  private processMetric(metric: TimeSeries, metricIndex: number): ChartData<'line' | 'bar', ChartValues, string>['datasets'] {
     const metricBuckets = metric.buckets ?? [];
     const bucketCount = metricBuckets.length;
 
@@ -79,8 +83,8 @@ export class TimeSeriesConverterService implements Converter {
   private buildGroupedDatasetsFromNestedBuckets(
     metricBuckets: TimeSeriesBucket[],
     bucketCount: number,
-  ): ChartData<'line' | 'bar', number[], string>['datasets'] {
-    const datasets: ChartData<'line' | 'bar', number[], string>['datasets'] = [];
+  ): ChartData<'line' | 'bar', ChartValues, string>['datasets'] {
+    const datasets: ChartData<'line' | 'bar', ChartValues, string>['datasets'] = [];
     const groupMap = this.aggregateNestedBucketValuesByGroup(metricBuckets, bucketCount);
 
     groupMap.forEach((values, groupName) => {
@@ -92,8 +96,8 @@ export class TimeSeriesConverterService implements Converter {
     return datasets;
   }
 
-  private aggregateNestedBucketValuesByGroup(metricBuckets: TimeSeriesBucket[], bucketCount: number): Map<string, number[]> {
-    const groupMap = new Map<string, number[]>();
+  private aggregateNestedBucketValuesByGroup(metricBuckets: TimeSeriesBucket[], bucketCount: number): Map<string, ChartValues> {
+    const groupMap = new Map<string, ChartValues>();
 
     metricBuckets.forEach((timeBucket, timeIndex) => {
       timeBucket.buckets?.forEach(nestedBucket => {
@@ -102,24 +106,30 @@ export class TimeSeriesConverterService implements Converter {
           return;
         }
 
+        const measure = nestedBucket.measures?.[0];
         if (!groupMap.has(groupName)) {
-          groupMap.set(groupName, new Array(bucketCount).fill(0));
+          groupMap.set(groupName, new Array(bucketCount).fill(this.valueOfAnAbsentGroup(measure?.name)));
         }
 
         const values = groupMap.get(groupName)!;
 
-        values[timeIndex] = nestedBucket.measures?.[0]?.value ?? 0;
+        values[timeIndex] = measure?.value ?? null;
       });
     });
 
     return groupMap;
   }
 
+  /** A group missing from a time bucket counted nothing there, but has no average, bound or percentile. */
+  private valueOfAnAbsentGroup(measureName: MeasureName | undefined): number | null {
+    return measureName && COUNTED_MEASURES.includes(measureName) ? 0 : null;
+  }
+
   private buildSimpleDatasetFromMetric(
     metricBuckets: TimeSeriesBucket[],
     baseMetricLabel: string,
-  ): ChartData<'line' | 'bar', number[], string>['datasets'] {
-    const dataValues: number[] = metricBuckets.map(bucket => this.getBucketValue(bucket));
+  ): ChartData<'line' | 'bar', ChartValues, string>['datasets'] {
+    const dataValues: ChartValues = metricBuckets.map(bucket => this.getBucketValue(bucket));
 
     return [
       {
@@ -129,7 +139,7 @@ export class TimeSeriesConverterService implements Converter {
     ];
   }
 
-  private getBucketValue(bucket: TimeSeriesBucket): number {
+  private getBucketValue(bucket: TimeSeriesBucket): number | null {
     if (bucket.measures?.length) {
       return bucket.measures[0].value;
     }

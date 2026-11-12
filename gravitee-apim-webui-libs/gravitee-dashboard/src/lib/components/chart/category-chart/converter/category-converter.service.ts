@@ -16,20 +16,20 @@
 import { Injectable } from '@angular/core';
 import { ChartData } from 'chart.js';
 
-import { Converter } from '../../../converter';
+import { ChartValues, Converter } from '../../../converter';
 import { FacetsResponse } from '../../../widget/model/response/facets-response';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CategoryConverterService implements Converter {
-  public convert(data: FacetsResponse): ChartData<'bar', number[], string> {
+  public convert(data: FacetsResponse): ChartData<'bar', ChartValues, string> {
     if (!data?.metrics?.length) {
       return { labels: [], datasets: [{ data: [] }] };
     }
 
     const labels: string[] = [];
-    const dataValues: number[] = [];
+    const dataValues: ChartValues = [];
 
     for (const bucket of data.metrics[0].buckets) {
       if (bucket.measures?.length) {
