@@ -20,8 +20,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.Set;
 
 /**
@@ -48,8 +47,8 @@ public record GuardianSummaryDto(
     Set<ApiType> apiTypes,
     GuardianLifecycleState lifecycleState,
     int guardrailCount,
-    @JsonFormat(shape = JsonFormat.Shape.STRING) ZonedDateTime createdAt,
-    @JsonFormat(shape = JsonFormat.Shape.STRING) ZonedDateTime updatedAt
+    @JsonFormat(shape = JsonFormat.Shape.STRING) Instant createdAt,
+    @JsonFormat(shape = JsonFormat.Shape.STRING) Instant updatedAt
 ) {
     public static GuardianSummaryDto from(Guardian guardian) {
         return new GuardianSummaryDto(
@@ -60,12 +59,8 @@ public record GuardianSummaryDto(
             guardian.getApiTypes(),
             guardian.getLifecycleState(),
             guardian.getPolicies() == null ? 0 : guardian.getPolicies().size(),
-            toUtc(guardian.getCreatedAt()),
-            toUtc(guardian.getUpdatedAt())
+            guardian.getCreatedAt(),
+            guardian.getUpdatedAt()
         );
-    }
-
-    private static ZonedDateTime toUtc(ZonedDateTime dateTime) {
-        return dateTime == null ? null : dateTime.withZoneSameInstant(ZoneOffset.UTC);
     }
 }

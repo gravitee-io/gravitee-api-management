@@ -29,6 +29,7 @@ import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
+import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -61,7 +62,7 @@ public class CreateGuardianUseCase {
     private final AuditDomainService auditDomainService;
 
     public Output execute(Input input) {
-        var now = TimeProvider.now();
+        var now = TimeProvider.instantNow();
         var payload = input
             .guardianToCreate()
             .toBuilder()
@@ -104,7 +105,7 @@ public class CreateGuardianUseCase {
                 .event(GuardianAuditEvent.GUARDIAN_CREATED)
                 .actor(input.auditInfo().actor())
                 .newValue(createdGuardian)
-                .createdAt(createdGuardian.getCreatedAt())
+                .createdAt(createdGuardian.getCreatedAt().atZone(ZoneOffset.UTC))
                 .properties(Map.of(AuditProperties.GUARDIAN, createdGuardian.getId()))
                 .build()
         );
