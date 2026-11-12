@@ -103,7 +103,7 @@ class ComputeTimeSeriesUseCaseTest {
     void setUp() {
         when(contextLoader.load(any(), any(), any())).thenReturn(ANALYTICS_CONTEXT);
         when(bucketNamesPostProcessor.mapBucketNames(any(), any(), any(TimeSeriesResponse.class))).thenAnswer(inv -> inv.getArgument(2));
-        when(unitEnrichmentPostProcessor.enrichUnits(any(TimeSeriesResponse.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(unitEnrichmentPostProcessor.enrichUnits(any(TimeSeriesResponse.class), any())).thenAnswer(inv -> inv.getArgument(0));
     }
 
     /** A caller that already authorized the query (Gamma) hands its own API set over: no scope is loaded. */

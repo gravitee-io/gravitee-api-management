@@ -17,11 +17,15 @@ package io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 
 /**
  * An LLM total adds the two values of a request, sent and received. What it measures is pinned on real documents by
@@ -32,13 +36,19 @@ class LLMTotalBuilderTest {
 
     private final LLMTotalBuilder builder = new LLMTotalBuilder("additional-metrics.long_sent", "additional-metrics.long_received");
 
-    @Test
-    void should_aggregate_the_total_of_each_request_with_a_script() {
-        var sum = builder.buildSum("TOTAL#COUNT").get("TOTAL#COUNT").getJsonObject("sum").getJsonObject("script").getString("source");
-        var avg = builder.buildAvg("TOTAL#AVG").get("TOTAL#AVG").getJsonObject("avg").getJsonObject("script").getString("source");
+    @ParameterizedTest
+    @CsvSource({ "COUNT, value_count", "SUM, sum", "AVG, avg" })
+    void should_aggregate_the_total_of_each_request_with_a_script(Measure measure, String type) {
+        var agg = builder.build("TOTAL#" + measure, measure).orElseThrow().get("TOTAL#" + measure);
 
-        assertThat(sum).contains("doc['additional-metrics.long_sent']").contains("doc['additional-metrics.long_received']");
-        assertThat(avg).isEqualTo(sum);
+        var source = agg.getJsonObject(type).getJsonObject("script").getString("source");
+        assertThat(source).contains("doc['additional-metrics.long_sent']").contains("doc['additional-metrics.long_received']");
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = Measure.class, names = { "MIN", "MAX", "P50", "P90", "P95", "P99", "PERCENTAGE" })
+    void should_not_aggregate_any_other_measure(Measure measure) {
+        assertThat(builder.build("TOTAL#" + measure, measure)).isEmpty();
     }
 
     @Test

@@ -163,6 +163,43 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
     }
 
     @Nested
+    class Measures {
+
+        private final AnalyticsDefinitionYAMLQueryService service = new AnalyticsDefinitionYAMLQueryService();
+
+        /** COUNT counts the requests carrying the value, as on every metric; SUM is the total the LLM dashboards show. */
+        @ParameterizedTest
+        @EnumSource(
+            value = MetricSpec.Name.class,
+            names = {
+                "LLM_PROMPT_TOKEN_SENT",
+                "LLM_PROMPT_TOKEN_RECEIVED",
+                "LLM_PROMPT_TOKEN_SENT_COST",
+                "LLM_PROMPT_TOKEN_RECEIVED_COST",
+                "LLM_PROMPT_TOTAL_TOKEN",
+                "LLM_PROMPT_TOKEN_TOTAL_COST",
+            }
+        )
+        void should_count_sum_and_average_the_llm_metrics(MetricSpec.Name metric) {
+            assertThat(service.findMetric(metric))
+                .map(MetricSpec::measures)
+                .hasValueSatisfying(measures ->
+                    assertThat(measures).containsExactlyInAnyOrder(MetricSpec.Measure.COUNT, MetricSpec.Measure.SUM, MetricSpec.Measure.AVG)
+                );
+        }
+
+        /** One Edge shadow AI report document carries the number of detections of a provider and process over its period. */
+        @Test
+        void should_total_the_edge_detections_and_count_their_reports() {
+            assertThat(service.findMetric(MetricSpec.Name.EDGE_DETECTION_COUNT))
+                .map(MetricSpec::measures)
+                .hasValueSatisfying(measures ->
+                    assertThat(measures).containsExactlyInAnyOrder(MetricSpec.Measure.COUNT, MetricSpec.Measure.SUM)
+                );
+        }
+    }
+
+    @Nested
     class Apis {
 
         // getApis() is what GET /analytics/definition/apis returns, and a metric declaring an api kind

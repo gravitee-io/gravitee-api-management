@@ -27,8 +27,9 @@ import java.util.Optional;
  *
  * <p>A unit served as {@code CURRENCY} comes with its companion {@code currency}, the ISO 4217 code of
  * {@link PlatformCurrency#CODE}: only on a built-in, a declared record in {@code CURRENCY} carrying none. A declared
- * record's unit never reaches a data response (the engine serves no unit for an additional metric,
- * {@code UnitEnrichmentPostProcessorImpl.unitOf}), and the definition adapter sets the code on built-ins only.
+ * record's unit never reaches a data response: the engine serves an additional metric no unit, except
+ * {@code NUMBER} on an entry reading COUNT only ({@code MetricSpec#servedUnit}), and the definition adapter sets the
+ * code on built-ins only.
  *
  * <p>Called by {@link AnalyticsDefinitionPortAdapter} through {@link #of} and by
  * {@link ObservabilityAnalyticsDataPortAdapter} through {@link #serveIn} on each measures, facets and time-series
@@ -55,7 +56,7 @@ final class ServedMetricUnit {
      * Rewrites every {@code unit} field of a serialized response, at any depth, so that no response shape escapes the
      * mapping, and puts {@code currency} next to a unit mapped to {@code CURRENCY}. Only a text value naming a
      * {@link MetricSpec.Unit} is rewritten: a declared record's free suffix and a named unit already served as such are
-     * left as they are. On a data response a text unit is always a built-in's: an additional metric serves none.
+     * left as they are. On a data response a text unit is a built-in's, or {@code NUMBER} on an entry reading COUNT only.
      */
     static void serveIn(JsonNode response) {
         for (var parent : response.findParents("unit")) {

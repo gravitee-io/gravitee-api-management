@@ -18,6 +18,10 @@ package io.gravitee.apim.infra.domain_service.analytics_engine.processors;
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.model.*;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -34,27 +38,50 @@ public class UnitEnrichmentPostProcessorImpl implements UnitEnrichmentPostProces
         var enriched = response
             .metrics()
             .stream()
-            .map(metric -> new MetricMeasuresResponse(metric.name(), unitOf(metric.name()), metric.measures(), metric.ignoredFilters()))
+            .map(metric ->
+                new MetricMeasuresResponse(
+                    metric.name(),
+                    MetricSpec.servedUnit(unitOf(metric.name()), metric.measures().stream().map(Measure::name).toList()),
+                    metric.measures(),
+                    metric.ignoredFilters()
+                )
+            )
             .toList();
         return new MeasuresResponse(enriched);
     }
 
     @Override
-    public FacetsResponse enrichUnits(FacetsResponse response) {
+    public FacetsResponse enrichUnits(FacetsResponse response, List<FacetMetricMeasuresRequest> requestedMetrics) {
+        var requested = measuresByMetric(requestedMetrics);
         var enriched = response
             .metrics()
             .stream()
-            .map(metric -> new MetricFacetsResponse(metric.metric(), unitOf(metric.metric()), metric.buckets(), metric.ignoredFilters()))
+            .map(metric ->
+                new MetricFacetsResponse(
+                    metric.metric(),
+                    MetricSpec.servedUnit(unitOf(metric.metric()), requested.getOrDefault(metric.metric(), Set.of())),
+                    metric.buckets(),
+                    metric.ignoredFilters()
+                )
+            )
             .toList();
         return new FacetsResponse(enriched);
     }
 
     @Override
-    public TimeSeriesResponse enrichUnits(TimeSeriesResponse response) {
+    public TimeSeriesResponse enrichUnits(TimeSeriesResponse response, List<FacetMetricMeasuresRequest> requestedMetrics) {
+        var requested = measuresByMetric(requestedMetrics);
         var enriched = response
             .metrics()
             .stream()
-            .map(metric -> new TimeSeriesMetricResponse(metric.name(), unitOf(metric.name()), metric.buckets(), metric.ignoredFilters()))
+            .map(metric ->
+                new TimeSeriesMetricResponse(
+                    metric.name(),
+                    MetricSpec.servedUnit(unitOf(metric.name()), requested.getOrDefault(metric.name(), Set.of())),
+                    metric.buckets(),
+                    metric.ignoredFilters()
+                )
+            )
             .toList();
         return new TimeSeriesResponse(enriched);
     }
@@ -65,5 +92,16 @@ public class UnitEnrichmentPostProcessorImpl implements UnitEnrichmentPostProces
             case MetricSpec.Name builtIn -> definitionQueryService.findMetric(builtIn).map(MetricSpec::unit).orElse(null);
             case AdditionalMetricName _ -> null;
         };
+    }
+
+    private static Map<MetricName, Set<MetricSpec.Measure>> measuresByMetric(List<FacetMetricMeasuresRequest> requestedMetrics) {
+        return requestedMetrics
+            .stream()
+            .collect(
+                Collectors.groupingBy(
+                    FacetMetricMeasuresRequest::name,
+                    Collectors.flatMapping(metric -> metric.measures().stream(), Collectors.toSet())
+                )
+            );
     }
 }

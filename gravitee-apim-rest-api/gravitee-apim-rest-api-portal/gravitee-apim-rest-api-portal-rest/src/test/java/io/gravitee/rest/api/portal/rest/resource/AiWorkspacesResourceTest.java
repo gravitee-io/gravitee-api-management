@@ -267,7 +267,7 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
                         new MetricMeasuresResponse(
                             MetricSpec.Name.LLM_PROMPT_TOTAL_TOKEN,
                             MetricSpec.Unit.NUMBER,
-                            List.of(new Measure(MetricSpec.Measure.COUNT, 12)),
+                            List.of(new Measure(MetricSpec.Measure.SUM, 12)),
                             List.of()
                         ),
                         new MetricMeasuresResponse(
@@ -279,7 +279,7 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
                         new MetricMeasuresResponse(
                             MetricSpec.Name.LLM_PROMPT_TOKEN_TOTAL_COST,
                             MetricSpec.Unit.NUMBER,
-                            List.of(new Measure(MetricSpec.Measure.COUNT, 1.5)),
+                            List.of(new Measure(MetricSpec.Measure.SUM, 1.5)),
                             List.of()
                         )
                     )
@@ -304,6 +304,13 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
         assertThat(request.getValue().filters())
             .extracting(filter -> filter.name(), filter -> filter.value())
             .containsExactly(tuple(FilterSpec.Name.API_PRODUCT, "ws-1"), tuple(FilterSpec.Name.APPLICATION, "app-1"));
+        assertThat(request.getValue().metrics())
+            .extracting(metric -> metric.name(), metric -> metric.measures())
+            .containsExactlyInAnyOrder(
+                tuple(MetricSpec.Name.LLM_PROMPT_TOTAL_TOKEN, List.of(MetricSpec.Measure.SUM)),
+                tuple(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT)),
+                tuple(MetricSpec.Name.LLM_PROMPT_TOKEN_TOTAL_COST, List.of(MetricSpec.Measure.SUM))
+            );
     }
 
     @Test

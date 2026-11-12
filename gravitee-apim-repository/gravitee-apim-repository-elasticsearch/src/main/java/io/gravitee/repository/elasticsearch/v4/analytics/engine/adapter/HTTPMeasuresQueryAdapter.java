@@ -23,8 +23,6 @@ import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query;
 import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Tokens;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
-import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.CountBuilder;
-import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.CountWithSumBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.HttpErrorRateBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.LLMTotalBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleAVGBuilder;
@@ -42,7 +40,6 @@ import io.vertx.core.json.JsonObject;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * The measures of the HTTP request documents. A built-in reading a field and an additional metric field are aggregated
@@ -60,17 +57,9 @@ public class HTTPMeasuresQueryAdapter {
     private final SimpleMinBuilder minBuilder = new SimpleMinBuilder();
     private final SimpleMaxBuilder maxBuilder = new SimpleMaxBuilder();
     private final SimpleCountBuilder countBuilder = new SimpleCountBuilder();
-    private final CountBuilder countWithSumBuilder = new CountWithSumBuilder();
     private final SimpleAVGBuilder avgBuilder = new SimpleAVGBuilder();
     private final SimpleSUMBuilder sumBuilder = new SimpleSUMBuilder();
     private final HttpErrorRateBuilder errorRateBuilder = new HttpErrorRateBuilder();
-
-    private static final Set<Metric> SUMMED_BY_COUNT = Set.of(
-        Metric.LLM_PROMPT_TOKEN_SENT,
-        Metric.LLM_PROMPT_TOKEN_RECEIVED,
-        Metric.LLM_PROMPT_TOKEN_SENT_COST,
-        Metric.LLM_PROMPT_TOKEN_RECEIVED_COST
-    );
 
     private final FieldResolver fieldResolver = new HTTPFieldResolver();
 
@@ -191,21 +180,10 @@ public class HTTPMeasuresQueryAdapter {
 
     private Optional<Map<String, JsonObject>> aggregate(String aggName, MetricName metric, Measure measure) {
         return switch (metric) {
-            case Metric.LLM_PROMPT_TOTAL_TOKEN -> aggregateLLMTotal(llmTotalTokenBuilder, aggName, measure);
-            case Metric.LLM_PROMPT_TOKEN_TOTAL_COST -> aggregateLLMTotal(llmTotalCostBuilder, aggName, measure);
+            case Metric.LLM_PROMPT_TOTAL_TOKEN -> llmTotalTokenBuilder.build(aggName, measure);
+            case Metric.LLM_PROMPT_TOKEN_TOTAL_COST -> llmTotalCostBuilder.build(aggName, measure);
             case Metric.HTTP_ERROR_RATE -> aggregateHTTPErrorRate(aggName, measure);
-            case Metric builtIn when measure == Measure.COUNT && SUMMED_BY_COUNT.contains(builtIn) -> Optional.of(
-                countWithSumBuilder.build(aggName, fieldResolver.fromMetric(builtIn))
-            );
             default -> aggregateByMeasure(aggName, fieldResolver.fromMetric(metric), measure);
-        };
-    }
-
-    private Optional<Map<String, JsonObject>> aggregateLLMTotal(LLMTotalBuilder builder, String aggName, Measure measure) {
-        return switch (measure) {
-            case COUNT -> Optional.of(builder.buildSum(aggName));
-            case AVG -> Optional.of(builder.buildAvg(aggName));
-            default -> Optional.empty();
         };
     }
 

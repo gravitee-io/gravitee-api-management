@@ -1665,9 +1665,11 @@ components:
                     type: number
                     nullable: true
                     description: |
-                        The measure value. `AVG`, `MIN`, `MAX` and the percentiles are computed over the documents
-                        carrying the metric's value. On every metric, a window or bucket without any such document
-                        reads 0 for `COUNT`, `SUM` and `PERCENTAGE`, and `null` for the other measures.
+                        The measure value. `COUNT` counts the requests carrying the metric's value (messages on a
+                        message metric) and `SUM` totals the value: the token or cost total on an LLM metric. `AVG`,
+                        `MIN`, `MAX` and the percentiles are computed over the documents carrying the value. On every
+                        metric, a window or bucket without any such document reads 0 for `COUNT`, `SUM` and
+                        `PERCENTAGE`, and `null` for the other measures.
                     example: 2984
             example:
                 name: "COUNT"
@@ -1685,7 +1687,11 @@ components:
             description: |
                 Unit of measurement for metrics. Specifies the unit in which the metric values are expressed:
                 `TOKENS` on the token metrics, `CURRENCY` on the LLM cost metrics (a cost in the currency of the
-                model's price list, which the documents do not carry).
+                model's price list, which the documents do not carry). A `COUNT` is a number of requests (messages
+                on a message metric) whatever the metric's unit: a measures, facets or time-series entry reading
+                `COUNT` only is served `NUMBER`, on a built-in and an additional metric alike; an entry mixing
+                `COUNT` with other measures keeps the metric's unit, which applies to its measures other than
+                `COUNT`.
             example: "BYTES"
 
         ApiSpec:

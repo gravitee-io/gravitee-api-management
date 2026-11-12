@@ -165,7 +165,6 @@ public class AiWorkspacesResource extends AbstractResource {
     }
 
     private static MeasuresRequest request(String workspaceId, String applicationId, Instant from, Instant to) {
-        // COUNT on the token and cost metrics is the analytics engine's sum of those stored totals.
         return new MeasuresRequest(
             new TimeRange(from, to),
             List.of(
@@ -173,9 +172,9 @@ public class AiWorkspacesResource extends AbstractResource {
                 new Filter(FilterSpec.Name.APPLICATION, FilterOperator.EQ, applicationId)
             ),
             List.of(
-                new MetricMeasuresRequest(MetricSpec.Name.LLM_PROMPT_TOTAL_TOKEN, List.of(MetricSpec.Measure.COUNT)),
+                new MetricMeasuresRequest(MetricSpec.Name.LLM_PROMPT_TOTAL_TOKEN, List.of(MetricSpec.Measure.SUM)),
                 new MetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT)),
-                new MetricMeasuresRequest(MetricSpec.Name.LLM_PROMPT_TOKEN_TOTAL_COST, List.of(MetricSpec.Measure.COUNT))
+                new MetricMeasuresRequest(MetricSpec.Name.LLM_PROMPT_TOKEN_TOTAL_COST, List.of(MetricSpec.Measure.SUM))
             )
         );
     }

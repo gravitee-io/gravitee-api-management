@@ -30,12 +30,12 @@ export class StatsConverterService implements Converter {
     if (!metric?.measures) return [];
 
     const unitLabel = metric.unit ? UnitLabel[metric.unit] : '';
-    return metric.measures.map(({ value }) => {
+    return metric.measures.map(({ name, value }) => {
       if (value === null || value === undefined) {
         return NO_VALUE;
       }
       const formattedValue = Math.round(value).toLocaleString();
-      return unitLabel ? `${formattedValue} ${unitLabel}` : formattedValue;
+      return unitLabel && name !== 'COUNT' ? `${formattedValue} ${unitLabel}` : formattedValue;
     });
   }
 }

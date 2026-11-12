@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.infra.adapter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -1082,6 +1083,64 @@ class ObservabilityAnalyticsDataPortAdapterTest {
                 .containsExactly("COUNT", "TOKENS");
         }
 
+        /** A COUNT is a number of requests: an entry reading it alone is served COUNT, without the cost's currency. */
+        @Test
+        void should_serve_an_identified_entry_reading_count_only_as_a_count_and_one_reading_sum_in_the_metric_unit() {
+            when(computeMeasuresUseCase.executeForApis(any(), any(), any())).thenReturn(
+                new ComputeMeasuresUseCase.Output(
+                    new MeasuresResponse(
+                        List.of(
+                            new MetricMeasuresResponse(
+                                MetricSpec.Name.LLM_PROMPT_TOKEN_TOTAL_COST,
+                                MetricSpec.Unit.CURRENCY,
+                                List.of(new Measure(MetricSpec.Measure.COUNT, 345), new Measure(MetricSpec.Measure.SUM, 0.0083)),
+                                List.of()
+                            )
+                        )
+                    )
+                )
+            );
+
+            var response = adapter.computeMeasures(
+                measuresQuery(
+                    SCOPE,
+                    new AnalyticsMetricQuery("requests", "LLM_PROMPT_TOKEN_TOTAL_COST", List.of("COUNT"), List.of()),
+                    new AnalyticsMetricQuery("spend", "LLM_PROMPT_TOKEN_TOTAL_COST", List.of("SUM"), List.of())
+                )
+            );
+
+            assertThat(response.at("/metrics/0/id").asText()).isEqualTo("requests");
+            assertThat(response.at("/metrics/0/unit").asText()).isEqualTo("COUNT");
+            assertThat(response.at("/metrics/0").has("currency")).isFalse();
+            assertThat(response.at("/metrics/1/id").asText()).isEqualTo("spend");
+            assertThat(response.at("/metrics/1/unit").asText()).isEqualTo("CURRENCY");
+            assertThat(response.at("/metrics/1/currency").asText()).isEqualTo("USD");
+        }
+
+        /**
+         * Through the engine's own unit rule. A key's declared unit never reaches a data response; a COUNT on it is served
+         * as a count, and an entry mixing COUNT with another measure serves no unit, as before.
+         */
+        @Test
+        void should_serve_an_entry_reading_count_only_as_a_count_on_a_built_in_and_an_additional_metric() {
+            var response = adapter.computeMeasures(
+                measuresQuery(
+                    PreparedScope.empty(SCOPE.from(), SCOPE.to()),
+                    new AnalyticsMetricQuery("requests", "LLM_PROMPT_TOKEN_TOTAL_COST", List.of("COUNT"), List.of()),
+                    new AnalyticsMetricQuery("priced", "additional-metrics.double_billing_price", List.of("COUNT"), List.of()),
+                    new AnalyticsMetricQuery("price", "additional-metrics.double_billing_price", List.of("COUNT", "AVG"), List.of())
+                )
+            );
+
+            assertThat(response.get("metrics"))
+                .extracting(
+                    metric -> metric.get("id").asText(),
+                    metric -> metric.path("unit").asText(null),
+                    metric -> metric.has("currency")
+                )
+                .containsExactly(tuple("requests", "COUNT", false), tuple("priced", "COUNT", false), tuple("price", null, false));
+        }
+
         @Test
         void should_serve_the_unit_of_each_metric_named_without_id_in_the_gamma_vocabulary() {
             when(computeMeasuresUseCase.executeForApis(any(), any(), any())).thenReturn(
@@ -1128,7 +1187,7 @@ class ObservabilityAnalyticsDataPortAdapterTest {
                     null,
                     List.of(
                         new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of()),
-                        new AnalyticsFacetMetricQuery("LLM_PROMPT_TOKEN_TOTAL_COST", List.of("COUNT"), List.of(), List.of())
+                        new AnalyticsFacetMetricQuery("LLM_PROMPT_TOKEN_TOTAL_COST", List.of("SUM"), List.of(), List.of())
                     ),
                     List.of(),
                     Map.of()
@@ -1171,7 +1230,7 @@ class ObservabilityAnalyticsDataPortAdapterTest {
                     List.of("LLM_PROXY_MODEL"),
                     List.of(
                         new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of()),
-                        new AnalyticsFacetMetricQuery("LLM_PROMPT_TOKEN_TOTAL_COST", List.of("COUNT"), List.of(), List.of())
+                        new AnalyticsFacetMetricQuery("LLM_PROMPT_TOKEN_TOTAL_COST", List.of("SUM"), List.of(), List.of())
                     ),
                     List.of(),
                     Map.of(),

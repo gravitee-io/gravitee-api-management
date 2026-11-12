@@ -45,7 +45,7 @@ export const LLM_TEMPLATE: DashboardTemplate = {
         layout: { cols: 1, rows: 1, y: 0, x: 0 },
         request: {
           type: 'measures',
-          metrics: [{ name: 'LLM_PROMPT_TOTAL_TOKEN', measures: ['COUNT'] }],
+          metrics: [{ name: 'LLM_PROMPT_TOTAL_TOKEN', measures: ['SUM'] }],
         },
       },
       {
@@ -56,7 +56,7 @@ export const LLM_TEMPLATE: DashboardTemplate = {
         layout: { cols: 1, rows: 1, y: 2, x: 2 },
         request: {
           type: 'measures',
-          metrics: [{ name: 'LLM_PROMPT_TOKEN_TOTAL_COST', measures: ['COUNT'] }],
+          metrics: [{ name: 'LLM_PROMPT_TOKEN_TOTAL_COST', measures: ['SUM'] }],
         },
       },
       {
@@ -102,9 +102,9 @@ export const LLM_TEMPLATE: DashboardTemplate = {
           type: 'time-series',
           by: [],
           metrics: [
-            { name: 'LLM_PROMPT_TOTAL_TOKEN', measures: ['COUNT'] },
-            { name: 'LLM_PROMPT_TOKEN_SENT', measures: ['COUNT'] },
-            { name: 'LLM_PROMPT_TOKEN_RECEIVED', measures: ['COUNT'] },
+            { name: 'LLM_PROMPT_TOTAL_TOKEN', measures: ['SUM'] },
+            { name: 'LLM_PROMPT_TOKEN_SENT', measures: ['SUM'] },
+            { name: 'LLM_PROMPT_TOKEN_RECEIVED', measures: ['SUM'] },
           ],
         },
       },
@@ -119,9 +119,9 @@ export const LLM_TEMPLATE: DashboardTemplate = {
           interval: '1h',
           by: [],
           metrics: [
-            { name: 'LLM_PROMPT_TOKEN_TOTAL_COST', measures: ['COUNT'] },
-            { name: 'LLM_PROMPT_TOKEN_SENT_COST', measures: ['COUNT'] },
-            { name: 'LLM_PROMPT_TOKEN_RECEIVED_COST', measures: ['COUNT'] },
+            { name: 'LLM_PROMPT_TOKEN_TOTAL_COST', measures: ['SUM'] },
+            { name: 'LLM_PROMPT_TOKEN_SENT_COST', measures: ['SUM'] },
+            { name: 'LLM_PROMPT_TOKEN_RECEIVED_COST', measures: ['SUM'] },
           ],
         },
       },
@@ -135,7 +135,7 @@ export const LLM_TEMPLATE: DashboardTemplate = {
           type: 'facets',
           by: ['LLM_PROXY_MODEL'],
           limit: 5,
-          metrics: [{ name: 'LLM_PROMPT_TOTAL_TOKEN', measures: ['COUNT'], sorts: [{ measure: 'COUNT', order: 'DESC' }] }],
+          metrics: [{ name: 'LLM_PROMPT_TOTAL_TOKEN', measures: ['SUM'], sorts: [{ measure: 'SUM', order: 'DESC' }] }],
         },
       },
       {

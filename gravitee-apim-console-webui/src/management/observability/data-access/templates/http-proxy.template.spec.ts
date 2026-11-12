@@ -44,4 +44,14 @@ describe('Dashboard templates', () => {
   ])('should keep the %s dashboard scoped to its own API type', (_name, template) => {
     expect(apiTypeFilters(template as DashboardTemplate).length).toBeGreaterThan(0);
   });
+
+  it('should read the LLM token and cost totals with SUM, COUNT being a number of requests', () => {
+    const llmMetrics = widgetsOf(LLM_TEMPLATE)
+      .flatMap(widget => widget.request?.metrics ?? [])
+      .filter(metric => metric.name.startsWith('LLM_PROMPT_'));
+
+    expect(llmMetrics.length).toBeGreaterThan(0);
+    expect(llmMetrics.flatMap(metric => metric.measures)).not.toContain('COUNT');
+    expect(llmMetrics.flatMap(metric => (metric.sorts ?? []).map(sort => sort.measure))).not.toContain('COUNT');
+  });
 });

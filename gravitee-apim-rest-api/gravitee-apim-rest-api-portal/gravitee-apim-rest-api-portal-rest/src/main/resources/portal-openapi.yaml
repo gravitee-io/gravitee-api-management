@@ -7178,6 +7178,7 @@ components:
                 - P99
                 - COUNT
                 - PERCENTAGE
+                - SUM
             description: Measure / aggregation name
             example: "COUNT"
         AnalyticsUnitName:
