@@ -200,6 +200,7 @@ paths:
                 sorted by name. A policy is listed when it is a guardrail and its plugin declares
                 `phase` for `apiType`: the same rule the creation and the update apply to the
                 guardrail sequence, so a listed guardrail is never refused for its API type or phase.
+                An API type no Guardian can be created for lists nothing.
 
                 The configuration schema of a guardrail is served by the plugin endpoints, under its
                 `id`.
