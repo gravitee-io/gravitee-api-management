@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
+<<<<<<< HEAD:gravitee-apim-portal-webui-next/src/app/applications/application/application-tab-settings/application-tab-settings-edit/application-tab-settings-edit.component.ts
 import { Component, Input, OnInit } from '@angular/core';
+=======
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, inject, input, OnInit, output, signal } from '@angular/core';
+>>>>>>> f4fa8d0 (fix(portal-next): show API error on app settings save (PORTAL-248)):gravitee-apim-portal-webui-next/src/app/dashboard/application-details/application-tab-settings/application-tab-settings-edit/application-tab-settings-edit.component.ts
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -111,6 +116,8 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
 
   formUnchanged$: Observable<boolean> = of(true);
 
+  saveError = signal<string | undefined>(undefined);
+
   private unsubscribe$ = new Subject();
   private application!: Application;
 
@@ -182,6 +189,7 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
 
   submit(): void {
     const updatedApplication: Application = this.computeApplicationToSave(this.applicationSettingsForm.getRawValue());
+    this.saveError.set(undefined);
 
     this.applicationService
       .save(updatedApplication)
@@ -194,7 +202,14 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
         }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe({ error: err => console.error(err) });
+      .subscribe({ error: (error: HttpErrorResponse) => this.saveError.set(this.toSaveErrorMessage(error)) });
+  }
+
+  private toSaveErrorMessage(error: HttpErrorResponse): string {
+    const apiMessage = error.error?.errors?.[0]?.message;
+    return typeof apiMessage === 'string' && apiMessage.trim()
+      ? apiMessage
+      : $localize`:@@saveApplicationSettingsError:An error occurred while saving the application. Please try again.`;
   }
 
   private convertToVM(application: Application): ApplicationSettingsVM {

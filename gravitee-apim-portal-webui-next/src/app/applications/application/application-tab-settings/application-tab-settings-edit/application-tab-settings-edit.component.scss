@@ -56,9 +56,22 @@
     }
   }
 
+<<<<<<< HEAD:gravitee-apim-portal-webui-next/src/app/applications/application/application-tab-settings/application-tab-settings-edit/application-tab-settings-edit.component.scss
   &__actions {
     display: flex;
     flex-direction: row;
     gap: 8px;
+=======
+    &__error {
+      margin: 0;
+      color: theme.$error-main-color;
+    }
+
+    &__actions {
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+    }
+>>>>>>> f4fa8d0 (fix(portal-next): show API error on app settings save (PORTAL-248)):gravitee-apim-portal-webui-next/src/app/dashboard/application-details/application-tab-settings/application-tab-settings-edit/application-tab-settings-edit.component.scss
   }
 }
