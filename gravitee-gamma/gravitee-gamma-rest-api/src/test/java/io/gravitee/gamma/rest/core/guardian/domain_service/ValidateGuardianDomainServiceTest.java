@@ -24,6 +24,7 @@ import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
@@ -40,7 +41,7 @@ import org.junit.jupiter.api.Test;
 class ValidateGuardianDomainServiceTest {
 
     private final Map<String, PolicyCapabilities> policies = new LinkedHashMap<>(
-        Map.of("data-logging-masking", new PolicyCapabilities(true, Set.of(ApiType.LLM_PROXY)))
+        Map.of("data-logging-masking", new PolicyCapabilities(true, Map.of(ApiType.LLM_PROXY, Set.of(Phase.REQUEST, Phase.RESPONSE))))
     );
     private final ValidateGuardianDomainService validator = new ValidateGuardianDomainService(
         new InMemoryGuardianRepository(),
@@ -55,8 +56,8 @@ class ValidateGuardianDomainServiceTest {
 
     @Test
     void should_name_each_incompatible_guardrail_and_the_required_protocol() {
-        policies.put("data-logging-masking", new PolicyCapabilities(true, Set.of(ApiType.MCP_PROXY)));
-        policies.put("other-guardrail", new PolicyCapabilities(true, Set.of(ApiType.A2A_PROXY)));
+        policies.put("data-logging-masking", new PolicyCapabilities(true, Map.of(ApiType.MCP_PROXY, Set.of(Phase.REQUEST))));
+        policies.put("other-guardrail", new PolicyCapabilities(true, Map.of(ApiType.A2A_PROXY, Set.of(Phase.REQUEST))));
         var guardian = aGuardian(definition ->
             definition.policies(List.of(aPolicy(), step("Other guardrail", "other-guardrail", true)))
         ).build();
@@ -77,6 +78,34 @@ class ValidateGuardianDomainServiceTest {
     }
 
     @Test
+    void should_refuse_a_guardrail_that_does_not_run_in_the_guardian_phase() {
+        policies.put("data-logging-masking", new PolicyCapabilities(true, Map.of(ApiType.LLM_PROXY, Set.of(Phase.RESPONSE))));
+        var guardian = aGuardian(definition -> definition.phase(Phase.REQUEST)).build();
+
+        assertThat(validate(guardian).severe().orElseThrow())
+            .singleElement()
+            .extracting(Validator.Error::getMessage)
+            .asString()
+            .contains("Detect credentials", "data-logging-masking", "REQUEST", "llm-proxy");
+    }
+
+    @Test
+    void should_accept_a_guardrail_that_runs_in_the_guardian_phase() {
+        policies.put("data-logging-masking", new PolicyCapabilities(true, Map.of(ApiType.LLM_PROXY, Set.of(Phase.RESPONSE))));
+        var guardian = aGuardian(definition -> definition.phase(Phase.RESPONSE)).build();
+
+        assertThat(validate(guardian).severe()).isEmpty();
+    }
+
+    @Test
+    void should_ignore_the_phases_of_a_conventional_policy() {
+        policies.put("data-logging-masking", new PolicyCapabilities(false, Map.of(ApiType.LLM_PROXY, Set.of(Phase.RESPONSE))));
+        var guardian = aGuardian(definition -> definition.phase(Phase.REQUEST)).build();
+
+        assertThat(validate(guardian).severe()).isEmpty();
+    }
+
+    @Test
     void should_refuse_an_unknown_enabled_policy() {
         policies.clear();
 
@@ -89,7 +118,7 @@ class ValidateGuardianDomainServiceTest {
 
     @Test
     void should_refuse_a_guardrail_without_protocol_metadata() {
-        policies.put("data-logging-masking", new PolicyCapabilities(true, Set.of()));
+        policies.put("data-logging-masking", new PolicyCapabilities(true, Map.of()));
 
         assertThat(validate(aGuardian().build()).severe().orElseThrow())
             .singleElement()
@@ -108,7 +137,7 @@ class ValidateGuardianDomainServiceTest {
 
     @Test
     void should_keep_supporting_known_conventional_policies() {
-        policies.put("data-logging-masking", new PolicyCapabilities(false, Set.of()));
+        policies.put("data-logging-masking", new PolicyCapabilities(false, Map.of()));
 
         assertThat(validate(aGuardian().build()).severe()).isEmpty();
     }
