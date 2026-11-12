@@ -627,7 +627,13 @@ class ImportApiCRDUseCaseTest {
 
         @Test
         void should_create_a_stopped_api_when_the_spec_has_no_state() {
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().state(null).build()));
+            // Synced from management, so a STARTED spec would start the API
+            var spec = aCRD()
+                .state(null)
+                .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
+                .build();
+
+            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, spec));
 
             assertThat(apiCrudService.get(API_ID).getLifecycleState()).isEqualTo(Api.LifecycleState.STOPPED);
             verify(apiStateDomainService, never()).start(any(), any());
