@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.adapter;
 
 import static org.assertj.core.api.Assertions.*;
 
+import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -68,7 +69,7 @@ class ApiCRDAdapterTest {
             soft.assertThat(spec.getListeners()).hasSize(1);
             soft.assertThat(spec.getEndpointGroups()).hasSize(1);
             soft.assertThat(spec.getPlans()).hasSize(1);
-            soft.assertThat(spec.getPlans()).containsKey("plan-name");
+            soft.assertThat(spec.getPlans()).containsKey("plan-hrid");
         });
     }
 
@@ -99,7 +100,7 @@ class ApiCRDAdapterTest {
             soft.assertThat(spec.getListeners()).hasSize(1);
             soft.assertThat(spec.getEndpointGroups()).hasSize(1);
             soft.assertThat(spec.getPlans()).hasSize(1);
-            soft.assertThat(spec.getPlans()).containsKey("plan-name");
+            soft.assertThat(spec.getPlans()).containsKey("plan-hrid");
         });
     }
 
@@ -254,19 +255,51 @@ class ApiCRDAdapterTest {
     @ParameterizedTest
     @CsvSource(
         textBlock = """
+        ExamplePlan,  ExamplePlan
+        Example Plan, Example-Plan
+        API Key,      API-Key
+        '  JWT  ',    JWT
+        plan.v1,      plan.v1
+        """
+    )
+    void should_keep_the_name_based_plan_key_and_its_case(String planName, String expectedKey) {
+        var spec = toCRDSpecWithPlan(null, planName);
+
+        assertThat(spec.getPlans()).containsOnlyKeys(expectedKey);
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        textBlock = """
         Default Keyless (UNSECURED), default-keyless-unsecured
-        API Key,                     api-key
-        '  JWT  ',                   jwt
         Café Plan,                   cafe-plan
         """
     )
-    void should_derive_plan_key_matching_hrid_pattern(String planName, String expectedKey) {
-        var export = exportEntity(false);
-        export.setPlans(Set.of(PlanEntity.builder().id("plan-id").name(planName).security(new PlanSecurity("key-less", "{}")).build()));
-
-        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity(), null);
+    void should_slugify_the_plan_key_when_the_name_based_key_is_not_an_hrid(String planName, String expectedKey) {
+        var spec = toCRDSpecWithPlan(null, planName);
 
         assertThat(spec.getPlans()).containsOnlyKeys(expectedKey);
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        textBlock = """
+        ExamplePlan, Example Plan v2, ExamplePlan
+        exampleplan, ExamplePlan,     exampleplan
+        """
+    )
+    void should_key_a_plan_by_its_hrid(String planHrid, String planName, String expectedKey) {
+        var spec = toCRDSpecWithPlan(planHrid, planName);
+
+        assertThat(spec.getPlans()).containsOnlyKeys(expectedKey);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "3f1c2a9e-7b4d-4c1e-9a2f-5d6e7f8a9b0c", "Example Plan (v2)" })
+    void should_key_a_plan_by_its_name_when_its_hrid_is_a_uuid_or_not_an_hrid(String planHrid) {
+        var spec = toCRDSpecWithPlan(planHrid, "ExamplePlan");
+
+        assertThat(spec.getPlans()).containsOnlyKeys("ExamplePlan");
     }
 
     @ParameterizedTest
@@ -278,6 +311,14 @@ class ApiCRDAdapterTest {
         var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity(), null);
 
         assertThat(spec.getPlans().keySet()).singleElement().asString().matches("plan-\\d{8}");
+    }
+
+    private static ApiCRDSpec toCRDSpecWithPlan(String planHrid, String planName) {
+        var export = exportEntity(false);
+        export.setPlans(
+            Set.of(PlanEntity.builder().id("plan-id").hrid(planHrid).name(planName).security(new PlanSecurity("key-less", "{}")).build())
+        );
+        return ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity(), null);
     }
 
     private static ExportApiEntity exportEntity(boolean withHrid) {

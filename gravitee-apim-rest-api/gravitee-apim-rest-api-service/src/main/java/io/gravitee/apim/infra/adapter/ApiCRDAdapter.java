@@ -46,6 +46,7 @@ import java.util.Objects;
 import java.util.SequencedSet;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -67,6 +68,8 @@ public interface ApiCRDAdapter {
      * HRID pattern of the Automation API.
      */
     Pattern HRID_PATTERN = Pattern.compile("^[a-zA-Z0-9][a-zA-Z0-9_.-]+[a-zA-Z0-9]$");
+
+    Pattern UUID_PATTERN = Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
     @Mapping(target = "version", source = "apiEntity.apiVersion")
     @Mapping(target = "metadata", source = "exportEntity.metadata")
@@ -216,9 +219,27 @@ public interface ApiCRDAdapter {
         return Map.of();
     }
 
+    /**
+     * GKO identifies a plan by its key, so exporting the same plan twice must give the same key: the plan HRID
+     * first, then the name-based key exports produced before keys had to match the HRID pattern.
+     */
     private static String planKey(GenericPlanEntity plan) {
-        var key = StringUtils.slugify(plan.getName());
-        return key != null && HRID_PATTERN.matcher(key).matches() ? key : randomize("plan");
+        return Stream.of(chosenHrid(plan), nameBasedKey(plan.getName()), StringUtils.slugify(plan.getName()))
+            .filter(key -> key != null && HRID_PATTERN.matcher(key).matches())
+            .findFirst()
+            .orElseGet(() -> randomize("plan"));
+    }
+
+    /**
+     * A UUID HRID was written by the plan HRID upgrader or copied by an API duplication, so it is not a key anyone chose.
+     */
+    private static String chosenHrid(GenericPlanEntity plan) {
+        var hrid = plan.getHrid();
+        return hrid == null || UUID_PATTERN.matcher(hrid).matches() ? null : hrid;
+    }
+
+    private static String nameBasedKey(String name) {
+        return name == null ? null : name.trim().replace(" ", "-");
     }
 
     private static String randomize(String strToRandomize) {
