@@ -44,10 +44,10 @@ public class GuardianCriteria {
      * Mongo one would otherwise sort on a field that does not exist without saying so.
      *
      * <p>{@code apiType} is absent because the definition carries {@code apiTypes} as a set: there is no
-     * single value to order rows by. {@code deployedAt} is deliberately absent. Nothing deploys a Guardian yet, so every value is
-     * null, and the backends disagree on where nulls land — Postgres puts them last on an ascending
-     * sort, MySQL and Mongo first. It can come back with the deployment path, with the null ordering
-     * made explicit.
+     * single value to order rows by. {@code deployedAt} is deliberately absent. The management API derives
+     * it from the Guardian's publications instead of storing it, so the column holds no usable value;
+     * sorting on a nullable date would also need the null ordering made explicit, the backends
+     * disagreeing on where nulls land — Postgres puts them last on an ascending sort, MySQL and Mongo first.
      */
     public static final Set<String> SORTABLE_FIELDS = Set.of("name", "phase", "createdAt", "updatedAt");
 

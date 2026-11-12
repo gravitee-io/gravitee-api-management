@@ -21,9 +21,12 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
+import io.gravitee.gamma.rest.core.guardian.exception.GuardianAlreadyDeployedException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
+import io.gravitee.gamma.rest.core.guardian.model.GuardianDeployment;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
 import java.util.Map;
 import lombok.Builder;
@@ -34,6 +37,9 @@ import lombok.RequiredArgsConstructor;
  *
  * <p>The Guardian is read before being deleted, both to refuse an id that belongs to another
  * environment and to hand the audit trail what was removed.
+ *
+ * <p>A Guardian with an active publication is refused: deleting its draft would leave the gateways
+ * running a revision nothing could withdraw anymore. Withdrawing it first is the caller's choice.
  *
  * <p>Not yet implemented, and deliberately so: the PRD refuses the deletion of a Guardian that is
  * enabled on an API, listing those APIs. There is nothing to look that up in until the API-Guardian
@@ -48,12 +54,16 @@ public class DeleteGuardianUseCase {
 
     private final GuardianRepository guardianRepository;
     private final AuditDomainService auditDomainService;
+    private final GuardianDeploymentDomainService deployments;
 
     public Output execute(Input input) {
         Guardian guardianToDelete = guardianRepository
             .findByEnvironmentId(input.auditInfo().environmentId(), input.guardianId())
             .orElseThrow(() -> new GuardianNotFoundException(input.guardianId()));
 
+        if (deployments.current(guardianToDelete) instanceof GuardianDeployment.Published) {
+            throw new GuardianAlreadyDeployedException(guardianToDelete.getId());
+        }
         guardianRepository.delete(guardianToDelete.getId());
         auditDomainService.createEnvironmentAuditLog(
             EnvironmentAuditLogEntity.builder()

@@ -44,8 +44,10 @@ import org.springframework.dao.DuplicateKeyException;
  * back from it: that column is the record of truth. The {@code id}, {@code environment_id},
  * {@code name} and {@code phase} columns are a projection of it, written on every save so the search
  * can filter, scope and sort without deserializing every row, and never read back — which is what
- * keeps the two from disagreeing. {@code description} and {@code deployed_at} are not a projection:
- * the gateway has no use for either, so they are columns the core owns outright, carried both ways.
+ * keeps the two from disagreeing. {@code description} is not a projection: the gateway has no use for
+ * it, so it is a column the core owns outright, carried both ways. {@code lifecycle_state} and
+ * {@code deployed_at} are carried too, but the core derives both from the Guardian's publications and
+ * writes back only what it read.
  *
  * <p>Three translations the core must not know about: the serialization above, the phase enum, which
  * the SPI declares as its own, and the {@link Instant} timestamps, which it declares as
@@ -112,6 +114,17 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
             .stream()
             .map(GammaGuardianRepositoryAdapter::toCore)
             .toList();
+    }
+
+    @Override
+    public void updateUpdatedAt(String environmentId, String guardianId, Instant updatedAt) {
+        RepositoryCalls.wrap(
+            () -> {
+                guardianRepository.updateUpdatedAt(environmentId, guardianId, Date.from(updatedAt));
+                return null;
+            },
+            "Failed to update Guardian timestamp '" + guardianId + "'"
+        );
     }
 
     @Override

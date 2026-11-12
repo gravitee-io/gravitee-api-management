@@ -19,6 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianSearchQuery;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -74,6 +75,20 @@ public class InMemoryGuardianRepository implements GuardianRepository {
             .stream()
             .filter(g -> Objects.equals(g.getEnvironmentId(), environmentId) && name.equalsIgnoreCase(g.getName()))
             .toList();
+    }
+
+    @Override
+    public void updateUpdatedAt(String environmentId, String guardianId, Instant updatedAt) {
+        guardians.replaceAll(guardian -> {
+            if (
+                Objects.equals(environmentId, guardian.getEnvironmentId()) &&
+                Objects.equals(guardianId, guardian.getId()) &&
+                (guardian.getUpdatedAt() == null || guardian.getUpdatedAt().isBefore(updatedAt))
+            ) {
+                return guardian.toBuilder().updatedAt(updatedAt).build();
+            }
+            return guardian;
+        });
     }
 
     @Override
