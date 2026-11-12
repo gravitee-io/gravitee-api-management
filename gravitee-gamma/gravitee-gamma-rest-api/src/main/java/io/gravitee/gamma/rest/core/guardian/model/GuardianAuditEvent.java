@@ -29,5 +29,7 @@ import io.gravitee.apim.core.audit.model.event.AuditEvent;
 public enum GuardianAuditEvent implements AuditEvent {
     GUARDIAN_CREATED,
     GUARDIAN_UPDATED,
+    GUARDIAN_DEPLOYED,
+    GUARDIAN_UNDEPLOYED,
     GUARDIAN_DELETED,
 }

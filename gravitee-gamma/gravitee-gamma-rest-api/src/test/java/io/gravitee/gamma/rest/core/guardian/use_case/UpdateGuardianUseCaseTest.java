@@ -20,6 +20,7 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDIAN_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aDefinitionToSubmit;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidator;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.anUpdateGuardianCommand;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -34,7 +35,7 @@ import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
-import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
+import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
@@ -65,7 +66,10 @@ class UpdateGuardianUseCaseTest {
     void setUp() {
         guardianRepository.reset();
         guardianRepository.givenGuardian(aGuardian().deployedAt(DEPLOYED_AT).build());
-        useCase = new UpdateGuardianUseCase(guardianRepository, new ValidateGuardianDomainService(guardianRepository), auditDomainService);
+        var publications = new GuardianPublicationFixture();
+        publications.givenPublication(aGuardian().build().getDefinition(), DEPLOYED_AT);
+        var deployments = publications.service(guardianRepository);
+        useCase = new UpdateGuardianUseCase(guardianRepository, aGuardianValidator(guardianRepository), auditDomainService, deployments);
     }
 
     private UpdateGuardianUseCase.Output update(String environmentId, UpdateGuardianCommand command) {

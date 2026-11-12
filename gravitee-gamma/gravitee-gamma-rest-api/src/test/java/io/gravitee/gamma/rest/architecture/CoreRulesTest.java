@@ -15,6 +15,8 @@
  */
 package io.gravitee.gamma.rest.architecture;
 
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static io.gravitee.gamma.rest.architecture.AbstractGammaArchitectureTest.BASE_PACKAGE;
 import static io.gravitee.gamma.rest.architecture.AbstractGammaArchitectureTest.CORE_PACKAGE;
@@ -23,6 +25,7 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
+import io.gravitee.rest.api.model.EventType;
 
 /**
  * Enforces gamma-rest-api AGENTS.md §5 (Core layer independence) — the {@code core} package must not
@@ -38,27 +41,32 @@ class CoreRulesTest {
         .that()
         .resideInAPackage(CORE_PACKAGE)
         .should()
-        .onlyDependOnClassesThat()
-        .resideInAnyPackage(
-            "java..",
-            "lombok..",
-            "com.fasterxml..",
-            "org.slf4j..",
-            "io.gravitee.common..",
-            // the apim core, whose concerns the host already owns: the domain writes its own audit log
-            // through AuditDomainService and its validators implement
-            // io.gravitee.apim.core.validation.Validator, rather than each gamma domain re-inventing a
-            // port for both. Requested by the lead on AIAM-1574.
-            "io.gravitee.apim.core..",
-            // the definition model, which AGENTS.md section 5 already lists as allowed; the rule was
-            // stricter than its own documentation, which is what forced a local ApiType copy
-            "io.gravitee.definition..",
-            // bean validation, which AGENTS.md section 5 also already allows as part of jakarta.*: the
-            // create and update commands declare their constraints, so they hold for every caller of
-            // the use case and not only for one arriving through JAX-RS. Requested by the lead.
-            "jakarta.validation..",
-            // meta-annotation pulled transitively by {@code @UseCase} (accepted trade-off, AGENTS.md §5).
-            "org.springframework.transaction.annotation..",
-            CORE_PACKAGE
+        .onlyDependOnClassesThat(
+            resideInAnyPackage(
+                "java..",
+                "lombok..",
+                "com.fasterxml..",
+                "org.slf4j..",
+                "io.gravitee.common..",
+                // the apim core, whose concerns the host already owns: the domain writes its own audit log
+                // through AuditDomainService and its validators implement
+                // io.gravitee.apim.core.validation.Validator, rather than each gamma domain re-inventing a
+                // port for both. Requested by the lead on AIAM-1574.
+                "io.gravitee.apim.core..",
+                // the definition model, which AGENTS.md section 5 already lists as allowed; the rule was
+                // stricter than its own documentation, which is what forced a local ApiType copy
+                "io.gravitee.definition..",
+                // bean validation, which AGENTS.md section 5 also already allows as part of jakarta.*: the
+                // create and update commands declare their constraints, so they hold for every caller of
+                // the use case and not only for one arriving through JAX-RS. Requested by the lead.
+                "jakarta.validation..",
+                // meta-annotation pulled transitively by {@code @UseCase} (accepted trade-off, AGENTS.md §5).
+                "org.springframework.transaction.annotation..",
+                CORE_PACKAGE
+            ).or(
+                // the type of Event, which the apim core exposes and takes in the signatures of its event
+                // services: reading or writing an event from core cannot avoid it
+                equivalentTo(EventType.class)
+            )
         );
 }

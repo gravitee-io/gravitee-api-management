@@ -22,6 +22,7 @@ import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
@@ -51,6 +52,7 @@ public class UpdateGuardianUseCase {
     private final GuardianRepository guardianRepository;
     private final ValidateGuardianDomainService validateGuardian;
     private final AuditDomainService auditDomainService;
+    private final GuardianDeploymentDomainService deployments;
 
     public Output execute(Input input) {
         // the shape first, so a malformed payload reaches neither the product rule nor the store
@@ -59,7 +61,6 @@ public class UpdateGuardianUseCase {
         var existingGuardian = guardianRepository
             .findByEnvironmentId(input.auditInfo().environmentId(), input.guardianId())
             .orElseThrow(() -> new GuardianNotFoundException(input.guardianId()));
-
         var guardianToUpdate = existingGuardian.update(input.guardianToUpdate());
         // after the merge, not before: the identity it needs comes from the path
         validateGuardian.validateDefinition(guardianToUpdate.getDefinition());
@@ -83,14 +84,15 @@ public class UpdateGuardianUseCase {
                 throw new ValidationDomainException(errors.stream().map(Validator.Error::getMessage).collect(Collectors.joining(", ")));
             });
 
-        var updatedGuardian = guardianRepository.update(guardianToUpdate);
+        var publication = deployments.current(existingGuardian);
+        var updatedGuardian = deployments.state(guardianRepository.update(guardianToUpdate), publication);
         auditDomainService.createEnvironmentAuditLog(
             EnvironmentAuditLogEntity.builder()
                 .organizationId(input.auditInfo().organizationId())
                 .environmentId(input.auditInfo().environmentId())
                 .event(GuardianAuditEvent.GUARDIAN_UPDATED)
                 .actor(input.auditInfo().actor())
-                .oldValue(existingGuardian)
+                .oldValue(deployments.state(existingGuardian, publication))
                 .newValue(updatedGuardian)
                 .createdAt(updatedGuardian.getUpdatedAt().atZone(ZoneOffset.UTC))
                 .properties(Map.of(AuditProperties.GUARDIAN, updatedGuardian.getId()))
