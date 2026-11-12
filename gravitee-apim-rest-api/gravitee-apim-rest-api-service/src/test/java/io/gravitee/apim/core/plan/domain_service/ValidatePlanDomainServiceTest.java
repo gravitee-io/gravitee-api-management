@@ -22,10 +22,12 @@ import fixtures.core.model.ApiCRDFixtures;
 import fixtures.core.model.PlanFixtures;
 import inmemory.PlanCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
+import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class ValidatePlanDomainServiceTest {
@@ -75,6 +77,17 @@ class ValidatePlanDomainServiceTest {
         assertThat(result.value()).hasValueSatisfying(sanitized -> assertThat(sanitized.plans()).containsKey(ApiCRDFixtures.PLAN_NAME));
     }
 
+    @Test
+    void should_accept_a_plan_without_id() {
+        ApiCRDSpec spec = ApiCRDFixtures.newBaseSpec().type("PROXY").build();
+        var planWithoutId = spec.getPlans().get(ApiCRDFixtures.PLAN_NAME).toBuilder().id(null).build();
+
+        var result = validatePlans(spec, Map.of(ApiCRDFixtures.PLAN_NAME, planWithoutId));
+
+        assertThat(errorMessages(result)).isEmpty();
+        assertThat(result.value()).hasValueSatisfying(sanitized -> assertThat(sanitized.plans()).containsKey(ApiCRDFixtures.PLAN_NAME));
+    }
+
     private void givenExistingPlan(GenericPlanEntity.ReferenceType referenceType, String referenceId) {
         planCrudService.initWith(
             List.of(
@@ -90,7 +103,11 @@ class ValidatePlanDomainServiceTest {
 
     private Validator.Result<ValidatePlanDomainService.Input> validateBaseSpecPlans() {
         ApiCRDSpec spec = ApiCRDFixtures.newBaseSpec().type("PROXY").build();
-        return service.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, spec.getPlans(), List.of()));
+        return validatePlans(spec, spec.getPlans());
+    }
+
+    private Validator.Result<ValidatePlanDomainService.Input> validatePlans(ApiCRDSpec spec, Map<String, PlanCRD> plans) {
+        return service.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, spec.getId(), plans, List.of()));
     }
 
     private static List<String> errorMessages(Validator.Result<ValidatePlanDomainService.Input> result) {
