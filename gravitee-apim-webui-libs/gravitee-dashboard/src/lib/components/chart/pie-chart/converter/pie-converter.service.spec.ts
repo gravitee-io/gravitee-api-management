@@ -102,5 +102,25 @@ describe('PieConverterService', () => {
       expect(result.labels).toEqual(['bucket-1', 'bucket-3']);
       expect(result.datasets[0].data).toEqual([100, 300]);
     });
+
+    it('should keep a bucket reading no value as a gap rather than a zero', () => {
+      const data: FacetsResponse = {
+        metrics: [
+          {
+            name: 'HTTP_GATEWAY_LATENCY',
+            unit: 'MILLISECONDS',
+            buckets: [
+              { key: 'bucket-1', name: 'bucket-1', measures: [{ name: 'MAX', value: 40 }] },
+              { key: 'bucket-2', name: 'bucket-2', measures: [{ name: 'MAX', value: null }] },
+            ],
+          },
+        ],
+      };
+
+      const result = service.convert(data);
+
+      expect(result.labels).toEqual(['bucket-1', 'bucket-2']);
+      expect(result.datasets[0].data).toEqual([40, null]);
+    });
   });
 });

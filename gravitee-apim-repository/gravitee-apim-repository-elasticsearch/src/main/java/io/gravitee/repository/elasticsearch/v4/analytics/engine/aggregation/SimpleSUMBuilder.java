@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation;
 
+import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs;
+import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Tokens;
 import io.vertx.core.json.JsonObject;
 import java.util.Map;
 
@@ -24,10 +26,6 @@ import java.util.Map;
 public class SimpleSUMBuilder {
 
     public Map<String, JsonObject> build(String aggName, String field) {
-        return Map.of(aggName, json().put("sum", json().put("field", field).put("missing", 0)));
-    }
-
-    private JsonObject json() {
-        return new JsonObject();
+        return Map.of(aggName, JsonObject.of(Aggs.SUM, JsonObject.of(Tokens.FIELD, field)));
     }
 }

@@ -195,4 +195,31 @@ class MessageFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
 
         assertThat(json.at("/aggs").isEmpty()).isTrue();
     }
+
+    /** Elasticsearch ranks a bucket without a latency first by a descending average: the ranked buckets carry one. */
+    @Test
+    void should_rank_the_buckets_by_an_average_over_the_messages_carrying_the_value() throws JsonProcessingException {
+        var latency = new MetricMeasuresQuery(
+            Metric.MESSAGE_GATEWAY_LATENCY,
+            Set.of(Measure.AVG),
+            List.of(new MetricMeasuresQuery.Sort(Measure.AVG, MetricMeasuresQuery.Sort.Order.DESC))
+        );
+        var query = new FacetsQuery(buildTimeRange(), List.of(), List.of(latency), List.of(Facet.MESSAGE_OPERATION_TYPE), 5, List.of());
+
+        var json = JSON.readTree(adapter.adapt(query, Set.of("req-1")));
+
+        var scope = json.at("/aggs/MESSAGE_GATEWAY_LATENCY#__FILTER__");
+        assertThat(scope.at("/filter")).isEqualTo(JSON.readTree("{\"exists\":{\"field\":\"gateway-latency-ms\"}}"));
+        assertThat(
+            scope.at("/aggs/MESSAGE_GATEWAY_LATENCY#MESSAGE_OPERATION_TYPE/terms/order/MESSAGE_GATEWAY_LATENCY#AVG").asText()
+        ).isEqualTo("desc");
+    }
+
+    @Test
+    void should_keep_the_buckets_of_every_message_when_ranked_by_a_count() throws JsonProcessingException {
+        var json = JSON.readTree(adapter.adapt(sortedQuery(List.of(Facet.MESSAGE_OPERATION_TYPE), 5), Set.of("req-1")));
+
+        assertThat(json.at("/aggs").has("MESSAGES#__FILTER__")).isFalse();
+        assertThat(json.at("/aggs").has("MESSAGES#MESSAGE_OPERATION_TYPE")).isTrue();
+    }
 }

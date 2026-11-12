@@ -49,7 +49,7 @@ export interface Widget<R extends Request = Request> {
 
 export interface Measure {
   name: MeasureName;
-  value: number;
+  value: number | null;
 }
 
 export interface WidgetLayout {
