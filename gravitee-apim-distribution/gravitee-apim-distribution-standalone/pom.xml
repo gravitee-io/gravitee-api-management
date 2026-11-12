@@ -2651,6 +2651,19 @@
                 </dependency>
                 <dependency>
                     <groupId>com.graviteesource.agentprovider</groupId>
+                    <artifactId>gravitee-agent-provider-aws-bedrock-agentcore</artifactId>
+                    <version>${gravitee-agent-provider-aws-bedrock-agentcore.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.agentprovider</groupId>
                     <artifactId>gravitee-agent-provider-google-agent</artifactId>
                     <version>${gravitee-agent-provider-google-agent.version}</version>
                     <type>zip</type>
