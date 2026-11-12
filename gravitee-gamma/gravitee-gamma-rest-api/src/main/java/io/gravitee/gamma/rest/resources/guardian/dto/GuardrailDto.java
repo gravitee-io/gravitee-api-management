@@ -15,8 +15,10 @@
  */
 package io.gravitee.gamma.rest.resources.guardian.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.gravitee.gamma.rest.core.guardian.model.Guardrail;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public record GuardrailDto(String id, String name) {
     public static GuardrailDto from(Guardrail guardrail) {
         return new GuardrailDto(guardrail.id(), guardrail.name());
