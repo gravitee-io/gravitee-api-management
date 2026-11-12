@@ -250,7 +250,7 @@ class NotifierServiceImplTest {
                     .referenceType(NotificationReferenceType.API)
                     .referenceId("api-id")
                     .params(params)
-                    .recipients(List.of(new Recipient("default-email", "additional@gio.test")))
+                    .recipients(List.of(new Recipient("EMAIL", "additional@gio.test")))
                     .build()
             );
 
@@ -564,7 +564,7 @@ class NotifierServiceImplTest {
                 ApplicationHook.SUBSCRIPTION_ACCEPTED,
                 "app-id",
                 params,
-                List.of(new Recipient(DEFAULT_EMAIL_NOTIFIER_ID, "subscriber@gio.test"))
+                List.of(new Recipient("EMAIL", "subscriber@gio.test"))
             );
 
             final ArgumentCaptor<Collection<String>> recipientsCaptor = ArgumentCaptor.forClass(Collection.class);
@@ -599,7 +599,7 @@ class NotifierServiceImplTest {
                 ApplicationHook.SUBSCRIPTION_REJECTED,
                 "app-id",
                 params,
-                List.of(new Recipient(DEFAULT_EMAIL_NOTIFIER_ID, "subscriber@gio.test"))
+                List.of(new Recipient("EMAIL", "subscriber@gio.test"))
             );
 
             final ArgumentCaptor<Collection<String>> recipientsCaptor = ArgumentCaptor.forClass(Collection.class);
