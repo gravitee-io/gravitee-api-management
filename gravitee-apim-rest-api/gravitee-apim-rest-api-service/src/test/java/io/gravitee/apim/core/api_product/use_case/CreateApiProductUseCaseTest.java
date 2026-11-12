@@ -31,6 +31,7 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
+import inmemory.EventLatestQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
@@ -56,6 +57,7 @@ import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDom
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.Role;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.model.Parameter;
@@ -152,7 +154,14 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
             new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
             apiProductIndexerDomainService,
             notificationConfigCrudService,
-            new DeployApiProductDomainService(planQueryService, eventCrudService, eventLatestCrudService, new FlowCrudServiceInMemory()),
+            new DeployApiProductDomainService(
+                planQueryService,
+                eventCrudService,
+                eventLatestCrudService,
+                new EventLatestQueryServiceInMemory(),
+                new FlowCrudServiceInMemory(),
+                GraviteeJacksonMapper.getInstance()
+            ),
             groupQueryService,
             apiProductTagDomainService
         );

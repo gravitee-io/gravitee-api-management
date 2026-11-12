@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.flow.domain_service;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.isEmpty;
+
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.exception.NativeApiWithMultipleFlowsException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -104,6 +106,23 @@ public class FlowValidationDomainService {
 
     public List<Flow> validateAndSanitizeHttpV4(final ApiType apiType, List<Flow> flows) {
         return validateAndSanitizeHttpV4(apiType, flows, null);
+    }
+
+    /**
+     * Validates the flows of an API Product, or of one of its plans: they run on the requests of HTTP proxy APIs,
+     * in the request and response phases only, and cannot refer to resources since a product declares none.
+     */
+    public List<Flow> validateAndSanitizeApiProductFlows(List<Flow> flows) {
+        for (int index = 0; index < flows.size(); index++) {
+            var flow = flows.get(index);
+            if (!isEmpty(flow.getPublish()) || !isEmpty(flow.getSubscribe())) {
+                var flowName = flow.getName() != null ? flow.getName() : "#" + index;
+                throw new ValidationDomainException(
+                    "Flow '" + flowName + "' has publish or subscribe steps; API Product flows only run in the request and response phases"
+                );
+            }
+        }
+        return validateAndSanitizeHttpV4(ApiType.PROXY, flows, Set.of());
     }
 
     /**

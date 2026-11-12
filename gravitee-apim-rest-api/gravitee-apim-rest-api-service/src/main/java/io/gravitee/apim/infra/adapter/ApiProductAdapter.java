@@ -85,8 +85,7 @@ public interface ApiProductAdapter {
         try {
             return GraviteeJacksonMapper.getInstance().readValue(flowExecution, FlowExecution.class);
         } catch (IOException e) {
-            log.error("Unexpected error while deserializing API Product flow execution", e);
-            return null;
+            throw new IllegalStateException("Unable to read the stored flow execution of an API Product", e);
         }
     }
 

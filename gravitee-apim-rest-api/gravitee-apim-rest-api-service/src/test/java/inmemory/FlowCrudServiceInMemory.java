@@ -79,6 +79,17 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
     }
 
     @Override
+    public Map<String, List<Flow>> getApiProductFlows(Set<String> apiProductIds) {
+        Map<String, List<Flow>> result = new HashMap<>();
+        for (String apiProductId : apiProductIds) {
+            if (apiProductFlowsHttpV4.containsKey(apiProductId)) {
+                result.put(apiProductId, apiProductFlowsHttpV4.get(apiProductId));
+            }
+        }
+        return result;
+    }
+
+    @Override
     public Map<String, List<Flow>> getPlanV4Flows(Set<String> planIds) {
         Map<String, List<Flow>> result = new HashMap<>();
         for (String planId : planIds) {

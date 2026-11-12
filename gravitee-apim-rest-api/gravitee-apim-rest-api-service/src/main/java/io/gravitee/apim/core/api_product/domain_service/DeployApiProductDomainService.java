@@ -17,6 +17,9 @@ package io.gravitee.apim.core.api_product.domain_service;
 
 import static java.util.Map.entry;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.ApiProductDeploymentPayload;
@@ -24,6 +27,8 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.event.model.Event;
+import io.gravitee.apim.core.event.query_service.EventLatestQueryService;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
@@ -32,6 +37,7 @@ import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -40,12 +46,31 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DeployApiProductDomainService {
 
+    private static final String API_IDS = "apiIds";
+
     private final PlanQueryService planQueryService;
     private final EventCrudService eventCrudService;
     private final EventLatestCrudService eventLatestCrudService;
+    private final EventLatestQueryService eventLatestQueryService;
     private final FlowCrudService flowCrudService;
+    private final ObjectMapper objectMapper;
 
     public void deploy(AuditInfo auditInfo, ApiProduct apiProduct) {
+        publish(auditInfo, apiProduct.getId(), currentPayload(apiProduct));
+    }
+
+    /**
+     * Deploys a change to the API list alone. Everything else comes from the last deployed version, so flows, the
+     * flow mode and plans saved since then go live only on an explicit deploy. A product never deployed is deployed whole.
+     */
+    public void deployApiList(AuditInfo auditInfo, ApiProduct apiProduct) {
+        Object payload = lastDeployedPayload(apiProduct.getId())
+            .<Object>map(deployed -> deployed.set(API_IDS, objectMapper.valueToTree(apiProduct.getApiIds())))
+            .orElseGet(() -> currentPayload(apiProduct));
+        publish(auditInfo, apiProduct.getId(), payload);
+    }
+
+    private ApiProductDeploymentPayload currentPayload(ApiProduct apiProduct) {
         var productPlans = planQueryService.findAllByReferenceIdAndReferenceType(
             apiProduct.getId(),
             GenericPlanEntity.ReferenceType.API_PRODUCT
@@ -65,19 +90,28 @@ public class DeployApiProductDomainService {
             .filter(Objects::nonNull)
             .toList();
 
-        var payload = ApiProductDeploymentPayload.builder()
-            .id(apiProduct.getId())
-            .name(apiProduct.getName())
-            .description(apiProduct.getDescription())
-            .version(apiProduct.getVersion())
-            .apiIds(apiProduct.getApiIds())
-            .environmentId(apiProduct.getEnvironmentId())
-            .tags(apiProduct.getTags())
-            .plans(plans)
-            .analytics(apiProduct.getAnalytics())
-            .resources(apiProduct.getResources())
-            .build();
+        return ApiProductDeploymentPayload.of(apiProduct, plans, flowCrudService.getApiProductFlows(apiProduct.getId()));
+    }
 
+    private Optional<ObjectNode> lastDeployedPayload(String apiProductId) {
+        return eventLatestQueryService
+            .findLatestByEntityIds(Set.of(apiProductId), EventType.DEPLOY_API_PRODUCT, Event.EventProperties.API_PRODUCT_ID)
+            .stream()
+            .map(Event::getPayload)
+            .filter(payload -> payload != null && !payload.isBlank())
+            .findFirst()
+            .map(payload -> readPayload(apiProductId, payload));
+    }
+
+    private ObjectNode readPayload(String apiProductId, String payload) {
+        try {
+            return (ObjectNode) objectMapper.readTree(payload);
+        } catch (JsonProcessingException | ClassCastException e) {
+            throw new TechnicalDomainException("Unable to read the last deployed version of API Product " + apiProductId, e);
+        }
+    }
+
+    private void publish(AuditInfo auditInfo, String apiProductId, Object payload) {
         final Event event = eventCrudService.createEvent(
             auditInfo.organizationId(),
             auditInfo.environmentId(),
@@ -86,10 +120,10 @@ public class DeployApiProductDomainService {
             payload,
             Map.ofEntries(
                 entry(Event.EventProperties.USER, auditInfo.actor().userId()),
-                entry(Event.EventProperties.API_PRODUCT_ID, apiProduct.getId())
+                entry(Event.EventProperties.API_PRODUCT_ID, apiProductId)
             )
         );
 
-        eventLatestCrudService.createOrPatchLatestEvent(auditInfo.organizationId(), apiProduct.getId(), event);
+        eventLatestCrudService.createOrPatchLatestEvent(auditInfo.organizationId(), apiProductId, event);
     }
 }

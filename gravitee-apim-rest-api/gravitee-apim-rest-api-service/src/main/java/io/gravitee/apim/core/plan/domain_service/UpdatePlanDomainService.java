@@ -374,7 +374,8 @@ public class UpdatePlanDomainService {
         return updated;
     }
 
-    private void updatePreFlightChecksForApiProduct(
+    /** The checks {@link #updatePlanForApiProduct} runs before writing, for a caller that must check every plan before writing any. */
+    public void updatePreFlightChecksForApiProduct(
         Plan planToUpdate,
         Map<String, PlanStatus> existingPlanStatuses,
         ApiProduct apiProduct,

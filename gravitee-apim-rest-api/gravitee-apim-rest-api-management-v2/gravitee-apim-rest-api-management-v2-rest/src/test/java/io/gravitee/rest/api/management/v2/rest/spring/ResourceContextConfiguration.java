@@ -205,6 +205,7 @@ import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase;
 import io.gravitee.apim.core.plan.use_case.GetPlansUseCase;
 import io.gravitee.apim.core.plan.use_case.PatchPlanUseCase.PlanFlowsConverter;
 import io.gravitee.apim.core.plan.use_case.PlanOperationsUseCase;
+import io.gravitee.apim.core.plan.use_case.UpdateApiProductPlanFlowsUseCase;
 import io.gravitee.apim.core.plan.use_case.UpdateApiProductPlanUseCase;
 import io.gravitee.apim.core.plan.use_case.UpdateFederatedPlanUseCase;
 import io.gravitee.apim.core.plan.use_case.UpdatePlanUseCase;
@@ -1420,6 +1421,11 @@ public class ResourceContextConfiguration {
     @Bean
     public CreateApiProductPlanUseCase createApiProductPlanUseCase() {
         return mock(CreateApiProductPlanUseCase.class);
+    }
+
+    @Bean
+    public UpdateApiProductPlanFlowsUseCase updateApiProductPlanFlowsUseCase() {
+        return mock(UpdateApiProductPlanFlowsUseCase.class);
     }
 
     @Bean

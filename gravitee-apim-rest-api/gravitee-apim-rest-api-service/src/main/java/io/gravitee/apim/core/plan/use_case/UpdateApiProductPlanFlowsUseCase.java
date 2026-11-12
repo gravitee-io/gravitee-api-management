@@ -20,6 +20,7 @@ import static java.util.stream.Collectors.toMap;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
+import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
@@ -27,6 +28,7 @@ import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import jakarta.annotation.Nullable;
@@ -61,27 +63,30 @@ public class UpdateApiProductPlanFlowsUseCase {
     public Output execute(Input input) {
         rejectPlansListedTwice(input.plans());
         var apiProduct = apiProductCrudService.get(input.apiProductId());
+        if (!input.auditInfo().environmentId().equals(apiProduct.getEnvironmentId())) {
+            throw new ApiProductNotFoundException(input.apiProductId());
+        }
         var productPlans = planQueryService
             .findAllByReferenceIdAndReferenceType(input.apiProductId(), GenericPlanEntity.ReferenceType.API_PRODUCT)
             .stream()
             .collect(toMap(Plan::getId, identity()));
 
-        // Every plan is resolved and its flows validated before any is written, so a refused plan leaves the others untouched.
+        // Every plan is resolved, its flows validated and the plan checks run before any is written, so a refused plan leaves
+        // the others untouched.
         var toWrite = input
             .plans()
             .stream()
             .map(update ->
                 Optional.ofNullable(productPlans.get(update.planId()))
-                    .map(plan -> withFlows(plan, update))
-                    .map(plan -> {
-                        flowValidationDomainService.validateAndSanitizeHttpV4(null, update.flows());
-                        return plan;
-                    })
+                    .map(UpdateApiProductPlanFlowsUseCase::requireOpenHttpPlan)
+                    .map(plan ->
+                        withFlows(plan, update.name(), flowValidationDomainService.validateAndSanitizeApiProductFlows(update.flows()))
+                    )
                     .orElseThrow(() -> new PlanNotFoundException(update.planId()))
             )
             .toList();
-        // The closed-plan check only reads the statuses of the plans it is given.
         var statuses = toWrite.stream().collect(toMap(Plan::getId, Plan::getPlanStatus));
+        toWrite.forEach(plan -> updatePlanDomainService.updatePreFlightChecksForApiProduct(plan, statuses, apiProduct, input.auditInfo()));
 
         var updated = toWrite
             .stream()
@@ -89,6 +94,17 @@ public class UpdateApiProductPlanFlowsUseCase {
             .toList();
         log.debug("Updated the flows of {} plans of API Product {}", updated.size(), input.apiProductId());
         return new Output(updated);
+    }
+
+    /** The plan update's own closed-plan check only refuses reopening a plan, so it would let a flows change through. */
+    private static Plan requireOpenHttpPlan(Plan plan) {
+        if (plan.getPlanDefinitionHttpV4() == null) {
+            throw new ValidationDomainException("Plan '" + plan.getId() + "' is not an HTTP v4 plan");
+        }
+        if (plan.getPlanStatus() == PlanStatus.CLOSED) {
+            throw new ValidationDomainException("Plan '" + plan.getId() + "' is closed; the flows of a closed plan cannot change");
+        }
+        return plan;
     }
 
     private static void rejectPlansListedTwice(List<PlanFlows> plans) {
@@ -103,16 +119,13 @@ public class UpdateApiProductPlanFlowsUseCase {
             });
     }
 
-    private static Plan withFlows(Plan plan, PlanFlows update) {
+    private static Plan withFlows(Plan plan, @Nullable String name, List<Flow> flows) {
         var definition = plan.getPlanDefinitionHttpV4();
-        if (definition == null) {
-            throw new ValidationDomainException("Plan '" + plan.getId() + "' is not an HTTP v4 plan");
+        if (name != null) {
+            plan.setName(name);
+            definition.setName(name);
         }
-        if (update.name() != null) {
-            plan.setName(update.name());
-            definition.setName(update.name());
-        }
-        definition.setFlows(update.flows());
+        definition.setFlows(flows);
         return plan;
     }
 

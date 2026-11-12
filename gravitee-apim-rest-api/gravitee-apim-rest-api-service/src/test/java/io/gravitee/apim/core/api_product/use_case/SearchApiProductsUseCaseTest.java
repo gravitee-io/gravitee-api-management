@@ -25,10 +25,12 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import inmemory.ApiProductSearchQueryServiceInMemory;
 import inmemory.EventLatestQueryServiceInMemory;
+import inmemory.FlowCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductDeploymentStateDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.model.ApiProductDeploymentPayload;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.rest.api.model.EventType;
@@ -72,7 +74,12 @@ class SearchApiProductsUseCaseTest {
         useCase = new SearchApiProductsUseCase(
             apiProductSearchQueryService,
             apiProductAccessibleIdsDomainService,
-            new ApiProductDeploymentStateDomainService(eventLatestQueryService, planQueryService, objectMapper)
+            new ApiProductDeploymentStateDomainService(
+                eventLatestQueryService,
+                planQueryService,
+                new FlowCrudServiceInMemory(),
+                objectMapper
+            )
         );
     }
 
@@ -290,10 +297,7 @@ class SearchApiProductsUseCaseTest {
         var drifted = ApiProduct.builder().id("id-2").name("Drifted").environmentId(ENV_ID).apiIds(Set.of("api-1", "api-2")).build();
         apiProductSearchQueryService.initWith(List.of(deployed, drifted));
         eventLatestQueryService.initWith(
-            List.of(
-                aDeployEvent("id-1", ApiProduct.builder().id("id-1").apiIds(Set.of("api-1")).build()),
-                aDeployEvent("id-2", ApiProduct.builder().id("id-2").apiIds(Set.of("api-1")).build())
-            )
+            List.of(aDeployEvent("id-1", deployed), aDeployEvent("id-2", drifted.toBuilder().apiIds(Set.of("api-1")).build()))
         );
 
         var output = useCase.execute(
@@ -326,7 +330,7 @@ class SearchApiProductsUseCaseTest {
             .id("event-" + apiProductId)
             .type(EventType.DEPLOY_API_PRODUCT)
             .properties(new EnumMap<>(Map.of(Event.EventProperties.API_PRODUCT_ID, apiProductId)))
-            .payload(objectMapper.writeValueAsString(deployedPayload))
+            .payload(objectMapper.writeValueAsString(ApiProductDeploymentPayload.of(deployedPayload, List.of(), List.of())))
             .environments(Set.of(ENV_ID))
             .createdAt(DEPLOYED_AT.atZone(ZoneId.systemDefault()))
             .updatedAt(DEPLOYED_AT.atZone(ZoneId.systemDefault()))

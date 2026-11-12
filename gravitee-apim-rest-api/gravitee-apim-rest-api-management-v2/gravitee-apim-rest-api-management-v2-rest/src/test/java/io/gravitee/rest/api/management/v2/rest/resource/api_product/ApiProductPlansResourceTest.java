@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api_product;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
+import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,16 +35,20 @@ import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductExistsUseCase;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.use_case.CreateApiProductPlanUseCase;
 import io.gravitee.apim.core.plan.use_case.GetPlansUseCase;
+import io.gravitee.apim.core.plan.use_case.UpdateApiProductPlanFlowsUseCase;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.management.v2.rest.model.ApiProductPlansResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiProductPlan;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -55,6 +60,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
@@ -76,6 +82,9 @@ class ApiProductPlansResourceTest extends AbstractResourceTest {
 
     @Inject
     private CreateApiProductPlanUseCase createPlanUseCase;
+
+    @Inject
+    private UpdateApiProductPlanFlowsUseCase updateApiProductPlanFlowsUseCase;
 
     @Override
     protected String contextPath() {
@@ -102,7 +111,7 @@ class ApiProductPlansResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        reset(verifyApiProductExistsUseCase, getPlansUseCase, createPlanUseCase);
+        reset(verifyApiProductExistsUseCase, getPlansUseCase, createPlanUseCase, updateApiProductPlanFlowsUseCase);
     }
 
     private void givenApiProductExists() {
@@ -111,6 +120,113 @@ class ApiProductPlansResourceTest extends AbstractResourceTest {
 
     private void givenApiProductMissing() {
         doThrow(new ApiProductNotFoundException(API_PRODUCT_ID)).when(verifyApiProductExistsUseCase).execute(any());
+    }
+
+    @Nested
+    class UpdateApiProductPlansFlowsTest {
+
+        @Test
+        void should_replace_the_flows_of_each_plan_in_order() {
+            when(updateApiProductPlanFlowsUseCase.execute(any())).thenReturn(new UpdateApiProductPlanFlowsUseCase.Output(List.of()));
+
+            final Response response = rootTarget()
+                .path("_flows")
+                .request()
+                .put(
+                    json(
+                        List.of(
+                            Map.of(
+                                "planId",
+                                "plan-1",
+                                "flows",
+                                List.of(
+                                    Map.of("name", "first", "request", List.of(Map.of("policy", "transform-headers"))),
+                                    Map.of("name", "second")
+                                )
+                            ),
+                            Map.of("planId", "plan-2", "flows", List.of())
+                        )
+                    )
+                );
+
+            assertThat(response.getStatus()).isEqualTo(NO_CONTENT_204);
+            var captor = ArgumentCaptor.forClass(UpdateApiProductPlanFlowsUseCase.Input.class);
+            verify(updateApiProductPlanFlowsUseCase).execute(captor.capture());
+            var input = captor.getValue();
+            assertThat(input.apiProductId()).isEqualTo(API_PRODUCT_ID);
+            assertThat(input.auditInfo().environmentId()).isEqualTo(ENV_ID);
+            assertThat(input.plans()).extracting(UpdateApiProductPlanFlowsUseCase.PlanFlows::planId).containsExactly("plan-1", "plan-2");
+            assertThat(input.plans()).extracting(UpdateApiProductPlanFlowsUseCase.PlanFlows::name).containsOnlyNulls();
+            assertThat(input.plans().get(0).flows()).extracting(Flow::getName).containsExactly("first", "second");
+            assertThat(input.plans().get(0).flows().get(0).getRequest()).extracting("policy").containsExactly("transform-headers");
+            assertThat(input.plans().get(1).flows()).isEmpty();
+        }
+
+        @Test
+        void should_return_400_when_the_flows_of_a_plan_are_left_out() {
+            final Response response = rootTarget().path("_flows").request().put(json(List.of(Map.of("planId", "plan-1"))));
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+            verify(updateApiProductPlanFlowsUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_return_400_for_an_interact_step() {
+            final Response response = rootTarget()
+                .path("_flows")
+                .request()
+                .put(
+                    json(
+                        List.of(
+                            Map.of(
+                                "planId",
+                                "plan-1",
+                                "flows",
+                                List.of(Map.of("name", "native", "interact", List.of(Map.of("policy", "transform-headers"))))
+                            )
+                        )
+                    )
+                );
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+            verify(updateApiProductPlanFlowsUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_return_400_when_the_use_case_refuses_a_plan() {
+            when(updateApiProductPlanFlowsUseCase.execute(any())).thenThrow(
+                new ValidationDomainException("Plan 'plan-1' is closed; the flows of a closed plan cannot change")
+            );
+
+            final Response response = rootTarget()
+                .path("_flows")
+                .request()
+                .put(json(List.of(Map.of("planId", "plan-1", "flows", List.of()))));
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+            assertThat(response.readEntity(Error.class).getMessage()).contains("closed");
+        }
+
+        @Test
+        void should_return_404_for_an_unknown_product_or_one_of_another_environment() {
+            givenApiProductMissing();
+
+            final Response response = rootTarget()
+                .path("_flows")
+                .request()
+                .put(json(List.of(Map.of("planId", "plan-1", "flows", List.of()))));
+
+            assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+            verify(updateApiProductPlanFlowsUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_return_403_without_the_plan_update_permission() {
+            shouldReturn403(RolePermission.API_PRODUCT_PLAN, API_PRODUCT_ID, RolePermissionAction.UPDATE, () ->
+                rootTarget().path("_flows").request().put(json(List.of(Map.of("planId", "plan-1", "flows", List.of()))))
+            );
+            verify(updateApiProductPlanFlowsUseCase, never()).execute(any());
+        }
     }
 
     @Nested
@@ -141,6 +257,7 @@ class ApiProductPlansResourceTest extends AbstractResourceTest {
                         .security(PlanSecurity.builder().type("API_KEY").build())
                         .mode(PlanMode.STANDARD)
                         .status(PlanStatus.PUBLISHED)
+                        .flows(List.of(Flow.builder().name("first").build(), Flow.builder().name("second").build()))
                         .build()
                 )
                 .build();
@@ -172,6 +289,7 @@ class ApiProductPlansResourceTest extends AbstractResourceTest {
             ApiProductPlansResponse result = response.readEntity(ApiProductPlansResponse.class);
             assertAll(
                 () -> assertThat(result.getData()).hasSize(2),
+                () -> assertThat(result.getData().get(0).getFlows()).extracting(FlowV4::getName).containsExactly("first", "second"),
                 () -> assertThat(result.getPagination()).isNotNull(),
                 () -> assertThat(result.getLinks()).isNotNull()
             );

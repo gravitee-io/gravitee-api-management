@@ -216,11 +216,11 @@ public class ApiProductResource extends AbstractResource {
     }
 
     /**
-     * The HTTP flow model the product stores has no entrypoint connect or interact phase, so such steps would be
+     * The HTTP flow model the product and its plans store has no entrypoint connect or interact phase, so such steps would be
      * dropped without a word when mapped; they are refused instead, like the publish and subscribe steps the use case
      * refuses.
      */
-    private static void rejectNativeSteps(List<FlowV4> flows) {
+    static void rejectNativeSteps(List<FlowV4> flows) {
         flows
             .stream()
             .filter(flow -> !isEmpty(flow.getEntrypointConnect()) || !isEmpty(flow.getInteract()))

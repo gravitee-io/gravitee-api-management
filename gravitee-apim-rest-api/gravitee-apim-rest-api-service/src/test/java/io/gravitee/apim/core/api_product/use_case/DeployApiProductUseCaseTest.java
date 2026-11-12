@@ -29,6 +29,7 @@ import inmemory.AbstractUseCaseTest;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
+import inmemory.EventLatestQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
@@ -43,6 +44,7 @@ import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.notification.model.hook.ApiProductDeployedHookContext;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
@@ -78,7 +80,14 @@ class DeployApiProductUseCaseTest extends AbstractUseCaseTest {
             apiProductQueryService,
             new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
             validateApiProductService,
-            new DeployApiProductDomainService(planQueryService, eventCrudService, eventLatestCrudService, flowCrudService),
+            new DeployApiProductDomainService(
+                planQueryService,
+                eventCrudService,
+                eventLatestCrudService,
+                new EventLatestQueryServiceInMemory(),
+                flowCrudService,
+                GraviteeJacksonMapper.getInstance()
+            ),
             triggerNotificationDomainService
         );
     }

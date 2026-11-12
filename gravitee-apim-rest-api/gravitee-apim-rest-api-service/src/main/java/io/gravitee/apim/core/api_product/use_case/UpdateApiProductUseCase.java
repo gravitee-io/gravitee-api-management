@@ -220,7 +220,7 @@ public class UpdateApiProductUseCase {
     private void deployMembershipChangeToGateway(AuditInfo auditInfo, ApiProduct updated) {
         try {
             validateApiProductService.validateForDeploy(updated);
-            deployApiProductDomainService.deploy(auditInfo, updated);
+            deployApiProductDomainService.deployApiList(auditInfo, updated);
         } catch (ValidationDomainException e) {
             log.warn("API Product [{}] membership was updated but not deployed to the gateway. {}", updated.getId(), e.getMessage());
         } catch (Exception e) {
