@@ -1,0 +1,324 @@
+            "properties": {
+                "gateway": {
+                    "type": "keyword"
+                },
+                "org-id": {
+                    "type": "keyword"
+                },
+                "env-id": {
+                    "type": "keyword"
+                },
+                "@timestamp": {
+                    "type": "date"
+                },
+                "transaction-id": {
+                    "type": "keyword"
+                },
+                "api-id": {
+                    "type": "keyword"
+                },
+                "api-name": {
+                    "type": "keyword"
+                },
+                "api-product-id": {
+                    "type": "keyword"
+                },
+                "request-id": {
+                    "type": "keyword"
+                },
+                "trace-id": {
+                    "type": "keyword"
+                },
+                "span-id": {
+                    "type": "keyword"
+                },
+                "decision-id": {
+                    "type": "keyword"
+                },
+                "plan-id": {
+                    "type": "keyword"
+                },
+                "application-id": {
+                    "type": "keyword"
+                },
+                "subscription-id": {
+                    "type": "keyword"
+                },
+                "client-identifier": {
+                    "type": "keyword"
+                },
+                "tenant": {
+                    "type": "keyword"
+                },
+                "zone": {
+                    "type": "keyword"
+                },
+                "http-method": {
+                    "type": "short"
+                },
+                "local-address": {
+                    "type": "keyword",
+                    "index": false
+                },
+                "remote-address": {
+                    "type": "ip"
+                },
+                "host": {
+                    "type": "keyword"
+                },
+                "uri": {
+                    "type": "keyword"
+                },
+                "path-info": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword"
+                        }
+                    }
+                },
+                "mapped-path": {
+                    "type": "keyword"
+                },
+                "user-agent": {
+                    "type": "keyword"
+                },
+                "user_agent": {
+                    "properties": {
+                        "device": {
+                            "properties": {
+                                "name": {
+                                    "type": "keyword"
+                                }
+                            }
+                        },
+                        "name": {
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "original": {
+                            "type": "text"
+                        },
+                        "os": {
+                            "properties": {
+                                "full": {
+                                    "type": "text"
+                                },
+                                "name": {
+                                    "type": "keyword",
+                                    "index": true
+                                },
+                                "version": {
+                                    "type": "keyword",
+                                    "index": true
+                                }
+                            }
+                        },
+                        "os_name": {
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "version": {
+                            "type": "text"
+                        }
+                    }
+                },
+                "request-content-length": {
+                    "type": "long",
+                    "index": false
+                },
+                "request-ended": {
+                    "type": "boolean"
+                },
+                "connection-phase": {
+                    "type": "keyword"
+                },
+                "entrypoint-id": {
+                    "type": "keyword"
+                },
+                "endpoint": {
+                    "type": "keyword"
+                },
+                "endpoint-response-time-ms": {
+                    "type": "long"
+                },
+                "endpoint-response-ttfb-ms": {
+                    "type": "long"
+                },
+                "endpoint-connect-time-ms": {
+                    "type": "long"
+                },
+                "endpoint-response-time-ns": {
+                    "type": "long"
+                },
+                "endpoint-response-ttfb-ns": {
+                    "type": "long"
+                },
+                "endpoint-connect-time-ns": {
+                    "type": "long"
+                },
+                "gateway-response-time-ns": {
+                    "type": "long"
+                },
+                "gateway-latency-ns": {
+                    "type": "long"
+                },
+                "status": {
+                    "type": "short"
+                },
+                "response-content-length": {
+                    "type": "long",
+                    "index": false
+                },
+                "gateway-latency-ms": {
+                    "type": "integer"
+                },
+                "gateway-response-time-ms": {
+                    "type": "integer"
+                },
+                "ai-input-token": {
+                    "type": "integer"
+                },
+                "ai-output-token": {
+                    "type": "integer"
+                },
+                "geoip" : {
+                    "properties": {
+                        "continent_name":{
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "country_iso_code":{
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "region_name":{
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "city_name":{
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "location": {
+                            "type": "geo_point"
+                        }
+                    }
+                },
+                "user": {
+                    "type": "keyword"
+                },
+                "security-type": {
+                    "type": "keyword",
+                    "index": true
+                },
+                "security-token": {
+                    "type": "keyword",
+                    "index": true
+                },
+                "error-message": {
+                    "type": "text"
+                },
+                "error-key": {
+                    "type": "keyword",
+                    "index": true
+                },
+                "error-component-type": {
+                    "type": "keyword",
+                    "index": true
+                },
+                "error-component-name": {
+                    "type": "keyword",
+                    "index": true
+                },
+                "warnings": {
+                    "type": "nested",
+                    "properties": {
+                        "key": {
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "message": {
+                            "type": "text"
+                        },
+                        "component-type": {
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "component-name": {
+                            "type": "keyword",
+                            "index": true
+                        }
+                    }
+                }
+                <#if extendedRequestMappingTemplate??>,<#include "/${extendedRequestMappingTemplate}"></#if>
+            },
+            "dynamic_templates": [
+                {
+                    "strings_as_keywords": {
+                        "path_match": "custom.*",
+                        "match_mapping_type": "string",
+                        "mapping": {
+                            "type": "keyword"
+                        }
+                    }
+                },
+                {
+                    "additional_long_metrics": {
+                        "path_match": "additional-metrics.long_*",
+                        "match_mapping_type": "long",
+                        "mapping": {
+                            "type": "long"
+                        }
+                    }
+                },
+                {
+                    "additional_keyword_metrics": {
+                        "path_match": "additional-metrics.keyword_*",
+                        "mapping": {
+                            "type": "keyword",
+                            "ignore_above": 1024
+                        }
+                    }
+                },
+                {
+                    "additional_boolean_metrics": {
+                        "path_match": "additional-metrics.bool_*",
+                        "mapping": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                {
+                    "additional_double_metrics": {
+                        "path_match": "additional-metrics.double_*",
+                        "mapping": {
+                            "type": "double"
+                        }
+                    }
+                },
+                {
+                    "additional_int_metrics": {
+                        "path_match": "additional-metrics.int_*",
+                        "mapping": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                {
+                    "additional_string_metrics": {
+                        "path_match": "additional-metrics.string_*",
+                        "mapping": {
+                            "type": "text"
+                        }
+                    }
+                },
+                {
+                    "additional_json_metrics": {
+                        "path_match": "additional-metrics.json_*",
+                        "mapping": {
+                            "type": "text"
+                        }
+                    }
+                }
+            ]
