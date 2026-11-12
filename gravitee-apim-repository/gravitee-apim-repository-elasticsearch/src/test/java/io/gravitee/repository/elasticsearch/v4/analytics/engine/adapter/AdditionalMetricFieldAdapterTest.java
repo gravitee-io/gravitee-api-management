@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -200,22 +199,20 @@ class AdditionalMetricFieldAdapterTest extends AbstractQueryAdapterTest {
         @Test
         void should_aggregate_a_built_in_and_the_additional_metric_it_reads_alike() throws JsonProcessingException {
             var key = new AdditionalMetric(new AdditionalMetricField(ValueType.LONG, "long_llm-proxy_tokens-sent"));
-            var measured = MEASURED.stream()
-                .filter(measure -> measure != Measure.COUNT)
-                .collect(Collectors.toSet());
-            var query = measures(new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_SENT, measured), new MetricMeasuresQuery(key, measured));
+            var query = measures(new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_SENT, MEASURED), new MetricMeasuresQuery(key, MEASURED));
 
             var aggs = JSON.readTree(adapter.adapt(query)).at("/aggs");
 
-            var builtInEnvelope = aggs.get("LLM_PROMPT_TOKEN_SENT#__MEASURED__");
-            var additionalEnvelope = aggs.get("additional-metrics_long_llm-proxy_tokens-sent#__MEASURED__");
-            assertThat(builtInEnvelope.get("filter")).isEqualTo(additionalEnvelope.get("filter"));
-            assertThat(measured).allSatisfy(measure ->
-                assertThat(builtInEnvelope.at("/aggs/LLM_PROMPT_TOKEN_SENT#" + measure))
+            assertThat(MEASURED).allSatisfy(measure -> {
+                var envelope = measure == Measure.COUNT ? "#__COUNTED__" : "#__MEASURED__";
+                var builtIn = aggs.get("LLM_PROMPT_TOKEN_SENT" + envelope);
+                var additional = aggs.get("additional-metrics_long_llm-proxy_tokens-sent" + envelope);
+                assertThat(builtIn.get("filter")).as(measure.name()).isEqualTo(additional.get("filter"));
+                assertThat(builtIn.at("/aggs/LLM_PROMPT_TOKEN_SENT#" + measure))
                     .as(measure.name())
                     .isNotEmpty()
-                    .isEqualTo(additionalEnvelope.at("/aggs/additional-metrics.long_llm-proxy_tokens-sent#" + measure))
-            );
+                    .isEqualTo(additional.at("/aggs/additional-metrics.long_llm-proxy_tokens-sent#" + measure));
+            });
             assertThat(aggs.findValues("missing")).isEmpty();
         }
 

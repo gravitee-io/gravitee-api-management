@@ -2700,9 +2700,9 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             private static final String LLM_API_ID = "llm-api-001";
 
             @Test
-            void should_return_llm_total_token_count() {
+            void should_return_llm_total_token_sum_and_request_count() {
                 var timeRange = buildTimeRange();
-                var metrics = List.of(new MetricMeasuresQuery(Metric.LLM_PROMPT_TOTAL_TOKEN, Set.of(Measure.COUNT)));
+                var metrics = List.of(new MetricMeasuresQuery(Metric.LLM_PROMPT_TOTAL_TOKEN, Set.of(Measure.SUM, Measure.COUNT)));
 
                 var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(LLM_API_ID));
 
@@ -2714,8 +2714,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
                 var measure = result.measures().getFirst();
                 assertThat(measure.metric()).isEqualTo(Metric.LLM_PROMPT_TOTAL_TOKEN);
-                assertThat(measure.measures()).containsKey(Measure.COUNT);
-                assertThat(measure.measures().get(Measure.COUNT).doubleValue()).isCloseTo(950.0, offset(0.01));
+                assertThat(measure.measures().get(Measure.SUM).doubleValue()).isCloseTo(950.0, offset(0.01));
+                assertThat(measure.measures().get(Measure.COUNT).longValue()).isEqualTo(3L);
             }
 
             @Test
@@ -2738,9 +2738,9 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             }
 
             @Test
-            void should_return_llm_total_token_cost_count() {
+            void should_return_llm_total_token_cost_sum_and_request_count() {
                 var timeRange = buildTimeRange();
-                var metrics = List.of(new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_TOTAL_COST, Set.of(Measure.COUNT)));
+                var metrics = List.of(new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_TOTAL_COST, Set.of(Measure.SUM, Measure.COUNT)));
 
                 var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(LLM_API_ID));
 
@@ -2752,8 +2752,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
                 var measure = result.measures().getFirst();
                 assertThat(measure.metric()).isEqualTo(Metric.LLM_PROMPT_TOKEN_TOTAL_COST);
-                assertThat(measure.measures()).containsKey(Measure.COUNT);
-                assertThat(measure.measures().get(Measure.COUNT).doubleValue()).isCloseTo(0.0095, offset(0.0001));
+                assertThat(measure.measures().get(Measure.SUM).doubleValue()).isCloseTo(0.0095, offset(0.0001));
+                assertThat(measure.measures().get(Measure.COUNT).longValue()).isEqualTo(3L);
             }
 
             @Test
@@ -2779,8 +2779,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             void should_return_all_llm_measures_in_single_query() {
                 var timeRange = buildTimeRange();
                 var metrics = List.of(
-                    new MetricMeasuresQuery(Metric.LLM_PROMPT_TOTAL_TOKEN, Set.of(Measure.COUNT, Measure.AVG)),
-                    new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_TOTAL_COST, Set.of(Measure.COUNT, Measure.AVG))
+                    new MetricMeasuresQuery(Metric.LLM_PROMPT_TOTAL_TOKEN, Set.of(Measure.SUM, Measure.AVG)),
+                    new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_TOTAL_COST, Set.of(Measure.SUM, Measure.AVG))
                 );
 
                 var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(LLM_API_ID));
@@ -2797,8 +2797,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     .filter(m -> m.metric() == Metric.LLM_PROMPT_TOTAL_TOKEN)
                     .findFirst()
                     .orElseThrow();
-                assertThat(tokenMeasure.measures()).containsKeys(Measure.COUNT, Measure.AVG);
-                assertThat(tokenMeasure.measures().get(Measure.COUNT).doubleValue()).isCloseTo(950.0, offset(0.01));
+                assertThat(tokenMeasure.measures()).containsKeys(Measure.SUM, Measure.AVG);
+                assertThat(tokenMeasure.measures().get(Measure.SUM).doubleValue()).isCloseTo(950.0, offset(0.01));
                 assertThat(tokenMeasure.measures().get(Measure.AVG).doubleValue()).isCloseTo(316.67, offset(0.1));
 
                 var costMeasure = result
@@ -2807,8 +2807,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     .filter(m -> m.metric() == Metric.LLM_PROMPT_TOKEN_TOTAL_COST)
                     .findFirst()
                     .orElseThrow();
-                assertThat(costMeasure.measures()).containsKeys(Measure.COUNT, Measure.AVG);
-                assertThat(costMeasure.measures().get(Measure.COUNT).doubleValue()).isCloseTo(0.0095, offset(0.0001));
+                assertThat(costMeasure.measures()).containsKeys(Measure.SUM, Measure.AVG);
+                assertThat(costMeasure.measures().get(Measure.SUM).doubleValue()).isCloseTo(0.0095, offset(0.0001));
                 assertThat(costMeasure.measures().get(Measure.AVG).doubleValue()).isCloseTo(0.00317, offset(0.00001));
             }
         }

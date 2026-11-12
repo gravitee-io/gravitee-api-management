@@ -15,9 +15,11 @@
  */
 package io.gravitee.apim.core.analytics_engine.domain_service;
 
+import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
+import java.util.List;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -26,7 +28,9 @@ import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 public interface UnitEnrichmentPostProcessor {
     MeasuresResponse enrichUnits(MeasuresResponse response);
 
-    FacetsResponse enrichUnits(FacetsResponse response);
+    /** The served unit of each metric follows the measures {@code requestedMetrics} ask for it, whatever buckets the response holds. */
+    FacetsResponse enrichUnits(FacetsResponse response, List<FacetMetricMeasuresRequest> requestedMetrics);
 
-    TimeSeriesResponse enrichUnits(TimeSeriesResponse response);
+    /** The served unit of each metric follows the measures {@code requestedMetrics} ask for it, whatever buckets the response holds. */
+    TimeSeriesResponse enrichUnits(TimeSeriesResponse response, List<FacetMetricMeasuresRequest> requestedMetrics);
 }

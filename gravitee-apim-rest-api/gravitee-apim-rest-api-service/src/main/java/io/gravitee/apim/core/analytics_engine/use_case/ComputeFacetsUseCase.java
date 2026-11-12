@@ -105,7 +105,7 @@ public class ComputeFacetsUseCase {
 
         var mappedResponse = bucketNamesPostprocessor.mapBucketNames(analyticsContext, request.facets(), response);
 
-        var enriched = unitEnrichmentPostProcessor.enrichUnits(mappedResponse);
+        var enriched = unitEnrichmentPostProcessor.enrichUnits(mappedResponse, request.metrics());
 
         return new ComputeFacetsUseCase.Output(enriched);
     }
