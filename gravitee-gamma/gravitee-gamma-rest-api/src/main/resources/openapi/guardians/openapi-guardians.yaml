@@ -187,6 +187,49 @@ paths:
                 "403":
                     $ref: "#/components/responses/Forbidden"
 
+    /organizations/{orgId}/environments/{envId}/guardians/_guardrails:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+        get:
+            tags:
+                - Guardians
+            summary: List the guardrails a Guardian can run
+            description: |
+                The installed policies a Guardian of `apiType` and `phase` can run as guardrails,
+                sorted by name. A policy is listed when it is a guardrail and its plugin declares
+                `phase` for `apiType`: the same rule the creation and the update apply to the
+                guardrail sequence, so a listed guardrail is never refused for its API type or phase.
+
+                The configuration schema of a guardrail is served by the plugin endpoints, under its
+                `id`.
+            operationId: listGuardrails
+            parameters:
+                - name: apiType
+                  in: query
+                  required: true
+                  description: The API type of the Guardian, as `apiTypes` carries it.
+                  schema:
+                      $ref: "#/components/schemas/ApiType"
+                - name: phase
+                  in: query
+                  required: true
+                  schema:
+                      $ref: "#/components/schemas/GuardianPhase"
+            responses:
+                "200":
+                    description: The guardrails, possibly none.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Guardrail"
+                "400":
+                    $ref: "#/components/responses/BadRequest"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+
     /organizations/{orgId}/environments/{envId}/guardians/{guardianId}:
         parameters:
             - $ref: "#/components/parameters/orgIdParam"
@@ -742,6 +785,23 @@ components:
             enum:
                 - REQUEST
                 - RESPONSE
+
+        Guardrail:
+            type: object
+            description: An installed policy a Guardian can run as one of its guardrails.
+            properties:
+                id:
+                    type: string
+                    description: The policy plugin id, the value a guardrail step carries in `policy`.
+                name:
+                    type: string
+                    description: The plugin name, for display.
+            required:
+                - id
+                - name
+            example:
+                id: data-logging-masking
+                name: Data logging masking
 
         DeployGuardian:
             type: object

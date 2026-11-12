@@ -45,6 +45,7 @@ public class DefaultPolicyPluginProvider extends AbstractPluginProvider<PolicyPl
             .collect(
                 toMap(PolicyPlugin::id, plugin ->
                     new PolicyCapabilities(
+                        plugin.manifest().name(),
                         GuardrailPolicy.class.isAssignableFrom(plugin.policy()),
                         phasesByApiType(plugin.manifest().properties())
                     )
