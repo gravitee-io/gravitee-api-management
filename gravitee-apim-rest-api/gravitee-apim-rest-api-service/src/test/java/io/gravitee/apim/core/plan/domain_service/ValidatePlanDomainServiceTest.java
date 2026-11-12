@@ -22,10 +22,11 @@ import fixtures.core.model.ApiCRDFixtures;
 import fixtures.core.model.PlanFixtures;
 import inmemory.PlanCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
+import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.validation.Validator;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class ValidatePlanDomainServiceTest {
@@ -40,7 +41,7 @@ class ValidatePlanDomainServiceTest {
 
     @Test
     void should_refuse_a_plan_id_of_another_api() {
-        givenExistingPlan(GenericPlanEntity.ReferenceType.API, "another-api-id");
+        givenExistingPlan("another-api-id");
 
         var result = validateBaseSpecPlans();
 
@@ -49,17 +50,8 @@ class ValidatePlanDomainServiceTest {
     }
 
     @Test
-    void should_refuse_a_plan_id_of_an_api_product() {
-        givenExistingPlan(GenericPlanEntity.ReferenceType.API_PRODUCT, ApiCRDFixtures.API_ID);
-
-        assertThat(errorMessages(validateBaseSpecPlans())).containsExactly(
-            "invalid plan [plan-name]. Error: plan id [plan-id] does not belong to this API"
-        );
-    }
-
-    @Test
     void should_accept_a_plan_id_of_the_imported_api() {
-        givenExistingPlan(GenericPlanEntity.ReferenceType.API, ApiCRDFixtures.API_ID);
+        givenExistingPlan(ApiCRDFixtures.API_ID);
 
         var result = validateBaseSpecPlans();
 
@@ -75,22 +67,28 @@ class ValidatePlanDomainServiceTest {
         assertThat(result.value()).hasValueSatisfying(sanitized -> assertThat(sanitized.plans()).containsKey(ApiCRDFixtures.PLAN_NAME));
     }
 
-    private void givenExistingPlan(GenericPlanEntity.ReferenceType referenceType, String referenceId) {
-        planCrudService.initWith(
-            List.of(
-                PlanFixtures.aPlanHttpV4()
-                    .toBuilder()
-                    .id(ApiCRDFixtures.PLAN_ID)
-                    .referenceType(referenceType)
-                    .referenceId(referenceId)
-                    .build()
-            )
-        );
+    @Test
+    void should_accept_a_plan_without_id() {
+        ApiCRDSpec spec = ApiCRDFixtures.newBaseSpec().type("PROXY").build();
+        var planWithoutId = spec.getPlans().get(ApiCRDFixtures.PLAN_NAME).toBuilder().id(null).build();
+
+        var result = validatePlans(spec, Map.of(ApiCRDFixtures.PLAN_NAME, planWithoutId));
+
+        assertThat(errorMessages(result)).isEmpty();
+        assertThat(result.value()).hasValueSatisfying(sanitized -> assertThat(sanitized.plans()).containsKey(ApiCRDFixtures.PLAN_NAME));
+    }
+
+    private void givenExistingPlan(String apiId) {
+        planCrudService.initWith(List.of(PlanFixtures.aPlanHttpV4().toBuilder().id(ApiCRDFixtures.PLAN_ID).apiId(apiId).build()));
     }
 
     private Validator.Result<ValidatePlanDomainService.Input> validateBaseSpecPlans() {
         ApiCRDSpec spec = ApiCRDFixtures.newBaseSpec().type("PROXY").build();
-        return service.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, spec.getPlans(), List.of()));
+        return validatePlans(spec, spec.getPlans());
+    }
+
+    private Validator.Result<ValidatePlanDomainService.Input> validatePlans(ApiCRDSpec spec, Map<String, PlanCRD> plans) {
+        return service.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, spec.getId(), plans, List.of()));
     }
 
     private static List<String> errorMessages(Validator.Result<ValidatePlanDomainService.Input> result) {
