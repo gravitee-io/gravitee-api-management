@@ -25,15 +25,7 @@ import {
     SignUpPage,
 } from '../features/auth';
 import { AccountGuard, EnvironmentGuard, RootRedirect } from '../features/environment';
-import {
-    PORTALS_MODULE_ID,
-    PortalNextEditorRedirect,
-    type GammaModule,
-    ModulesLoadFailed,
-    RemoteModuleRoute,
-    isAccountModule,
-    useGammaModules,
-} from '../features/modules';
+import { type GammaModule, ModulesLoadFailed, RemoteModuleRoute, isAccountModule, useGammaModules } from '../features/modules';
 import { HomePage } from '../pages/home';
 import { MyAccountPage } from '../pages/my-account';
 import { TasksPage } from '../pages/tasks';
@@ -105,11 +97,7 @@ export function AppRoutes() {
                             <Route path="my-account" element={<MyAccountPage />} />
                         </Route>
                         {environmentModules.map((m: GammaModule) => (
-                            <Route
-                                key={m.id}
-                                path={`${m.id}/*`}
-                                element={m.id === PORTALS_MODULE_ID ? <PortalNextEditorRedirect /> : <RemoteModuleRoute module={m} />}
-                            />
+                            <Route key={m.id} path={`${m.id}/*`} element={<RemoteModuleRoute module={m} />} />
                         ))}
                         {/* Without the list, any other address may be a module's: it is kept, and opens once the list is there. */}
                         {loadFailed && <Route path="*" element={<ModulesLoadFailed retrying={loading} onRetry={retry} />} />}

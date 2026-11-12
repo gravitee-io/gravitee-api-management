@@ -50,6 +50,8 @@ Regression tests cover search/page interaction, unknown totals, independent stat
 
 ## Gamma host integration
 
-The host still redirects Developer Portals to the classic console. PORTAL-337 owns the cutover; a module manifest override alone does not enable this module in the host. The federation entry remains available for that integration.
+The Gamma host mounts Developer Portals at `/environments/:envHrid/portals/*` through the standard Module Federation route. The Home card and application switcher open the module in the same tab. The backend must advertise the `portals` module through module discovery; `DEV_MODULE_ENTRIES` only overrides the remote asset URL for an already discovered module.
+
+The target environment must provide the real portals list, details, statistics and logo endpoints. View Portal opens the configured portal URL in a new tab, so that portal frontend must also be running for end-to-end verification.
 
 For full-stack setup, see the **Gamma Console** section in [`CONTRIBUTING.adoc`](../../CONTRIBUTING.adoc#dev-guide-gamma-console). For host architecture and module discovery, see [docs/gamma-module-loading.md](../gravitee-gamma-control-plane-webui/docs/gamma-module-loading.md).
