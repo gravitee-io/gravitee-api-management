@@ -22,6 +22,7 @@ import io.gravitee.apim.core.json.JsonProcessingException;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.GuardrailProtocol;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
@@ -53,7 +54,8 @@ import lombok.RequiredArgsConstructor;
  * <p><strong>The product rule</strong> — the gateway only runs a Guardian on an {@code llm-proxy} in
  * 4.14, so accepting any other API type would store a Guardian nothing can execute. It applies to
  * creation and to update alike, a {@code PUT} replacing the whole definition. Enabled guardrails
- * must also support those API types in their plugin metadata and any explicit scope protocol.
+ * must also support those API types, and run in the Guardian phase for each of them, in their plugin
+ * metadata and any explicit scope protocol.
  *
  * <p><strong>The name is free</strong> — two Guardians of one environment may not share a name. This
  * is the check users meet, and the only one that reads the store; the unique index behind it is a
@@ -146,10 +148,10 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
                 )
             );
         }
-        return Result.ofBoth(input, validatePolicyProtocols(input.guardian().getPolicies(), apiTypes));
+        return Result.ofBoth(input, validatePolicyProtocols(input.guardian().getPolicies(), apiTypes, input.guardian().getPhase()));
     }
 
-    private List<Error> validatePolicyProtocols(List<Step> steps, Set<ApiType> apiTypes) {
+    private List<Error> validatePolicyProtocols(List<Step> steps, Set<ApiType> apiTypes, Phase phase) {
         if (steps != null && steps.stream().anyMatch(Objects::isNull)) {
             return List.of(Error.severe("Guardian policies must not contain null steps."));
         }
@@ -166,8 +168,10 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
             if (policy == null) {
                 errors.add(Error.severe("Step [%s] references policy [%s], which is not installed.", step.getName(), step.getPolicy()));
             } else if (policy.guardrail()) {
-                if (!policy.supportedApiTypes().containsAll(apiTypes)) {
+                if (!policy.supports(apiTypes)) {
                     errors.add(incompatibleProtocol(step, apiTypes));
+                } else if (phase != null && !policy.runsIn(apiTypes, phase)) {
+                    errors.add(incompatiblePhase(step, apiTypes, phase));
                 } else {
                     validateScopeProtocol(step, apiTypes, errors);
                 }
@@ -223,6 +227,16 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
             "Guardrail step [%s] using policy [%s] does not support Guardian API types [%s].",
             step.getName(),
             step.getPolicy(),
+            labels(apiTypes)
+        );
+    }
+
+    private static Error incompatiblePhase(Step step, Set<ApiType> apiTypes, Phase phase) {
+        return Error.severe(
+            "Guardrail step [%s] using policy [%s] does not run in the Guardian phase [%s] for API types [%s].",
+            step.getName(),
+            step.getPolicy(),
+            phase,
             labels(apiTypes)
         );
     }

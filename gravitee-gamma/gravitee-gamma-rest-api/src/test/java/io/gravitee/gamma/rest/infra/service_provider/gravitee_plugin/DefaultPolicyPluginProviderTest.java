@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.guardian.GuardianFixtures;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
@@ -74,7 +75,38 @@ class DefaultPolicyPluginProviderTest {
 
         assertThat(provider.findAllCapabilities())
             .containsOnlyKeys("rule-guardrail")
-            .containsEntry("rule-guardrail", new PolicyCapabilities(true, Set.of(ApiType.LLM_PROXY, ApiType.MCP_PROXY)));
+            .containsEntry(
+                "rule-guardrail",
+                new PolicyCapabilities(true, Map.of(ApiType.LLM_PROXY, Set.of(Phase.RESPONSE), ApiType.MCP_PROXY, Set.of(Phase.REQUEST)))
+            );
+    }
+
+    @Test
+    void should_keep_only_the_guardian_phases_a_guardrail_declares_for_each_api_type() {
+        given_installed_policies(
+            a_policy(
+                "rule-guardrail",
+                GuardrailPolicy.class,
+                "ai",
+                Map.of("llm_proxy", " REQUEST , RESPONSE ", "mcp_proxy", "INTERACT,REQUEST", "a2a_proxy", "MESSAGE_REQUEST")
+            )
+        );
+
+        assertThat(provider.findAllCapabilities().get("rule-guardrail"))
+            .as("phases are trimmed, and flow phases a Guardian never runs in are dropped")
+            .isEqualTo(
+                new PolicyCapabilities(
+                    true,
+                    Map.of(
+                        ApiType.LLM_PROXY,
+                        Set.of(Phase.REQUEST, Phase.RESPONSE),
+                        ApiType.MCP_PROXY,
+                        Set.of(Phase.REQUEST),
+                        ApiType.A2A_PROXY,
+                        Set.of()
+                    )
+                )
+            );
     }
 
     @ParameterizedTest
@@ -110,7 +142,7 @@ class DefaultPolicyPluginProviderTest {
     void should_not_classify_a_conventional_policy_as_a_guardrail_from_its_category() {
         given_installed_policies(a_policy("ordinary-policy", HttpPolicy.class, "guardrail", Map.of()));
 
-        assertThat(provider.findAllCapabilities()).containsEntry("ordinary-policy", new PolicyCapabilities(false, Set.of()));
+        assertThat(provider.findAllCapabilities()).containsEntry("ordinary-policy", new PolicyCapabilities(false, Map.of()));
     }
 
     @Test
@@ -141,8 +173,8 @@ class DefaultPolicyPluginProviderTest {
         var policies = provider.findAllCapabilities();
 
         SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(policies).containsEntry("transform-headers", new PolicyCapabilities(false, Set.of()));
-            softly.assertThat(policies).containsEntry("rule-guardrail", new PolicyCapabilities(true, Set.of()));
+            softly.assertThat(policies).containsEntry("transform-headers", new PolicyCapabilities(false, Map.of()));
+            softly.assertThat(policies).containsEntry("rule-guardrail", new PolicyCapabilities(true, Map.of()));
         });
     }
 }

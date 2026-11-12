@@ -16,6 +16,23 @@
 package io.gravitee.gamma.rest.core.gravitee_plugin.model;
 
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
+import java.util.Map;
 import java.util.Set;
 
-public record PolicyCapabilities(boolean guardrail, Set<ApiType> supportedApiTypes) {}
+/**
+ * What an installed policy declares about where it can run.
+ *
+ * @param phases the Guardian phases the policy runs in, for each API type its manifest declares. An API
+ *     type may be declared with no Guardian phase, when the manifest only lists flow phases a Guardian
+ *     never runs in.
+ */
+public record PolicyCapabilities(boolean guardrail, Map<ApiType, Set<Phase>> phases) {
+    public boolean supports(Set<ApiType> apiTypes) {
+        return phases.keySet().containsAll(apiTypes);
+    }
+
+    public boolean runsIn(Set<ApiType> apiTypes, Phase phase) {
+        return apiTypes.stream().allMatch(apiType -> phases.getOrDefault(apiType, Set.of()).contains(phase));
+    }
+}

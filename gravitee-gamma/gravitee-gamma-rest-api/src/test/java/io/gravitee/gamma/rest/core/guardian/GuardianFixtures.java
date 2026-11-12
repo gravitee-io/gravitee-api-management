@@ -55,7 +55,9 @@ public final class GuardianFixtures {
     private GuardianFixtures() {}
 
     public static PolicyPluginProvider aPolicyPluginProvider() {
-        return aPolicyPluginProvider(() -> Map.of("data-logging-masking", new PolicyCapabilities(true, Set.of(ApiType.LLM_PROXY))));
+        return aPolicyPluginProvider(() ->
+            Map.of("data-logging-masking", new PolicyCapabilities(true, Map.of(ApiType.LLM_PROXY, Set.of(Phase.REQUEST, Phase.RESPONSE))))
+        );
     }
 
     public static PolicyPluginProvider aPolicyPluginProvider(Supplier<Map<String, PolicyCapabilities>> policies) {

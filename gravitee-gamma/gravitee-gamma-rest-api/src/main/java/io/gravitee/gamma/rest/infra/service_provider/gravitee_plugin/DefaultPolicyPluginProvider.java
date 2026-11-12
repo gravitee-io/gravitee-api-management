@@ -16,8 +16,10 @@
 package io.gravitee.gamma.rest.infra.service_provider.gravitee_plugin;
 
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.GuardrailProtocol;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
@@ -28,7 +30,6 @@ import io.gravitee.plugin.policy.PolicyPlugin;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class DefaultPolicyPluginProvider extends AbstractPluginProvider<PolicyPlugin<?>> implements PolicyPluginProvider {
 
@@ -45,23 +46,40 @@ public class DefaultPolicyPluginProvider extends AbstractPluginProvider<PolicyPl
                 toMap(PolicyPlugin::id, plugin ->
                     new PolicyCapabilities(
                         GuardrailPolicy.class.isAssignableFrom(plugin.policy()),
-                        supportedApiTypes(plugin.manifest().properties())
+                        phasesByApiType(plugin.manifest().properties())
                     )
                 )
             );
     }
 
-    /** Reads the manifest's flow phases of each API type a guardrail can be scoped to ({@code llm_proxy=REQUEST,RESPONSE}). */
-    private static Set<ApiType> supportedApiTypes(Map<String, String> properties) {
+    /**
+     * Reads the manifest's flow phases of each API type a guardrail can be scoped to ({@code llm_proxy=REQUEST,RESPONSE}).
+     *
+     * <p>The manifest lists flow phases, a wider set than the Guardian phases: the ones a Guardian never
+     * runs in ({@code INTERACT}, {@code MESSAGE_REQUEST}...) are dropped rather than refused, so one
+     * plugin declaring them does not hide the others.
+     */
+    private static Map<ApiType, Set<Phase>> phasesByApiType(Map<String, String> properties) {
         if (properties == null) {
-            return Set.of();
+            return Map.of();
         }
         return Arrays.stream(GuardrailProtocol.values())
             .filter(protocol -> {
                 var phases = properties.get(protocol.manifestKey());
                 return phases != null && !phases.isBlank();
             })
-            .map(GuardrailProtocol::apiType)
-            .collect(Collectors.toSet());
+            .collect(toMap(GuardrailProtocol::apiType, protocol -> guardianPhases(properties.get(protocol.manifestKey()))));
+    }
+
+    private static Set<Phase> guardianPhases(String flowPhases) {
+        return Arrays.stream(flowPhases.split(","))
+            .map(String::trim)
+            .flatMap(flowPhase ->
+                Arrays.stream(Phase.values())
+                    .filter(phase -> phase.name().equals(flowPhase))
+                    .findFirst()
+                    .stream()
+            )
+            .collect(toSet());
     }
 }
