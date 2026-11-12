@@ -28,5 +28,3 @@ export {
 } from './modules.catalog';
 export { ModulesLoadFailed } from './components/ModulesLoadFailed';
 export { RemoteModuleRoute } from './components/RemoteModuleRoute';
-export { PortalNextEditorRedirect } from './components/PortalNextEditorRedirect';
-export { buildPortalNextEditorUrl, redirectToPortalNextEditor } from './portal-next';

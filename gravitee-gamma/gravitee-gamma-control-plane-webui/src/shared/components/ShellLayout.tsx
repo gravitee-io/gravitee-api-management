@@ -27,10 +27,8 @@ import { useEnvironmentStore } from '../../features/environment/environment.stor
 import { getPrimaryHrid } from '../../features/environment/environment.utils';
 import { useCurrentEnvHrid } from '../../features/environment/useCurrentEnvHrid';
 import {
-    PORTALS_MODULE_ID,
     HOME_ICON,
     MODULE_ICONS,
-    buildPortalNextEditorUrl,
     findModuleProduct,
     getModuleLabel,
     isAccountModule,
@@ -148,16 +146,9 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
     const envHrid = useCurrentEnvHrid();
 
     const toHref = useToHref();
-    const consoleUrl = config?.consoleUrl;
     const apps = useMemo(
-        () =>
-            buildAppDefinitions(modules, appKey => {
-                if (appKey === PORTALS_MODULE_ID) {
-                    return consoleUrl ? buildPortalNextEditorUrl(consoleUrl, envHrid) : undefined;
-                }
-                return toHref(appPath(appKey, envHrid, modules));
-            }),
-        [consoleUrl, modules, toHref, envHrid],
+        () => buildAppDefinitions(modules, appKey => toHref(appPath(appKey, envHrid, modules))),
+        [modules, toHref, envHrid],
     );
     const activeAppKey = useMemo(() => resolveActiveAppKey(pathname, envHrid, modules), [pathname, envHrid, modules]);
     const isAccountScoped = modules.some(m => m.id === activeAppKey && isAccountModule(m));
@@ -178,15 +169,9 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
 
     const handleAppChange = useCallback(
         (key: string) => {
-            if (key === PORTALS_MODULE_ID) {
-                if (config?.consoleUrl) {
-                    window.open(buildPortalNextEditorUrl(config.consoleUrl, envHrid), '_blank', 'noopener,noreferrer');
-                }
-                return;
-            }
             navigate(appPath(key, envHrid, modules));
         },
-        [config?.consoleUrl, envHrid, modules, navigate],
+        [envHrid, modules, navigate],
     );
 
     // `search` and `hash` are dropped along with the sub-path -- they carry filters and tabs that

@@ -17,7 +17,7 @@ import { useLayoutConfig } from '@gravitee/graphene-core';
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
-import { MemoryRouter, Route, Routes, useNavigate, type NavigateFunction } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation, useNavigate, type NavigateFunction } from 'react-router-dom';
 
 import { ShellLayout } from './ShellLayout';
 import { EnvironmentGuard } from '../../features/environment';
@@ -25,12 +25,18 @@ import { useEnvironmentStore } from '../../features/environment/environment.stor
 import type { GammaModule } from '../../features/modules';
 import { EnvironmentRenderProbe } from '../../testing/EnvironmentRenderProbe';
 import { resetAllStores, seedBootstrap, seedEnvironments, seedUser } from '../../testing/helpers';
+import { PathnameProbe } from '../../testing/PathnameProbe';
 
 const MODULES: GammaModule[] = [{ id: 'apim', name: 'API Management', version: '1.0.0', remoteName: 'apim', exposedModule: 'Module' }];
 
 function NavigateHandle({ onReady }: { readonly onReady: (navigate: NavigateFunction) => void }) {
     onReady(useNavigate());
     return null;
+}
+
+function RouteSuffixProbe() {
+    const { search, hash } = useLocation();
+    return <output aria-label="Route suffix">{search + hash}</output>;
 }
 
 describe('ShellLayout environment switching', () => {
@@ -49,6 +55,7 @@ describe('ShellLayout environment switching', () => {
         return render(
             <MemoryRouter initialEntries={[initialPath]}>
                 <NavigateHandle onReady={n => (navigate = n)} />
+                <RouteSuffixProbe />
                 <Routes>
                     <Route path="/environments/:envHrid" element={<ShellLayout modules={MODULES} />}>
                         <Route element={<EnvironmentGuard />}>
@@ -86,6 +93,16 @@ describe('ShellLayout environment switching', () => {
         await switchToEnvironment2();
 
         await waitFor(() => expect(renders.at(-1)?.pathname).toBe('/environments/env-2/apim'));
+    });
+
+    it('should leave the portal id, filters and hash behind when switching environments', async () => {
+        renderShell('/environments/env-1/portals/portal-1/overview?q=partners#details');
+
+        await switchToEnvironment2();
+
+        await waitFor(() => expect(renders.at(-1)?.pathname).toBe('/environments/env-2/portals'));
+        expect(screen.getByLabelText('Route suffix').textContent).toBe('');
+        expect(mismatchedRenders()).toEqual([]);
     });
 
     it('should land on the host area root when switching from a deep host page', async () => {
@@ -229,8 +246,9 @@ describe('ShellLayout app switcher', () => {
         expect(within(menu).getByRole('separator')).toBeTruthy();
     });
 
-    it('should open Developer Portals in a new tab on the classic console portal editor', async () => {
+    it('should open Developer Portals in the current tab', async () => {
         const open = jest.spyOn(window, 'open').mockImplementation(() => null);
+        let lastPath = '';
 
         const modules: GammaModule[] = [
             { id: 'apim', name: 'API Management', version: '1.0.0', remoteName: 'apim', exposedModule: 'Module' },
@@ -238,6 +256,7 @@ describe('ShellLayout app switcher', () => {
         ];
         render(
             <MemoryRouter initialEntries={['/environments/env-1/home']}>
+                <PathnameProbe onPath={path => (lastPath = path)} />
                 <Routes>
                     <Route path="/environments/:envHrid" element={<ShellLayout modules={modules} />}>
                         <Route path="*" element={null} />
@@ -250,27 +269,31 @@ describe('ShellLayout app switcher', () => {
         await user.click(screen.getByRole('button', { name: 'Home' }));
         await user.click(await screen.findByRole('menuitem', { name: /Developer Portals/ }));
 
-        expect(open).toHaveBeenCalledWith('http://console.test/#!/env-1/_portal/navigation', '_blank', 'noopener,noreferrer');
+        await waitFor(() => expect(lastPath).toBe('/environments/env-1/portals'));
+        expect(open).not.toHaveBeenCalled();
+        expect(screen.getByRole('button', { name: 'Developer Portals' })).toBeTruthy();
         open.mockRestore();
     });
 
-    it('should link Developer Portals to the classic console portal editor its click opens', async () => {
+    it('should link Developer Portals to its module in the current tab', async () => {
         renderPortalsSwitcher();
 
         await userEvent.setup().click(screen.getByRole('button', { name: 'Home' }));
 
-        expect((await screen.findByRole('menuitem', { name: /Developer Portals/ })).closest('a')?.getAttribute('href')).toBe(
-            'http://console.test/#!/env-1/_portal/navigation',
-        );
+        const link = (await screen.findByRole('menuitem', { name: /Developer Portals/ })).closest('a');
+        expect(link?.getAttribute('href')).toBe('/environments/env-1/portals');
+        expect(link?.getAttribute('target')).toBeNull();
     });
 
-    it('should not link Developer Portals when the classic console URL is not configured', async () => {
+    it('should link Developer Portals even when the classic console URL is not configured', async () => {
         seedBootstrap({ consoleUrl: undefined });
         renderPortalsSwitcher();
 
         await userEvent.setup().click(screen.getByRole('button', { name: 'Home' }));
 
-        expect((await screen.findByRole('menuitem', { name: /Developer Portals/ })).closest('a')).toBeNull();
+        expect((await screen.findByRole('menuitem', { name: /Developer Portals/ })).closest('a')?.getAttribute('href')).toBe(
+            '/environments/env-1/portals',
+        );
     });
 
     it('should link each app to its page under the router base path, so it can be opened in a new tab', async () => {
@@ -278,7 +301,23 @@ describe('ShellLayout app switcher', () => {
         render(
             <MemoryRouter basename="/console" initialEntries={['/console/environments/env-1/home']}>
                 <Routes>
-                    <Route path="/environments/:envHrid" element={<ShellLayout modules={MODULES} />}>
+                    <Route
+                        path="/environments/:envHrid"
+                        element={
+                            <ShellLayout
+                                modules={[
+                                    ...MODULES,
+                                    {
+                                        id: 'portals',
+                                        name: 'Developer Portals',
+                                        version: '1.0.0',
+                                        remoteName: 'portals',
+                                        exposedModule: 'Module',
+                                    },
+                                ]}
+                            />
+                        }
+                    >
                         <Route path="*" element={null} />
                     </Route>
                 </Routes>
@@ -296,6 +335,9 @@ describe('ShellLayout app switcher', () => {
                 .closest('a')
                 ?.getAttribute('href'),
         ).toBe('/console/environments/env-1/apim');
+        expect((await screen.findByRole('menuitem', { name: /Developer Portals/ })).closest('a')?.getAttribute('href')).toBe(
+            '/console/environments/env-1/portals',
+        );
     });
 });
 
