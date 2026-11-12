@@ -76,7 +76,15 @@ class ApiProductRuntimeRegistryTest {
             ReactableApiProduct product = invocation.getArgument(0);
             RecordingComponent component = new RecordingComponent();
             built.add(component);
-            return new ApiProductRuntime(product, null, null, null, List.of(component), List::of);
+            return new ApiProductRuntime(
+                product,
+                null,
+                null,
+                null,
+                List.of(component),
+                EmptyProductResourceLifecycleManager.INSTANCE,
+                List::of
+            );
         });
         cut = new ApiProductRuntimeRegistry(runtimeFactory, DRAIN_TIMEOUT_MS, scheduler);
     }
@@ -122,7 +130,17 @@ class ApiProductRuntimeRegistryTest {
         @BeforeEach
         void buildSpiedRuntimes() {
             when(spyingFactory.create(any(), any())).thenAnswer(invocation -> {
-                ApiProductRuntime runtime = spy(new ApiProductRuntime(invocation.getArgument(0), null, null, null, List.of(), List::of));
+                ApiProductRuntime runtime = spy(
+                    new ApiProductRuntime(
+                        invocation.getArgument(0),
+                        null,
+                        null,
+                        null,
+                        List.of(),
+                        EmptyProductResourceLifecycleManager.INSTANCE,
+                        List::of
+                    )
+                );
                 spies.add(runtime);
                 return runtime;
             });
@@ -296,7 +314,15 @@ class ApiProductRuntimeRegistryTest {
 
         {
             when(componentsFactory.create(any(), any())).thenAnswer(invocation ->
-                new ApiProductRuntime(invocation.getArgument(0), null, null, null, nextComponents.remove(0), List::of)
+                new ApiProductRuntime(
+                    invocation.getArgument(0),
+                    null,
+                    null,
+                    null,
+                    nextComponents.remove(0),
+                    EmptyProductResourceLifecycleManager.INSTANCE,
+                    List::of
+                )
             );
         }
 

@@ -876,7 +876,10 @@ public class DefaultApiReactor extends AbstractApiReactor {
                         )
                 );
             }
-            return runtime.productPlanFlowChain(tracingContext.isEnabled()).execute(ctx, phase);
+            final var chain = runtime.productPlanFlowChain(tracingContext.isEnabled());
+            return ApiProductPlanResourceScope.withProductResourceManager(ctx, componentProvider, runtime.resourceManager(), scopedCtx ->
+                chain.execute(scopedCtx, phase)
+            );
         });
     }
 
