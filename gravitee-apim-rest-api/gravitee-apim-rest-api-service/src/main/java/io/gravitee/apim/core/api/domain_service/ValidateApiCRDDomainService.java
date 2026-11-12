@@ -165,6 +165,7 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
                 new ValidatePlanDomainService.Input(
                     input.auditInfo,
                     input.spec,
+                    existingApi.map(Api::getId).orElse(input.spec.getId()),
                     input.spec.getPlans(),
                     Optional.ofNullable(input.spec().getPages())
                         .orElse(Map.of())
