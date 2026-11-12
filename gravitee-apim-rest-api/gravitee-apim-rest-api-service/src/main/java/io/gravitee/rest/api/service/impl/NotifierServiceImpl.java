@@ -216,6 +216,7 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
             .referenceType(NotificationReferenceType.APPLICATION)
             .referenceId(applicationId)
             .params(params)
+            .recipients(recipients)
             .build();
         triggerPortalNotifications(executionContext, data);
         triggerGenericNotifications(executionContext, data);
@@ -294,7 +295,7 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
             var notificationConfigs = genericNotificationConfigs
                 .stream()
                 .collect(Collectors.groupingBy(GenericNotificationConfig::getNotifier));
-            if (notificationConfigs.isEmpty()) {
+            if (notificationConfigs.isEmpty() && CollectionUtils.isEmpty(data.recipients)) {
                 log.debug(
                     "No GenericNotificationConfig for hook {} (referenceType={}, referenceId={}); email/webhook notifiers are skipped",
                     data.hook.name(),

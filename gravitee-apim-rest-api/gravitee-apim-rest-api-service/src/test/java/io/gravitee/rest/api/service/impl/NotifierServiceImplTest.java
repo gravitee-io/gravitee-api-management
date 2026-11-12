@@ -41,6 +41,7 @@ import io.gravitee.rest.api.service.PortalNotificationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApiProductHook;
+import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.PortalHook;
 import io.gravitee.rest.api.service.notifiers.EmailNotifierService;
 import io.gravitee.rest.api.service.notifiers.WebhookNotifierService;
@@ -531,6 +532,85 @@ class NotifierServiceImplTest {
                 NotificationReferenceType.API_PRODUCT,
                 "product-1"
             );
+        }
+    }
+
+    @Nested
+    class TriggerApplicationHookWithAdditionalRecipients {
+
+        @Test
+        @SneakyThrows
+        void should_email_additional_recipients_along_with_application_email_configs() {
+            final Map<String, Object> params = Map.of();
+            final ExecutionContext executionContext = new ExecutionContext("org-1", "env-1");
+
+            when(
+                genericNotificationConfigRepository.findByReferenceAndHook(
+                    ApplicationHook.SUBSCRIPTION_ACCEPTED.name(),
+                    NotificationReferenceType.APPLICATION,
+                    "app-id"
+                )
+            ).thenReturn(
+                List.of(
+                    GenericNotificationConfig.builder().notifier(DEFAULT_EMAIL_NOTIFIER_ID).id("cfg").config("creator@gio.test").build()
+                )
+            );
+            when(emailRecipientsService.processTemplatedRecipients(any(), eq(params))).thenAnswer(inv ->
+                new HashSet<String>(inv.<Collection<String>>getArgument(0))
+            );
+
+            cut.trigger(
+                executionContext,
+                ApplicationHook.SUBSCRIPTION_ACCEPTED,
+                "app-id",
+                params,
+                List.of(new Recipient(DEFAULT_EMAIL_NOTIFIER_ID, "subscriber@gio.test"))
+            );
+
+            final ArgumentCaptor<Collection<String>> recipientsCaptor = ArgumentCaptor.forClass(Collection.class);
+            verify(emailNotifierService).trigger(
+                eq(executionContext),
+                eq(ApplicationHook.SUBSCRIPTION_ACCEPTED),
+                eq(params),
+                recipientsCaptor.capture()
+            );
+            assertThat(recipientsCaptor.getValue()).containsExactlyInAnyOrder("creator@gio.test", "subscriber@gio.test");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_email_additional_recipients_when_application_has_no_notification_config() {
+            final Map<String, Object> params = Map.of();
+            final ExecutionContext executionContext = new ExecutionContext("org-1", "env-1");
+
+            when(
+                genericNotificationConfigRepository.findByReferenceAndHook(
+                    ApplicationHook.SUBSCRIPTION_REJECTED.name(),
+                    NotificationReferenceType.APPLICATION,
+                    "app-id"
+                )
+            ).thenReturn(Collections.emptyList());
+            when(emailRecipientsService.processTemplatedRecipients(List.of("subscriber@gio.test"), params)).thenReturn(
+                Set.of("subscriber@gio.test")
+            );
+
+            cut.trigger(
+                executionContext,
+                ApplicationHook.SUBSCRIPTION_REJECTED,
+                "app-id",
+                params,
+                List.of(new Recipient(DEFAULT_EMAIL_NOTIFIER_ID, "subscriber@gio.test"))
+            );
+
+            final ArgumentCaptor<Collection<String>> recipientsCaptor = ArgumentCaptor.forClass(Collection.class);
+            verify(emailNotifierService).trigger(
+                eq(executionContext),
+                eq(ApplicationHook.SUBSCRIPTION_REJECTED),
+                eq(params),
+                recipientsCaptor.capture()
+            );
+            assertThat(recipientsCaptor.getValue()).containsExactly("subscriber@gio.test");
+            verifyNoInteractions(webhookNotifierService);
         }
     }
 }
