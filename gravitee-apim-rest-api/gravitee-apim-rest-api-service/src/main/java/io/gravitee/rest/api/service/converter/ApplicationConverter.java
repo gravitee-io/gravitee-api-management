@@ -42,7 +42,9 @@ public class ApplicationConverter {
         application.setGroups(newApplicationEntity.getGroups());
 
         if (newApplicationEntity.getSettings() != null) {
-            if (newApplicationEntity.getSettings().getApp() != null) {
+            if (newApplicationEntity.getSettings().getAgent() != null) {
+                application.setType(ApplicationType.AGENT);
+            } else if (newApplicationEntity.getSettings().getApp() != null) {
                 application.setType(ApplicationType.SIMPLE);
             } else {
                 application.setType(
@@ -82,6 +84,17 @@ public class ApplicationConverter {
             }
             if (applicationSettings.getApp().getType() != null) {
                 metadata.put("type", applicationSettings.getApp().getType());
+            }
+        }
+        if (applicationSettings != null && applicationSettings.getAgent() != null) {
+            if (applicationSettings.getAgent().getClientId() != null) {
+                metadata.put("client_id", applicationSettings.getAgent().getClientId());
+            }
+            if (applicationSettings.getAgent().getEntityId() != null) {
+                metadata.put(Application.METADATA_AGENT_ENTITY_ID, applicationSettings.getAgent().getEntityId());
+            }
+            if (applicationSettings.getAgent().getIdentityId() != null) {
+                metadata.put(Application.METADATA_AGENT_IDENTITY_ID, applicationSettings.getAgent().getIdentityId());
             }
         }
         return metadata;

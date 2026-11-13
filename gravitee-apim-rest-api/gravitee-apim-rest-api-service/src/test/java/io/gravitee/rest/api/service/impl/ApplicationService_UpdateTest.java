@@ -58,6 +58,7 @@ import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
+import io.gravitee.rest.api.model.application.AgentSettings;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
@@ -82,6 +83,8 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.converter.ApplicationConverter;
+import io.gravitee.rest.api.service.exceptions.AgentNameImmutableException;
+import io.gravitee.rest.api.service.exceptions.AgentSettingsRequiredException;
 import io.gravitee.rest.api.service.exceptions.ApplicationClientIdException;
 import io.gravitee.rest.api.service.exceptions.ApplicationGrantTypesNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
@@ -259,6 +262,243 @@ public class ApplicationService_UpdateTest {
 
         assertNotNull(applicationEntity);
         assertEquals(APPLICATION_NAME, applicationEntity.getName());
+    }
+
+    @Test
+    public void shouldRefuseToRenameAnAgentApplication() throws TechnicalException {
+        // The name is shared with the agent identity and set at provisioning: a rename must be refused, not
+        // silently dropped.
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setAgent(new AgentSettings("agent.support", CLIENT_ID));
+
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        ).thenReturn(true);
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(getConsoleConfigEntity(true));
+
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.AGENT);
+        when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+        when(existingApplication.getMetadata()).thenReturn(Map.of("agent_entity_id", "agent.support"));
+
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn("A brand new name");
+        when(updateApplication.getApiKeyMode()).thenReturn(io.gravitee.rest.api.model.ApiKeyMode.SHARED);
+        when(updateApplication.getGroups()).thenReturn(Set.of("group1"));
+
+        assertThrows(AgentNameImmutableException.class, () ->
+            applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication)
+        );
+        verify(applicationRepository, never()).update(any());
+    }
+
+    @Test
+    public void shouldUpdateAgentApplicationKeepingTheStoredAgentLink() throws TechnicalException {
+        // An AGENT application updates with agent settings, without client registration (the DCR branch would
+        // throw here), and the agent link is server-authoritative: a payload claiming another agent is ignored.
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setAgent(new AgentSettings("agent.other", CLIENT_ID));
+
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        ).thenReturn(true);
+
+        ConsoleConfigEntity config = getConsoleConfigEntity(true);
+
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
+        lenient().when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.AGENT);
+        when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+        when(existingApplication.getMetadata()).thenReturn(Map.of("agent_entity_id", "agent.support"));
+
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(updateApplication.getDescription()).thenReturn("Acts for an agent");
+        when(updateApplication.getApiKeyMode()).thenReturn(io.gravitee.rest.api.model.ApiKeyMode.SHARED);
+        when(updateApplication.getGroups()).thenReturn(Set.of("group1"));
+
+        final Application updatedApplication = mock(Application.class);
+        when(updatedApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(updatedApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(updatedApplication.getType()).thenReturn(ApplicationType.AGENT);
+        when(updatedApplication.getGroups()).thenReturn(Set.of("group1"));
+        when(updatedApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+
+        when(applicationRepository.update(any())).thenReturn(updatedApplication);
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(getPrimaryOwner()));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+
+        final ApplicationEntity applicationEntity = applicationService.update(
+            GraviteeContext.getExecutionContext(),
+            APPLICATION_ID,
+            updateApplication
+        );
+
+        assertNotNull(applicationEntity);
+        verify(applicationRepository).update(
+            argThat(
+                application ->
+                    application.getType() == ApplicationType.AGENT &&
+                    "agent.support".equals(application.getMetadata().get("agent_entity_id"))
+            )
+        );
+    }
+
+    @Test
+    public void shouldAttachAnIdentityToAnAgentApplication() throws TechnicalException {
+        // Attaching an identity is an update carrying it: the identity id is the caller's to set, and it lands
+        // on the application beside the agent link and the client id it presents.
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setAgent(new AgentSettings("agent.support", CLIENT_ID, "am-agent-1"));
+
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        ).thenReturn(true);
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(getConsoleConfigEntity(true));
+
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.AGENT);
+        when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+        when(existingApplication.getMetadata()).thenReturn(Map.of("agent_entity_id", "agent.support"));
+
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(updateApplication.getDescription()).thenReturn("Acts for an agent");
+        when(updateApplication.getApiKeyMode()).thenReturn(io.gravitee.rest.api.model.ApiKeyMode.SHARED);
+        when(updateApplication.getGroups()).thenReturn(Set.of("group1"));
+
+        final Application updatedApplication = mock(Application.class);
+        when(updatedApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(updatedApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(updatedApplication.getType()).thenReturn(ApplicationType.AGENT);
+        when(updatedApplication.getGroups()).thenReturn(Set.of("group1"));
+        when(updatedApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+
+        when(applicationRepository.update(any())).thenReturn(updatedApplication);
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(getPrimaryOwner()));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        verify(applicationRepository).update(
+            argThat(application -> "am-agent-1".equals(application.getMetadata().get("agent_identity_id")))
+        );
+    }
+
+    @Test
+    public void shouldRefuseAnAgentApplicationUpdateThatWouldDropTheAgentLink() throws TechnicalException {
+        // A generic settings screen sends app settings for whatever it is editing. Letting one through would
+        // rebuild the metadata without agent_entity_id and silently unlink the agent, so it is refused instead.
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings appSettings = new SimpleApplicationSettings();
+        appSettings.setClientId(CLIENT_ID);
+        settings.setApp(appSettings);
+
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(getConsoleConfigEntity(true));
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.AGENT);
+        when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getGroups()).thenReturn(Set.of("group1"));
+
+        assertThrows(AgentSettingsRequiredException.class, () ->
+            applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication)
+        );
+
+        verify(applicationRepository, never()).update(any());
+    }
+
+    @Test
+    public void shouldKeepTheStoredIdentityWhenAnUpdateStaysSilentAboutIt() throws TechnicalException {
+        // Null is an omission: the stored identity and client id survive an update that says nothing about them.
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setAgent(new AgentSettings("agent.support", CLIENT_ID, null));
+        stubAnAgentApplicationCarryingAnIdentity(settings);
+
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        verify(applicationRepository).update(
+            argThat(application -> "am-agent-1".equals(application.getMetadata().get("agent_identity_id")))
+        );
+    }
+
+    @Test
+    public void shouldClearTheIdentityAndClientIdWhenTheCallerSaysSoExplicitly() throws TechnicalException {
+        // An empty identity id is the explicit word: the identity leaves, and the client id it brought with it.
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setAgent(new AgentSettings("agent.support", null, ""));
+        stubAnAgentApplicationCarryingAnIdentity(settings);
+
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        verify(applicationRepository).update(
+            argThat(
+                application ->
+                    !application.getMetadata().containsKey("agent_identity_id") &&
+                    !application.getMetadata().containsKey("client_id") &&
+                    "agent.support".equals(application.getMetadata().get("agent_entity_id"))
+            )
+        );
+    }
+
+    private void stubAnAgentApplicationCarryingAnIdentity(ApplicationSettings settings) throws TechnicalException {
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        ).thenReturn(true);
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(getConsoleConfigEntity(true));
+
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.AGENT);
+        when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+        when(existingApplication.getMetadata()).thenReturn(
+            Map.of("agent_entity_id", "agent.support", "agent_identity_id", "am-agent-1", "client_id", "client-abc")
+        );
+
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(updateApplication.getDescription()).thenReturn("Acts for an agent");
+        when(updateApplication.getApiKeyMode()).thenReturn(io.gravitee.rest.api.model.ApiKeyMode.SHARED);
+        when(updateApplication.getGroups()).thenReturn(Set.of("group1"));
+
+        final Application updatedApplication = mock(Application.class);
+        when(updatedApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(updatedApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(updatedApplication.getType()).thenReturn(ApplicationType.AGENT);
+        when(updatedApplication.getGroups()).thenReturn(Set.of("group1"));
+        when(updatedApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+
+        when(applicationRepository.update(any())).thenReturn(updatedApplication);
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(getPrimaryOwner()));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
     }
 
     @Test

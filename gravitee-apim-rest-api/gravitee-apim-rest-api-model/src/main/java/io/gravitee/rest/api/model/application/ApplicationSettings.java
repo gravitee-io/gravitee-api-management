@@ -37,6 +37,9 @@ public class ApplicationSettings {
     @JsonProperty("oauth")
     private OAuthClientSettings oauth;
 
+    @JsonProperty("agent")
+    private AgentSettings agent;
+
     @JsonProperty("tls")
     private TlsSettings tls;
 

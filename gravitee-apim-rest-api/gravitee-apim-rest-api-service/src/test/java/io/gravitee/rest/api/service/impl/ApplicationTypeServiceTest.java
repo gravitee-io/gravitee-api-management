@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -60,5 +61,27 @@ public class ApplicationTypeServiceTest {
         ApplicationTypesEntity enabledApplicationsTypes = applicationTypeService.getFilteredApplicationTypes(jsonTypes);
         assertNotNull(enabledApplicationsTypes);
         assertEquals(3, enabledApplicationsTypes.getData().size());
+    }
+
+    /**
+     * The agent type is internal — provisioned programmatically, never offered in a creation wizard. It must
+     * stay out of the enabled listing (and must not make the filter look up a setting it does not have), while
+     * still resolving from the catalog so an existing agent application reads correctly.
+     */
+    @Test
+    public void shouldKeepTheAgentTypeOutOfTheEnabledListingButResolvableFromTheCatalog() throws IOException {
+        JsonNode jsonTypes = objectMapper.readTree(
+            "{ \"simple\": { \"enabled\": true }, \"web\": { \"enabled\": true }, \"browser\": { \"enabled\": true }, \"backend_to_backend\": { \"enabled\": true }, \"native\": { \"enabled\": true } }"
+        );
+
+        ApplicationTypesEntity enabledApplicationsTypes = applicationTypeService.getFilteredApplicationTypes(jsonTypes);
+
+        assertTrue(
+            enabledApplicationsTypes
+                .getData()
+                .stream()
+                .noneMatch(type -> "agent".equals(type.getId()))
+        );
+        assertEquals("Agent", applicationTypeService.getApplicationType("agent").getName());
     }
 }

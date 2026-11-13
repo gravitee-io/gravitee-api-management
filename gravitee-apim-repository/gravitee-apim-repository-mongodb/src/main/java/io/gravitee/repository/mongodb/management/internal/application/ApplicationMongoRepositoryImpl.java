@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management.internal.application;
 
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
@@ -30,6 +31,8 @@ import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
@@ -140,10 +143,35 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
 
     @Override
     public boolean existsMetadataEntryForEnv(String key, String value, String environmentId) {
+        return mongoTemplate.exists(metadataEntryQuery(key, value, environmentId), ApplicationMongo.class);
+    }
+
+    @Override
+    public Optional<String> findIdByMetadataEntryForEnv(String key, String value, String environmentId) {
+        var found = mongoTemplate.findOne(metadataEntryQuery(key, value, environmentId), ApplicationMongo.class);
+        return Optional.ofNullable(found).map(ApplicationMongo::getId);
+    }
+
+    @Override
+    public Set<ApplicationMongo> findByMetadataEntriesForEnv(String key, Collection<String> values, String environmentId) {
+        // $in would match the applications not carrying the key at all for a null value
+        List<String> nonNullValues = isEmpty(values) ? List.of() : values.stream().filter(Objects::nonNull).toList();
+        if (nonNullValues.isEmpty()) {
+            return Set.of();
+        }
+        Query query = new Query();
+        query.addCriteria(Criteria.where("environmentId").is(environmentId));
+        query.addCriteria(Criteria.where("metadata." + key).in(nonNullValues));
+        query.addCriteria(Criteria.where("status").is(ApplicationStatus.ACTIVE.name()));
+        query.fields().exclude("picture").exclude("background");
+        return new LinkedHashSet<>(mongoTemplate.find(query, ApplicationMongo.class));
+    }
+
+    private static Query metadataEntryQuery(String key, String value, String environmentId) {
         Query query = new Query();
         query.addCriteria(Criteria.where("environmentId").is(environmentId));
         query.addCriteria(Criteria.where("metadata." + key).is(value));
         query.addCriteria(Criteria.where("status").is(ApplicationStatus.ACTIVE.name()));
-        return mongoTemplate.exists(query, ApplicationMongo.class);
+        return query;
     }
 }
