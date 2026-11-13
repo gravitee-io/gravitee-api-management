@@ -108,6 +108,9 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
      * {@link #existsMetadataEntryForEnv}: the same lookup, for callers that need the application itself rather
      * than a yes-or-no — reading an agent's application back from the agent it acts for, for instance.
      *
+     * <p>The entries callers read this way are meant to be held by one application at a time, but nothing in the
+     * schema enforces it, so the oldest is returned and every read answers the same application.
+     *
      * @return the application id, or empty when no active application in the environment carries the entry
      */
     Optional<String> findIdByMetadataEntryForEnv(String key, String value, String environmentId);
