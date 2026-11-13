@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-<<<<<<< HEAD
-import { Component, inject, input, OnInit } from '@angular/core';
-=======
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, input, OnInit, output, signal } from '@angular/core';
->>>>>>> f4fa8d0 (fix(portal-next): show API error on app settings save (PORTAL-248))
+import { Component, inject, input, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';

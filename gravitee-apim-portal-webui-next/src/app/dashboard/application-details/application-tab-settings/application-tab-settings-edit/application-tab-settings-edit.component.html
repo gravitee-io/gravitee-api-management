@@ -51,7 +51,6 @@
 
         <mat-divider />
 
-<<<<<<< HEAD
         <div class="settings-edit__form__security">
           <span class="next-gen-h5" i18n="@@applicationSecurityTitleApplicationSettings">Application security</span>
           @if (application.settings.app) {
@@ -141,6 +140,10 @@
           />
         }
 
+        @if (saveError(); as error) {
+          <p class="settings-edit__form__error next-gen-small" data-testId="save-error" role="alert">{{ error }}</p>
+        }
+
         <div class="settings-edit__form__actions">
           <button
             mat-flat-button
@@ -167,27 +170,4 @@
       </form>
     </mat-card-content>
   </mat-card>
-=======
-    @if (saveError(); as error) {
-      <p class="settings-edit__form__error next-gen-small" data-testId="save-error" role="alert">{{ error }}</p>
-    }
-
-    <div class="settings-edit__form__actions">
-      <button
-        mat-flat-button
-        class="secondary-button"
-        (click)="submit()"
-        [disabled]="applicationSettingsForm.invalid || (formUnchanged$ | async)"
-        i18n="@@saveApplicationSettings"
-        aria-label="Save application"
-        data-testId="save"
-      >
-        Save
-      </button>
-      <button mat-stroked-button (click)="cancel()" i18n="@@cancelApplicationSettings" aria-label="Cancel" data-testId="cancel">
-        Cancel
-      </button>
-    </div>
-  </form>
->>>>>>> f4fa8d0 (fix(portal-next): show API error on app settings save (PORTAL-248))
 }
