@@ -16,10 +16,17 @@
 package io.gravitee.gamma.rest.core.guardian.exception;
 
 import io.gravitee.apim.core.exception.ConflictDomainException;
-import io.gravitee.gamma.rest.core.guardian.model.ApiReference;
-import java.util.List;
-import java.util.stream.Collectors;
 
+/**
+ * A Guardian change refused because APIs run it.
+ *
+ * <p>It counts them and does not name them. The message is built in the domain, which has no caller and therefore no
+ * permissions to filter names against, and holding the Guardian permission of an environment is not a right to read
+ * every API of it. {@code GET /guardians/{guardianId}/apis} names the ones the caller may read, and that is where a
+ * person goes to see which APIs to free first.
+ *
+ * @author GraviteeSource Team
+ */
 public class GuardianInUseException extends ConflictDomainException {
 
     /** What an API running the Guardian refuses. The wording of each lives here, where the message is built. */
@@ -37,18 +44,20 @@ public class GuardianInUseException extends ConflictDomainException {
     }
 
     /**
-     * @param named the APIs the message names, which may be fewer than all of them
-     * @param total how many APIs run the Guardian
+     * @param running how many APIs run the Guardian
      */
-    public GuardianInUseException(String guardianId, RefusedChange refusedChange, List<ApiReference> named, long total) {
+    public GuardianInUseException(String guardianId, RefusedChange refusedChange, long running) {
         super(
             "Guardian '" +
                 guardianId +
                 "' cannot be " +
                 refusedChange.wording +
-                " while it is enabled on APIs: " +
-                named.stream().map(ApiReference::name).collect(Collectors.joining(", ")) +
-                (total > named.size() ? " and " + (total - named.size()) + " more." : ".")
+                " while " +
+                running +
+                (running == 1 ? " API runs it" : " APIs run it") +
+                ". List them with GET /guardians/" +
+                guardianId +
+                "/apis, then take it off each of them."
         );
     }
 }

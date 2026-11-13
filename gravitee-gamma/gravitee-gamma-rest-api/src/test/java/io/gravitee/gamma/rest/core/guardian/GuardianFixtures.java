@@ -23,7 +23,9 @@ import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
+import io.gravitee.definition.model.guardian.GuardianSteps;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyValidation;
@@ -200,6 +202,19 @@ public final class GuardianFixtures {
         return new GuardianUsageDomainService(new InMemoryGuardedApiPort());
     }
 
+    /**
+     * The usage service of an environment where one API runs this Guardian. A Guardian the gateways run for an API
+     * keeps running there: it can be neither withdrawn nor deleted, and what decides where it runs — its phase and
+     * its API types — cannot change under the API.
+     */
+    public static GuardianUsageDomainService aGuardianUsageRunning(String guardianId) {
+        var apis = new InMemoryGuardedApiPort();
+        apis.givenApi(
+            aGuardedApi().internalFlow(Flow.builder().request(List.of(GuardianSteps.of(guardianId, "Credential leakage"))).build()).build()
+        );
+        return new GuardianUsageDomainService(apis);
+    }
+
     /** The deployment use case under the registry and the schema answers the tests install by default. */
     public static DeployGuardianUseCase aDeployGuardianUseCase(
         GuardianRepository repository,
@@ -226,12 +241,23 @@ public final class GuardianFixtures {
         AuditDomainService audits,
         PolicyValidationDomainService policyValidation
     ) {
+        return aDeployGuardianUseCase(repository, deployments, audits, aGuardianUsage(), policyValidation);
+    }
+
+    /** The same, over an environment whose APIs are the ones this usage service reads. */
+    public static DeployGuardianUseCase aDeployGuardianUseCase(
+        GuardianRepository repository,
+        GuardianDeploymentDomainService deployments,
+        AuditDomainService audits,
+        GuardianUsageDomainService usage,
+        PolicyValidationDomainService policyValidation
+    ) {
         return new DeployGuardianUseCase(
             repository,
             deployments,
             audits,
             aGuardianValidator(repository, aPolicyPluginProvider(), policyValidation),
-            aGuardianUsage()
+            usage
         );
     }
 
