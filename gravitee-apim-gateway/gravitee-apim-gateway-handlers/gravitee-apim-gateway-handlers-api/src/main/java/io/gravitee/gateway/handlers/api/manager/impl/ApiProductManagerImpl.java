@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.handlers.api.manager.impl;
 
+import static io.gravitee.gateway.handlers.api.secrets.ApiProductDefinitionSecretRefsFinder.API_PRODUCT_DEFINITION_KIND;
+
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
@@ -26,6 +28,10 @@ import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.handlers.api.sharding.ApiProductShardingFilter;
 import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeRegistry;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.secrets.api.discovery.Definition;
+import io.gravitee.secrets.api.discovery.DefinitionMetadata;
+import io.gravitee.secrets.api.event.SecretDiscoveryEvent;
+import io.gravitee.secrets.api.event.SecretDiscoveryEventType;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Collection;
 import java.util.Map;
@@ -49,6 +55,7 @@ public class ApiProductManagerImpl implements ApiProductManager {
     private final LicenseManager licenseManager;
     private final GatewayConfiguration gatewayConfiguration;
     private final Map<String, ReactableApiProduct> apiProducts = new ConcurrentHashMap<>();
+    private final Object productLifecycleMonitor = new Object();
 
     public ApiProductManagerImpl(
         ApiProductRegistry apiProductRegistry,
@@ -62,6 +69,44 @@ public class ApiProductManagerImpl implements ApiProductManager {
         this.eventManager = eventManager;
         this.licenseManager = licenseManager;
         this.gatewayConfiguration = gatewayConfiguration;
+        subscribeToSecretValueChanges();
+    }
+
+    private void subscribeToSecretValueChanges() {
+        eventManager.subscribeForEvents(
+            event -> {
+                if (!(event.content() instanceof SecretDiscoveryEvent secretDiscoveryEvent)) {
+                    return;
+                }
+                if (!(secretDiscoveryEvent.definition() instanceof Definition definition)) {
+                    return;
+                }
+                if (!API_PRODUCT_DEFINITION_KIND.equals(definition.kind())) {
+                    return;
+                }
+                redeployOnSecretValueChange(definition.id(), secretDiscoveryEvent.envId());
+            },
+            SecretDiscoveryEventType.VALUE_CHANGED
+        );
+    }
+
+    private void redeployOnSecretValueChange(String productId, String environmentId) {
+        synchronized (productLifecycleMonitor) {
+            ReactableApiProduct product = get(productId);
+            if (product == null) {
+                log.trace("Received SecretDiscoveryEvent for API Product {}, but not found in manager", productId);
+                return;
+            }
+            if (!Objects.equals(environmentId, product.getEnvironmentId())) {
+                return;
+            }
+            log.info("Secret value changed for API Product [{}], refreshing its runtime", productId);
+            try {
+                apiProductRuntimeRegistry.deploy(product, false);
+            } catch (RuntimeException e) {
+                log.error("Unable to refresh the runtime of API Product [{}] after a secret value change", productId, e);
+            }
+        }
     }
 
     @Override
@@ -139,10 +184,18 @@ public class ApiProductManagerImpl implements ApiProductManager {
         log.debug("Deploying API Product [{}]", apiProduct.getId());
 
         ApiProductChange change = changeAgainst(null, apiProduct);
-        // Started before anything is stored, so a product whose runtime cannot start is never served.
-        apiProductRuntimeRegistry.deploy(apiProduct);
-        apiProducts.put(apiProduct.getId(), apiProduct);
-        apiProductRegistry.register(apiProduct);
+        synchronized (productLifecycleMonitor) {
+            discoverSecrets(apiProduct);
+            try {
+                // Started before anything is stored, so a product whose runtime cannot start is never served.
+                apiProductRuntimeRegistry.deploy(apiProduct);
+            } catch (RuntimeException e) {
+                revokeSecrets(apiProduct);
+                throw e;
+            }
+            apiProducts.put(apiProduct.getId(), apiProduct);
+            apiProductRegistry.register(apiProduct);
+        }
 
         Completable emit = Completable.fromRunnable(() -> {
             if (apiProduct.getApiIds() != null && !apiProduct.getApiIds().isEmpty()) {
@@ -162,12 +215,26 @@ public class ApiProductManagerImpl implements ApiProductManager {
         ReactableApiProduct previousProduct = apiProducts.get(apiProduct.getId());
         ApiProductChange change = changeAgainst(previousProduct, apiProduct);
 
-        // Started before anything is stored, so an update whose runtime cannot start leaves the deployed version serving.
-        if (change.affectsMemberApis()) {
-            apiProductRuntimeRegistry.deploy(apiProduct);
+        boolean rotatesSecrets = change.affectsMemberApis();
+        synchronized (productLifecycleMonitor) {
+            // Started before anything is stored, so an update whose runtime cannot start leaves the deployed version serving.
+            if (rotatesSecrets) {
+                discoverSecrets(apiProduct);
+            }
+            try {
+                if (shouldRedeployRuntime(previousProduct, apiProduct, change)) {
+                    Runnable revokePrevious = rotatesSecrets && previousProduct != null ? () -> revokeSecrets(previousProduct) : null;
+                    apiProductRuntimeRegistry.deploy(apiProduct, true, revokePrevious);
+                }
+            } catch (RuntimeException e) {
+                if (rotatesSecrets) {
+                    revokeSecrets(apiProduct);
+                }
+                throw e;
+            }
+            apiProducts.put(apiProduct.getId(), apiProduct);
+            apiProductRegistry.register(apiProduct);
         }
-        apiProducts.put(apiProduct.getId(), apiProduct);
-        apiProductRegistry.register(apiProduct);
 
         Completable emit = Completable.fromRunnable(() -> publishApiProductUpdateEvent(apiProduct, change));
         return doBeforeEmit
@@ -181,12 +248,29 @@ public class ApiProductManagerImpl implements ApiProductManager {
     }
 
     /**
+     * Member APIs rebuild their security chain when plans or API membership change. The product runtime must also
+     * refresh when only index metadata changes but a new revision is published, so plan flows and product resources
+     * do not keep resolving secrets from the previous runtime.
+     */
+    private static boolean shouldRedeployRuntime(
+        ReactableApiProduct previousProduct,
+        ReactableApiProduct apiProduct,
+        ApiProductChange change
+    ) {
+        if (change.affectsMemberApis()) {
+            return true;
+        }
+        return previousProduct != null && !Objects.equals(revisionOf(previousProduct), revisionOf(apiProduct));
+    }
+
+    /**
      * The next version is diffed against the stored one, so a version whose subscriptions failed to load must not stay
      * stored: its plans would be taken as loaded and never loaded again.
      */
     private void forgetFailedDeployment(ReactableApiProduct apiProduct) {
         if (replaceIfStillStored(apiProduct, null)) {
             log.warn("Deployment of API Product [{}] failed, it is not kept as deployed", apiProduct.getId());
+            revokeSecrets(apiProduct);
             apiProductRegistry.remove(apiProduct.getId(), apiProduct.getEnvironmentId());
             apiProductRuntimeRegistry.remove(apiProduct.getId(), apiProduct.getEnvironmentId());
         }
@@ -196,6 +280,7 @@ public class ApiProductManagerImpl implements ApiProductManager {
         if (replaceIfStillStored(failedProduct, previousProduct)) {
             log.warn("Update of API Product [{}] failed, its previous version is kept as deployed", previousProduct.getId());
             if (change.affectsMemberApis()) {
+                revokeSecrets(failedProduct);
                 putBackRuntime(previousProduct);
             }
             apiProductRegistry.register(previousProduct);
@@ -246,19 +331,23 @@ public class ApiProductManagerImpl implements ApiProductManager {
     }
 
     private void undeploy(String apiProductId) {
-        ReactableApiProduct currentApiProduct = apiProducts.remove(apiProductId);
-        if (currentApiProduct != null) {
-            log.debug("Undeploying API Product [{}] from environment [{}]", apiProductId, currentApiProduct.getEnvironmentId());
+        ReactableApiProduct currentApiProduct;
+        synchronized (productLifecycleMonitor) {
+            currentApiProduct = apiProducts.remove(apiProductId);
+            if (currentApiProduct != null) {
+                log.debug("Undeploying API Product [{}] from environment [{}]", apiProductId, currentApiProduct.getEnvironmentId());
 
-            apiProductRegistry.remove(apiProductId, currentApiProduct.getEnvironmentId());
-            apiProductRuntimeRegistry.remove(apiProductId, currentApiProduct.getEnvironmentId());
-
-            emitApiProductChangedEvent(ApiProductEventType.UNDEPLOY, currentApiProduct, Set.of());
-
-            log.info("API Product [{}] has been undeployed", apiProductId);
-        } else {
-            log.debug("API Product [{}] was not found for undeployment", apiProductId);
+                revokeSecrets(currentApiProduct);
+                apiProductRegistry.remove(apiProductId, currentApiProduct.getEnvironmentId());
+                apiProductRuntimeRegistry.remove(apiProductId, currentApiProduct.getEnvironmentId());
+            } else {
+                log.debug("API Product [{}] was not found for undeployment", apiProductId);
+                return;
+            }
         }
+
+        emitApiProductChangedEvent(ApiProductEventType.UNDEPLOY, currentApiProduct, Set.of());
+        log.info("API Product [{}] has been undeployed", apiProductId);
     }
 
     /**
@@ -282,5 +371,24 @@ public class ApiProductManagerImpl implements ApiProductManager {
                 e
             );
         }
+    }
+
+    private void discoverSecrets(ReactableApiProduct apiProduct) {
+        eventManager.publishEvent(SecretDiscoveryEventType.DISCOVER, secretDiscoveryEventOf(apiProduct));
+    }
+
+    private void revokeSecrets(ReactableApiProduct apiProduct) {
+        eventManager.publishEvent(SecretDiscoveryEventType.REVOKE, secretDiscoveryEventOf(apiProduct));
+    }
+
+    private static SecretDiscoveryEvent secretDiscoveryEventOf(ReactableApiProduct apiProduct) {
+        return new SecretDiscoveryEvent(apiProduct.getEnvironmentId(), apiProduct, new DefinitionMetadata(revisionOf(apiProduct)));
+    }
+
+    private static String revisionOf(ReactableApiProduct apiProduct) {
+        if (apiProduct.getDeployedAt() != null) {
+            return String.valueOf(apiProduct.getDeployedAt().getTime());
+        }
+        return apiProduct.getVersion();
     }
 }

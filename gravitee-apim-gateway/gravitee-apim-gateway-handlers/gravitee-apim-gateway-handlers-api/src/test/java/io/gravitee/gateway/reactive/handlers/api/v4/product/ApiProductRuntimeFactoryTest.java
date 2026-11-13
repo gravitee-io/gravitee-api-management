@@ -173,6 +173,23 @@ class ApiProductRuntimeFactoryTest {
     }
 
     @Test
+    void should_build_a_new_resources_component_when_reuse_is_disabled() {
+        when(resourceManagerFactory.create(any())).thenReturn(mock(io.gravitee.gateway.resource.ResourceLifecycleManager.class));
+        Resource resource = Resource.builder().name("cache").type("cache").configuration("{}").enabled(true).build();
+        ReactableApiProduct product = product(null, List.of());
+        product.setResources(List.of(resource));
+        ApiProductRuntime previous = cut.create(product, null);
+
+        ApiProductRuntime next = cut.create(product, previous, false);
+
+        ProductResourcesComponent previousComponent = ProductResourcesComponent.findOn(previous);
+        ProductResourcesComponent nextComponent = ProductResourcesComponent.findOn(next);
+        assertThat(previousComponent).isNotNull();
+        assertThat(nextComponent).isNotNull();
+        assertThat(nextComponent.sharedResources()).isNotSameAs(previousComponent.sharedResources());
+    }
+
+    @Test
     void should_reuse_the_shared_resources_component_when_the_resource_list_is_unchanged() {
         when(resourceManagerFactory.create(any())).thenReturn(mock(io.gravitee.gateway.resource.ResourceLifecycleManager.class));
         Resource resource = Resource.builder().name("cache").type("cache").configuration("{}").enabled(true).build();

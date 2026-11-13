@@ -25,6 +25,7 @@ import io.gravitee.gateway.handlers.api.manager.impl.ApiProductManagerImpl;
 import io.gravitee.gateway.handlers.api.manager.impl.DefaultApiProductResourceManagerFactory;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.handlers.api.registry.impl.ApiProductRegistryImpl;
+import io.gravitee.gateway.handlers.api.secrets.ApiProductDefinitionSecretRefsFinder;
 import io.gravitee.gateway.reactive.core.condition.CompositeConditionFilter;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeFactory;
@@ -35,6 +36,7 @@ import io.gravitee.gateway.reactive.v4.flow.selection.ConditionSelectorCondition
 import io.gravitee.gateway.reactive.v4.flow.selection.HttpSelectorConditionFilter;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
+import io.gravitee.secrets.api.discovery.DefinitionSecretRefsFinder;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -47,6 +49,11 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class ApiProductConfiguration {
+
+    @Bean
+    public DefinitionSecretRefsFinder<?> apiProductDefinitionSecretRefsFinder() {
+        return new ApiProductDefinitionSecretRefsFinder();
+    }
 
     @Bean
     public ApiProductRegistry apiProductRegistry(GatewayConfiguration gatewayConfiguration) {

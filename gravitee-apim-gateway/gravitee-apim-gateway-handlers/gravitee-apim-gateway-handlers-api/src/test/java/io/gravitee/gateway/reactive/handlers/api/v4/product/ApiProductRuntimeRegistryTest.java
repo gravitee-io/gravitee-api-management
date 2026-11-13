@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.handlers.api.v4.product;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -63,7 +64,7 @@ class ApiProductRuntimeRegistryTest {
 
     @BeforeEach
     void setUpRegistry() {
-        when(runtimeFactory.create(any(), any())).thenAnswer(invocation -> {
+        when(runtimeFactory.create(any(), any(), anyBoolean())).thenAnswer(invocation -> {
             if (failNextBuild != null) {
                 RuntimeException failure = failNextBuild;
                 failNextBuild = null;
@@ -153,6 +154,18 @@ class ApiProductRuntimeRegistryTest {
         }
 
         @Test
+        void should_run_a_callback_once_the_previous_runtime_has_stopped() {
+            cut.deploy(product("v1"));
+            List<String> seen = new ArrayList<>();
+
+            cut.deploy(product("v2"), true, () -> seen.add("stopped"));
+            scheduler.triggerActions();
+
+            assertThat(built.get(0).lifecycleState()).isEqualTo(Lifecycle.State.STOPPED);
+            assertThat(seen).containsExactly("stopped");
+        }
+
+        @Test
         void should_stop_the_old_runtime_on_timeout_and_log_it() {
             cut.deploy(product("v1"));
             cut.acquire(PRODUCT_ID, ENV_ID);
@@ -233,7 +246,7 @@ class ApiProductRuntimeRegistryTest {
         );
 
         {
-            when(componentsFactory.create(any(), any())).thenAnswer(invocation ->
+            when(componentsFactory.create(any(), any(), anyBoolean())).thenAnswer(invocation ->
                 new ApiProductRuntime(
                     invocation.getArgument(0),
                     null,
