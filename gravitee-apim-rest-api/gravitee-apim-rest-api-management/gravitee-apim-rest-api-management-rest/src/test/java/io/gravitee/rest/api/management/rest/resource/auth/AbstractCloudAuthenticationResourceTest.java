@@ -169,7 +169,24 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
         when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
         when(installationAccessQueryService.getConsoleUrl(ORGANIZATION_ID)).thenReturn(rootTarget("console").getUri().toString());
         final Response response = rootTarget(PATH).queryParam("token", "invalid").request().get();
-        assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotAuthenticateWithoutToken() {
+        final Response response = rootTarget(PATH).request().get();
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotAuthenticateWithTokenNotSignedByCockpit() {
+        String jwt = JWT.create()
+            .withSubject(JWT_SUBJECT)
+            .withClaim(ORG_CLAIM, ORGANIZATION_ID)
+            .withClaim(ENVIRONMENT_CLAIM, ENVIRONMENT_ID)
+            .sign(Algorithm.HMAC256("not-the-cockpit-key-".repeat(2)));
+        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
     }
 
     @Test
@@ -287,7 +304,7 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
     @Test
     public void shouldNotAuthenticateWithInvalidTokenInFormPost() {
         final Response response = postToken("invalid");
-        assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
     @Test

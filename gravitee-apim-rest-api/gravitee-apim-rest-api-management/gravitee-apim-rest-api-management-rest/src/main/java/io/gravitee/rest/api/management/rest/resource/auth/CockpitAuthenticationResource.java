@@ -22,6 +22,7 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.proc.BadJOSEException;
 import com.nimbusds.jose.proc.JWSAlgorithmFamilyJWSKeySelector;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
@@ -64,6 +65,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPublicKey;
+import java.text.ParseException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -168,6 +170,10 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
+        if (token == null || token.isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
         try {
             // Verify and get claims from token.
             final JWTClaimsSet jwtClaimsSet = jwtProcessor.process(token, null);
@@ -229,6 +235,12 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
                 // Redirect the user.
                 return Response.seeOther(new URI(url)).build();
             }
+        } catch (ParseException e) {
+            log.warn("Cockpit authentication rejected: the token is not a valid JWT");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        } catch (BadJOSEException e) {
+            log.warn("Cockpit authentication rejected: the token failed verification");
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         } catch (UserNotFoundException e) {
             log.error("Authentication failed", e);
             return Response.status(Response.Status.FORBIDDEN).build();
