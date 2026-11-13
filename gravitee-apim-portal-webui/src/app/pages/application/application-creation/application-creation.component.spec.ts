@@ -19,18 +19,15 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-<<<<<<< HEAD
 import { ActivatedRoute } from '@angular/router';
-=======
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { throwError } from 'rxjs';
->>>>>>> 55bb698 (fix(portal): show server error when app creation fails (APIM-16552))
 
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApplicationService } from '../../../../../projects/portal-webclient-sdk/src/lib';
 
 import { ApplicationCreationComponent } from './application-creation.component';
+import { ApplicationCreationStep5Component } from './application-creation-step5/application-creation-step5.component';
 
 describe('ApplicationCreationComponent', () => {
   const enabledApplicationTypes = [
@@ -41,7 +38,7 @@ describe('ApplicationCreationComponent', () => {
     component: ApplicationCreationComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [HttpClientTestingModule, RouterTestingModule, FormsModule, ReactiveFormsModule],
-    declarations: [ApiStatesPipe, ApiLabelsPipe],
+    declarations: [ApiStatesPipe, ApiLabelsPipe, ApplicationCreationStep5Component],
     providers: [ApiStatesPipe, ApiLabelsPipe, { provide: ActivatedRoute, useValue: { snapshot: { data: { enabledApplicationTypes } } } }],
   });
 
@@ -64,7 +61,7 @@ describe('ApplicationCreationComponent', () => {
     function failApplicationCreationWith(error: unknown) {
       jest
         .spyOn(spectator.inject(ApplicationService), 'createApplication')
-        .mockReturnValue(throwError(() => new HttpErrorResponse({ status: 400, error })) as never);
+        .mockReturnValue(throwError(new HttpErrorResponse({ status: 400, error })) as never);
     }
 
     async function createApp() {
