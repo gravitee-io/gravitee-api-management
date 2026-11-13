@@ -17,8 +17,10 @@ package io.gravitee.apim.core.credential.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.credential.crud_service.CredentialCrudService;
+import io.gravitee.apim.core.credential.domain_service.CredentialOwnerDomainService;
 import io.gravitee.apim.core.credential.model.Credential;
 import io.gravitee.apim.core.credential.model.CredentialActor;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -26,13 +28,17 @@ import lombok.RequiredArgsConstructor;
 public class GetCredentialUseCase {
 
     private final CredentialCrudService credentialCrudService;
+    private final CredentialOwnerDomainService credentialOwnerDomainService;
 
     public record Input(CredentialActor actor, String credentialId) {}
 
-    public record Output(Credential credential) {}
+    /** @param ownerName null when the owner is no longer a user */
+    public record Output(Credential credential, String ownerName) {}
 
     public Output execute(Input input) {
         var actor = input.actor();
-        return new Output(credentialCrudService.get(actor.organizationId(), actor.environmentId(), input.credentialId()));
+        var credential = credentialCrudService.get(actor.organizationId(), actor.environmentId(), input.credentialId());
+        var ownerNames = credentialOwnerDomainService.namesOf(actor, List.of(credential.ownerId()));
+        return new Output(credential, ownerNames.get(credential.ownerId()));
     }
 }

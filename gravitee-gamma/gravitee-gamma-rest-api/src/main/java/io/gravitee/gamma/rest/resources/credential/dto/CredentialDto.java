@@ -39,6 +39,7 @@ public record CredentialDto(
     CredentialStrategy strategy,
     String serviceId,
     String ownerId,
+    String ownerName,
     @JsonFormat(shape = JsonFormat.Shape.STRING) Instant expiresAt,
     Map<String, Object> configuration,
     Map<String, SecretReferenceDto> secretReferences,
@@ -51,7 +52,13 @@ public record CredentialDto(
     /** @param managed whether Gravitee stores the value behind the reference */
     public record SecretReferenceDto(String reference, boolean managed) {}
 
+    /** Without the owner name, which only the reads look up. */
     public static CredentialDto from(Credential credential, CredentialActor caller) {
+        return from(credential, caller, null);
+    }
+
+    /** @param ownerName null when the owner is no longer a user */
+    public static CredentialDto from(Credential credential, CredentialActor caller, String ownerName) {
         var references = new LinkedHashMap<String, SecretReferenceDto>();
         credential.secretReferences().forEach((field, reference) -> references.put(field, from(reference)));
         return new CredentialDto(
@@ -60,6 +67,7 @@ public record CredentialDto(
             credential.strategy(),
             credential.serviceId(),
             credential.ownerId(),
+            ownerName,
             credential.expiresAt(),
             credential.configuration(),
             references,
@@ -71,10 +79,10 @@ public record CredentialDto(
         );
     }
 
-    public static List<CredentialDto> from(List<Credential> credentials, CredentialActor caller) {
+    public static List<CredentialDto> from(List<Credential> credentials, CredentialActor caller, Map<String, String> ownerNames) {
         return credentials
             .stream()
-            .map(credential -> from(credential, caller))
+            .map(credential -> from(credential, caller, ownerNames.get(credential.ownerId())))
             .toList();
     }
 

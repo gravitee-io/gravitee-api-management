@@ -82,7 +82,8 @@ public class CredentialResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CREDENTIAL, acls = { RolePermissionAction.READ }) })
     public CredentialDto getCredential(@PathParam("credentialId") String credentialId) {
         var actor = actor();
-        return CredentialDto.from(getCredentialUseCase.execute(new GetCredentialUseCase.Input(actor, credentialId)).credential(), actor);
+        var output = getCredentialUseCase.execute(new GetCredentialUseCase.Input(actor, credentialId));
+        return CredentialDto.from(output.credential(), actor, output.ownerName());
     }
 
     @PUT

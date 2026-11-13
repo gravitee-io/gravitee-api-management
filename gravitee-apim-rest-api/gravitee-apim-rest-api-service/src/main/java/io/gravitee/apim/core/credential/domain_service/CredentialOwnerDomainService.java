@@ -21,6 +21,11 @@ import io.gravitee.apim.core.credential.model.CredentialActor;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
@@ -50,6 +55,16 @@ public class CredentialOwnerDomainService {
             throw notAMember(requestedOwnerId);
         }
         return requestedOwnerId;
+    }
+
+    /** @return the display name of each owner that is still a user of the actor's organization, by user id */
+    public Map<String, String> namesOf(CredentialActor actor, Collection<String> ownerIds) {
+        var ids = ownerIds.stream().filter(Objects::nonNull).distinct().toList();
+        return userCrudService
+            .findBaseUsersByIds(ids)
+            .stream()
+            .filter(user -> actor.organizationId().equals(user.getOrganizationId()) && user.displayName() != null)
+            .collect(Collectors.toMap(BaseUserEntity::getId, BaseUserEntity::displayName));
     }
 
     // One reason for every refusal, so the answer does not tell a caller which user ids exist.
