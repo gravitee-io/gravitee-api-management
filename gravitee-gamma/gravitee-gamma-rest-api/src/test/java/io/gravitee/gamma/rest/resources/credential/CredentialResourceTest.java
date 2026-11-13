@@ -67,6 +67,15 @@ class CredentialResourceTest extends AbstractCredentialResourceTest {
         }
 
         @Test
+        void should_tell_whether_the_caller_can_manage_the_credential() {
+            var credential = givenACredential();
+
+            var response = rootTarget(credential.id()).request().get();
+
+            assertThat(response.readEntity(JsonNode.class).get("manageable").asBoolean()).isTrue();
+        }
+
+        @Test
         void should_return_404_for_an_unknown_credential() {
             var response = rootTarget("unknown").request().get();
 
