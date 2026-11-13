@@ -17,7 +17,13 @@
 -->
 <div class="form step">
   <div class="form-control">
-    <gv-option [options]="allowedTypes" autofocus [value]="applicationType.id" class="application-types"></gv-option>
+    <gv-option
+      data-testid="application-creation-type"
+      [options]="allowedTypes"
+      autofocus
+      [value]="applicationType.id"
+      class="application-types"
+    ></gv-option>
   </div>
 
   <form [formGroup]="appForm" class="form" *ngIf="isSimpleApp">
