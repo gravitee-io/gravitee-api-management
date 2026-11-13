@@ -41,6 +41,7 @@ import io.gravitee.apim.core.generic_event.domain_service.GenericEventPublicatio
 import io.gravitee.apim.core.generic_event.domain_service.GenericEventWriterDomainService;
 import io.gravitee.apim.core.json.JsonDeserializer;
 import io.gravitee.apim.core.json.JsonSerializer;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
@@ -82,6 +83,7 @@ class GammaGuardiansConfigurationTest {
             parent.registerBean(GenericEventPublicationDomainService.class, () -> new GenericEventPublicationDomainService(writer, mapper));
             parent.registerBean(JsonSerializer.class, () -> new JacksonJsonSerializer());
             parent.registerBean(JsonDeserializer.class, () -> new JacksonJsonDeserializer());
+            parent.registerBean(PermissionDomainService.class, () -> mock(PermissionDomainService.class));
             parent.registerBean(ApiCrudService.class, ApiCrudServiceInMemory::new);
             parent.registerBean(ApiQueryService.class, () -> new ApiQueryServiceInMemory());
             parent.refresh();
@@ -118,6 +120,7 @@ class GammaGuardiansConfigurationTest {
             parent.registerBean(ApiQueryService.class, () -> new ApiQueryServiceInMemory());
             parent.registerBean(JsonSerializer.class, () -> new JacksonJsonSerializer());
             parent.registerBean(JsonDeserializer.class, () -> new JacksonJsonDeserializer());
+            parent.registerBean(PermissionDomainService.class, () -> mock(PermissionDomainService.class));
             parent.registerBean(EventLatestQueryService.class, EventLatestQueryServiceInMemory::new);
             parent.registerBean(EventQueryService.class, EventQueryServiceInMemory::new);
             parent.registerBean(UserCrudService.class, UserCrudServiceInMemory::new);
@@ -127,6 +130,7 @@ class GammaGuardiansConfigurationTest {
             parent.registerBean(ResourcePluginProvider.class, () -> mock(ResourcePluginProvider.class));
             parent.registerBean(EnvironmentCrudService.class, () -> mock(EnvironmentCrudService.class));
             parent.registerBean(AuditDomainService.class, () -> mock(AuditDomainService.class));
+            parent.registerBean(PermissionDomainService.class, () -> mock(PermissionDomainService.class));
             parent.refresh();
             gamma.setParent(parent);
             gamma.register(GammaGuardiansConfiguration.class);

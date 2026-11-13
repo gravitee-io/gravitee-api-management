@@ -100,6 +100,18 @@ public abstract class GuardedApiPortContractTest {
         assertThat(port().findByGuardian(ENVIRONMENT_ID, "guardian-2", 1, 10).getContent()).as("APIs running guardian-2").isEmpty();
     }
 
+    /** Turning a Guardian off stops the API from holding it back, with no second write to make that true. */
+    @Test
+    void should_stop_listing_an_api_the_port_itself_turned_the_guardian_off_on() {
+        givenApi(ENVIRONMENT_ID, API_ID, API_NAME, running("guardian-1"));
+
+        port().updateInternalFlow(ENVIRONMENT_ID, API_ID, running("guardian-1"), null);
+
+        assertThat(port().findByGuardian(ENVIRONMENT_ID, "guardian-1", 1, 10).getContent())
+            .as("APIs running guardian-1 after it was turned off")
+            .isEmpty();
+    }
+
     @Test
     void should_count_every_api_running_the_guardian_whatever_the_page_asked() {
         givenApi(ENVIRONMENT_ID, API_ID, "Assistant one", running("guardian-1"));
