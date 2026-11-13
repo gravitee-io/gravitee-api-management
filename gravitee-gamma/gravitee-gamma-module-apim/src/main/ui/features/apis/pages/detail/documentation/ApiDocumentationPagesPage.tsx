@@ -76,7 +76,13 @@ import {
     useUnpublishDocumentationPage,
     useUpdateDocumentationPage,
 } from '../../../hooks/useApiDocumentation';
-import type { DocumentationPage, PageType, Visibility } from '../../../types/documentation';
+import type {
+    DeveloperPortalOption,
+    DocumentationPage,
+    PageType,
+    PortalPublishSelection,
+    Visibility,
+} from '../../../types/documentation';
 import { formatUpdatedAt, normalizeParentId, toApiParentId } from '../../../utils/documentationFormatters';
 
 type FolderDialogState = { open: false } | { open: true; folder?: DocumentationPage; parentId: string | null };
@@ -142,6 +148,20 @@ function collectDescendantIds(items: DocumentationPage[], rootId: string): strin
         if (child.id) ids.push(...collectDescendantIds(items, child.id));
     });
     return ids;
+}
+
+/** Include ancestor folders so portal sync can create the Navigation tree. */
+function withAncestorFolderIds(items: DocumentationPage[], pageIds: string[]): string[] {
+    const byId = new Map(items.filter(item => item.id).map(item => [item.id!, item]));
+    const ids = new Set(pageIds);
+    for (const pageId of pageIds) {
+        let parentId = normalizeParentId(byId.get(pageId)?.parentId);
+        while (parentId) {
+            ids.add(parentId);
+            parentId = normalizeParentId(byId.get(parentId)?.parentId);
+        }
+    }
+    return [...ids];
 }
 
 /** True when deleting these roots removes every published doc and the API is currently on the portal. */
@@ -244,6 +264,20 @@ export function ApiDocumentationPagesPage() {
     const portalQuery = usePortalDocumentationFolders(apiId, canPublish);
     const folders = portalQuery.data?.folders ?? [];
     const placement = portalQuery.data?.placement ?? null;
+
+    const developerPortals = useMemo((): DeveloperPortalOption[] => {
+        // Management API does not expose a multi-portal list yet — surface the current
+        // Next Gen Portal with its Navigation folders until /portals is available.
+        return [
+            {
+                id: 'next-gen-portal',
+                name: 'Next Gen Portal',
+                published: placement?.published ?? false,
+                folders,
+                defaultFolderId: placement?.folderId,
+            },
+        ];
+    }, [folders, placement]);
 
     useEffect(() => {
         if (expandedReady || pages.length === 0) return;
@@ -460,55 +494,70 @@ export function ApiDocumentationPagesPage() {
         void portalQuery.refetch();
     }
 
-    async function publishApiToPortal(folderId: string, pageIds: string[]) {
+    async function publishApiToPortal(selections: PortalPublishSelection[]) {
         const availableFolders = portalQuery.data?.folders ?? folders;
         const currentPlacement = portalQuery.data?.placement ?? placement;
-        const folder = availableFolders.find(entry => entry.id === folderId);
 
-        if (!folder) {
-            notify.error(undefined, 'Select a Navigation folder to publish this API.');
+        if (selections.length === 0) {
+            notify.error(undefined, 'Select at least one Developer Portal to publish this API.');
             return;
         }
 
-        if (pages.length > 0 && pageIds.length === 0) {
-            notify.error(undefined, 'Select at least one documentation item to publish.');
-            return;
+        for (const selection of selections) {
+            const folder = availableFolders.find(entry => entry.id === selection.folderId);
+            if (!folder) {
+                notify.error(undefined, 'Select a Navigation folder for each selected portal.');
+                return;
+            }
+            if (pages.length > 0 && selection.pageIds.length === 0) {
+                notify.error(undefined, 'Select at least one documentation page for each selected portal.');
+                return;
+            }
         }
 
         setIsPublishing(true);
         try {
-            if (pages.length === 0) {
-                // Classic Overview first, then sync publishes the API parent under the selected
-                // folder before creating/publishing the Overview child — avoids duplicate apiId.
-                await publishEmptyApiMutation.mutateAsync({
+            // Backend currently supports a single Next Gen Portal; selections are applied in order.
+            for (const selection of selections) {
+                const folder = availableFolders.find(entry => entry.id === selection.folderId)!;
+
+                if (pages.length === 0) {
+                    // Classic Overview first, then sync publishes the API parent under the selected
+                    // folder before creating/publishing the Overview child — avoids duplicate apiId.
+                    await publishEmptyApiMutation.mutateAsync({
+                        title: api?.name ?? 'API',
+                        folder,
+                        placement: currentPlacement,
+                    });
+                    continue;
+                }
+
+                const idsToPublish = [
+                    ...new Set(
+                        withAncestorFolderIds(pages, selection.pageIds).flatMap(id => collectDescendantIds(pages, id)),
+                    ),
+                ];
+                const classicIds = idsToPublish.filter(id => {
+                    const page = pages.find(item => item.id === id);
+                    return Boolean(page?.id && page.id !== page.portalNavId);
+                });
+                await Promise.all(classicIds.map(id => publishMutation.mutateAsync(id)));
+                await portalSyncMutation.mutateAsync({
                     title: api?.name ?? 'API',
                     folder,
                     placement: currentPlacement,
+                    pages,
+                    pageIds: idsToPublish,
                 });
-                setSelectedIds(new Set());
-                setPublishApiOpen(false);
-                notify.success('Default Overview created and API published to the Next Gen Portal.');
-                void refetch();
-                void portalQuery.refetch();
-                return;
             }
 
-            let idsToPublish = [...new Set(pageIds.flatMap(id => collectDescendantIds(pages, id)))];
-            const classicIds = idsToPublish.filter(id => {
-                const page = pages.find(item => item.id === id);
-                return Boolean(page?.id && page.id !== page.portalNavId);
-            });
-            await Promise.all(classicIds.map(id => publishMutation.mutateAsync(id)));
-            await portalSyncMutation.mutateAsync({
-                title: api?.name ?? 'API',
-                folder,
-                placement: currentPlacement,
-                pages,
-                pageIds: idsToPublish,
-            });
             setSelectedIds(new Set());
             setPublishApiOpen(false);
-            notify.success('API published to the Next Gen Portal.');
+            notify.success(
+                pages.length === 0
+                    ? 'Default Overview created and API published to the Developer Portal.'
+                    : 'API published to the Developer Portal.',
+            );
             void refetch();
             void portalQuery.refetch();
         } catch (error) {
@@ -957,14 +1006,13 @@ export function ApiDocumentationPagesPage() {
 
                 <DocumentationPublishApiDialog
                     open={publishApiOpen}
-                    folders={folders}
-                    currentPlacement={placement}
-                    pages={publishableItems}
+                    portals={developerPortals}
+                    pages={pages}
                     isSaving={isPublishing}
                     onClose={() => {
                         if (!isPublishing) setPublishApiOpen(false);
                     }}
-                    onSubmit={(folderId, pageIds) => void publishApiToPortal(folderId, pageIds)}
+                    onSubmit={selections => void publishApiToPortal(selections)}
                 />
 
                 <ConfirmDialog

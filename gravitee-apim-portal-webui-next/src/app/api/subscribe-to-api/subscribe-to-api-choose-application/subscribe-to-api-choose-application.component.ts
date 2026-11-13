@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
+import { ButtonToggleGroupComponent } from '../../../../components/button-toggle-group/button-toggle-group.component';
+import { ButtonToggleOptionComponent } from '../../../../components/button-toggle-group/button-toggle-option.component';
 import { PaginationComponent } from '../../../../components/pagination/pagination.component';
+import { PictureComponent } from '../../../../components/picture/picture.component';
 import { RadioCardComponent } from '../../../../components/radio-card/radio-card.component';
 import { SearchBarComponent } from '../../../../components/search-bar/search-bar.component';
 import { MobileClassDirective } from '../../../../directives/mobile-class.directive';
@@ -41,9 +47,15 @@ export interface ApplicationsPagination {
 @Component({
   selector: 'app-subscribe-to-api-choose-application',
   imports: [
+    ButtonToggleGroupComponent,
+    ButtonToggleOptionComponent,
     MatButtonModule,
     MatIconModule,
+    MatRadioModule,
+    MatTableModule,
+    MatTooltipModule,
     PaginationComponent,
+    PictureComponent,
     RadioCardComponent,
     SearchBarComponent,
     MobileClassDirective,
@@ -84,4 +96,13 @@ export class SubscribeToApiChooseApplicationComponent {
   createApplication = new EventEmitter<void>();
 
   protected readonly pageSizeOptions = APPLICATIONS_PAGE_SIZE_OPTIONS;
+  protected readonly tableColumns = ['select', 'name', 'description'] as const;
+  protected readonly viewMode = signal<'tile' | 'table'>('tile');
+
+  protected selectRow(application: ApplicationVM): void {
+    if (application.disabled) {
+      return;
+    }
+    this.selectApplication.emit(application);
+  }
 }

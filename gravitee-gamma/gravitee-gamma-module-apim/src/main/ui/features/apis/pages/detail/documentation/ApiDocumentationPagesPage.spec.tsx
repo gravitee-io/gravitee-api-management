@@ -341,8 +341,10 @@ describe('ApiDocumentationPagesPage', () => {
         renderPage();
 
         await user.click(screen.getByRole('button', { name: 'Publish API' }));
-        expect(screen.getByText('Publish API to Next Gen Portal')).toBeInTheDocument();
+        expect(screen.getByText('Publish API to Developer Portals')).toBeInTheDocument();
         expect(screen.getByText(/No documentation exists for this API yet/)).toBeInTheDocument();
+        expect(screen.getByText('Developer Portals')).toBeInTheDocument();
+        expect(screen.getByText('Next Gen Portal')).toBeInTheDocument();
 
         const dialog = screen.getByRole('dialog');
         await user.click(within(dialog).getByRole('button', { name: 'Publish' }));
@@ -363,12 +365,15 @@ describe('ApiDocumentationPagesPage', () => {
         renderPage();
 
         await user.click(screen.getByRole('button', { name: 'Publish API' }));
-        expect(screen.getByText('Publish API to Next Gen Portal')).toBeInTheDocument();
+        expect(screen.getByText('Publish API to Developer Portals')).toBeInTheDocument();
 
         const dialog = screen.getByRole('dialog');
+        expect(within(dialog).getByText('Developer Portals')).toBeInTheDocument();
+        expect(within(dialog).getByText('Pages')).toBeInTheDocument();
         expect(within(dialog).getByText('Getting started')).toBeInTheDocument();
         expect(within(dialog).getByText('Guides')).toBeInTheDocument();
-        expect(within(dialog).getByRole('checkbox', { name: /select all documentation/i })).toBeInTheDocument();
+        expect(within(dialog).getByRole('checkbox', { name: /select all pages/i })).toBeInTheDocument();
+        expect(within(dialog).getByPlaceholderText('Search portals...')).toBeInTheDocument();
         await user.click(within(dialog).getByRole('button', { name: 'Publish' }));
 
         expect(publishAsync).toHaveBeenCalledWith('page-1');

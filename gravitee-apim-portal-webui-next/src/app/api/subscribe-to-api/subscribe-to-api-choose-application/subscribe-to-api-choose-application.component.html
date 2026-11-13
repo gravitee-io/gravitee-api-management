@@ -24,46 +24,141 @@
     placeholder="Search applications"
     (searchTerm)="searchChange.emit($event)"
   />
-  @if (canCreateApplication) {
-    <button
-      mat-stroked-button
-      type="button"
-      class="secondary-button"
-      data-testid="subscribe-create-application"
-      (click)="createApplication.emit()"
-    >
-      <mat-icon>add</mat-icon>
-      <span i18n="@@subscribeToApiCreateApplication">Create application</span>
-    </button>
-  }
+  <app-button-toggle-group class="choose-application__view-toggle" [(value)]="viewMode">
+    <app-button-toggle-option value="tile" icon="grid_view" i18n-label="@@subscribeToApiApplicationsCardsView" label="Cards" />
+    <app-button-toggle-option value="table" icon="view_list" i18n-label="@@subscribeToApiApplicationsListView" label="List" />
+  </app-button-toggle-group>
 </div>
 
-@if (!!applications.length) {
-  <div class="applications" [appIsNarrow]="'applications--narrow'" [appIsMobile]="'applications--mobile'">
-    @for (application of applications; track application.id) {
-      <app-radio-card
-        [value]="application"
-        [title]="application.name"
-        [disabled]="application.disabled === true"
-        [disabledMessage]="application.disabledMessage ?? ''"
-        [selected]="application.id === selectedApplication?.id"
-        [displayPicture]="true"
-        [pictureUrl]="application._links ? application._links.picture : undefined"
-        [pictureHashValue]="application.name"
-        (selectItem)="selectApplication.emit(application)"
-      >
-        <div class="applications__description">{{ application.description }}</div>
-      </app-radio-card>
-    }
-  </div>
-  <app-pagination
-    [totalResults]="pagination.totalApplications"
-    [currentPage]="pagination.currentPage"
-    [pageSize]="pagination.pageSize"
-    [pageSizeOptions]="pageSizeOptions"
-    (selectPage)="pageChange.emit($event)"
-    (selectPageSize)="pageSizeChange.emit($event)"
-  />
+@if (applications.length || canCreateApplication) {
+  @if (viewMode() === 'tile') {
+    <div class="applications" [appIsNarrow]="'applications--narrow'" [appIsMobile]="'applications--mobile'">
+      @if (canCreateApplication) {
+        <button
+          type="button"
+          class="create-application-tile"
+          data-testid="subscribe-create-application"
+          (click)="createApplication.emit()"
+        >
+          <span class="create-application-tile__icon material-icons" aria-hidden="true">add_circle_outline</span>
+          <span class="create-application-tile__title next-gen-h5" i18n="@@subscribeToApiCreateApplicationAndSubscribe"
+            >Create application and Subscribe</span
+          >
+          <span class="create-application-tile__description m3-body-medium" i18n="@@subscribeToApiCreateApplicationAndSubscribeDescription">
+            Create a new application and continue this subscription with it.
+          </span>
+        </button>
+      }
+      @for (application of applications; track application.id) {
+        <app-radio-card
+          [value]="application"
+          [title]="application.name"
+          [disabled]="application.disabled === true"
+          [disabledMessage]="application.disabledMessage ?? ''"
+          [selected]="application.id === selectedApplication?.id"
+          [displayPicture]="true"
+          [pictureUrl]="application._links ? application._links.picture : undefined"
+          [pictureHashValue]="application.name"
+          (selectItem)="selectApplication.emit(application)"
+        >
+          <div class="applications__description">{{ application.description }}</div>
+        </app-radio-card>
+      }
+    </div>
+  } @else {
+    <div class="applications-table">
+      @if (canCreateApplication) {
+        <button
+          type="button"
+          class="applications-table__create"
+          data-testid="subscribe-create-application"
+          (click)="createApplication.emit()"
+        >
+          <mat-icon>add</mat-icon>
+          <span i18n="@@subscribeToApiCreateApplicationAndSubscribe">Create application and Subscribe</span>
+        </button>
+      }
+      @if (applications.length) {
+        <table mat-table [dataSource]="applications" class="applications-table__table">
+          <ng-container matColumnDef="select">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let application">
+              <mat-radio-button
+                [checked]="application.id === selectedApplication?.id"
+                [disabled]="application.disabled === true"
+                (change)="selectRow(application)"
+                [attr.aria-label]="'Select ' + application.name"
+              />
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef i18n="@@subscribeToApiApplicationsTableName">Name</th>
+            <td mat-cell *matCellDef="let application">
+              <div class="applications-table__name" [class.applications-table__name--disabled]="application.disabled">
+                <app-picture
+                  [hashValue]="application.name"
+                  [size]="32"
+                  [picture]="application._links ? application._links.picture : undefined"
+                />
+                <span>{{ application.name }}</span>
+                @if (application.disabled) {
+                  <mat-icon class="applications-table__disabled-icon" [matTooltip]="application.disabledMessage ?? ''">error</mat-icon>
+                }
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="description">
+            <th mat-header-cell *matHeaderCellDef i18n="@@subscribeToApiApplicationsTableDescription">Description</th>
+            <td mat-cell *matCellDef="let application">
+              <span class="applications-table__description" [class.applications-table__description--disabled]="application.disabled">{{
+                application.description
+              }}</span>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="tableColumns"></tr>
+          <tr
+            mat-row
+            class="applications-table__row"
+            [class.applications-table__row--selected]="row.id === selectedApplication?.id"
+            [class.applications-table__row--disabled]="row.disabled"
+            *matRowDef="let row; columns: tableColumns"
+            tabindex="0"
+            (click)="selectRow(row)"
+            (keydown.enter)="selectRow(row)"
+            (keydown.space)="$event.preventDefault(); selectRow(row)"
+          ></tr>
+        </table>
+      }
+    </div>
+  }
+
+  @if (!applications.length) {
+    <div class="no-applications no-applications--inline">
+      @if (searchQuery.trim()) {
+        <div class="m3-title-medium" i18n="@@subscribeToApiNoApplicationsMatchingSearch">No applications match your search</div>
+        <div class="m3-body-medium" i18n="@@subscribeToApiNoApplicationsMatchingSearchMessage">
+          Try a different name, or create a new application.
+        </div>
+      } @else if (!canCreateApplication) {
+        <div class="m3-title-medium" i18n="@@subscribeToApiNoApplicationsFound">No application found</div>
+        <div class="m3-body-medium" i18n="@@subscribeToApiNoApplicationsFoundMessage">Create an application and it will show up here.</div>
+      }
+    </div>
+  }
+
+  @if (applications.length) {
+    <app-pagination
+      [totalResults]="pagination.totalApplications"
+      [currentPage]="pagination.currentPage"
+      [pageSize]="pagination.pageSize"
+      [pageSizeOptions]="pageSizeOptions"
+      (selectPage)="pageChange.emit($event)"
+      (selectPageSize)="pageSizeChange.emit($event)"
+    />
+  }
 } @else {
   <div class="no-applications">
     @if (searchQuery.trim()) {
@@ -74,19 +169,6 @@
     } @else {
       <div class="m3-title-medium" i18n="@@subscribeToApiNoApplicationsFound">No application found</div>
       <div class="m3-body-medium" i18n="@@subscribeToApiNoApplicationsFoundMessage">Create an application and it will show up here.</div>
-    }
-    @if (canCreateApplication) {
-      <button
-        mat-flat-button
-        color="primary"
-        type="button"
-        class="no-applications__create"
-        data-testid="subscribe-create-application-empty"
-        (click)="createApplication.emit()"
-      >
-        <mat-icon>add</mat-icon>
-        <span i18n="@@subscribeToApiCreateApplication">Create application</span>
-      </button>
     }
   </div>
 }

@@ -16,7 +16,28 @@
     </header>
 
     @if (descriptionHtml(); as description) {
-      <section class="gravitee-docs__description" [innerHTML]="description"></section>
+      <section class="gravitee-docs__description">
+        <div
+          #descriptionContent
+          class="gravitee-docs__description-content"
+          [class.gravitee-docs__description-content--collapsed]="!descriptionExpanded()"
+          [innerHTML]="description"
+        ></div>
+        @if (descriptionOverflows() || descriptionExpanded()) {
+          <button
+            type="button"
+            class="gravitee-docs__description-toggle"
+            data-testid="gravitee-description-toggle"
+            (click)="toggleDescription()"
+          >
+            @if (descriptionExpanded()) {
+              <span i18n="@@graviteeDocsSeeLess">See Less</span>
+            } @else {
+              <span i18n="@@graviteeDocsSeeMore">See More</span>
+            }
+          </button>
+        }
+      </section>
     }
 
     <div class="gravitee-docs__layout">

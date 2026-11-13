@@ -103,12 +103,28 @@ describe('SubscribeToApiChooseApplicationComponent', () => {
     expect(emittedQuery).toBe('Payments');
   });
 
-  it('should emit createApplication when create is requested', () => {
+  it('should emit createApplication when the create tile is clicked', () => {
     let created = false;
+    component.canCreateApplication = true;
     component.createApplication.subscribe(() => (created = true));
+    fixture.detectChanges();
 
-    component.createApplication.emit();
+    const createTile: HTMLButtonElement | null = fixture.nativeElement.querySelector(
+      '[data-testid="subscribe-create-application"]',
+    );
+    expect(createTile).toBeTruthy();
+    createTile!.click();
 
     expect(created).toBe(true);
+  });
+
+  it('should show tiles and table view toggles instead of a create button', () => {
+    component.canCreateApplication = true;
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="subscribe-create-application"]')).toBeTruthy();
+    expect(fixture.nativeElement.textContent).toContain('Create application and Subscribe');
+    expect(fixture.nativeElement.textContent).toContain('Cards');
+    expect(fixture.nativeElement.textContent).toContain('List');
   });
 });

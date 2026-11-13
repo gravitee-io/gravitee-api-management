@@ -194,3 +194,23 @@ export interface ApiPortalPlacement {
     /** True when the API navigation node itself is published in the portal. */
     published: boolean;
 }
+
+/** Portal row shown when publishing API proxy documentation. */
+export interface DeveloperPortalOption {
+    id: string;
+    name: string;
+    /** Consumer-facing portal URL (optional when not resolved yet). */
+    url?: string;
+    /** True when this API is already published on the portal. */
+    published: boolean;
+    folders: PortalFolderOption[];
+    /** Pre-selected Navigation folder when the sheet opens. */
+    defaultFolderId?: string;
+}
+
+/** Per-portal publish choices from the Publish API sheet. */
+export interface PortalPublishSelection {
+    portalId: string;
+    folderId: string;
+    pageIds: string[];
+}

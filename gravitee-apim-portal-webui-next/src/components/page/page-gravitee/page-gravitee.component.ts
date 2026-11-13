@@ -73,10 +73,12 @@ export class PageGraviteeComponent implements OnDestroy {
 
   private readonly docsRoot = viewChild<ElementRef<HTMLElement>>('docsRoot');
   private readonly docsHeader = viewChild<ElementRef<HTMLElement>>('docsHeader');
+  private readonly descriptionContent = viewChild<ElementRef<HTMLElement>>('descriptionContent');
 
   private readonly visibleSections = new Map<string, IntersectionObserverEntry>();
   private intersectionObserver?: IntersectionObserver;
   private headerResizeObserver?: ResizeObserver;
+  private descriptionResizeObserver?: ResizeObserver;
   private isClickScrolling = false;
   private clickScrollTimeoutId: number | null = null;
   private observedOperationIdsKey = '';
@@ -87,6 +89,8 @@ export class PageGraviteeComponent implements OnDestroy {
   }
 
   readonly schemasExpanded = signal(true);
+  readonly descriptionExpanded = signal(false);
+  readonly descriptionOverflows = signal(false);
   readonly endpointSearch = signal('');
   readonly activeOperationId = signal<string | null>(null);
   readonly pathValues = signal<Record<string, string>>({});
@@ -207,6 +211,7 @@ export class PageGraviteeComponent implements OnDestroy {
     afterNextRender(() => {
       this.setupHeaderOffsetObserver();
       this.setupScrollSpy();
+      this.setupDescriptionOverflowObserver();
     });
 
     effect(() => {
@@ -219,11 +224,22 @@ export class PageGraviteeComponent implements OnDestroy {
         });
       }
     });
+
+    effect(
+      () => {
+        // Re-measure when the OpenAPI description content changes.
+        this.descriptionHtml();
+        this.descriptionExpanded.set(false);
+        queueMicrotask(() => this.setupDescriptionOverflowObserver());
+      },
+      { allowSignalWrites: true },
+    );
   }
 
   ngOnDestroy(): void {
     this.teardownScrollSpy();
     this.headerResizeObserver?.disconnect();
+    this.descriptionResizeObserver?.disconnect();
     if (this.clickScrollTimeoutId !== null) {
       window.clearTimeout(this.clickScrollTimeoutId);
     }
@@ -262,6 +278,13 @@ export class PageGraviteeComponent implements OnDestroy {
 
   toggleSchemas(): void {
     this.schemasExpanded.update(value => !value);
+  }
+
+  toggleDescription(): void {
+    this.descriptionExpanded.update(expanded => !expanded);
+    if (!this.descriptionExpanded()) {
+      queueMicrotask(() => this.checkDescriptionOverflow());
+    }
   }
 
   updateEndpointSearch(value: string): void {
@@ -381,6 +404,39 @@ export class PageGraviteeComponent implements OnDestroy {
     this.queryValues.set(nextQuery);
     this.headerValues.set(nextHeader);
     this.body.set(operation.hasRequestBody ? '{\n  \n}' : '');
+  }
+
+  private setupDescriptionOverflowObserver(): void {
+    this.descriptionResizeObserver?.disconnect();
+    const element = this.descriptionContent()?.nativeElement;
+    if (!element) {
+      this.descriptionOverflows.set(false);
+      return;
+    }
+
+    this.checkDescriptionOverflow();
+    if (typeof ResizeObserver === 'undefined') {
+      return;
+    }
+
+    this.descriptionResizeObserver = new ResizeObserver(() => {
+      this.ngZone.run(() => this.checkDescriptionOverflow());
+    });
+    this.descriptionResizeObserver.observe(element);
+  }
+
+  private checkDescriptionOverflow(): void {
+    if (this.descriptionExpanded()) {
+      return;
+    }
+
+    const element = this.descriptionContent()?.nativeElement;
+    if (!element) {
+      this.descriptionOverflows.set(false);
+      return;
+    }
+
+    this.descriptionOverflows.set(element.scrollHeight > element.clientHeight + 1);
   }
 
   private setupHeaderOffsetObserver(): void {
