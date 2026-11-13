@@ -2602,10 +2602,11 @@ describe('AppRoutes', () => {
         expect(screen.getByTestId('credentials-page')).not.toBeNull();
     });
 
-    it('redirects a credential edit without environment-credential-u', () => {
+    it('redirects a credential edit to the list without environment-credential-u', () => {
         mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-credential-u'));
         renderPlatform('/credentials/cred-1/edit');
         expect(screen.queryByTestId('edit-credential-page')).toBeNull();
+        expect(screen.getByTestId('credentials-page')).not.toBeNull();
     });
 
     it('renders Client Registration from a pasted URL', () => {
