@@ -45,6 +45,7 @@ const MANAGED: Credential = {
     configuration: { headerName: 'x-api-key' },
     secretReferences: { value: { reference: '/gravitee/credential.cred-1.value:value', managed: true } },
     managed: true,
+    manageable: true,
 };
 const REFERENCED: Credential = {
     id: 'cred-2',
@@ -52,6 +53,7 @@ const REFERENCED: Credential = {
     strategy: 'BEARER',
     secretReferences: { token: { reference: '/vault/secret/openai:token', managed: false } },
     managed: false,
+    manageable: true,
 };
 
 function given(credential: Credential) {
@@ -183,6 +185,25 @@ describe('EditCredentialPage', () => {
         expect(rotate).not.toHaveBeenCalled();
         expect(notify.error).toHaveBeenCalledWith('Only the owner can change it');
         expect(navigate).not.toHaveBeenCalled();
+    });
+
+    it('sends a caller who cannot manage the credential back to it', async () => {
+        const router = jest.requireActual<{ useNavigate: typeof useNavigate }>('react-router-dom');
+        jest.mocked(useNavigate).mockImplementation(router.useNavigate);
+        given({ ...MANAGED, manageable: false });
+        render(
+            <MemoryRouter initialEntries={['/credentials/cred-1/edit']}>
+                <Routes>
+                    <Route path="credentials">
+                        <Route path=":credentialId" element={<p>Credential page</p>} />
+                        <Route path=":credentialId/edit" element={<EditCredentialPage />} />
+                    </Route>
+                </Routes>
+            </MemoryRouter>,
+        );
+
+        expect(await screen.findByText('Credential page')).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
     });
 
     it.each(['Save changes', 'Back to credential', 'Cancel'])('returns to the credential page after %s', async button => {

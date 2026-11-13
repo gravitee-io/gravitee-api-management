@@ -38,6 +38,8 @@ export interface Credential {
     createdAt?: string;
     updatedAt?: string;
     rotatedAt?: string;
+    /** Whether the caller may change or delete it: its owner, or an admin of the organization or this environment. */
+    manageable?: boolean;
 }
 
 export interface CredentialsPagination {

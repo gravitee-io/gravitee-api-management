@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { renderHook, waitFor } from '@testing-library/react';
-import type { ReactNode } from 'react';
+import { renderHook } from '@testing-library/react';
 
 import { useCredentialActions } from './useCredentialActions';
 import { useHasEnvironmentPermission } from '../../../shared/hooks/useEnvironmentPermissions';
-import { fetchCurrentUser } from '../../../shared/services/currentUser';
 import type { Credential } from '../types/credential';
 import {
     ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION,
@@ -28,81 +25,57 @@ import {
 } from '../utils/credentialPermissions';
 
 jest.mock('../../../shared/hooks/useEnvironmentPermissions');
-jest.mock('../../../shared/services/currentUser', () => ({
-    ...jest.requireActual('../../../shared/services/currentUser'),
-    fetchCurrentUser: jest.fn(),
-}));
 
 const ALL_PERMISSIONS = [
     ENVIRONMENT_CREDENTIAL_UPDATE_PERMISSION,
     ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION,
     ENVIRONMENT_SECRET_DELETE_PERMISSION,
 ];
-const MINE: Credential = { id: 'cred-1', name: 'Mine', strategy: 'BEARER', ownerId: 'me', managed: true };
-const THEIRS: Credential = { id: 'cred-2', name: 'Theirs', strategy: 'BEARER', ownerId: 'someone-else', managed: true };
-const THEIR_REFERENCE: Credential = { ...THEIRS, id: 'cred-3', managed: false };
+const MANAGEABLE: Credential = { id: 'cred-1', name: 'Mine', strategy: 'BEARER', managed: true, manageable: true };
+const NOT_MANAGEABLE: Credential = { id: 'cred-2', name: 'Theirs', strategy: 'BEARER', managed: true, manageable: false };
+const MANAGEABLE_REFERENCE: Credential = { ...MANAGEABLE, id: 'cred-3', managed: false };
 
-function givenPermissions(granted: readonly string[]) {
+function actionsWith(granted: readonly string[]) {
     jest.mocked(useHasEnvironmentPermission).mockImplementation(anyOf => anyOf.some(permission => granted.includes(permission)));
-}
-
-function givenUser(roles: { scope: string; name: string }[] = []) {
-    jest.mocked(fetchCurrentUser).mockResolvedValue({ id: 'me', roles } as Awaited<ReturnType<typeof fetchCurrentUser>>);
-}
-
-function wrapper({ children }: { children: ReactNode }) {
-    return (
-        <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>{children}</QueryClientProvider>
-    );
-}
-
-async function actionsOnceLoaded() {
-    const { result } = renderHook(() => useCredentialActions(), { wrapper });
-    await waitFor(() => expect(fetchCurrentUser).toHaveBeenCalled());
-    return result;
+    return renderHook(() => useCredentialActions()).result.current;
 }
 
 describe('useCredentialActions', () => {
     afterEach(() => jest.clearAllMocks());
 
-    it('lets the owner edit and delete their own credential only', async () => {
-        givenPermissions(ALL_PERMISSIONS);
-        givenUser();
-        const result = await actionsOnceLoaded();
+    it('lets the caller edit and delete a credential the server says they can manage', () => {
+        const actions = actionsWith(ALL_PERMISSIONS);
 
-        await waitFor(() => expect(result.current.canEdit(MINE)).toBe(true));
-        expect(result.current.canDelete(MINE)).toBe(true);
-        expect(result.current.canEdit(THEIRS)).toBe(false);
-        expect(result.current.canDelete(THEIRS)).toBe(false);
+        expect(actions.canEdit(MANAGEABLE)).toBe(true);
+        expect(actions.canDelete(MANAGEABLE)).toBe(true);
     });
 
-    it.each([
-        ['an organization admin', 'ORGANIZATION'],
-        ['an environment admin', 'ENVIRONMENT'],
-    ])('lets %s manage any credential', async (_case, scope) => {
-        givenPermissions(ALL_PERMISSIONS);
-        givenUser([{ scope, name: 'ADMIN' }]);
-        const result = await actionsOnceLoaded();
+    it('hides edit and delete on a credential the server says they cannot manage', () => {
+        const actions = actionsWith(ALL_PERMISSIONS);
 
-        await waitFor(() => expect(result.current.canEdit(THEIRS)).toBe(true));
-        expect(result.current.canDelete(THEIRS)).toBe(true);
+        expect(actions.canEdit(NOT_MANAGEABLE)).toBe(false);
+        expect(actions.canDelete(NOT_MANAGEABLE)).toBe(false);
     });
 
-    it('needs the credential permissions even for the owner', async () => {
-        givenPermissions([]);
-        givenUser();
-        const result = await actionsOnceLoaded();
+    it('lets a caller delete but not edit a credential of a type this console does not know', () => {
+        const actions = actionsWith(ALL_PERMISSIONS);
+        const unknown = { ...MANAGEABLE, strategy: 'MTLS' } as unknown as Credential;
 
-        expect(result.current.canEdit(MINE)).toBe(false);
-        expect(result.current.canDelete(MINE)).toBe(false);
+        expect(actions.canEdit(unknown)).toBe(false);
+        expect(actions.canDelete(unknown)).toBe(true);
     });
 
-    it('needs the secret delete permission to delete a credential Gravitee stores', async () => {
-        givenPermissions([ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION]);
-        givenUser([{ scope: 'ENVIRONMENT', name: 'ADMIN' }]);
-        const result = await actionsOnceLoaded();
+    it('needs the credential permissions even on a manageable credential', () => {
+        const actions = actionsWith([]);
 
-        await waitFor(() => expect(result.current.canDelete(THEIR_REFERENCE)).toBe(true));
-        expect(result.current.canDelete(THEIRS)).toBe(false);
+        expect(actions.canEdit(MANAGEABLE)).toBe(false);
+        expect(actions.canDelete(MANAGEABLE)).toBe(false);
+    });
+
+    it('needs the secret delete permission to delete a credential Gravitee stores', () => {
+        const actions = actionsWith([ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION]);
+
+        expect(actions.canDelete(MANAGEABLE_REFERENCE)).toBe(true);
+        expect(actions.canDelete(MANAGEABLE)).toBe(false);
     });
 });
