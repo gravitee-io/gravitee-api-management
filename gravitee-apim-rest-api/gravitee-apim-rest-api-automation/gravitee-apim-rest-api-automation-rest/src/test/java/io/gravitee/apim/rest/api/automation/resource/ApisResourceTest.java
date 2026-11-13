@@ -38,6 +38,7 @@ import io.gravitee.definition.model.v4.analytics.tracing.MaskingType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
@@ -138,7 +139,7 @@ class ApisResourceTest extends AbstractResourceTest {
         @ParameterizedTest
         @ValueSource(booleans = { false, true })
         void should_return_403_when_the_caller_cannot_update_the_api_named_by_the_id_of_a_spec_without_cross_id(boolean dryRun) {
-            apiCrudService.initWith(List.of(Api.builder().id("api-id").environmentId(ENVIRONMENT).build()));
+            apiCrudService.initWith(List.of(anApiManagedByAutomation()));
             when(permissionService.hasPermission(any(), eq(API_DEFINITION), eq("api-id"), eq(UPDATE))).thenReturn(false);
 
             assertThat(statusWithUuidAndNoCrossId(dryRun)).isEqualTo(403);
@@ -148,7 +149,7 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @Test
         void should_update_the_api_named_by_the_id_of_a_spec_without_cross_id_with_update_on_it() {
-            apiCrudService.initWith(List.of(Api.builder().id("api-id").environmentId(ENVIRONMENT).build()));
+            apiCrudService.initWith(List.of(anApiManagedByAutomation()));
             when(permissionService.hasPermission(any(), eq(ENVIRONMENT_API), eq(ENVIRONMENT), eq(CREATE))).thenReturn(false);
 
             assertThat(statusWithUuidAndNoCrossId(false)).isEqualTo(200);
@@ -175,6 +176,25 @@ class ApisResourceTest extends AbstractResourceTest {
             ) {
                 return response.getStatus();
             }
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = { false, true })
+        void should_return_400_when_the_id_of_a_spec_without_cross_id_names_an_api_created_in_the_console(boolean dryRun) {
+            apiCrudService.initWith(
+                List.of(Api.builder().id("api-id").environmentId(ENVIRONMENT).originContext(new OriginContext.Management()).build())
+            );
+
+            assertThat(statusWithUuidAndNoCrossId(dryRun)).isEqualTo(400);
+            verify(importApiCRDUseCase, never()).execute(any());
+        }
+
+        private static Api anApiManagedByAutomation() {
+            return Api.builder()
+                .id("api-id")
+                .environmentId(ENVIRONMENT)
+                .originContext(new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED))
+                .build();
         }
 
         private int statusWithUuidAndNoCrossId(boolean dryRun) {

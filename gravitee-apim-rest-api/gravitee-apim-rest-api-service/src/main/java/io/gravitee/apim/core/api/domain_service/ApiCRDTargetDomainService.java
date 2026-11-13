@@ -21,12 +21,14 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.rest.api.model.context.OriginContext;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 /**
  * Finds the API a CRD import updates: by cross id when the spec has one, else by the spec id in the environment.
  * A null cross id is never looked up, since any number of APIs can have none.
+ * Found by id, the API must already be managed by automation: the update would make it so and delete its unlisted plans.
  */
 @DomainService
 @RequiredArgsConstructor
@@ -38,7 +40,8 @@ public class ApiCRDTargetDomainService {
 
     /**
      * @return the API to update, or empty when the import creates one
-     * @throws ValidationDomainException when the spec id names an API of another environment
+     * @throws ValidationDomainException when the spec id names an API of another environment, or, for a spec without cross id,
+     * an API not managed by automation
      */
     public Optional<Api> findExistingApi(String environmentId, ApiCRDSpec spec) {
         var apiWithId = Optional.ofNullable(spec.getId()).flatMap(apiCrudService::findById);
@@ -53,6 +56,17 @@ public class ApiCRDTargetDomainService {
         if (spec.getCrossId() != null) {
             return apiQueryService.findByEnvironmentIdAndCrossId(environmentId, spec.getCrossId());
         }
+        apiWithId
+            .filter(api -> !(api.getOriginContext() instanceof OriginContext.Kubernetes))
+            .ifPresent(api -> {
+                throw new ValidationDomainException(
+                    String.format(
+                        "API id [%s] names an API with origin [%s]: an import without cross id only updates an API managed by automation, remove the id to create a new one",
+                        spec.getId(),
+                        api.getOriginContext() == null ? null : api.getOriginContext().name()
+                    )
+                );
+            });
         return apiWithId;
     }
 }
