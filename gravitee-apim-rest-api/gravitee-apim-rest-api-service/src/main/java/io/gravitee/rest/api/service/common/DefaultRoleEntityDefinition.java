@@ -85,6 +85,7 @@ public interface DefaultRoleEntityDefinition {
             .put(EnvironmentPermission.INTEGRATION.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.API_PRODUCT.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.SHARED_POLICY_GROUP.getName(), new char[] { READ.getId() })
+            .put(EnvironmentPermission.HITL_DECISIONS.getName(), new char[] { READ.getId(), UPDATE.getId() })
             .build()
     );
 
