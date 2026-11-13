@@ -44,9 +44,24 @@
     --mat-chip-outline-width: 0;
 
     display: flex;
+    max-width: 100%;
     flex-direction: column;
     align-items: flex-start;
-    gap: 8px;
     margin-top: 16px;
+    gap: 8px;
+
+    mat-chip {
+      max-width: 100%;
+      height: auto;
+      min-height: var(--mat-chip-container-height, 32px);
+    }
+
+    // Material chips keep their label on one line, which pushes long plan metadata out of the card.
+    // No chip token controls label wrapping, so the label rendered inside mat-chip is reached directly.
+    ::ng-deep .mdc-evolution-chip__text-label {
+      padding: 6px 0;
+      overflow-wrap: anywhere;
+      white-space: normal;
+    }
   }
 }
