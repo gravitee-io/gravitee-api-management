@@ -98,7 +98,7 @@
     }}</gv-button>
   </div>
 
-  <div class="message message-full message-error" *ngIf="creationError">
+  <div class="message message-full message-error" *ngIf="creationError" data-testid="application-creation-error">
     <gv-icon shape="general:smile"></gv-icon>
     <h2>{{ 'applicationCreation.validation.error.title' | translate }}</h2>
     <div [innerHTML]="'applicationCreation.validation.error.description' | translate"></div>
