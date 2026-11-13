@@ -34,6 +34,7 @@ import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
+import io.gravitee.gateway.reactive.handlers.api.security.plan.HttpSecurityPlan;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.pathparameters.PathParametersExtractor;
 import java.util.List;
 import java.util.Set;
@@ -70,7 +71,7 @@ class ApiProductRuntimeTest {
 
         @Test
         void should_not_touch_the_request_without_an_extractor() {
-            new ApiProductRuntime(product(Set.of("api-1")), null, null, null, List.of()).extractPathParameters(ctx);
+            new ApiProductRuntime(product(Set.of("api-1")), null, null, null, List.of(), List::of).extractPathParameters(ctx);
 
             verify(ctx, never()).request();
         }
@@ -91,7 +92,7 @@ class ApiProductRuntimeTest {
                 .build();
             Api plansOnly = new Api();
             plansOnly.setPlans(List.of(plan));
-            return new ApiProductRuntime(product(Set.of("api-1")), null, null, new PathParametersExtractor(plansOnly), List.of());
+            return new ApiProductRuntime(product(Set.of("api-1")), null, null, new PathParametersExtractor(plansOnly), List.of(), List::of);
         }
     }
 
@@ -100,7 +101,7 @@ class ApiProductRuntimeTest {
 
         @Test
         void should_serve_the_apis_the_product_lists() {
-            ApiProductRuntime runtime = new ApiProductRuntime(product(Set.of("api-1")), null, null, null, List.of());
+            ApiProductRuntime runtime = new ApiProductRuntime(product(Set.of("api-1")), null, null, null, List.of(), List::of);
 
             assertThat(runtime.servesApi("api-1")).isTrue();
             assertThat(runtime.servesApi("api-2")).isFalse();
@@ -108,7 +109,7 @@ class ApiProductRuntimeTest {
 
         @Test
         void should_serve_no_api_when_the_product_lists_none() {
-            assertThat(new ApiProductRuntime(product(null), null, null, null, List.of()).servesApi("api-1")).isFalse();
+            assertThat(new ApiProductRuntime(product(null), null, null, null, List.of(), List::of).servesApi("api-1")).isFalse();
         }
     }
 
@@ -123,7 +124,8 @@ class ApiProductRuntimeTest {
                 null,
                 null,
                 null,
-                List.of(new Recording("policies", events), new Recording("resources", events))
+                List.of(new Recording("policies", events), new Recording("resources", events)),
+                List::of
             );
 
             runtime.start();
@@ -133,11 +135,51 @@ class ApiProductRuntimeTest {
         }
 
         @Test
+        void should_report_stopped_once_stopped() throws Exception {
+            ApiProductRuntime runtime = new ApiProductRuntime(product(Set.of("api-1")), null, null, null, List.of(), List::of);
+            runtime.start();
+            assertThat(runtime.isStopped()).isFalse();
+
+            runtime.stop();
+
+            assertThat(runtime.isStopped()).isTrue();
+        }
+
+        @Test
+        void should_build_the_security_plans_once_its_components_have_started() throws Exception {
+            StringBuilder events = new StringBuilder();
+            HttpSecurityPlan securityPlan = mock(HttpSecurityPlan.class);
+            ApiProductRuntime runtime = new ApiProductRuntime(
+                product(Set.of("api-1")),
+                null,
+                null,
+                null,
+                List.of(new Recording("policies", events)),
+                () -> {
+                    events.append("build security plans,");
+                    return List.of(securityPlan);
+                }
+            );
+
+            runtime.start();
+
+            assertThat(events).hasToString("start policies,build security plans,");
+            assertThat(runtime.securityPlans()).containsExactly(securityPlan);
+        }
+
+        @Test
         void should_stop_every_component_and_throw_the_first_failure() throws Exception {
             Recording policies = new Recording("policies", new StringBuilder());
             FailingToStop first = new FailingToStop("pool already closed");
             FailingToStop second = new FailingToStop("connection reset");
-            ApiProductRuntime runtime = new ApiProductRuntime(product(Set.of("api-1")), null, null, null, List.of(policies, second, first));
+            ApiProductRuntime runtime = new ApiProductRuntime(
+                product(Set.of("api-1")),
+                null,
+                null,
+                null,
+                List.of(policies, second, first),
+                List::of
+            );
             runtime.start();
 
             assertThatThrownBy(runtime::stop)
@@ -150,7 +192,7 @@ class ApiProductRuntimeTest {
 
         @Test
         void should_count_no_request_in_once_retired() {
-            ApiProductRuntime runtime = new ApiProductRuntime(product(Set.of("api-1")), null, null, null, List.of());
+            ApiProductRuntime runtime = new ApiProductRuntime(product(Set.of("api-1")), null, null, null, List.of(), List::of);
             assertThat(runtime.tryAcquire()).isTrue();
 
             runtime.retire();

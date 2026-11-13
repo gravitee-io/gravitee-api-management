@@ -19,7 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import appender.MemoryAppender;
@@ -72,7 +76,7 @@ class ApiProductRuntimeRegistryTest {
             ReactableApiProduct product = invocation.getArgument(0);
             RecordingComponent component = new RecordingComponent();
             built.add(component);
-            return new ApiProductRuntime(product, null, null, null, List.of(component));
+            return new ApiProductRuntime(product, null, null, null, List.of(component), List::of);
         });
         cut = new ApiProductRuntimeRegistry(runtimeFactory, DRAIN_TIMEOUT_MS, scheduler);
     }
@@ -106,6 +110,64 @@ class ApiProductRuntimeRegistryTest {
     void should_return_no_runtime_for_an_unknown_product() {
         assertThat(cut.acquire(PRODUCT_ID, ENV_ID)).isNull();
         assertThat(cut.acquire(PRODUCT_ID, "other-env")).isNull();
+    }
+
+    @Nested
+    class AcquireForApi {
+
+        private final List<ApiProductRuntime> spies = new ArrayList<>();
+        private final ApiProductRuntimeFactory spyingFactory = mock(ApiProductRuntimeFactory.class);
+        private final ApiProductRuntimeRegistry registry = new ApiProductRuntimeRegistry(spyingFactory, DRAIN_TIMEOUT_MS, scheduler);
+
+        @BeforeEach
+        void buildSpiedRuntimes() {
+            when(spyingFactory.create(any(), any())).thenAnswer(invocation -> {
+                ApiProductRuntime runtime = spy(new ApiProductRuntime(invocation.getArgument(0), null, null, null, List.of(), List::of));
+                spies.add(runtime);
+                return runtime;
+            });
+        }
+
+        @Test
+        void should_pin_nothing_for_an_api_no_product_lists() {
+            registry.deploy(memberOf("product-a", "api-1"));
+
+            assertThat(registry.acquireForApi("api-2", ENV_ID).runtimes()).isEmpty();
+            assertThat(registry.acquireForApi("api-1", "other-env").runtimes()).isEmpty();
+        }
+
+        @Test
+        void should_pin_every_runtime_listing_the_api_once() {
+            registry.deploy(memberOf("product-a", "api-1"));
+            registry.deploy(memberOf("product-b", "api-1"));
+
+            ApiProductRuntimeRegistry.MemberApiRuntimes pinned = registry.acquireForApi("api-1", ENV_ID);
+
+            assertThat(pinned.runtimes())
+                .extracting(runtime -> runtime.product().getId())
+                .containsExactly("product-a", "product-b");
+            assertThat(spies).allSatisfy(runtime -> assertThat(runtime.inFlight()).isEqualTo(1));
+        }
+
+        @Test
+        void should_release_what_it_pinned_and_retry_when_one_runtime_is_being_retired() {
+            registry.deploy(memberOf("product-a", "api-1"));
+            registry.deploy(memberOf("product-b", "api-1"));
+            ApiProductRuntime runtimeA = spies.get(0);
+            ApiProductRuntime runtimeB = spies.get(1);
+            doReturn(false).doCallRealMethod().when(runtimeB).tryAcquire();
+
+            registry.acquireForApi("api-1", ENV_ID);
+
+            verify(runtimeA, times(2)).tryAcquire();
+            verify(runtimeA, times(1)).release();
+            assertThat(runtimeA.inFlight()).isEqualTo(1);
+            assertThat(runtimeB.inFlight()).isEqualTo(1);
+        }
+
+        private static ReactableApiProduct memberOf(String productId, String apiId) {
+            return ReactableApiProduct.builder().id(productId).environmentId(ENV_ID).apiIds(Set.of(apiId)).build();
+        }
     }
 
     @Nested
@@ -234,7 +296,7 @@ class ApiProductRuntimeRegistryTest {
 
         {
             when(componentsFactory.create(any(), any())).thenAnswer(invocation ->
-                new ApiProductRuntime(invocation.getArgument(0), null, null, null, nextComponents.remove(0))
+                new ApiProductRuntime(invocation.getArgument(0), null, null, null, nextComponents.remove(0), List::of)
             );
         }
 

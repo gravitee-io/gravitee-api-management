@@ -18,14 +18,16 @@ package io.gravitee.gateway.reactive.handlers.api.v4.product;
 import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.handlers.api.security.plan.HttpSecurityPlan;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChain;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.pathparameters.PathParametersExtractor;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 /**
  * What one deployed version of an API Product runs on this gateway, whatever the number of its member APIs: the
- * policies of its plans and the chain of its plan flows, built once in the product's flow mode.
+ * policies of its plans, their security plans, and the chain of its plan flows, built once in the product's flow mode.
  *
  * <p>A member API pins the runtime for the whole request, so the response phase replays the runtime the request phase
  * used. A replaced runtime is retired: it is handed out no more, and stops once its pinned requests have ended.</p>
@@ -39,25 +41,32 @@ public class ApiProductRuntime {
     private final FlowChain tracedProductPlanFlowChain;
     private final PathParametersExtractor pathParametersExtractor;
     private final List<LifecycleComponent<?>> components;
+    private final Supplier<List<HttpSecurityPlan>> securityPlansBuilder;
+    private volatile List<HttpSecurityPlan> securityPlans = List.of();
     private final AtomicInteger inFlight = new AtomicInteger();
     private volatile boolean retired;
+    private volatile boolean stopped;
 
     /**
      * @param pathParametersExtractor extracts the path parameters declared by the plan flows, null when none declares one
      * @param components started in order and stopped in reverse order, the policy manager first
+     * @param securityPlansBuilder builds the security plans once the components have started, and throws when one
+     * cannot be built
      */
     public ApiProductRuntime(
         ReactableApiProduct product,
         FlowChain productPlanFlowChain,
         FlowChain tracedProductPlanFlowChain,
         PathParametersExtractor pathParametersExtractor,
-        List<LifecycleComponent<?>> components
+        List<LifecycleComponent<?>> components,
+        Supplier<List<HttpSecurityPlan>> securityPlansBuilder
     ) {
         this.product = product;
         this.productPlanFlowChain = productPlanFlowChain;
         this.tracedProductPlanFlowChain = tracedProductPlanFlowChain;
         this.pathParametersExtractor = pathParametersExtractor;
         this.components = List.copyOf(components);
+        this.securityPlansBuilder = securityPlansBuilder;
     }
 
     public ReactableApiProduct product() {
@@ -70,6 +79,11 @@ public class ApiProductRuntime {
 
     public boolean servesApi(String apiId) {
         return product.getApiIds() != null && product.getApiIds().contains(apiId);
+    }
+
+    /** The security plans of the plans this gateway serves, in the order of the product's plans. */
+    public List<HttpSecurityPlan> securityPlans() {
+        return securityPlans;
     }
 
     public FlowChain productPlanFlowChain(boolean tracing) {
@@ -118,14 +132,24 @@ public class ApiProductRuntime {
         retired = true;
     }
 
+    /**
+     * Whether the runtime has been stopped. A request still pinned to it was cut short by the drain timeout: its
+     * policies are gone, so its plan flows must not run.
+     */
+    public boolean isStopped() {
+        return stopped;
+    }
+
     void start() throws Exception {
         for (LifecycleComponent<?> component : components) {
             component.start();
         }
+        securityPlans = List.copyOf(securityPlansBuilder.get());
     }
 
     /** Stops every component, even after one fails to stop, then throws the first failure. */
     void stop() throws Exception {
+        stopped = true;
         Exception failure = null;
         for (int i = components.size() - 1; i >= 0; i--) {
             try {

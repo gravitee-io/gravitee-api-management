@@ -27,8 +27,6 @@ import static io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointC
 import static java.lang.Boolean.TRUE;
 
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.common.event.Event;
-import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.listener.Listener;
@@ -40,8 +38,6 @@ import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
-import io.gravitee.gateway.handlers.api.event.ApiProductChangedEvent;
-import io.gravitee.gateway.handlers.api.event.ApiProductEventType;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.ComponentType;
@@ -132,6 +128,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
     );
 
     public static final String API_VALIDATE_SUBSCRIPTION_PROPERTY = "api.validateSubscription";
+    static final String API_PRODUCT_RUNTIME_STOPPED = "API_PRODUCT_RUNTIME_STOPPED";
     private static final String ATTR_INTERNAL_TRACING_REQUEST_SPAN = "analytics.tracing.request.span";
     private static final String ATTR_INTERNAL_TRACING_RESPONSE_SPAN = "analytics.tracing.response.span";
 
@@ -172,14 +169,10 @@ public class DefaultApiReactor extends AbstractApiReactor {
     private final boolean validateSubscriptionEnabled;
     protected List<Acceptor<?>> acceptors;
     protected final LogGuardService logGuardService;
-    private final ApiProductRegistry apiProductRegistry;
-    private final ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory;
     private final ApiProductRuntimeRegistry apiProductRuntimeRegistry;
-    private PolicyManager apiProductPlanPolicyManager;
     private final PolicyActionExecutor endpointRequestActionExecutor;
     private final PolicyActionExecutor entrypointResponseActionExecutor;
     private final PolicyActionExecutor terminateActionExecutor;
-    private EventListener<ApiProductEventType, ApiProductChangedEvent> apiProductEventListener;
 
     /**
      * Backward-compatible constructor for Message Reactor and other plugins that extend DefaultApiReactor.
@@ -229,11 +222,17 @@ public class DefaultApiReactor extends AbstractApiReactor {
             httpAcceptorFactory,
             tracingContext,
             logGuardService,
-            null,
             null
         );
     }
 
+    /**
+     * Kept for reactor plugins compiled against the per-API product plan policy manager. The product runtimes are looked
+     * up from the component provider when API Product support is loaded; the factory is never called.
+     *
+     * @deprecated use the constructor taking the {@link ApiProductRuntimeRegistry}
+     */
+    @Deprecated(forRemoval = true)
     public DefaultApiReactor(
         final Api api,
         final DeploymentContext deploymentContext,
@@ -281,14 +280,12 @@ public class DefaultApiReactor extends AbstractApiReactor {
             httpAcceptorFactory,
             tracingContext,
             logGuardService,
-            apiProductRegistry,
-            apiProductPlanPolicyManagerFactory,
-            null
+            apiProductRegistry != null ? componentProvider.getComponent(ApiProductRuntimeRegistry.class) : null
         );
     }
 
     /**
-     * @param apiProductRuntimeRegistry runs the product plan flows; null when API Product support is not loaded
+     * @param apiProductRuntimeRegistry runs the product plans' security and flows; null when API Product support is not loaded
      */
     public DefaultApiReactor(
         final Api api,
@@ -312,11 +309,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
         final HttpAcceptorFactory httpAcceptorFactory,
         final TracingContext tracingContext,
         final LogGuardService logGuardService,
-        final ApiProductRegistry apiProductRegistry,
-        final ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory,
         final ApiProductRuntimeRegistry apiProductRuntimeRegistry
     ) {
-        // apiProductRegistry may be null when API Product support is not loaded
         super(
             configuration,
             api,
@@ -335,8 +329,6 @@ public class DefaultApiReactor extends AbstractApiReactor {
         this.eventManager = eventManager;
         this.httpAcceptorFactory = httpAcceptorFactory;
         this.logGuardService = logGuardService;
-        this.apiProductRegistry = apiProductRegistry;
-        this.apiProductPlanPolicyManagerFactory = apiProductPlanPolicyManagerFactory;
         this.apiProductRuntimeRegistry = apiProductRuntimeRegistry;
 
         this.defaultInvoker = endpointInvoker(endpointManager);
@@ -750,16 +742,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
         resourceLifecycleManager.start();
         policyManager.start();
 
-        // Create and start ApiProductPlanPolicyManager when API Product support is enabled
-        if (apiProductPlanPolicyManagerFactory != null) {
-            apiProductPlanPolicyManager = apiProductPlanPolicyManagerFactory.create(api);
-            if (apiProductPlanPolicyManager != null) {
-                apiProductPlanPolicyManager.start();
-            }
-        }
-
         // Create httpSecurityChain once policy manager has been started.
-        refreshSecurityChain();
+        httpSecurityChain = createSecurityChain();
 
         tracingContext.start();
         analyticsContext = createAnalyticsContext();
@@ -785,13 +769,6 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
         Completable.concat(services.stream().map(ApiService::start).collect(Collectors.toList())).blockingAwait();
 
-        // Subscribe to API Product events for security chain refresh.
-        if (apiProductRegistry != null) {
-            apiProductEventListener = event -> onApiProductEvent(event);
-            eventManager.subscribeForEvents(apiProductEventListener, ApiProductEventType.class);
-            log.debug("API reactor [{}] subscribed to API Product events", api.getId());
-        }
-
         lifecycleState = Lifecycle.State.STARTED;
 
         long endTime = System.currentTimeMillis(); // Get the end Time
@@ -800,66 +777,18 @@ public class DefaultApiReactor extends AbstractApiReactor {
         dumpAcceptors();
     }
 
-    /**
-     * Refresh the security chain with the latest api product plan definitions.
-     * Called when API Products change (deploy/update/undeploy) to refresh the chain
-     * without requiring API redeploy.
-     *
-     * @throws IllegalStateException if the reactor is not started
-     */
-    public void restartApiProductPlanPolicyManager() {
-        if (lifecycleState != Lifecycle.State.STARTED) {
-            log.debug("API [{}] skipping security chain refresh — reactor not started (state: {})", api.getId(), lifecycleState);
-            return;
-        }
-        try {
-            // Stop old ApiProductPlanPolicyManager, create new one, start it, then refresh chain
-            if (apiProductPlanPolicyManager != null) {
-                apiProductPlanPolicyManager.stop();
-            }
-            if (apiProductPlanPolicyManagerFactory != null) {
-                apiProductPlanPolicyManager = apiProductPlanPolicyManagerFactory.create(api);
-                if (apiProductPlanPolicyManager != null) {
-                    apiProductPlanPolicyManager.start();
-                }
-            }
-            refreshSecurityChain();
-            log.debug("API [{}] security chain refreshed after API Product change", api.getId());
-        } catch (Exception e) {
-            log.warn("Failed to refresh security chain for API [{}] on API Product change", api.getId(), e);
-            // Don't throw - keep using old chain to avoid breaking running API
-        }
-    }
-
-    /**
-     * Refreshes security chain if this API is affected by the product change.
-     */
-    private void onApiProductEvent(Event<ApiProductEventType, ApiProductChangedEvent> event) {
-        ApiProductChangedEvent payload = event.content();
-        if (payload != null && payload.getApiIds() != null && payload.getApiIds().contains(api.getId())) {
-            log.debug("API [{}] received ApiProductChangedEvent ({}) for product [{}]", api.getId(), event.type(), payload.getProductId());
-            restartApiProductPlanPolicyManager();
-        }
-    }
-
-    private void refreshSecurityChain() {
-        HttpSecurityChain chain;
-        if (apiProductRegistry != null && apiProductPlanPolicyManager != null) {
-            chain = new HttpSecurityChain(
-                api.getDefinition(),
-                policyManager,
-                ExecutionPhase.REQUEST,
-                api.getEnvironmentId(),
-                apiProductRegistry,
-                apiProductPlanPolicyManager
-            );
-        } else {
-            chain = new HttpSecurityChain(api.getDefinition(), policyManager, ExecutionPhase.REQUEST);
-        }
+    private HttpSecurityChain createSecurityChain() {
+        HttpSecurityChain chain = new HttpSecurityChain(
+            api.getDefinition(),
+            policyManager,
+            ExecutionPhase.REQUEST,
+            apiProductRuntimeRegistry,
+            api.getEnvironmentId()
+        );
         if (tracingContext != null && tracingContext.isEnabled()) {
             chain.addHooks(List.of(new TracingHook("Security")));
         }
-        this.httpSecurityChain = chain;
+        return chain;
     }
 
     /**
@@ -886,17 +815,27 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
     /**
      * Pins, for the whole request, the runtime of the product of the internal subscription, provided the product lists
-     * this API. The public {@code apiProduct} attribute is never read: a policy can rewrite it.
+     * this API: the one the security chain pinned for the product plan that accepted the request, when it is that
+     * product's. The public {@code apiProduct} attribute is never read: a policy can rewrite it.
      */
     private void pinApiProductRuntime(final MutableExecutionContext ctx) {
         if (apiProductRuntimeRegistry == null) {
             return;
         }
         final Subscription subscription = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION);
-        if (subscription == null || subscription.getApiProductId() == null) {
+        final String apiProductId = subscription != null ? subscription.getApiProductId() : null;
+        final ApiProductRuntime pinnedBySecurity = ctx.getInternalAttribute(ApiProductRuntime.ATTR_INTERNAL_API_PRODUCT_RUNTIME);
+        if (pinnedBySecurity != null) {
+            if (pinnedBySecurity.product().getId().equals(apiProductId)) {
+                pinnedBySecurity.extractPathParameters(ctx);
+                return;
+            }
+            releaseApiProductRuntime(ctx);
+        }
+        if (apiProductId == null) {
             return;
         }
-        final ApiProductRuntime runtime = apiProductRuntimeRegistry.acquire(subscription.getApiProductId(), api.getEnvironmentId());
+        final ApiProductRuntime runtime = apiProductRuntimeRegistry.acquire(apiProductId, api.getEnvironmentId());
         if (runtime == null) {
             return;
         }
@@ -928,6 +867,15 @@ public class DefaultApiReactor extends AbstractApiReactor {
             if (runtime == null) {
                 return Completable.complete();
             }
+            if (runtime.isStopped()) {
+                return ctx.interruptWith(
+                    new ExecutionFailure(HttpStatusCode.SERVICE_UNAVAILABLE_503)
+                        .key(API_PRODUCT_RUNTIME_STOPPED)
+                        .message(
+                            "The API Product was redeployed or undeployed while the request was running, and the version serving it has stopped"
+                        )
+                );
+            }
             return runtime.productPlanFlowChain(tracingContext.isEnabled()).execute(ctx, phase);
         });
     }
@@ -953,13 +901,6 @@ public class DefaultApiReactor extends AbstractApiReactor {
         this.lifecycleState = Lifecycle.State.STOPPING;
 
         try {
-            // Unsubscribe the lambda listener created at start time.
-            if (apiProductRegistry != null && apiProductEventListener != null) {
-                eventManager.unsubscribeForEvents(apiProductEventListener, ApiProductEventType.class);
-                apiProductEventListener = null;
-                log.debug("API reactor [{}] unsubscribed from API Product events", api.getId());
-            }
-
             Completable.concat(services.stream().map(ApiService::stop).collect(Collectors.toList())).blockingAwait();
 
             entrypointConnectorResolver.preStop();
@@ -986,9 +927,6 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
         entrypointConnectorResolver.stop();
         endpointManager.stop();
-        if (apiProductPlanPolicyManager != null) {
-            apiProductPlanPolicyManager.stop();
-        }
         policyManager.stop();
         resourceLifecycleManager.stop();
         tracingContext.stop();
