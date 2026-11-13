@@ -68,7 +68,7 @@ describe('ApplicationTabSettingsComponent - update rejected by the API', () => {
     });
   }
 
-  async function saveWithClientId(clientId: string, errorBody: object | null) {
+  async function saveWithClientId(clientId: string, errorBody: object) {
     fixture.detectChanges();
     flushGetRequests(simpleApplication);
     await fixture.whenStable();
