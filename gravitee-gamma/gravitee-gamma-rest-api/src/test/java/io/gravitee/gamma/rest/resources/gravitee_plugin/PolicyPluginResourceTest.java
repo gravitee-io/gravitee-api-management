@@ -259,7 +259,11 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
             Response response = rootTarget().queryParam("flow", "guardian", flow).request().get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
-            assertThat(response.readEntity(JsonNode.class).get("message").asText()).as("error message").contains(flow);
+            assertThat(response.readEntity(JsonNode.class).get("message").asText())
+                .as("error message, which does not echo the requested value")
+                .isEqualTo(
+                    "Invalid flow. Expected one of [http-proxy, http-message, native-kafka, mcp-proxy, llm-proxy, a2a-proxy, guardian]."
+                );
         }
     }
 

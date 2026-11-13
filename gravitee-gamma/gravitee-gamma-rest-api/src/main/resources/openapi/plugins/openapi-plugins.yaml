@@ -283,5 +283,5 @@ components:
                 - message
                 - http_status
             example:
-                message: "Invalid flow: llm_proxy. Expected one of [http-proxy, http-message, native-kafka, mcp-proxy, llm-proxy, a2a-proxy, guardian]."
+                message: "Invalid flow. Expected one of [http-proxy, http-message, native-kafka, mcp-proxy, llm-proxy, a2a-proxy, guardian]."
                 http_status: 400
