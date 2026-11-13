@@ -22,6 +22,7 @@ import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
+import io.gravitee.gateway.reactive.handlers.api.v4.security.policy.SecurityPolicyFactory;
 import io.gravitee.gateway.reactive.policy.AbstractPolicyManager;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
@@ -34,7 +35,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Loads the policies of the plan flows of one deployed version of an API Product, once for all its member APIs.
+ * Loads the security policies and the plan flow policies of one deployed version of an API Product, once for all its
+ * member APIs.
  */
 class ApiProductPolicyManager extends AbstractPolicyManager {
 
@@ -62,6 +64,17 @@ class ApiProductPolicyManager extends AbstractPolicyManager {
 
     @Override
     protected Set<Policy> dependencies() {
+        return Stream.concat(securityPolicies(), flowPolicies()).collect(Collectors.toSet());
+    }
+
+    private Stream<Policy> securityPolicies() {
+        return plans
+            .stream()
+            .filter(plan -> plan.useStandardMode() && plan.getSecurity() != null && plan.getSecurity().getType() != null)
+            .map(plan -> policy(SecurityPolicyFactory.policyName(plan.getSecurity()), plan.getSecurity().getConfiguration()));
+    }
+
+    private Stream<Policy> flowPolicies() {
         return plans
             .stream()
             .map(Plan::getFlows)
@@ -72,12 +85,13 @@ class ApiProductPolicyManager extends AbstractPolicyManager {
             .filter(Objects::nonNull)
             .flatMap(List::stream)
             .filter(Step::isEnabled)
-            .map(step -> {
-                Policy policy = new Policy();
-                policy.setName(step.getPolicy());
-                policy.setConfiguration(step.getConfiguration());
-                return policy;
-            })
-            .collect(Collectors.toSet());
+            .map(step -> policy(step.getPolicy(), step.getConfiguration()));
+    }
+
+    private static Policy policy(String name, String configuration) {
+        Policy policy = new Policy();
+        policy.setName(name);
+        policy.setConfiguration(configuration);
+        return policy;
     }
 }

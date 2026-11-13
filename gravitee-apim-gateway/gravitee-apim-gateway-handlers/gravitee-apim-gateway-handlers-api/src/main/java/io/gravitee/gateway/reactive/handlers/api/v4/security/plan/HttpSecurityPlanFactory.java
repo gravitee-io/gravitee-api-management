@@ -42,20 +42,6 @@ public class HttpSecurityPlanFactory {
         @Nonnull PolicyManager policyManager,
         @Nonnull ExecutionPhase executionPhase
     ) {
-        return forPlan(apiId, null, plan, policyManager, executionPhase);
-    }
-
-    /**
-     * @param apiProductId the product owning the plan, null for a plan of the API
-     */
-    @Nullable
-    public static HttpSecurityPlan forPlan(
-        @Nonnull final String apiId,
-        @Nullable final String apiProductId,
-        @Nonnull AbstractPlan plan,
-        @Nonnull PolicyManager policyManager,
-        @Nonnull ExecutionPhase executionPhase
-    ) {
         if (plan.usePushMode()) {
             log.debug("The plan [{}] (api [{}]) is using the {} mode, it has no security policy.", plan.getName(), apiId, plan.getMode());
             return null;
@@ -64,7 +50,7 @@ public class HttpSecurityPlanFactory {
         final HttpSecurityPolicy policy = SecurityPolicyFactory.forPlan(apiId, plan, policyManager, executionPhase);
 
         if (policy != null) {
-            return new HttpSecurityPlan(SecurityPlanContext.builder().fromV4(plan).apiProductId(apiProductId).build(), policy);
+            return new HttpSecurityPlan(SecurityPlanContext.builder().fromV4(plan).build(), policy);
         }
 
         log.warn(

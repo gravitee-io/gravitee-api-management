@@ -262,7 +262,7 @@ public class ApiProductManagerImpl implements ApiProductManager {
     }
 
     /**
-     * Emit API Product event to trigger security chain refresh in affected reactors.
+     * Emit the API Product event, which resyncs the member APIs whose eligibility on this gateway may have changed.
      */
     private void emitApiProductChangedEvent(ApiProductEventType eventType, ReactableApiProduct apiProduct, Set<String> apiIdsToResync) {
         try {
@@ -276,7 +276,7 @@ public class ApiProductManagerImpl implements ApiProductManager {
             log.debug("Emitted {} event for API Product [{}]", eventType, apiProduct.getId());
         } catch (Exception e) {
             log.error(
-                "Failed to emit {} event for API Product [{}] — security chain may be stale until next sync cycle",
+                "Failed to emit {} event for API Product [{}] — member APIs may not be resynced until the next sync cycle",
                 eventType,
                 apiProduct.getId(),
                 e

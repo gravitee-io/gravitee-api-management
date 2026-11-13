@@ -84,6 +84,15 @@ public abstract class AbstractSecurityChain<
      * an error if no {@link AbstractSecurityPlan} can execute the request or the {@link AbstractSecurityPlan} failed.
      */
     public Completable execute(C ctx) {
+        return execute(ctx, chain);
+    }
+
+    /**
+     * Executes the given plans as {@link #execute(BaseExecutionContext)} executes the plans of the chain.
+     *
+     * @param securityPlans the plans to execute for this request, in the order to try them
+     */
+    protected Completable execute(C ctx, Flowable<P> securityPlans) {
         return defer(() -> {
             if (!Objects.equals(true, ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP))) {
                 ComponentScope.push(ctx, ComponentType.SYSTEM, "security");
@@ -91,7 +100,7 @@ public abstract class AbstractSecurityChain<
                 Boolean verbose401 = configuration.getProperty(SECURITY_VERBOSE_401, Boolean.class, false);
                 SecurityChainDiagnostic securityChainDiagnostic = new SecurityChainDiagnostic(verbose401);
                 ctx.setInternalAttribute(ATTR_INTERNAL_SECURITY_DIAGNOSTIC, securityChainDiagnostic);
-                return chain
+                return securityPlans
                     .concatMapSingle(securityPlan -> continueChain(ctx, securityPlan))
                     .any(Boolean::booleanValue)
                     .flatMapCompletable(securityHandled -> {
@@ -107,7 +116,7 @@ public abstract class AbstractSecurityChain<
                                 );
                             }
 
-                            return chain
+                            return securityPlans
                                 .filter(securityPlan -> securityPlan instanceof HttpSecurityPlan)
                                 .flatMapSingle(securityPlan -> {
                                     if (ctx instanceof HttpPlainExecutionContext httpCtx) {

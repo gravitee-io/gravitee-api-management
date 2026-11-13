@@ -16,12 +16,19 @@
 package io.gravitee.gateway.reactive.handlers.api.v4.product;
 
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
+import io.gravitee.gateway.reactive.handlers.api.security.plan.HttpSecurityPlan;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Scheduler;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.CustomLog;
 
 /**
@@ -39,7 +46,7 @@ public class ApiProductRuntimeRegistry {
     private final ApiProductRuntimeFactory runtimeFactory;
     private final long drainTimeoutMs;
     private final Scheduler scheduler;
-    private volatile Map<Key, ApiProductRuntime> runtimes = Map.of();
+    private final AtomicReference<Snapshot> snapshot = new AtomicReference<>(Snapshot.EMPTY);
 
     public ApiProductRuntimeRegistry(ApiProductRuntimeFactory runtimeFactory, long drainTimeoutMs, Scheduler scheduler) {
         this.runtimeFactory = runtimeFactory;
@@ -55,11 +62,26 @@ public class ApiProductRuntimeRegistry {
     public ApiProductRuntime acquire(String apiProductId, String environmentId) {
         Key key = new Key(apiProductId, environmentId);
         while (true) {
-            ApiProductRuntime runtime = runtimes.get(key);
+            ApiProductRuntime runtime = snapshot.get().runtimes().get(key);
             if (runtime == null || runtime.tryAcquire()) {
                 return runtime;
             }
             // Retired between the read and the pin: its replacement is already published.
+        }
+    }
+
+    /**
+     * Pins, for one request, the published runtimes of every product listing an API, all from the same snapshot. Each
+     * must be {@link ApiProductRuntime#release() released}.
+     */
+    public MemberApiRuntimes acquireForApi(String apiId, String environmentId) {
+        Key key = new Key(apiId, environmentId);
+        while (true) {
+            MemberApiRuntimes runtimes = snapshot.get().byApi().getOrDefault(key, MemberApiRuntimes.NONE);
+            if (runtimes.tryAcquireAll()) {
+                return runtimes;
+            }
+            // One was retired between the read and the pin: its replacement is already published.
         }
     }
 
@@ -71,7 +93,7 @@ public class ApiProductRuntimeRegistry {
      */
     public synchronized void deploy(ReactableApiProduct product) {
         ApiProductRuntime runtime = null;
-        ApiProductRuntime publishedBefore = runtimes.get(new Key(product.getId(), product.getEnvironmentId()));
+        ApiProductRuntime publishedBefore = snapshot.get().runtimes().get(new Key(product.getId(), product.getEnvironmentId()));
         try {
             runtime = runtimeFactory.create(product, publishedBefore);
             runtime.start();
@@ -84,27 +106,29 @@ public class ApiProductRuntimeRegistry {
                 e
             );
         }
-        Map<Key, ApiProductRuntime> next = new HashMap<>(runtimes);
-        ApiProductRuntime previous = next.put(new Key(product.getId(), product.getEnvironmentId()), runtime);
-        runtimes = Map.copyOf(next);
+        Map<Key, ApiProductRuntime> next = new LinkedHashMap<>(snapshot.get().runtimes());
+        Key key = new Key(product.getId(), product.getEnvironmentId());
+        ApiProductRuntime previous = next.remove(key);
+        next.put(key, runtime);
+        snapshot.set(Snapshot.of(next));
         if (previous != null) {
             retire(previous);
         }
     }
 
     public synchronized void remove(String apiProductId, String environmentId) {
-        Map<Key, ApiProductRuntime> next = new HashMap<>(runtimes);
+        Map<Key, ApiProductRuntime> next = new LinkedHashMap<>(snapshot.get().runtimes());
         ApiProductRuntime previous = next.remove(new Key(apiProductId, environmentId));
         if (previous != null) {
-            runtimes = Map.copyOf(next);
+            snapshot.set(Snapshot.of(next));
             retire(previous);
         }
     }
 
     /** Stops every runtime right away, as the gateway shuts down. */
     public synchronized void clear() {
-        Map<Key, ApiProductRuntime> stopping = runtimes;
-        runtimes = Map.of();
+        Map<Key, ApiProductRuntime> stopping = snapshot.get().runtimes();
+        snapshot.set(Snapshot.EMPTY);
         stopping
             .values()
             .forEach(runtime -> {
@@ -144,5 +168,56 @@ public class ApiProductRuntimeRegistry {
         }
     }
 
-    private record Key(String apiProductId, String environmentId) {}
+    /** The runtimes pinned for one request on a member API, and their security plans. */
+    public record MemberApiRuntimes(List<ApiProductRuntime> runtimes, List<HttpSecurityPlan> securityPlans) {
+        static final MemberApiRuntimes NONE = new MemberApiRuntimes(List.of(), List.of());
+
+        /**
+         * Product plans are tried before the plans of the API, sorted by order across products. The sort is stable, so
+         * plans of equal order keep the order the products were deployed in.
+         */
+        static MemberApiRuntimes of(List<ApiProductRuntime> runtimes) {
+            List<HttpSecurityPlan> securityPlans = runtimes
+                .stream()
+                .flatMap(runtime -> runtime.securityPlans().stream())
+                .sorted(Comparator.comparingInt(HttpSecurityPlan::order))
+                .toList();
+            return new MemberApiRuntimes(List.copyOf(runtimes), securityPlans);
+        }
+
+        private boolean tryAcquireAll() {
+            for (int i = 0; i < runtimes.size(); i++) {
+                if (!runtimes.get(i).tryAcquire()) {
+                    runtimes.subList(0, i).forEach(ApiProductRuntime::release);
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    /** The runtimes in the order their products were last deployed, and the runtimes serving each member API. */
+    private record Snapshot(Map<Key, ApiProductRuntime> runtimes, Map<Key, MemberApiRuntimes> byApi) {
+        static final Snapshot EMPTY = new Snapshot(Map.of(), Map.of());
+
+        static Snapshot of(Map<Key, ApiProductRuntime> runtimes) {
+            Map<Key, List<ApiProductRuntime>> runtimesByApi = new HashMap<>();
+            runtimes.forEach((productKey, runtime) -> {
+                if (runtime.product().getApiIds() != null) {
+                    runtime
+                        .product()
+                        .getApiIds()
+                        .forEach(apiId ->
+                            runtimesByApi.computeIfAbsent(new Key(apiId, productKey.environmentId()), k -> new ArrayList<>()).add(runtime)
+                        );
+                }
+            });
+            Map<Key, MemberApiRuntimes> byApi = new HashMap<>();
+            runtimesByApi.forEach((apiKey, apiRuntimes) -> byApi.put(apiKey, MemberApiRuntimes.of(apiRuntimes)));
+            return new Snapshot(Collections.unmodifiableMap(new LinkedHashMap<>(runtimes)), Map.copyOf(byApi));
+        }
+    }
+
+    /** An API Product, or a member API, in an environment. */
+    private record Key(String id, String environmentId) {}
 }
