@@ -16,15 +16,10 @@
 package io.gravitee.apim.core.secret.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.audit.model.AuditProperties;
-import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.secret.crud_service.SecretCrudService;
+import io.gravitee.apim.core.secret.domain_service.SecretDomainService;
 import io.gravitee.apim.core.secret.model.Secret;
-import io.gravitee.apim.core.secret.model.SecretAuditEvent;
-import io.gravitee.common.utils.TimeProvider;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -32,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class DeleteSecretUseCase {
 
     private final SecretCrudService secretCrudService;
-    private final AuditDomainService auditService;
+    private final SecretDomainService secretDomainService;
 
     public record Input(String secretId, AuditInfo auditInfo) {}
 
@@ -41,22 +36,8 @@ public class DeleteSecretUseCase {
     public Output execute(Input input) {
         var auditInfo = input.auditInfo();
         var secret = secretCrudService.get(auditInfo.organizationId(), auditInfo.environmentId(), input.secretId());
-        secretCrudService.delete(secret);
-        createAuditLog(secret, auditInfo);
+        Secret.requireUserKey(secret.key());
+        secretDomainService.delete(secret, auditInfo);
         return new Output();
-    }
-
-    private void createAuditLog(Secret deleted, AuditInfo auditInfo) {
-        auditService.createEnvironmentAuditLog(
-            EnvironmentAuditLogEntity.builder()
-                .organizationId(auditInfo.organizationId())
-                .environmentId(auditInfo.environmentId())
-                .event(SecretAuditEvent.SECRET_DELETED)
-                .actor(auditInfo.actor())
-                .oldValue(deleted)
-                .createdAt(TimeProvider.now())
-                .properties(Map.of(AuditProperties.SECRET, deleted.id()))
-                .build()
-        );
     }
 }

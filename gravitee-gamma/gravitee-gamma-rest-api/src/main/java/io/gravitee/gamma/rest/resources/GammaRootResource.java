@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.resources;
 
+import io.gravitee.gamma.rest.resources.credential.CredentialsResource;
 import io.gravitee.gamma.rest.resources.gravitee_plugin.PluginResource;
 import io.gravitee.gamma.rest.resources.guardian.GuardiansResource;
 import io.gravitee.gamma.rest.resources.observability.GammaObservabilityResource;
@@ -48,6 +49,15 @@ public class GammaRootResource {
     @Path("/organizations/{orgId}/environments/{envId}/guardians")
     public GuardiansResource getGuardiansResource() {
         return resourceContext.getResource(GuardiansResource.class);
+    }
+
+    /**
+     * Credentials of the environment, which any Gamma module can use to call an external service. See
+     * {@link CredentialsResource} for the contract.
+     */
+    @Path("/organizations/{orgId}/environments/{envId}/credentials")
+    public CredentialsResource getCredentialsResource() {
+        return resourceContext.getResource(CredentialsResource.class);
     }
 
     /**

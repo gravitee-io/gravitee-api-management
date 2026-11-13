@@ -66,6 +66,13 @@ public class SecretCrudServiceInMemory extends AbstractServiceInMemory<Secret> i
     }
 
     @Override
+    public String getEncryptedValue(Secret secret) {
+        return findById(secret.organizationId(), secret.environmentId(), secret.id())
+            .flatMap(found -> encryptedValueOf(found.id()))
+            .orElseThrow(() -> new SecretNotFoundException(secret.id()));
+    }
+
+    @Override
     public void delete(Secret secret) {
         if (storage.removeIf(s -> s.id().equals(secret.id()) && inScope(s, secret.organizationId(), secret.environmentId()))) {
             encryptedValues.remove(secret.id());
