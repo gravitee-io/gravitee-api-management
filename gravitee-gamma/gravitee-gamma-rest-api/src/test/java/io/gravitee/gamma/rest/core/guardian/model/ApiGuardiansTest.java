@@ -16,13 +16,18 @@
 package io.gravitee.gamma.rest.core.guardian.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.definition.model.guardian.GuardianSteps;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
+import io.gravitee.gamma.rest.core.guardian.exception.InvalidGuardianOrderException;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class ApiGuardiansTest {
 
@@ -85,6 +90,63 @@ class ApiGuardiansTest {
 
         assertThat(guardians.isEnabled("guardian-1")).as("guardian-1 enabled").isTrue();
         assertThat(guardians.isEnabled("guardian-2")).as("guardian-2 enabled").isFalse();
+    }
+
+    @Test
+    void should_reorder_the_guardians_of_a_phase() {
+        var guardians = ApiGuardians.of(
+            Flow.builder()
+                .request(List.of(GuardianSteps.of("guardian-1", "One"), GuardianSteps.of("guardian-2", "Two")))
+                .response(List.of(GuardianSteps.of("guardian-3", "Three")))
+                .build()
+        );
+
+        var reordered = guardians.reorder(Phase.REQUEST, List.of("guardian-2", "guardian-1"));
+
+        assertThat(reordered.list())
+            .as("enabled guardians")
+            .containsExactly(
+                new ApiGuardians.Enabled("guardian-2", Phase.REQUEST, 1),
+                new ApiGuardians.Enabled("guardian-1", Phase.REQUEST, 2),
+                new ApiGuardians.Enabled("guardian-3", Phase.RESPONSE, 1)
+            );
+    }
+
+    @Test
+    void should_keep_the_other_steps_in_place_when_reordering() {
+        var guardians = ApiGuardians.of(
+            Flow.builder().request(List.of(GuardianSteps.of("guardian-1", "One"), aPolicy(), GuardianSteps.of("guardian-2", "Two"))).build()
+        );
+
+        var reordered = guardians.reorder(Phase.REQUEST, List.of("guardian-2", "guardian-1"));
+
+        assertThat(reordered.internalFlow().getRequest())
+            .as("request steps")
+            .containsExactly(GuardianSteps.of("guardian-2", "Two"), aPolicy(), GuardianSteps.of("guardian-1", "One"));
+    }
+
+    @ParameterizedTest
+    @MethodSource("orders_that_are_not_the_guardians_of_the_phase")
+    void should_refuse_an_order_that_is_not_the_guardians_of_the_phase(List<String> order) {
+        var guardians = ApiGuardians.of(
+            Flow.builder()
+                .request(List.of(GuardianSteps.of("guardian-1", "One"), GuardianSteps.of("guardian-2", "Two")))
+                .response(List.of(GuardianSteps.of("guardian-3", "Three")))
+                .build()
+        );
+
+        assertThatThrownBy(() -> guardians.reorder(Phase.REQUEST, order))
+            .as("order " + order)
+            .isInstanceOf(InvalidGuardianOrderException.class);
+    }
+
+    static Stream<List<String>> orders_that_are_not_the_guardians_of_the_phase() {
+        return Stream.of(
+            List.of("guardian-1"),
+            List.of("guardian-1", "guardian-2", "guardian-3"),
+            List.of("guardian-1", "guardian-1"),
+            List.of("guardian-1", "guardian-4")
+        );
     }
 
     private static Step aPolicy() {

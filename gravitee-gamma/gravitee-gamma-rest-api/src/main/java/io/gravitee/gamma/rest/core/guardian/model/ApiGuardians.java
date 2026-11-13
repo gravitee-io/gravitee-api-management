@@ -19,9 +19,13 @@ import io.gravitee.definition.model.guardian.GuardianSteps;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
+import io.gravitee.gamma.rest.core.guardian.exception.InvalidGuardianOrderException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * The Guardians an API runs: the {@code guardian-policy} steps of its internal flow, request ones before response
@@ -60,6 +64,30 @@ public final class ApiGuardians {
         return withSteps(phase, steps);
     }
 
+    /**
+     * The Guardians with those of a phase run in this order. The other steps of the phase keep their position: the
+     * Guardians swap the places they already held.
+     *
+     * @throws InvalidGuardianOrderException unless the order lists each Guardian of the phase exactly once.
+     */
+    public ApiGuardians reorder(Phase phase, List<String> guardianIds) {
+        var steps = steps(phase);
+        var enabled = guardianIdsOf(steps);
+        if (guardianIds.size() != enabled.size() || !Set.copyOf(guardianIds).equals(Set.copyOf(enabled))) {
+            throw new InvalidGuardianOrderException(phase, enabled);
+        }
+        var byGuardian = steps
+            .stream()
+            .filter(step -> GuardianSteps.guardianIdOf(step).isPresent())
+            .collect(Collectors.toMap(step -> GuardianSteps.guardianIdOf(step).orElseThrow(), Function.identity()));
+        var next = guardianIds.iterator();
+        var reordered = steps
+            .stream()
+            .map(step -> GuardianSteps.guardianIdOf(step).isPresent() ? byGuardian.get(next.next()) : step)
+            .toList();
+        return withSteps(phase, reordered);
+    }
+
     public List<Enabled> list() {
         var enabled = new ArrayList<Enabled>();
         enabled.addAll(list(Phase.REQUEST));
@@ -68,12 +96,16 @@ public final class ApiGuardians {
     }
 
     private List<Enabled> list(Phase phase) {
-        var guardianIds = steps(phase).stream().map(GuardianSteps::guardianIdOf).flatMap(Optional::stream).toList();
+        var guardianIds = guardianIdsOf(steps(phase));
         var enabled = new ArrayList<Enabled>();
         for (int i = 0; i < guardianIds.size(); i++) {
             enabled.add(new Enabled(guardianIds.get(i), phase, i + 1));
         }
         return enabled;
+    }
+
+    private static List<String> guardianIdsOf(List<Step> steps) {
+        return steps.stream().map(GuardianSteps::guardianIdOf).flatMap(Optional::stream).toList();
     }
 
     private ApiGuardians withSteps(Phase phase, List<Step> steps) {

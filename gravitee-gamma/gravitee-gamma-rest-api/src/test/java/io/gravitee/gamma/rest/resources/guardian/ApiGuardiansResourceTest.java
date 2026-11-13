@@ -223,6 +223,58 @@ class ApiGuardiansResourceTest extends AbstractResourceTest {
         }
     }
 
+    @Nested
+    class ReorderApiGuardians {
+
+        @BeforeEach
+        void given_an_api_running_two_request_guardians() {
+            guardianRepository.givenGuardian(GuardianFixtures.aGuardian(d -> d.id("guardian-1").environmentId(ENVIRONMENT)).build());
+            guardianRepository.givenGuardian(GuardianFixtures.aGuardian(d -> d.id("guardian-2").environmentId(ENVIRONMENT)).build());
+            apis.givenApi(
+                GuardianFixtures.aGuardedApi()
+                    .environmentId(ENVIRONMENT)
+                    .internalFlow(
+                        Flow.builder()
+                            .request(List.of(GuardianSteps.of("guardian-1", "One"), GuardianSteps.of("guardian-2", "Two")))
+                            .build()
+                    )
+                    .build()
+            );
+        }
+
+        @Test
+        void should_reorder_the_guardians_of_a_phase() {
+            Response response = put(Map.of("phase", "REQUEST", "guardianIds", List.of("guardian-2", "guardian-1")));
+
+            assertThat(response.getStatus()).as("status").isEqualTo(HttpStatusCode.OK_200);
+            JsonNode data = response.readEntity(JsonNode.class).get("data");
+            assertSoftly(softly -> {
+                softly.assertThat(data.get(0).get("id").asText()).as("first").isEqualTo("guardian-2");
+                softly.assertThat(data.get(1).get("id").asText()).as("second").isEqualTo("guardian-1");
+            });
+        }
+
+        @Test
+        void should_return_400_for_an_order_missing_a_guardian() {
+            Response response = put(Map.of("phase", "REQUEST", "guardianIds", List.of("guardian-2")));
+
+            assertThat(response.getStatus()).as("status").isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_403_without_the_permission_to_read_the_guardians() {
+            when(permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_GUARDIAN), any(), any())).thenReturn(false);
+
+            Response response = put(Map.of("phase", "REQUEST", "guardianIds", List.of("guardian-2", "guardian-1")));
+
+            assertThat(response.getStatus()).as("status").isEqualTo(HttpStatusCode.FORBIDDEN_403);
+        }
+
+        private Response put(Object payload) {
+            return rootTarget().path("_order").request().put(Entity.entity(payload, MediaType.APPLICATION_JSON_TYPE));
+        }
+    }
+
     private void givenDeployedGuardian() {
         var guardian = GuardianFixtures.aGuardian(d -> d.environmentId(ENVIRONMENT).name("Credential leakage")).build();
         guardianRepository.givenGuardian(guardian);
