@@ -30,7 +30,7 @@ import java.util.Set;
  * What an installed policy declares about where it can run: the flows of its manifest, projected onto the Guardian
  * phases.
  */
-public record PolicyCapabilities(String name, boolean guardrail, DeclaredFlows flows) {
+public record PolicyCapabilities(boolean guardrail, DeclaredFlows flows) {
     /** The API types a guardrail can be scoped to, keyed by the flow declaring its phases. */
     private static final Map<ApiProtocolType, ApiType> GUARDRAIL_API_TYPES = Map.of(
         ApiProtocolType.LLM_PROXY,
@@ -67,11 +67,6 @@ public record PolicyCapabilities(String name, boolean guardrail, DeclaredFlows f
 
     public boolean supports(Set<ApiType> apiTypes) {
         return phasesByApiType().keySet().containsAll(apiTypes);
-    }
-
-    /** Whether a Guardian of these API types and phase can run this policy as one of its guardrails. */
-    public boolean isGuardrailFor(Set<ApiType> apiTypes, Phase phase) {
-        return guardrail && runsIn(apiTypes, phase);
     }
 
     public boolean runsIn(Set<ApiType> apiTypes, Phase phase) {
