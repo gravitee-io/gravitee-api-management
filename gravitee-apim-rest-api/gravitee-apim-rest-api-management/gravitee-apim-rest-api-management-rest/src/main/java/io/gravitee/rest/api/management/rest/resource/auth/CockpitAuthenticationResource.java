@@ -188,13 +188,18 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
             userDetails.setEmail(user.getEmail());
             SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
 
+            final String application = jwtClaimsSet.getStringClaim(APPLICATION_CLAIM);
+            // The portal records the connection itself when it exchanges the token we redirect it with.
+            if (!APPLICATION_PORTAL.equalsIgnoreCase(application)) {
+                userService.connect(GraviteeContext.getExecutionContext(), user.getId());
+            }
+
             // Cockpit user is authenticated, connect user (ie: generate cookie).
             // The Cloud module proxies Cockpit calls for this user with the token, so it must survive in the APIM session.
             final String gcat = jwtClaimsSet.getStringClaim(JWTHelper.Claims.GCAT);
             Map<String, String> additionalClaims = gcat != null ? Map.of(JWTHelper.Claims.GCAT, gcat) : null;
             super.connectUser(user, httpResponse, additionalClaims);
 
-            final String application = jwtClaimsSet.getStringClaim(APPLICATION_CLAIM);
             if (APPLICATION_PORTAL.equalsIgnoreCase(application)) {
                 TokenEntity tokenEntity = generateToken(user, 30);
                 String url = installationAccessQueryService.getPortalAPIUrl(environmentId);
