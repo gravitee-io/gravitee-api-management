@@ -30,8 +30,8 @@ import io.gravitee.apim.core.credential.exception.InvalidCredentialException;
 import io.gravitee.apim.core.credential.exception.SecretPermissionRequiredException;
 import io.gravitee.apim.core.credential.model.Credential;
 import io.gravitee.apim.core.credential.model.CredentialActor;
-import io.gravitee.apim.core.credential.model.CredentialStrategy;
 import io.gravitee.apim.core.credential.model.CredentialActor.SecretAccess;
+import io.gravitee.apim.core.credential.model.CredentialStrategy;
 import io.gravitee.apim.core.credential.model.SecretReference;
 import io.gravitee.apim.core.credential.model.UpdateCredentialCommand;
 import java.time.Instant;
@@ -124,7 +124,9 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
         );
 
         assertThatThrownBy(() ->
-            update(fixture.ownerWithSecretAccess(), credential, c -> c.configuration(Map.of("tokenUrl", "https://elsewhere.example.com/token")))
+            update(fixture.ownerWithSecretAccess(), credential, c ->
+                c.configuration(Map.of("tokenUrl", "https://elsewhere.example.com/token"))
+            )
         ).isInstanceOf(SecretPermissionRequiredException.class);
         assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
     }
