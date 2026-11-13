@@ -33,6 +33,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fakes.spring.MutableObjectProvider;
 import io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -215,7 +216,7 @@ public class ApiStateServiceImplTest {
             synchronizationService,
             eventManager,
             searchEngineService,
-            validateApiClusterBindingService
+            MutableObjectProvider.of(validateApiClusterBindingService)
         );
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
@@ -251,7 +252,7 @@ public class ApiStateServiceImplTest {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         doThrow(new ApiNotDeployableException("virtual cluster not deployed"))
             .when(validateApiClusterBindingService)
-            .validateDeployable(any(), any(), any(), any());
+            .validateDeployable(any());
 
         assertThatExceptionOfType(ApiNotDeployableException.class).isThrownBy(() ->
             apiStateService.start(executionContext, API_ID, USER_NAME)

@@ -23,6 +23,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fakes.spring.MutableObjectProvider;
+import io.gravitee.apim.core.deployment.service_provider.ApiDeploymentValidator;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -170,6 +172,10 @@ public class ApiStateServiceImpl_DeployTest {
     private final io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService validateApiClusterBindingService = mock(
         io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService.class
     );
+    private final ApiDeploymentValidator moduleDeploymentValidator = mock(ApiDeploymentValidator.class);
+
+    /** The validators the context holds, which a Gamma module may still add to once the context is refreshed. */
+    private final MutableObjectProvider<ApiDeploymentValidator> deploymentValidators = new MutableObjectProvider<>();
 
     private Api api;
     private Api updatedApi;
@@ -220,9 +226,10 @@ public class ApiStateServiceImpl_DeployTest {
             synchronizationService,
             eventManager,
             searchEngineService,
-            validateApiClusterBindingService
+            deploymentValidators
         );
-        reset(searchEngineService, validateApiClusterBindingService);
+        deploymentValidators.clear().add(validateApiClusterBindingService).add(moduleDeploymentValidator);
+        reset(searchEngineService, validateApiClusterBindingService, moduleDeploymentValidator);
         UserEntity admin = new UserEntity();
         admin.setId(USER_NAME);
 
@@ -292,12 +299,49 @@ public class ApiStateServiceImpl_DeployTest {
         when(apiSearchService.findRepositoryApiById(any(), eq(API_ID))).thenReturn(api);
         doThrow(new ApiNotDeployableException("bound virtual cluster is not deployed"))
             .when(validateApiClusterBindingService)
-            .validateDeployable(eq(API_ID), any(), any(), any());
+            .validateDeployable(argThat(deployed -> API_ID.equals(deployed.getId())));
 
         assertThrows(ApiNotDeployableException.class, () ->
             apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity())
         );
         verify(apiRepository, never()).update(any());
+    }
+
+    @Test
+    public void should_not_deploy_when_a_module_refuses_the_definition() throws TechnicalException {
+        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
+        when(apiSearchService.findRepositoryApiById(any(), eq(API_ID))).thenReturn(api);
+        doThrow(new ApiNotDeployableException("Guardian 'guardian-1' is not deployed"))
+            .when(moduleDeploymentValidator)
+            .validateDeployable(argThat(deployed -> API_ID.equals(deployed.getId())));
+
+        assertThrows(ApiNotDeployableException.class, () ->
+            apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity())
+        );
+        verify(apiRepository, never()).update(any());
+    }
+
+    /**
+     * A Gamma module registers its validator in the parent context <em>after</em> that context is refreshed, which can
+     * be after an API has already been deployed. Resolve the collection once and the Guardian check silently stops
+     * running on every deployment of the installation until the next restart.
+     */
+    @Test
+    public void should_run_a_validator_the_context_gained_after_a_first_deployment() throws TechnicalException {
+        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
+        when(apiSearchService.findRepositoryApiById(any(), eq(API_ID))).thenReturn(api);
+        when(apiRepository.update(api)).thenReturn(api);
+        deploymentValidators.clear();
+
+        apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity());
+        deploymentValidators.add(moduleDeploymentValidator);
+        doThrow(new ApiNotDeployableException("Guardian 'guardian-1' is not deployed"))
+            .when(moduleDeploymentValidator)
+            .validateDeployable(argThat(deployed -> API_ID.equals(deployed.getId())));
+
+        assertThrows(ApiNotDeployableException.class, () ->
+            apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity())
+        );
     }
 
     @Test

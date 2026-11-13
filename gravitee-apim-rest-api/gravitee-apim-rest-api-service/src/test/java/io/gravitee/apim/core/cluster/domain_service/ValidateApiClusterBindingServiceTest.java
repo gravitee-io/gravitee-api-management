@@ -25,6 +25,7 @@ import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.ApiDefinition;
 import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
@@ -71,7 +72,7 @@ class ValidateApiClusterBindingServiceTest {
 
     @Test
     void should_throw_when_bound_virtual_cluster_is_missing() {
-        assertThatThrownBy(() -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, virtualClusterBoundDefinition()))
+        assertThatThrownBy(() -> validateDeployable("api-1", ENV_ID, ApiType.NATIVE, virtualClusterBoundDefinition()))
             .isInstanceOf(ApiNotDeployableException.class)
             .hasMessage("The API {api-1} cannot be deployed or started because its cluster {mesh} is not deployed");
     }
@@ -81,7 +82,7 @@ class ValidateApiClusterBindingServiceTest {
         givenStored(virtualCluster(ClusterLifecycleState.UNDEPLOYED), registeredCluster(ClusterLifecycleState.DEPLOYED));
         givenDeployed(virtualCluster(ClusterLifecycleState.DEPLOYED), registeredCluster(ClusterLifecycleState.DEPLOYED));
 
-        assertThatThrownBy(() -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, virtualClusterBoundDefinition()))
+        assertThatThrownBy(() -> validateDeployable("api-1", ENV_ID, ApiType.NATIVE, virtualClusterBoundDefinition()))
             .isInstanceOf(ApiNotDeployableException.class)
             .hasMessage("The API {api-1} cannot be deployed or started because its cluster {mesh} is not deployed");
     }
@@ -91,7 +92,7 @@ class ValidateApiClusterBindingServiceTest {
         givenDeployedAndStored(virtualCluster(ClusterLifecycleState.DEPLOYED), registeredCluster(ClusterLifecycleState.DEPLOYED));
 
         assertThatCode(() ->
-            service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, virtualClusterBoundDefinition())
+            validateDeployable("api-1", ENV_ID, ApiType.NATIVE, virtualClusterBoundDefinition())
         ).doesNotThrowAnyException();
     }
 
@@ -101,7 +102,7 @@ class ValidateApiClusterBindingServiceTest {
         givenDeployedAndStored(virtualCluster(ClusterLifecycleState.PENDING), registeredCluster(ClusterLifecycleState.DEPLOYED));
 
         assertThatCode(() ->
-            service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, virtualClusterBoundDefinition())
+            validateDeployable("api-1", ENV_ID, ApiType.NATIVE, virtualClusterBoundDefinition())
         ).doesNotThrowAnyException();
     }
 
@@ -110,7 +111,7 @@ class ValidateApiClusterBindingServiceTest {
         givenStored(virtualCluster(ClusterLifecycleState.DEPLOYED), registeredCluster(ClusterLifecycleState.UNDEPLOYED));
         givenDeployed(virtualCluster(ClusterLifecycleState.DEPLOYED));
 
-        assertThatThrownBy(() -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, virtualClusterBoundDefinition()))
+        assertThatThrownBy(() -> validateDeployable("api-1", ENV_ID, ApiType.NATIVE, virtualClusterBoundDefinition()))
             .isInstanceOf(ApiNotDeployableException.class)
             .hasMessage(
                 "The API {api-1} cannot be deployed or started because its virtual cluster {mesh} has a backend on cluster {prod}, which is not deployed"
@@ -121,7 +122,7 @@ class ValidateApiClusterBindingServiceTest {
     void should_throw_when_a_backend_connection_of_the_bound_virtual_cluster_is_not_in_the_deployed_cluster() {
         givenDeployedAndStored(virtualCluster(ClusterLifecycleState.DEPLOYED, "plain"), registeredCluster(ClusterLifecycleState.DEPLOYED));
 
-        assertThatThrownBy(() -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, virtualClusterBoundDefinition()))
+        assertThatThrownBy(() -> validateDeployable("api-1", ENV_ID, ApiType.NATIVE, virtualClusterBoundDefinition()))
             .isInstanceOf(ApiNotDeployableException.class)
             .hasMessage(
                 "The API {api-1} cannot be deployed or started because its virtual cluster {mesh} has a backend on connection {plain}, which does not exist in the deployed cluster {prod}"
@@ -132,7 +133,7 @@ class ValidateApiClusterBindingServiceTest {
     void should_throw_when_native_api_registered_cluster_is_not_deployed() {
         givenStored(registeredCluster(ClusterLifecycleState.UNDEPLOYED));
 
-        assertThatThrownBy(() -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, registeredClusterBoundDefinition("sasl")))
+        assertThatThrownBy(() -> validateDeployable("api-1", ENV_ID, ApiType.NATIVE, registeredClusterBoundDefinition("sasl")))
             .isInstanceOf(ApiNotDeployableException.class)
             .hasMessage("The API {api-1} cannot be deployed or started because its cluster {prod} is not deployed");
     }
@@ -142,7 +143,7 @@ class ValidateApiClusterBindingServiceTest {
         givenDeployedAndStored(registeredCluster(ClusterLifecycleState.DEPLOYED));
 
         assertThatCode(() ->
-            service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, registeredClusterBoundDefinition("sasl"))
+            validateDeployable("api-1", ENV_ID, ApiType.NATIVE, registeredClusterBoundDefinition("sasl"))
         ).doesNotThrowAnyException();
     }
 
@@ -150,7 +151,7 @@ class ValidateApiClusterBindingServiceTest {
     void should_throw_when_native_api_connection_is_not_in_the_deployed_cluster() {
         givenDeployedAndStored(registeredCluster(ClusterLifecycleState.DEPLOYED));
 
-        assertThatThrownBy(() -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, registeredClusterBoundDefinition("plain")))
+        assertThatThrownBy(() -> validateDeployable("api-1", ENV_ID, ApiType.NATIVE, registeredClusterBoundDefinition("plain")))
             .isInstanceOf(ApiNotDeployableException.class)
             .hasMessage(
                 "The API {api-1} cannot be deployed or started because its connection {plain} does not exist in the deployed cluster {prod}"
@@ -162,7 +163,7 @@ class ValidateApiClusterBindingServiceTest {
         givenStored(registeredCluster(ClusterLifecycleState.PENDING, "sasl", "plain"));
         givenDeployed(registeredCluster(ClusterLifecycleState.DEPLOYED, "sasl"));
 
-        assertThatThrownBy(() -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, registeredClusterBoundDefinition("plain")))
+        assertThatThrownBy(() -> validateDeployable("api-1", ENV_ID, ApiType.NATIVE, registeredClusterBoundDefinition("plain")))
             .isInstanceOf(ApiNotDeployableException.class)
             .hasMessage(
                 "The API {api-1} cannot be deployed or started because its connection {plain} does not exist in the deployed cluster {prod}"
@@ -177,7 +178,7 @@ class ValidateApiClusterBindingServiceTest {
         givenDeployed(deployed, registeredCluster(ClusterLifecycleState.DEPLOYED));
 
         assertThatCode(() ->
-            service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, virtualClusterBoundDefinition())
+            validateDeployable("api-1", ENV_ID, ApiType.NATIVE, virtualClusterBoundDefinition())
         ).doesNotThrowAnyException();
     }
 
@@ -185,7 +186,7 @@ class ValidateApiClusterBindingServiceTest {
     void should_throw_when_a_deployed_cluster_has_no_deployed_version() {
         givenStored(registeredCluster(ClusterLifecycleState.DEPLOYED));
 
-        assertThatThrownBy(() -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, registeredClusterBoundDefinition("sasl")))
+        assertThatThrownBy(() -> validateDeployable("api-1", ENV_ID, ApiType.NATIVE, registeredClusterBoundDefinition("sasl")))
             .isInstanceOf(ApiNotDeployableException.class)
             .hasMessage("The API {api-1} cannot be deployed or started because its cluster {prod} has no deployed version: redeploy it");
     }
@@ -195,7 +196,7 @@ class ValidateApiClusterBindingServiceTest {
         givenDeployedAndStored(virtualCluster(ClusterLifecycleState.DEPLOYED), registeredCluster(ClusterLifecycleState.DEPLOYED));
 
         assertThatThrownBy(() ->
-            service.validateDeployable(
+            validateDeployable(
                 "api-1",
                 ENV_ID,
                 ApiType.NATIVE,
@@ -211,7 +212,7 @@ class ValidateApiClusterBindingServiceTest {
         givenDeployedAndStored(registeredCluster(ClusterLifecycleState.DEPLOYED));
 
         assertThatThrownBy(() ->
-            service.validateDeployable(
+            validateDeployable(
                 "api-1",
                 ENV_ID,
                 ApiType.NATIVE,
@@ -227,7 +228,7 @@ class ValidateApiClusterBindingServiceTest {
         Cluster noBackend = virtualCluster(ClusterLifecycleState.DEPLOYED).toBuilder().configuration(Map.of("backends", List.of())).build();
         givenDeployedAndStored(noBackend);
 
-        assertThatThrownBy(() -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, virtualClusterBoundDefinition()))
+        assertThatThrownBy(() -> validateDeployable("api-1", ENV_ID, ApiType.NATIVE, virtualClusterBoundDefinition()))
             .isInstanceOf(ApiNotDeployableException.class)
             .hasMessage("The API {api-1} cannot be deployed or started because its virtual cluster {mesh} has no backend");
     }
@@ -237,19 +238,14 @@ class ValidateApiClusterBindingServiceTest {
         givenDeployedAndStored(registeredCluster(ClusterLifecycleState.DEPLOYED));
 
         assertThatCode(() ->
-            service.validateDeployable(
-                "api-1",
-                ENV_ID,
-                ApiType.NATIVE,
-                nativeDefinition("native-kafka-cluster", "{\"clusterCrossId\":\"prod\"}")
-            )
+            validateDeployable("api-1", ENV_ID, ApiType.NATIVE, nativeDefinition("native-kafka-cluster", "{\"clusterCrossId\":\"prod\"}"))
         ).doesNotThrowAnyException();
     }
 
     @Test
     void should_be_noop_for_non_native_api() {
         assertThatCode(() ->
-            service.validateDeployable("api-1", ENV_ID, ApiType.PROXY, virtualClusterBoundDefinition())
+            validateDeployable("api-1", ENV_ID, ApiType.PROXY, virtualClusterBoundDefinition())
         ).doesNotThrowAnyException();
     }
 
@@ -267,27 +263,27 @@ class ValidateApiClusterBindingServiceTest {
                 .build()
         );
 
-        assertThatCode(() -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, definition)).doesNotThrowAnyException();
+        assertThatCode(() -> validateDeployable("api-1", ENV_ID, ApiType.NATIVE, definition)).doesNotThrowAnyException();
     }
 
     @Test
     void should_be_noop_for_null_and_malformed_definition() {
-        assertThatCode(() -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, null)).doesNotThrowAnyException();
-        assertThatCode(() -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, "{ not-json")).doesNotThrowAnyException();
+        assertThatCode(() -> validateDeployable("api-1", ENV_ID, ApiType.NATIVE, null)).doesNotThrowAnyException();
+        assertThatCode(() -> validateDeployable("api-1", ENV_ID, ApiType.NATIVE, "{ not-json")).doesNotThrowAnyException();
     }
 
     @Test
     void should_throw_when_message_api_kafka_cluster_is_not_deployed() {
         givenStored(registeredCluster(ClusterLifecycleState.UNDEPLOYED));
 
-        assertThatThrownBy(() -> service.validateDeployable("api-1", ENV_ID, ApiType.MESSAGE, messageDefinition("sasl")))
+        assertThatThrownBy(() -> validateDeployable("api-1", ENV_ID, ApiType.MESSAGE, messageDefinition("sasl")))
             .isInstanceOf(ApiNotDeployableException.class)
             .hasMessage("The API {api-1} cannot be deployed or started because its cluster {prod} is not deployed");
     }
 
     @Test
     void should_throw_when_message_api_kafka_cluster_is_missing() {
-        assertThatThrownBy(() -> service.validateDeployable("api-1", ENV_ID, ApiType.MESSAGE, messageDefinition("sasl"))).isInstanceOf(
+        assertThatThrownBy(() -> validateDeployable("api-1", ENV_ID, ApiType.MESSAGE, messageDefinition("sasl"))).isInstanceOf(
             ApiNotDeployableException.class
         );
     }
@@ -296,7 +292,7 @@ class ValidateApiClusterBindingServiceTest {
     void should_throw_when_message_api_connection_is_not_in_the_deployed_cluster() {
         givenDeployedAndStored(registeredCluster(ClusterLifecycleState.DEPLOYED));
 
-        assertThatThrownBy(() -> service.validateDeployable("api-1", ENV_ID, ApiType.MESSAGE, messageDefinition("plain")))
+        assertThatThrownBy(() -> validateDeployable("api-1", ENV_ID, ApiType.MESSAGE, messageDefinition("plain")))
             .isInstanceOf(ApiNotDeployableException.class)
             .hasMessage(
                 "The API {api-1} cannot be deployed or started because its connection {plain} does not exist in the deployed cluster {prod}"
@@ -308,15 +304,13 @@ class ValidateApiClusterBindingServiceTest {
         givenStored(registeredCluster(ClusterLifecycleState.PENDING));
         givenDeployed(registeredCluster(ClusterLifecycleState.DEPLOYED));
 
-        assertThatCode(() ->
-            service.validateDeployable("api-1", ENV_ID, ApiType.MESSAGE, messageDefinition("sasl"))
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> validateDeployable("api-1", ENV_ID, ApiType.MESSAGE, messageDefinition("sasl"))).doesNotThrowAnyException();
     }
 
     @Test
     void should_throw_when_a_message_api_cluster_group_names_no_cluster() {
         assertThatThrownBy(() ->
-            service.validateDeployable(
+            validateDeployable(
                 "api-1",
                 ENV_ID,
                 ApiType.MESSAGE,
@@ -351,7 +345,7 @@ class ValidateApiClusterBindingServiceTest {
             .build();
         givenDeployedAndStored(trustAll);
 
-        assertThatThrownBy(() -> service.validateDeployable("api-1", ENV_ID, ApiType.MESSAGE, messageDefinition("sasl")))
+        assertThatThrownBy(() -> validateDeployable("api-1", ENV_ID, ApiType.MESSAGE, messageDefinition("sasl")))
             .isInstanceOf(ApiNotDeployableException.class)
             .hasMessageStartingWith("The API {api-1} cannot be deployed or started: ")
             .hasMessageContaining("Trust all is not supported: give a truststore.");
@@ -359,9 +353,7 @@ class ValidateApiClusterBindingServiceTest {
 
     @Test
     void should_be_noop_for_message_api_in_direct_mode() {
-        assertThatCode(() ->
-            service.validateDeployable("api-1", ENV_ID, ApiType.MESSAGE, directMessageDefinition())
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> validateDeployable("api-1", ENV_ID, ApiType.MESSAGE, directMessageDefinition())).doesNotThrowAnyException();
     }
 
     @Nested
@@ -593,6 +585,35 @@ class ValidateApiClusterBindingServiceTest {
             );
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * The API as a deployment hands it over: the definition parsed once by the caller, the way
+     * {@code ApiStateServiceImpl} does before running the validators.
+     */
+    private void validateDeployable(String apiId, String environmentId, ApiType apiType, String definition) {
+        service.validateDeployable(
+            io.gravitee.apim.core.api.model.Api.builder()
+                .id(apiId)
+                .environmentId(environmentId)
+                .type(apiType)
+                .apiDefinitionValue(parse(apiType, definition))
+                .build()
+        );
+    }
+
+    /** A definition the caller could not parse arrives as no definition at all, the way the API adapter hands it over. */
+    private ApiDefinition parse(ApiType apiType, String definition) {
+        if (definition == null) {
+            return null;
+        }
+        try {
+            return apiType == ApiType.NATIVE
+                ? objectMapper.readValue(definition, NativeApi.class)
+                : objectMapper.readValue(definition, Api.class);
+        } catch (Exception e) {
+            return null;
         }
     }
 
