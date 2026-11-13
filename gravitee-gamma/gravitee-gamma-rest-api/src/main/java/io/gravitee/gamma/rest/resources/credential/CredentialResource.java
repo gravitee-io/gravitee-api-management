@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -58,6 +59,9 @@ public class CredentialResource {
 
     @Inject
     private PermissionService permissionService;
+
+    @Inject
+    private MembershipService membershipService;
 
     @Inject
     private GetCredentialUseCase getCredentialUseCase;
@@ -116,6 +120,6 @@ public class CredentialResource {
     }
 
     private CredentialActor actor() {
-        return CurrentCredentialActor.of(securityContext, permissionService);
+        return CurrentCredentialActor.of(securityContext, permissionService, membershipService);
     }
 }

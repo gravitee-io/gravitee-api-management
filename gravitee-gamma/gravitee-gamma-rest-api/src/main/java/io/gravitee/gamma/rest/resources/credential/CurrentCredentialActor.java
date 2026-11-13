@@ -21,10 +21,13 @@ import io.gravitee.apim.core.credential.model.CredentialActor;
 import io.gravitee.apim.core.credential.model.CredentialActor.SecretAccess;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.SecurityContext;
@@ -35,18 +38,20 @@ import org.springframework.security.core.context.SecurityContextHolder;
 final class CurrentCredentialActor {
 
     private static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
-    private static final String ENVIRONMENT_ADMIN = RoleScope.ENVIRONMENT.name() + ':' + SystemRole.ADMIN.name();
 
     private CurrentCredentialActor() {}
 
-    static CredentialActor of(SecurityContext securityContext, PermissionService permissionService) {
+    static CredentialActor of(SecurityContext securityContext, PermissionService permissionService, MembershipService membershipService) {
         var ctx = GraviteeContext.getExecutionContext();
+        var user = authenticatedUser();
         var auditInfo = AuditInfo.builder()
             .organizationId(ctx.getOrganizationId())
             .environmentId(ctx.getEnvironmentId())
-            .actor(authenticatedUser())
+            .actor(user)
             .build();
-        var admin = securityContext.isUserInRole(ORGANIZATION_ADMIN) || securityContext.isUserInRole(ENVIRONMENT_ADMIN);
+        var admin =
+            securityContext.isUserInRole(ORGANIZATION_ADMIN) ||
+            isEnvironmentAdmin(membershipService, ctx.getEnvironmentId(), user.userId());
 
         var secretAccess = EnumSet.noneOf(SecretAccess.class);
         for (var access : SecretAccess.values()) {
@@ -62,6 +67,14 @@ final class CurrentCredentialActor {
             }
         }
         return new CredentialActor(auditInfo, admin, secretAccess);
+    }
+
+    // The ENVIRONMENT:ADMIN authority of the token holds for any environment the user administers, not this one in particular.
+    private static boolean isEnvironmentAdmin(MembershipService membershipService, String environmentId, String userId) {
+        return membershipService
+            .getRoles(MembershipReferenceType.ENVIRONMENT, environmentId, MembershipMemberType.USER, userId)
+            .stream()
+            .anyMatch(role -> role.getScope() == RoleScope.ENVIRONMENT && SystemRole.ADMIN.name().equals(role.getName()));
     }
 
     // The owner rule compares user ids, so a caller without one must not get through as a null owner.

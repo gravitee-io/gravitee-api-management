@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.UuidString;
 import jakarta.inject.Inject;
@@ -75,6 +76,9 @@ public class CredentialsResource {
     private PermissionService permissionService;
 
     @Inject
+    private MembershipService membershipService;
+
+    @Inject
     private CreateCredentialUseCase createCredentialUseCase;
 
     @Inject
@@ -88,7 +92,7 @@ public class CredentialsResource {
             .execute(
                 new CreateCredentialUseCase.Input(
                     UuidString.generateRandom(),
-                    CurrentCredentialActor.of(securityContext, permissionService),
+                    CurrentCredentialActor.of(securityContext, permissionService, membershipService),
                     request.toCommand()
                 )
             )
@@ -116,7 +120,7 @@ public class CredentialsResource {
         var credentials = searchCredentialsUseCase
             .execute(
                 new SearchCredentialsUseCase.Input(
-                    CurrentCredentialActor.of(securityContext, permissionService),
+                    CurrentCredentialActor.of(securityContext, permissionService, membershipService),
                     query,
                     new PageableImpl(page, perPage)
                 )
