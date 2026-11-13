@@ -70,7 +70,6 @@ public final class GuardianFixtures {
             Map.of(
                 "data-logging-masking",
                 new PolicyCapabilities(
-                    "Data logging masking",
                     true,
                     flows(ApiProtocolType.LLM_PROXY, "REQUEST,RESPONSE", ApiProtocolType.GUARDIAN, "REQUEST,RESPONSE")
                 )

@@ -88,7 +88,6 @@ class DefaultPolicyPluginProviderTest {
             .extractingByKey("rule-guardrail")
             .satisfies(policy ->
                 SoftAssertions.assertSoftly(softly -> {
-                    softly.assertThat(policy.name()).as("name").isEqualTo("Name of rule-guardrail");
                     softly.assertThat(policy.guardrail()).as("guardrail").isTrue();
                     softly
                         .assertThat(policy.flows())
@@ -195,7 +194,7 @@ class DefaultPolicyPluginProviderTest {
 
         assertThat(provider.findAllCapabilities()).containsEntry(
             "ordinary-policy",
-            new PolicyCapabilities("Name of ordinary-policy", false, new DeclaredFlows(Map.of()))
+            new PolicyCapabilities(false, new DeclaredFlows(Map.of()))
         );
     }
 
@@ -227,15 +226,8 @@ class DefaultPolicyPluginProviderTest {
         var policies = provider.findAllCapabilities();
 
         SoftAssertions.assertSoftly(softly -> {
-            softly
-                .assertThat(policies)
-                .containsEntry(
-                    "transform-headers",
-                    new PolicyCapabilities("Name of transform-headers", false, new DeclaredFlows(Map.of()))
-                );
-            softly
-                .assertThat(policies)
-                .containsEntry("rule-guardrail", new PolicyCapabilities("Name of rule-guardrail", true, new DeclaredFlows(Map.of())));
+            softly.assertThat(policies).containsEntry("transform-headers", new PolicyCapabilities(false, new DeclaredFlows(Map.of())));
+            softly.assertThat(policies).containsEntry("rule-guardrail", new PolicyCapabilities(true, new DeclaredFlows(Map.of())));
         });
     }
 }
