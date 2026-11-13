@@ -27,11 +27,12 @@ export class ElasticTestContainerJob extends AbstractTestContainerJob {
       new parameters.CustomParametersList([
         new parameters.CustomEnumParameter('engineType', ['elasticsearch', 'opensearch'], 'elasticsearch', 'Type of the search engine'),
         new parameters.CustomParameter('engineVersion', 'string', '', 'Version of engine to test'),
+        new parameters.CustomEnumParameter('indexMode', ['daily', 'data_stream'], 'daily', 'Index mode the analytics are read with'),
       ]),
       new commands.Run({
-        name: `Run Analytics repository tests with engine << parameters.engineType >> and version << parameters.engineVersion >>`,
+        name: `Run Analytics repository tests with engine << parameters.engineType >>, version << parameters.engineVersion >> and index mode << parameters.indexMode >>`,
         command: `cd gravitee-apim-repository
-mvn -pl 'gravitee-apim-repository-elasticsearch' -am -s ../${config.maven.settingsFile} clean package --no-transfer-progress -Dskip.validation=true -D<< parameters.engineType >>.version=<< parameters.engineVersion >> -Dsearch.type=<< parameters.engineType >> -T 2C`,
+mvn -pl 'gravitee-apim-repository-elasticsearch' -am -s ../${config.maven.settingsFile} clean package --no-transfer-progress -Dskip.validation=true -D<< parameters.engineType >>.version=<< parameters.engineVersion >> -Dsearch.type=<< parameters.engineType >> -Danalytics.elasticsearch.index_mode=<< parameters.indexMode >> -T 2C`,
       }),
     );
   }
