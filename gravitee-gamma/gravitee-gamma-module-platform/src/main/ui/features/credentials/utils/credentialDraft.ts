@@ -41,6 +41,7 @@ export type CredentialDraftErrors = Partial<Record<string, string>>;
 
 const MAX_NAME_LENGTH = 256;
 // Same token rule as the backend `CredentialStrategy`, so a bad header name fails before the request.
+const MAX_SCOPES = 50;
 const HEADER_NAME = /^[!#$%&'*+.^_`|~0-9A-Za-z-]{1,256}$/;
 
 export function emptyCredentialDraft(strategy: CredentialStrategy = 'BEARER'): CredentialDraft {
@@ -96,8 +97,10 @@ export function validateCredentialDraft(
             }
         } else if (field.key === 'headerName' && !HEADER_NAME.test(value)) {
             errors[`setting.${field.key}`] = 'Header name must be a valid HTTP header name.';
-        } else if (field.key === 'tokenUrl' && !isHttpUrl(value)) {
-            errors[`setting.${field.key}`] = 'Token URL must be an http or https URL.';
+        } else if (field.key === 'tokenUrl' && !isHttpsUrl(value)) {
+            errors[`setting.${field.key}`] = 'Token URL must be an https URL.';
+        } else if (field.key === 'scopes' && listItems(value).length > MAX_SCOPES) {
+            errors[`setting.${field.key}`] = `Scopes must hold at most ${MAX_SCOPES} entries.`;
         }
     }
 
@@ -183,12 +186,7 @@ function toConfiguration(draft: CredentialDraft): CredentialSettings {
         if (!value) {
             continue;
         }
-        configuration[field.key] = field.list
-            ? value
-                  .split(',')
-                  .map(item => item.trim())
-                  .filter(Boolean)
-            : value;
+        configuration[field.key] = field.list ? listItems(value) : value;
     }
     return configuration;
 }
@@ -211,10 +209,18 @@ function optionalText<K extends string>(key: K, value: string): Partial<Record<K
     return trimmed ? ({ [key]: trimmed } as Record<K, string>) : {};
 }
 
-function isHttpUrl(value: string): boolean {
+function listItems(value: string): string[] {
+    return value
+        .split(',')
+        .map(item => item.trim())
+        .filter(Boolean);
+}
+
+// The gateway sends the client secret to the token URL, so the server takes https only.
+function isHttpsUrl(value: string): boolean {
     try {
         const url = new URL(value);
-        return (url.protocol === 'http:' || url.protocol === 'https:') && Boolean(url.hostname);
+        return url.protocol === 'https:' && Boolean(url.hostname);
     } catch {
         return false;
     }

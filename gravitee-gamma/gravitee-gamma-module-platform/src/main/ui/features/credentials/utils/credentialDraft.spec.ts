@@ -86,13 +86,35 @@ describe('validateCredentialDraft', () => {
         });
     });
 
-    it('requires an http or https token URL for OAuth2', () => {
-        const errors = validateCredentialDraft(draft({ strategy: 'OAUTH2', settings: { tokenUrl: 'ftp://idp/token' } }), {
+    it.each(['ftp://idp/token', 'http://idp/token'])('requires an https token URL for OAuth2, refusing %s', tokenUrl => {
+        const errors = validateCredentialDraft(draft({ strategy: 'OAUTH2', settings: { tokenUrl } }), {
             secretsRequired: false,
             now: NOW,
         });
 
-        expect(errors).toEqual({ 'setting.tokenUrl': 'Token URL must be an http or https URL.' });
+        expect(errors).toEqual({ 'setting.tokenUrl': 'Token URL must be an https URL.' });
+    });
+
+    it('takes up to 50 OAuth2 scopes', () => {
+        const scopes = Array.from({ length: 50 }, (_, i) => `scope-${i}`).join(', ');
+
+        const errors = validateCredentialDraft(draft({ strategy: 'OAUTH2', settings: { tokenUrl: 'https://idp/token', scopes } }), {
+            secretsRequired: false,
+            now: NOW,
+        });
+
+        expect(errors).toEqual({});
+    });
+
+    it('refuses more than 50 OAuth2 scopes', () => {
+        const scopes = Array.from({ length: 51 }, (_, i) => `scope-${i}`).join(', ');
+
+        const errors = validateCredentialDraft(draft({ strategy: 'OAUTH2', settings: { tokenUrl: 'https://idp/token', scopes } }), {
+            secretsRequired: false,
+            now: NOW,
+        });
+
+        expect(errors).toEqual({ 'setting.scopes': 'Scopes must hold at most 50 entries.' });
     });
 
     it('refuses an expiry in the past', () => {
