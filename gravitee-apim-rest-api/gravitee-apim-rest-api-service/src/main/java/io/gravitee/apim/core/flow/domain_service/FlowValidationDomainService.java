@@ -19,6 +19,7 @@ import static io.gravitee.apim.core.utils.CollectionUtils.isEmpty;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.exception.NativeApiWithMultipleFlowsException;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
 import io.gravitee.apim.core.plugin.model.PlatformPlugin;
@@ -157,6 +158,16 @@ public class FlowValidationDomainService {
             });
         }
         return flows;
+    }
+
+    public List<Flow> validateAndSanitizeHttpV4PlanFlows(Api api, List<Flow> flows) {
+        var sanitizedFlows = validateAndSanitizeHttpV4(api.getType(), flows, ApiResourceNames.fromHttpV4(api));
+        validatePathParameters(
+            api.getType(),
+            api.getApiDefinitionHttpV4().getFlows() != null ? api.getApiDefinitionHttpV4().getFlows().stream() : Stream.empty(),
+            sanitizedFlows.stream()
+        );
+        return sanitizedFlows;
     }
 
     public List<NativeFlow> validateAndSanitizeNativeV4(List<NativeFlow> flows) {
