@@ -25,6 +25,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -39,6 +41,7 @@ import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterBoundApisQueryService.ClusterUse;
 import io.gravitee.apim.core.cluster.domain_service.ValidateKafkaClusterBindingDomainService;
+import io.gravitee.apim.core.cluster.exception.ClusterBindingNotAllowedException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
 import io.gravitee.apim.core.plugin.query_service.EntrypointPluginQueryService;
@@ -510,6 +513,7 @@ public class ApiValidationServiceImplTest {
         assertEquals("\"A Description\"", updateApiEntity.getDescription());
         verify(validateKafkaClusterBindingDomainService).validate(
             GraviteeContext.getExecutionContext().getEnvironmentId(),
+            existingApiEntity.getEndpointGroups(),
             updateApiEntity.getEndpointGroups()
         );
     }
@@ -570,6 +574,33 @@ public class ApiValidationServiceImplTest {
                 List.of(),
                 List.of(new ClusterUse("prod", "plain"))
             );
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
+    }
+
+    @Test
+    public void should_refuse_a_cluster_binding_on_permission_before_checking_the_cluster() {
+        authenticateAs("user-id");
+        try {
+            NewApiEntity newApiEntity = new NewApiEntity();
+            newApiEntity.setType(ApiType.MESSAGE);
+            newApiEntity.setEndpointGroups(List.of(kafkaClusterGroup("plain")));
+            when(endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.MESSAGE, newApiEntity.getEndpointGroups())).thenReturn(
+                newApiEntity.getEndpointGroups()
+            );
+            doThrow(new ClusterBindingNotAllowedException("Production"))
+                .when(clusterBindingPermissionDomainService)
+                .validate(any(), any(), any(), anyCollection(), anyCollection());
+
+            assertThatThrownBy(() ->
+                apiValidationService.validateAndSanitizeNewApi(
+                    GraviteeContext.getExecutionContext(),
+                    newApiEntity,
+                    new PrimaryOwnerEntity()
+                )
+            ).isInstanceOf(ClusterBindingNotAllowedException.class);
+            verify(validateKafkaClusterBindingDomainService, never()).validate(any(), any());
         } finally {
             SecurityContextHolder.clearContext();
         }

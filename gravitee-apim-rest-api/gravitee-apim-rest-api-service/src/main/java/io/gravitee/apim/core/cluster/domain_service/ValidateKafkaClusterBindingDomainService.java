@@ -24,10 +24,13 @@ import io.gravitee.apim.core.cluster.model.KafkaClusterConnection;
 import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import jakarta.annotation.Nullable;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -48,10 +51,22 @@ public class ValidateKafkaClusterBindingDomainService {
     private final DeployedClustersDomainService deployedClustersDomainService;
     private final ObjectMapper objectMapper;
 
+    /** Validates every binding of {@code endpointGroups}. */
     public void validate(String environmentId, List<EndpointGroup> endpointGroups) {
+        validate(environmentId, null, endpointGroups);
+    }
+
+    /**
+     * Validates the bindings of {@code endpointGroups} to a cluster connection {@code previousEndpointGroups} did not
+     * already use: an API keeps a binding its cluster no longer resolves, and stays editable, until it is started.
+     *
+     * @param previousEndpointGroups the endpoint groups of the saved API, {@code null} on create
+     */
+    public void validate(String environmentId, @Nullable List<EndpointGroup> previousEndpointGroups, List<EndpointGroup> endpointGroups) {
+        Set<ConnectionUse> kept = previousEndpointGroups == null ? Set.of() : connectionUses(previousEndpointGroups);
         Map<String, Optional<Cluster>> clusters = new HashMap<>();
         for (Binding binding : KafkaClusterBindings.of(endpointGroups, objectMapper)) {
-            if (!binding.isCluster()) {
+            if (!binding.isCluster() || kept.contains(new ConnectionUse(binding.clusterCrossId(), binding.connectionCrossId()))) {
                 continue;
             }
             if (binding.connectionCrossId() == null) {
@@ -65,6 +80,9 @@ public class ValidateKafkaClusterBindingDomainService {
             validateConnection(binding.subject(), binding.clusterCrossId(), binding.connectionCrossId(), environmentId, clusters);
         }
         for (DefaultConnection defaultConnection : KafkaClusterBindings.defaultConnections(endpointGroups, objectMapper)) {
+            if (kept.contains(new ConnectionUse(defaultConnection.clusterCrossId(), defaultConnection.connectionCrossId()))) {
+                continue;
+            }
             validateConnection(
                 defaultConnection.subject() + ", default connection",
                 defaultConnection.clusterCrossId(),
@@ -74,6 +92,20 @@ public class ValidateKafkaClusterBindingDomainService {
             );
         }
     }
+
+    private Set<ConnectionUse> connectionUses(List<EndpointGroup> endpointGroups) {
+        Set<ConnectionUse> uses = new HashSet<>();
+        KafkaClusterBindings.of(endpointGroups, objectMapper)
+            .stream()
+            .filter(Binding::isCluster)
+            .forEach(binding -> uses.add(new ConnectionUse(binding.clusterCrossId(), binding.connectionCrossId())));
+        KafkaClusterBindings.defaultConnections(endpointGroups, objectMapper).forEach(defaultConnection ->
+            uses.add(new ConnectionUse(defaultConnection.clusterCrossId(), defaultConnection.connectionCrossId()))
+        );
+        return uses;
+    }
+
+    private record ConnectionUse(String clusterCrossId, String connectionCrossId) {}
 
     private void validateConnection(
         String subject,
