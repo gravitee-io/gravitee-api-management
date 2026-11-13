@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 import { ApimApiError } from '../../../shared/api/apimClient';
-import { extractErrorMessage } from '../../../shared/notify/extractErrorMessage';
 
-/** A server fault carries operator detail, such as a configuration key, that the user cannot act on. */
+/**
+ * Only a refusal the server explains in its JSON body is shown. A server fault carries operator detail, such as a
+ * configuration key, and a proxy page or a network error carries text the user cannot act on.
+ */
 export function credentialFailureMessage(error: unknown, fallback: string): string {
-    if (error instanceof ApimApiError && error.status >= 500) {
-        return fallback;
+    if (error instanceof ApimApiError && error.status < 500 && serverMessage(error.body)) {
+        return error.message;
     }
-    return extractErrorMessage(error, fallback);
+    return fallback;
+}
+
+function serverMessage(body: unknown): boolean {
+    return typeof body === 'object' && body !== null && typeof (body as { message?: unknown }).message === 'string';
 }

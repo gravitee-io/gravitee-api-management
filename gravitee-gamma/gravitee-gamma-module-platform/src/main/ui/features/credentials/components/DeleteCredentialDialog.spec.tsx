@@ -106,7 +106,7 @@ describe('DeleteCredentialDialog', () => {
 
     it('reloads the consumers when the server refuses a delete in use', async () => {
         const refetch = consumers([]);
-        const conflict = new ApimApiError(409, 'Credential in use', undefined);
+        const conflict = new ApimApiError(409, 'Credential in use', { message: 'Credential in use' });
         deleteMutation(jest.fn().mockRejectedValue(conflict));
         const onDeleted = renderDialog();
 

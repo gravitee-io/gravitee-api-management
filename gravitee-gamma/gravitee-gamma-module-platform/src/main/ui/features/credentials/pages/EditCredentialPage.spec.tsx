@@ -174,7 +174,7 @@ describe('EditCredentialPage', () => {
     });
 
     it('does not rotate when the update is refused', async () => {
-        const refusal = new ApimApiError(403, 'Only the owner can change it', undefined);
+        const refusal = new ApimApiError(403, 'Only the owner can change it', { message: 'Only the owner can change it' });
         update.mockRejectedValue(refusal);
         given(MANAGED);
         render(<EditCredentialPage />);
