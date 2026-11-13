@@ -93,11 +93,7 @@ public class PolicyPluginResource {
             .map(name ->
                 PolicyFlow.fromName(name).orElseThrow(() ->
                     new ValidationDomainException(
-                        "Invalid flow: " +
-                            name +
-                            ". Expected one of " +
-                            Arrays.stream(PolicyFlowType.values()).map(PolicyFlow::nameOf).toList() +
-                            "."
+                        "Invalid flow. Expected one of " + Arrays.stream(PolicyFlowType.values()).map(PolicyFlow::nameOf).toList() + "."
                     )
                 )
             )

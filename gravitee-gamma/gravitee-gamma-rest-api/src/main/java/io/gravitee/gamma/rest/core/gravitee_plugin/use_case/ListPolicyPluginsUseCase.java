@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
-/** Lists the installed policies, sorted by name, optionally only those that can run in some flows and phase. */
 @UseCase
 @RequiredArgsConstructor
 public class ListPolicyPluginsUseCase {
@@ -36,7 +35,11 @@ public class ListPolicyPluginsUseCase {
 
     private final PolicyPluginProvider policyPluginProvider;
 
-    public record Input(String organizationId, Set<PolicyFlowType> flows, String phase) {}
+    public record Input(String organizationId, Set<PolicyFlowType> flows, String phase) {
+        public Input {
+            flows = flows == null ? Set.of() : Set.copyOf(flows);
+        }
+    }
 
     public record Output(List<PlatformPolicyPlugin> policies) {}
 
