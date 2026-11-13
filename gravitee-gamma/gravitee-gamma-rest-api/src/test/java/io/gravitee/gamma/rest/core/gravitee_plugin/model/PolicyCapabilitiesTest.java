@@ -36,7 +36,7 @@ import org.junit.jupiter.api.Test;
 class PolicyCapabilitiesTest {
 
     private static PolicyCapabilities declaring(Map<ApiProtocolType, List<String>> flows) {
-        return new PolicyCapabilities("policy", true, new DeclaredFlows(flows));
+        return new PolicyCapabilities(true, new DeclaredFlows(flows));
     }
 
     @Test

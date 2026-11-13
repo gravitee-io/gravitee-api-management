@@ -261,6 +261,40 @@ class ValidateGuardianDomainServiceTest {
     }
 
     @Test
+    void should_map_each_scope_protocol_to_the_api_type_the_gateway_expects() {
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(scopeErrors("LLM")).as("LLM designates llm-proxy").isEmpty();
+            softly
+                .assertThat(scopeErrors("MCP"))
+                .as("MCP designates mcp-proxy")
+                .singleElement()
+                .asString()
+                .contains("scope protocol [MCP], incompatible");
+            softly
+                .assertThat(scopeErrors("A2A"))
+                .as("A2A designates a2a-proxy")
+                .singleElement()
+                .asString()
+                .contains("scope protocol [A2A], incompatible");
+            for (String protocol : List.of("llm", "HTTP", "GUARDIAN")) {
+                softly
+                    .assertThat(scopeErrors(protocol))
+                    .as("%s is no scope protocol", protocol)
+                    .singleElement()
+                    .asString()
+                    .contains("invalid scope protocol");
+            }
+        });
+    }
+
+    private List<String> scopeErrors(String protocol) {
+        var policy = aPolicy();
+        policy.setConfiguration("{\"scope\":{\"protocol\":\"" + protocol + "\"}}");
+        var guardian = aGuardian(definition -> definition.policies(List.of(policy))).build();
+        return validate(guardian).severe().stream().flatMap(List::stream).map(Validator.Error::getMessage).toList();
+    }
+
+    @Test
     void should_refuse_non_object_configuration_or_scope() {
         SoftAssertions.assertSoftly(softly -> {
             for (String configuration : List.of("[]", "42", "null", "{\"scope\":[]}", "{\"scope\":\"invalid\"}")) {
@@ -278,11 +312,11 @@ class ValidateGuardianDomainServiceTest {
     }
 
     private static PolicyCapabilities aGuardrail(DeclaredFlows flows) {
-        return new PolicyCapabilities("Data logging masking", true, flows);
+        return new PolicyCapabilities(true, flows);
     }
 
     private static PolicyCapabilities aConventionalPolicy(DeclaredFlows flows) {
-        return new PolicyCapabilities("Data logging masking", false, flows);
+        return new PolicyCapabilities(false, flows);
     }
 
     private static Step step(String name, String policy, boolean enabled) {

@@ -24,7 +24,6 @@ import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
-import io.gravitee.gamma.rest.core.gravitee_plugin.model.GuardrailProtocol;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
@@ -77,10 +76,9 @@ import lombok.RequiredArgsConstructor;
 public class ValidateGuardianDomainService implements Validator<ValidateGuardianDomainService.Input> {
 
     private static final jakarta.validation.Validator BEAN_VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
+    private static final ApiType SUPPORTED_API_TYPE = ApiType.LLM_PROXY;
 
     private final GuardianRepository guardianRepository;
-
-    public static final ApiType SUPPORTED_API_TYPE = ApiType.LLM_PROXY;
     private final PolicyPluginProvider policyPluginProvider;
     private final JsonDeserializer jsonDeserializer;
 
@@ -230,9 +228,7 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
             if (protocol == null) {
                 return;
             }
-            ApiType scopeApiType = protocol.isTextual()
-                ? GuardrailProtocol.fromScope(protocol.textValue()).map(GuardrailProtocol::apiType).orElse(null)
-                : null;
+            ApiType scopeApiType = protocol.isTextual() ? scopeApiType(protocol.textValue()) : null;
             if (scopeApiType == null) {
                 errors.add(Error.severe("Guardrail step [%s] has an invalid scope protocol.", step.getName()));
             } else if (apiTypes.stream().anyMatch(apiType -> apiType != scopeApiType)) {
@@ -266,6 +262,20 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
             phase,
             supported
         );
+    }
+
+    /**
+     * The API type a guardrail {@code scope.protocol} designates, case-sensitive, or {@code null} for any other value. The
+     * gateway applies the same table when it deploys a Guardian ({@code GuardianProtocolValidator} in
+     * gravitee-reactor-guardian): change both together.
+     */
+    private static ApiType scopeApiType(String protocol) {
+        return switch (protocol) {
+            case "LLM" -> ApiType.LLM_PROXY;
+            case "MCP" -> ApiType.MCP_PROXY;
+            case "A2A" -> ApiType.A2A_PROXY;
+            default -> null;
+        };
     }
 
     private static Error incompatibleProtocol(Step step, Set<ApiType> apiTypes) {

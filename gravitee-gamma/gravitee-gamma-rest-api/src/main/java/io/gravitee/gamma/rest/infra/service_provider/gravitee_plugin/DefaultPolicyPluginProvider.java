@@ -59,11 +59,7 @@ public class DefaultPolicyPluginProvider extends AbstractPluginProvider<PolicyPl
             .stream()
             .collect(
                 toMap(PolicyPlugin::id, plugin ->
-                    new PolicyCapabilities(
-                        plugin.manifest().name(),
-                        GuardrailPolicy.class.isAssignableFrom(plugin.policy()),
-                        flows(plugin.manifest().properties())
-                    )
+                    new PolicyCapabilities(GuardrailPolicy.class.isAssignableFrom(plugin.policy()), flows(plugin.manifest().properties()))
                 )
             );
     }
