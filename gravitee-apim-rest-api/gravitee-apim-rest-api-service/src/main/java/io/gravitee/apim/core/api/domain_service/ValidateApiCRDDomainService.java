@@ -19,7 +19,6 @@ import static java.util.stream.Collectors.toMap;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
-import io.gravitee.apim.core.api.exception.ApiDeprecatedException;
 import io.gravitee.apim.core.api.exception.ApiTypeChangeNotAllowedException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
@@ -37,7 +36,6 @@ import io.gravitee.apim.core.documentation.model.factory.PageModelFactory;
 import io.gravitee.apim.core.exception.AbstractDomainException;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.apim.core.flow.domain_service.ApiResourceNames;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
@@ -48,6 +46,8 @@ import io.gravitee.apim.core.member.model.MembershipReferenceType;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificationDomainService;
+import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
+import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
@@ -283,8 +283,7 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
             );
             existingApi.ifPresentOrElse(api -> validateApiUpdate(auditInfo, spec, api), () -> validateApiCreation(auditInfo, spec));
             validatePageParents(pages);
-            validatePlansAgainstStoredOnes(spec, existingApi);
-            validatePlanFlows(spec);
+            validatePlanWrites(auditInfo, spec, existingApi);
         } catch (TechnicalDomainException e) {
             throw e;
         } catch (AbstractDomainException e) {
@@ -350,43 +349,46 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
             });
     }
 
-    // What the plan writes of the import check: no new plan on a deprecated API, no closed plan reopened
-    private void validatePlansAgainstStoredOnes(ApiCRDSpec spec, Optional<Api> existingApi) {
+    // The plan writes' own rules, on the API as the import leaves it
+    private void validatePlanWrites(AuditInfo auditInfo, ApiCRDSpec spec, Optional<Api> existingApi) {
+        var api = apiAfterImport(auditInfo, spec, existingApi);
         Map<String, PlanStatus> storedStatuses = existingApi
-            .map(api -> planQueryService.findAllByApiId(api.getId()).stream().collect(toMap(Plan::getId, Plan::getPlanStatus)))
+            .map(stored -> planQueryService.findAllByApiId(stored.getId()).stream().collect(toMap(Plan::getId, Plan::getPlanStatus)))
             .orElseGet(HashMap::new);
-        var deprecated = isDeprecatedAfterImport(spec, existingApi);
-        plansOf(spec).forEach(plan -> {
-            var storedStatus = storedStatuses.get(plan.getId());
-            if (storedStatus == null && deprecated) {
-                throw new ApiDeprecatedException(existingApi.map(Api::getId).orElse(String.valueOf(spec.getId())));
+        plansOf(spec).forEach(planCRD -> {
+            if (storedStatuses.containsKey(planCRD.getId())) {
+                UpdatePlanDomainService.assertNotClosedStatus(planCRD.getId(), planCRD.getName(), planCRD.getStatus(), storedStatuses);
+            } else {
+                CreatePlanDomainService.assertApiAcceptsNewPlans(api);
             }
-            if (storedStatus == PlanStatus.CLOSED && plan.getStatus() != PlanStatus.CLOSED) {
-                throw new ValidationDomainException("Invalid status for plan '" + plan.getName() + "'");
+            if (api.isNative()) {
+                flowValidator.validateAndSanitizeNativeV4(nativeFlows(planCRD.getFlows()));
+            } else {
+                flowValidator.validateAndSanitizeHttpV4PlanFlows(api, httpFlows(planCRD.getFlows()));
             }
         });
     }
 
-    // The import creates plans on the API as updated: in the spec's lifecycle state, else in the stored one
-    private static boolean isDeprecatedAfterImport(ApiCRDSpec spec, Optional<Api> existingApi) {
-        var lifecycleState = spec.getLifecycleState() != null
-            ? spec.getLifecycleState()
-            : existingApi.map(Api::getApiLifecycleState).map(Enum::name).orElse(null);
-        return Api.ApiLifecycleState.DEPRECATED.name().equals(lifecycleState);
-    }
-
-    // As the plan writes of the import do
-    private void validatePlanFlows(ApiCRDSpec spec) {
-        if (spec.isNative()) {
-            plansOf(spec).forEach(plan -> flowValidator.validateAndSanitizeNativeV4(nativeFlows(plan.getFlows())));
-            return;
+    // What the plan rules read: the lifecycle state (the stored one when the spec has none), the API flows and resources
+    private static Api apiAfterImport(AuditInfo auditInfo, ApiCRDSpec spec, Optional<Api> existingApi) {
+        if (existingApi.isEmpty()) {
+            return ApiModelFactory.fromCrd(spec, auditInfo.environmentId());
         }
-        var apiType = apiType(spec);
-        var resourceNames = ApiResourceNames.from(spec.getResources());
-        plansOf(spec).forEach(plan -> {
-            var planFlows = flowValidator.validateAndSanitizeHttpV4(apiType, httpFlows(plan.getFlows()), resourceNames);
-            flowValidator.validatePathParameters(apiType, httpFlows(spec.getFlows()).stream(), planFlows.stream());
-        });
+        var stored = existingApi.get();
+        var api = stored.toBuilder().apiLifecycleState(lifecycleStateAfterImport(spec, stored));
+        if (stored.getApiDefinitionHttpV4() != null) {
+            api.apiDefinitionValue(
+                stored.getApiDefinitionHttpV4().toBuilder().flows(httpFlows(spec.getFlows())).resources(spec.getResources()).build()
+            );
+        }
+        return api.build();
+    }
+
+    private static Api.ApiLifecycleState lifecycleStateAfterImport(ApiCRDSpec spec, Api stored) {
+        return Arrays.stream(Api.ApiLifecycleState.values())
+            .filter(state -> state.name().equalsIgnoreCase(spec.getLifecycleState()))
+            .findFirst()
+            .orElse(stored.getApiLifecycleState());
     }
 
     private static List<PlanCRD> plansOf(ApiCRDSpec spec) {

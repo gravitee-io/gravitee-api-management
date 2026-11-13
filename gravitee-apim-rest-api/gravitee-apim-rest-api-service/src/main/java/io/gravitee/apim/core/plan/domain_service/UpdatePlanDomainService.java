@@ -28,7 +28,6 @@ import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
-import io.gravitee.apim.core.flow.domain_service.ApiResourceNames;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.plan.crud_service.KafkaPortRangeCrudService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
@@ -46,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BinaryOperator;
-import java.util.stream.Stream;
 
 @DomainService
 public class UpdatePlanDomainService {
@@ -139,7 +137,7 @@ public class UpdatePlanDomainService {
 
     public void validate(Plan planToUpdate, List<Flow> flows, Api api, AuditInfo auditInfo) {
         updatePreFlightChecks(planToUpdate, getPlanStatusMap(api), api, auditInfo);
-        validateAndSanitizeHttpV4Flows(flows, api);
+        flowValidationDomainService.validateAndSanitizeHttpV4PlanFlows(api, flows);
     }
 
     private Map<String, PlanStatus> getPlanStatusMap(Api api) {
@@ -200,7 +198,7 @@ public class UpdatePlanDomainService {
         AuditInfo auditInfo,
         BinaryOperator<Plan> updateFunction
     ) {
-        var sanitizedFlows = validateAndSanitizeHttpV4Flows(flows, api);
+        var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4PlanFlows(api, flows);
         var existingFlows = flowCrudService.getPlanV4Flows(existingPlan.getId());
 
         if (!planSynchronizationService.checkSynchronized(existingPlan, existingFlows, updatePlan, sanitizedFlows)) {
@@ -213,16 +211,6 @@ public class UpdatePlanDomainService {
 
         createAuditLog(existingPlan, updated, auditInfo);
         return updated;
-    }
-
-    private List<Flow> validateAndSanitizeHttpV4Flows(List<Flow> flows, Api api) {
-        var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows, ApiResourceNames.fromHttpV4(api));
-        flowValidationDomainService.validatePathParameters(
-            api.getType(),
-            api.getApiDefinitionHttpV4().getFlows() != null ? api.getApiDefinitionHttpV4().getFlows().stream() : Stream.empty(),
-            sanitizedFlows.stream()
-        );
-        return sanitizedFlows;
     }
 
     private Plan updateNativeV4ApiPlan(
@@ -334,7 +322,7 @@ public class UpdatePlanDomainService {
     }
 
     private void updatePreFlightChecks(Plan planToUpdate, Map<String, PlanStatus> existingPlanStatuses, Api api, AuditInfo auditInfo) {
-        assertNotClosedStatus(planToUpdate, existingPlanStatuses);
+        assertNotClosedStatus(planToUpdate.getId(), planToUpdate.getName(), planToUpdate.getPlanStatus(), existingPlanStatuses);
         planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId(), api.getType());
         planValidatorDomainService.validatePlanTagsAgainstApiTags(planToUpdate.getTags(), api.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
@@ -381,19 +369,20 @@ public class UpdatePlanDomainService {
         ApiProduct apiProduct,
         AuditInfo auditInfo
     ) {
-        assertNotClosedStatus(planToUpdate, existingPlanStatuses);
+        assertNotClosedStatus(planToUpdate.getId(), planToUpdate.getName(), planToUpdate.getPlanStatus(), existingPlanStatuses);
         planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId(), null);
         planValidatorDomainService.validatePlanTagsAgainstApiProductTags(planToUpdate.getTags(), apiProduct.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
     }
 
-    private void assertNotClosedStatus(Plan planToUpdate, Map<String, PlanStatus> existingPlanStatuses) {
-        if (
-            existingPlanStatuses.containsKey(planToUpdate.getId()) &&
-            existingPlanStatuses.get(planToUpdate.getId()) == PlanStatus.CLOSED &&
-            existingPlanStatuses.get(planToUpdate.getId()) != planToUpdate.getPlanStatus()
-        ) {
-            throw new ValidationDomainException("Invalid status for plan '" + planToUpdate.getName() + "'");
+    public static void assertNotClosedStatus(
+        String planId,
+        String planName,
+        PlanStatus status,
+        Map<String, PlanStatus> existingPlanStatuses
+    ) {
+        if (existingPlanStatuses.get(planId) == PlanStatus.CLOSED && status != PlanStatus.CLOSED) {
+            throw new ValidationDomainException("Invalid status for plan '" + planName + "'");
         }
     }
 
