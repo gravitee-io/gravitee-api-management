@@ -19,7 +19,6 @@ import io.gravitee.apim.core.credential.exception.InvalidCredentialException;
 import io.gravitee.apim.core.secret.model.SecretValue;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import lombok.Builder;
 
@@ -60,10 +59,7 @@ public record NewCredentialCommand(
             requireValues(values);
             return Map.of();
         }
-        strategy.requireAllSecretFields(references.keySet());
-        var validated = new LinkedHashMap<String, SecretReference>();
-        strategy.secretFields().forEach(field -> validated.put(field, SecretReference.external(field, references.get(field))));
-        return validated;
+        return strategy.externalReferences(references);
     }
 
     static void requireValues(Map<String, String> values) {

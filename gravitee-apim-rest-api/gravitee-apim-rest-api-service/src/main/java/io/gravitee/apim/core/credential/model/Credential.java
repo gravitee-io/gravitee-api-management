@@ -19,7 +19,6 @@ import io.gravitee.apim.core.credential.exception.CredentialManagementNotAllowed
 import io.gravitee.apim.core.credential.exception.InvalidCredentialException;
 import io.gravitee.apim.core.credential.model.CredentialActor.SecretAccess;
 import java.time.Instant;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import lombok.Builder;
@@ -138,10 +137,7 @@ public record Credential(
                 "Gravitee stores the values of this credential, so its references cannot change. Rotate the values instead."
             );
         }
-        strategy.requireAllSecretFields(references.keySet());
-        var replaced = new LinkedHashMap<String, SecretReference>();
-        strategy.secretFields().forEach(field -> replaced.put(field, SecretReference.external(field, references.get(field))));
-        return replaced;
+        return strategy.externalReferences(references);
     }
 
     private static String validName(String name) {

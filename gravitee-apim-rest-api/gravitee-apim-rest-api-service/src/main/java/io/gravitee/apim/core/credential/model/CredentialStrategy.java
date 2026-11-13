@@ -53,6 +53,14 @@ public enum CredentialStrategy {
         }
     }
 
+    /** @return one validated reference per secret field, in the order of the fields */
+    Map<String, SecretReference> externalReferences(Map<String, String> references) {
+        requireAllSecretFields(references.keySet());
+        var validated = new LinkedHashMap<String, SecretReference>();
+        secretFields.forEach(field -> validated.put(field, SecretReference.external(field, references.get(field))));
+        return validated;
+    }
+
     public void requireSomeSecretFields(Set<String> fields) {
         if (fields.isEmpty() || !secretFields.containsAll(fields)) {
             throw new InvalidCredentialException(
