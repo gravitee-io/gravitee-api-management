@@ -17,7 +17,6 @@ package io.gravitee.gamma.rest.core.gravitee_plugin.model;
 
 import io.gravitee.definition.model.v4.ApiType;
 import java.util.Arrays;
-import java.util.Locale;
 import java.util.Optional;
 
 /**
@@ -45,10 +44,5 @@ public enum GuardrailProtocol {
 
     public ApiType apiType() {
         return apiType;
-    }
-
-    /** The plugin manifest property listing the flow phases a policy supports for this API type. */
-    public String manifestKey() {
-        return apiType.name().toLowerCase(Locale.ROOT);
     }
 }

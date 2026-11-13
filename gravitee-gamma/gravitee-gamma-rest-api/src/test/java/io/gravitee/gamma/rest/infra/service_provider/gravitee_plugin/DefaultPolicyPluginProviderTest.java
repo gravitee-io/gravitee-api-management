@@ -15,6 +15,11 @@
  */
 package io.gravitee.gamma.rest.infra.service_provider.gravitee_plugin;
 
+import static io.gravitee.rest.api.model.v4.policy.ApiProtocolType.A2A_PROXY;
+import static io.gravitee.rest.api.model.v4.policy.ApiProtocolType.GUARDIAN;
+import static io.gravitee.rest.api.model.v4.policy.ApiProtocolType.HTTP_PROXY;
+import static io.gravitee.rest.api.model.v4.policy.ApiProtocolType.LLM_PROXY;
+import static io.gravitee.rest.api.model.v4.policy.ApiProtocolType.MCP_PROXY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -23,12 +28,14 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.DeclaredFlows;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.guardian.GuardianFixtures;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gateway.reactive.api.policy.guardrail.GuardrailPolicy;
 import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
+import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginManifest;
@@ -45,13 +52,14 @@ import org.junit.jupiter.params.provider.ValueSource;
 class DefaultPolicyPluginProviderTest {
 
     private final ConfigurablePluginManager<PolicyPlugin<?>> pluginManager = mock(ConfigurablePluginManager.class);
-    private final DefaultPolicyPluginProvider provider = new DefaultPolicyPluginProvider(pluginManager, mock(LicenseManager.class));
+    private final LicenseManager licenseManager = mock(LicenseManager.class);
+    private final DefaultPolicyPluginProvider provider = new DefaultPolicyPluginProvider(pluginManager, licenseManager);
 
     private void given_installed_policies(PolicyPlugin<?>... plugins) {
         when(pluginManager.findAll(true)).thenReturn(List.of(plugins));
     }
 
-    private static PolicyPlugin<?> a_policy(String id, Class<?> policyClass, String category, Map<String, String> properties) {
+    private PolicyPlugin<?> a_policy(String id, Class<?> policyClass, String category, Map<String, String> properties) {
         var manifest = mock(PluginManifest.class);
         when(manifest.name()).thenReturn("Name of " + id);
         when(manifest.category()).thenReturn(category);
@@ -60,6 +68,7 @@ class DefaultPolicyPluginProviderTest {
         when(plugin.id()).thenReturn(id);
         when(plugin.policy()).thenReturn((Class) policyClass);
         when(plugin.manifest()).thenReturn(manifest);
+        when(pluginManager.get(id, true)).thenReturn((PolicyPlugin) plugin);
         return plugin;
     }
 
@@ -76,18 +85,21 @@ class DefaultPolicyPluginProviderTest {
 
         assertThat(provider.findAllCapabilities())
             .containsOnlyKeys("rule-guardrail")
-            .containsEntry(
-                "rule-guardrail",
-                new PolicyCapabilities(
-                    "Name of rule-guardrail",
-                    true,
-                    Map.of(ApiType.LLM_PROXY, Set.of(Phase.RESPONSE), ApiType.MCP_PROXY, Set.of(Phase.REQUEST))
-                )
+            .extractingByKey("rule-guardrail")
+            .satisfies(policy ->
+                SoftAssertions.assertSoftly(softly -> {
+                    softly.assertThat(policy.name()).as("name").isEqualTo("Name of rule-guardrail");
+                    softly.assertThat(policy.guardrail()).as("guardrail").isTrue();
+                    softly
+                        .assertThat(policy.flows())
+                        .as("the declared flows, blank ones left out")
+                        .isEqualTo(new DeclaredFlows(Map.of(LLM_PROXY, List.of("RESPONSE"), MCP_PROXY, List.of("REQUEST"))));
+                })
             );
     }
 
     @Test
-    void should_keep_only_the_guardian_phases_a_guardrail_declares_for_each_api_type() {
+    void should_trim_the_declared_phases_without_reducing_them() {
         given_installed_policies(
             a_policy(
                 "rule-guardrail",
@@ -97,29 +109,62 @@ class DefaultPolicyPluginProviderTest {
             )
         );
 
-        assertThat(provider.findAllCapabilities().get("rule-guardrail"))
-            .as("phases are trimmed, and flow phases a Guardian never runs in are dropped")
+        assertThat(provider.findAllCapabilities().get("rule-guardrail").flows())
+            .as("phases are trimmed, the ones a Guardian never runs in kept: the projection drops them")
             .isEqualTo(
-                new PolicyCapabilities(
-                    "Name of rule-guardrail",
-                    true,
+                new DeclaredFlows(
                     Map.of(
-                        ApiType.LLM_PROXY,
-                        Set.of(Phase.REQUEST, Phase.RESPONSE),
-                        ApiType.MCP_PROXY,
-                        Set.of(Phase.REQUEST),
-                        ApiType.A2A_PROXY,
-                        Set.of()
+                        LLM_PROXY,
+                        List.of("REQUEST", "RESPONSE"),
+                        MCP_PROXY,
+                        List.of("INTERACT", "REQUEST"),
+                        A2A_PROXY,
+                        List.of("MESSAGE_REQUEST")
                     )
                 )
             );
+    }
+
+    @Test
+    void should_read_the_capabilities_from_the_flows_the_policy_listing_exposes() {
+        given_installed_policies(
+            a_policy(
+                "rule-guardrail",
+                GuardrailPolicy.class,
+                "guardrail",
+                Map.of("proxy", "REQUEST", "llm_proxy", "REQUEST", "guardian", " REQUEST , INTERACT ")
+            )
+        );
+        var license = mock(License.class);
+        when(licenseManager.getOrganizationLicenseOrPlatform("org")).thenReturn(license);
+
+        var capabilities = provider.findAllCapabilities().get("rule-guardrail");
+
+        SoftAssertions.assertSoftly(softly -> {
+            softly
+                .assertThat(capabilities.flows())
+                .as("one manifest parser for the listing and the Guardian validation")
+                .isEqualTo(provider.findPolicyById("org", "rule-guardrail").flows());
+            softly
+                .assertThat(capabilities.flows())
+                .as("the deprecated proxy key read for http-proxy")
+                .isEqualTo(
+                    new DeclaredFlows(
+                        Map.of(HTTP_PROXY, List.of("REQUEST"), LLM_PROXY, List.of("REQUEST"), GUARDIAN, List.of("REQUEST", "INTERACT"))
+                    )
+                );
+            softly.assertThat(capabilities.runsIn(Set.of(ApiType.LLM_PROXY), Phase.REQUEST)).as("runs in llm-proxy REQUEST").isTrue();
+            softly.assertThat(capabilities.guardianPhases()).as("guardian phases, INTERACT dropped").containsExactly(Phase.REQUEST);
+        });
     }
 
     @ParameterizedTest
     @NullSource
     @ValueSource(strings = { "guardrail", "security" })
     void should_reject_an_incompatible_runtime_guardrail_regardless_of_category(String category) {
-        given_installed_policies(a_policy("rule-guardrail", GuardrailPolicy.class, category, Map.of("llm_proxy", "REQUEST")));
+        given_installed_policies(
+            a_policy("rule-guardrail", GuardrailPolicy.class, category, Map.of("llm_proxy", "REQUEST", "guardian", "REQUEST"))
+        );
         var guardian = GuardianFixtures.aGuardian(definition ->
             definition.policies(
                 List.of(
@@ -150,7 +195,7 @@ class DefaultPolicyPluginProviderTest {
 
         assertThat(provider.findAllCapabilities()).containsEntry(
             "ordinary-policy",
-            new PolicyCapabilities("Name of ordinary-policy", false, Map.of())
+            new PolicyCapabilities("Name of ordinary-policy", false, new DeclaredFlows(Map.of()))
         );
     }
 
@@ -184,8 +229,13 @@ class DefaultPolicyPluginProviderTest {
         SoftAssertions.assertSoftly(softly -> {
             softly
                 .assertThat(policies)
-                .containsEntry("transform-headers", new PolicyCapabilities("Name of transform-headers", false, Map.of()));
-            softly.assertThat(policies).containsEntry("rule-guardrail", new PolicyCapabilities("Name of rule-guardrail", true, Map.of()));
+                .containsEntry(
+                    "transform-headers",
+                    new PolicyCapabilities("Name of transform-headers", false, new DeclaredFlows(Map.of()))
+                );
+            softly
+                .assertThat(policies)
+                .containsEntry("rule-guardrail", new PolicyCapabilities("Name of rule-guardrail", true, new DeclaredFlows(Map.of())));
         });
     }
 }

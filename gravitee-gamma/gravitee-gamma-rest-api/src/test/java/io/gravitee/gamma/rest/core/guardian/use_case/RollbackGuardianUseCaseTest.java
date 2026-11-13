@@ -71,7 +71,12 @@ class RollbackGuardianUseCaseTest {
         audits.service,
         deploymentService
     );
-    private final DeployGuardianUseCase deploy = new DeployGuardianUseCase(repository, deploymentService, audits.service);
+    private final DeployGuardianUseCase deploy = new DeployGuardianUseCase(
+        repository,
+        deploymentService,
+        aGuardianValidator(repository),
+        audits.service
+    );
     private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(repository, deploymentService, audits.service);
     private final UpdateGuardianUseCase update = new UpdateGuardianUseCase(repository, aGuardianValidator(repository), drafts);
     private final RollbackGuardianUseCase rollback = new RollbackGuardianUseCase(
