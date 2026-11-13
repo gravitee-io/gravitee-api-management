@@ -1458,7 +1458,7 @@ class ImportApiCRDUseCaseTest {
         void should_update_the_api_named_by_the_id_when_the_spec_has_no_cross_id() {
             // Stored first, so a lookup by a null cross id finds it instead of the API the id names
             var apiWithoutCrossId = API_PROXY_V4.toBuilder().id("api-without-cross-id").crossId(null).name("without-cross-id").build();
-            apiQueryService.initWith(List.of(apiWithoutCrossId, API_PROXY_V4));
+            apiQueryService.initWith(List.of(apiWithoutCrossId, managedByAutomation(API_PROXY_V4)));
             givenExistingPlans(List.of(KEYLESS));
 
             var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().crossId(null).build())));
@@ -1466,6 +1466,27 @@ class ImportApiCRDUseCaseTest {
             assertThat(throwable).isNull();
             verify(updateApiDomainService).update(eq(API_ID), any(), any());
             assertThat(apiCrudService.get(apiWithoutCrossId.getId())).isEqualTo(apiWithoutCrossId);
+        }
+
+        @Test
+        void should_leave_an_api_created_in_the_console_alone_when_the_spec_has_no_cross_id() {
+            apiQueryService.initWith(List.of(API_PROXY_V4));
+            var consolePlan = KEYLESS.toBuilder().id("console-plan").build();
+            givenExistingPlans(List.of(consolePlan));
+
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().crossId(null).build())));
+
+            assertThat(throwable)
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining(API_ID)
+                .hasMessageContaining("[management]");
+            assertThat(apiCrudService.get(API_ID)).isEqualTo(API_PROXY_V4);
+            assertThat(planCrudService.storage()).containsExactly(consolePlan);
+            verifyNoInteractions(updateApiDomainService, apiStateDomainService);
+        }
+
+        private static Api managedByAutomation(Api api) {
+            return api.toBuilder().originContext(new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED)).build();
         }
 
         @Test
