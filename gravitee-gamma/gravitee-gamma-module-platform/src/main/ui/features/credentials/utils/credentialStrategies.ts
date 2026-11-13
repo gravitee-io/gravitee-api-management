@@ -20,7 +20,6 @@ export interface CredentialField {
     readonly label: string;
     readonly placeholder?: string;
     readonly optional?: boolean;
-    readonly multiline?: boolean;
     /** Typed as comma-separated text, sent as a list. */
     readonly list?: boolean;
 }
@@ -66,7 +65,7 @@ export const CREDENTIAL_STRATEGY_DEFINITIONS: Readonly<Record<CredentialStrategy
     SERVICE_ACCOUNT: {
         label: 'Service account',
         settings: [],
-        secrets: [{ key: 'serviceAccountKey', label: 'Service account key', placeholder: 'Paste the JSON key file', multiline: true }],
+        secrets: [{ key: 'serviceAccountKey', label: 'Service account key', placeholder: 'Paste the JSON key file' }],
     },
 };
 
