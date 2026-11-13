@@ -31,12 +31,15 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Validates, on API save, the bindings of Message API {@code kafka} endpoints to registered Kafka clusters. Each endpoint
- * is checked against the connection it actually uses (its group's, or its own override when it does not inherit), and
- * each default connection a shared configuration names against its cluster: the cluster is deployed in the API's
- * environment and is a {@code KAFKA_CLUSTER}, the connection exists in it, and Message APIs can use its security
- * ({@link KafkaClusterConnection#messageApiUnsupportedReason()}). Checked against the deployed cluster, which is what the gateways run, not the one being edited. The
- * plugin schema already checks the shape (mode, required fields, no inline security).
+ * Validates the bindings of Message API {@code kafka} endpoints to registered Kafka clusters, on API save and on start or
+ * deploy.
+ *
+ * <p>Each endpoint is checked against the connection it actually uses (its group's, or its own override when it does not
+ * inherit), and each default connection a shared configuration names against its cluster: the cluster is deployed in the
+ * API's environment and is a {@code KAFKA_CLUSTER}, the connection exists in it, and Message APIs can use its security
+ * ({@link KafkaClusterConnection#messageApiUnsupportedReason()}). Checked against the deployed cluster, which is what the
+ * gateways run, not the one being edited. The plugin schema already checks the shape (mode, required fields, no inline
+ * security).
  */
 @DomainService
 @RequiredArgsConstructor

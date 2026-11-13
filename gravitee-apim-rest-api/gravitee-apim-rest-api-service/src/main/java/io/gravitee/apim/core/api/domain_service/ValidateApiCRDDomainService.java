@@ -219,6 +219,7 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
         existingApi.ifPresent(api ->
             membersDomainService.checkApiMembersUpdate(input.auditInfo(), api.getId(), sanitizedSpec.getMembers())
         );
+        int errorsBeforeBindings = errors.size();
         if (apiType(sanitizedSpec) == ApiType.MESSAGE) {
             try {
                 kafkaClusterBindingValidator.validate(input.auditInfo().environmentId(), httpEndpointGroups(sanitizedSpec));
@@ -240,10 +241,11 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
         }
         // The import persists the API before starting or deploying it: refuse here, or a failure leaves it saved but not deployed.
         // A spec without state keeps the stored one, so a stored STARTED API is checked too.
+        // Not when a binding is already refused above, which the start check would report again.
         var lifecycleState = sanitizedSpec.getState() != null
             ? sanitizedSpec.getState()
             : existingApi.map(Api::getLifecycleState).map(Enum::name).orElse(null);
-        if (Api.LifecycleState.STARTED.name().equalsIgnoreCase(lifecycleState)) {
+        if (errors.size() == errorsBeforeBindings && Api.LifecycleState.STARTED.name().equalsIgnoreCase(lifecycleState)) {
             try {
                 apiClusterBindingValidator.validateStartable(
                     sanitizedSpec.getId(),
