@@ -18,6 +18,7 @@ package io.gravitee.apim.core.credential.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.credential.exception.CredentialRotationIncompleteException;
+import io.gravitee.apim.core.credential.exception.CredentialSecretMissingException;
 import io.gravitee.apim.core.credential.model.Credential;
 import io.gravitee.apim.core.credential.model.SecretReference;
 import io.gravitee.apim.core.secret.crud_service.SecretCrudService;
@@ -68,7 +69,10 @@ public class CredentialSecretsDomainService {
     /** Secrets whose new value is written, with the value each held before. */
     public record Rotation(String credentialId, Map<String, SecretSnapshot> previous) {}
 
-    /** All or nothing: when a field fails, the fields already written get their old values back before the failure is rethrown. */
+    /**
+     * All or nothing: when a field fails, the fields already written get their old values back before the failure is rethrown.
+     * Nothing locks the secrets, so the undo of one rotation can overwrite a value a concurrent rotation of the same credential wrote.
+     */
     public Rotation rotate(Credential credential, Map<String, String> values, AuditInfo auditInfo) {
         var snapshots = new LinkedHashMap<String, SecretSnapshot>();
         for (var field : credential.strategy().secretFields()) {
@@ -76,7 +80,9 @@ public class CredentialSecretsDomainService {
                 continue;
             }
             var secretId = credential.secretReferences().get(field).secretId();
-            var secret = secretCrudService.get(auditInfo.organizationId(), auditInfo.environmentId(), secretId);
+            var secret = secretCrudService
+                .findById(auditInfo.organizationId(), auditInfo.environmentId(), secretId)
+                .orElseThrow(() -> new CredentialSecretMissingException(credential.id(), field));
             snapshots.put(field, secretDomainService.snapshot(secret));
         }
         var rotation = new Rotation(credential.id(), new LinkedHashMap<>());

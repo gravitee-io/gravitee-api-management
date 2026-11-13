@@ -23,6 +23,7 @@ import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.credential.exception.CredentialManagementNotAllowedException;
 import io.gravitee.apim.core.credential.exception.CredentialNotFoundException;
 import io.gravitee.apim.core.credential.exception.CredentialRotationIncompleteException;
+import io.gravitee.apim.core.credential.exception.CredentialSecretMissingException;
 import io.gravitee.apim.core.credential.exception.InvalidCredentialException;
 import io.gravitee.apim.core.credential.exception.SecretPermissionRequiredException;
 import io.gravitee.apim.core.credential.model.Credential;
@@ -185,6 +186,22 @@ class RotateCredentialUseCaseTest extends AbstractUseCaseTest {
         rotate(fixture.admin(), credential, Map.of("password", "rotated"));
 
         assertThat(fixture.secretStore.valueOf("credential." + credential.id() + ".password")).contains("rotated");
+    }
+
+    @Test
+    void should_name_the_field_whose_secret_is_missing_and_rotate_nothing() {
+        var credential = givenABasicCredential();
+        fixture.secretStore.removeSecret(credential.secretReferences().get("password").secretId());
+
+        assertThatThrownBy(() -> rotate(fixture.owner(), credential, Map.of("username", "alice", "password", "rotated")))
+            .isInstanceOf(CredentialSecretMissingException.class)
+            .hasMessage(
+                "Credential " +
+                    credential.id() +
+                    " cannot be rotated: the secret of password no longer exists. Delete the credential and create it again."
+            );
+        assertThat(fixture.secretStore.valueOf("credential." + credential.id() + ".username")).contains("bob");
+        assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
     }
 
     @Test
