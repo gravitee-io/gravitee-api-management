@@ -1008,7 +1008,8 @@
   "login": {
     "button": "Accedi",
     "notification": {
-      "error": "Nome utente o password non validi"
+      "error": "Nome utente o password non validi",
+      "identityProviderError": "Accesso tramite {provider} non riuscito: {error}"
     },
     "password": "Password",
     "resetPassword": "Reimposta la tua password",

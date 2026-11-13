@@ -1000,7 +1000,8 @@
   "login": {
     "button": "Přihlásit",
     "notification": {
-      "error": "Neplatné uživatelské jméno nebo heslo"
+      "error": "Neplatné uživatelské jméno nebo heslo",
+      "identityProviderError": "Přihlášení přes {provider} se nezdařilo: {error}"
     },
     "password": "Heslo",
     "resetPassword": "Obnovit heslo",

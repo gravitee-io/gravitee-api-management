@@ -26,6 +26,7 @@ import { IdentityProvider, PortalService } from '../../../../projects/portal-web
 import { ConfigurationService } from '../../services/configuration.service';
 import { FeatureEnum } from '../../model/feature.enum';
 import { AuthService } from '../../services/auth.service';
+import { NotificationService } from '../../services/notification.service';
 import { ReCaptchaService } from '../../services/recaptcha.service';
 import { GvFormControlDirective } from '../../directives/gv-form-control.directive';
 
@@ -43,6 +44,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   private authService = inject(AuthService);
   private activatedRoute = inject(ActivatedRoute);
   private reCaptchaService = inject(ReCaptchaService);
+  private notificationService = inject(NotificationService);
 
   loginForm: FormGroup<{ username: FormControl<string>; password: FormControl<string> }>;
   registrationEnabled: boolean;
@@ -58,6 +60,10 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loginEnabled = this.config.hasFeature(FeatureEnum.localLogin);
     this.registrationEnabled = this.config.hasFeature(FeatureEnum.userRegistration);
     this.redirectUrl = this.activatedRoute.snapshot.queryParams.redirectUrl || '';
+    const codeExchangeFailure = this.authService.consumeCodeExchangeFailure();
+    if (codeExchangeFailure) {
+      this.notificationService.error('login.notification.identityProviderError', codeExchangeFailure);
+    }
     this.portalService.getPortalIdentityProviders().subscribe(
       configurationIdentitiesResponse => {
         this.providers = configurationIdentitiesResponse.data;

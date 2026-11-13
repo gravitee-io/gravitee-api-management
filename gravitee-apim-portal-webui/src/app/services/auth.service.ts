@@ -13,15 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, Injector, inject } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { Router } from '@angular/router';
 
-import { AuthenticationService, PortalService } from '../../../projects/portal-webclient-sdk/src/lib';
+import { AuthenticationService, IdentityProvider, PortalService } from '../../../projects/portal-webclient-sdk/src/lib';
 
 import { CurrentUserService } from './current-user.service';
 import { NotificationService } from './notification.service';
 import { ConfigurationService } from './configuration.service';
+
+interface CodeExchangeFailure {
+  provider: string;
+  error: string;
+}
+
+const describeCodeExchangeError = (response: HttpErrorResponse): string => {
+  const code = response.error?.error;
+  if (!code) {
+    return `${response.status} ${response.statusText}`;
+  }
+  const hint = response.error?.hint;
+  return hint ? `${code} - ${hint}` : code;
+};
 
 @Injectable({
   providedIn: 'root',
@@ -36,6 +51,7 @@ export class AuthService {
   private authenticationService: AuthenticationService;
   private portalService: PortalService;
   private router: Router;
+  private codeExchangeFailure: CodeExchangeFailure | undefined;
 
   load() {
     // lazy injection to wait for base path injection and router init
@@ -44,12 +60,20 @@ export class AuthService {
     this.router = this.injector.get(Router);
     return new Promise(resolve => {
       if (this.getProviderId()) {
-        this._fetchProviderAndConfigure().then(() => {
+        this._fetchProviderAndConfigure().then(identityProvider => {
           this.oauthService
             .tryLoginCodeFlow({
               // 📝 The clear of the hash doesn't work correctly and keeps a piece of string which distorts angular routing and
               // displays a 404. Disabling it solves the problem and the clear will be done with an angular internal redirection.
               preventClearHashAfterLogin: true,
+            })
+            .catch(error => {
+              if (error instanceof HttpErrorResponse) {
+                this.codeExchangeFailure = {
+                  provider: identityProvider?.name ?? this.getProviderId(),
+                  error: describeCodeExchangeError(error),
+                };
+              }
             })
             .finally(() => resolve(true));
         });
@@ -57,6 +81,13 @@ export class AuthService {
         resolve(true);
       }
     });
+  }
+
+  // Read once by the sign-in page: load() runs before the first navigation, which resets any notification raised here.
+  consumeCodeExchangeFailure(): CodeExchangeFailure | undefined {
+    const failure = this.codeExchangeFailure;
+    this.codeExchangeFailure = undefined;
+    return failure;
   }
 
   login(username: string, password: string, redirectUrl = ''): Promise<boolean> {
@@ -163,8 +194,8 @@ export class AuthService {
     });
   }
 
-  private _fetchProviderAndConfigure(): Promise<boolean> {
-    return new Promise<boolean>(resolve => {
+  private _fetchProviderAndConfigure(): Promise<IdentityProvider | undefined> {
+    return new Promise<IdentityProvider | undefined>(resolve => {
       this.portalService
         .getPortalIdentityProvider({ identityProviderId: this.getProviderId() })
         .toPromise()
@@ -172,12 +203,10 @@ export class AuthService {
           identityProvider => {
             if (identityProvider) {
               this._configure(identityProvider);
-              resolve(true);
-            } else {
-              resolve(false);
             }
+            resolve(identityProvider);
           },
-          () => resolve(false),
+          () => resolve(undefined),
         );
     });
   }

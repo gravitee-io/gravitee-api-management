@@ -1008,7 +1008,8 @@
   "login": {
     "button": "Sign in",
     "notification": {
-      "error": "Invalid username or password"
+      "error": "Invalid username or password",
+      "identityProviderError": "Sign-in through {provider} failed: {error}"
     },
     "password": "Password",
     "resetPassword": "Reset your password",
