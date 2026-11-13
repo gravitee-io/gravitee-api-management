@@ -24,6 +24,7 @@ import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -101,4 +102,27 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
     List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
 
     boolean existsMetadataEntryForEnv(String key, String value, String environmentId);
+
+    /**
+     * The id of the active application carrying this metadata entry in the environment, when one does. Sibling of
+     * {@link #existsMetadataEntryForEnv}: the same lookup, for callers that need the application itself rather
+     * than a yes-or-no — reading an agent's application back from the agent it acts for, for instance.
+     *
+     * @return the application id, or empty when no active application in the environment carries the entry
+     */
+    Optional<String> findIdByMetadataEntryForEnv(String key, String value, String environmentId);
+
+    /**
+     * The active applications of the environment carrying this metadata key with any of the given values, each with
+     * its metadata but without its picture and background. The bulk form of {@link #findIdByMetadataEntryForEnv}: one
+     * call for a page of values rather than one per value — reading the applications acting for a page of agents, for
+     * instance.
+     *
+     * <p>Nothing in the repository keeps a metadata value unique, so one value can match several applications: all of
+     * them are returned, and telling them apart is the caller's to do. Null values match nothing. The JDBC backend
+     * binds one parameter per value, so pass a page of values rather than an unbounded collection.
+     *
+     * @return the matching applications, or an empty set when none match or {@code values} holds no non-null value
+     */
+    Set<Application> findByMetadataEntriesForEnv(String key, Collection<String> values, String environmentId) throws TechnicalException;
 }
