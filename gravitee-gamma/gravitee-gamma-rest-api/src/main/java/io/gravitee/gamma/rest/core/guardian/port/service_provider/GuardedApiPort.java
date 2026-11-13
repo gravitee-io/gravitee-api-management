@@ -34,7 +34,7 @@ public interface GuardedApiPort {
     Optional<GuardedApi> findById(String environmentId, String apiId);
 
     /**
-     * One page of the APIs of the environment whose current definition runs this Guardian, deployed or not, by name.
+     * One page of the APIs of the environment whose definition runs this Guardian, by name.
      *
      * @param pageNumber 1-based
      */
