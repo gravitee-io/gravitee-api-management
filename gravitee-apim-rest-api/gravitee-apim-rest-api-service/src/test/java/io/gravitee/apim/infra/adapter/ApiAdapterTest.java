@@ -39,17 +39,25 @@ import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.federation.FederatedApiAgentEntity;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
+import lombok.SneakyThrows;
+import org.assertj.core.api.Condition;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiAdapterTest {
@@ -549,6 +557,161 @@ class ApiAdapterTest {
             var updateApiEntity = ApiAdapter.INSTANCE.toUpdateApiEntity(model, definition);
 
             assertThat(updateApiEntity.getListeners()).isEmpty();
+        }
+    }
+
+    /**
+     * A deployment republished by {@code DeployApiInternalFlowDomainService} is read into the core model and written
+     * back through this adapter, so whatever the round trip does not carry leaves the payload the gateways are given.
+     * This is the measure of it: anything dropped here is either mapped or an accepted loss, named with its reason.
+     *
+     * <p>Measured on every origin, because the origin decides which shape of {@code OriginContext} the core model
+     * holds, and so which of {@code syncFrom}, {@code mode} and {@code integrationId} has room to travel at all.
+     */
+    @Nested
+    class RoundTripOfADeploymentPayload {
+
+        @ParameterizedTest
+        @EnumSource(OriginContext.Origin.class)
+        void should_carry_every_field_a_deployment_payload_holds(OriginContext.Origin origin) {
+            var payload = aFullyPopulatedDeployment(origin).build();
+
+            var republished = ApiAdapter.INSTANCE.toRepository(ApiAdapter.INSTANCE.toCoreModel(payload));
+
+            assertThat(republished)
+                .as("the payload of a %s API, re-expressed in the current model", origin)
+                .usingRecursiveComparison()
+                .ignoringFields(acceptedLossesOf(origin))
+                .isEqualTo(payload);
+        }
+
+        /**
+         * The comparison above is blind twice over: it ignores the accepted losses, and a field unset on both sides
+         * matches. So the fixture has to carry a value for every field the repository model declares — without this,
+         * a column added to that model and never mapped keeps the suite green while the payload silently loses it.
+         */
+        @ParameterizedTest
+        @EnumSource(OriginContext.Origin.class)
+        void should_populate_every_field_the_repository_model_declares(OriginContext.Origin origin) {
+            var payload = aFullyPopulatedDeployment(origin).build();
+
+            SoftAssertions.assertSoftly(soft ->
+                fieldsOfARepositoryApi().forEach(field ->
+                    soft
+                        .assertThat(valueOf(field, payload))
+                        .as("fixture value of %s: a field left unset leaves its round trip unmeasured", field.getName())
+                        .isNot(UNSET)
+                )
+            );
+        }
+
+        /** An accepted loss that in fact survives is no loss, and leaving it on the list hides the next one. */
+        @ParameterizedTest
+        @EnumSource(OriginContext.Origin.class)
+        void should_lose_exactly_the_fields_the_accepted_losses_name(OriginContext.Origin origin) {
+            var payload = aFullyPopulatedDeployment(origin).build();
+
+            var republished = ApiAdapter.INSTANCE.toRepository(ApiAdapter.INSTANCE.toCoreModel(payload));
+
+            SoftAssertions.assertSoftly(soft ->
+                Stream.of(acceptedLossesOf(origin)).forEach(name ->
+                    soft
+                        .assertThat(valueOf(fieldNamed(name), republished))
+                        .as("%s of a %s API, accepted as lost: take it off the list once it survives", name, origin)
+                        .isNotEqualTo(valueOf(fieldNamed(name), payload))
+                )
+            );
+        }
+
+        /** What the gateway's sync mapper reads out of a payload, each with what losing it would break. */
+        @ParameterizedTest
+        @EnumSource(OriginContext.Origin.class)
+        void should_carry_every_field_the_gateways_read_of_a_deployment(OriginContext.Origin origin) throws JsonProcessingException {
+            var payload = aFullyPopulatedDeployment(origin).build();
+
+            var republished = ApiAdapter.INSTANCE.toRepository(ApiAdapter.INSTANCE.toCoreModel(payload));
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft
+                    .assertThat(republished.getDefinitionVersion())
+                    .as("definition version: the gateways pick the model to read the definition with")
+                    .isEqualTo(DefinitionVersion.V4);
+                soft
+                    .assertThat(republished.getType())
+                    .as("api type: an unknown one makes the gateways reject the event")
+                    .isEqualTo(ApiType.PROXY);
+                soft
+                    .assertThat(republished.getLifecycleState())
+                    .as("lifecycle state: the gateways disable an API that is not started")
+                    .isEqualTo(LifecycleState.STARTED);
+                soft
+                    .assertThat(republished.getEnvironmentId())
+                    .as("environment id: the gateways drop an event they cannot resolve the environment of")
+                    .isEqualTo("env-id");
+            });
+            assertThat(
+                GraviteeJacksonMapper.getInstance().readValue(republished.getDefinition(), io.gravitee.definition.model.v4.Api.class)
+            )
+                .as("the definition, which the gateways run")
+                .isEqualTo(
+                    GraviteeJacksonMapper.getInstance().readValue(payload.getDefinition(), io.gravitee.definition.model.v4.Api.class)
+                );
+        }
+
+        /**
+         * <ul>
+         *   <li>{@code definition} is re-serialized from the typed model, so the two strings differ by field order
+         *       and by the fields the model leaves out; the test above compares it as a typed definition instead.
+         *   <li>{@code syncFrom} survives no origin, and on a Kubernetes-managed API it is worse than dropped: the
+         *       context is rebuilt through {@code OriginContext.Kubernetes(Mode)}, whose single argument forces the
+         *       literal {@code KUBERNETES}, so a stored {@code MANAGEMENT} — the value that has such an API
+         *       deployed by a plain store sync instead of from a config map — comes back overwritten.
+         *   <li>{@code mode} travels on a Kubernetes-managed API only and {@code integrationId} on an integration
+         *       one only; the other origins hold no room for them.
+         * </ul>
+         *
+         * <p>None of the three reaches the gateways.
+         */
+        private static String[] acceptedLossesOf(OriginContext.Origin origin) {
+            return switch (origin) {
+                case MANAGEMENT -> new String[] { "definition", "syncFrom", "mode", "integrationId" };
+                case KUBERNETES -> new String[] { "definition", "syncFrom", "integrationId" };
+                case INTEGRATION -> new String[] { "definition", "syncFrom", "mode" };
+            };
+        }
+
+        /** A field the fixture left as a fresh instance has it, which would measure nothing of the round trip. */
+        private static final Condition<Object> UNSET = new Condition<>(
+            value -> value == null || Boolean.FALSE.equals(value) || Integer.valueOf(0).equals(value) || Long.valueOf(0L).equals(value),
+            "left at the default value of its type"
+        );
+
+        /** Every field the repository model declares, so a column added to it without a mapping turns this red. */
+        private Api.ApiBuilder aFullyPopulatedDeployment(OriginContext.Origin origin) {
+            return apiV4()
+                .origin(origin.name().toLowerCase())
+                .hrid("api-hrid")
+                .allowMultiJwtOauth2Subscriptions(true)
+                .portalNavigation("[{\"path\":\"/reference\",\"displayName\":\"Reference\",\"order\":1}]")
+                .syncFrom(Api.ORIGIN_MANAGEMENT.toUpperCase())
+                .integrationId("integration-id");
+        }
+
+        private static List<Field> fieldsOfARepositoryApi() {
+            return Arrays.stream(Api.class.getDeclaredFields())
+                .filter(field -> !Modifier.isStatic(field.getModifiers()))
+                .toList();
+        }
+
+        @SneakyThrows
+        private static Field fieldNamed(String name) {
+            return Api.class.getDeclaredField(name);
+        }
+
+        @SneakyThrows
+        private static Object valueOf(Field field, Api api) {
+            field.setAccessible(true);
+            return field.get(api);
         }
     }
 
