@@ -102,12 +102,12 @@
                         <goals>
                             <goal>java</goal>
                         </goals>
+                        <configuration>
+                            <mainClass>io.gravitee.apim.distribution.elasticsearch.ESIndexMappingsDistributionBuilder</mainClass>
+                            <commandlineArgs>${project.build.directory}/es-index-mappings</commandlineArgs>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <mainClass>io.gravitee.apim.distribution.elasticsearch.ESIndexMappingsDistributionBuilder</mainClass>
-                    <commandlineArgs>${project.build.directory}/es-index-mappings</commandlineArgs>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
