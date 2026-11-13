@@ -82,6 +82,12 @@ import org.springframework.stereotype.Component;
 @Component("ApiAuthzServiceImplV4")
 public class ApiAuthorizationServiceImpl extends AbstractService implements ApiAuthorizationService {
 
+    // The Portal lists an API through a subscription only when that subscription also opens the API's page.
+    private static final Set<SubscriptionStatus> API_ACCESS_SUBSCRIPTION_STATUSES = Set.of(
+        SubscriptionStatus.ACCEPTED,
+        SubscriptionStatus.RESUMED
+    );
+
     private final ApiRepository apiRepository;
     private final CategoryService categoryService;
     private final MembershipService membershipService;
@@ -271,7 +277,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         final SubscriptionQuery query = new SubscriptionQuery();
         query.setApplications(applicationIds);
         query.setApi(api.getId());
-        query.setStatuses(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.RESUMED));
+        query.setStatuses(API_ACCESS_SUBSCRIPTION_STATUSES);
 
         return !subscriptionService.search(executionContext, query).isEmpty();
     }
@@ -317,6 +323,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
                 if (!applicationIds.isEmpty()) {
                     final SubscriptionQuery query = new SubscriptionQuery();
                     query.setApplications(applicationIds);
+                    query.setStatuses(API_ACCESS_SUBSCRIPTION_STATUSES);
                     query.setExcludedApis(
                         apiCriteriaList
                             .stream()
