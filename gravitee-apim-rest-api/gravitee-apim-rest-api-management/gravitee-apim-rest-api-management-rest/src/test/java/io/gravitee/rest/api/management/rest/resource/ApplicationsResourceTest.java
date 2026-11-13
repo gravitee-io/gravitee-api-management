@@ -15,12 +15,14 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.data.domain.Page;
@@ -43,6 +45,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -97,6 +100,28 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
             envTarget().path("my-beautiful-application").getUri().toString(),
             response.getHeaders().getFirst(HttpHeaders.LOCATION)
         );
+    }
+
+    @Test
+    public void shouldIgnoreClientSuppliedIdWhenCreatingApplication() {
+        reset(applicationService);
+        NewApplicationEntity newApplicationEntity = new NewApplicationEntity();
+        newApplicationEntity.setId("client-chosen-id");
+        newApplicationEntity.setName("My beautiful application");
+        newApplicationEntity.setDescription("my description");
+
+        ApplicationEntity createdApplication = new ApplicationEntity();
+        createdApplication.setId("server-generated-id");
+        doReturn(createdApplication)
+            .when(applicationService)
+            .create(eq(GraviteeContext.getExecutionContext()), any(NewApplicationEntity.class), eq(USER_NAME));
+
+        final Response response = envTarget().request().post(Entity.json(newApplicationEntity));
+        assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
+
+        ArgumentCaptor<NewApplicationEntity> captor = ArgumentCaptor.forClass(NewApplicationEntity.class);
+        verify(applicationService).create(eq(GraviteeContext.getExecutionContext()), captor.capture(), eq(USER_NAME));
+        assertNull(captor.getValue().getId());
     }
 
     @Test
