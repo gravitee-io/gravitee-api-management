@@ -28,6 +28,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import fixtures.core.model.ApiCRDFixtures;
 import inmemory.ApiCRDExportDomainServiceInMemory;
 import io.gravitee.apim.core.membership.model.Role;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.infra.adapter.ApiCRDAdapter;
 import io.gravitee.definition.model.v4.ApiType;
@@ -40,6 +41,8 @@ import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -168,6 +171,13 @@ public class ApiResource_ExportCRDTest extends ApiResourceTest {
         parametersQueryService.define(
             new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT, ParameterReferenceType.ENVIRONMENT, "true")
         );
+        // The dry run resolves the primary owner of an API to create, as the import does
+        parametersQueryService.define(
+            new Parameter(Key.API_PRIMARY_OWNER_MODE.key(), ENVIRONMENT, ParameterReferenceType.ENVIRONMENT, "USER")
+        );
+        givenExistingUsers(
+            List.of(BaseUserEntity.builder().id(USER_NAME).firstname("John").lastname("Doe").email("john.doe@gravitee.io").build())
+        );
         roleQueryService.initWith(
             List.of(
                 Role.builder()
@@ -190,6 +200,9 @@ public class ApiResource_ExportCRDTest extends ApiResourceTest {
                     .name("api-name")
                     .apiVersion("1.0")
                     .type(ApiType.PROXY)
+                    // A stored API always has both, and the CRD import needs them to create the API
+                    .lifecycleState(ApiLifecycleState.CREATED)
+                    .visibility(Visibility.PUBLIC)
                     .listeners(List.of(HttpListener.builder().paths(List.of(new Path("/api-path"))).build()))
                     .endpointGroups(
                         List.of(
