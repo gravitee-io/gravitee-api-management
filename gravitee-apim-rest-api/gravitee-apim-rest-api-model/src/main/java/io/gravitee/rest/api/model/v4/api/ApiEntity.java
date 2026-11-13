@@ -149,6 +149,14 @@ public class ApiEntity implements GenericApiEntity {
     @DeploymentRequired
     private List<Flow> flows;
 
+    // Managed by the platform, not by the API publisher: kept out of every payload. Compared against what the
+    // gateways run like any other deployment-bearing field, which here detects an application that did not happen:
+    // a Guardian change is sent to them as it is written, so a difference means the API was never deployed, is
+    // stopped, or the event write failed.
+    @JsonIgnore
+    @DeploymentRequired
+    private Flow internalFlow;
+
     @DeploymentRequired
     @Schema(
         description = "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-key is missing, ..."
