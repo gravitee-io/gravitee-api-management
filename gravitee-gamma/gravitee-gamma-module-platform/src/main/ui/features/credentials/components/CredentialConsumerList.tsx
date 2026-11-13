@@ -27,7 +27,7 @@ export function CredentialConsumerList({ consumers }: Readonly<{ consumers: read
     return (
         <ul className="space-y-2">
             {consumers.map(consumer => {
-                const href = env ? credentialConsumerHref(env.id, consumer) : undefined;
+                const href = env ? credentialConsumerHref(env, consumer) : undefined;
                 return (
                     <li key={`${consumer.module}:${consumer.type}:${consumer.id}`} className="flex items-center gap-2 text-sm">
                         {href ? (
