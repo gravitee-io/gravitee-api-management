@@ -94,6 +94,11 @@
 					<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-apis.yaml</inputSpec>
 					<generatorName>java</generatorName>
 					<library>jersey3</library>
+					<!-- libraries/jersey3/oneof_model.mustache is the generator's own template with two changes, so that a oneOf
+					     body matching zero or several schemas answers 400 instead of 500: the deserializer throws a
+					     JsonMappingException instead of an IOException, and a missing discriminator no longer throws a
+					     NullPointerException. Re-sync it with the generator's template on each openapi-generator upgrade. -->
+					<templateDirectory>${project.basedir}/src/main/openapi-templates</templateDirectory>
 					<modelPackage>${openapi.modelPackage}</modelPackage>
 					<generateApis>false</generateApis>
 					<generateModels>true</generateModels>

@@ -394,6 +394,18 @@ class LogsSearchResourceTest extends AbstractResourceTest {
 
             assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
         }
+
+        @Test
+        void should_return_400_if_a_filter_is_empty() {
+            var json = "{\"timeRange\":{\"from\":\"2020-01-01T00:00:00Z\",\"to\":\"2020-12-31T23:59:59Z\"},\"filters\":[{}]}";
+
+            var response = searchTarget.request().post(Entity.json(json));
+
+            assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .satisfies(error -> assertThat(error.getTechnicalCode()).isEqualTo("invalidValue"));
+        }
     }
 
     @Nested

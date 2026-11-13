@@ -485,6 +485,55 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_return_400_when_viewer_is_missing() {
+            // Given
+            allowDocumentationUpdate();
+
+            // When
+            Response response = target.path(CONTENT_ID).path("configuration").request().method("PATCH", Entity.json(Map.of()));
+
+            // Then
+            assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .satisfies(error -> assertThat(error.getTechnicalCode()).isEqualTo("invalidValue"));
+            var storedContent = (OpenApiPageContent) portalPageContentCrudService.storage().getFirst();
+            assertThat(storedContent.getViewerSettings()).isEqualTo(new RedocConfiguration());
+        }
+
+        @Test
+        void should_return_400_when_viewer_is_unknown() {
+            // Given
+            allowDocumentationUpdate();
+
+            // When
+            Response response = target
+                .path(CONTENT_ID)
+                .path("configuration")
+                .request()
+                .method("PATCH", Entity.json(Map.of("viewer", "FOO")));
+
+            // Then
+            assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .satisfies(error -> assertThat(error.getTechnicalCode()).isEqualTo("invalidValue"));
+            var storedContent = (OpenApiPageContent) portalPageContentCrudService.storage().getFirst();
+            assertThat(storedContent.getViewerSettings()).isEqualTo(new RedocConfiguration());
+        }
+
+        private void allowDocumentationUpdate() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_DOCUMENTATION,
+                    ENVIRONMENT,
+                    RolePermissionAction.UPDATE
+                )
+            ).thenReturn(true);
+        }
+
+        @Test
         void should_return_403_when_insufficient_permissions() {
             // Given
             when(
