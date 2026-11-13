@@ -1167,6 +1167,11 @@ api:
   # you can choose if you want to enable analytics using elasticsearch or disable it (set type to "none")
   analytics:
     type: elasticsearch # or none
+    # elasticsearch:
+    #   # Index mode of the Management API only, overriding es.index_mode, which the gateway reporter also reads.
+    #   # data_stream reads the data streams named <es.index>-<type>, written by another component than the gateway.
+    #   # Ignored on Elastic Cloud Serverless, where the management API always reads data streams.
+    #   index_mode: data_stream
 
   # OpenTelemetry traces reader (used by the gamma APIM tracing resource). Disabled by default; set type to
   # "elasticsearch" to wire the ES-backed TracingRepository. `none` is still rendered into gravitee.yml — the
