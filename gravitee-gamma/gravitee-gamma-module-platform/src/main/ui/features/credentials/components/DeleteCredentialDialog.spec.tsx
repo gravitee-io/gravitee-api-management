@@ -113,7 +113,7 @@ describe('DeleteCredentialDialog', () => {
         await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
 
         await waitFor(() => expect(refetch).toHaveBeenCalled());
-        expect(notify.error).toHaveBeenCalledWith(conflict, 'The credential could not be deleted.');
+        expect(notify.error).toHaveBeenCalledWith('Credential in use');
         expect(onDeleted).not.toHaveBeenCalled();
     });
 });

@@ -166,7 +166,20 @@ describe('NewCredentialPage', () => {
         await userEvent.type(screen.getByLabelText(/Token/), 'sk-123');
         await userEvent.click(screen.getByRole('button', { name: 'Create credential' }));
 
-        expect(notify.error).toHaveBeenCalledWith(refusal, 'The credential could not be created.');
+        expect(notify.error).toHaveBeenCalledWith('Forbidden');
         expect(navigate).not.toHaveBeenCalled();
+    });
+
+    it('reports a server fault without its operator detail', async () => {
+        mutateAsync.mockRejectedValue(
+            new ApimApiError(500, 'Secret values cannot be stored or read: api.secrets.encryption.key is not set.'),
+        );
+        render(<NewCredentialPage />);
+
+        await fillDetails('OpenAI production');
+        await userEvent.type(screen.getByLabelText(/Token/), 'sk-123');
+        await userEvent.click(screen.getByRole('button', { name: 'Create credential' }));
+
+        expect(notify.error).toHaveBeenCalledWith('The credential could not be created.');
     });
 });

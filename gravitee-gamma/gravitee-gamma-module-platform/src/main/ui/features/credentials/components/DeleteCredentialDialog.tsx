@@ -20,6 +20,7 @@ import { notify } from '../../../shared/notify';
 import { useDeleteCredential } from '../hooks/useCredentialMutations';
 import { useCredentialConsumers } from '../hooks/useCredentials';
 import type { Credential } from '../types/credential';
+import { credentialFailureMessage } from '../utils/credentialErrors';
 
 interface DeleteCredentialDialogProps {
     readonly credential: Pick<Credential, 'id' | 'name'>;
@@ -42,7 +43,7 @@ export function DeleteCredentialDialog({ credential, open, onOpenChange, onDelet
             if (error instanceof ApimApiError && error.status === 409) {
                 void refetch();
             }
-            notify.error(error, 'The credential could not be deleted.');
+            notify.error(credentialFailureMessage(error, 'The credential could not be deleted.'));
         }
     }
 
