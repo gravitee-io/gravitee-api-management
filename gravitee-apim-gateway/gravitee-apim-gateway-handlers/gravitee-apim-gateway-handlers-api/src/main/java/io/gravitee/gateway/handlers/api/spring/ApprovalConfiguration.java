@@ -19,13 +19,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gamma.definition.approval.ApprovalEventKinds;
 import io.gravitee.gateway.api.genericevent.GenericEventRegistry;
 import io.gravitee.gateway.handlers.api.manager.ApprovalRuleManager;
+import io.gravitee.gateway.handlers.api.manager.ApprovalStateManager;
 import io.gravitee.gateway.handlers.api.manager.impl.ApprovalFeature;
 import io.gravitee.gateway.handlers.api.manager.impl.ApprovalRuleEventSubscriber;
 import io.gravitee.gateway.handlers.api.manager.impl.ApprovalRuleManagerImpl;
+import io.gravitee.gateway.handlers.api.manager.impl.ApprovalStateEventSubscriber;
+import io.gravitee.gateway.handlers.api.manager.impl.ApprovalStateManagerImpl;
 import io.gravitee.node.api.license.LicenseManager;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.vertx.core.Vertx;
 import io.vertx.micrometer.backends.BackendRegistries;
+import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -60,5 +64,27 @@ public class ApprovalConfiguration {
         ObjectMapper objectMapper
     ) {
         return genericEventRegistry.subscribe(ApprovalEventKinds.RULE, new ApprovalRuleEventSubscriber(approvalRuleManager, objectMapper));
+    }
+
+    @Bean
+    public ApprovalStateManagerImpl approvalStateManager(Vertx vertx) {
+        ApprovalStateManagerImpl manager = new ApprovalStateManagerImpl(Clock.systemUTC());
+        MeterRegistry registry = BackendRegistries.getDefaultNow();
+        if (registry != null) {
+            manager.bindTo(registry);
+        }
+        return manager;
+    }
+
+    @Bean(destroyMethod = "cancel")
+    public GenericEventRegistry.Subscription approvalStateSubscription(
+        GenericEventRegistry genericEventRegistry,
+        ApprovalStateManager approvalStateManager,
+        ObjectMapper objectMapper
+    ) {
+        return genericEventRegistry.subscribe(
+            ApprovalEventKinds.STATE,
+            new ApprovalStateEventSubscriber(approvalStateManager, objectMapper)
+        );
     }
 }
