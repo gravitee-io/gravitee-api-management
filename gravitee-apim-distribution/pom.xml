@@ -287,7 +287,7 @@
 
     <!-- Agent Provider plugins -->
     <gravitee-agent-provider-azure-foundry.version>1.0.0-alpha.4</gravitee-agent-provider-azure-foundry.version>
-    <gravitee-agent-provider-aws-bedrock-agentcore.version>1.0.0-alpha.1</gravitee-agent-provider-aws-bedrock-agentcore.version>
+    <gravitee-agent-provider-aws-bedrock-agentcore.version>1.0.0-alpha.5</gravitee-agent-provider-aws-bedrock-agentcore.version>
     <gravitee-agent-provider-google-agent.version>1.0.0-alpha.4</gravitee-agent-provider-google-agent.version>
     </properties>
 
