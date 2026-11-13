@@ -17,6 +17,8 @@ package io.gravitee.gamma.rest.resources.guardian;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -34,8 +36,12 @@ import io.gravitee.gamma.rest.spring.ResourceContextConfiguration;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -137,5 +143,93 @@ class ApiGuardiansResourceTest extends AbstractResourceTest {
 
             assertThat(response.getStatus()).as("status").isEqualTo(HttpStatusCode.FORBIDDEN_403);
         }
+    }
+
+    @Nested
+    class EnableApiGuardian {
+
+        @Test
+        void should_enable_a_deployed_guardian() {
+            givenDeployedGuardian();
+            apis.givenApi(GuardianFixtures.aGuardedApi().environmentId(ENVIRONMENT).build());
+
+            Response response = post(Map.of("guardianId", GUARDIAN_ID));
+
+            assertThat(response.getStatus()).as("status").isEqualTo(HttpStatusCode.OK_200);
+            JsonNode row = response.readEntity(JsonNode.class).get("data").get(0);
+            assertSoftly(softly -> {
+                softly.assertThat(row.get("id").asText()).as("id").isEqualTo(GUARDIAN_ID);
+                softly.assertThat(row.get("order").asInt()).as("order").isEqualTo(1);
+            });
+        }
+
+        @Test
+        void should_return_400_for_a_guardian_that_is_not_deployed() {
+            guardianRepository.givenGuardian(GuardianFixtures.aGuardian(d -> d.environmentId(ENVIRONMENT)).build());
+            apis.givenApi(GuardianFixtures.aGuardedApi().environmentId(ENVIRONMENT).build());
+
+            Response response = post(Map.of("guardianId", GUARDIAN_ID));
+
+            assertThat(response.getStatus()).as("status").isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_409_for_a_guardian_already_enabled() {
+            givenDeployedGuardian();
+            apis.givenApi(
+                GuardianFixtures.aGuardedApi()
+                    .environmentId(ENVIRONMENT)
+                    .internalFlow(Flow.builder().request(List.of(GuardianSteps.of(GUARDIAN_ID, "Credential leakage"))).build())
+                    .build()
+            );
+
+            Response response = post(Map.of("guardianId", GUARDIAN_ID));
+
+            assertThat(response.getStatus()).as("status").isEqualTo(HttpStatusCode.CONFLICT_409);
+        }
+
+        @Test
+        void should_return_400_without_a_guardian_id() {
+            apis.givenApi(GuardianFixtures.aGuardedApi().environmentId(ENVIRONMENT).build());
+
+            Response response = post(Map.of());
+
+            assertThat(response.getStatus()).as("status").isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_403_without_the_permission_to_read_the_guardians() {
+            when(permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_GUARDIAN), any(), any())).thenReturn(false);
+            givenDeployedGuardian();
+            apis.givenApi(GuardianFixtures.aGuardedApi().environmentId(ENVIRONMENT).build());
+
+            Response response = post(Map.of("guardianId", GUARDIAN_ID));
+
+            assertSoftly(softly -> {
+                softly.assertThat(response.getStatus()).as("status").isEqualTo(HttpStatusCode.FORBIDDEN_403);
+                softly.assertThat(apis.findById(ENVIRONMENT, API_ID).orElseThrow().internalFlow()).as("internal flow").isNull();
+            });
+        }
+
+        @Test
+        void should_return_403_without_the_permission_to_update_the_api_definition() {
+            givenOnlyReadPermission(RolePermission.ENVIRONMENT_GUARDIAN, ENVIRONMENT);
+            givenDeployedGuardian();
+            apis.givenApi(GuardianFixtures.aGuardedApi().environmentId(ENVIRONMENT).build());
+
+            Response response = post(Map.of("guardianId", GUARDIAN_ID));
+
+            assertThat(response.getStatus()).as("status").isEqualTo(HttpStatusCode.FORBIDDEN_403);
+        }
+    }
+
+    private void givenDeployedGuardian() {
+        var guardian = GuardianFixtures.aGuardian(d -> d.environmentId(ENVIRONMENT).name("Credential leakage")).build();
+        guardianRepository.givenGuardian(guardian);
+        guardianPublications.givenPublication(guardian.getDefinition(), Instant.parse("2026-11-09T10:00:00Z"));
+    }
+
+    private Response post(Object payload) {
+        return rootTarget().request().post(Entity.entity(payload, MediaType.APPLICATION_JSON_TYPE));
     }
 }

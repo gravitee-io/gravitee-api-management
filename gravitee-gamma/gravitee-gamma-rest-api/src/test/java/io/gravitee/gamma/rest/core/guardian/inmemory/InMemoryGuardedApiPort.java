@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.core.guardian.inmemory;
 
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gamma.rest.core.guardian.model.GuardedApi;
 import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardedApiPort;
 import java.util.ArrayList;
@@ -46,5 +47,17 @@ public class InMemoryGuardedApiPort implements GuardedApiPort {
             .stream()
             .filter(api -> Objects.equals(api.id(), apiId) && Objects.equals(api.environmentId(), environmentId))
             .findFirst();
+    }
+
+    @Override
+    public GuardedApi updateInternalFlow(String apiId, Flow internalFlow) {
+        var stored = apis
+            .stream()
+            .filter(api -> Objects.equals(api.id(), apiId))
+            .findFirst()
+            .orElseThrow();
+        var updated = stored.toBuilder().internalFlow(internalFlow).build();
+        apis.set(apis.indexOf(stored), updated);
+        return updated;
     }
 }

@@ -17,6 +17,8 @@ package io.gravitee.gamma.rest.infra.adapter;
 
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gamma.rest.core.guardian.model.GuardedApi;
 import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardedApiPort;
 import java.util.Objects;
@@ -39,6 +41,20 @@ public class GuardedApiPortAdapter implements GuardedApiPort {
             .findById(apiId)
             .filter(api -> Objects.equals(api.getEnvironmentId(), environmentId))
             .map(GuardedApiPortAdapter::toGuardedApi);
+    }
+
+    @Override
+    public GuardedApi updateInternalFlow(String apiId, Flow internalFlow) {
+        var api = apiCrudService.get(apiId);
+        if (!(api.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api definition)) {
+            throw new IllegalStateException("API " + apiId + " has no internal flow to update");
+        }
+        var updated = api
+            .toBuilder()
+            .apiDefinitionValue(definition.toBuilder().internalFlow(internalFlow).build())
+            .updatedAt(TimeProvider.now())
+            .build();
+        return toGuardedApi(apiCrudService.update(updated));
     }
 
     private static GuardedApi toGuardedApi(Api api) {

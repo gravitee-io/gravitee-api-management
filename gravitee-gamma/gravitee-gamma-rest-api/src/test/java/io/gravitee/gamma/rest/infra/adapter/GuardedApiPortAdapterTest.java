@@ -68,4 +68,24 @@ class GuardedApiPortAdapterTest {
             .get()
             .satisfies(guardedApi -> assertThat(guardedApi.supportsGuardians()).as("supports guardians").isFalse());
     }
+
+    @Test
+    void should_replace_the_internal_flow_and_keep_the_rest_of_the_definition() {
+        var api = ApiFixtures.aLLMProxyApiV4();
+        apiCrudService.initWith(List.of(api));
+        var internalFlow = Flow.builder().response(List.of(GuardianSteps.of("guardian-1", "One"))).build();
+
+        var updated = adapter.updateInternalFlow(api.getId(), internalFlow);
+
+        var stored = apiCrudService.get(api.getId());
+        assertSoftly(softly -> {
+            softly.assertThat(updated.internalFlow()).as("returned internal flow").isEqualTo(internalFlow);
+            softly.assertThat(stored.getApiDefinitionHttpV4().getInternalFlow()).as("stored internal flow").isEqualTo(internalFlow);
+            softly
+                .assertThat(stored.getApiDefinitionHttpV4().getEndpointGroups())
+                .as("stored endpoint groups")
+                .isEqualTo(api.getApiDefinitionHttpV4().getEndpointGroups());
+            softly.assertThat(stored.getUpdatedAt()).as("update date").isAfter(api.getUpdatedAt());
+        });
+    }
 }

@@ -43,6 +43,23 @@ public final class ApiGuardians {
         return new ApiGuardians(internalFlow);
     }
 
+    public Flow internalFlow() {
+        return internalFlow;
+    }
+
+    public boolean isEnabled(String guardianId) {
+        return list()
+            .stream()
+            .anyMatch(enabled -> enabled.guardianId().equals(guardianId));
+    }
+
+    /** The Guardians with this one enabled after those of its phase. */
+    public ApiGuardians enable(String guardianId, String name, Phase phase) {
+        var steps = new ArrayList<>(steps(phase));
+        steps.add(GuardianSteps.of(guardianId, name));
+        return withSteps(phase, steps);
+    }
+
     public List<Enabled> list() {
         var enabled = new ArrayList<Enabled>();
         enabled.addAll(list(Phase.REQUEST));
@@ -57,6 +74,12 @@ public final class ApiGuardians {
             enabled.add(new Enabled(guardianIds.get(i), phase, i + 1));
         }
         return enabled;
+    }
+
+    private ApiGuardians withSteps(Phase phase, List<Step> steps) {
+        return new ApiGuardians(
+            phase == Phase.REQUEST ? internalFlow.toBuilder().request(steps).build() : internalFlow.toBuilder().response(steps).build()
+        );
     }
 
     private List<Step> steps(Phase phase) {

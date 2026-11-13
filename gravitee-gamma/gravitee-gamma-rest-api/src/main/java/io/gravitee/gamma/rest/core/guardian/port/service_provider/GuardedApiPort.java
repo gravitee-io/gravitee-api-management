@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.core.guardian.port.service_provider;
 
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gamma.rest.core.guardian.model.GuardedApi;
 import java.util.Optional;
 
@@ -27,4 +28,7 @@ import java.util.Optional;
  */
 public interface GuardedApiPort {
     Optional<GuardedApi> findById(String environmentId, String apiId);
+
+    /** Replaces the internal flow of an API that has one; the API needs a redeployment to run it. */
+    GuardedApi updateInternalFlow(String apiId, Flow internalFlow);
 }
