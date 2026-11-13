@@ -378,6 +378,21 @@ describe('DocumentationFolderComponent', () => {
       const breadcrumbs = await harness.getBreadcrumbs();
       expect(await breadcrumbs?.getText()).toEqual('Test item/Folder 1/Page 2');
     });
+
+    it('should open the selected page at the top after the previous page was scrolled', async () => {
+      await init();
+      await harness.getTreeHarness();
+
+      const scrollContainer: HTMLElement = fixture.nativeElement.querySelector('.sidenav-layout__container__content');
+      // jsdom does not keep scroll offsets: give the container a writable one to observe the reset
+      Object.defineProperty(scrollContainer, 'scrollTop', { configurable: true, writable: true, value: 500 });
+
+      const tree = await harness.getTreeHarness();
+      await tree!.clickItemByTitle('Page 2');
+
+      expect(await (await harness.getBreadcrumbs())?.getText()).toEqual('Test item/Folder 1/Page 2');
+      expect(scrollContainer.scrollTop).toEqual(0);
+    });
   });
 
   describe('api product', () => {
