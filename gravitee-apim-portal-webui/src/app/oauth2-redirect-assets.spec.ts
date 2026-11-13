@@ -52,8 +52,9 @@ describe('swagger-ui OAuth2 redirect assets packaging', () => {
 
   it('should copy every script the shipped oauth2-redirect.html loads', () => {
     const redirectPage = fs.readFileSync(path.resolve(__dirname, '../..', SWAGGER_UI_DIST, 'oauth2-redirect.html'), 'utf8');
-    const scripts = Array.from(redirectPage.matchAll(/<script[^>]*\ssrc="([^"]+)"/g), match => match[1]);
+    const scripts = Array.from(redirectPage.matchAll(/<script[^>]*\ssrc=["']?([^"'\s>]+)/g), match => match[1]);
 
+    expect(scripts.length).toBeGreaterThan(0);
     expect(scripts.filter(script => !isCopiedFromSwaggerUiToRoot(script))).toEqual([]);
   });
 });
