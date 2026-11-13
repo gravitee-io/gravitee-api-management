@@ -59,11 +59,11 @@ import lombok.RequiredArgsConstructor;
  *
  * <p><strong>The steps</strong> — every enabled step, guardrail or not, must reference an installed
  * policy whose plugin declares the Guardian phase in its {@code guardian} flow. A guardrail must also
- * support the Guardian API types and run in the Guardian phase for each of them, in its plugin
- * metadata and in any explicit scope protocol.
+ * support the Guardian API types, in its plugin metadata and in any explicit scope protocol: the
+ * {@code guardian} flow says where it runs, its API type flows only which API types it applies to.
  *
- * <p>These rules apply to creation, to update, a {@code PUT} replacing the whole definition, and to
- * deployment, which checks the stored draft against the policies installed at that time.
+ * <p>These rules apply to creation and to update, a {@code PUT} replacing the whole definition. A
+ * deployment publishes the stored draft as is.
  *
  * <p><strong>The name is free</strong> — two Guardians of one environment may not share a name. This
  * is the check users meet, and the only one that reads the store; the unique index behind it is a
@@ -135,10 +135,7 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
         }
     }
 
-    /**
-     * Refuses a Guardian the gateway could not run with the policies installed now, so a policy uninstalled after a save
-     * is caught at deployment.
-     */
+    /** Refuses a Guardian the gateway could not run with the policies installed now. */
     public void validateAgainstInstalledPolicies(Guardian guardian) {
         validateAndSanitize(new Input(guardian))
             .severe()
@@ -197,8 +194,6 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
             if (policy.guardrail()) {
                 if (!policy.supports(apiTypes)) {
                     errors.add(incompatibleProtocol(step, apiTypes));
-                } else if (!policy.runsIn(apiTypes, phase)) {
-                    errors.add(incompatiblePhase(step, apiTypes, phase));
                 } else {
                     validateScopeProtocol(step, apiTypes, errors);
                 }
@@ -275,16 +270,6 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
             "Guardrail step [%s] using policy [%s] does not support Guardian API types [%s].",
             step.getName(),
             step.getPolicy(),
-            labels(apiTypes)
-        );
-    }
-
-    private static Error incompatiblePhase(Step step, Set<ApiType> apiTypes, Phase phase) {
-        return Error.severe(
-            "Guardrail step [%s] using policy [%s] does not run in the Guardian phase [%s] for API types [%s].",
-            step.getName(),
-            step.getPolicy(),
-            phase,
             labels(apiTypes)
         );
     }

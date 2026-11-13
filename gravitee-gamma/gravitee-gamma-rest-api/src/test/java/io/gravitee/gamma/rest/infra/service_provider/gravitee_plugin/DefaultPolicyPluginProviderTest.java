@@ -152,7 +152,7 @@ class DefaultPolicyPluginProviderTest {
                         Map.of(HTTP_PROXY, List.of("REQUEST"), LLM_PROXY, List.of("REQUEST"), GUARDIAN, List.of("REQUEST", "INTERACT"))
                     )
                 );
-            softly.assertThat(capabilities.runsIn(Set.of(ApiType.LLM_PROXY), Phase.REQUEST)).as("runs in llm-proxy REQUEST").isTrue();
+            softly.assertThat(capabilities.supports(Set.of(ApiType.LLM_PROXY))).as("supports llm-proxy").isTrue();
             softly.assertThat(capabilities.guardianPhases()).as("guardian phases, INTERACT dropped").containsExactly(Phase.REQUEST);
         });
     }
