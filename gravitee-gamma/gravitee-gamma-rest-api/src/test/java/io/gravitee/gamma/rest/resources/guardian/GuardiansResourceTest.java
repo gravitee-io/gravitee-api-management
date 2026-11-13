@@ -31,6 +31,8 @@ import io.gravitee.apim.core.json.JsonSerializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.guardian.GuardianSteps;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
 import io.gravitee.gamma.rest.core.guardian.GuardianFixtures;
@@ -115,6 +117,9 @@ class GuardiansResourceTest extends AbstractResourceTest {
     private InMemoryGuardianRepository guardianRepository;
 
     @Inject
+    private InMemoryGuardedApiPort guardedApis;
+
+    @Inject
     private GuardianPublicationFixture guardianPublications;
 
     @Inject
@@ -136,6 +141,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
     @AfterEach
     void resetRepository() {
         guardianRepository.reset();
+        guardedApis.reset();
         guardianPublications.reset();
         withdrawalAudits.reset();
     }
@@ -222,6 +228,40 @@ class GuardiansResourceTest extends AbstractResourceTest {
                     .as("unknown phase")
                     .isEqualTo(HttpStatusCode.BAD_REQUEST_400);
             });
+        }
+    }
+
+    @Nested
+    class ListGuardianApis {
+
+        @Test
+        void should_return_the_apis_the_guardian_is_enabled_on() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+            guardedApis.givenApi(
+                GuardianFixtures.aGuardedApi()
+                    .environmentId(ENVIRONMENT)
+                    .name("Support assistant")
+                    .internalFlow(Flow.builder().request(List.of(GuardianSteps.of(GUARDIAN_ID, "Credential leakage"))).build())
+                    .build()
+            );
+
+            Response response = rootTarget(GUARDIAN_ID + "/apis").request().get();
+
+            assertThat(response.getStatus()).as("status").isEqualTo(HttpStatusCode.OK_200);
+            JsonNode row = response.readEntity(JsonNode.class).get("data").get(0);
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(row.get("id").asText()).as("id").isEqualTo(GuardianFixtures.API_ID);
+                softly.assertThat(row.get("name").asText()).as("name").isEqualTo("Support assistant");
+            });
+        }
+
+        @Test
+        void should_return_404_for_a_guardian_of_another_environment() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, OTHER_ENVIRONMENT, "Credential leakage"));
+
+            Response response = rootTarget(GUARDIAN_ID + "/apis").request().get();
+
+            assertThat(response.getStatus()).as("status").isEqualTo(HttpStatusCode.NOT_FOUND_404);
         }
     }
 

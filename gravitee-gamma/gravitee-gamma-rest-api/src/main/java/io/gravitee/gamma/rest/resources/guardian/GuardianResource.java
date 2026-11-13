@@ -19,10 +19,12 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.gamma.rest.core.guardian.use_case.DeleteGuardianUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.DeployGuardianUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.GetGuardianUseCase;
+import io.gravitee.gamma.rest.core.guardian.use_case.ListGuardianApisUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.UndeployGuardianUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.UpdateGuardianUseCase;
 import io.gravitee.gamma.rest.resources.CurrentAuditInfo;
 import io.gravitee.gamma.rest.resources.guardian.dto.DeployGuardianRequestDto;
+import io.gravitee.gamma.rest.resources.guardian.dto.GuardianApisDto;
 import io.gravitee.gamma.rest.resources.guardian.dto.GuardianDto;
 import io.gravitee.gamma.rest.resources.guardian.dto.UpdateGuardianRequestDto;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -56,6 +58,7 @@ import jakarta.ws.rs.core.Response;
  *       the stored definition too; only the identity and the deployment stamp are kept back.</li>
  *   <li>{@code POST /_deploy} — publishes the current draft with an optional deployment label.</li>
  *   <li>{@code POST /_undeploy} — withdraws the publication while preserving the draft.</li>
+ *   <li>{@code GET /apis} — the APIs of the environment the Guardian is enabled on, by name.</li>
  *   <li>{@code DELETE} — {@code 204}, or {@code 409} while the Guardian has an active publication:
  *       {@code _undeploy} withdraws it first. The PRD's refusal to delete a Guardian enabled on an
  *       API waits on the API-Guardian association (AIAM-1533).</li>
@@ -80,6 +83,19 @@ public class GuardianResource {
 
     @Inject
     private UndeployGuardianUseCase undeployGuardianUseCase;
+
+    @Inject
+    private ListGuardianApisUseCase listGuardianApisUseCase;
+
+    @GET
+    @Path("/apis")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GUARDIAN, acls = { RolePermissionAction.READ }) })
+    public GuardianApisDto listApis(@PathParam("guardianId") String guardianId) {
+        var output = listGuardianApisUseCase.execute(
+            new ListGuardianApisUseCase.Input(GraviteeContext.getExecutionContext().getEnvironmentId(), guardianId)
+        );
+        return new GuardianApisDto(output.apis());
+    }
 
     @POST
     @Path("/_undeploy")

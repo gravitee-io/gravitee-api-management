@@ -19,8 +19,13 @@ import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.gamma.rest.core.guardian.model.ApiReference;
 import io.gravitee.gamma.rest.core.guardian.model.GuardedApi;
 import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardedApiPort;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 public class GuardedApiPortAdapter implements GuardedApiPort {
 
     private final ApiCrudService apiCrudService;
+    private final ApiRepository apiRepository;
 
     @Override
     public Optional<GuardedApi> findById(String environmentId, String apiId) {
@@ -41,6 +47,18 @@ public class GuardedApiPortAdapter implements GuardedApiPort {
             .findById(apiId)
             .filter(api -> Objects.equals(api.getEnvironmentId(), environmentId))
             .map(GuardedApiPortAdapter::toGuardedApi);
+    }
+
+    @Override
+    public List<ApiReference> findByGuardian(String environmentId, String guardianId) {
+        return apiRepository
+            .search(
+                new ApiCriteria.Builder().environmentId(environmentId).guardian(guardianId).build(),
+                new ApiFieldFilter.Builder().excludeDefinition().excludePicture().build()
+            )
+            .stream()
+            .map(api -> new ApiReference(api.getId(), api.getName()))
+            .toList();
     }
 
     @Override

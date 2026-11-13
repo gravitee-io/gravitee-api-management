@@ -22,6 +22,7 @@ import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardedApiPort;
 import io.gravitee.gamma.rest.infra.adapter.GammaGuardianRepositoryAdapter;
 import io.gravitee.gamma.rest.infra.adapter.GuardedApiPortAdapter;
+import io.gravitee.repository.management.api.ApiRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -56,7 +57,7 @@ public class GammaGuardiansConfiguration {
     }
 
     @Bean
-    public GuardedApiPort gammaGuardedApiPort(ApiCrudService apiCrudService) {
-        return new GuardedApiPortAdapter(apiCrudService);
+    public GuardedApiPort gammaGuardedApiPort(ApiCrudService apiCrudService, @Lazy ApiRepository apiRepository) {
+        return new GuardedApiPortAdapter(apiCrudService, apiRepository);
     }
 }

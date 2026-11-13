@@ -17,12 +17,18 @@ package io.gravitee.gamma.rest.infra.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import io.gravitee.definition.model.guardian.GuardianSteps;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.gamma.rest.core.guardian.model.ApiReference;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -31,7 +37,8 @@ class GuardedApiPortAdapterTest {
     private static final String ENVIRONMENT_ID = "environment-id";
 
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
-    private final GuardedApiPortAdapter adapter = new GuardedApiPortAdapter(apiCrudService);
+    private final ApiRepository apiRepository = mock(ApiRepository.class);
+    private final GuardedApiPortAdapter adapter = new GuardedApiPortAdapter(apiCrudService, apiRepository);
 
     @Test
     void should_read_the_internal_flow_of_a_v4_api() {
@@ -87,5 +94,19 @@ class GuardedApiPortAdapterTest {
                 .isEqualTo(api.getApiDefinitionHttpV4().getEndpointGroups());
             softly.assertThat(stored.getUpdatedAt()).as("update date").isAfter(api.getUpdatedAt());
         });
+    }
+
+    @Test
+    void should_search_the_apis_of_the_environment_running_the_guardian_without_their_definition() {
+        when(
+            apiRepository.search(
+                new ApiCriteria.Builder().environmentId(ENVIRONMENT_ID).guardian("guardian-1").build(),
+                new ApiFieldFilter.Builder().excludeDefinition().excludePicture().build()
+            )
+        ).thenReturn(List.of(io.gravitee.repository.management.model.Api.builder().id("api-1").name("Support assistant").build()));
+
+        assertThat(adapter.findByGuardian(ENVIRONMENT_ID, "guardian-1"))
+            .as("APIs running guardian-1")
+            .containsExactly(new ApiReference("api-1", "Support assistant"));
     }
 }

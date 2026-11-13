@@ -40,6 +40,7 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.use_case.DeployGuardianUseCase;
+import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.GuardianRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -61,6 +62,7 @@ class GammaGuardiansConfigurationTest {
             parent.registerBean(JsonSerializer.class, () -> new JacksonJsonSerializer());
             parent.registerBean(JsonDeserializer.class, () -> new JacksonJsonDeserializer());
             parent.registerBean(ApiCrudService.class, ApiCrudServiceInMemory::new);
+            parent.registerBean(ApiRepository.class, () -> mock(ApiRepository.class));
             parent.refresh();
             gamma.setParent(parent);
             gamma.register(GammaGuardiansConfiguration.class);
