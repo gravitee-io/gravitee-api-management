@@ -19,6 +19,7 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.DeclaredFlows;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
@@ -28,7 +29,11 @@ import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
+import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,12 +60,44 @@ public final class GuardianFixtures {
     private GuardianFixtures() {}
 
     public static PolicyPluginProvider aPolicyPluginProvider() {
-        return aPolicyPluginProvider(() ->
+        var installed = theInstalledPolicies();
+        return aPolicyPluginProvider(() -> installed);
+    }
+
+    /** The policies installed by default, in a map a test may change to install or remove one. */
+    public static Map<String, PolicyCapabilities> theInstalledPolicies() {
+        return new HashMap<>(
             Map.of(
                 "data-logging-masking",
-                new PolicyCapabilities("Data logging masking", true, Map.of(ApiType.LLM_PROXY, Set.of(Phase.REQUEST, Phase.RESPONSE)))
+                new PolicyCapabilities(
+                    "Data logging masking",
+                    true,
+                    flows(ApiProtocolType.LLM_PROXY, "REQUEST,RESPONSE", ApiProtocolType.GUARDIAN, "REQUEST,RESPONSE")
+                )
             )
         );
+    }
+
+    /** The flows a plugin manifest declares, each with its comma-separated phases. */
+    public static DeclaredFlows flows() {
+        return new DeclaredFlows(Map.of());
+    }
+
+    public static DeclaredFlows flows(ApiProtocolType flow, String phases) {
+        var flows = new EnumMap<ApiProtocolType, List<String>>(ApiProtocolType.class);
+        flows.put(flow, phases(phases));
+        return new DeclaredFlows(flows);
+    }
+
+    public static DeclaredFlows flows(ApiProtocolType flow, String phases, ApiProtocolType otherFlow, String otherPhases) {
+        var flows = new EnumMap<>(flows(flow, phases).phases());
+        flows.put(otherFlow, phases(otherPhases));
+        return new DeclaredFlows(flows);
+    }
+
+    /** Split and stripped the way the plugin provider reads a manifest. */
+    private static List<String> phases(String phases) {
+        return Arrays.stream(phases.split(",")).map(String::strip).toList();
     }
 
     public static PolicyPluginProvider aPolicyPluginProvider(Supplier<Map<String, PolicyCapabilities>> policies) {

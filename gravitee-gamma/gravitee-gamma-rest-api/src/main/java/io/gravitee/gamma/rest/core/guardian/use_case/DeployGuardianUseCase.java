@@ -21,6 +21,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
+import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
@@ -35,10 +36,12 @@ public class DeployGuardianUseCase {
 
     private final GuardianRepository guardianRepository;
     private final GuardianDeploymentDomainService deployments;
+    private final ValidateGuardianDomainService validateGuardian;
     private final AuditDomainService auditDomainService;
 
     public Output execute(Input input) {
         var guardian = find(input);
+        validateGuardian.validateAgainstInstalledPolicies(guardian);
         var publication = deployments.publish(guardian, input.deploymentLabel(), input.auditInfo());
         auditDomainService.createEnvironmentAuditLog(
             EnvironmentAuditLogEntity.builder()
