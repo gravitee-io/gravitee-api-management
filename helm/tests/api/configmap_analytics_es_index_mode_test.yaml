@@ -1,0 +1,51 @@
+suite: Test Management API configmap for the Elasticsearch analytics index mode
+templates:
+  - "api/api-configmap.yaml"
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Render the shared es.index_mode by default
+    template: api/api-configmap.yaml
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "analytics:\n\\s+type: elasticsearch\n\\s+elasticsearch:\n(\\s+.*\n)*?\\s+index_mode: daily\n"
+
+  - it: Render the Management API index mode over the shared one
+    template: api/api-configmap.yaml
+    set:
+      api:
+        analytics:
+          elasticsearch:
+            index_mode: data_stream
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "analytics:\n\\s+type: elasticsearch\n\\s+elasticsearch:\n(\\s+.*\n)*?\\s+index_mode: data_stream\n"
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "index_mode: daily"
+
+  - it: Render no index mode when neither is set
+    template: api/api-configmap.yaml
+    set:
+      es:
+        index_mode: ""
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "index_mode:"
+
+  - it: Leave the gateway reporter on the shared index mode
+    template: gateway/gateway-configmap.yaml
+    set:
+      api:
+        analytics:
+          elasticsearch:
+            index_mode: data_stream
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "index_mode: daily"
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "index_mode: data_stream"
