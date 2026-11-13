@@ -18,15 +18,18 @@ package io.gravitee.apim.core.credential;
 import inmemory.SecretCrudServiceInMemory;
 import io.gravitee.apim.core.secret.model.Secret;
 import io.gravitee.apim.core.secret.service_provider.SecretValueEncryptor;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * The secrets of the credentials under test. Each secret gets its own id, as the use case tests fix the generated id, and
- * a write fails when the secret key ends with a field given to {@link #failOn(String)}, a delete when it ends with a field
- * given to {@link #failDeleteOf(String)}.
+ * a write fails when the secret key ends with a field given to {@link #failOn(String)}, an update once a field given to
+ * {@link #failUpdateOf(String, int)} has taken its writes, a delete when it ends with a field given to
+ * {@link #failDeleteOf(String)}.
  */
 public class CredentialSecretsInMemory extends SecretCrudServiceInMemory {
 
@@ -47,10 +50,16 @@ public class CredentialSecretsInMemory extends SecretCrudServiceInMemory {
 
     private final Set<String> failingFields = new HashSet<>();
     private final Set<String> failingDeletes = new HashSet<>();
+    private final Map<String, Integer> updatesBeforeFailure = new HashMap<>();
     private int sequence;
 
     public void failOn(String field) {
         failingFields.add(field);
+    }
+
+    /** Lets {@code successfulUpdates} updates of the field through, then fails every later one. */
+    public void failUpdateOf(String field, int successfulUpdates) {
+        updatesBeforeFailure.put(field, successfulUpdates);
     }
 
     public void failDeleteOf(String field) {
@@ -87,6 +96,15 @@ public class CredentialSecretsInMemory extends SecretCrudServiceInMemory {
     @Override
     public Secret update(Secret secret, String encryptedValue) {
         failIfAsked(failingFields, secret.key());
+        updatesBeforeFailure.replaceAll((field, left) -> {
+            if (!secret.key().endsWith("." + field)) {
+                return left;
+            }
+            if (left == 0) {
+                throw new IllegalStateException("secret store unavailable for " + secret.key());
+            }
+            return left - 1;
+        });
         return super.update(secret, encryptedValue);
     }
 

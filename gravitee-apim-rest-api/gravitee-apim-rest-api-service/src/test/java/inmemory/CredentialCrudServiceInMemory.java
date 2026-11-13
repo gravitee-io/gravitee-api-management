@@ -22,9 +22,14 @@ import java.util.Optional;
 public class CredentialCrudServiceInMemory extends AbstractServiceInMemory<Credential> implements CredentialCrudService {
 
     private boolean failOnCreate;
+    private boolean failOnUpdate;
 
     public void failOnCreate() {
         failOnCreate = true;
+    }
+
+    public void failOnUpdate() {
+        failOnUpdate = true;
     }
 
     @Override
@@ -46,6 +51,9 @@ public class CredentialCrudServiceInMemory extends AbstractServiceInMemory<Crede
 
     @Override
     public Credential update(Credential credential) {
+        if (failOnUpdate) {
+            throw new IllegalStateException("credential store unavailable");
+        }
         var existing = findById(credential.organizationId(), credential.environmentId(), credential.id()).orElseThrow();
         storage.set(storage.indexOf(existing), credential);
         return credential;

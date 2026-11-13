@@ -23,6 +23,7 @@ import io.gravitee.apim.core.credential.model.SecretReference;
 import io.gravitee.apim.core.secret.crud_service.SecretCrudService;
 import io.gravitee.apim.core.secret.domain_service.SecretDomainService;
 import io.gravitee.apim.core.secret.model.Secret;
+import io.gravitee.apim.core.secret.model.SecretSnapshot;
 import io.gravitee.apim.core.secret.model.SecretValue;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -64,26 +65,47 @@ public class CredentialSecretsDomainService {
         }
     }
 
-    public void rotate(Credential credential, Map<String, String> values, AuditInfo auditInfo) {
-        var rotated = new ArrayList<String>();
+    /** Secrets whose new value is written, with the value each held before. */
+    public record Rotation(String credentialId, Map<String, SecretSnapshot> previous) {}
+
+    /** All or nothing: when a field fails, the fields already written get their old values back before the failure is rethrown. */
+    public Rotation rotate(Credential credential, Map<String, String> values, AuditInfo auditInfo) {
+        var snapshots = new LinkedHashMap<String, SecretSnapshot>();
         for (var field : credential.strategy().secretFields()) {
-            if (!values.containsKey(field)) {
-                continue;
+            if (values.containsKey(field)) {
+                var secretId = credential.secretReferences().get(field).secretId();
+                var secret = secretCrudService.get(auditInfo.organizationId(), auditInfo.environmentId(), secretId);
+                snapshots.put(field, secretDomainService.snapshot(secret));
             }
+        }
+        var rotation = new Rotation(credential.id(), new LinkedHashMap<>());
+        for (var snapshot : snapshots.entrySet()) {
             try {
-                var secret = secretCrudService.get(
-                    auditInfo.organizationId(),
-                    auditInfo.environmentId(),
-                    credential.secretReferences().get(field).secretId()
-                );
-                secretDomainService.update(secret, new SecretValue(values.get(field)), auditInfo);
+                secretDomainService.update(snapshot.getValue().secret(), new SecretValue(values.get(snapshot.getKey())), auditInfo);
             } catch (RuntimeException e) {
-                if (rotated.isEmpty()) {
-                    throw e;
-                }
-                throw new CredentialRotationIncompleteException(credential.id(), rotated, field, e);
+                undo(rotation, auditInfo, e);
+                throw e;
             }
-            rotated.add(field);
+            rotation.previous().put(snapshot.getKey(), snapshot.getValue());
+        }
+        return rotation;
+    }
+
+    /** Puts back the old values of a rotation that cannot complete; a value that cannot be put back is added to {@code cause}. */
+    public void undo(Rotation rotation, AuditInfo auditInfo, RuntimeException cause) {
+        var notPutBack = new ArrayList<String>();
+        rotation
+            .previous()
+            .forEach((field, snapshot) -> {
+                try {
+                    secretDomainService.restore(snapshot, auditInfo);
+                } catch (RuntimeException e) {
+                    cause.addSuppressed(e);
+                    notPutBack.add(field);
+                }
+            });
+        if (!notPutBack.isEmpty()) {
+            throw new CredentialRotationIncompleteException(rotation.credentialId(), notPutBack, cause);
         }
     }
 

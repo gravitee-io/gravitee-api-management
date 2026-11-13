@@ -199,16 +199,42 @@ class RotateCredentialUseCaseTest extends AbstractUseCaseTest {
     }
 
     @Test
-    void should_name_the_rotated_fields_when_a_later_field_fails() {
+    void should_put_back_the_values_already_rotated_when_a_later_field_fails() {
         var credential = givenABasicCredential();
         fixture.secretStore.failOn("password");
+
+        assertThatThrownBy(() -> rotate(fixture.owner(), credential, Map.of("username", "alice", "password", "rotated"))).isInstanceOf(
+            IllegalStateException.class
+        );
+        assertThat(fixture.secretStore.valueOf("credential." + credential.id() + ".username")).contains("bob");
+        assertThat(fixture.secretStore.valueOf("credential." + credential.id() + ".password")).contains("initial");
+        assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
+    }
+
+    @Test
+    void should_put_back_the_rotated_values_when_the_credential_cannot_be_saved() {
+        var credential = givenABasicCredential();
+        fixture.credentialCrudService.failOnUpdate();
+
+        assertThatThrownBy(() -> rotate(fixture.owner(), credential, Map.of("username", "alice", "password", "rotated"))).isInstanceOf(
+            IllegalStateException.class
+        );
+        assertThat(fixture.secretStore.valueOf("credential." + credential.id() + ".username")).contains("bob");
+        assertThat(fixture.secretStore.valueOf("credential." + credential.id() + ".password")).contains("initial");
+    }
+
+    @Test
+    void should_name_the_fields_left_rotated_when_an_old_value_cannot_be_put_back() {
+        var credential = givenABasicCredential();
+        fixture.secretStore.failOn("password");
+        fixture.secretStore.failUpdateOf("username", 1);
 
         assertThatThrownBy(() -> rotate(fixture.owner(), credential, Map.of("username", "alice", "password", "n3w-pa55")))
             .isInstanceOf(CredentialRotationIncompleteException.class)
             .hasMessageContaining("username")
-            .hasMessageContaining("password")
             .hasMessageNotContaining("alice")
-            .hasMessageNotContaining("n3w-pa55");
+            .hasMessageNotContaining("n3w-pa55")
+            .hasRootCauseMessage("secret store unavailable for credential." + credential.id() + ".password");
     }
 
     @Test

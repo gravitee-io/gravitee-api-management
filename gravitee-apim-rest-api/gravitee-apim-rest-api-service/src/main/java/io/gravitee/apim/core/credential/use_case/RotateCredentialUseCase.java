@@ -53,8 +53,14 @@ public class RotateCredentialUseCase {
         existing.requireRotatableWith(input.values());
         actor.requireSecretAccess(SecretAccess.UPDATE);
 
-        credentialSecretsDomainService.rotate(existing, input.values(), actor.auditInfo());
-        var rotated = credentialCrudService.update(existing.rotated(TimeProvider.instantNow()));
+        var rotation = credentialSecretsDomainService.rotate(existing, input.values(), actor.auditInfo());
+        Credential rotated;
+        try {
+            rotated = credentialCrudService.update(existing.rotated(TimeProvider.instantNow()));
+        } catch (RuntimeException e) {
+            credentialSecretsDomainService.undo(rotation, actor.auditInfo(), e);
+            throw e;
+        }
 
         credentialAuditDomainService.record(actor, CredentialAuditEvent.CREDENTIAL_ROTATED, existing, rotated);
         return new Output(rotated);

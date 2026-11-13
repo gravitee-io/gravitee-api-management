@@ -18,20 +18,16 @@ package io.gravitee.apim.core.credential.exception;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import java.util.List;
 
-/** Some secrets hold the new values and the rest the old ones: the user must rotate the failed field again. */
+/** A rotation failed and some secrets could not get their old values back, so they may still hold the new ones. */
 public class CredentialRotationIncompleteException extends TechnicalDomainException {
 
-    public CredentialRotationIncompleteException(String credentialId, List<String> rotatedFields, String failedField, Throwable cause) {
+    public CredentialRotationIncompleteException(String credentialId, List<String> fieldsNotPutBack, Throwable cause) {
         super(
             "Credential " +
                 credentialId +
-                " is partly rotated: the new values of " +
-                String.join(", ", rotatedFields) +
-                " are written, but " +
-                failedField +
-                " could not be written. Rotate " +
-                failedField +
-                " again.",
+                " may be partly rotated: the rotation failed and the old values of " +
+                String.join(", ", fieldsNotPutBack) +
+                " could not be put back. Rotate it again with every field you meant to change.",
             cause
         );
     }
