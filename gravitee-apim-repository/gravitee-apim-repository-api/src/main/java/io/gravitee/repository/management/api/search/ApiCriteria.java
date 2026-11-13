@@ -51,6 +51,7 @@ public class ApiCriteria {
     private List<ApiType> apiTypes;
     private List<ApiType> notApiTypes;
     private Date updatedAtFrom;
+    private String guardian;
 
     ApiCriteria(ApiCriteria.Builder builder) {
         this.ids = builder.ids;
@@ -70,6 +71,7 @@ public class ApiCriteria {
         this.apiTypes = builder.apiTypes;
         this.notApiTypes = builder.notApiTypes;
         this.updatedAtFrom = builder.updatedAtFrom;
+        this.guardian = builder.guardian;
     }
 
     public Collection<String> getIds() {
@@ -152,6 +154,10 @@ public class ApiCriteria {
         return updatedAtFrom;
     }
 
+    public String getGuardian() {
+        return guardian;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -174,7 +180,8 @@ public class ApiCriteria {
             Objects.equals(integrationId, that.integrationId) &&
             Objects.equals(apiTypes, that.apiTypes) &&
             Objects.equals(notApiTypes, that.notApiTypes) &&
-            Objects.equals(updatedAtFrom, that.updatedAtFrom)
+            Objects.equals(updatedAtFrom, that.updatedAtFrom) &&
+            Objects.equals(guardian, that.guardian)
         );
     }
 
@@ -197,7 +204,8 @@ public class ApiCriteria {
             integrationId,
             apiTypes,
             notApiTypes,
-            updatedAtFrom
+            updatedAtFrom,
+            guardian
         );
     }
 
@@ -220,6 +228,7 @@ public class ApiCriteria {
         private List<ApiType> apiTypes;
         private List<ApiType> notApiTypes;
         private Date updatedAtFrom;
+        private String guardian;
 
         public ApiCriteria.Builder ids(final String... id) {
             this.ids = Set.of(id);
@@ -313,6 +322,11 @@ public class ApiCriteria {
 
         public ApiCriteria.Builder updatedAtFrom(final Date updatedAtFrom) {
             this.updatedAtFrom = updatedAtFrom;
+            return this;
+        }
+
+        public ApiCriteria.Builder guardian(final String guardian) {
+            this.guardian = guardian;
             return this;
         }
 

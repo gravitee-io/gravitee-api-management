@@ -51,9 +51,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.CustomLog;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author njt
@@ -77,12 +83,25 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     private final String API_CATEGORIES;
     private final String API_LABELS;
     private final String API_GROUPS;
+    private final String API_GUARDIANS;
 
-    JdbcApiRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    /**
+     * Runs a definition write and its Guardian index in a savepoint of the caller's transaction (in a transaction of
+     * their own otherwise), so that a failed index write leaves the definition as it was.
+     */
+    private final TransactionTemplate savepoint;
+
+    JdbcApiRepository(
+        @Value("${management.jdbc.prefix:}") String tablePrefix,
+        @Lazy @Autowired @Qualifier("graviteeTransactionManager") PlatformTransactionManager transactionManager
+    ) {
         super(tablePrefix, "apis");
         API_CATEGORIES = getTableNameFor("api_categories");
         API_LABELS = getTableNameFor("api_labels");
         API_GROUPS = getTableNameFor("api_groups");
+        API_GUARDIANS = getTableNameFor("api_guardians");
+        savepoint = new TransactionTemplate(transactionManager);
+        savepoint.setPropagationBehavior(TransactionDefinition.PROPAGATION_NESTED);
     }
 
     @Override
@@ -190,6 +209,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         jdbcTemplate.update("delete from " + API_LABELS + " where api_id = ?", id);
         jdbcTemplate.update("delete from " + API_GROUPS + " where api_id = ?", id);
         jdbcTemplate.update("delete from " + API_CATEGORIES + " where api_id = ?", id);
+        jdbcTemplate.update("delete from " + API_GUARDIANS + " where api_id = ?", id);
         jdbcTemplate.update(getOrm().getDeleteSql(), id);
     }
 
@@ -244,6 +264,9 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             .findFirst();
         if (hasLabels.isPresent()) {
             sbQuery.append("left join ").append(API_LABELS).append(" al on a.id = al.api_id ");
+        }
+        if (criteria.stream().anyMatch(apiCriteria -> hasText(apiCriteria.getGuardian()))) {
+            sbQuery.append("left join ").append(API_GUARDIANS).append(" agu on a.id = agu.api_id ");
         }
 
         List<String> clauses = criteria.stream().map(this::convert).filter(Objects::nonNull).collect(Collectors.toList());
@@ -356,6 +379,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                 jdbcTemplate.update("delete from " + API_LABELS + " where api_id IN ( " + inClause + " )", apiIds.toArray());
                 jdbcTemplate.update("delete from " + API_GROUPS + " where api_id IN ( " + inClause + " )", apiIds.toArray());
                 jdbcTemplate.update("delete from " + API_CATEGORIES + " where api_id IN ( " + inClause + " )", apiIds.toArray());
+                jdbcTemplate.update("delete from " + API_GUARDIANS + " where api_id IN ( " + inClause + " )", apiIds.toArray());
                 jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
             }
 
@@ -427,6 +451,50 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         }
     }
 
+    /**
+     * The only writer of the Guardian index: written with the definition it projects, so no save of the API can leave
+     * the two apart.
+     */
+    @Override
+    public boolean updateDefinition(String apiId, String definition, Set<String> guardianIds, Date updatedAt, Date expectedUpdatedAt)
+        throws TechnicalException {
+        log.debug("JdbcApiRepository.updateDefinition({})", apiId);
+        try {
+            return Boolean.TRUE.equals(
+                savepoint.execute(status -> {
+                    // Two columns and a guard, in one statement: the other child tables — labels, groups, categories —
+                    // are not part of a definition and stay where they are.
+                    int written = jdbcTemplate.update(
+                        "update " + this.tableName + " set definition = ?, updated_at = ? where id = ? and updated_at = ?",
+                        definition,
+                        updatedAt,
+                        apiId,
+                        expectedUpdatedAt
+                    );
+                    if (written == 0) {
+                        // The API moved or is gone: the index of a definition that was not written must not be either.
+                        return false;
+                    }
+                    jdbcTemplate.update("delete from " + API_GUARDIANS + " where api_id = ?", apiId);
+                    insertGuardians(apiId, guardianIds);
+                    return true;
+                })
+            );
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to update the definition of api " + apiId, ex);
+        }
+    }
+
+    private void insertGuardians(String apiId, Set<String> guardianIds) {
+        List<String> filteredGuardians = getOrm().filterStrings(guardianIds);
+        if (!filteredGuardians.isEmpty()) {
+            jdbcTemplate.batchUpdate(
+                "insert into " + API_GUARDIANS + " ( api_id, guardian_id ) values ( ?, ? )",
+                getOrm().getBatchStringSetter(apiId, filteredGuardians)
+            );
+        }
+    }
+
     private List<Api> findByCriteria(ApiCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter) {
         final JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(
             getOrm().getRowMapper(),
@@ -472,6 +540,9 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                 }
                 if (hasText(apiCriteria.getLabel())) {
                     sbQuery.append("join " + API_LABELS + " al on a.id = al.api_id ");
+                }
+                if (hasText(apiCriteria.getGuardian())) {
+                    sbQuery.append("join " + API_GUARDIANS + " agu on a.id = agu.api_id ");
                 }
                 sbQuery.append("where ").append(clauses).append(" ");
             }
@@ -558,6 +629,9 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             if (apiCriteria.getUpdatedAtFrom() != null) {
                 ps.setTimestamp(lastIndex++, new java.sql.Timestamp(apiCriteria.getUpdatedAtFrom().getTime()));
             }
+            if (hasText(apiCriteria.getGuardian())) {
+                ps.setString(lastIndex++, apiCriteria.getGuardian());
+            }
         }
         return lastIndex;
     }
@@ -630,6 +704,9 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         }
         if (apiCriteria.getUpdatedAtFrom() != null) {
             clauses.add("a.updated_at >= ?");
+        }
+        if (hasText(apiCriteria.getGuardian())) {
+            clauses.add("agu.guardian_id = ?");
         }
         if (!clauses.isEmpty()) {
             return String.join(" and ", clauses);
