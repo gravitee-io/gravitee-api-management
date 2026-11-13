@@ -48,7 +48,7 @@ public abstract class AbstractPluginProvider<T extends ConfigurablePlugin> imple
 
     @Override
     public Set<PlatformPlugin> findAll(String organizationId) {
-        var license = licenseManager.getOrganizationLicenseOrPlatform(organizationId);
+        var license = license(organizationId);
         return pluginManager
             .findAll(true)
             .stream()
@@ -58,7 +58,7 @@ public abstract class AbstractPluginProvider<T extends ConfigurablePlugin> imple
 
     @Override
     public PlatformPlugin findById(String organizationId, String pluginId) {
-        return convert(getPlugin(pluginId), licenseManager.getOrganizationLicenseOrPlatform(organizationId));
+        return convert(getPlugin(pluginId), license(organizationId));
     }
 
     @Override
@@ -105,7 +105,7 @@ public abstract class AbstractPluginProvider<T extends ConfigurablePlugin> imple
         }
     }
 
-    private T getPlugin(String pluginId) {
+    protected T getPlugin(String pluginId) {
         var plugin = pluginManager.get(pluginId, true);
         if (plugin == null) {
             throw new PluginNotFoundException(pluginId);
@@ -113,7 +113,11 @@ public abstract class AbstractPluginProvider<T extends ConfigurablePlugin> imple
         return plugin;
     }
 
-    private PlatformPlugin convert(T plugin, License license) {
+    protected License license(String organizationId) {
+        return licenseManager.getOrganizationLicenseOrPlatform(organizationId);
+    }
+
+    protected PlatformPlugin convert(T plugin, License license) {
         return new PlatformPlugin(
             plugin.id(),
             plugin.manifest().name(),
