@@ -23,7 +23,9 @@ servers:
 
 tags:
     - name: Policies
-      description: The installed policy plugins and the flows they can run in.
+      description: |
+          The installed policy plugins and the flows they can run in. Every operation requires the
+          `ORGANIZATION_POLICIES` permission with the `READ` action on the organization of the path.
 
 paths:
     /organizations/{orgId}/plugins/policies:
@@ -71,6 +73,10 @@ paths:
                                     $ref: "#/components/schemas/PolicyPlugin"
                 "400":
                     $ref: "#/components/responses/BadRequest"
+                "401":
+                    $ref: "#/components/responses/Unauthorized"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
 
     /organizations/{orgId}/plugins/policies/{policyId}:
         parameters:
@@ -90,6 +96,10 @@ paths:
                                 $ref: "#/components/schemas/PolicyPlugin"
                 "404":
                     $ref: "#/components/responses/NotFound"
+                "401":
+                    $ref: "#/components/responses/Unauthorized"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
 
     /organizations/{orgId}/plugins/policies/{policyId}/schema:
         parameters:
@@ -111,6 +121,10 @@ paths:
                     description: The policy declares no configuration schema.
                 "404":
                     $ref: "#/components/responses/NotFound"
+                "401":
+                    $ref: "#/components/responses/Unauthorized"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
 
     /organizations/{orgId}/plugins/policies/{policyId}/documentation:
         parameters:
@@ -132,6 +146,10 @@ paths:
                     description: The policy ships no documentation.
                 "404":
                     $ref: "#/components/responses/NotFound"
+                "401":
+                    $ref: "#/components/responses/Unauthorized"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
 
 components:
     securitySchemes:
@@ -161,6 +179,18 @@ components:
                 type: string
 
     responses:
+        Unauthorized:
+            description: The caller is not authenticated.
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"
+        Forbidden:
+            description: The caller lacks the `ORGANIZATION_POLICIES` permission with the `READ` action.
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"
         BadRequest:
             description: The request is not acceptable.
             content:
