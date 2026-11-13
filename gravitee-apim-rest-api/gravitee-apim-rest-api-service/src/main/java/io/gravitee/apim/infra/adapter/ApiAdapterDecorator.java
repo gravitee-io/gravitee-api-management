@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.definition.model.guardian.GuardianSteps;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.federation.FederatedApiEntity;
@@ -32,6 +33,9 @@ public abstract class ApiAdapterDecorator implements ApiAdapter {
     public Api toRepository(io.gravitee.apim.core.api.model.Api source) {
         var api = delegate.toRepository(source);
 
+        if (source.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api definition) {
+            api.setGuardians(GuardianSteps.guardianIdsOf(definition.getInternalFlow()));
+        }
         api.setOrigin(source.getOriginContext().name());
         if (source.getOriginContext() instanceof OriginContext.Integration integration) {
             api.setIntegrationId(integration.integrationId());
