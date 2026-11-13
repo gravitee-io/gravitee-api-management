@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BinaryOperator;
-import java.util.stream.Stream;
 
 @DomainService
 public class UpdatePlanDomainService {
@@ -124,6 +123,14 @@ public class UpdatePlanDomainService {
         };
     }
 
+<<<<<<< HEAD
+=======
+    public void validate(Plan planToUpdate, List<Flow> flows, Api api, AuditInfo auditInfo) {
+        updatePreFlightChecks(planToUpdate, getPlanStatusMap(api), api, auditInfo);
+        flowValidationDomainService.validateAndSanitizeHttpV4PlanFlows(api, flows);
+    }
+
+>>>>>>> a17ae22 (refactor(automation): run the plan writes' own rules in the API dry run)
     private Map<String, PlanStatus> getPlanStatusMap(Api api) {
         List<Plan> existingPlans = planQueryService.findAllByApiId(api.getId());
         return existingPlans.stream().collect(toMap(Plan::getId, Plan::getPlanStatus));
@@ -183,12 +190,17 @@ public class UpdatePlanDomainService {
         AuditInfo auditInfo,
         BinaryOperator<Plan> updateFunction
     ) {
+<<<<<<< HEAD
         var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows);
         flowValidationDomainService.validatePathParameters(
             api.getType(),
             api.getApiDefinitionHttpV4().getFlows() != null ? api.getApiDefinitionHttpV4().getFlows().stream() : Stream.empty(),
             sanitizedFlows.stream()
         );
+=======
+        var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4PlanFlows(api, flows);
+        var existingFlows = flowCrudService.getPlanV4Flows(existingPlan.getId());
+>>>>>>> a17ae22 (refactor(automation): run the plan writes' own rules in the API dry run)
 
         if (!planSynchronizationService.checkSynchronized(existingPlan, List.of(), updatePlan, sanitizedFlows)) {
             updatePlan.setNeedRedeployAt(Date.from(updatePlan.getUpdatedAt().toInstant()));
@@ -256,12 +268,76 @@ public class UpdatePlanDomainService {
     }
 
     private void updatePreFlightChecks(Plan planToUpdate, Map<String, PlanStatus> existingPlanStatuses, Api api, AuditInfo auditInfo) {
+<<<<<<< HEAD
         if (
             existingPlanStatuses.containsKey(planToUpdate.getId()) &&
             existingPlanStatuses.get(planToUpdate.getId()) == PlanStatus.CLOSED &&
             existingPlanStatuses.get(planToUpdate.getId()) != planToUpdate.getPlanStatus()
         ) {
             throw new ValidationDomainException("Invalid status for plan '" + planToUpdate.getName() + "'");
+=======
+        assertNotClosedStatus(planToUpdate.getId(), planToUpdate.getName(), planToUpdate.getPlanStatus(), existingPlanStatuses);
+        planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId(), api.getType());
+        planValidatorDomainService.validatePlanTagsAgainstApiTags(planToUpdate.getTags(), api.getTags());
+        planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
+    }
+
+    public Plan updatePlanForApiProduct(
+        Plan planToUpdate,
+        Map<String, PlanStatus> existingPlanStatuses,
+        ApiProduct apiProduct,
+        AuditInfo auditInfo
+    ) {
+        if (existingPlanStatuses == null) {
+            existingPlanStatuses = getPlanStatusMapForApiProduct(apiProduct);
+        }
+        updatePreFlightChecksForApiProduct(planToUpdate, existingPlanStatuses, apiProduct, auditInfo);
+
+        Plan existingPlan = planCrudService.getById(planToUpdate.getId());
+        Plan updatePlan = existingPlan.update(planToUpdate);
+
+        var incomingFlows = planToUpdate.getPlanDefinitionHttpV4() != null ? planToUpdate.getPlanDefinitionHttpV4().getFlows() : null;
+        var sanitizedFlows = incomingFlows == null ? null : flowValidationDomainService.validateAndSanitizeHttpV4(null, incomingFlows);
+        var existingFlows = flowCrudService.getPlanV4Flows(existingPlan.getId());
+        var effectiveFlows = sanitizedFlows == null ? existingFlows : sanitizedFlows;
+
+        if (!planSynchronizationService.checkSynchronized(existingPlan, existingFlows, updatePlan, effectiveFlows)) {
+            updatePlan.setNeedRedeployAt(Date.from(updatePlan.getUpdatedAt().toInstant()));
+        }
+
+        Plan updated = orderAwareUpdate(existingPlan, updatePlan);
+
+        if (sanitizedFlows != null) {
+            flowCrudService.savePlanFlows(updated.getId(), sanitizedFlows);
+        }
+
+        createApiProductAuditLog(existingPlan, updated, auditInfo);
+
+        return updated;
+    }
+
+    /** The checks {@link #updatePlanForApiProduct} runs before writing, for a caller that must check every plan before writing any. */
+    public void updatePreFlightChecksForApiProduct(
+        Plan planToUpdate,
+        Map<String, PlanStatus> existingPlanStatuses,
+        ApiProduct apiProduct,
+        AuditInfo auditInfo
+    ) {
+        assertNotClosedStatus(planToUpdate.getId(), planToUpdate.getName(), planToUpdate.getPlanStatus(), existingPlanStatuses);
+        planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId(), null);
+        planValidatorDomainService.validatePlanTagsAgainstApiProductTags(planToUpdate.getTags(), apiProduct.getTags());
+        planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
+    }
+
+    public static void assertNotClosedStatus(
+        String planId,
+        String planName,
+        PlanStatus status,
+        Map<String, PlanStatus> existingPlanStatuses
+    ) {
+        if (existingPlanStatuses.get(planId) == PlanStatus.CLOSED && status != PlanStatus.CLOSED) {
+            throw new ValidationDomainException("Invalid status for plan '" + planName + "'");
+>>>>>>> a17ae22 (refactor(automation): run the plan writes' own rules in the API dry run)
         }
 
         planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId(), api.getType());

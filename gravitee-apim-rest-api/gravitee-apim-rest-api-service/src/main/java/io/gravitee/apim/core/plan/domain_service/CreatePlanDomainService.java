@@ -39,7 +39,6 @@ import java.sql.Date;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 @DomainService
 public class CreatePlanDomainService {
@@ -74,10 +73,18 @@ public class CreatePlanDomainService {
         };
     }
 
-    private PlanWithFlows createV4ApiPlan(Plan plan, List<? extends AbstractFlow> flows, Api api, AuditInfo auditInfo) {
+    public static void assertApiAcceptsNewPlans(Api api) {
         if (api.isDeprecated()) {
+<<<<<<< HEAD
             throw new ApiDeprecatedException(plan.getApiId());
+=======
+            throw new ApiDeprecatedException(api.getId());
+>>>>>>> a17ae22 (refactor(automation): run the plan writes' own rules in the API dry run)
         }
+    }
+
+    private PlanWithFlows createV4ApiPlan(Plan plan, List<? extends AbstractFlow> flows, Api api, AuditInfo auditInfo) {
+        assertApiAcceptsNewPlans(api);
 
         var listeners = api.getApiListeners();
 
@@ -123,12 +130,16 @@ public class CreatePlanDomainService {
     }
 
     private PlanWithFlows createHttpV4ApiPlan(Plan plan, List<Flow> flows, Api api, AuditInfo auditInfo) {
+<<<<<<< HEAD
         var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows);
         flowValidationDomainService.validatePathParameters(
             api.getType(),
             api.getApiDefinitionHttpV4().getFlows() != null ? api.getApiDefinitionHttpV4().getFlows().stream() : Stream.empty(),
             sanitizedFlows.stream()
         );
+=======
+        var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4PlanFlows(api, flows);
+>>>>>>> a17ae22 (refactor(automation): run the plan writes' own rules in the API dry run)
 
         var createdPlan = planCrudService.create(
             plan
@@ -158,9 +169,13 @@ public class CreatePlanDomainService {
     }
 
     private PlanWithFlows createV2ApiPlan(Plan plan, List<? extends AbstractFlow> flows, Api api, AuditInfo auditInfo) {
+<<<<<<< HEAD
         if (api.isDeprecated()) {
             throw new ApiDeprecatedException(plan.getApiId());
         }
+=======
+        assertApiAcceptsNewPlans(api);
+>>>>>>> a17ae22 (refactor(automation): run the plan writes' own rules in the API dry run)
 
         planValidatorDomainService.validatePlanSecurity(plan, auditInfo.organizationId(), auditInfo.environmentId(), api.getType());
         planValidatorDomainService.validatePlanTagsAgainstApiTags(plan.getTags(), api.getTags());
