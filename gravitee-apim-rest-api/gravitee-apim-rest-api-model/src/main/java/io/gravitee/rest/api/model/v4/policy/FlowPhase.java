@@ -31,7 +31,8 @@ public enum FlowPhase {
         ApiProtocolType.HTTP_MESSAGE,
         ApiProtocolType.MCP_PROXY,
         ApiProtocolType.LLM_PROXY,
-        ApiProtocolType.A2A_PROXY
+        ApiProtocolType.A2A_PROXY,
+        ApiProtocolType.GUARDIAN
     ),
     RESPONSE(
         ApiProtocolType.NATIVE_KAFKA,
@@ -39,7 +40,8 @@ public enum FlowPhase {
         ApiProtocolType.HTTP_MESSAGE,
         ApiProtocolType.MCP_PROXY,
         ApiProtocolType.LLM_PROXY,
-        ApiProtocolType.A2A_PROXY
+        ApiProtocolType.A2A_PROXY,
+        ApiProtocolType.GUARDIAN
     );
 
     private final List<ApiProtocolType> apiProtocolType;
