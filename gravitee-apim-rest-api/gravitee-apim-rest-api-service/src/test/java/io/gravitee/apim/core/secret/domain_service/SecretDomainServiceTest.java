@@ -77,6 +77,24 @@ class SecretDomainServiceTest extends AbstractUseCaseTest {
     }
 
     @Test
+    void should_put_back_the_value_a_snapshot_holds() {
+        var secret = service.create("credential.cred-1.token", new SecretValue("sk-ant-123"), AUDIT_INFO);
+        var snapshot = service.snapshot(secret);
+        service.update(secret, new SecretValue("sk-ant-456"), AUDIT_INFO);
+
+        service.restore(snapshot, AUDIT_INFO);
+
+        assertThat(valueOf(secret.id())).isEqualTo("sk-ant-123");
+        assertThat(auditCrudService.storage())
+            .extracting(AuditEntity::getEvent)
+            .containsExactly(
+                SecretAuditEvent.SECRET_CREATED.name(),
+                SecretAuditEvent.SECRET_UPDATED.name(),
+                SecretAuditEvent.SECRET_UPDATED.name()
+            );
+    }
+
+    @Test
     void should_delete_the_value_of_a_credential() {
         var secret = service.create("credential.cred-1.token", new SecretValue("sk-ant-123"), AUDIT_INFO);
 

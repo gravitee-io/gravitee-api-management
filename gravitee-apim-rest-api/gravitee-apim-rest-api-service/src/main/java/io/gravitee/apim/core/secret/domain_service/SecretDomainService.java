@@ -24,6 +24,7 @@ import io.gravitee.apim.core.secret.crud_service.SecretCrudService;
 import io.gravitee.apim.core.secret.exception.SecretKeyAlreadyExistsException;
 import io.gravitee.apim.core.secret.model.Secret;
 import io.gravitee.apim.core.secret.model.SecretAuditEvent;
+import io.gravitee.apim.core.secret.model.SecretSnapshot;
 import io.gravitee.apim.core.secret.model.SecretValue;
 import io.gravitee.apim.core.secret.service_provider.SecretValueEncryptor;
 import io.gravitee.common.utils.TimeProvider;
@@ -67,6 +68,23 @@ public class SecretDomainService {
         );
         audit(SecretAuditEvent.SECRET_UPDATED, current, updated, updated.updatedAt().atZone(TimeProvider.clock().getZone()), auditInfo);
         return updated;
+    }
+
+    public SecretSnapshot snapshot(Secret secret) {
+        return new SecretSnapshot(secret, secretCrudService.getEncryptedValue(secret));
+    }
+
+    /** Writes the stored value back unchanged: the encryption is bound to the secret id, not to its update date. */
+    public Secret restore(SecretSnapshot snapshot, AuditInfo auditInfo) {
+        var restored = secretCrudService.update(snapshot.secret().withUpdatedAt(TimeProvider.instantNow()), snapshot.encryptedValue());
+        audit(
+            SecretAuditEvent.SECRET_UPDATED,
+            snapshot.secret(),
+            restored,
+            restored.updatedAt().atZone(TimeProvider.clock().getZone()),
+            auditInfo
+        );
+        return restored;
     }
 
     public void delete(Secret secret, AuditInfo auditInfo) {
