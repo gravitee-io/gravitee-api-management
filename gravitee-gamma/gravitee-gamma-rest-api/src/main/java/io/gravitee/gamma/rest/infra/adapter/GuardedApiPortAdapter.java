@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.infra.adapter;
 
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.crud_service.ApiDefinitionCrudService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
@@ -45,6 +46,7 @@ public class GuardedApiPortAdapter implements GuardedApiPort {
 
     private final ApiCrudService apiCrudService;
     private final ApiQueryService apiQueryService;
+    private final ApiDefinitionCrudService apiDefinitionCrudService;
 
     @Override
     public Optional<GuardedApi> findById(String environmentId, String apiId) {
@@ -62,6 +64,12 @@ public class GuardedApiPortAdapter implements GuardedApiPort {
         return page.map(api -> new ApiReference(api.getId(), api.getName()));
     }
 
+    /**
+     * Two guards, closing two windows. The flow comparison closes the one between the caller's read and this call:
+     * it names the conflict before anything is written. The conditional write closes the one between the read below
+     * and the write itself, and it writes the definition alone — so a {@code PUT} that changed another field of the
+     * same API in that window is neither rolled back nor silently overwritten.
+     */
     @Override
     public GuardedApi updateInternalFlow(String environmentId, String apiId, Flow expectedInternalFlow, Flow internalFlow) {
         var api = apiCrudService
@@ -77,7 +85,10 @@ public class GuardedApiPortAdapter implements GuardedApiPort {
             .apiDefinitionValue(definition.toBuilder().internalFlow(internalFlow).build())
             .updatedAt(TimeProvider.now())
             .build();
-        return toGuardedApi(apiCrudService.update(updated));
+        if (!apiDefinitionCrudService.replaceDefinition(updated, api.getUpdatedAt())) {
+            throw new ApiInternalFlowChangedException(apiId);
+        }
+        return toGuardedApi(updated);
     }
 
     private static Predicate<Api> inEnvironment(String environmentId) {
