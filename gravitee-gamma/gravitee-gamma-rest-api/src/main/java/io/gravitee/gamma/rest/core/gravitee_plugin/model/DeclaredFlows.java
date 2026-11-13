@@ -15,7 +15,6 @@
  */
 package io.gravitee.gamma.rest.core.gravitee_plugin.model;
 
-import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -28,7 +27,7 @@ import java.util.Set;
  * @param phases the phases of each declared flow, as the manifest lists them: not validated, so a phase the platform
  *     does not know is kept as is. A flow the manifest does not declare is absent.
  */
-public record DeclaredFlows(Map<ApiProtocolType, List<String>> phases) {
+public record DeclaredFlows(Map<PolicyFlowType, List<String>> phases) {
     public DeclaredFlows {
         // not Map.copyOf: the iteration order of the flows is the order of their JSON keys
         phases = Collections.unmodifiableMap(new LinkedHashMap<>(phases));
@@ -38,7 +37,7 @@ public record DeclaredFlows(Map<ApiProtocolType, List<String>> phases) {
      * Whether every one of {@code flows} is declared and, when {@code phase} is given, declares it in each of them, or in
      * at least one declared flow when no flow is requested. A blank phase filters nothing.
      */
-    public boolean declares(Set<ApiProtocolType> flows, String phase) {
+    public boolean declares(Set<PolicyFlowType> flows, String phase) {
         if (!phases.keySet().containsAll(flows)) {
             return false;
         }

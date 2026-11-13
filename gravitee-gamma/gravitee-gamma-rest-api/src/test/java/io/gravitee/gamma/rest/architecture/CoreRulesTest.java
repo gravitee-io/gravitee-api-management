@@ -28,7 +28,6 @@ import com.tngtech.archunit.lang.ArchRule;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
-import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 
 /**
  * Enforces gamma-rest-api AGENTS.md §5 (Core layer independence) — the {@code core} package must not
@@ -78,10 +77,5 @@ class CoreRulesTest {
                     equivalentTo(Pageable.class)
                 )
                 .or(equivalentTo(PageableImpl.class))
-                .or(
-                    // the closed list of flows a policy plugin declares in its manifest, which the apim management API
-                    // exposes too: gamma reuses it rather than keeping a copy that would drift
-                    equivalentTo(ApiProtocolType.class)
-                )
         );
 }

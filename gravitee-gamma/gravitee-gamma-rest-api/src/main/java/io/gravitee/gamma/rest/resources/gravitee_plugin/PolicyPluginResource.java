@@ -18,13 +18,13 @@ package io.gravitee.gamma.rest.resources.gravitee_plugin;
 import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.gravitee_plugin.use_case.ListPolicyPluginsUseCase;
 import io.gravitee.gamma.rest.resources.gravitee_plugin.dto.PolicyFlow;
 import io.gravitee.gamma.rest.resources.gravitee_plugin.dto.PolicyPluginDto;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import jakarta.inject.Inject;
@@ -87,7 +87,7 @@ public class PolicyPluginResource {
     }
 
     /** Resolved here rather than by a param converter: Jersey answers 404, not 400, when a query parameter fails to convert. */
-    private static Set<ApiProtocolType> toFlows(List<String> names) {
+    private static Set<PolicyFlowType> toFlows(List<String> names) {
         return names
             .stream()
             .map(name ->
@@ -96,7 +96,7 @@ public class PolicyPluginResource {
                         "Invalid flow: " +
                             name +
                             ". Expected one of " +
-                            Arrays.stream(ApiProtocolType.values()).map(PolicyFlow::nameOf).toList() +
+                            Arrays.stream(PolicyFlowType.values()).map(PolicyFlow::nameOf).toList() +
                             "."
                     )
                 )

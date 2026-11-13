@@ -17,8 +17,8 @@ package io.gravitee.gamma.rest.core.gravitee_plugin.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PlatformPolicyPlugin;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
-import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -36,7 +36,7 @@ public class ListPolicyPluginsUseCase {
 
     private final PolicyPluginProvider policyPluginProvider;
 
-    public record Input(String organizationId, Set<ApiProtocolType> flows, String phase) {}
+    public record Input(String organizationId, Set<PolicyFlowType> flows, String phase) {}
 
     public record Output(List<PlatformPolicyPlugin> policies) {}
 
