@@ -229,6 +229,8 @@ public class ApplicationsResource extends AbstractResource {
             application.setSettings(settings);
         }
 
+        // The service keeps a provided id (needed by the CRD import), so the server must assign it here.
+        application.setId(null);
         application.setOrigin(Origin.MANAGEMENT);
 
         ApplicationEntity newApplication = applicationService.create(
