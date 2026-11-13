@@ -64,6 +64,22 @@ class SecretReferenceTest {
     @ParameterizedTest
     @ValueSource(
         strings = {
+            "/gravitee/./credential.other.token:value",
+            "/gravitee/x/../credential.other.token:value",
+            "/gravitee/..:value",
+            "/gravitee/%63redential.other.token:value",
+            "/GRAVITEE/my%2Fsecret:value",
+        }
+    )
+    void should_reject_a_gravitee_store_key_with_a_dot_segment_or_an_escape(String reference) {
+        assertThatThrownBy(() -> SecretReference.external("token", reference))
+            .isInstanceOf(InvalidCredentialException.class)
+            .hasMessage("The reference of token must be a secret path such as /vault/secret/name:key, with no spaces or expressions.");
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = {
             "/gravitee/credential.other.token:value",
             "/GRAVITEE/credential.other.token:value?renewable=true",
             "/gravitee/credential.other.token",

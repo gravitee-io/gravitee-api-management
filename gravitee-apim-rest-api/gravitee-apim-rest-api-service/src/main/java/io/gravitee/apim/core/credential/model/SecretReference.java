@@ -17,6 +17,7 @@ package io.gravitee.apim.core.credential.model;
 
 import io.gravitee.apim.core.credential.exception.InvalidCredentialException;
 import io.gravitee.apim.core.secret.model.Secret;
+import java.util.Arrays;
 import java.util.regex.Pattern;
 
 /**
@@ -42,11 +43,12 @@ public record SecretReference(String reference, String secretId) {
             WHITESPACE.matcher(reference).find() ||
             reference.contains("{#")
         ) {
-            throw new InvalidCredentialException(
-                "The reference of " + field + " must be a secret path such as /vault/secret/name:key, with no spaces or expressions."
-            );
+            throw invalidPath(field);
         }
         var external = new SecretReference(reference, null);
+        if (external.isInGraviteeStore() && !isPlainKey(external.graviteeKey())) {
+            throw invalidPath(field);
+        }
         if (external.isInGraviteeStore() && external.graviteeKey().startsWith(Secret.CREDENTIAL_KEY_PREFIX)) {
             throw new InvalidCredentialException(
                 "The reference of " +
@@ -55,6 +57,17 @@ public record SecretReference(String reference, String secretId) {
             );
         }
         return external;
+    }
+
+    private static InvalidCredentialException invalidPath(String field) {
+        return new InvalidCredentialException(
+            "The reference of " + field + " must be a secret path such as /vault/secret/name:key, with no spaces or expressions."
+        );
+    }
+
+    // The key check below compares text, so an escape or a dot segment that the provider resolves could reach a credential key.
+    private static boolean isPlainKey(String key) {
+        return !key.contains("%") && Arrays.stream(key.split("/", -1)).noneMatch(segment -> segment.equals(".") || segment.equals(".."));
     }
 
     /** The secret key, read the way the gateway reads it: the path after the provider, before any query or {@code :key}. */
