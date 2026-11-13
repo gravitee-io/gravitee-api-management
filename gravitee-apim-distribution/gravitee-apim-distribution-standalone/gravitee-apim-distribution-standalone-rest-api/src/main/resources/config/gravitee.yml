@@ -468,6 +468,19 @@ services:
     # Minutes an unpublished event is kept; a gateway that misses it keeps the event until it restarts
     deletedRetention: 10080
 
+  # Commands service
+  # Processes the commands sent to the Management API by its own nodes and by gateways: subscription failures and
+  # their notification retries, and parameter, default role and email template cache updates.
+  # Each run reads the pending commands oldest first, by bulks of bulk_items, and reads at most max_bulks bulks:
+  # the commands left are processed on the next run (each node's next run for the cache updates).
+  # Commands expire (5 minutes by default): a backlog above bulk_items x max_bulks per run can expire unprocessed.
+  # bulk_items is between 1 and 1000 and max_bulks between 1 and 100: a value out of range stops the Management API
+  # from starting.
+  #commands:
+  #  cron: "0/5 * * * * *"
+  #  bulk_items: 100
+  #  max_bulks: 10
+
 
 
 node:

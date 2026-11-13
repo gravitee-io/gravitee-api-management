@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.14.0_14_add_commands_to_created_at_id_index
+      author: GraviteeSource Team
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - indexExists:
+                indexName: idx_${gravitee_prefix}commands_to_created_at_id
+                tableName: ${gravitee_prefix}commands
+      changes:
+        - createIndex:
+            indexName: idx_${gravitee_prefix}commands_to_created_at_id
+            columns:
+              - column: {name: to, type: nvarchar(64)}
+              - column: {name: created_at, type: timestamp(6)}
+              - column: {name: id, type: nvarchar(64)}
+            tableName: ${gravitee_prefix}commands

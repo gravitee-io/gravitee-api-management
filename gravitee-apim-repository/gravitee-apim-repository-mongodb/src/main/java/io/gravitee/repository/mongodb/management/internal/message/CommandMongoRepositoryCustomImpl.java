@@ -18,12 +18,15 @@ package io.gravitee.repository.mongodb.management.internal.message;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 import io.gravitee.repository.management.api.search.CommandCriteria;
+import io.gravitee.repository.management.api.search.CommandCursor;
 import io.gravitee.repository.mongodb.management.internal.model.CommandMongo;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
 /**
@@ -36,6 +39,25 @@ public class CommandMongoRepositoryCustomImpl implements CommandMongoRepositoryC
     private MongoTemplate mongoTemplate;
 
     public List<CommandMongo> search(CommandCriteria criteria) {
+        return mongoTemplate.find(buildQuery(criteria), CommandMongo.class);
+    }
+
+    public List<CommandMongo> searchAfter(CommandCriteria criteria, CommandCursor after, int pageSize) {
+        Query query = buildQuery(criteria);
+        if (after != null) {
+            Date createdAt = new Date(after.createdAt());
+            query.addCriteria(
+                new Criteria().orOperator(where("createdAt").gt(createdAt), where("createdAt").is(createdAt).and("id").gt(after.id()))
+            );
+        }
+        return mongoTemplate.find(query.with(Sort.by(Sort.Direction.ASC, "createdAt", "id")).limit(pageSize), CommandMongo.class);
+    }
+
+    public boolean deleteIfExists(String id) {
+        return mongoTemplate.remove(new Query(where("id").is(id)), CommandMongo.class).getDeletedCount() == 1;
+    }
+
+    private static Query buildQuery(CommandCriteria criteria) {
         Query query = new Query();
 
         if (criteria.getTo() != null && !criteria.getTo().isEmpty()) {
@@ -66,6 +88,6 @@ public class CommandMongoRepositoryCustomImpl implements CommandMongoRepositoryC
             query.addCriteria(where("environmentId").is(criteria.getEnvironmentId()));
         }
 
-        return mongoTemplate.find(query, CommandMongo.class);
+        return query;
     }
 }
