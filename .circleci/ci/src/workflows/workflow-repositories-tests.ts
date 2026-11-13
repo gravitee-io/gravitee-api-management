@@ -113,6 +113,26 @@ export class RepositoriesTestsWorkflow {
           engineVersion: ['1', '2', '3'],
         },
       }),
+      new workflow.WorkflowJob(elasticTestContainerJob, {
+        name: 'Analytics repository tests - ElasticSearch << matrix.engineVersion >> - data streams',
+        context: ['cicd-orchestrator'],
+        requires: [buildJobName],
+        matrix: {
+          engineType: ['elasticsearch'],
+          engineVersion: ['8.19.25', '9.5.6'],
+          indexMode: ['data_stream'],
+        },
+      }),
+      new workflow.WorkflowJob(opensearchTestContainerJob, {
+        name: 'Analytics repository tests - OpenSearch << matrix.engineVersion >> - data streams',
+        context: ['cicd-orchestrator'],
+        requires: [buildJobName],
+        matrix: {
+          engineType: ['opensearch'],
+          engineVersion: ['2', '3'],
+          indexMode: ['data_stream'],
+        },
+      }),
       new workflow.WorkflowJob(redisTestContainerJob, {
         name: 'Rate Limit repository tests - Redis << matrix.redisImage >>',
         context: ['cicd-orchestrator'],

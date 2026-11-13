@@ -15,13 +15,19 @@
  */
 package io.gravitee.repository.elasticsearch;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
+
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.client.http.HttpClient;
 import io.gravitee.elasticsearch.client.http.HttpClientConfiguration;
 import io.gravitee.elasticsearch.config.Endpoint;
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
+import io.gravitee.repository.elasticsearch.configuration.IndexMode;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.vertx.core.Vertx;
+import io.vertx.ext.web.client.WebClient;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -96,7 +102,14 @@ public class TestConfiguration {
     }
 
     @Bean
-    public DatabaseHydrator databaseHydrator(Client client, FreeMarkerComponent freeMarkerComponent, TimeProvider timeProvider) {
+    public DatabaseHydrator databaseHydrator(
+        Client client,
+        FreeMarkerComponent freeMarkerComponent,
+        TimeProvider timeProvider,
+        IndexMode indexMode,
+        Vertx vertx,
+        RepositoryConfiguration repositoryConfiguration
+    ) {
         AnatlyticsDatabase anatlyticsDatabase = new AnatlyticsDatabase();
         if (isElasticsearch) {
             anatlyticsDatabase.setDatabaseType(AnatlyticsDatabase.DatabaseType.ELASTICSEARCH);
@@ -105,7 +118,15 @@ public class TestConfiguration {
             anatlyticsDatabase.setDatabaseType(AnatlyticsDatabase.DatabaseType.OPENSEARCH);
             anatlyticsDatabase.setDatabaseVersion(opensearchVersion);
         }
-        return new DatabaseHydrator(client, freeMarkerComponent, anatlyticsDatabase, timeProvider);
+        return new DatabaseHydrator(
+            client,
+            freeMarkerComponent,
+            anatlyticsDatabase,
+            timeProvider,
+            indexMode,
+            WebClient.create(vertx),
+            repositoryConfiguration
+        );
     }
 
     @Bean
@@ -115,7 +136,18 @@ public class TestConfiguration {
         clientConfiguration.setUsername(repositoryConfiguration.getUsername());
         clientConfiguration.setPassword(repositoryConfiguration.getPassword());
         clientConfiguration.setRequestTimeout(60_000);
-        return new HttpClient(clientConfiguration);
+        final Client client = new HttpClient(clientConfiguration);
+        if (repositoryConfiguration.getConfiguredIndexMode().map(IndexMode::of).orElse(IndexMode.DAILY) != IndexMode.DATA_STREAM) {
+            return client;
+        }
+        // An Error rather than an exception, so that no fallback of the repository can swallow it.
+        final Client dataStreamClient = spy(client);
+        doThrow(
+            new AssertionError("_mapping/field is not available on Elastic Cloud Serverless: data streams must be read through _field_caps")
+        )
+            .when(dataStreamClient)
+            .getFieldTypes(anyString(), anyString());
+        return dataStreamClient;
     }
 
     @Bean

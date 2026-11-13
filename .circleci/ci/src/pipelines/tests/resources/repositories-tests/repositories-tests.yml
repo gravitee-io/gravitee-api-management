@@ -384,6 +384,13 @@ jobs:
         type: string
         default: ""
         description: Version of engine to test
+      indexMode:
+        type: enum
+        default: daily
+        description: Index mode the analytics are read with
+        enum:
+          - daily
+          - data_stream
     machine:
       image: ubuntu-2204:current
       docker_layer_caching: false
@@ -400,10 +407,10 @@ jobs:
           keys:
             - gravitee-api-management-v16-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
-          name: Run Analytics repository tests with engine << parameters.engineType >> and version << parameters.engineVersion >>
+          name: Run Analytics repository tests with engine << parameters.engineType >>, version << parameters.engineVersion >> and index mode << parameters.indexMode >>
           command: |-
             cd gravitee-apim-repository
-            mvn -pl 'gravitee-apim-repository-elasticsearch' -am -s ../.gravitee.settings.xml clean package --no-transfer-progress -Dskip.validation=true -D<< parameters.engineType >>.version=<< parameters.engineVersion >> -Dsearch.type=<< parameters.engineType >> -T 2C
+            mvn -pl 'gravitee-apim-repository-elasticsearch' -am -s ../.gravitee.settings.xml clean package --no-transfer-progress -Dskip.validation=true -D<< parameters.engineType >>.version=<< parameters.engineVersion >> -Dsearch.type=<< parameters.engineType >> -Danalytics.elasticsearch.index_mode=<< parameters.indexMode >> -T 2C
       - run:
           name: Save test results
           command: |-
@@ -544,6 +551,36 @@ workflows:
                 - "1"
                 - "2"
                 - "3"
+      - job-elastic-test-container:
+          name: Analytics repository tests - ElasticSearch << matrix.engineVersion >> - data streams
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build
+          matrix:
+            parameters:
+              engineType:
+                - elasticsearch
+              engineVersion:
+                - 8.19.25
+                - 9.5.6
+              indexMode:
+                - data_stream
+      - job-elastic-test-container:
+          name: Analytics repository tests - OpenSearch << matrix.engineVersion >> - data streams
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build
+          matrix:
+            parameters:
+              engineType:
+                - opensearch
+              engineVersion:
+                - "2"
+                - "3"
+              indexMode:
+                - data_stream
       - job-redis-test-container:
           name: Rate Limit repository tests - Redis << matrix.redisImage >>
           context:

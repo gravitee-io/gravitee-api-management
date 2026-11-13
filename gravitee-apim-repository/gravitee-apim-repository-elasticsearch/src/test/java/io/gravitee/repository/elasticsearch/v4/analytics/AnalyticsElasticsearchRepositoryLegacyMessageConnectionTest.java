@@ -56,6 +56,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 
@@ -67,6 +68,11 @@ import org.springframework.test.context.TestPropertySource;
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @TestPropertySource(properties = "reporters.elasticsearch.template_mapping.path=src/test/resources/freemarker-v4-analytics")
+@DisabledIfSystemProperty(
+    named = "analytics.elasticsearch.index_mode",
+    matches = "data_stream",
+    disabledReason = "The upgrade day is built as a daily index, which is not part of the data stream read in this mode."
+)
 class AnalyticsElasticsearchRepositoryLegacyMessageConnectionTest extends AbstractElasticsearchRepositoryTest {
 
     private static final String MESSAGE_API = "c3d4e5f6-0000-4000-8000-0000000000e6";
