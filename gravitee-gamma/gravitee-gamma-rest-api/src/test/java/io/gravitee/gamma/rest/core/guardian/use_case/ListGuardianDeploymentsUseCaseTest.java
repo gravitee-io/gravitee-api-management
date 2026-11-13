@@ -20,6 +20,7 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDIAN_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aDeployGuardianUseCase;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianUsage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
@@ -54,7 +55,12 @@ class ListGuardianDeploymentsUseCaseTest {
     private final GuardianAuditFixture audits = new GuardianAuditFixture();
     private final GuardianDeploymentDomainService deploymentService = publications.service(repository);
     private final DeployGuardianUseCase deploy = aDeployGuardianUseCase(repository, deploymentService, audits.service);
-    private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(repository, deploymentService, audits.service);
+    private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(
+        repository,
+        deploymentService,
+        audits.service,
+        aGuardianUsage()
+    );
     private final ListGuardianDeploymentsUseCase list = new ListGuardianDeploymentsUseCase(repository, publications.store());
     private final AuditInfo deployer = AuditInfo.builder()
         .organizationId(ORGANIZATION_ID)

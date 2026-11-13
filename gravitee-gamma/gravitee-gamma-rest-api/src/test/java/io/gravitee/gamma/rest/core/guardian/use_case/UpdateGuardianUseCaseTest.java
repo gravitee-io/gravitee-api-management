@@ -20,6 +20,8 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDIAN_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aDefinitionToSubmit;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianUsage;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianUsageRunning;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidator;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.anUpdateGuardianCommand;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,6 +41,7 @@ import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDraftDomainService;
+import io.gravitee.gamma.rest.core.guardian.exception.GuardianInUseException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianOverwriteOvertakenException;
@@ -72,6 +75,7 @@ class UpdateGuardianUseCaseTest {
     private final AuditDomainService auditDomainService = mock(AuditDomainService.class);
 
     private UpdateGuardianUseCase useCase;
+    private UpdateGuardianUseCase runByAnApi;
 
     @BeforeEach
     void setUp() {
@@ -84,7 +88,18 @@ class UpdateGuardianUseCaseTest {
         useCase = new UpdateGuardianUseCase(
             guardianRepository,
             validator,
-            new GuardianDraftDomainService(guardianRepository, validator, auditDomainService, deployments)
+            new GuardianDraftDomainService(guardianRepository, validator, auditDomainService, deployments, aGuardianUsage())
+        );
+        runByAnApi = new UpdateGuardianUseCase(
+            guardianRepository,
+            validator,
+            new GuardianDraftDomainService(
+                guardianRepository,
+                validator,
+                auditDomainService,
+                deployments,
+                aGuardianUsageRunning(GUARDIAN_ID)
+            )
         );
     }
 
@@ -94,11 +109,24 @@ class UpdateGuardianUseCaseTest {
 
     /** An update that overwrites whatever is stored, for the tests that are not about the version. */
     private UpdateGuardianUseCase.Output update(String environmentId, UpdateGuardianCommand command) {
-        return update(environmentId, command, DraftPrecondition.anyVersion());
+        return update(useCase, environmentId, command, DraftPrecondition.anyVersion());
     }
 
     private UpdateGuardianUseCase.Output update(String environmentId, UpdateGuardianCommand command, DraftPrecondition precondition) {
-        return useCase.execute(
+        return update(useCase, environmentId, command, precondition);
+    }
+
+    private UpdateGuardianUseCase.Output update(UpdateGuardianUseCase target, String environmentId, UpdateGuardianCommand command) {
+        return update(target, environmentId, command, DraftPrecondition.anyVersion());
+    }
+
+    private UpdateGuardianUseCase.Output update(
+        UpdateGuardianUseCase target,
+        String environmentId,
+        UpdateGuardianCommand command,
+        DraftPrecondition precondition
+    ) {
+        return target.execute(
             UpdateGuardianUseCase.Input.builder()
                 .auditInfo(auditInfo(environmentId))
                 .guardianId(GUARDIAN_ID)
@@ -415,6 +443,24 @@ class UpdateGuardianUseCaseTest {
             .hasMessageContaining("llm-proxy");
 
         verifyNoInteractions(auditDomainService);
+    }
+
+    @Test
+    void should_refuse_to_change_the_phase_of_a_guardian_an_api_runs() {
+        var command = anUpdateGuardianCommand().definition(aDefinitionToSubmit().phase(Phase.RESPONSE).build()).build();
+
+        assertThatThrownBy(() -> update(runByAnApi, ENVIRONMENT_ID, command))
+            .as("moving a guardian in use to another phase")
+            .isInstanceOf(GuardianInUseException.class);
+    }
+
+    @Test
+    void should_update_the_rest_of_the_definition_of_a_guardian_an_api_runs() {
+        var command = anUpdateGuardianCommand().definition(aDefinitionToSubmit().name("Renamed").build()).build();
+
+        var output = update(runByAnApi, ENVIRONMENT_ID, command);
+
+        assertThat(output.guardian().getName()).as("name").isEqualTo("Renamed");
     }
 
     @Test

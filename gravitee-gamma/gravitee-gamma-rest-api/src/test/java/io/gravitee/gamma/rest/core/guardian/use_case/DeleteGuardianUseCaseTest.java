@@ -21,6 +21,8 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aDeployGuardianUseCase;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianDefinition;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianUsage;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianUsageRunning;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
@@ -33,6 +35,7 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
+import io.gravitee.gamma.rest.core.guardian.exception.GuardianInUseException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
@@ -51,8 +54,18 @@ class DeleteGuardianUseCaseTest {
     private final GuardianAuditFixture audits = new GuardianAuditFixture();
     private final GuardianDeploymentDomainService deploymentService = publications.service(guardianRepository);
     private final DeployGuardianUseCase deploy = aDeployGuardianUseCase(guardianRepository, deploymentService, audits.service);
-    private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(guardianRepository, deploymentService, audits.service);
-    private final DeleteGuardianUseCase useCase = new DeleteGuardianUseCase(guardianRepository, audits.service, deploymentService);
+    private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(
+        guardianRepository,
+        deploymentService,
+        audits.service,
+        aGuardianUsage()
+    );
+    private final DeleteGuardianUseCase useCase = new DeleteGuardianUseCase(
+        guardianRepository,
+        audits.service,
+        deploymentService,
+        aGuardianUsage()
+    );
     private final AuditInfo actor = auditInfo(ENVIRONMENT_ID);
 
     @BeforeEach
@@ -133,6 +146,16 @@ class DeleteGuardianUseCaseTest {
             softly.assertThat(guardianRepository.storedGuardians()).as("draft deleted").isEmpty();
             softly.assertThat(publications.find(ENVIRONMENT_ID, GUARDIAN_ID)).as("no withdrawal written").isEmpty();
         });
+    }
+
+    @Test
+    void should_refuse_to_delete_a_guardian_an_api_runs() {
+        var inUse = new DeleteGuardianUseCase(guardianRepository, audits.service, deploymentService, aGuardianUsageRunning(GUARDIAN_ID));
+
+        assertThatThrownBy(() -> inUse.execute(DeleteGuardianUseCase.Input.builder().auditInfo(actor).guardianId(GUARDIAN_ID).build()))
+            .as("deleting a guardian in use")
+            .isInstanceOf(GuardianInUseException.class);
+        assertThat(guardianRepository.storedGuardians()).as("stored guardians").hasSize(1);
     }
 
     @Test

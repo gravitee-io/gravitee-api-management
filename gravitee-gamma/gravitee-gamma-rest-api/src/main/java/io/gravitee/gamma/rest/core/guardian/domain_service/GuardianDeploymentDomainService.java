@@ -30,6 +30,7 @@ import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -46,13 +47,21 @@ public class GuardianDeploymentDomainService {
     /** Absent and empty mean the same: the UI saves empty lists, a revision published earlier may have none. */
     private static final List<String> LISTS = List.of("policies", "resources");
 
+    /** Shown in the deployment history, where the restored revision would otherwise read as a deployment nobody made. */
+    private static final String RESTORED_LABEL = "Restored: an API runs it";
+
     private final GuardianRepository guardianRepository;
     private final GuardianPublicationDomainService publications;
     private final JsonSerializer jsonSerializer;
     private final JsonDeserializer jsonDeserializer;
 
     public GuardianDeployment current(Guardian guardian) {
-        return publications.findAll(guardian.getEnvironmentId(), Set.of(guardian.getId())).get(guardian.getId());
+        return current(guardian.getEnvironmentId(), Set.of(guardian.getId())).get(guardian.getId());
+    }
+
+    /** The latest publication or withdrawal of each Guardian, in one read, missing from the map when it has none. */
+    public Map<String, GuardianDeployment> current(String environmentId, Set<String> guardianIds) {
+        return publications.findAll(environmentId, guardianIds);
     }
 
     /**
@@ -114,6 +123,11 @@ public class GuardianDeploymentDomainService {
      */
     public GuardianDeployment.Published publish(Guardian guardian, String label, AuditInfo auditInfo) {
         return publications.publish(guardian.getDefinition(), label, auditInfo);
+    }
+
+    /** Publishes again the revision a change replaced, which the change found an API running once written. */
+    public GuardianDeployment.Published restore(GuardianDeployment.Published replaced, AuditInfo auditInfo) {
+        return publications.publish(replaced.definition(), RESTORED_LABEL, auditInfo);
     }
 
     public GuardianDeployment.Withdrawn withdraw(Guardian guardian, GuardianDeployment.Published ended, AuditInfo auditInfo) {

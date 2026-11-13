@@ -16,6 +16,8 @@
 package io.gravitee.gamma.rest.core.guardian.exception;
 
 import io.gravitee.apim.core.exception.NotFoundDomainException;
+import java.util.SequencedSet;
+import java.util.stream.Collectors;
 
 /**
  * No Guardian with this id in this environment.
@@ -29,5 +31,25 @@ public class GuardianNotFoundException extends NotFoundDomainException {
 
     public GuardianNotFoundException(String guardianId) {
         super("Guardian '" + guardianId + "' not found", guardianId);
+    }
+
+    /**
+     * Several at once, which is what validating a whole sequence reports: a publisher who named three Guardians the
+     * environment does not hold learns all three from one answer. One id reads exactly as the single-id form does,
+     * {@link #getId()} included — only a list of several leaves it unset, since no single id is <em>the</em> one.
+     */
+    public static GuardianNotFoundException of(SequencedSet<String> guardianIds) {
+        if (guardianIds.size() == 1) {
+            return new GuardianNotFoundException(guardianIds.getFirst());
+        }
+        var named = guardianIds
+            .stream()
+            .map(id -> "'" + id + "'")
+            .collect(Collectors.joining(", "));
+        return new GuardianNotFoundException("Guardians not found: " + named, null);
+    }
+
+    private GuardianNotFoundException(String message, String id) {
+        super(message, id);
     }
 }
