@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-<<<<<<< HEAD:gravitee-apim-portal-webui-next/src/app/applications/application/application-tab-settings/application-tab-settings-edit/application-tab-settings-edit.component.ts
-import { Component, Input, OnInit } from '@angular/core';
-=======
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, input, OnInit, output, signal } from '@angular/core';
->>>>>>> f4fa8d0 (fix(portal-next): show API error on app settings save (PORTAL-248)):gravitee-apim-portal-webui-next/src/app/dashboard/application-details/application-tab-settings/application-tab-settings-edit/application-tab-settings-edit.component.ts
+import { Component, Input, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';

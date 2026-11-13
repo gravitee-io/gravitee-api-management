@@ -21,7 +21,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { ApplicationTabSettingsEditHarness } from './application-tab-settings-edit/application-tab-settings-edit.harness';
 import { ApplicationTabSettingsComponent } from './application-tab-settings.component';
-import { ConfirmDialogComponent } from '../../../../components/confirm-dialog/confirm-dialog.component';
+import { DeleteConfirmDialogComponent } from './delete-confirm-dialog/delete-confirm-dialog.component';
 import { Application } from '../../../../entities/application/application';
 import { fakeApplication, fakeSimpleApplicationType } from '../../../../entities/application/application.fixture';
 import { fakeUserApplicationPermissions } from '../../../../entities/permission/permission.fixtures';
@@ -45,16 +45,23 @@ describe('ApplicationTabSettingsComponent - update rejected by the API', () => {
     });
 
     await TestBed.configureTestingModule({
-      imports: [ApplicationTabSettingsComponent, ConfirmDialogComponent, HttpClientTestingModule, NoopAnimationsModule, AppTestingModule],
+      imports: [
+        ApplicationTabSettingsComponent,
+        DeleteConfirmDialogComponent,
+        HttpClientTestingModule,
+        NoopAnimationsModule,
+        AppTestingModule,
+      ],
       providers: [{ provide: ConfigService, useValue: { baseURL: TESTING_BASE_URL } }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApplicationTabSettingsComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     loader = TestbedHarnessEnvironment.loader(fixture);
-    fixture.componentRef.setInput('applicationId', applicationId);
-    fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ DEFINITION: ['U'] }));
-    fixture.componentRef.setInput('applicationTypeConfiguration', fakeSimpleApplicationType());
+    const component = fixture.componentInstance;
+    component.applicationId = applicationId;
+    component.userApplicationPermissions = fakeUserApplicationPermissions({ DEFINITION: ['U'] });
+    component.applicationTypeConfiguration = fakeSimpleApplicationType();
   });
 
   afterEach(() => {
@@ -68,15 +75,9 @@ describe('ApplicationTabSettingsComponent - update rejected by the API', () => {
     });
   }
 
-  async function saveWithClientId(clientId: string, errorBody: unknown) {
+  async function saveWithClientId(clientId: string, errorBody: object) {
     fixture.detectChanges();
     flushGetRequests(simpleApplication);
-    await fixture.whenStable();
-    flushGetRequests(simpleApplication);
-    await fixture.whenStable();
-
-    fixture.componentRef.instance.isEditing.set(true);
-    fixture.detectChanges();
     await fixture.whenStable();
     flushGetRequests(simpleApplication);
     await fixture.whenStable();
