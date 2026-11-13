@@ -59,7 +59,7 @@
         overwrite APIM's files here; that path is reserved.
 
         Only the open-source repository plugin is declared here. The Gamma modules are enterprise artefacts,
-        resolvable from the private Artifactory only, so they live in the bundle-default profile as they do in the
+        resolvable from the private feed only, so they live in the bundle-default profile as they do in the
         standalone distribution — see the rule at gravitee-apim-distribution-standalone/pom.xml:47-50. Declaring
         them here would break any build without credentials, job-community-build-backend first.
     -->
