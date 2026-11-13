@@ -52,7 +52,7 @@ class SubscriptionSearchQueryServiceImplTest {
     }
 
     @Test
-    void should_search_multiple_target_types_with_stable_sorting() {
+    void should_search_multiple_target_types_most_recent_first() {
         var criteria = new SubscriptionSearchQueryService.Criteria(
             Set.of(SubscriptionReferenceType.API, SubscriptionReferenceType.API_PRODUCT),
             Set.of("api-id"),
@@ -77,8 +77,8 @@ class SubscriptionSearchQueryServiceImplTest {
             );
             assertThat(query.getApis()).containsExactly("api-id");
             assertThat(query.getApiProducts()).containsExactly("api-product-id");
-            assertThat(query.getSortable().getField()).isEqualTo("id");
-            assertThat(query.getSortable().isAscOrder()).isTrue();
+            assertThat(query.getSortable().getField()).isEqualTo("createdAt");
+            assertThat(query.getSortable().isAscOrder()).isFalse();
         });
     }
 

@@ -77,7 +77,7 @@ public class SubscriptionSearchQueryServiceImpl implements SubscriptionSearchQue
             .plans(criteria.planIds())
             .statuses(criteria.statuses())
             .apiKey(criteria.apiKey())
-            .sortable(criteria.referenceTypes().size() > 1 ? new SortableImpl("id", true) : null)
+            .sortable(criteria.referenceTypes().size() > 1 ? new SortableImpl("createdAt", false) : null)
             .build();
 
         if (pageable == null) {
