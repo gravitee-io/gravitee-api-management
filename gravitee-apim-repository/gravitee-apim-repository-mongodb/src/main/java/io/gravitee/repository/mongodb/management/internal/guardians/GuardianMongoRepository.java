@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management.internal.guardians;
 
 import io.gravitee.repository.mongodb.management.internal.model.GuardianMongo;
 import java.util.List;
+import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -26,6 +27,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface GuardianMongoRepository extends MongoRepository<GuardianMongo, String>, GuardianMongoRepositoryCustom {
+    List<GuardianMongo> findByEnvironmentIdAndIdIn(String environmentId, Set<String> guardianIds);
+
     @Query(value = "{ 'environmentId': ?0 }", fields = "{ _id : 1 }", delete = true)
     List<GuardianMongo> deleteByEnvironmentId(String environmentId);
 

@@ -25,11 +25,17 @@ import io.gravitee.repository.management.model.Guardian;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author GraviteeSource Team
  */
 public class NoOpGuardianRepository extends AbstractNoOpManagementRepository<Guardian, String> implements GuardianRepository {
+
+    @Override
+    public List<Guardian> findByEnvironmentIdAndIds(String environmentId, Set<String> guardianIds) {
+        return List.of();
+    }
 
     @Override
     public void updateUpdatedAt(String environmentId, String guardianId, Date updatedAt) {}

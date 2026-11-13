@@ -109,6 +109,32 @@ public class JdbcGuardianRepository extends JdbcAbstractCrudRepository<Guardian,
     }
 
     @Override
+    public List<Guardian> findByEnvironmentIdAndIds(String environmentId, Set<String> guardianIds) throws TechnicalException {
+        Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
+        var ids = List.copyOf(guardianIds);
+        var guardians = new ArrayList<Guardian>();
+        try {
+            // Keep bound parameters below the limits of every supported database.
+            for (int start = 0; start < ids.size(); start += 500) {
+                var batch = ids.subList(start, Math.min(start + 500, ids.size()));
+                var parameters = new ArrayList<Object>();
+                parameters.add(environmentId);
+                parameters.addAll(batch);
+                guardians.addAll(
+                    jdbcTemplate.query(
+                        getOrm().getSelectAllSql() + " where environment_id = ? and id in (" + getOrm().buildInClause(batch) + ")",
+                        getOrm().getRowMapper(),
+                        parameters.toArray()
+                    )
+                );
+            }
+            return guardians;
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to find Guardians by environment and ids", ex);
+        }
+    }
+
+    @Override
     public List<Guardian> findByEnvironmentIdAndNameIgnoreCase(String environmentId, String name) throws TechnicalException {
         Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
         Objects.requireNonNull(name, "Name must not be null");

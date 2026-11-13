@@ -29,6 +29,7 @@ import io.gravitee.repository.management.model.GuardianLifecycleState;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -58,6 +59,25 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
                 .build();
             guardianRepository.create(guardian);
         }
+    }
+
+    @Test
+    void should_find_only_requested_guardians_in_the_environment() throws Exception {
+        var found = guardianRepository.findByEnvironmentIdAndIds(
+            "environmentId",
+            Set.of("id_search_test_0", "id_search_test_2", "missing")
+        );
+        var foreign = guardianRepository.findByEnvironmentIdAndIds("another-environment", Set.of("id_search_test_0"));
+        var empty = guardianRepository.findByEnvironmentIdAndIds("environmentId", Set.of());
+        assertSoftly(softly -> {
+            softly
+                .assertThat(found)
+                .as("requested Guardians, ignoring missing ids")
+                .extracting(Guardian::getId)
+                .containsExactlyInAnyOrder("id_search_test_0", "id_search_test_2");
+            softly.assertThat(foreign).as("foreign environment cannot read Guardians").isEmpty();
+            softly.assertThat(empty).as("empty ids do not select every Guardian").isEmpty();
+        });
     }
 
     @Test

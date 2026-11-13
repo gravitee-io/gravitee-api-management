@@ -471,3 +471,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_14_0/13_add_resources_to_api_products.yml
     - include:
         - file: liquibase/changelogs/v4_14_0/14_create_credentials_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_14_0/15_create_api_guardians_table.yml

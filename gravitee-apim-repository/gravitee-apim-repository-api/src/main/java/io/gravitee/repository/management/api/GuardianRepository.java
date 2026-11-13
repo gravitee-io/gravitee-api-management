@@ -23,11 +23,15 @@ import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Guardian;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author GraviteeSource Team
  */
 public interface GuardianRepository extends CrudRepository<Guardian, String> {
+    /** Returns requested Guardians in the environment; missing ids are ignored and empty ids return no rows. */
+    List<Guardian> findByEnvironmentIdAndIds(String environmentId, Set<String> guardianIds) throws TechnicalException;
+
     /** Atomically advances updatedAt within the environment without replacing any other field. */
     void updateUpdatedAt(String environmentId, String guardianId, Date updatedAt) throws TechnicalException;
 
