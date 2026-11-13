@@ -519,25 +519,47 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("JdbcApiKeyRepository.deleteByEnvironmentId({})", environmentId);
         try {
-            final var keyIds = jdbcTemplate.queryForList(
-                "select id from " + escapeReservedWord(this.tableName) + " where environment_id = ?",
-                String.class,
-                environmentId
-            );
-
-            if (!keyIds.isEmpty()) {
-                jdbcTemplate.update(
-                    "delete from " + keySubscriptions + " where key_id IN (" + getOrm().buildInClause(keyIds) + ")",
-                    keyIds.toArray()
-                );
-                jdbcTemplate.update("delete from " + escapeReservedWord(tableName) + " where environment_id = ?", environmentId);
-            }
+            final var keyIds = deleteWhere("environment_id", environmentId);
             log.debug("JdbcApiKeyRepository.deleteByEnvironmentId({}) - Done", environmentId);
             return keyIds;
         } catch (final Exception ex) {
             log.error("Failed to delete api keys by environmentId: {}", environmentId, ex);
             throw new TechnicalException("Failed to delete api keys by environment", ex);
         }
+    }
+
+    @Override
+    public List<String> deleteByApplication(String applicationId) throws TechnicalException {
+        log.debug("JdbcApiKeyRepository.deleteByApplication({})", applicationId);
+        try {
+            final var keyIds = deleteWhere("application", applicationId);
+            log.debug("JdbcApiKeyRepository.deleteByApplication({}) - Done", applicationId);
+            return keyIds;
+        } catch (final Exception ex) {
+            log.error("Failed to delete api keys by application: {}", applicationId, ex);
+            throw new TechnicalException("Failed to delete api keys by application", ex);
+        }
+    }
+
+    /**
+     * @param column a column of the keys table, never user input
+     * @return the ids of the deleted keys
+     */
+    private List<String> deleteWhere(String column, String value) {
+        final var keyIds = jdbcTemplate.queryForList(
+            "select id from " + escapeReservedWord(this.tableName) + " where " + column + " = ?",
+            String.class,
+            value
+        );
+
+        if (!keyIds.isEmpty()) {
+            jdbcTemplate.update(
+                "delete from " + keySubscriptions + " where key_id IN (" + getOrm().buildInClause(keyIds) + ")",
+                keyIds.toArray()
+            );
+            jdbcTemplate.update("delete from " + escapeReservedWord(tableName) + " where " + column + " = ?", value);
+        }
+        return keyIds;
     }
 
     private boolean addClause(boolean first, StringBuilder query) {
