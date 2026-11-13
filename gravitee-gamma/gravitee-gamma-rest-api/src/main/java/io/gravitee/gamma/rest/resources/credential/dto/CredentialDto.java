@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.resources.credential.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.gravitee.apim.core.credential.model.Credential;
+import io.gravitee.apim.core.credential.model.CredentialActor;
 import io.gravitee.apim.core.credential.model.CredentialStrategy;
 import io.gravitee.apim.core.credential.model.SecretReference;
 import java.time.Instant;
@@ -44,12 +45,13 @@ public record CredentialDto(
     boolean managed,
     @JsonFormat(shape = JsonFormat.Shape.STRING) Instant createdAt,
     @JsonFormat(shape = JsonFormat.Shape.STRING) Instant updatedAt,
-    @JsonFormat(shape = JsonFormat.Shape.STRING) Instant rotatedAt
+    @JsonFormat(shape = JsonFormat.Shape.STRING) Instant rotatedAt,
+    boolean manageable
 ) {
     /** @param managed whether Gravitee stores the value behind the reference */
     public record SecretReferenceDto(String reference, boolean managed) {}
 
-    public static CredentialDto from(Credential credential) {
+    public static CredentialDto from(Credential credential, CredentialActor caller) {
         var references = new LinkedHashMap<String, SecretReferenceDto>();
         credential.secretReferences().forEach((field, reference) -> references.put(field, from(reference)));
         return new CredentialDto(
@@ -64,12 +66,16 @@ public record CredentialDto(
             credential.isManaged(),
             credential.createdAt(),
             credential.updatedAt(),
-            credential.rotatedAt()
+            credential.rotatedAt(),
+            credential.isManageableBy(caller)
         );
     }
 
-    public static List<CredentialDto> from(List<Credential> credentials) {
-        return credentials.stream().map(CredentialDto::from).toList();
+    public static List<CredentialDto> from(List<Credential> credentials, CredentialActor caller) {
+        return credentials
+            .stream()
+            .map(credential -> from(credential, caller))
+            .toList();
     }
 
     private static SecretReferenceDto from(SecretReference reference) {

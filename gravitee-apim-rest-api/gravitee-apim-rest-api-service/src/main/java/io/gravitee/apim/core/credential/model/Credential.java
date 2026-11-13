@@ -114,8 +114,12 @@ public record Credential(
         return secretReferences.values().stream().anyMatch(SecretReference::isManaged);
     }
 
+    public boolean isManageableBy(CredentialActor actor) {
+        return actor.admin() || ownerId.equals(actor.userId());
+    }
+
     public void requireManageableBy(CredentialActor actor) {
-        if (!actor.admin() && !ownerId.equals(actor.userId())) {
+        if (!isManageableBy(actor)) {
             throw new CredentialManagementNotAllowedException(id);
         }
     }

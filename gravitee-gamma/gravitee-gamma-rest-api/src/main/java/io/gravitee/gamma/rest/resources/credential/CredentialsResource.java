@@ -88,17 +88,12 @@ public class CredentialsResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CREDENTIAL, acls = { RolePermissionAction.CREATE }) })
     public Response createCredential(@NotNull CreateCredentialRequestDto request) {
+        var actor = CurrentCredentialActor.of(securityContext, permissionService, membershipService);
         var credential = createCredentialUseCase
-            .execute(
-                new CreateCredentialUseCase.Input(
-                    UuidString.generateRandom(),
-                    CurrentCredentialActor.of(securityContext, permissionService, membershipService),
-                    request.toCommand()
-                )
-            )
+            .execute(new CreateCredentialUseCase.Input(UuidString.generateRandom(), actor, request.toCommand()))
             .credential();
         return Response.created(uriInfo.getAbsolutePathBuilder().path(credential.id()).build())
-            .entity(CredentialDto.from(credential))
+            .entity(CredentialDto.from(credential, actor))
             .build();
     }
 
@@ -117,16 +112,11 @@ public class CredentialsResource {
             .strategies(strategies(strategies))
             .serviceId(blankToNull(serviceId))
             .build();
+        var actor = CurrentCredentialActor.of(securityContext, permissionService, membershipService);
         var credentials = searchCredentialsUseCase
-            .execute(
-                new SearchCredentialsUseCase.Input(
-                    CurrentCredentialActor.of(securityContext, permissionService, membershipService),
-                    query,
-                    new PageableImpl(page, perPage)
-                )
-            )
+            .execute(new SearchCredentialsUseCase.Input(actor, query, new PageableImpl(page, perPage)))
             .page();
-        return PaginatedResponseDto.of(CredentialDto.from(credentials.getContent()), credentials.getTotalElements(), page, perPage);
+        return PaginatedResponseDto.of(CredentialDto.from(credentials.getContent(), actor), credentials.getTotalElements(), page, perPage);
     }
 
     @Path("{credentialId}")
