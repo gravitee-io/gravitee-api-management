@@ -21,6 +21,7 @@ import io.gravitee.gamma.rest.core.guardian.model.GuardianSearchQuery;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * The Guardian store, as the domain needs it.
@@ -40,6 +41,9 @@ public interface GuardianRepository {
 
     /** The Guardian with this id inside this environment, empty when it is in neither. */
     Optional<Guardian> findByEnvironmentId(String environmentId, String guardianId);
+
+    /** Requested Guardians in this environment, ignoring missing ids. */
+    List<Guardian> findByEnvironmentIdAndIds(String environmentId, Set<String> guardianIds);
 
     Guardian update(Guardian guardian);
 
