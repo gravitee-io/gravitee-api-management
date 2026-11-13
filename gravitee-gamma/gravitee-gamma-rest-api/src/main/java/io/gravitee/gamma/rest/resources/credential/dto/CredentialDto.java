@@ -1,0 +1,78 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.gamma.rest.resources.credential.dto;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.gravitee.apim.core.credential.model.Credential;
+import io.gravitee.apim.core.credential.model.CredentialStrategy;
+import io.gravitee.apim.core.credential.model.SecretReference;
+import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * A credential as a client reads it: references to its secrets, never their values.
+ *
+ * <p>The timestamps need {@code @JsonFormat}: the inherited rest-api mapper enables {@code WRITE_DATES_AS_TIMESTAMPS},
+ * which would otherwise write them as epoch numbers.
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record CredentialDto(
+    String id,
+    String name,
+    CredentialStrategy strategy,
+    String serviceId,
+    String ownerId,
+    @JsonFormat(shape = JsonFormat.Shape.STRING) Instant expiresAt,
+    Map<String, Object> configuration,
+    Map<String, SecretReferenceDto> secretReferences,
+    boolean managed,
+    @JsonFormat(shape = JsonFormat.Shape.STRING) Instant createdAt,
+    @JsonFormat(shape = JsonFormat.Shape.STRING) Instant updatedAt,
+    @JsonFormat(shape = JsonFormat.Shape.STRING) Instant rotatedAt
+) {
+    /** @param managed whether Gravitee stores the value behind the reference */
+    public record SecretReferenceDto(String reference, boolean managed) {}
+
+    public static CredentialDto from(Credential credential) {
+        var references = new LinkedHashMap<String, SecretReferenceDto>();
+        credential.secretReferences().forEach((field, reference) -> references.put(field, from(reference)));
+        return new CredentialDto(
+            credential.id(),
+            credential.name(),
+            credential.strategy(),
+            credential.serviceId(),
+            credential.ownerId(),
+            credential.expiresAt(),
+            credential.configuration(),
+            references,
+            credential.isManaged(),
+            credential.createdAt(),
+            credential.updatedAt(),
+            credential.rotatedAt()
+        );
+    }
+
+    public static List<CredentialDto> from(List<Credential> credentials) {
+        return credentials.stream().map(CredentialDto::from).toList();
+    }
+
+    private static SecretReferenceDto from(SecretReference reference) {
+        return new SecretReferenceDto(reference.reference(), reference.isManaged());
+    }
+}

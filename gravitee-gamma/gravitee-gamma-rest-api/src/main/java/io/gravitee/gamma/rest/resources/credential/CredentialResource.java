@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.resource.credential;
+package io.gravitee.gamma.rest.resources.credential;
 
 import io.gravitee.apim.core.credential.model.CredentialActor;
 import io.gravitee.apim.core.credential.use_case.DeleteCredentialUseCase;
@@ -21,17 +21,15 @@ import io.gravitee.apim.core.credential.use_case.GetCredentialUseCase;
 import io.gravitee.apim.core.credential.use_case.ListCredentialConsumersUseCase;
 import io.gravitee.apim.core.credential.use_case.RotateCredentialUseCase;
 import io.gravitee.apim.core.credential.use_case.UpdateCredentialUseCase;
-import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.management.v2.rest.mapper.CredentialMapper;
-import io.gravitee.rest.api.management.v2.rest.model.Credential;
-import io.gravitee.rest.api.management.v2.rest.model.CredentialConsumersResponse;
-import io.gravitee.rest.api.management.v2.rest.model.RotateCredential;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateCredential;
-import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.gamma.rest.resources.credential.dto.CredentialConsumersResponseDto;
+import io.gravitee.gamma.rest.resources.credential.dto.CredentialDto;
+import io.gravitee.gamma.rest.resources.credential.dto.RotateCredentialRequestDto;
+import io.gravitee.gamma.rest.resources.credential.dto.UpdateCredentialRequestDto;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.PermissionService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -43,16 +41,23 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
 
 /**
  * One credential. Reading needs only the credential permission; changing, rotating or deleting it also needs to be its
  * owner or an administrator, and the secret permission when Gravitee stores its values.
  */
-public class CredentialResource extends AbstractResource {
+@Produces(MediaType.APPLICATION_JSON)
+public class CredentialResource {
 
-    @PathParam("credentialId")
-    private String credentialId;
+    @Context
+    private SecurityContext securityContext;
+
+    @Inject
+    private PermissionService permissionService;
 
     @Inject
     private GetCredentialUseCase getCredentialUseCase;
@@ -70,50 +75,44 @@ public class CredentialResource extends AbstractResource {
     private ListCredentialConsumersUseCase listCredentialConsumersUseCase;
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CREDENTIAL, acls = { RolePermissionAction.READ }) })
-    public Credential getCredential() {
-        var output = getCredentialUseCase.execute(new GetCredentialUseCase.Input(actor(), credentialId));
-        return CredentialMapper.INSTANCE.map(output.credential());
+    public CredentialDto getCredential(@PathParam("credentialId") String credentialId) {
+        return CredentialDto.from(getCredentialUseCase.execute(new GetCredentialUseCase.Input(actor(), credentialId)).credential());
     }
 
     @PUT
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CREDENTIAL, acls = { RolePermissionAction.UPDATE }) })
-    public Credential updateCredential(@Valid @NotNull final UpdateCredential updateCredential) {
-        var output = updateCredentialUseCase.execute(
-            new UpdateCredentialUseCase.Input(actor(), credentialId, CredentialMapper.INSTANCE.map(updateCredential))
-        );
-        return CredentialMapper.INSTANCE.map(output.credential());
+    public CredentialDto updateCredential(@PathParam("credentialId") String credentialId, @NotNull UpdateCredentialRequestDto request) {
+        var output = updateCredentialUseCase.execute(new UpdateCredentialUseCase.Input(actor(), credentialId, request.toCommand()));
+        return CredentialDto.from(output.credential());
     }
 
     @POST
     @Path("/_rotate")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CREDENTIAL, acls = { RolePermissionAction.UPDATE }) })
-    public Credential rotateCredential(@Valid @NotNull final RotateCredential rotateCredential) {
-        var output = rotateCredentialUseCase.execute(
-            new RotateCredentialUseCase.Input(actor(), credentialId, rotateCredential.getValues())
-        );
-        return CredentialMapper.INSTANCE.map(output.credential());
+    public CredentialDto rotateCredential(
+        @PathParam("credentialId") String credentialId,
+        @Valid @NotNull RotateCredentialRequestDto request
+    ) {
+        var output = rotateCredentialUseCase.execute(new RotateCredentialUseCase.Input(actor(), credentialId, request.values()));
+        return CredentialDto.from(output.credential());
     }
 
     @DELETE
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CREDENTIAL, acls = { RolePermissionAction.DELETE }) })
-    public Response deleteCredential() {
+    public Response deleteCredential(@PathParam("credentialId") String credentialId) {
         deleteCredentialUseCase.execute(new DeleteCredentialUseCase.Input(actor(), credentialId));
         return Response.noContent().build();
     }
 
     @GET
     @Path("/consumers")
-    @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CREDENTIAL, acls = { RolePermissionAction.READ }) })
-    public CredentialConsumersResponse listCredentialConsumers() {
+    public CredentialConsumersResponseDto listCredentialConsumers(@PathParam("credentialId") String credentialId) {
         var output = listCredentialConsumersUseCase.execute(new ListCredentialConsumersUseCase.Input(actor(), credentialId));
-        return new CredentialConsumersResponse().data(CredentialMapper.INSTANCE.mapConsumers(output.consumers()));
+        return new CredentialConsumersResponseDto(output.consumers());
     }
 
     private CredentialActor actor() {

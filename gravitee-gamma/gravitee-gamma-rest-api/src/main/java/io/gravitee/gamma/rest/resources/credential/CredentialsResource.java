@@ -13,27 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.resource.credential;
+package io.gravitee.gamma.rest.resources.credential;
 
 import io.gravitee.apim.core.credential.model.CredentialQuery;
 import io.gravitee.apim.core.credential.model.CredentialStrategy;
 import io.gravitee.apim.core.credential.use_case.CreateCredentialUseCase;
 import io.gravitee.apim.core.credential.use_case.SearchCredentialsUseCase;
 import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.management.v2.rest.mapper.CredentialMapper;
-import io.gravitee.rest.api.management.v2.rest.model.CreateCredential;
-import io.gravitee.rest.api.management.v2.rest.model.CredentialsResponse;
-import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
-import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
-import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
+import io.gravitee.gamma.rest.resources.credential.dto.CreateCredentialRequestDto;
+import io.gravitee.gamma.rest.resources.credential.dto.CredentialDto;
+import io.gravitee.gamma.rest.resources.tracing.dto.PaginatedResponseDto;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.UuidString;
 import jakarta.inject.Inject;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -46,18 +43,36 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriInfo;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-public class CredentialsResource extends AbstractResource {
+/**
+ * The credentials of an environment, mounted under
+ * {@code /gamma/organizations/{orgId}/environments/{envId}/credentials} by {@code GammaRootResource}. Any Gamma module
+ * can use them to call an external service. Responses carry references to the secrets, never their values.
+ */
+@Produces(MediaType.APPLICATION_JSON)
+public class CredentialsResource {
 
     private static final int MAX_PER_PAGE = 100;
 
     @Context
     private ResourceContext resourceContext;
+
+    @Context
+    private UriInfo uriInfo;
+
+    @Context
+    private SecurityContext securityContext;
+
+    @Inject
+    private PermissionService permissionService;
 
     @Inject
     private CreateCredentialUseCase createCredentialUseCase;
@@ -66,54 +81,48 @@ public class CredentialsResource extends AbstractResource {
     private SearchCredentialsUseCase searchCredentialsUseCase;
 
     @POST
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CREDENTIAL, acls = { RolePermissionAction.CREATE }) })
-    public Response createCredential(@Valid @NotNull final CreateCredential createCredential) {
+    public Response createCredential(@NotNull CreateCredentialRequestDto request) {
         var credential = createCredentialUseCase
             .execute(
                 new CreateCredentialUseCase.Input(
                     UuidString.generateRandom(),
                     CurrentCredentialActor.of(securityContext, permissionService),
-                    CredentialMapper.INSTANCE.map(createCredential)
+                    request.toCommand()
                 )
             )
             .credential();
-        return Response.created(getLocationHeader(credential.id())).entity(CredentialMapper.INSTANCE.map(credential)).build();
+        return Response.created(uriInfo.getAbsolutePathBuilder().path(credential.id()).build())
+            .entity(CredentialDto.from(credential))
+            .build();
     }
 
+    /** Sorted by name; {@code strategy} takes several strategies, comma-separated or repeated. */
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CREDENTIAL, acls = { RolePermissionAction.READ }) })
-    public CredentialsResponse listCredentials(
+    public PaginatedResponseDto<CredentialDto> listCredentials(
         @QueryParam("q") String q,
         @QueryParam("strategy") List<String> strategies,
         @QueryParam("serviceId") String serviceId,
-        @QueryParam(PaginationParam.PAGE_QUERY_PARAM_NAME) @DefaultValue("1") @Min(1) int page,
-        @QueryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME) @DefaultValue("10") @Min(1) @Max(MAX_PER_PAGE) int perPage
+        @QueryParam("page") @DefaultValue("1") @Min(1) int page,
+        @QueryParam("perPage") @DefaultValue("10") @Min(1) @Max(MAX_PER_PAGE) int perPage
     ) {
         var query = CredentialQuery.builder()
             .name(blankToNull(q))
             .strategies(strategies(strategies))
             .serviceId(blankToNull(serviceId))
             .build();
-        var paginationParam = new PaginationParam(page, perPage);
         var credentials = searchCredentialsUseCase
             .execute(
                 new SearchCredentialsUseCase.Input(
                     CurrentCredentialActor.of(securityContext, permissionService),
                     query,
-                    paginationParam.toPageable()
+                    new PageableImpl(page, perPage)
                 )
             )
             .page();
-
-        return new CredentialsResponse()
-            .data(CredentialMapper.INSTANCE.map(credentials.getContent()))
-            .pagination(
-                PaginationInfo.computePaginationInfo(credentials.getTotalElements(), credentials.getContent().size(), paginationParam)
-            )
-            .links(computePaginationLinks(credentials.getTotalElements(), paginationParam));
+        return PaginatedResponseDto.of(CredentialDto.from(credentials.getContent()), credentials.getTotalElements(), page, perPage);
     }
 
     @Path("{credentialId}")
@@ -121,8 +130,14 @@ public class CredentialsResource extends AbstractResource {
         return resourceContext.getResource(CredentialResource.class);
     }
 
-    private static Set<CredentialStrategy> strategies(List<String> names) {
-        if (names == null || names.isEmpty()) {
+    private static Set<CredentialStrategy> strategies(List<String> params) {
+        var names = params
+            .stream()
+            .flatMap(param -> Arrays.stream(param.split(",")))
+            .map(String::trim)
+            .filter(name -> !name.isEmpty())
+            .toList();
+        if (names.isEmpty()) {
             return null;
         }
         var strategies = EnumSet.noneOf(CredentialStrategy.class);
