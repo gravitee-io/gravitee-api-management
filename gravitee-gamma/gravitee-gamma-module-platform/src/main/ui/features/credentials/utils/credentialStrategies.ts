@@ -70,6 +70,11 @@ export const CREDENTIAL_STRATEGY_DEFINITIONS: Readonly<Record<CredentialStrategy
     },
 };
 
+// The server can return a strategy this console was built before.
+export function isKnownCredentialStrategy(strategy: string): strategy is CredentialStrategy {
+    return Object.hasOwn(CREDENTIAL_STRATEGY_DEFINITIONS, strategy);
+}
+
 export function credentialStrategyLabel(strategy: CredentialStrategy): string {
     return CREDENTIAL_STRATEGY_DEFINITIONS[strategy]?.label ?? strategy;
 }

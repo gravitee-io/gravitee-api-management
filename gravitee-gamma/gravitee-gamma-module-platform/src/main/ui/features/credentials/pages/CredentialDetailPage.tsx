@@ -38,7 +38,7 @@ import { useCredential, useCredentialConsumers, useCredentialOwnerNames } from '
 import type { Credential } from '../types/credential';
 import { isCredentialExpired } from '../utils/credentialExpiry';
 import { CREDENTIAL_ROTATION_WINDOW_NOTE } from '../utils/credentialRotation';
-import { CREDENTIAL_STRATEGY_DEFINITIONS, credentialStrategyLabel } from '../utils/credentialStrategies';
+import { CREDENTIAL_STRATEGY_DEFINITIONS, credentialStrategyLabel, isKnownCredentialStrategy } from '../utils/credentialStrategies';
 
 const DATE_FORMAT = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 
@@ -137,7 +137,7 @@ export function CredentialDetailPage() {
 }
 
 function CredentialDetailsCard({ credential, ownerName }: Readonly<{ credential: Credential; ownerName?: string }>) {
-    const definition = CREDENTIAL_STRATEGY_DEFINITIONS[credential.strategy];
+    const definition = isKnownCredentialStrategy(credential.strategy) ? CREDENTIAL_STRATEGY_DEFINITIONS[credential.strategy] : undefined;
     const managed = credential.managed !== false;
 
     return (
@@ -153,7 +153,7 @@ function CredentialDetailsCard({ credential, ownerName }: Readonly<{ credential:
                     </Detail>
                     <Detail label="Owner">{ownerName ?? '—'}</Detail>
                     <Detail label="Secret source">{managed ? 'Stored by Gravitee' : 'References existing secrets'}</Detail>
-                    {definition.settings.map(field => {
+                    {definition?.settings.map(field => {
                         const value = credential.configuration?.[field.key];
                         return value === undefined ? null : (
                             <Detail key={field.key} label={field.label}>
@@ -163,7 +163,7 @@ function CredentialDetailsCard({ credential, ownerName }: Readonly<{ credential:
                     })}
                     {managed
                         ? null
-                        : definition.secrets.map(field => (
+                        : definition?.secrets.map(field => (
                               <Detail key={field.key} label={`${field.label} reference`}>
                                   <code className="break-all text-xs">{credential.secretReferences?.[field.key]?.reference ?? '—'}</code>
                               </Detail>

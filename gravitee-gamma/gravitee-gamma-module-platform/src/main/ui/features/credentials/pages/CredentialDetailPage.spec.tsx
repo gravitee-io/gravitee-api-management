@@ -95,6 +95,15 @@ describe('CredentialDetailPage', () => {
         givenActions();
     });
 
+    it('shows a credential of a type this console does not know', () => {
+        given({ ...MANAGED, strategy: 'MTLS' } as unknown as Credential);
+
+        renderPage();
+
+        expect(screen.getByRole('heading', { name: 'Anthropic research' })).toBeInTheDocument();
+        expect(screen.getAllByText('MTLS').length).toBeGreaterThan(0);
+    });
+
     it('shows the details of a credential Gravitee stores', () => {
         given(MANAGED);
 

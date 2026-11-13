@@ -28,11 +28,12 @@ import {
 } from '@gravitee/graphene-core';
 import { ArrowLeftIcon } from '@gravitee/graphene-core/icons';
 import { useState, type ReactNode } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 
 import { useHasEnvironmentPermission } from '../../../shared/hooks/useEnvironmentPermissions';
 import { notify } from '../../../shared/notify';
 import { CredentialAuthenticationFields, CredentialExpiryField } from '../components/CredentialAuthenticationFields';
+import { useCredentialActions } from '../hooks/useCredentialActions';
 import { useRotateCredential, useUpdateCredential } from '../hooks/useCredentialMutations';
 import { useCredential, useCredentialOwnerNames } from '../hooks/useCredentials';
 import type { Credential } from '../types/credential';
@@ -53,6 +54,7 @@ import { credentialStrategyLabel } from '../utils/credentialStrategies';
 export function EditCredentialPage() {
     const { credentialId } = useParams<{ credentialId: string }>();
     const { data: credential, isLoading, isError } = useCredential(credentialId);
+    const { canEdit } = useCredentialActions();
 
     if (isLoading) {
         return <Skeleton className="h-40 w-full" />;
@@ -63,6 +65,9 @@ export function EditCredentialPage() {
                 <p className="text-sm text-muted-foreground">Failed to load the credential. It may have been deleted.</p>
             </div>
         );
+    }
+    if (!canEdit(credential)) {
+        return <Navigate to=".." relative="path" replace />;
     }
     return <EditCredentialForm key={credential.id} credential={credential} />;
 }
