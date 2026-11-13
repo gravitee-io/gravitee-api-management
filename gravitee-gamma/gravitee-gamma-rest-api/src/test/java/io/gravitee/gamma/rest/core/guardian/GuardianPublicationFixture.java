@@ -94,9 +94,11 @@ public class GuardianPublicationFixture {
         }
     };
     private ZonedDateTime lastWrittenAt;
+    private int reads;
     public final EventLatestQueryServiceInMemory query = new EventLatestQueryServiceInMemory() {
         @Override
         public List<Event> findLatestByEntityIds(Set<String> ids, EventType type, Event.EventProperties key) {
+            reads++;
             reset();
             initWith(latest.storage());
             return super.findLatestByEntityIds(ids, type, key);
@@ -205,6 +207,15 @@ public class GuardianPublicationFixture {
             .map(Event::getId)
             .reduce((first, second) -> second)
             .orElseThrow();
+    }
+
+    /** How many times the deployment history was queried, for the tests that forbid a read per Guardian. */
+    public int reads() {
+        return reads;
+    }
+
+    public void resetReads() {
+        reads = 0;
     }
 
     public int publications() {

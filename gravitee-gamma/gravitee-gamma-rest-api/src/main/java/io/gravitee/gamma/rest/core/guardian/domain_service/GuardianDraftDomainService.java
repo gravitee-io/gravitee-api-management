@@ -21,6 +21,8 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.gamma.rest.core.guardian.exception.GuardianInUseException;
+import io.gravitee.gamma.rest.core.guardian.exception.GuardianInUseException.RefusedChange;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianOverwriteOvertakenException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianVersionConflictException;
@@ -51,6 +53,7 @@ public class GuardianDraftDomainService {
     private final ValidateGuardianDomainService validateGuardian;
     private final AuditDomainService auditDomainService;
     private final GuardianDeploymentDomainService deployments;
+    private final GuardianUsageDomainService usage;
 
     /** How many times an overwrite counts again from a draft another writer just stored, before it is refused. */
     private static final int OVERWRITE_ATTEMPTS = 3;
@@ -77,6 +80,7 @@ public class GuardianDraftDomainService {
      * @throws GuardianVersionConflictException when the stored draft does not satisfy the precondition
      * @throws GuardianOverwriteOvertakenException when a write that states no version lost every attempt
      * @throws ValidationDomainException when the definition is invalid or names a policy or a resource type that is not installed
+     * @throws GuardianInUseException when the draft moves to another phase or to other API types while an API runs it
      */
     public Guardian replace(
         Guardian existingGuardian,
@@ -111,6 +115,10 @@ public class GuardianDraftDomainService {
         switch (origin) {
             case SUBMITTED -> validateGuardian.validateAgainstInstalledPlugins(guardianToUpdate);
             case RESTORED -> validateGuardian.validateStoredAgainstInstalledPlugins(guardianToUpdate);
+        }
+
+        if (!guardianToUpdate.runsWhere(existingGuardian)) {
+            usage.ensureUnused(existingGuardian, RefusedChange.PHASE_OR_API_TYPES_CHANGE);
         }
 
         var publication = deployments.current(existingGuardian);
