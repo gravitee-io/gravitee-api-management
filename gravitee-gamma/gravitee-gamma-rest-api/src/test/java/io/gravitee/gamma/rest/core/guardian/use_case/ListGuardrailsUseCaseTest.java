@@ -16,17 +16,16 @@
 package io.gravitee.gamma.rest.core.guardian.use_case;
 
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aPolicyPluginProvider;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.flows;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.guardian.model.Guardrail;
+import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -42,18 +41,12 @@ class ListGuardrailsUseCaseTest {
 
     @Test
     void should_list_only_the_guardrails_running_in_the_phase_for_the_api_type_sorted_by_name() {
-        policies.put(
-            "pii-filter",
-            new PolicyCapabilities("PII filter", true, Map.of(ApiType.LLM_PROXY, Set.of(Phase.REQUEST, Phase.RESPONSE)))
-        );
-        policies.put("prompt-guard", new PolicyCapabilities("Prompt guard", true, Map.of(ApiType.LLM_PROXY, Set.of(Phase.REQUEST))));
-        policies.put("answer-check", new PolicyCapabilities("Answer check", true, Map.of(ApiType.LLM_PROXY, Set.of(Phase.RESPONSE))));
-        policies.put("tool-guard", new PolicyCapabilities("Tool guard", true, Map.of(ApiType.MCP_PROXY, Set.of(Phase.REQUEST))));
-        policies.put(
-            "transform-headers",
-            new PolicyCapabilities("Transform headers", false, Map.of(ApiType.LLM_PROXY, Set.of(Phase.REQUEST)))
-        );
-        policies.put("no-metadata", new PolicyCapabilities("No metadata", true, Map.of()));
+        policies.put("pii-filter", new PolicyCapabilities("PII filter", true, flows(ApiProtocolType.LLM_PROXY, "REQUEST,RESPONSE")));
+        policies.put("prompt-guard", new PolicyCapabilities("Prompt guard", true, flows(ApiProtocolType.LLM_PROXY, "REQUEST")));
+        policies.put("answer-check", new PolicyCapabilities("Answer check", true, flows(ApiProtocolType.LLM_PROXY, "RESPONSE")));
+        policies.put("tool-guard", new PolicyCapabilities("Tool guard", true, flows(ApiProtocolType.MCP_PROXY, "REQUEST")));
+        policies.put("transform-headers", new PolicyCapabilities("Transform headers", false, flows(ApiProtocolType.LLM_PROXY, "REQUEST")));
+        policies.put("no-metadata", new PolicyCapabilities("No metadata", true, flows()));
 
         var output = useCase.execute(new ListGuardrailsUseCase.Input("llm-proxy", "REQUEST"));
 
@@ -69,7 +62,7 @@ class ListGuardrailsUseCaseTest {
 
     @Test
     void should_list_nothing_for_an_api_type_no_guardian_can_be_created_for() {
-        policies.put("tool-guard", new PolicyCapabilities("Tool guard", true, Map.of(ApiType.MCP_PROXY, Set.of(Phase.REQUEST))));
+        policies.put("tool-guard", new PolicyCapabilities("Tool guard", true, flows(ApiProtocolType.MCP_PROXY, "REQUEST")));
 
         assertThat(useCase.execute(new ListGuardrailsUseCase.Input("mcp-proxy", "REQUEST")).guardrails())
             .as("a guardrail declaring an unsupported API type can never run in a Guardian")

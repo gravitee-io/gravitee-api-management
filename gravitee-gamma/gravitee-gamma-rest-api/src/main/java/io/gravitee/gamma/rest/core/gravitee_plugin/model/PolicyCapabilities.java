@@ -15,21 +15,58 @@
  */
 package io.gravitee.gamma.rest.core.gravitee_plugin.model;
 
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
+
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
+import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * What an installed policy declares about where it can run.
- *
- * @param phases the Guardian phases the policy runs in, for each API type its manifest declares. An API
- *     type may be declared with no Guardian phase, when the manifest only lists flow phases a Guardian
- *     never runs in.
+ * What an installed policy declares about where it can run: the flows of its manifest, projected onto the Guardian
+ * phases.
  */
-public record PolicyCapabilities(String name, boolean guardrail, Map<ApiType, Set<Phase>> phases) {
+public record PolicyCapabilities(String name, boolean guardrail, DeclaredFlows flows) {
+    /** The API types a guardrail can be scoped to, keyed by the flow declaring its phases. */
+    private static final Map<ApiProtocolType, ApiType> GUARDRAIL_API_TYPES = Map.of(
+        ApiProtocolType.LLM_PROXY,
+        ApiType.LLM_PROXY,
+        ApiProtocolType.MCP_PROXY,
+        ApiType.MCP_PROXY,
+        ApiProtocolType.A2A_PROXY,
+        ApiType.A2A_PROXY
+    );
+
+    /**
+     * The Guardian phases the policy runs in, for each API type a guardrail can be scoped to that its manifest declares.
+     * An API type may be declared with no Guardian phase, when the manifest only lists flow phases a Guardian never runs
+     * in: those are dropped rather than refused, so one plugin declaring them does not hide the others.
+     */
+    private Map<ApiType, Set<Phase>> phasesByApiType() {
+        return flows
+            .phases()
+            .entrySet()
+            .stream()
+            .filter(flow -> GUARDRAIL_API_TYPES.containsKey(flow.getKey()))
+            .collect(toMap(flow -> GUARDRAIL_API_TYPES.get(flow.getKey()), flow -> toGuardianPhases(flow.getValue())));
+    }
+
+    /** The Guardian phases the policy declares in its {@code guardian} flow. */
+    public Set<Phase> guardianPhases() {
+        return toGuardianPhases(flows.phases().getOrDefault(ApiProtocolType.GUARDIAN, List.of()));
+    }
+
+    /** Whether a Guardian of this phase can run the policy, guardrail or not. */
+    public boolean runsInGuardian(Phase phase) {
+        return guardianPhases().contains(phase);
+    }
+
     public boolean supports(Set<ApiType> apiTypes) {
-        return phases.keySet().containsAll(apiTypes);
+        return phasesByApiType().keySet().containsAll(apiTypes);
     }
 
     /** Whether a Guardian of these API types and phase can run this policy as one of its guardrails. */
@@ -38,6 +75,13 @@ public record PolicyCapabilities(String name, boolean guardrail, Map<ApiType, Se
     }
 
     public boolean runsIn(Set<ApiType> apiTypes, Phase phase) {
+        var phases = phasesByApiType();
         return apiTypes.stream().allMatch(apiType -> phases.getOrDefault(apiType, Set.of()).contains(phase));
+    }
+
+    private static Set<Phase> toGuardianPhases(List<String> flowPhases) {
+        return Arrays.stream(Phase.values())
+            .filter(phase -> flowPhases.contains(phase.name()))
+            .collect(toSet());
     }
 }

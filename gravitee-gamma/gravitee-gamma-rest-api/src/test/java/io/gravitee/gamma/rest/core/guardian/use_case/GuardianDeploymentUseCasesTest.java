@@ -21,6 +21,8 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianDefinition;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidator;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aPolicyPluginProvider;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.theInstalledPolicies;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
@@ -29,12 +31,16 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
+import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
@@ -45,6 +51,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,13 +63,14 @@ class GuardianDeploymentUseCasesTest {
     private final GuardianAuditFixture audits = new GuardianAuditFixture();
     private final GuardianDeploymentDomainService deploymentService = deployments.service(repository);
     private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(repository, deploymentService, audits.service);
-    private final DeployGuardianUseCase deploy = new DeployGuardianUseCase(repository, deploymentService, audits.service);
-    private final UpdateGuardianUseCase update = new UpdateGuardianUseCase(
+    private final Map<String, PolicyCapabilities> installedPolicies = theInstalledPolicies();
+    private final ValidateGuardianDomainService validator = new ValidateGuardianDomainService(
         repository,
-        aGuardianValidator(),
-        audits.service,
-        deploymentService
+        aPolicyPluginProvider(() -> installedPolicies),
+        new JacksonJsonDeserializer()
     );
+    private final DeployGuardianUseCase deploy = new DeployGuardianUseCase(repository, deploymentService, validator, audits.service);
+    private final UpdateGuardianUseCase update = new UpdateGuardianUseCase(repository, validator, audits.service, deploymentService);
     private final AuditInfo actor = AuditInfo.builder()
         .organizationId(ORGANIZATION_ID)
         .environmentId(ENVIRONMENT_ID)
@@ -121,7 +129,7 @@ class GuardianDeploymentUseCasesTest {
             }
         };
         failing.givenGuardian(aGuardian().build());
-        var failingDeploy = new DeployGuardianUseCase(failing, deployments.service(failing), audits.service);
+        var failingDeploy = new DeployGuardianUseCase(failing, deployments.service(failing), aGuardianValidator(failing), audits.service);
 
         assertThatThrownBy(() -> failingDeploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null))).isInstanceOf(
             TechnicalDomainException.class
@@ -139,7 +147,7 @@ class GuardianDeploymentUseCasesTest {
     }
 
     @Test
-    void should_publish_a_persisted_draft_without_revalidating_its_policies() {
+    void should_refuse_to_deploy_a_persisted_draft_its_policies_no_longer_validate() {
         repository.reset();
         repository.givenGuardian(
             aGuardian(definition ->
@@ -155,12 +163,43 @@ class GuardianDeploymentUseCasesTest {
             ).build()
         );
 
-        var result = deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, "Reviewed"));
-
+        assertThatThrownBy(() -> deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, "Reviewed")))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContainingAll("MCP guardrail", "scope protocol [MCP]");
         assertSoftly(softly -> {
-            softly.assertThat(deployments.publications()).as("persisted draft is published").isEqualTo(1);
-            softly.assertThat(result.guardian().getLifecycleState()).as("published draft state").isEqualTo(GuardianLifecycleState.DEPLOYED);
+            softly.assertThat(deployments.publications()).as("nothing published").isZero();
+            softly.assertThat(audits.storage()).as("no audit recorded").isEmpty();
         });
+    }
+
+    @Test
+    void should_refuse_to_deploy_a_guardian_whose_policy_was_removed_after_it_was_saved() {
+        installedPolicies.clear();
+
+        assertThatThrownBy(() -> deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null)))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContainingAll("Detect credentials", "data-logging-masking", "not installed");
+        assertSoftly(softly -> {
+            softly.assertThat(deployments.publications()).as("nothing published").isZero();
+            softly.assertThat(audits.storage()).as("no audit recorded").isEmpty();
+            softly
+                .assertThat(repository.findByEnvironmentId(ENVIRONMENT_ID, GUARDIAN_ID))
+                .as("the draft stays undeployed")
+                .get()
+                .extracting(Guardian::getLifecycleState)
+                .isEqualTo(GuardianLifecycleState.UNDEPLOYED);
+        });
+    }
+
+    @Test
+    void should_refuse_to_deploy_a_persisted_draft_without_phase() {
+        repository.reset();
+        repository.givenGuardian(aGuardian(definition -> definition.phase(null)).build());
+
+        assertThatThrownBy(() -> deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null)))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("A Guardian phase is required.");
+        assertThat(deployments.publications()).as("nothing published").isZero();
     }
 
     @Test

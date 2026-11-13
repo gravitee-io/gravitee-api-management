@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.definition.model.v4.ApiType;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
@@ -32,13 +31,6 @@ class GuardrailProtocolTest {
         assertThat(Arrays.stream(GuardrailProtocol.values()).collect(Collectors.toMap(Enum::name, GuardrailProtocol::apiType))).isEqualTo(
             Map.of("LLM", ApiType.LLM_PROXY, "MCP", ApiType.MCP_PROXY, "A2A", ApiType.A2A_PROXY)
         );
-    }
-
-    @Test
-    void should_read_the_manifest_property_named_after_the_api_type() {
-        assertThat(
-            Arrays.stream(GuardrailProtocol.values()).collect(Collectors.toMap(Function.identity(), GuardrailProtocol::manifestKey))
-        ).isEqualTo(Map.of(GuardrailProtocol.LLM, "llm_proxy", GuardrailProtocol.MCP, "mcp_proxy", GuardrailProtocol.A2A, "a2a_proxy"));
     }
 
     @Test

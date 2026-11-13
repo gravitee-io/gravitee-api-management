@@ -20,6 +20,7 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDIAN_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianDefinition;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidator;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
@@ -49,7 +50,12 @@ class DeleteGuardianUseCaseTest {
     private final GuardianPublicationFixture publications = new GuardianPublicationFixture();
     private final GuardianAuditFixture audits = new GuardianAuditFixture();
     private final GuardianDeploymentDomainService deploymentService = publications.service(guardianRepository);
-    private final DeployGuardianUseCase deploy = new DeployGuardianUseCase(guardianRepository, deploymentService, audits.service);
+    private final DeployGuardianUseCase deploy = new DeployGuardianUseCase(
+        guardianRepository,
+        deploymentService,
+        aGuardianValidator(guardianRepository),
+        audits.service
+    );
     private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(guardianRepository, deploymentService, audits.service);
     private final DeleteGuardianUseCase useCase = new DeleteGuardianUseCase(guardianRepository, audits.service, deploymentService);
     private final AuditInfo actor = auditInfo(ENVIRONMENT_ID);
@@ -102,7 +108,7 @@ class DeleteGuardianUseCaseTest {
         };
         failingRepository.givenGuardian(aGuardian().build());
         var service = publications.service(failingRepository);
-        var failingDeploy = new DeployGuardianUseCase(failingRepository, service, audits.service);
+        var failingDeploy = new DeployGuardianUseCase(failingRepository, service, aGuardianValidator(failingRepository), audits.service);
         assertThatThrownBy(() -> failingDeploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null))).isInstanceOf(
             TechnicalDomainException.class
         );

@@ -20,8 +20,6 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
-import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
 import io.gravitee.gamma.rest.core.guardian.model.CreateGuardian;
@@ -33,7 +31,6 @@ import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -90,12 +87,7 @@ public class CreateGuardianUseCase {
 
         validateGuardian.validateDefinition(guardianToCreate.getDefinition());
 
-        validateGuardian
-            .validateAndSanitize(new ValidateGuardianDomainService.Input(guardianToCreate))
-            .severe()
-            .ifPresent(errors -> {
-                throw new ValidationDomainException(errors.stream().map(Validator.Error::getMessage).collect(Collectors.joining(", ")));
-            });
+        validateGuardian.validateAgainstInstalledPolicies(guardianToCreate);
 
         var createdGuardian = guardianRepository.create(guardianToCreate);
         auditDomainService.createEnvironmentAuditLog(
