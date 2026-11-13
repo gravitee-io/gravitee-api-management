@@ -167,8 +167,8 @@ paths:
 
                         A step is refused too: an enabled step whose policy is not installed, or
                         whose plugin does not declare the Guardian phase in its `guardian` flow; and
-                        for a guardrail, one that does not support the Guardian API types, does not
-                        run in the Guardian phase for them, or declares an incompatible
+                        for a guardrail, one whose plugin does not declare the Guardian API types,
+                        whatever phases it lists for them, or that declares an incompatible
                         `scope.protocol`. Every refused step is named in the message.
 
                         The body of a refusal carries `message` and `http_status`, except for the
@@ -252,8 +252,8 @@ paths:
 
                         A step is refused too: an enabled step whose policy is not installed, or
                         whose plugin does not declare the Guardian phase in its `guardian` flow; and
-                        for a guardrail, one that does not support the Guardian API types, does not
-                        run in the Guardian phase for them, or declares an incompatible
+                        for a guardrail, one whose plugin does not declare the Guardian API types,
+                        whatever phases it lists for them, or that declares an incompatible
                         `scope.protocol`. Every refused step is named in the message.
                     content:
                         application/json:
@@ -311,11 +311,9 @@ paths:
                 Requires ENVIRONMENT_GUARDIAN UPDATE. Publishes a new revision, including when the
                 definition is unchanged, and records an audit entry. The returned state compares the
                 current draft with the latest publication; it is not an acknowledgement from each gateway.
-                Before it is published, the stored draft is validated again with the API type, phase and
-                policy rules, against the policies installed now: the `guardian` flow of each policy, the
-                scope protocol of each guardrail. A draft that no longer passes, because
-                a policy was uninstalled since it was saved for instance, answers 400 and nothing is
-                published.
+                The stored draft is published as is: it was validated when created or updated, so a policy
+                that has become incompatible since, uninstalled or downgraded, is only refused when the
+                gateways start the Guardian.
             operationId: deployGuardian
             requestBody:
                 required: false

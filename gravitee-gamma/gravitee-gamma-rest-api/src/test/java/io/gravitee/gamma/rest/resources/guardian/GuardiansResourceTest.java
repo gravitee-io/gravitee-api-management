@@ -31,7 +31,6 @@ import io.gravitee.apim.core.json.JsonSerializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
 import io.gravitee.gamma.rest.core.guardian.GuardianFixtures;
@@ -561,30 +560,6 @@ class GuardiansResourceTest extends AbstractResourceTest {
 
             SoftAssertions.assertSoftly(softly -> {
                 softly.assertThat(response.getStatus()).as("unknown deployment property").isEqualTo(HttpStatusCode.BAD_REQUEST_400);
-                softly.assertThat(guardianPublications.publications()).as("no revision is published").isZero();
-            });
-        }
-
-        @Test
-        void should_refuse_deployment_with_400_when_a_policy_is_no_longer_installed() {
-            guardianRepository.reset();
-            guardianRepository.givenGuardian(
-                GuardianFixtures.aGuardian(d ->
-                    d
-                        .id(GUARDIAN_ID)
-                        .environmentId(ENVIRONMENT)
-                        .policies(List.of(Step.builder().name("Removed step").policy("uninstalled-policy").enabled(true).build()))
-                ).build()
-            );
-
-            var response = deploy(Map.of());
-
-            SoftAssertions.assertSoftly(softly -> {
-                softly.assertThat(response.getStatus()).as("deployment response").isEqualTo(HttpStatusCode.BAD_REQUEST_400);
-                softly
-                    .assertThat(response.readEntity(JsonNode.class).get("message").asText())
-                    .as("error message")
-                    .contains("not installed");
                 softly.assertThat(guardianPublications.publications()).as("no revision is published").isZero();
             });
         }

@@ -82,15 +82,13 @@ class ValidateGuardianDomainServiceTest {
     }
 
     @Test
-    void should_refuse_a_guardrail_that_does_not_run_in_the_guardian_phase_for_the_api_type() {
-        policies.put("data-logging-masking", aGuardrail(flows(LLM_PROXY, "RESPONSE", GUARDIAN, "REQUEST,RESPONSE")));
+    void should_accept_a_guardrail_whose_api_type_flow_lists_another_phase() {
+        policies.put("data-logging-masking", aGuardrail(flows(LLM_PROXY, "RESPONSE", GUARDIAN, "REQUEST")));
         var guardian = aGuardian(definition -> definition.phase(Phase.REQUEST)).build();
 
-        assertThat(validate(guardian).severe().orElseThrow())
-            .singleElement()
-            .extracting(Validator.Error::getMessage)
-            .asString()
-            .contains("Detect credentials", "data-logging-masking", "REQUEST", "llm-proxy");
+        assertThat(validate(guardian).severe())
+            .as("the guardian flow says where the policy runs, the API type flow only which API types it applies to")
+            .isEmpty();
     }
 
     @Test

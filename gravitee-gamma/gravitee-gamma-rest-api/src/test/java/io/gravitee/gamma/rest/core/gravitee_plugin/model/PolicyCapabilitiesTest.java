@@ -84,14 +84,6 @@ class PolicyCapabilitiesTest {
                 .as("supports a2a-proxy, declared with no Guardian phase")
                 .isTrue();
             softly.assertThat(policy.supports(Set.of(ApiType.PROXY))).as("the HTTP flow is no guardrail API type").isFalse();
-            softly.assertThat(policy.runsIn(Set.of(ApiType.LLM_PROXY), Phase.RESPONSE)).as("llm-proxy RESPONSE").isTrue();
-            softly.assertThat(policy.runsIn(Set.of(ApiType.MCP_PROXY), Phase.REQUEST)).as("mcp-proxy REQUEST, INTERACT dropped").isTrue();
-            softly.assertThat(policy.runsIn(Set.of(ApiType.MCP_PROXY), Phase.RESPONSE)).as("mcp-proxy RESPONSE").isFalse();
-            softly.assertThat(policy.runsIn(Set.of(ApiType.A2A_PROXY), Phase.REQUEST)).as("a2a-proxy, no Guardian phase").isFalse();
-            softly
-                .assertThat(policy.runsIn(Set.of(ApiType.LLM_PROXY, ApiType.MCP_PROXY), Phase.RESPONSE))
-                .as("every API type must run the phase")
-                .isFalse();
         });
     }
 }
