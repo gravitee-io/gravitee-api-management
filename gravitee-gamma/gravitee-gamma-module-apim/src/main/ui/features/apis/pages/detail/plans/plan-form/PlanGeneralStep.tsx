@@ -44,6 +44,7 @@ import {
 import { CheckIcon, ChevronsUpDownIcon, XIcon } from '@gravitee/graphene-core/icons';
 import { useRef, useState } from 'react';
 
+import { useApiGeneralConditionsPages } from '../../../../hooks/useApiGeneralConditionsPages';
 import { useGroups } from '../../../../hooks/useGroups';
 import { useOrgTags } from '../../../../hooks/useOrgTags';
 import { useUserTags } from '../../../../hooks/useUserTags';
@@ -146,6 +147,7 @@ export function PlanGeneralStep({
     const { data: groupsResponse } = useGroups();
     const { data: orgTags = [] } = useOrgTags();
     const { data: userTags = [] } = useUserTags();
+    const { data: generalConditionsPages = [] } = useApiGeneralConditionsPages(ctx.entityId, ctx.type === 'api');
     const groups = (groupsResponse as { data?: { id: string; name: string }[] } | undefined)?.data ?? [];
 
     // A tag can be selected only when it belongs to the parent entity's tags (subset rule) and the
@@ -247,6 +249,11 @@ export function PlanGeneralStep({
                                     style={{ width: 'var(--radix-select-trigger-width)', minWidth: 'unset' }}
                                 >
                                     <SelectItem value="__none__">None</SelectItem>
+                                    {generalConditionsPages.map(page => (
+                                        <SelectItem key={page.id} value={page.id}>
+                                            {page.name}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                             <p className="text-xs text-muted-foreground">General conditions page shown to consumers before subscribing.</p>

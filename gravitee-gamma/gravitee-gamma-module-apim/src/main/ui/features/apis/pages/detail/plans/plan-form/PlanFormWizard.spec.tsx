@@ -39,10 +39,17 @@ jest.mock('../../../../hooks/useOrgTags', () => ({ useOrgTags: jest.fn(() => ({ 
 jest.mock('../../../../hooks/useUserTags', () => ({ useUserTags: jest.fn(() => ({ data: [] })) }));
 jest.mock('../../../../hooks/useApiDetail', () => ({ useApiDetail: jest.fn(() => ({ data: undefined })) }));
 jest.mock('../../../../hooks/useApiResources', () => ({ useResourcePlugins: jest.fn(() => ({ data: [] })) }));
+jest.mock('../../../../hooks/useApiGeneralConditionsPages', () => ({ useApiGeneralConditionsPages: jest.fn(() => ({ data: [] })) }));
 
 import { PlanFormWizard } from './PlanFormWizard';
+import { useApiGeneralConditionsPages } from '../../../../hooks/useApiGeneralConditionsPages';
 import { createPlan, getPlan, updatePlan } from '../../../../services/plans';
 import type { ManagedPlan, PlanContext, PlanSecurityType } from '../../../../types/plan';
+
+// Radix Select relies on pointer-capture and scrolling APIs jsdom does not implement.
+Element.prototype.hasPointerCapture ??= () => false;
+Element.prototype.releasePointerCapture ??= () => {};
+Element.prototype.scrollIntoView ??= () => {};
 
 const mockCreatePlan = createPlan as jest.Mock;
 const mockGetPlan = getPlan as jest.Mock;
@@ -379,6 +386,47 @@ describe('PlanFormWizard edit submit', () => {
         expect(await screen.findByText('OAuth2 resource is required.')).toBeInTheDocument();
         expect(mockUpdatePlan).not.toHaveBeenCalled();
         expect(screen.getByRole('button', { name: 'Save changes' })).toBeInTheDocument();
+    });
+});
+
+describe('PlanFormWizard general conditions', () => {
+    const mockUseGeneralConditionsPages = jest.mocked(useApiGeneralConditionsPages);
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockUseGeneralConditionsPages.mockReturnValue({
+            data: [
+                { id: 'page-terms', name: 'Terms of use' },
+                { id: 'page-sla', name: 'Service level' },
+            ],
+        } as unknown as ReturnType<typeof useApiGeneralConditionsPages>);
+    });
+
+    afterEach(() => {
+        mockUseGeneralConditionsPages.mockReturnValue({ data: [] } as unknown as ReturnType<typeof useApiGeneralConditionsPages>);
+    });
+
+    it("lists the API's published Markdown pages as general conditions options", async () => {
+        const user = userEvent.setup();
+        renderEditWizard(V4_PLAN);
+
+        await user.click(await screen.findByRole('combobox', { name: 'Page of General Conditions' }));
+
+        expect(screen.getAllByRole('option').map(option => option.textContent)).toEqual(['None', 'Terms of use', 'Service level']);
+        expect(mockUseGeneralConditionsPages).toHaveBeenCalledWith('api-1', true);
+    });
+
+    it('saves the selected page id as the plan general conditions', async () => {
+        const user = userEvent.setup();
+        renderEditWizard(V4_PLAN);
+
+        await user.click(await screen.findByRole('combobox', { name: 'Page of General Conditions' }));
+        await user.click(screen.getByRole('option', { name: 'Service level' }));
+        await walkToLastStep(user);
+        await user.click(screen.getByRole('button', { name: /save changes/i }));
+
+        await waitFor(() => expect(mockUpdatePlan).toHaveBeenCalled());
+        expect(lastUpdatePayload()).toMatchObject({ generalConditions: 'page-sla' });
     });
 });
 
