@@ -30,6 +30,7 @@ import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.rest.api.service.GenericNotificationConfigService;
 import io.gravitee.rest.api.service.exceptions.MessageUrlForbiddenException;
+import io.gravitee.rest.api.service.exceptions.NotificationConfigNotFoundException;
 import io.gravitee.rest.api.service.exceptions.NotifierDisabledException;
 import java.util.List;
 import java.util.Optional;
@@ -142,6 +143,37 @@ class GenericNotificationConfigServiceImplWebhookWhitelistTest {
     }
 
     @Test
+    void should_accept_an_update_that_keeps_a_stored_webhook_url_no_longer_whitelisted() throws Exception {
+        givenAnExistingApiWebhook(storedWebhook(FORBIDDEN_URL));
+        GenericNotificationConfigEntity hooksOnlyUpdate = webhook(FORBIDDEN_URL);
+        hooksOnlyUpdate.setHooks(List.of("API_STOPPED"));
+
+        GenericNotificationConfigEntity updated = service.update(hooksOnlyUpdate);
+
+        assertThat(updated.getHooks()).containsExactly("API_STOPPED");
+    }
+
+    @Test
+    void should_reject_switching_a_stored_notifier_to_a_webhook_outside_of_the_whitelist() throws Exception {
+        GenericNotificationConfig storedEmail = storedWebhook(FORBIDDEN_URL);
+        storedEmail.setNotifier("default-email");
+        givenAnExistingApiWebhook(storedEmail);
+
+        assertThatThrownBy(() -> service.update(webhook(FORBIDDEN_URL))).isInstanceOf(MessageUrlForbiddenException.class);
+        verify(genericNotificationConfigRepository, never()).update(any());
+    }
+
+    @Test
+    void should_report_a_webhook_of_another_reference_as_not_found_before_checking_its_url() throws Exception {
+        givenAnExistingApiWebhook();
+        GenericNotificationConfigEntity otherReference = webhook(FORBIDDEN_URL);
+        otherReference.setReferenceId("other-api-id");
+
+        assertThatThrownBy(() -> service.update(otherReference)).isInstanceOf(NotificationConfigNotFoundException.class);
+        verify(genericNotificationConfigRepository, never()).update(any());
+    }
+
+    @Test
     void should_not_apply_the_whitelist_to_email_notifiers() {
         GenericNotificationConfigEntity email = webhook("someone@example.com");
         email.setNotifier("default-email");
@@ -152,11 +184,21 @@ class GenericNotificationConfigServiceImplWebhookWhitelistTest {
     }
 
     private void givenAnExistingApiWebhook() throws Exception {
-        GenericNotificationConfig existing = new GenericNotificationConfig();
-        existing.setId("config-id");
-        existing.setReferenceType(NotificationReferenceType.API);
-        existing.setReferenceId("api-id");
-        lenient().when(genericNotificationConfigRepository.findById("config-id")).thenReturn(Optional.of(existing));
+        givenAnExistingApiWebhook(storedWebhook(ALLOWED));
+    }
+
+    private void givenAnExistingApiWebhook(GenericNotificationConfig stored) throws Exception {
+        lenient().when(genericNotificationConfigRepository.findById("config-id")).thenReturn(Optional.of(stored));
+    }
+
+    private static GenericNotificationConfig storedWebhook(String url) {
+        GenericNotificationConfig stored = new GenericNotificationConfig();
+        stored.setId("config-id");
+        stored.setReferenceType(NotificationReferenceType.API);
+        stored.setReferenceId("api-id");
+        stored.setNotifier("default-webhook");
+        stored.setConfig(url);
+        return stored;
     }
 
     @Nested
@@ -204,6 +246,25 @@ class GenericNotificationConfigServiceImplWebhookWhitelistTest {
         void should_reject_api_webhook() throws Exception {
             assertThatThrownBy(() -> service.create(webhook(ALLOWED))).isInstanceOf(NotifierDisabledException.class);
             verify(genericNotificationConfigRepository, never()).create(any());
+        }
+
+        @Test
+        void should_accept_an_update_that_keeps_the_stored_webhook() throws Exception {
+            lenient().when(genericNotificationConfigRepository.findById("config-id")).thenReturn(Optional.of(storedWebhook(ALLOWED)));
+            GenericNotificationConfigEntity hooksOnlyUpdate = webhook(ALLOWED);
+            hooksOnlyUpdate.setHooks(List.of("API_STOPPED"));
+
+            GenericNotificationConfigEntity updated = service.update(hooksOnlyUpdate);
+
+            assertThat(updated.getHooks()).containsExactly("API_STOPPED");
+        }
+
+        @Test
+        void should_reject_an_update_that_changes_the_webhook_url() throws Exception {
+            lenient().when(genericNotificationConfigRepository.findById("config-id")).thenReturn(Optional.of(storedWebhook(ALLOWED)));
+
+            assertThatThrownBy(() -> service.update(webhook(ALLOWED + "/other"))).isInstanceOf(NotifierDisabledException.class);
+            verify(genericNotificationConfigRepository, never()).update(any());
         }
     }
 }

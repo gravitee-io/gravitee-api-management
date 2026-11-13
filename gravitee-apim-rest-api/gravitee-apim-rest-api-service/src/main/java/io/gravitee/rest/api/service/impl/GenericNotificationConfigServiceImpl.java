@@ -82,11 +82,18 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
             if (entity.getId() == null || entity.getId().isEmpty()) {
                 throw new NotificationConfigNotFoundException();
             }
-            assertWebhookAllowed(entity);
             GenericNotificationConfig existingConfig = genericNotificationConfigRepository
                 .findById(entity.getId())
                 .filter(config -> belongsTo(config, entity.getReferenceType(), entity.getReferenceId()))
                 .orElseThrow(NotificationConfigNotFoundException::new);
+            // A webhook stored before the current settings stays updatable (e.g. its hooks) as long as its target is
+            // unchanged; the send-time check still blocks the call itself.
+            if (
+                !Objects.equals(existingConfig.getNotifier(), entity.getNotifier()) ||
+                !Objects.equals(existingConfig.getConfig(), entity.getConfig())
+            ) {
+                assertWebhookAllowed(entity);
+            }
 
             GenericNotificationConfig notificationConfig = convert(entity);
             // Reference and organization are immutable on update; keep the stored values rather than
