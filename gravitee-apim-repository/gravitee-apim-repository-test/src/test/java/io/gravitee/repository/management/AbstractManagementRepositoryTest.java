@@ -281,6 +281,9 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     @Inject
     protected OrganizationKeyRepository organizationKeyRepository;
 
+    @Inject
+    protected CredentialRepository credentialRepository;
+
     protected void createModel(Object object) throws TechnicalException {
         switch (object) {
             case Application application -> applicationRepository.create(application);
@@ -378,6 +381,7 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             case SubscriptionForm subscriptionForm -> subscriptionFormRepository.create(subscriptionForm);
             case Secret secret -> secretRepository.create(secret);
             case OrganizationKey organizationKey -> organizationKeyRepository.create(organizationKey);
+            case Credential credential -> credentialRepository.create(credential);
             case null, default -> {}
         }
     }
