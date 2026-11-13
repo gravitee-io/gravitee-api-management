@@ -35,7 +35,9 @@ import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
+import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianUsageDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
+import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardedApiPort;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
@@ -55,13 +57,19 @@ class GuardianDeploymentUseCasesTest {
     private final GuardianPublicationFixture deployments = new GuardianPublicationFixture();
     private final GuardianAuditFixture audits = new GuardianAuditFixture();
     private final GuardianDeploymentDomainService deploymentService = deployments.service(repository);
-    private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(repository, deploymentService, audits.service);
+    private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(
+        repository,
+        deploymentService,
+        audits.service,
+        new GuardianUsageDomainService(new InMemoryGuardedApiPort())
+    );
     private final DeployGuardianUseCase deploy = new DeployGuardianUseCase(repository, deploymentService, audits.service);
     private final UpdateGuardianUseCase update = new UpdateGuardianUseCase(
         repository,
         aGuardianValidator(),
         audits.service,
-        deploymentService
+        deploymentService,
+        new GuardianUsageDomainService(new InMemoryGuardedApiPort())
     );
     private final AuditInfo actor = AuditInfo.builder()
         .organizationId(ORGANIZATION_ID)

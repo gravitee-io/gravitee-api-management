@@ -21,6 +21,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
+import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianUsageDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
@@ -37,13 +38,17 @@ public class UndeployGuardianUseCase {
     private final GuardianRepository guardianRepository;
     private final GuardianDeploymentDomainService deployments;
     private final AuditDomainService auditDomainService;
+    private final GuardianUsageDomainService usage;
 
     public Output execute(Input input) {
         var guardian = find(input);
         return switch (deployments.current(guardian)) {
             case null -> new Output(deployments.state(guardian, null));
             case GuardianDeployment.Withdrawn withdrawn -> complete(input, guardian, withdrawn);
-            case GuardianDeployment.Published published -> complete(input, guardian, withdraw(guardian, published, input.auditInfo()));
+            case GuardianDeployment.Published published -> {
+                usage.ensureUnused(guardian, "undeployed");
+                yield complete(input, guardian, withdraw(guardian, published, input.auditInfo()));
+            }
         };
     }
 

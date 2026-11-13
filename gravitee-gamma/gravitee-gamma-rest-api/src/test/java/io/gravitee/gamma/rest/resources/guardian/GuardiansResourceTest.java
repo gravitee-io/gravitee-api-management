@@ -921,6 +921,26 @@ class GuardiansResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_return_409_while_the_guardian_is_enabled_on_an_api() {
+            var guardian = guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage");
+            guardianRepository.givenGuardian(guardian);
+            guardianPublications.givenPublication(guardian.getDefinition(), Instant.parse("2026-11-09T10:00:00Z"));
+            guardedApis.givenApi(
+                GuardianFixtures.aGuardedApi()
+                    .environmentId(ENVIRONMENT)
+                    .internalFlow(Flow.builder().request(List.of(GuardianSteps.of(GUARDIAN_ID, "Credential leakage"))).build())
+                    .build()
+            );
+
+            var response = rootTarget("/" + GUARDIAN_ID + "/_undeploy").request().post(null);
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(response.getStatus()).as("withdrawal response").isEqualTo(HttpStatusCode.CONFLICT_409);
+                softly.assertThat(guardianPublications.withdrawn(ENVIRONMENT, GUARDIAN_ID)).as("withdrawal published").isFalse();
+            });
+        }
+
+        @Test
         void should_return_404_for_unknown_and_foreign_guardians() {
             guardianRepository.givenGuardian(guardian("foreign", OTHER_ENVIRONMENT, "Theirs"));
 

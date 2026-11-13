@@ -111,6 +111,15 @@ public class Guardian {
         return definition == null ? null : definition.getResources();
     }
 
+    /** Whether this Guardian runs on the same phase of the same API types as another one. */
+    public boolean runsWhere(Guardian other) {
+        return getPhase() == other.getPhase() && apiTypesOrEmpty(this).equals(apiTypesOrEmpty(other));
+    }
+
+    private static Set<ApiType> apiTypesOrEmpty(Guardian guardian) {
+        return guardian.getApiTypes() == null ? Set.of() : guardian.getApiTypes();
+    }
+
     public boolean isDeployed() {
         return lifecycleState == GuardianLifecycleState.DEPLOYED;
     }

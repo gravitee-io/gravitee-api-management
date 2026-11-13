@@ -54,14 +54,15 @@ import jakarta.ws.rs.core.Response;
  *   <li>{@code GET} — the Guardian, or {@code 404} when the id is unknown <em>or belongs to another
  *       environment</em>: the answer is the same either way, so a 404 never confirms that an id
  *       exists elsewhere.</li>
- *   <li>{@code PUT} — replaces the whole definition. A field the payload leaves out is left out of
+ *   <li>{@code PUT} — replaces the whole definition; {@code 409} when it would move a Guardian enabled on an API to
+ *       another phase or to other API types. A field the payload leaves out is left out of
  *       the stored definition too; only the identity and the deployment stamp are kept back.</li>
  *   <li>{@code POST /_deploy} — publishes the current draft with an optional deployment label.</li>
- *   <li>{@code POST /_undeploy} — withdraws the publication while preserving the draft.</li>
+ *   <li>{@code POST /_undeploy} — withdraws the publication while preserving the draft; {@code 409} while the
+ *       Guardian is enabled on an API.</li>
  *   <li>{@code GET /apis} — the APIs of the environment the Guardian is enabled on, by name.</li>
  *   <li>{@code DELETE} — {@code 204}, or {@code 409} while the Guardian has an active publication:
- *       {@code _undeploy} withdraws it first. The PRD's refusal to delete a Guardian enabled on an
- *       API waits on the API-Guardian association (AIAM-1533).</li>
+ *       {@code _undeploy} withdraws it first. {@code 409} as well while it is enabled on an API.</li>
  * </ul>
  *
  * @author GraviteeSource Team
