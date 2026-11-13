@@ -15,7 +15,7 @@
  */
 import { Component, computed, DestroyRef, HostListener, inject, OnInit, Signal, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -122,6 +122,9 @@ interface SectionFormValues {
 
 type SectionForm = FormGroup<SectionFormControls>;
 
+// The backend rejects a blank title; reporting it as `required` reuses the "Title is required" message.
+const requiredNotBlank = (control: AbstractControl<string>): ValidationErrors | null => (control.value?.trim() ? null : { required: true });
+
 @Component({
   selector: 'section-editor-dialog',
   imports: [
@@ -144,7 +147,7 @@ type SectionForm = FormGroup<SectionFormControls>;
 })
 export class SectionEditorDialogComponent implements OnInit {
   form: SectionForm = new FormGroup<SectionFormControls>({
-    title: new FormControl<string>('', { validators: [Validators.required], nonNullable: true }),
+    title: new FormControl<string>('', { validators: [requiredNotBlank], nonNullable: true }),
     isPrivate: new FormControl(false),
   });
   public initialFormValues: SectionFormValues;

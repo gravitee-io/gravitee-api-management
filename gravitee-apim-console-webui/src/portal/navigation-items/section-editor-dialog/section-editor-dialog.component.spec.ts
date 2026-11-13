@@ -132,6 +132,11 @@ describe('SectionEditorDialogComponent', () => {
         expect(await titleInput.getValue()).toBe('');
         expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
       });
+      it('should not allow a whitespace-only title', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        await dialog.setTitleInputValue('   ');
+        expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
+      });
       it('should show Page Type selection when adding a page', async () => {
         const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
         expect(await dialog.isPageTypeSelectionVisible()).toBe(true);
@@ -346,6 +351,12 @@ describe('SectionEditorDialogComponent', () => {
         await dialog.setUrlInputValue('https://gravitee.io');
         expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
       });
+      it('should not allow a whitespace-only title', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        await dialog.setTitleInputValue('   ');
+        await dialog.setUrlInputValue('https://gravitee.io');
+        expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
+      });
       it('should not show Page Type selection when adding a link', async () => {
         const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
         expect(await dialog.isPageTypeSelectionVisible()).toBe(false);
@@ -394,6 +405,11 @@ describe('SectionEditorDialogComponent', () => {
         const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
         const titleInput = await dialog.getTitleInput();
         expect(await titleInput.getValue()).toBe('');
+        expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
+      });
+      it('should not allow a whitespace-only title', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        await dialog.setTitleInputValue('   ');
         expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
       });
       it('should not show Page Type selection when adding a folder', async () => {
@@ -487,6 +503,12 @@ describe('SectionEditorDialogComponent', () => {
         expect(await dialog.isSubmitButtonDisabled()).toEqual(false);
 
         await titleInput.setValue('Existing Page');
+        expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
+      });
+
+      it('should not allow saving a whitespace-only title', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        await dialog.setTitleInputValue('   ');
         expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
       });
     });
