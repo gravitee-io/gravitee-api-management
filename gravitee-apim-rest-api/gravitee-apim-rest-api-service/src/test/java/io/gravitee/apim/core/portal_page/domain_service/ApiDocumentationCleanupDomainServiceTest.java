@@ -40,8 +40,11 @@ import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
@@ -167,7 +170,7 @@ class ApiDocumentationCleanupDomainServiceTest {
     }
 
     @Test
-    void should_preserve_other_owners_environments_and_api_listings() {
+    void should_preserve_other_owners_environments_and_other_apis_listings() {
         var folder = aFolder("Owned").toBuilder().reference(API_OWNER).build();
         var ownedPage = ownedPage("Owned page", folder.getId());
         var portalPage = aPage("Portal page", folder.getId());
@@ -176,12 +179,35 @@ class ApiDocumentationCleanupDomainServiceTest {
             .reference(new NavigationItemReference.ApiReference(OTHER_API_ID))
             .build();
         var otherEnvironmentPage = ownedPage("Other environment", null).toBuilder().environmentId("other-env").build();
-        var listing = anApi(PortalNavigationItemId.random().json(), "API listing", null, API_ID);
+        var listing = anApi(PortalNavigationItemId.random().json(), "Other API listing", null, OTHER_API_ID);
+        var otherEnvironmentListing = PortalNavigationApi.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId(ORG_ID)
+            .environmentId("other-env")
+            .title("Other environment listing")
+            .segment("other-environment-listing")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .apiId(API_ID)
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
         var product = anApiProduct();
         var productPage = aPage("Product documentation", product.getId());
         var section = aFolder("APIs");
         navigationCrud.initWith(
-            List.of(folder, ownedPage, portalPage, otherApiPage, otherEnvironmentPage, listing, product, productPage, section)
+            List.of(
+                folder,
+                ownedPage,
+                portalPage,
+                otherApiPage,
+                otherEnvironmentPage,
+                listing,
+                otherEnvironmentListing,
+                product,
+                productPage,
+                section
+            )
         );
         var portalContent = contentFor(portalPage);
         var otherApiContent = contentFor(otherApiPage);
@@ -196,6 +222,7 @@ class ApiDocumentationCleanupDomainServiceTest {
             otherApiPage,
             otherEnvironmentPage,
             listing,
+            otherEnvironmentListing,
             product,
             productPage,
             section
@@ -206,6 +233,38 @@ class ApiDocumentationCleanupDomainServiceTest {
             otherEnvironmentContent,
             productContent
         );
+    }
+
+    @Test
+    void should_delete_the_listings_of_the_api() {
+        var section = aFolder("APIs");
+        var listing = anApi(PortalNavigationItemId.random().json(), "API listing", section.getId(), API_ID);
+        var rootListing = anApi(PortalNavigationItemId.random().json(), "Root API listing", null, API_ID);
+        var ownedPage = ownedPage("Owned page", null);
+        navigationCrud.initWith(List.of(section, listing, rootListing, ownedPage));
+        contentCrud.initWith(List.of(contentFor(ownedPage)));
+
+        service.cleanupForApi(ENV_ID, API_ID);
+
+        assertThat(navigationCrud.storage()).containsExactly(section);
+        assertThat(contentCrud.storage()).isEmpty();
+    }
+
+    @Test
+    void should_delete_the_api_listing_of_an_api_product_with_what_is_stored_under_it() {
+        var product = anApiProduct();
+        var memberListing = anApi(PortalNavigationItemId.random().json(), "Member API", product.getId(), API_ID);
+        var memberFolder = aFolder("Member guides", memberListing.getId());
+        var memberPage = aPage("Member page", memberFolder.getId());
+        var productPage = aPage("Product documentation", product.getId());
+        var productContent = contentFor(productPage);
+        navigationCrud.initWith(List.of(product, memberListing, memberFolder, memberPage, productPage));
+        contentCrud.initWith(List.of(contentFor(memberPage), productContent));
+
+        service.cleanupForApi(ENV_ID, API_ID);
+
+        assertThat(navigationCrud.storage()).containsExactlyInAnyOrder(product, productPage);
+        assertThat(contentCrud.storage()).containsExactly(productContent);
     }
 
     @ParameterizedTest
