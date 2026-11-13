@@ -26,6 +26,10 @@ public class ApiNotDeployableException extends AbstractManagementException {
         super(message);
     }
 
+    public ApiNotDeployableException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
     @Override
     public int getHttpStatusCode() {
         return HttpStatusCode.BAD_REQUEST_400;

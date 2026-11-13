@@ -20,19 +20,24 @@ import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiDefinitionCrudServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.model.guardian.GuardianSteps;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.gamma.rest.core.guardian.exception.ApiInternalFlowChangedException;
 import io.gravitee.gamma.rest.core.guardian.port.GuardedApiPortContractTest;
 import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardedApiPort;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class GuardedApiPortAdapterTest extends GuardedApiPortContractTest {
 
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
-    private final GuardedApiPortAdapter adapter = new GuardedApiPortAdapter(apiCrudService, apiQueryService);
+    private final ApiDefinitionCrudServiceInMemory apiDefinitionCrudService = new ApiDefinitionCrudServiceInMemory(apiCrudService);
+    private final GuardedApiPortAdapter adapter = new GuardedApiPortAdapter(apiCrudService, apiQueryService, apiDefinitionCrudService);
 
     @Override
     protected GuardedApiPort port() {
@@ -72,6 +77,78 @@ class GuardedApiPortAdapterTest extends GuardedApiPortContractTest {
                 .as("stored endpoint groups")
                 .isEqualTo(api.getApiDefinitionHttpV4().getEndpointGroups());
             softly.assertThat(stored.getUpdatedAt()).as("update date").isAfter(api.getUpdatedAt());
+        });
+    }
+
+    /**
+     * The lost update this adapter used to cause. It reads the API, computes a definition from that read, and writes.
+     * Saving the whole API would carry every field of that read back and undo whatever landed in between — here, a
+     * {@code PUT} on the description. Only the definition is written, so the description survives.
+     */
+    @Test
+    void should_keep_a_change_made_to_another_field_of_the_api_between_the_read_and_the_write() {
+        var api = ApiFixtures.aLLMProxyApiV4();
+        var racing = new ApiCrudServiceInMemory() {
+            @Override
+            public Optional<Api> findById(String id) {
+                var found = super.findById(id);
+                // a PUT on another field lands between this adapter's read and its write
+                found.ifPresent(read -> super.update(read.toBuilder().description("Changed by someone else").build()));
+                return found;
+            }
+        };
+        racing.initWith(List.of(api));
+        var adapterOnRacingStore = new GuardedApiPortAdapter(racing, apiQueryService, new ApiDefinitionCrudServiceInMemory(racing));
+        var internalFlow = Flow.builder().response(List.of(GuardianSteps.of("guardian-1", "One"))).build();
+
+        adapterOnRacingStore.updateInternalFlow(ENVIRONMENT_ID, api.getId(), api.getApiDefinitionHttpV4().getInternalFlow(), internalFlow);
+
+        var stored = racing.get(api.getId());
+        assertSoftly(softly -> {
+            softly.assertThat(stored.getDescription()).as("the field written in between").isEqualTo("Changed by someone else");
+            softly.assertThat(stored.getApiDefinitionHttpV4().getInternalFlow()).as("stored internal flow").isEqualTo(internalFlow);
+        });
+    }
+
+    /**
+     * The same window, with a writer that also advances the update date, which every API write of the platform does.
+     * The write then does not happen at all: the other writer may have touched the definition too, and merging the
+     * two is not something this adapter can decide. The caller re-reads and retries.
+     */
+    @Test
+    void should_refuse_to_write_when_the_api_moved_between_the_read_and_the_write() {
+        var api = ApiFixtures.aLLMProxyApiV4();
+        var racing = new ApiCrudServiceInMemory() {
+            @Override
+            public Optional<Api> findById(String id) {
+                var found = super.findById(id);
+                found.ifPresent(read ->
+                    super.update(
+                        read.toBuilder().description("Changed by someone else").updatedAt(read.getUpdatedAt().plusSeconds(1)).build()
+                    )
+                );
+                return found;
+            }
+        };
+        racing.initWith(List.of(api));
+        var adapterOnRacingStore = new GuardedApiPortAdapter(racing, apiQueryService, new ApiDefinitionCrudServiceInMemory(racing));
+        var readFlow = api.getApiDefinitionHttpV4().getInternalFlow();
+
+        assertSoftly(softly -> {
+            softly
+                .assertThatThrownBy(() ->
+                    adapterOnRacingStore.updateInternalFlow(
+                        ENVIRONMENT_ID,
+                        api.getId(),
+                        readFlow,
+                        Flow.builder().response(List.of(GuardianSteps.of("guardian-1", "One"))).build()
+                    )
+                )
+                .as("a write the API moved past")
+                .isInstanceOf(ApiInternalFlowChangedException.class);
+            var stored = racing.get(api.getId());
+            softly.assertThat(stored.getDescription()).as("the field written in between").isEqualTo("Changed by someone else");
+            softly.assertThat(stored.getApiDefinitionHttpV4().getInternalFlow()).as("stored internal flow").isEqualTo(readFlow);
         });
     }
 }
