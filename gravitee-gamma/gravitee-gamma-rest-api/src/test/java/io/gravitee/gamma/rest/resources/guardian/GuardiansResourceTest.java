@@ -35,6 +35,7 @@ import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyP
 import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
 import io.gravitee.gamma.rest.core.guardian.GuardianFixtures;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
+import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardedApiPort;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.resource.AbstractResourceTest;
@@ -980,6 +981,11 @@ class GuardiansResourceTest extends AbstractResourceTest {
         @Bean
         InMemoryGuardianRepository guardianRepository() {
             return new InMemoryGuardianRepository();
+        }
+
+        @Bean
+        InMemoryGuardedApiPort guardedApiPort() {
+            return new InMemoryGuardedApiPort();
         }
 
         @Bean

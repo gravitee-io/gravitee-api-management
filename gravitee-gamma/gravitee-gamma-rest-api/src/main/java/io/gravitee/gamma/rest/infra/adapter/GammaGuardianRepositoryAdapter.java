@@ -34,6 +34,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
 
@@ -103,6 +104,17 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
             "Failed to fetch guardian '%s' for environment '%s'".formatted(guardianId, environmentId)
         );
         return found.filter(guardian -> environmentId.equals(guardian.getEnvironmentId())).map(GammaGuardianRepositoryAdapter::toCore);
+    }
+
+    @Override
+    public List<Guardian> findByEnvironmentIdAndIds(String environmentId, Set<String> guardianIds) {
+        return RepositoryCalls.wrap(
+            () -> guardianRepository.findByEnvironmentIdAndIds(environmentId, guardianIds),
+            "Failed to fetch Guardians for environment '%s'".formatted(environmentId)
+        )
+            .stream()
+            .map(GammaGuardianRepositoryAdapter::toCore)
+            .toList();
     }
 
     @Override

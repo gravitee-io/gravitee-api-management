@@ -17,8 +17,11 @@ package io.gravitee.gamma.rest.infra.config;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
+import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardedApiPort;
 import io.gravitee.gamma.rest.infra.adapter.GammaGuardianRepositoryAdapter;
+import io.gravitee.gamma.rest.infra.adapter.GuardedApiPortAdapter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -50,5 +53,10 @@ public class GammaGuardiansConfiguration {
         @Lazy io.gravitee.repository.management.api.GuardianRepository guardianRepository
     ) {
         return new GammaGuardianRepositoryAdapter(guardianRepository);
+    }
+
+    @Bean
+    public GuardedApiPort gammaGuardedApiPort(ApiCrudService apiCrudService) {
+        return new GuardedApiPortAdapter(apiCrudService);
     }
 }

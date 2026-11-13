@@ -25,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
@@ -33,6 +34,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
+import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianSearchQuery;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -77,6 +79,20 @@ class GammaGuardianRepositoryAdapterTest {
             )
         );
         return row;
+    }
+
+    @Test
+    void should_fetch_requested_guardians_in_one_environment_scoped_call() throws Exception {
+        var ids = Set.of("first", "second", "missing");
+        when(spi.findByEnvironmentIdAndIds(ENVIRONMENT_ID, ids)).thenReturn(
+            List.of(aStoredRowNamedLikeTheFixture("second"), aStoredRowNamedLikeTheFixture("first"))
+        );
+
+        var found = adapter.findByEnvironmentIdAndIds(ENVIRONMENT_ID, ids);
+
+        assertThat(found).as("all returned Guardians mapped").extracting(Guardian::getId).containsExactly("second", "first");
+        verify(spi).findByEnvironmentIdAndIds(ENVIRONMENT_ID, ids);
+        verifyNoMoreInteractions(spi);
     }
 
     @Nested

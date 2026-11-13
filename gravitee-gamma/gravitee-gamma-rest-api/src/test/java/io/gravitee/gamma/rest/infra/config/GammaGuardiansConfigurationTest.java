@@ -22,9 +22,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.EventCrudInMemory;
 import inmemory.EventLatestCrudInMemory;
 import inmemory.EventLatestQueryServiceInMemory;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.event.query_service.EventLatestQueryService;
@@ -58,6 +60,7 @@ class GammaGuardiansConfigurationTest {
             parent.registerBean(GenericEventPublicationDomainService.class, () -> new GenericEventPublicationDomainService(writer, mapper));
             parent.registerBean(JsonSerializer.class, () -> new JacksonJsonSerializer());
             parent.registerBean(JsonDeserializer.class, () -> new JacksonJsonDeserializer());
+            parent.registerBean(ApiCrudService.class, ApiCrudServiceInMemory::new);
             parent.refresh();
             gamma.setParent(parent);
             gamma.register(GammaGuardiansConfiguration.class);
