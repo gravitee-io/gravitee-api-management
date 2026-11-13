@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.domain_service.api;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
@@ -22,6 +23,7 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -36,6 +38,8 @@ import io.gravitee.apim.core.api.exception.InvalidApiLifecycleStateException;
 import io.gravitee.apim.core.api.exception.NativeApiWithMultipleFlowsException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
+import io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService;
+import io.gravitee.apim.core.cluster.exception.ClusterBindingNotAllowedException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
@@ -59,6 +63,7 @@ import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.v4.exception.ListenerMissingException;
 import io.gravitee.rest.api.service.v4.impl.validation.ListenerValidationServiceImpl;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
@@ -122,6 +127,9 @@ class ValidateApiDomainServiceLegacyWrapperTest {
     @Mock
     ClusterBindingPermissionDomainService clusterBindingPermissionDomainService;
 
+    @Mock
+    ValidateApiClusterBindingService validateApiClusterBindingService;
+
     @InjectMocks
     ValidateApiDomainServiceLegacyWrapper service;
 
@@ -153,7 +161,8 @@ class ValidateApiDomainServiceLegacyWrapperTest {
             endpointGroupsValidationService,
             resourcesValidationService,
             apiLifecycleStateDomainService,
-            clusterBindingPermissionDomainService
+            clusterBindingPermissionDomainService,
+            validateApiClusterBindingService
         );
     }
 
@@ -289,6 +298,33 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 isNull(NativeApi.class),
                 any(NativeApi.class)
             );
+        }
+
+        @Test
+        void should_refuse_a_new_api_on_a_cluster_the_gateway_cannot_resolve() {
+            var api = ApiFixtures.aNativeApiBoundToCluster("api-id", ENVIRONMENT_ID, Api.LifecycleState.STOPPED, "prod", "plain");
+            when(endpointGroupsValidationService.validateAndSanitizeNativeV4(any())).thenAnswer(invocation -> invocation.getArgument(0));
+            doThrow(new InvalidDataException("The API cannot be saved because its cluster {prod} is not deployed."))
+                .when(validateApiClusterBindingService)
+                .validateSavable(ENVIRONMENT_ID, ApiType.NATIVE, null, api.getApiDefinitionNativeV4().getEndpointGroups());
+
+            assertThatThrownBy(() -> service.validateAndSanitizeForCreation(api, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID))
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("The API cannot be saved because its cluster {prod} is not deployed.");
+        }
+
+        @Test
+        void should_refuse_a_cluster_binding_on_permission_before_checking_the_cluster() {
+            var api = ApiFixtures.aNativeApiBoundToCluster("api-id", ENVIRONMENT_ID, Api.LifecycleState.STOPPED, "prod", "plain");
+            when(endpointGroupsValidationService.validateAndSanitizeNativeV4(any())).thenAnswer(invocation -> invocation.getArgument(0));
+            doThrow(new ClusterBindingNotAllowedException("Production"))
+                .when(clusterBindingPermissionDomainService)
+                .validate(any(), any(), any(), isNull(NativeApi.class), any(NativeApi.class));
+
+            assertThatThrownBy(() ->
+                service.validateAndSanitizeForCreation(api, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID)
+            ).isInstanceOf(ClusterBindingNotAllowedException.class);
+            verify(validateApiClusterBindingService, never()).validateSavable(any(), any(), any(), any());
         }
 
         @Test
@@ -484,6 +520,27 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 existingApi.getApiDefinitionNativeV4(),
                 newApi.getApiDefinitionNativeV4()
             );
+        }
+
+        @Test
+        void should_refuse_an_update_binding_a_cluster_the_gateway_cannot_resolve() {
+            var existingApi = ApiFixtures.aNativeApiBoundToCluster("api-id", ENVIRONMENT_ID, Api.LifecycleState.STOPPED, "prod", "plain");
+            var newApi = ApiFixtures.aNativeApiBoundToCluster("api-id", ENVIRONMENT_ID, Api.LifecycleState.STOPPED, "prod", "sasl");
+            when(endpointGroupsValidationService.validateAndSanitizeNativeV4(any())).thenAnswer(invocation -> invocation.getArgument(0));
+            doThrow(new InvalidDataException("The API cannot be saved because its cluster {prod} is not deployed."))
+                .when(validateApiClusterBindingService)
+                .validateSavable(
+                    ENVIRONMENT_ID,
+                    ApiType.NATIVE,
+                    existingApi.getApiDefinitionNativeV4().getEndpointGroups(),
+                    newApi.getApiDefinitionNativeV4().getEndpointGroups()
+                );
+
+            assertThatThrownBy(() ->
+                service.validateAndSanitizeForUpdate(existingApi, newApi, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID)
+            )
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("The API cannot be saved because its cluster {prod} is not deployed.");
         }
 
         @Test

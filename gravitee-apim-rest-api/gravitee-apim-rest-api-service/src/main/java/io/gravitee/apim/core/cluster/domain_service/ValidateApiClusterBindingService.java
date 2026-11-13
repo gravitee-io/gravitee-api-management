@@ -26,12 +26,15 @@ import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeployableException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import jakarta.annotation.Nullable;
+import java.util.HashSet;
 import java.util.List;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Guards start and deploy of an API bound to a cluster: the gateway must resolve that cluster and the connection it uses ({@link ClusterResolutionDomainService}). Otherwise the API would sit at the gateway
+ * Guards start and deploy of an API bound to a cluster, and the save of a Kafka Native API: the gateway must resolve that
+ * cluster and the connection it uses ({@link ClusterResolutionDomainService}). Otherwise the API would sit at the gateway
  * pointing at a cluster it cannot resolve:
  * <ul>
  *     <li>a Kafka Native API bound to a virtual cluster via a {@code native-kafka-virtual-cluster} endpoint
@@ -92,6 +95,37 @@ public class ValidateApiClusterBindingService {
             return;
         }
         validateResolvable(apiId, environmentId, ClusterBoundApisQueryService.clusterUses(apiType, endpointGroups, objectMapper));
+    }
+
+    /**
+     * Throws {@link InvalidDataException} when a Kafka Native API whose endpoint groups are {@code endpointGroups} uses a
+     * cluster or connection the gateway cannot resolve and {@code previousEndpointGroups} did not already use: an API keeps
+     * a binding its cluster no longer resolves, and stays editable, until it is started. Message APIs are checked on save
+     * by {@link ValidateKafkaClusterBindingDomainService}.
+     *
+     * @param previousEndpointGroups the endpoint groups of the saved API, {@code null} on create
+     */
+    public void validateSavable(
+        String environmentId,
+        ApiType apiType,
+        @Nullable List<? extends AbstractEndpointGroup<?>> previousEndpointGroups,
+        List<? extends AbstractEndpointGroup<?>> endpointGroups
+    ) {
+        if (apiType != ApiType.NATIVE) {
+            return;
+        }
+        var kept = previousEndpointGroups == null
+            ? new HashSet<ClusterUse>()
+            : new HashSet<>(ClusterBoundApisQueryService.clusterUses(apiType, previousEndpointGroups, objectMapper));
+        var added = ClusterBoundApisQueryService.clusterUses(apiType, endpointGroups, objectMapper)
+            .stream()
+            .filter(use -> !kept.contains(use))
+            .toList();
+        clusterResolutionDomainService
+            .unresolvedReason(environmentId, added)
+            .ifPresent(reason -> {
+                throw new InvalidDataException("The API cannot be saved because " + reason + ".");
+            });
     }
 
     private void validateMessageApiDeployable(String apiId, String environmentId, String apiDefinition) {

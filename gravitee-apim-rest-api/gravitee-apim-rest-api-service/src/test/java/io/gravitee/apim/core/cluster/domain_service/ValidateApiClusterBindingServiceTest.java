@@ -393,6 +393,110 @@ class ValidateApiClusterBindingServiceTest {
         }
     }
 
+    @Nested
+    class Savable {
+
+        @Test
+        void should_refuse_a_native_api_on_a_cluster_that_is_not_deployed() {
+            assertThatThrownBy(() ->
+                service.validateSavable(ENV_ID, ApiType.NATIVE, null, nativeEndpointGroups("native-kafka-cluster", connection("sasl")))
+            )
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("The API cannot be saved because its cluster {prod} is not deployed.");
+        }
+
+        @Test
+        void should_refuse_a_native_api_on_a_connection_the_deployed_cluster_does_not_have() {
+            givenDeployedAndStored(registeredCluster(ClusterLifecycleState.DEPLOYED));
+
+            assertThatThrownBy(() ->
+                service.validateSavable(ENV_ID, ApiType.NATIVE, null, nativeEndpointGroups("native-kafka-cluster", connection("plain")))
+            )
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("The API cannot be saved because its connection {plain} does not exist in the deployed cluster {prod}.");
+        }
+
+        @Test
+        void should_refuse_a_native_api_on_a_virtual_cluster_with_a_backend_on_a_cluster_that_is_not_deployed() {
+            givenStored(virtualCluster(ClusterLifecycleState.DEPLOYED));
+            givenDeployed(virtualCluster(ClusterLifecycleState.DEPLOYED));
+
+            assertThatThrownBy(() ->
+                service.validateSavable(
+                    ENV_ID,
+                    ApiType.NATIVE,
+                    null,
+                    nativeEndpointGroups("native-kafka-virtual-cluster", "{\"virtualClusterCrossId\":\"mesh\"}")
+                )
+            )
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage(
+                    "The API cannot be saved because its virtual cluster {mesh} has a backend on cluster {prod}, which is not deployed."
+                );
+        }
+
+        @Test
+        void should_accept_a_native_api_on_a_connection_of_a_deployed_cluster() {
+            givenDeployedAndStored(registeredCluster(ClusterLifecycleState.DEPLOYED));
+
+            assertThatCode(() ->
+                service.validateSavable(ENV_ID, ApiType.NATIVE, null, nativeEndpointGroups("native-kafka-cluster", connection("sasl")))
+            ).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_check_only_the_cluster_of_an_endpoint_naming_no_connection() {
+            givenDeployedAndStored(registeredCluster(ClusterLifecycleState.DEPLOYED));
+
+            assertThatCode(() ->
+                service.validateSavable(
+                    ENV_ID,
+                    ApiType.NATIVE,
+                    null,
+                    nativeEndpointGroups("native-kafka-cluster", "{\"clusterCrossId\":\"prod\"}")
+                )
+            ).doesNotThrowAnyException();
+            assertThatThrownBy(() ->
+                service.validateSavable(
+                    ENV_ID,
+                    ApiType.NATIVE,
+                    null,
+                    nativeEndpointGroups("native-kafka-cluster", "{\"clusterCrossId\":\"staging\"}")
+                )
+            )
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("The API cannot be saved because its cluster {staging} is not deployed.");
+        }
+
+        @Test
+        void should_let_an_api_keep_a_binding_its_cluster_no_longer_resolves() {
+            var groups = nativeEndpointGroups("native-kafka-cluster", connection("sasl"));
+
+            assertThatCode(() -> service.validateSavable(ENV_ID, ApiType.NATIVE, groups, groups)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_refuse_a_changed_binding_the_gateway_cannot_resolve() {
+            givenDeployedAndStored(registeredCluster(ClusterLifecycleState.DEPLOYED));
+
+            assertThatThrownBy(() ->
+                service.validateSavable(
+                    ENV_ID,
+                    ApiType.NATIVE,
+                    nativeEndpointGroups("native-kafka-cluster", connection("sasl")),
+                    nativeEndpointGroups("native-kafka-cluster", connection("plain"))
+                )
+            )
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("The API cannot be saved because its connection {plain} does not exist in the deployed cluster {prod}.");
+        }
+
+        @Test
+        void should_leave_message_apis_to_their_own_save_check() {
+            assertThatCode(() -> service.validateSavable(ENV_ID, ApiType.MESSAGE, null, List.of())).doesNotThrowAnyException();
+        }
+    }
+
     private void givenStored(Cluster... clusters) {
         clusterQueryService.initWith(List.of(clusters));
     }
