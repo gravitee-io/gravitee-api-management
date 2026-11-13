@@ -54,6 +54,16 @@ class CredentialDtoTest {
         assertThat(CredentialDto.from(CREDENTIAL, actor("someone-else", true)).manageable()).isTrue();
     }
 
+    @Test
+    void should_carry_the_display_name_of_the_owner_when_it_is_known() {
+        assertThat(CredentialDto.from(CREDENTIAL, actor("owner", false), "Ada Lovelace").ownerName()).isEqualTo("Ada Lovelace");
+    }
+
+    @Test
+    void should_leave_the_owner_name_out_of_a_write_response() {
+        assertThat(CredentialDto.from(CREDENTIAL, actor("owner", false)).ownerName()).isNull();
+    }
+
     private static CredentialActor actor(String userId, boolean admin) {
         var auditInfo = AuditInfo.builder().actor(AuditActor.builder().userId(userId).build()).build();
         return new CredentialActor(auditInfo, admin, Set.of());

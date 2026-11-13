@@ -26,8 +26,10 @@ import io.gravitee.apim.core.credential.model.CredentialConsumer;
 import io.gravitee.apim.core.credential.model.CredentialQuery;
 import io.gravitee.apim.core.credential.model.CredentialStrategy;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,8 +50,42 @@ class ReadCredentialUseCasesTest extends AbstractUseCaseTest {
         fixture = new CredentialFixture();
     }
 
+    private void givenTheOwnerIsNamed(String firstname, String lastname) {
+        fixture.userCrudService.reset();
+        fixture.userCrudService.initWith(
+            List.of(
+                BaseUserEntity.builder()
+                    .id(CredentialFixture.OWNER_ID)
+                    .organizationId(CredentialFixture.ORG_ID)
+                    .firstname(firstname)
+                    .lastname(lastname)
+                    .build()
+            )
+        );
+    }
+
     @Nested
     class Get {
+
+        @Test
+        void should_return_the_display_name_of_the_owner() {
+            var credential = fixture.givenACredential();
+            givenTheOwnerIsNamed("Ada", "Lovelace");
+
+            var found = fixture.getCredentialUseCase.execute(new GetCredentialUseCase.Input(fixture.otherUser(), credential.id()));
+
+            assertThat(found.ownerName()).isEqualTo("Ada Lovelace");
+        }
+
+        @Test
+        void should_return_no_owner_name_when_the_owner_no_longer_exists() {
+            var credential = fixture.givenACredential();
+            fixture.userCrudService.reset();
+
+            var found = fixture.getCredentialUseCase.execute(new GetCredentialUseCase.Input(fixture.otherUser(), credential.id()));
+
+            assertThat(found.ownerName()).isNull();
+        }
 
         @Test
         void should_return_a_credential_to_any_reader() {
@@ -146,6 +182,18 @@ class ReadCredentialUseCasesTest extends AbstractUseCaseTest {
             var page = search(CredentialFixture.adminIn(CredentialFixture.ORG_ID, "env-2"), CredentialQuery.all(), 1, 10);
 
             assertThat(page.getContent()).isEmpty();
+        }
+
+        @Test
+        void should_return_the_display_name_of_each_owner_on_the_page() {
+            fixture.givenACredential();
+            givenTheOwnerIsNamed("Ada", "Lovelace");
+
+            var output = fixture.searchCredentialsUseCase.execute(
+                new SearchCredentialsUseCase.Input(fixture.otherUser(), CredentialQuery.all(), new PageableImpl(1, 10))
+            );
+
+            assertThat(output.ownerNames()).containsExactly(Map.entry(CredentialFixture.OWNER_ID, "Ada Lovelace"));
         }
 
         @Test

@@ -113,10 +113,14 @@ public class CredentialsResource {
             .serviceId(blankToNull(serviceId))
             .build();
         var actor = CurrentCredentialActor.of(securityContext, permissionService, membershipService);
-        var credentials = searchCredentialsUseCase
-            .execute(new SearchCredentialsUseCase.Input(actor, query, new PageableImpl(page, perPage)))
-            .page();
-        return PaginatedResponseDto.of(CredentialDto.from(credentials.getContent(), actor), credentials.getTotalElements(), page, perPage);
+        var output = searchCredentialsUseCase.execute(new SearchCredentialsUseCase.Input(actor, query, new PageableImpl(page, perPage)));
+        var credentials = output.page();
+        return PaginatedResponseDto.of(
+            CredentialDto.from(credentials.getContent(), actor, output.ownerNames()),
+            credentials.getTotalElements(),
+            page,
+            perPage
+        );
     }
 
     @Path("{credentialId}")

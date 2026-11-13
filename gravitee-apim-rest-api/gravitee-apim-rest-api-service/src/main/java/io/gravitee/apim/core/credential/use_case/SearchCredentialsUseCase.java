@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.credential.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.credential.domain_service.CredentialOwnerDomainService;
 import io.gravitee.apim.core.credential.model.Credential;
 import io.gravitee.apim.core.credential.model.CredentialActor;
 import io.gravitee.apim.core.credential.model.CredentialQuery;
@@ -23,6 +24,7 @@ import io.gravitee.apim.core.credential.query_service.CredentialQueryService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -30,10 +32,12 @@ import lombok.RequiredArgsConstructor;
 public class SearchCredentialsUseCase {
 
     private final CredentialQueryService credentialQueryService;
+    private final CredentialOwnerDomainService credentialOwnerDomainService;
 
     public record Input(CredentialActor actor, CredentialQuery query, Pageable pageable) {}
 
-    public record Output(Page<Credential> page) {}
+    /** @param ownerNames the display name of each owner on the page that is still a user, by user id */
+    public record Output(Page<Credential> page, Map<String, String> ownerNames) {}
 
     public Output execute(Input input) {
         var pageable = input.pageable();
@@ -43,6 +47,8 @@ public class SearchCredentialsUseCase {
             );
         }
         var actor = input.actor();
-        return new Output(credentialQueryService.search(actor.organizationId(), actor.environmentId(), input.query(), input.pageable()));
+        var page = credentialQueryService.search(actor.organizationId(), actor.environmentId(), input.query(), input.pageable());
+        var ownerIds = page.getContent().stream().map(Credential::ownerId).toList();
+        return new Output(page, credentialOwnerDomainService.namesOf(actor, ownerIds));
     }
 }
