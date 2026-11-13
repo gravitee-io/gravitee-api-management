@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EXPIRE_AFTER;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
 import static jakarta.ws.rs.core.Response.ok;
+import static jakarta.ws.rs.core.Response.status;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -58,6 +59,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
  */
 public class AuthResource extends AbstractResource {
 
+    private static final String BASIC_AUTH_SCHEME = "Basic ";
+
     @Context
     private ResourceContext resourceContext;
 
@@ -74,6 +77,10 @@ public class AuthResource extends AbstractResource {
     @Path("/login")
     @Produces(MediaType.APPLICATION_JSON)
     public Response login(final @Context HttpHeaders headers, final @Context HttpServletResponse servletResponse) {
+        if (!isBasicAuthentication(headers)) {
+            log.warn("Login refused: only Basic authentication can obtain a token, a token cannot be exchanged for a new one");
+            return status(Response.Status.UNAUTHORIZED).build();
+        }
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
             // JWT signer
@@ -131,6 +138,13 @@ public class AuthResource extends AbstractResource {
             return ok(tokenEntity).build();
         }
         return ok().build();
+    }
+
+    // The token filter authenticates a Bearer header or the auth cookie before this resource runs, so the principal
+    // alone cannot tell a password login from a token renewal: only the Basic scheme proves the former.
+    private static boolean isBasicAuthentication(final HttpHeaders headers) {
+        final String authorization = headers.getHeaderString(HttpHeaders.AUTHORIZATION);
+        return authorization != null && authorization.regionMatches(true, 0, BASIC_AUTH_SCHEME, 0, BASIC_AUTH_SCHEME.length());
     }
 
     @POST
