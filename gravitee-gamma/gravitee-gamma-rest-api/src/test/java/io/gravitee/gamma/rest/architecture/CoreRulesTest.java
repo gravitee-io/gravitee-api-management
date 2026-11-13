@@ -26,7 +26,6 @@ import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import io.gravitee.rest.api.model.EventType;
-import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 
 /**
  * Enforces gamma-rest-api AGENTS.md §5 (Core layer independence) — the {@code core} package must not
@@ -64,16 +63,10 @@ class CoreRulesTest {
                 // meta-annotation pulled transitively by {@code @UseCase} (accepted trade-off, AGENTS.md §5).
                 "org.springframework.transaction.annotation..",
                 CORE_PACKAGE
+            ).or(
+                // the type of Event, which the apim core exposes and takes in the signatures of its event
+                // services: reading or writing an event from core cannot avoid it
+                equivalentTo(EventType.class)
             )
-                .or(
-                    // the type of Event, which the apim core exposes and takes in the signatures of its event
-                    // services: reading or writing an event from core cannot avoid it
-                    equivalentTo(EventType.class)
-                )
-                .or(
-                    // the closed list of flows a policy plugin declares in its manifest, which the apim management API
-                    // exposes too: gamma reuses it rather than keeping a copy that would drift
-                    equivalentTo(ApiProtocolType.class)
-                )
         );
 }

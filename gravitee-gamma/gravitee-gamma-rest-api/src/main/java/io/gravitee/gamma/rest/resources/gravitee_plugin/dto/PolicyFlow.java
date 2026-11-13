@@ -15,22 +15,22 @@
  */
 package io.gravitee.gamma.rest.resources.gravitee_plugin.dto;
 
-import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Optional;
 
-/** The wire name of a flow a policy can run in: the kebab-case of its {@link ApiProtocolType} ({@code llm-proxy}). */
+/** The wire name of a flow a policy can run in: the kebab-case of its {@link PolicyFlowType} ({@code llm-proxy}). */
 public final class PolicyFlow {
 
     private PolicyFlow() {}
 
-    public static String nameOf(ApiProtocolType flow) {
+    public static String nameOf(PolicyFlowType flow) {
         return flow.name().toLowerCase(Locale.ROOT).replace('_', '-');
     }
 
-    public static Optional<ApiProtocolType> fromName(String name) {
-        return Arrays.stream(ApiProtocolType.values())
+    public static Optional<PolicyFlowType> fromName(String name) {
+        return Arrays.stream(PolicyFlowType.values())
             .filter(flow -> nameOf(flow).equals(name))
             .findFirst();
     }

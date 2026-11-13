@@ -15,15 +15,14 @@
  */
 package io.gravitee.gamma.rest.core.gravitee_plugin.model;
 
-import static io.gravitee.rest.api.model.v4.policy.ApiProtocolType.A2A_PROXY;
-import static io.gravitee.rest.api.model.v4.policy.ApiProtocolType.GUARDIAN;
-import static io.gravitee.rest.api.model.v4.policy.ApiProtocolType.HTTP_PROXY;
-import static io.gravitee.rest.api.model.v4.policy.ApiProtocolType.LLM_PROXY;
-import static io.gravitee.rest.api.model.v4.policy.ApiProtocolType.MCP_PROXY;
+import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.A2A_PROXY;
+import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.GUARDIAN;
+import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.HTTP_PROXY;
+import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.LLM_PROXY;
+import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.MCP_PROXY;
 
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
-import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,7 +34,7 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class PolicyCapabilitiesTest {
 
-    private static PolicyCapabilities declaring(Map<ApiProtocolType, List<String>> flows) {
+    private static PolicyCapabilities declaring(Map<PolicyFlowType, List<String>> flows) {
         return new PolicyCapabilities(true, new DeclaredFlows(flows));
     }
 

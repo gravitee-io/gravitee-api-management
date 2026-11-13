@@ -15,11 +15,11 @@
  */
 package io.gravitee.gamma.rest.infra.service_provider.gravitee_plugin;
 
-import static io.gravitee.rest.api.model.v4.policy.ApiProtocolType.A2A_PROXY;
-import static io.gravitee.rest.api.model.v4.policy.ApiProtocolType.GUARDIAN;
-import static io.gravitee.rest.api.model.v4.policy.ApiProtocolType.HTTP_PROXY;
-import static io.gravitee.rest.api.model.v4.policy.ApiProtocolType.LLM_PROXY;
-import static io.gravitee.rest.api.model.v4.policy.ApiProtocolType.MCP_PROXY;
+import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.A2A_PROXY;
+import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.GUARDIAN;
+import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.HTTP_PROXY;
+import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.LLM_PROXY;
+import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.MCP_PROXY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

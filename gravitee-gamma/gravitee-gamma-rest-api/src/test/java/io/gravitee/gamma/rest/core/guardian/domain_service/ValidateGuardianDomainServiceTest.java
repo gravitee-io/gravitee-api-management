@@ -15,14 +15,14 @@
  */
 package io.gravitee.gamma.rest.core.guardian.domain_service;
 
+import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.A2A_PROXY;
+import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.GUARDIAN;
+import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.LLM_PROXY;
+import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.MCP_PROXY;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aPolicy;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aPolicyPluginProvider;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.flows;
-import static io.gravitee.rest.api.model.v4.policy.ApiProtocolType.A2A_PROXY;
-import static io.gravitee.rest.api.model.v4.policy.ApiProtocolType.GUARDIAN;
-import static io.gravitee.rest.api.model.v4.policy.ApiProtocolType.LLM_PROXY;
-import static io.gravitee.rest.api.model.v4.policy.ApiProtocolType.MCP_PROXY;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.validation.Validator;

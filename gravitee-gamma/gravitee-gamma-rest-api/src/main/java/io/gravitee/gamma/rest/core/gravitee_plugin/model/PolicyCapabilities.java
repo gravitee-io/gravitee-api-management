@@ -20,7 +20,6 @@ import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
-import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -31,16 +30,6 @@ import java.util.Set;
  * phases.
  */
 public record PolicyCapabilities(boolean guardrail, DeclaredFlows flows) {
-    /** The API types a guardrail can be scoped to, keyed by the flow declaring its phases. */
-    private static final Map<ApiProtocolType, ApiType> GUARDRAIL_API_TYPES = Map.of(
-        ApiProtocolType.LLM_PROXY,
-        ApiType.LLM_PROXY,
-        ApiProtocolType.MCP_PROXY,
-        ApiType.MCP_PROXY,
-        ApiProtocolType.A2A_PROXY,
-        ApiType.A2A_PROXY
-    );
-
     /**
      * The Guardian phases the policy runs in, for each API type a guardrail can be scoped to that its manifest declares.
      * An API type may be declared with no Guardian phase, when the manifest only lists flow phases a Guardian never runs
@@ -51,13 +40,13 @@ public record PolicyCapabilities(boolean guardrail, DeclaredFlows flows) {
             .phases()
             .entrySet()
             .stream()
-            .filter(flow -> GUARDRAIL_API_TYPES.containsKey(flow.getKey()))
-            .collect(toMap(flow -> GUARDRAIL_API_TYPES.get(flow.getKey()), flow -> toGuardianPhases(flow.getValue())));
+            .filter(flow -> flow.getKey().guardrailApiType().isPresent())
+            .collect(toMap(flow -> flow.getKey().guardrailApiType().orElseThrow(), flow -> toGuardianPhases(flow.getValue())));
     }
 
     /** The Guardian phases the policy declares in its {@code guardian} flow. */
     public Set<Phase> guardianPhases() {
-        return toGuardianPhases(flows.phases().getOrDefault(ApiProtocolType.GUARDIAN, List.of()));
+        return toGuardianPhases(flows.phases().getOrDefault(PolicyFlowType.GUARDIAN, List.of()));
     }
 
     /** Whether a Guardian of this phase can run the policy, guardrail or not. */

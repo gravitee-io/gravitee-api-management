@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.lang.reflect.RecordComponent;
@@ -44,7 +44,7 @@ class PluginsOpenApiSpecTest {
                 .assertThat(SPEC.at("/components/schemas/Flow/enum"))
                 .as("documented flows")
                 .extracting(JsonNode::asText)
-                .containsExactlyElementsOf(Arrays.stream(ApiProtocolType.values()).map(PolicyFlow::nameOf).toList());
+                .containsExactlyElementsOf(Arrays.stream(PolicyFlowType.values()).map(PolicyFlow::nameOf).toList());
             soft
                 .assertThat(propertiesOf("PolicyPlugin"))
                 .as("documented PolicyPlugin properties")

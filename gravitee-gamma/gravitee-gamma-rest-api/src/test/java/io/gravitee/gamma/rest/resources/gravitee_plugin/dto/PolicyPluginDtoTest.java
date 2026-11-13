@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.DeclaredFlows;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PlatformPlugin;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PlatformPolicyPlugin;
-import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.stream.StreamSupport;
@@ -35,8 +35,8 @@ class PolicyPluginDtoTest {
 
     @Test
     void should_serialize_the_flows_in_the_order_of_the_flow_enum() {
-        var flows = new EnumMap<ApiProtocolType, List<String>>(ApiProtocolType.class);
-        for (var flow : ApiProtocolType.values()) {
+        var flows = new EnumMap<PolicyFlowType, List<String>>(PolicyFlowType.class);
+        for (var flow : PolicyFlowType.values()) {
             flows.put(flow, List.of("REQUEST"));
         }
         var policy = new PlatformPolicyPlugin(PlatformPlugin.builder().id("policy").build(), new DeclaredFlows(flows));
