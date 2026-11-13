@@ -34,6 +34,7 @@ export class ApplicationCreationStep5Component implements OnInit {
 
   @Input() canValidate: boolean;
   @Input() creationError: boolean;
+  @Input() creationErrorMessage: string;
   @Input() creationSuccess: boolean;
   @Input() applicationForm: FormGroup;
   @Input() subscribeList: any[];

@@ -102,5 +102,6 @@
     <gv-icon shape="general:smile"></gv-icon>
     <h2>{{ 'applicationCreation.validation.error.title' | translate }}</h2>
     <div [innerHTML]="'applicationCreation.validation.error.description' | translate"></div>
+    <p *ngIf="creationErrorMessage" data-testid="application-creation-error-message">{{ creationErrorMessage }}</p>
   </div>
 </div>
