@@ -457,7 +457,8 @@ export class ApplicationCreationComponent implements OnInit {
         setTimeout(this.updateSteps.bind(this), 200);
       })
       .catch(exception => {
-        this.creationErrorMessage = exception?.error?.errors?.[0]?.message ?? null;
+        const error = exception?.error?.errors?.[0];
+        this.creationErrorMessage = error?.code === 'errors.clientRegistrationProvider.exception' ? (error.message ?? null) : null;
         this.creationError = true;
         this.creationInProgress = false;
       });
