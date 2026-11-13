@@ -23,6 +23,27 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import fixtures.core.model.ApiCRDFixtures;
+<<<<<<< HEAD
+=======
+import inmemory.ApiCRDExportDomainServiceInMemory;
+import io.gravitee.apim.core.membership.model.Role;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.apim.infra.adapter.ApiCRDAdapter;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.flow.execution.FlowMode;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.listener.http.Path;
+import io.gravitee.repository.management.model.Parameter;
+import io.gravitee.repository.management.model.ParameterReferenceType;
+import io.gravitee.repository.management.model.Plan;
+import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.parameters.Key;
+>>>>>>> fa3c43a (test(automation): give the CRD export round trip what an API creation reads)
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -78,4 +99,131 @@ public class ApiResource_ExportCRDTest extends ApiResourceTest {
             soft.assertThat(yamlNode.get("spec").get("endpointGroups")).isNotEmpty();
         });
     }
+<<<<<<< HEAD
+=======
+
+    @Test
+    public void should_export_created_api_as_unpublished() throws JsonProcessingException {
+        apiCRDExportDomainService.initWith(List.of(ApiCRDFixtures.newBaseSpec().id(API).lifecycleState("CREATED").build()));
+
+        Response response = rootTarget().request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        var yamlNode = YAML.readTree(response.readEntity(String.class));
+        assertThat(yamlNode.get("spec").get("lifecycleState").asText()).isEqualTo("UNPUBLISHED");
+    }
+
+    @ParameterizedTest
+    @EnumSource(FlowMode.class)
+    public void should_export_flow_execution_mode_as_the_enum_name(FlowMode mode) throws JsonProcessingException {
+        var flowExecution = new FlowExecution();
+        flowExecution.setMode(mode);
+        apiCRDExportDomainService.initWith(List.of(ApiCRDFixtures.newBaseSpec().id(API).flowExecution(flowExecution).build()));
+
+        Response response = rootTarget().request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        var yamlNode = YAML.readTree(response.readEntity(String.class));
+        assertThat(yamlNode.get("spec").get("flowExecution").get("mode").asText()).isEqualTo(mode.name());
+    }
+
+    @Test
+    public void should_export_plans_that_the_crd_import_accepts() throws JsonProcessingException {
+        givenTheCrdImportCanRun();
+        var export = exportOfAnApiWithAStoredPlan();
+        apiCRDExportDomainService.initWith(List.of(ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity(), null)));
+        var exportedSpec = YAML.readTree(rootTarget().request().get(String.class)).get("spec");
+
+        var importUri = rootTarget().getUri().toString().replace(API + "/_export/crd", "_import/crd");
+        var importTarget = ClientBuilder.newClient().target(importUri);
+        try (
+            var response = importTarget
+                .queryParam("dryRun", true)
+                .request()
+                .put(Entity.json(new ObjectMapper().writeValueAsString(exportedSpec)))
+        ) {
+            var body = response.readEntity(String.class);
+            assertThat(body).doesNotContainPattern("plans\\[[^]]+\\]\\.type");
+            assertThat(response.getStatus()).as(body).isEqualTo(OK_200);
+        }
+    }
+
+    private void givenTheCrdImportCanRun() {
+        when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        parametersQueryService.define(
+            new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT, ParameterReferenceType.ENVIRONMENT, "true")
+        );
+        // The dry run resolves the primary owner of an API to create, as the import does
+        parametersQueryService.define(
+            new Parameter(Key.API_PRIMARY_OWNER_MODE.key(), ENVIRONMENT, ParameterReferenceType.ENVIRONMENT, "USER")
+        );
+        givenExistingUsers(
+            List.of(BaseUserEntity.builder().id(USER_NAME).firstname("John").lastname("Doe").email("john.doe@gravitee.io").build())
+        );
+        roleQueryService.initWith(
+            List.of(
+                Role.builder()
+                    .id("primary_owner_id")
+                    .name(PRIMARY_OWNER.name())
+                    .scope(Role.Scope.API)
+                    .referenceType(Role.ReferenceType.ORGANIZATION)
+                    .referenceId(ORGANIZATION)
+                    .build()
+            )
+        );
+    }
+
+    private static ExportApiEntity exportOfAnApiWithAStoredPlan() {
+        return ExportApiEntity.builder()
+            .apiEntity(
+                ApiEntity.builder()
+                    .id(API)
+                    .crossId("api-cross-id")
+                    .name("api-name")
+                    .apiVersion("1.0")
+                    .type(ApiType.PROXY)
+                    // A stored API always has both, and the CRD import needs them to create the API
+                    .lifecycleState(ApiLifecycleState.CREATED)
+                    .visibility(Visibility.PUBLIC)
+                    .listeners(List.of(HttpListener.builder().paths(List.of(new Path("/api-path"))).build()))
+                    .endpointGroups(
+                        List.of(
+                            EndpointGroup.builder()
+                                .name("default-group")
+                                .type("http-proxy")
+                                .endpoints(
+                                    List.of(
+                                        Endpoint.builder()
+                                            .name("default")
+                                            .type("http-proxy")
+                                            .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
+                                            .build()
+                                    )
+                                )
+                                .build()
+                        )
+                    )
+                    .build()
+            )
+            .plans(
+                Set.of(
+                    new PlanMapper().toEntity(
+                        Plan.builder()
+                            .id("plan-id")
+                            .name("rt-plan")
+                            .type(Plan.PlanType.API)
+                            .security(Plan.PlanSecurityType.API_KEY)
+                            .validation(Plan.PlanValidationType.AUTO)
+                            .status(Plan.Status.PUBLISHED)
+                            .mode(Plan.PlanMode.STANDARD)
+                            .referenceId(API)
+                            .referenceType(Plan.PlanReferenceType.API)
+                            .build(),
+                        List.of()
+                    )
+                )
+            )
+            .build();
+    }
+>>>>>>> fa3c43a (test(automation): give the CRD export round trip what an API creation reads)
 }
