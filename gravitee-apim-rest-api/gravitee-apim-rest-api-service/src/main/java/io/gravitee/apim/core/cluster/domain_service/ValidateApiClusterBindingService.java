@@ -18,25 +18,28 @@ package io.gravitee.apim.core.cluster.domain_service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.DomainService;
-import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
-import io.gravitee.apim.core.cluster.query_service.ClusterQueryService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterBoundApisQueryService.ClusterUse;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeployableException;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.List;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Guards start/deploy of an API bound to a cluster, which can only be started or deployed while that cluster is itself
- * deployed. Otherwise the API would sit at the gateway pointing at a cluster it cannot resolve:
+ * Guards start and deploy of an API bound to a cluster: the gateway must resolve that cluster and the connection it uses ({@link ClusterResolutionDomainService}). Otherwise the API would sit at the gateway
+ * pointing at a cluster it cannot resolve:
  * <ul>
  *     <li>a Kafka Native API bound to a virtual cluster via a {@code native-kafka-virtual-cluster} endpoint
- *     ({@code configuration.virtualClusterCrossId}), or to a registered cluster via a {@code native-kafka-cluster}
- *     endpoint ({@code configuration.clusterCrossId});</li>
- *     <li>a Message API whose {@code kafka} endpoint group is in {@code CLUSTER} mode ({@code clusterCrossId}).</li>
+ *     ({@code configuration.virtualClusterCrossId}), through each of its backends, or to a registered cluster via a
+ *     {@code native-kafka-cluster} endpoint ({@code configuration.clusterCrossId} and {@code connectionCrossId});</li>
+ *     <li>a Message API whose {@code kafka} endpoint group is in {@code CLUSTER} mode ({@code clusterCrossId}, and the
+ *     {@code connectionCrossId} of each endpoint), whose connections must also be usable by Message APIs
+ *     ({@link ValidateKafkaClusterBindingDomainService}).</li>
  * </ul>
  */
 @CustomLog
@@ -44,12 +47,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ValidateApiClusterBindingService {
 
-    private final ClusterQueryService clusterQueryService;
+    private final ClusterResolutionDomainService clusterResolutionDomainService;
+    private final ValidateKafkaClusterBindingDomainService validateKafkaClusterBindingDomainService;
     private final ObjectMapper objectMapper;
 
     /**
-     * Throws {@link ApiNotDeployableException} when {@code apiDefinition} is bound to a cluster that is not currently
-     * deployed. No-op for other API types, APIs not bound to a cluster, or definitions that cannot be parsed.
+     * Throws {@link ApiNotDeployableException} when the gateway cannot resolve a cluster or connection
+     * {@code apiDefinition} uses. No-op for other API types, APIs not bound to a cluster, or definitions that cannot be
+     * parsed.
      */
     public void validateDeployable(String apiId, String environmentId, ApiType apiType, String apiDefinition) {
         if (apiType == ApiType.MESSAGE && apiDefinition != null) {
@@ -68,23 +73,13 @@ public class ValidateApiClusterBindingService {
             log.warn("Unable to parse native API definition of API {}; skipping cluster binding validation", apiId, e);
             return;
         }
-        for (ClusterBoundApisQueryService.ClusterUse use : ClusterBoundApisQueryService.clusterUses(nativeDefinition, objectMapper)) {
-            if (!isDeployed(use.clusterCrossId(), environmentId)) {
-                throw new ApiNotDeployableException(
-                    "The API {" +
-                        apiId +
-                        "} cannot be deployed or started because its cluster {" +
-                        use.clusterCrossId() +
-                        "} is not deployed"
-                );
-            }
-        }
+        validateResolvable(apiId, environmentId, ClusterBoundApisQueryService.clusterUses(nativeDefinition, objectMapper));
     }
 
     /**
      * Throws {@link ApiNotDeployableException} when an API of {@code apiType} whose endpoint groups are
-     * {@code endpointGroups}, as an import declares them, uses a cluster that is not currently deployed. Lets an import
-     * refuse to start such an API before persisting anything.
+     * {@code endpointGroups}, as an import declares them, uses a cluster or connection the gateway cannot resolve. Lets an
+     * import refuse to start such an API before persisting anything.
      */
     public void validateStartable(
         String apiId,
@@ -92,14 +87,11 @@ public class ValidateApiClusterBindingService {
         ApiType apiType,
         List<? extends AbstractEndpointGroup<?>> endpointGroups
     ) {
-        var uses = ClusterBoundApisQueryService.clusterUses(apiType, endpointGroups, objectMapper);
-        for (String crossId : ClusterBoundApisQueryService.clusterCrossIds(uses)) {
-            if (!isDeployed(crossId, environmentId)) {
-                throw new ApiNotDeployableException(
-                    "The API {" + apiId + "} cannot be deployed or started because its cluster {" + crossId + "} is not deployed"
-                );
-            }
+        if (apiType == ApiType.MESSAGE) {
+            validateMessageApiStartable(apiId, environmentId, messageEndpointGroups(endpointGroups));
+            return;
         }
+        validateResolvable(apiId, environmentId, ClusterBoundApisQueryService.clusterUses(apiType, endpointGroups, objectMapper));
     }
 
     private void validateMessageApiDeployable(String apiId, String environmentId, String apiDefinition) {
@@ -110,25 +102,35 @@ public class ValidateApiClusterBindingService {
             log.warn("Unable to parse message API definition of API {}; skipping Kafka cluster binding validation", apiId, e);
             return;
         }
-        for (String crossId : KafkaClusterBindings.clusterCrossIds(definition.getEndpointGroups(), objectMapper)) {
-            if (!isDeployed(crossId, environmentId)) {
-                throw new ApiNotDeployableException(
-                    "The API {" + apiId + "} cannot be deployed or started because its Kafka cluster {" + crossId + "} is not deployed"
-                );
-            }
+        validateMessageApiStartable(apiId, environmentId, definition.getEndpointGroups());
+    }
+
+    private void validateMessageApiStartable(String apiId, String environmentId, List<EndpointGroup> endpointGroups) {
+        // Unlike ClusterBoundApisQueryService.messageClusterUses, a CLUSTER group naming no cluster is kept, and refused.
+        List<ClusterUse> uses = KafkaClusterBindings.of(endpointGroups, objectMapper)
+            .stream()
+            .filter(KafkaClusterBindings.Binding::isCluster)
+            .map(binding -> new ClusterUse(binding.clusterCrossId(), binding.connectionCrossId()))
+            .toList();
+        validateResolvable(apiId, environmentId, uses);
+        // Saving it only checked the bindings it changed: the connections it kept may have become unusable since.
+        try {
+            validateKafkaClusterBindingDomainService.validate(environmentId, endpointGroups);
+        } catch (InvalidDataException e) {
+            throw new ApiNotDeployableException("The API {" + apiId + "} cannot be deployed or started: " + e.getMessage());
         }
     }
 
-    // PENDING means the cluster is deployed at the gateway with not-yet-redeployed edits
-    // (a cluster only reaches PENDING from DEPLOYED), so it is a valid target.
-    private boolean isDeployed(String crossId, String environmentId) {
-        return clusterQueryService
-            .findByCrossIdAndEnvironmentId(crossId, environmentId)
-            .map(
-                cluster ->
-                    cluster.getLifecycleState() == ClusterLifecycleState.DEPLOYED ||
-                    cluster.getLifecycleState() == ClusterLifecycleState.PENDING
-            )
-            .orElse(false);
+    @SuppressWarnings("unchecked")
+    private static List<EndpointGroup> messageEndpointGroups(List<? extends AbstractEndpointGroup<?>> endpointGroups) {
+        return (List<EndpointGroup>) endpointGroups;
+    }
+
+    private void validateResolvable(String apiId, String environmentId, List<ClusterUse> uses) {
+        clusterResolutionDomainService
+            .unresolvedReason(environmentId, uses)
+            .ifPresent(reason -> {
+                throw new ApiNotDeployableException("The API {" + apiId + "} cannot be deployed or started because " + reason);
+            });
     }
 }

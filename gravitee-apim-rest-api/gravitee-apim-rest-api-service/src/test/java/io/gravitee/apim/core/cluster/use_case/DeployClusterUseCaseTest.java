@@ -26,6 +26,7 @@ import fixtures.core.model.ApiFixtures;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.ClusterCrudServiceInMemory;
+import inmemory.ClusterQueryServiceInMemory;
 import inmemory.EventCrudInMemory;
 import inmemory.EventLatestCrudInMemory;
 import inmemory.EventLatestQueryServiceInMemory;
@@ -37,6 +38,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cluster.domain_service.ClusterBoundApisQueryService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationAccessDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterInUseDomainService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterResolutionDomainService;
 import io.gravitee.apim.core.cluster.domain_service.DeployedClustersDomainService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
@@ -78,6 +80,7 @@ class DeployClusterUseCaseTest {
         .build();
 
     private final ClusterCrudServiceInMemory clusterCrudService = new ClusterCrudServiceInMemory();
+    private final ClusterQueryServiceInMemory clusterQueryService = new ClusterQueryServiceInMemory();
     private final PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
     private final EventCrudInMemory eventCrudInMemory = new EventCrudInMemory();
     private final EventLatestCrudInMemory eventLatestCrudInMemory = new EventLatestCrudInMemory();
@@ -117,9 +120,11 @@ class DeployClusterUseCaseTest {
                 new ClusterBoundApisQueryService(apiQueryService, objectMapper),
                 deployedClustersDomainService,
                 objectMapper
-            )
+            ),
+            new ClusterResolutionDomainService(clusterQueryService, deployedClustersDomainService, objectMapper)
         );
         apiQueryService.reset();
+        clusterQueryService.reset();
         eventLatestQueryService.reset();
     }
 
@@ -214,8 +219,55 @@ class DeployClusterUseCaseTest {
     }
 
     @Test
-    void should_deploy_virtual_cluster_with_backends() {
-        Cluster existing = Cluster.builder()
+    void should_deploy_virtual_cluster_with_backends() throws Exception {
+        givenBackendCluster(ClusterLifecycleState.DEPLOYED, "conn-1");
+        clusterCrudService.initWith(List.of(virtualClusterWithBackendOn("conn-1")));
+
+        var output = useCase.execute(new DeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO));
+
+        assertThat(output.cluster().getLifecycleState()).isEqualTo(ClusterLifecycleState.DEPLOYED);
+        assertThat(output.cluster().getVersion()).isEqualTo(1);
+    }
+
+    @Test
+    void should_not_deploy_a_virtual_cluster_with_a_backend_on_a_cluster_that_is_not_deployed() throws Exception {
+        givenBackendCluster(ClusterLifecycleState.UNDEPLOYED, "conn-1");
+        clusterCrudService.initWith(List.of(virtualClusterWithBackendOn("conn-1")));
+
+        assertThatThrownBy(() -> useCase.execute(new DeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO)))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessage(
+                "The virtual cluster {my-cluster} cannot be deployed because it has a backend on cluster {kafka-1}, which is not deployed."
+            );
+        assertThat(eventCrudInMemory.storage()).isEmpty();
+    }
+
+    @Test
+    void should_not_deploy_a_virtual_cluster_with_a_backend_on_a_connection_the_deployed_cluster_does_not_have() throws Exception {
+        givenBackendCluster(ClusterLifecycleState.DEPLOYED, "conn-1");
+        clusterCrudService.initWith(List.of(virtualClusterWithBackendOn("conn-2")));
+
+        assertThatThrownBy(() -> useCase.execute(new DeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO)))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessage(
+                "The virtual cluster {my-cluster} cannot be deployed because it has a backend on connection {conn-2}, which does not exist in the deployed cluster {kafka-1}."
+            );
+    }
+
+    @Test
+    void should_not_deploy_a_virtual_cluster_with_a_backend_on_another_virtual_cluster() throws Exception {
+        givenBackendCluster(ClusterLifecycleState.DEPLOYED, "conn-1", ClusterType.KAFKA_VIRTUAL_CLUSTER);
+        clusterCrudService.initWith(List.of(virtualClusterWithBackendOn("conn-1")));
+
+        assertThatThrownBy(() -> useCase.execute(new DeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO)))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessage(
+                "The virtual cluster {my-cluster} cannot be deployed because it has a backend on cluster {kafka-1}, which is not a registered Kafka cluster."
+            );
+    }
+
+    private Cluster virtualClusterWithBackendOn(String connectionCrossId) {
+        return Cluster.builder()
             .id(CLUSTER_ID)
             .crossId(CLUSTER_CROSS_ID)
             .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
@@ -223,14 +275,37 @@ class DeployClusterUseCaseTest {
             .environmentId(ENV_ID)
             .organizationId(ORG_ID)
             .lifecycleState(ClusterLifecycleState.UNDEPLOYED)
-            .configuration(Map.of("backends", List.of(Map.of("clusterCrossId", "kafka-1", "connectionCrossId", "conn-1"))))
+            .configuration(Map.of("backends", List.of(Map.of("clusterCrossId", "kafka-1", "connectionCrossId", connectionCrossId))))
             .build();
-        clusterCrudService.initWith(List.of(existing));
+    }
 
-        var output = useCase.execute(new DeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO));
+    private void givenBackendCluster(ClusterLifecycleState lifecycleState, String connectionCrossId) throws Exception {
+        givenBackendCluster(lifecycleState, connectionCrossId, ClusterType.KAFKA_CLUSTER);
+    }
 
-        assertThat(output.cluster().getLifecycleState()).isEqualTo(ClusterLifecycleState.DEPLOYED);
-        assertThat(output.cluster().getVersion()).isEqualTo(1);
+    private void givenBackendCluster(ClusterLifecycleState lifecycleState, String connectionCrossId, ClusterType type) throws Exception {
+        Cluster backend = Cluster.builder()
+            .id("kafka-1-id")
+            .crossId("kafka-1")
+            .type(type)
+            .name("Kafka 1")
+            .environmentId(ENV_ID)
+            .organizationId(ORG_ID)
+            .lifecycleState(lifecycleState)
+            .configuration(Map.of("connections", List.of(connection(connectionCrossId))))
+            .build();
+        clusterQueryService.initWith(List.of(backend));
+        eventLatestQueryService.initWith(
+            List.of(
+                Event.builder()
+                    .id("deploy-kafka-1")
+                    .type(EventType.DEPLOY_CLUSTER)
+                    .payload(objectMapper.writeValueAsString(backend))
+                    .environments(Set.of(ENV_ID))
+                    .properties(new EnumMap<>(Map.of(Event.EventProperties.CLUSTER_ID, "kafka-1")))
+                    .build()
+            )
+        );
     }
 
     @Test

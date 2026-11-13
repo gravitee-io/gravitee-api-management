@@ -49,6 +49,7 @@ import io.gravitee.apim.core.api.model.property.EncryptableProperty;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterResolutionDomainService;
 import io.gravitee.apim.core.cluster.domain_service.DeployedClustersDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService;
 import io.gravitee.apim.core.cluster.domain_service.ValidateKafkaClusterBindingDomainService;
@@ -167,7 +168,18 @@ class ValidateApiCRDDomainServiceTest {
             OBJECT_MAPPER
         ),
         new ClusterBindingPermissionDomainService(clusterQueryService, permissionDomainService, new ObjectMapper()),
-        new ValidateApiClusterBindingService(clusterQueryService, OBJECT_MAPPER),
+        new ValidateApiClusterBindingService(
+            new ClusterResolutionDomainService(
+                clusterQueryService,
+                new DeployedClustersDomainService(eventLatestQueryService, OBJECT_MAPPER),
+                OBJECT_MAPPER
+            ),
+            new ValidateKafkaClusterBindingDomainService(
+                new DeployedClustersDomainService(eventLatestQueryService, OBJECT_MAPPER),
+                OBJECT_MAPPER
+            ),
+            OBJECT_MAPPER
+        ),
         mock(ApiPrimaryOwnerFactory.class),
         mock(ValidateApiDomainService.class),
         updateApiDomainService,
