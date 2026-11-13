@@ -52,7 +52,7 @@ class SubscriptionSearchQueryServiceImplTest {
     }
 
     @Test
-    void should_search_multiple_target_types_most_recent_first() {
+    void should_search_multiple_target_types_with_repository_default_order() {
         var criteria = new SubscriptionSearchQueryService.Criteria(
             Set.of(SubscriptionReferenceType.API, SubscriptionReferenceType.API_PRODUCT),
             Set.of("api-id"),
@@ -77,13 +77,13 @@ class SubscriptionSearchQueryServiceImplTest {
             );
             assertThat(query.getApis()).containsExactly("api-id");
             assertThat(query.getApiProducts()).containsExactly("api-product-id");
-            assertThat(query.getSortable().getField()).isEqualTo("createdAt");
-            assertThat(query.getSortable().isAscOrder()).isFalse();
+            // No sort: the repositories default to created_at desc, newest first.
+            assertThat(query.getSortable()).isNull();
         });
     }
 
     @Test
-    void should_preserve_existing_sorting_for_a_single_target_type() {
+    void should_search_a_single_target_type_with_repository_default_order() {
         var criteria = new SubscriptionSearchQueryService.Criteria(
             Set.of(SubscriptionReferenceType.API),
             null,

@@ -21,7 +21,6 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.common.Pageable;
-import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.SubscriptionService;
@@ -77,7 +76,6 @@ public class SubscriptionSearchQueryServiceImpl implements SubscriptionSearchQue
             .plans(criteria.planIds())
             .statuses(criteria.statuses())
             .apiKey(criteria.apiKey())
-            .sortable(criteria.referenceTypes().size() > 1 ? new SortableImpl("createdAt", false) : null)
             .build();
 
         if (pageable == null) {
