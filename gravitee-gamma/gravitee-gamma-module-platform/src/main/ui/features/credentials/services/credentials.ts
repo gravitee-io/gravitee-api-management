@@ -70,6 +70,8 @@ export async function deleteCredential(environmentId: string, credentialId: stri
 }
 
 export async function listCredentialConsumers(environmentId: string, credentialId: string): Promise<CredentialConsumer[]> {
-    const response = await gammaFetchJson<{ data?: CredentialConsumer[] }>(`${await credentialPath(environmentId, credentialId)}/consumers`);
+    const response = await gammaFetchJson<{ data?: CredentialConsumer[] }>(
+        `${await credentialPath(environmentId, credentialId)}/consumers`,
+    );
     return response.data ?? [];
 }
