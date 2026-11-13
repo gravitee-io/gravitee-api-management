@@ -15,10 +15,10 @@
  */
 package io.gravitee.apim.core.cluster.domain_service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterBoundApisQueryService.ClusterUse;
+import io.gravitee.apim.core.deployment.domain_service.ApiDeploymentValidator;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
@@ -29,7 +29,6 @@ import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import jakarta.annotation.Nullable;
 import java.util.HashSet;
 import java.util.List;
-import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -45,38 +44,33 @@ import lombok.RequiredArgsConstructor;
  *     ({@link ValidateKafkaClusterBindingDomainService}).</li>
  * </ul>
  */
-@CustomLog
 @DomainService
 @RequiredArgsConstructor
-public class ValidateApiClusterBindingService {
+public class ValidateApiClusterBindingService implements ApiDeploymentValidator {
 
     private final ClusterResolutionDomainService clusterResolutionDomainService;
     private final ValidateKafkaClusterBindingDomainService validateKafkaClusterBindingDomainService;
     private final ObjectMapper objectMapper;
 
     /**
-     * Throws {@link ApiNotDeployableException} when the gateway cannot resolve a cluster or connection
-     * {@code apiDefinition} uses. No-op for other API types, APIs not bound to a cluster, or definitions that cannot be
+     * Throws {@link ApiNotDeployableException} when the gateway cannot resolve a cluster or connection the definition
+     * of {@code api} uses. No-op for other API types, APIs not bound to a cluster, or definitions that cannot be
      * parsed.
      */
-    public void validateDeployable(String apiId, String environmentId, ApiType apiType, String apiDefinition) {
-        if (apiType == ApiType.MESSAGE && apiDefinition != null) {
-            validateMessageApiDeployable(apiId, environmentId, apiDefinition);
+    @Override
+    public void validateDeployable(io.gravitee.apim.core.api.model.Api api) {
+        var definition = api.getApiDefinitionValue();
+        if (api.getType() == ApiType.MESSAGE && definition instanceof Api messageDefinition) {
+            validateMessageApiStartable(api.getId(), api.getEnvironmentId(), messageDefinition.getEndpointGroups());
             return;
         }
-        if (apiType != ApiType.NATIVE || apiDefinition == null) {
-            return;
+        if (definition instanceof NativeApi nativeDefinition) {
+            validateResolvable(
+                api.getId(),
+                api.getEnvironmentId(),
+                ClusterBoundApisQueryService.clusterUses(nativeDefinition, objectMapper)
+            );
         }
-        NativeApi nativeDefinition;
-        try {
-            nativeDefinition = objectMapper.readValue(apiDefinition, NativeApi.class);
-        } catch (JsonProcessingException e) {
-            // Unparseable definition: leave existing start/deploy behaviour unchanged, but trace it —
-            // a corrupted definition silently bypasses the cluster binding guard.
-            log.warn("Unable to parse native API definition of API {}; skipping cluster binding validation", apiId, e);
-            return;
-        }
-        validateResolvable(apiId, environmentId, ClusterBoundApisQueryService.clusterUses(nativeDefinition, objectMapper));
     }
 
     /**
@@ -126,17 +120,6 @@ public class ValidateApiClusterBindingService {
             .ifPresent(reason -> {
                 throw new InvalidDataException("The API cannot be saved because " + reason + ".");
             });
-    }
-
-    private void validateMessageApiDeployable(String apiId, String environmentId, String apiDefinition) {
-        Api definition;
-        try {
-            definition = objectMapper.readValue(apiDefinition, Api.class);
-        } catch (JsonProcessingException e) {
-            log.warn("Unable to parse message API definition of API {}; skipping Kafka cluster binding validation", apiId, e);
-            return;
-        }
-        validateMessageApiStartable(apiId, environmentId, definition.getEndpointGroups());
     }
 
     private void validateMessageApiStartable(String apiId, String environmentId, List<EndpointGroup> endpointGroups) {
