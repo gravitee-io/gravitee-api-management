@@ -48,7 +48,12 @@ public class UpdateCredentialUseCase {
             credentialOwnerDomainService.ownerFor(actor, command.ownerId());
         }
         var changed = existing.update(command, TimeProvider.instantNow());
-        if (!changed.secretReferences().equals(existing.secretReferences())) {
+        // Where the secrets go and who controls that matter as much as the references: a new tokenUrl sends clientSecret elsewhere.
+        if (
+            !changed.secretReferences().equals(existing.secretReferences()) ||
+            !changed.configuration().equals(existing.configuration()) ||
+            !changed.ownerId().equals(existing.ownerId())
+        ) {
             changed.requireReferencesUsableBy(actor);
         }
         var updated = credentialCrudService.update(changed);

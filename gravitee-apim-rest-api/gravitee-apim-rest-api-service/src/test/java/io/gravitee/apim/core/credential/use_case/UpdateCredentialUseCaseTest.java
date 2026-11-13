@@ -30,6 +30,7 @@ import io.gravitee.apim.core.credential.exception.InvalidCredentialException;
 import io.gravitee.apim.core.credential.exception.SecretPermissionRequiredException;
 import io.gravitee.apim.core.credential.model.Credential;
 import io.gravitee.apim.core.credential.model.CredentialActor;
+import io.gravitee.apim.core.credential.model.CredentialStrategy;
 import io.gravitee.apim.core.credential.model.CredentialActor.SecretAccess;
 import io.gravitee.apim.core.credential.model.SecretReference;
 import io.gravitee.apim.core.credential.model.UpdateCredentialCommand;
@@ -111,6 +112,30 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
         var updated = update(fixture.ownerWithSecretAccess(), credential, c -> c.name("Renamed"));
 
         assertThat(updated.name()).isEqualTo("Renamed");
+    }
+
+    @Test
+    void should_require_the_secret_read_permission_to_change_the_settings_of_a_credential_pointing_at_gravitee_secrets() {
+        var credential = fixture.givenACredential(c ->
+            c
+                .strategy(CredentialStrategy.OAUTH2)
+                .configuration(Map.of("tokenUrl", "https://idp.example.com/token"))
+                .references(Map.of("clientId", "/gravitee/my-client:value", "clientSecret", "/gravitee/my-secret:value"))
+        );
+
+        assertThatThrownBy(() ->
+            update(fixture.ownerWithSecretAccess(), credential, c -> c.configuration(Map.of("tokenUrl", "https://elsewhere.example.com/token")))
+        ).isInstanceOf(SecretPermissionRequiredException.class);
+        assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
+    }
+
+    @Test
+    void should_require_the_secret_read_permission_to_hand_over_a_credential_pointing_at_gravitee_secrets() {
+        var credential = fixture.givenACredential(c -> c.references(Map.of("token", "/gravitee/my-secret:value")));
+
+        assertThatThrownBy(() -> update(fixture.ownerWithSecretAccess(), credential, c -> c.ownerId(OTHER_USER_ID))).isInstanceOf(
+            SecretPermissionRequiredException.class
+        );
     }
 
     @Test
