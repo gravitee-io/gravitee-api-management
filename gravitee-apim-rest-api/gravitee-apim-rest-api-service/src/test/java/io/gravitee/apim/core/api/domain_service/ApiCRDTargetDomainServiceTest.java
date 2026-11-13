@@ -24,8 +24,12 @@ import inmemory.ApiQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.rest.api.model.context.OriginContext;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class ApiCRDTargetDomainServiceTest {
 
@@ -62,6 +66,29 @@ class ApiCRDTargetDomainServiceTest {
         assertThat(cut.findExistingApi(ENV_ID, aSpec("api-id", null))).contains(named);
     }
 
+    @ParameterizedTest
+    @MethodSource("originsNotManagedByAutomation")
+    void should_refuse_an_id_that_names_an_api_not_managed_by_automation_when_the_spec_has_no_cross_id(OriginContext origin) {
+        apiCrudService.initWith(List.of(anApi("api-id", ENV_ID, null).toBuilder().originContext(origin).build()));
+
+        assertThatExceptionOfType(ValidationDomainException.class)
+            .isThrownBy(() -> cut.findExistingApi(ENV_ID, aSpec("api-id", null)))
+            .withMessageContaining("[api-id]")
+            .withMessageContaining("[" + origin.name() + "]");
+    }
+
+    @Test
+    void should_find_an_api_not_managed_by_automation_by_its_cross_id() {
+        var api = anApi("api-id", ENV_ID, "cross-id").toBuilder().originContext(new OriginContext.Management()).build();
+        apiCrudService.initWith(List.of(api));
+
+        assertThat(cut.findExistingApi(ENV_ID, aSpec("api-id", "cross-id"))).contains(api);
+    }
+
+    static Stream<OriginContext> originsNotManagedByAutomation() {
+        return Stream.of(new OriginContext.Management(), new OriginContext.Integration("integration-id"));
+    }
+
     @Test
     void should_find_nothing_without_cross_id_nor_id_even_when_an_api_has_no_cross_id() {
         apiCrudService.initWith(List.of(anApi("api-without-cross-id", ENV_ID, null)));
@@ -94,7 +121,13 @@ class ApiCRDTargetDomainServiceTest {
     }
 
     private static Api anApi(String id, String environmentId, String crossId) {
-        return aProxyApiV4().toBuilder().id(id).environmentId(environmentId).crossId(crossId).build();
+        return aProxyApiV4()
+            .toBuilder()
+            .id(id)
+            .environmentId(environmentId)
+            .crossId(crossId)
+            .originContext(new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED))
+            .build();
     }
 
     private static ApiCRDSpec aSpec(String id, String crossId) {
