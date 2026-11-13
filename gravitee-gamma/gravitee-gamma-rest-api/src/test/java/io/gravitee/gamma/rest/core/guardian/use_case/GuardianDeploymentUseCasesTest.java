@@ -21,6 +21,7 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDRAIL_PO
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aDeployGuardianUseCase;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aDisabledPolicy;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardedApi;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianDefinition;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianUsage;
@@ -41,8 +42,11 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.guardian.GuardianSteps;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.GuardianBuilder;
+import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyValidation;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
@@ -50,8 +54,11 @@ import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDraftDomainService;
+import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianUsageDomainService;
+import io.gravitee.gamma.rest.core.guardian.exception.GuardianInUseException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianWithoutEnabledGuardrailException;
+import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardedApiPort;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
@@ -750,6 +757,43 @@ class GuardianDeploymentUseCasesTest {
             "step [%s]".formatted(step),
             "policy [%s]".formatted(policy)
         );
+    }
+
+    /**
+     * A draft is free to move to another phase while no API runs the Guardian, and publishing it is what would move
+     * the step under the APIs the gateways run it for: their definitions name the phase the deployed revision
+     * declared, so those APIs would turn into APIs the gateways refuse.
+     */
+    @Test
+    void should_refuse_to_publish_a_draft_that_moved_where_its_apis_do_not_expect_it() {
+        var runningIt = new InMemoryGuardedApiPort();
+        var deployOnRunningApi = aDeployGuardianUseCase(
+            repository,
+            deploymentService,
+            audits.service,
+            new GuardianUsageDomainService(runningIt),
+            policyValidation
+        );
+        deployOnRunningApi.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null));
+        runningIt.givenApi(
+            aGuardedApi()
+                .name("Support assistant")
+                .internalFlow(Flow.builder().request(List.of(GuardianSteps.of(GUARDIAN_ID, "Credential leakage"))).build())
+                .build()
+        );
+        repository.update(aGuardian(d -> d.phase(Phase.RESPONSE)).build());
+
+        assertSoftly(softly -> {
+            softly
+                .assertThatThrownBy(() -> deployOnRunningApi.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null)))
+                .as("publishing a draft that left the phase its APIs run it on")
+                .isInstanceOf(GuardianInUseException.class)
+                .hasMessageContaining("1 API runs it");
+            softly
+                .assertThat(deployments.published(ENVIRONMENT_ID, GUARDIAN_ID).definition().getPhase())
+                .as("phase of the revision the APIs still run")
+                .isEqualTo(Phase.REQUEST);
+        });
     }
 
     private static Condition<Throwable> refusal(String description, String... expectedInMessage) {

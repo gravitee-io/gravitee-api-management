@@ -195,12 +195,23 @@ public final class GuardianFixtures {
         AuditDomainService audits,
         PolicyValidationDomainService policyValidation
     ) {
+        return aDeployGuardianUseCase(repository, deployments, audits, aGuardianUsage(), policyValidation);
+    }
+
+    /** The same, over an environment whose APIs are the ones this usage service reads. */
+    public static DeployGuardianUseCase aDeployGuardianUseCase(
+        GuardianRepository repository,
+        GuardianDeploymentDomainService deployments,
+        AuditDomainService audits,
+        GuardianUsageDomainService usage,
+        PolicyValidationDomainService policyValidation
+    ) {
         return new DeployGuardianUseCase(
             repository,
             deployments,
             audits,
             aGuardianValidator(repository, aPolicyPluginProvider(), policyValidation),
-            aGuardianUsage()
+            usage
         );
     }
 

@@ -47,8 +47,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * A Guardian enabled on an API keeps running there: it can be neither withdrawn nor deleted, and what decides where it
- * runs — its phase and its API types — cannot change under the APIs.
+ * A Guardian the gateways run for an API keeps running there: it can be neither withdrawn nor deleted, and what
+ * decides where it runs — its phase and its API types — cannot change under the APIs.
  */
 class GuardianInUseTest {
 
@@ -66,7 +66,7 @@ class GuardianInUseTest {
         .build();
 
     @BeforeEach
-    void given_a_guardian_enabled_on_an_api() {
+    void given_an_api_running_the_guardian() {
         apis.givenApi(
             aGuardedApi()
                 .name("Support assistant")
@@ -83,7 +83,7 @@ class GuardianInUseTest {
         assertThatThrownBy(() -> useCase.execute(new UndeployGuardianUseCase.Input(actor, GUARDIAN_ID)))
             .as("undeploying a guardian in use")
             .isInstanceOf(GuardianInUseException.class)
-            .hasMessageContaining("Support assistant");
+            .hasMessageContaining("1 API runs it");
         assertThat(publications.find(ENVIRONMENT_ID, GUARDIAN_ID)).as("publication").get().isInstanceOf(GuardianDeployment.Published.class);
     }
 

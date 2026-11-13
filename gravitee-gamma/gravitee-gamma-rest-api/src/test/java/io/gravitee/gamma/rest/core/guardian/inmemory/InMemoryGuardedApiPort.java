@@ -32,6 +32,10 @@ import java.util.Optional;
  * In-memory {@link GuardedApiPort} for domain tests, scoping every read on the environment the way the real
  * adapter does.
  *
+ * <p>An API runs the Guardians its internal flow names, here as in the store: the real adapter answers
+ * {@link #findByGuardian} from the index written beside the definition, this one reads the flow itself, and
+ * {@code GuardedApiPortContractTest} pins that the two agree.
+ *
  * @author GraviteeSource Team
  */
 public class InMemoryGuardedApiPort implements GuardedApiPort {
