@@ -27,6 +27,7 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.mongodb.management.internal.api.ApiMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -81,8 +82,21 @@ public class MongoApiRepository implements ApiRepository {
             throw new IllegalStateException(String.format("No api found with id [%s]", api.getId()));
         }
 
-        final ApiMongo apiMongoUpdated = internalApiRepo.save(mapApi(api));
+        final ApiMongo toSave = mapApi(api);
+        // The Guardian index is written with the definition alone; a full-document save would drop it.
+        toSave.setGuardians(apiMongo.getGuardians());
+        final ApiMongo apiMongoUpdated = internalApiRepo.save(toSave);
         return mapApi(apiMongoUpdated);
+    }
+
+    @Override
+    public boolean updateDefinition(String apiId, String definition, Set<String> guardianIds, Date updatedAt, Date expectedUpdatedAt)
+        throws TechnicalException {
+        try {
+            return internalApiRepo.updateDefinition(apiId, definition, guardianIds, updatedAt, expectedUpdatedAt);
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to update the definition of api " + apiId, ex);
+        }
     }
 
     @Override

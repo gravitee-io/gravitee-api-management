@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -49,4 +50,13 @@ public interface ApiMongoRepositoryCustom {
     Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable);
 
     Set<String> listCategories(ApiCriteria apiCriteria);
+
+    /**
+     * Sets the definition, the Guardian index and the update date of an API that still holds
+     * {@code expectedUpdatedAt}, and nothing else. A targeted update and not a {@code save}: a full document would
+     * carry back every field the caller read.
+     *
+     * @return whether a document matched and was written
+     */
+    boolean updateDefinition(String apiId, String definition, Set<String> guardianIds, Date updatedAt, Date expectedUpdatedAt);
 }
