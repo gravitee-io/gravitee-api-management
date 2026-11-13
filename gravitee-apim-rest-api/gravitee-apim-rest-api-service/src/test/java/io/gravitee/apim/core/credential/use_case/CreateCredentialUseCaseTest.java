@@ -332,12 +332,14 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
         void should_reject_a_command_with_both_references_and_values() {
             assertThatThrownBy(() -> fixture.givenACredential(c -> c.values(Map.of("token", "sk-1"))))
                 .isInstanceOf(InvalidCredentialException.class)
-                .hasMessageContaining("either");
+                .hasMessage("Give either references to existing secrets or values to store, not both.");
         }
 
         @Test
         void should_reject_a_command_with_neither_references_nor_values() {
-            assertThatThrownBy(() -> fixture.givenACredential(c -> c.references(null))).isInstanceOf(InvalidCredentialException.class);
+            assertThatThrownBy(() -> fixture.givenACredential(c -> c.references(null)))
+                .isInstanceOf(InvalidCredentialException.class)
+                .hasMessage("Give references to existing secrets or values to store.");
         }
 
         @Test

@@ -49,7 +49,10 @@ public record NewCredentialCommand(
         if (strategy == null) {
             throw new InvalidCredentialException("strategy is required.");
         }
-        if ((references == null) == (values == null)) {
+        if (references == null && values == null) {
+            throw new InvalidCredentialException("Give references to existing secrets or values to store.");
+        }
+        if (references != null && values != null) {
             throw new InvalidCredentialException("Give either references to existing secrets or values to store, not both.");
         }
         if (isManaged()) {
