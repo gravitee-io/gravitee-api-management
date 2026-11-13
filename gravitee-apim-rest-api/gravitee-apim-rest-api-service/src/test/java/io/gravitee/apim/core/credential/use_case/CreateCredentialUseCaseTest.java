@@ -388,23 +388,12 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
             );
         }
 
-        @Test
-        void should_reject_an_owner_from_another_organization() {
-            assertThatThrownBy(() -> fixture.givenACredential(c -> c.ownerId(FOREIGN_USER_ID)))
+        @ParameterizedTest
+        @ValueSource(strings = { FOREIGN_USER_ID, OUTSIDER_ID, "nobody" })
+        void should_give_the_same_reason_for_any_owner_who_is_not_a_member_of_the_environment(String ownerId) {
+            assertThatThrownBy(() -> fixture.givenACredential(c -> c.ownerId(ownerId)))
                 .isInstanceOf(InvalidCredentialException.class)
-                .hasMessageContaining(FOREIGN_USER_ID);
-        }
-
-        @Test
-        void should_reject_an_owner_without_access_to_the_environment() {
-            assertThatThrownBy(() -> fixture.givenACredential(c -> c.ownerId(OUTSIDER_ID)))
-                .isInstanceOf(InvalidCredentialException.class)
-                .hasMessage("Owner " + OUTSIDER_ID + " has no access to this environment.");
-        }
-
-        @Test
-        void should_reject_an_unknown_owner() {
-            assertThatThrownBy(() -> fixture.givenACredential(c -> c.ownerId("nobody"))).isInstanceOf(InvalidCredentialException.class);
+                .hasMessage("Owner " + ownerId + " is not a member of this environment.");
         }
 
         @Test

@@ -40,15 +40,20 @@ public class CredentialOwnerDomainService {
             .filter(user -> actor.organizationId().equals(user.getOrganizationId()))
             .isPresent();
         if (!isMember) {
-            throw new InvalidCredentialException("Owner " + requestedOwnerId + " is not a user of this organization.");
+            throw notAMember(requestedOwnerId);
         }
         var hasAccess = membershipQueryService
             .findByMemberIdAndMemberTypeAndReferenceType(requestedOwnerId, Membership.Type.USER, Membership.ReferenceType.ENVIRONMENT)
             .stream()
             .anyMatch(membership -> actor.environmentId().equals(membership.getReferenceId()));
         if (!hasAccess) {
-            throw new InvalidCredentialException("Owner " + requestedOwnerId + " has no access to this environment.");
+            throw notAMember(requestedOwnerId);
         }
         return requestedOwnerId;
+    }
+
+    // One reason for every refusal, so the answer does not tell a caller which user ids exist.
+    private static InvalidCredentialException notAMember(String ownerId) {
+        return new InvalidCredentialException("Owner " + ownerId + " is not a member of this environment.");
     }
 }
