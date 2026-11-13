@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.infra.config;
 
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.AgentProviderPluginProvider;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.infra.service_provider.gravitee_plugin.DefaultAgentProviderPluginProvider;
@@ -24,9 +25,15 @@ import io.gravitee.plugin.agentprovider.AgentProviderPlugin;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
 
 @Configuration
+@ComponentScan(
+    basePackages = "io.gravitee.gamma.rest.core.gravitee_plugin",
+    includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, value = UseCase.class)
+)
 public class GammaPluginsConfiguration {
 
     @Bean

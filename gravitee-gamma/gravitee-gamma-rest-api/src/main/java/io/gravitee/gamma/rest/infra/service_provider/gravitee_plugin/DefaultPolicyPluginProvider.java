@@ -20,18 +20,38 @@ import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.DeclaredFlows;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.GuardrailProtocol;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.PlatformPolicyPlugin;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gateway.reactive.api.policy.guardrail.GuardrailPolicy;
+import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public class DefaultPolicyPluginProvider extends AbstractPluginProvider<PolicyPlugin<?>> implements PolicyPluginProvider {
+
+    /** The manifest keys an older plugin declares its HTTP phases with, read only when the flow's own key declares nothing. */
+    private static final Map<ApiProtocolType, String> DEPRECATED_FLOW_KEYS = Map.of(
+        ApiProtocolType.HTTP_PROXY,
+        "proxy",
+        ApiProtocolType.HTTP_MESSAGE,
+        "message"
+    );
 
     public DefaultPolicyPluginProvider(ConfigurablePluginManager<PolicyPlugin<?>> pluginManager, LicenseManager licenseManager) {
         super(pluginManager, licenseManager);
@@ -51,6 +71,60 @@ public class DefaultPolicyPluginProvider extends AbstractPluginProvider<PolicyPl
                     )
                 )
             );
+    }
+
+    /** Filters before converting: the policies left out are not converted, their icon not read. */
+    @Override
+    public List<PlatformPolicyPlugin> findAllPolicies(String organizationId, Predicate<DeclaredFlows> filter) {
+        var license = license(organizationId);
+        var policies = new ArrayList<PlatformPolicyPlugin>();
+        for (var plugin : pluginManager.findAll(true)) {
+            var flows = flows(plugin.manifest().properties());
+            if (filter.test(flows)) {
+                policies.add(toPolicy(plugin, flows, license));
+            }
+        }
+        return policies;
+    }
+
+    @Override
+    public PlatformPolicyPlugin findPolicyById(String organizationId, String policyId) {
+        var plugin = getPlugin(policyId);
+        return toPolicy(plugin, flows(plugin.manifest().properties()), license(organizationId));
+    }
+
+    private PlatformPolicyPlugin toPolicy(PolicyPlugin<?> plugin, DeclaredFlows flows, License license) {
+        return new PlatformPolicyPlugin(convert(plugin, license), flows);
+    }
+
+    /** The phases of each flow the manifest declares ({@code llm_proxy=REQUEST,RESPONSE}), trimmed but neither validated nor reduced. */
+    private static DeclaredFlows flows(Map<String, String> properties) {
+        var flows = new EnumMap<ApiProtocolType, List<String>>(ApiProtocolType.class);
+        if (properties == null) {
+            return new DeclaredFlows(flows);
+        }
+        for (var flow : ApiProtocolType.values()) {
+            declaredPhases(properties, flow).ifPresent(phases ->
+                flows.put(
+                    flow,
+                    Arrays.stream(phases.split(","))
+                        .map(String::trim)
+                        .filter(phase -> !phase.isEmpty())
+                        .distinct()
+                        .toList()
+                )
+            );
+        }
+        return new DeclaredFlows(flows);
+    }
+
+    /** The first non-blank value between the key of the flow and its deprecated key. */
+    private static Optional<String> declaredPhases(Map<String, String> properties, ApiProtocolType flow) {
+        return Stream.of(flow.name().toLowerCase(Locale.ROOT), DEPRECATED_FLOW_KEYS.get(flow))
+            .filter(Objects::nonNull)
+            .map(properties::get)
+            .filter(phases -> phases != null && !phases.isBlank())
+            .findFirst();
     }
 
     /**

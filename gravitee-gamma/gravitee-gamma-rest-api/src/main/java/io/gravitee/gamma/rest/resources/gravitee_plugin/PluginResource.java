@@ -28,4 +28,9 @@ public class PluginResource {
     public AgentProviderPluginResource getAgentProviderPluginResource() {
         return resourceContext.getResource(AgentProviderPluginResource.class);
     }
+
+    @Path("/policies")
+    public PolicyPluginResource getPolicyPluginResource() {
+        return resourceContext.getResource(PolicyPluginResource.class);
+    }
 }
