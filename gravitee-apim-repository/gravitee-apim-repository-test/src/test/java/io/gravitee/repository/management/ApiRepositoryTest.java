@@ -136,6 +136,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
             .labels(List.of())
             .categories(Set.of())
             .groups(Set.of())
+            .guardians(Set.of())
             .apiLifecycleState(CREATED)
             .syncFrom("MANAGEMENT")
             .build();
@@ -1018,5 +1019,102 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(beforeDeletion.size(), deleted.size());
         assertTrue(deleted.containsAll(beforeDeletion));
         assertEquals(0, nbAfterDeletion);
+    }
+
+    @Test
+    public void should_read_the_guardians_an_api_runs() throws TechnicalException {
+        assertThat(apiRepository.findById("api-to-findById"))
+            .get()
+            .extracting(Api::getGuardians)
+            .as("guardians of api-to-findById")
+            .isEqualTo(Set.of("guardian-1", "guardian-2"));
+    }
+
+    @Test
+    public void should_find_the_apis_of_an_environment_running_a_guardian() {
+        List<Api> apis = apiRepository.search(
+            new ApiCriteria.Builder().environmentId("DEFAULT").guardian("guardian-1").build(),
+            ApiFieldFilter.defaultFields()
+        );
+
+        assertThat(apis)
+            .extracting(Api::getId)
+            .as("APIs of DEFAULT running guardian-1")
+            .containsExactlyInAnyOrder("api-to-findById", "grouped-api");
+    }
+
+    @Test
+    public void should_find_the_apis_running_a_guardian_whatever_their_environment() {
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().guardian("guardian-1").build(), ApiFieldFilter.defaultFields());
+
+        assertThat(apis)
+            .extracting(Api::getId)
+            .as("APIs running guardian-1")
+            .containsExactlyInAnyOrder("api-to-findById", "grouped-api", "big-name");
+    }
+
+    @Test
+    public void should_find_no_api_for_a_guardian_no_api_runs() {
+        List<Api> apis = apiRepository.search(
+            new ApiCriteria.Builder().guardian("unknown-guardian").build(),
+            ApiFieldFilter.defaultFields()
+        );
+
+        assertThat(apis).as("APIs running unknown-guardian").isEmpty();
+    }
+
+    @Test
+    public void should_search_the_ids_of_the_apis_running_a_guardian() {
+        Page<String> apiIds = apiRepository.searchIds(
+            List.of(new ApiCriteria.Builder().guardian("guardian-2").build()),
+            new PageableBuilder().pageNumber(0).pageSize(10).build(),
+            null
+        );
+
+        assertThat(apiIds.getContent()).as("ids of the APIs running guardian-2").containsExactly("api-to-findById");
+    }
+
+    /** A listing answers with the Guardians of each API it returns, the same way a read of one of them does. */
+    @Test
+    public void should_read_the_guardians_of_every_api_of_a_search() {
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().build(), ApiFieldFilter.defaultFields());
+
+        assertThat(apis)
+            .as("APIs of the environment")
+            .hasSizeGreaterThan(1)
+            .filteredOn(api -> api.getId().equals("api-to-findById"))
+            .singleElement()
+            .extracting(Api::getGuardians)
+            .as("guardians of an API of the listing")
+            .isEqualTo(Set.of("guardian-1", "guardian-2"));
+    }
+
+    /** The index of an API running none answers as empty, whichever store holds it — a caller reads it, not a null. */
+    @Test
+    public void should_read_no_guardian_from_an_api_running_none() throws TechnicalException {
+        Api api = apiRepository.findById("api-with-categories").orElseThrow();
+
+        assertThat(api.getGuardians()).as("guardians of an API running none").isNullOrEmpty();
+    }
+
+    /**
+     * The index is written by the write that replaces a definition, not by a save of the API: an update that never
+     * read it must leave it alone rather than empty it, or the refusal to withdraw a Guardian an API runs would stop
+     * refusing on the next save of any API. Both stores have to answer the same here — a full-document store is where
+     * this silently went wrong.
+     */
+    @Test
+    public void should_keep_the_guardians_an_api_runs_when_the_api_is_updated_without_them() throws TechnicalException {
+        Api api = apiRepository.findById("api-to-findById").orElseThrow();
+        api.setGuardians(null);
+        api.setDescription("Updated without reading the index");
+
+        apiRepository.update(api);
+
+        assertThat(apiRepository.findById("api-to-findById"))
+            .get()
+            .extracting(Api::getGuardians)
+            .as("guardians of api-to-findById after an update that left the index out")
+            .isEqualTo(Set.of("guardian-1", "guardian-2"));
     }
 }

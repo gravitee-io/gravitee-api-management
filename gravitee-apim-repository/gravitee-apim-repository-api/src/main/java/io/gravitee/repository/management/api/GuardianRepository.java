@@ -23,11 +23,21 @@ import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Guardian;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author GraviteeSource Team
  */
 public interface GuardianRepository extends CrudRepository<Guardian, String> {
+    /**
+     * Returns requested Guardians in the environment; missing ids are ignored and empty ids return no rows.
+     *
+     * <p>Not paged: its caller validates a sequence and needs every answer to decide, so half of it decides nothing.
+     * The length of that sequence is bounded where it is built, but a store still batches the ids rather than relying
+     * on a bound that belongs to a caller and not to this contract.
+     */
+    List<Guardian> findByEnvironmentIdAndIds(String environmentId, Set<String> guardianIds) throws TechnicalException;
+
     /** Atomically advances updatedAt within the environment without replacing any other field. */
     void updateUpdatedAt(String environmentId, String guardianId, Date updatedAt) throws TechnicalException;
 

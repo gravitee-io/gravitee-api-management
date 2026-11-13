@@ -81,7 +81,13 @@ public class MongoApiRepository implements ApiRepository {
             throw new IllegalStateException(String.format("No api found with id [%s]", api.getId()));
         }
 
-        final ApiMongo apiMongoUpdated = internalApiRepo.save(mapApi(api));
+        final ApiMongo toSave = mapApi(api);
+        if (api.getGuardians() == null) {
+            // A null index means "not provided", not "no Guardian": a writer that never read the field must not drop
+            // the rows a deployment put there. A full-document save would, so the stored value is carried over.
+            toSave.setGuardians(apiMongo.getGuardians());
+        }
+        final ApiMongo apiMongoUpdated = internalApiRepo.save(toSave);
         return mapApi(apiMongoUpdated);
     }
 

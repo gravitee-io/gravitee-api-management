@@ -40,6 +40,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -159,6 +160,9 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
                     }
                     if (apiCriteria.getCategory() != null && !apiCriteria.getCategory().isEmpty()) {
                         criteria.add(where("categories").in(apiCriteria.getCategory()));
+                    }
+                    if (apiCriteria.getGuardian() != null && !apiCriteria.getGuardian().isEmpty()) {
+                        criteria.add(where("guardians").is(apiCriteria.getGuardian()));
                     }
                     if (apiCriteria.getVisibility() != null) {
                         criteria.add(where("visibility").is(apiCriteria.getVisibility()));
