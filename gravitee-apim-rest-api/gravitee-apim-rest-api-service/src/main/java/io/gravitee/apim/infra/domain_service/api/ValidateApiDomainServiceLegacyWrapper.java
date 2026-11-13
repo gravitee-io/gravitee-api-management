@@ -22,6 +22,7 @@ import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
+import io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.ApiResourceNames;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
@@ -59,6 +60,7 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
     private final ResourcesValidationService resourcesValidationService;
     private final ApiLifecycleStateDomainService apiLifecycleStateDomainService;
     private final ClusterBindingPermissionDomainService clusterBindingPermissionDomainService;
+    private final ValidateApiClusterBindingService validateApiClusterBindingService;
 
     @Override
     public Api validateAndSanitizeForCreation(Api api, PrimaryOwnerEntity primaryOwner, String environmentId, String organizationId) {
@@ -168,6 +170,7 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
             newApi.setApiDefinitionValue(validateAndSanitizeNativeV4Definition(nativeApi, executionContext));
 
             validateClusterBindingPermission(executionContext, null, nativeApi);
+            validateApiClusterBindingService.validateSavable(environmentId, ApiType.NATIVE, null, nativeApi.getEndpointGroups());
         } else {
             throw new ValidationDomainException("Api type not supported, should be NATIVE");
         }
@@ -210,6 +213,12 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         NativeApi newDefinition = validateAndSanitizeNativeV4Definition(nativeApiToBeUpdated, executionContext);
 
         validateClusterBindingPermission(executionContext, existingApi.getApiDefinitionNativeV4(), newDefinition);
+        validateApiClusterBindingService.validateSavable(
+            environmentId,
+            ApiType.NATIVE,
+            existingApi.getApiDefinitionNativeV4() == null ? null : existingApi.getApiDefinitionNativeV4().getEndpointGroups(),
+            newDefinition.getEndpointGroups()
+        );
 
         toBeUpdatedApi.setApiDefinitionValue(newDefinition);
 

@@ -219,14 +219,6 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
         existingApi.ifPresent(api ->
             membersDomainService.checkApiMembersUpdate(input.auditInfo(), api.getId(), sanitizedSpec.getMembers())
         );
-        int errorsBeforeBindings = errors.size();
-        if (apiType(sanitizedSpec) == ApiType.MESSAGE) {
-            try {
-                kafkaClusterBindingValidator.validate(input.auditInfo().environmentId(), httpEndpointGroups(sanitizedSpec));
-            } catch (InvalidDataException e) {
-                errors.add(Error.severe(e.getMessage()));
-            }
-        }
         clusterBindingPermissionDomainService.validate(
             input.auditInfo().organizationId(),
             input.auditInfo().environmentId(),
@@ -236,6 +228,31 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
             apiType(sanitizedSpec),
             sanitizedSpec.getEndpointGroups()
         );
+        int errorsBeforeBindings = errors.size();
+        if (apiType(sanitizedSpec) == ApiType.MESSAGE) {
+            try {
+                kafkaClusterBindingValidator.validate(
+                    input.auditInfo().environmentId(),
+                    existingApi
+                        .map(Api::getApiDefinitionHttpV4)
+                        .map(definition -> definition.getEndpointGroups())
+                        .orElse(null),
+                    httpEndpointGroups(sanitizedSpec)
+                );
+            } catch (InvalidDataException e) {
+                errors.add(Error.severe(e.getMessage()));
+            }
+        }
+        try {
+            apiClusterBindingValidator.validateSavable(
+                input.auditInfo().environmentId(),
+                apiType(sanitizedSpec),
+                existingApi.map(Api::getApiDefinitionNativeV4).map(NativeApi::getEndpointGroups).orElse(null),
+                sanitizedSpec.getEndpointGroups()
+            );
+        } catch (InvalidDataException e) {
+            errors.add(Error.severe(e.getMessage()));
+        }
         if (sanitizedSpec.getState() != null && !isLifecycleState(sanitizedSpec.getState())) {
             errors.add(Error.severe("State [%s] is invalid, expected STARTED or STOPPED", sanitizedSpec.getState()));
         }
