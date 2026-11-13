@@ -23,6 +23,7 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aDeployGuard
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aDisabledPolicy;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianDefinition;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianUsage;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidator;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidatorAgainst;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aPolicy;
@@ -85,7 +86,12 @@ class GuardianDeploymentUseCasesTest {
     private final GuardianPublicationFixture deployments = new GuardianPublicationFixture();
     private final GuardianAuditFixture audits = new GuardianAuditFixture();
     private final GuardianDeploymentDomainService deploymentService = deployments.service(repository);
-    private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(repository, deploymentService, audits.service);
+    private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(
+        repository,
+        deploymentService,
+        audits.service,
+        aGuardianUsage()
+    );
 
     /** The schema answers, which a test installs to make a stored draft non-conforming. */
     private final InMemoryPolicyValidation policyValidation = new InMemoryPolicyValidation();
@@ -94,7 +100,7 @@ class GuardianDeploymentUseCasesTest {
     private final UpdateGuardianUseCase update = new UpdateGuardianUseCase(
         repository,
         aGuardianValidator(),
-        new GuardianDraftDomainService(repository, aGuardianValidator(), audits.service, deploymentService)
+        new GuardianDraftDomainService(repository, aGuardianValidator(), audits.service, deploymentService, aGuardianUsage())
     );
     private final AuditInfo actor = AuditInfo.builder()
         .organizationId(ORGANIZATION_ID)
@@ -332,7 +338,8 @@ class GuardianDeploymentUseCasesTest {
             repository,
             deploymentService,
             audits.service,
-            aGuardianValidatorAgainst(installed)
+            aGuardianValidatorAgainst(installed),
+            aGuardianUsage()
         );
 
         assertRefused(
@@ -436,7 +443,7 @@ class GuardianDeploymentUseCasesTest {
     @Test
     void should_refuse_to_deploy_a_guardian_whose_guardrail_no_longer_declares_the_guardian_phase() {
         var downgraded = aGuardianValidatorAgainst(Map.of(GUARDRAIL_POLICY, new PolicyCapabilities(true, flows())));
-        var deployAgainstRegistry = new DeployGuardianUseCase(repository, deploymentService, audits.service, downgraded);
+        var deployAgainstRegistry = new DeployGuardianUseCase(repository, deploymentService, audits.service, downgraded, aGuardianUsage());
 
         assertSoftly(softly -> {
             softly

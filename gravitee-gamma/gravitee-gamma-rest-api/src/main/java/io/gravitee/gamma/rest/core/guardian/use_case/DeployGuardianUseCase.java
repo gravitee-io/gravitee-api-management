@@ -21,10 +21,12 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
+import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianUsageDomainService;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
+import io.gravitee.gamma.rest.core.guardian.model.GuardianDeployment;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
 import java.time.ZoneOffset;
 import java.util.Map;
@@ -57,6 +59,7 @@ public class DeployGuardianUseCase {
     private final GuardianDeploymentDomainService deployments;
     private final AuditDomainService auditDomainService;
     private final ValidateGuardianDomainService validateGuardian;
+    private final GuardianUsageDomainService usage;
 
     public Output execute(Input input) {
         var guardian = find(input);
@@ -64,7 +67,12 @@ public class DeployGuardianUseCase {
         // what is wrong with a sequence they may not have written in this session
         validateGuardian.validateDeployable(guardian);
         validateGuardian.validateStoredAgainstInstalledPlugins(guardian);
+        var current = deployments.current(guardian);
+        usage.ensurePublishableWhereItRuns(guardian, current);
         var publication = deployments.publish(guardian, input.deploymentLabel(), input.auditInfo());
+        if (current instanceof GuardianDeployment.Published replaced) {
+            usage.ensureStillPublishableWhereItRuns(guardian, replaced, () -> deployments.restore(replaced, input.auditInfo()));
+        }
         auditDomainService.createEnvironmentAuditLog(
             EnvironmentAuditLogEntity.builder()
                 .organizationId(input.auditInfo().organizationId())

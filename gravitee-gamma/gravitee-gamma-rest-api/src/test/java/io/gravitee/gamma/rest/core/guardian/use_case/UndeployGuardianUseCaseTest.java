@@ -18,8 +18,11 @@ package io.gravitee.gamma.rest.core.guardian.use_case;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ENVIRONMENT_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDIAN_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION_ID;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardedApi;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianDefinition;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianUsage;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianUsageRunning;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
@@ -29,15 +32,22 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.guardian.GuardianSteps;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
+import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianUsageDomainService;
+import io.gravitee.gamma.rest.core.guardian.exception.GuardianInUseException;
+import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardedApiPort;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
+import io.gravitee.gamma.rest.core.guardian.model.GuardianDeployment;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,7 +78,54 @@ class UndeployGuardianUseCaseTest {
     }
 
     private UndeployGuardianUseCase useCase(InMemoryGuardianRepository store, GuardianPublicationFixture events) {
-        return new UndeployGuardianUseCase(store, events.service(store), audits.service);
+        return new UndeployGuardianUseCase(store, events.service(store), audits.service, aGuardianUsage());
+    }
+
+    @Test
+    void should_refuse_to_undeploy_a_guardian_an_api_runs() {
+        var useCase = new UndeployGuardianUseCase(
+            repository,
+            publications.service(repository),
+            audits.service,
+            aGuardianUsageRunning(GUARDIAN_ID)
+        );
+
+        assertThatThrownBy(() -> useCase.execute(new UndeployGuardianUseCase.Input(actor, GUARDIAN_ID)))
+            .as("undeploying a guardian in use")
+            .isInstanceOf(GuardianInUseException.class)
+            .hasMessageContaining("1 API runs it");
+        assertThat(publications.find(ENVIRONMENT_ID, GUARDIAN_ID)).as("publication").get().isInstanceOf(GuardianDeployment.Published.class);
+    }
+
+    /**
+     * An API turning the Guardian on between the usage check and the withdrawal: the API side checks the Guardian after
+     * its own write, but it may have checked before this withdrawal landed, so this side has to look again too.
+     */
+    @Test
+    void should_keep_the_guardian_deployed_when_an_api_turned_it_on_while_it_was_withdrawn() {
+        var apis = new InMemoryGuardedApiPort();
+        var useCase = new UndeployGuardianUseCase(
+            repository,
+            publications.service(repository),
+            audits.service,
+            new GuardianUsageDomainService(apis)
+        );
+        publications.beforeWithdrawal = () ->
+            apis.givenApi(
+                aGuardedApi()
+                    .internalFlow(Flow.builder().request(List.of(GuardianSteps.of(GUARDIAN_ID, "Credential leakage"))).build())
+                    .build()
+            );
+
+        assertThatThrownBy(() -> useCase.execute(new UndeployGuardianUseCase.Input(actor, GUARDIAN_ID)))
+            .as("undeploying a guardian an API turned on meanwhile")
+            .isInstanceOf(GuardianInUseException.class);
+        assertThat(publications.find(ENVIRONMENT_ID, GUARDIAN_ID))
+            .as("deployment the gateways run once the withdrawal is undone")
+            .get()
+            .isInstanceOfSatisfying(GuardianDeployment.Published.class, published ->
+                assertThat(published.definition()).as("definition published again").isEqualTo(aGuardianDefinition().build())
+            );
     }
 
     /**

@@ -20,8 +20,10 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDIAN_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDRAIL_POLICY;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aDeployGuardianUseCase;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardedApi;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianDefinition;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianUsage;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidator;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aPolicyPluginProvider;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,19 +36,25 @@ import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.guardian.GuardianSteps;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyValidation;
 import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDraftDomainService;
+import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianUsageDomainService;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianDeploymentNotFoundException;
+import io.gravitee.gamma.rest.core.guardian.exception.GuardianInUseException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianOverwriteOvertakenException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianVersionConflictException;
+import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardedApiPort;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.CreateGuardian;
 import io.gravitee.gamma.rest.core.guardian.model.DraftPrecondition;
@@ -78,14 +86,16 @@ class RollbackGuardianUseCaseTest {
     private final InMemoryPolicyValidation policyValidation = new InMemoryPolicyValidation();
 
     private final ValidateGuardianDomainService validator = aGuardianValidator(repository, aPolicyPluginProvider(), policyValidation);
+    private final GuardianUsageDomainService usage = aGuardianUsage();
     private final GuardianDraftDomainService drafts = new GuardianDraftDomainService(
         repository,
         validator,
         audits.service,
-        deploymentService
+        deploymentService,
+        usage
     );
     private final DeployGuardianUseCase deploy = aDeployGuardianUseCase(repository, deploymentService, audits.service);
-    private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(repository, deploymentService, audits.service);
+    private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(repository, deploymentService, audits.service, usage);
     private final UpdateGuardianUseCase update = new UpdateGuardianUseCase(repository, validator, drafts);
     private final RollbackGuardianUseCase rollback = new RollbackGuardianUseCase(repository, validator, publications.store(), drafts);
     private final AuditInfo actor = AuditInfo.builder()
@@ -299,6 +309,35 @@ class RollbackGuardianUseCaseTest {
             ConstraintViolationException.class
         );
         assertThat(audits.storage()).as("no audit recorded").isEmpty();
+    }
+
+    /**
+     * The revision goes through the update path, so it is refused as an update would be: what decides where a
+     * Guardian runs cannot change under the APIs running it.
+     */
+    @Test
+    void should_refuse_a_revision_of_another_phase_while_an_api_runs_the_guardian() {
+        repository.update(aGuardian(definition -> definition.name("First name").phase(Phase.REQUEST)).build());
+        var first = deployRevision();
+        repository.update(aGuardian(definition -> definition.name("First name").phase(Phase.RESPONSE)).build());
+        deployRevision();
+        var apis = new InMemoryGuardedApiPort();
+        apis.givenApi(
+            aGuardedApi().internalFlow(Flow.builder().response(List.of(GuardianSteps.of(GUARDIAN_ID, "First name"))).build()).build()
+        );
+        var rollbackWhereApisRun = new RollbackGuardianUseCase(
+            repository,
+            validator,
+            publications.store(),
+            new GuardianDraftDomainService(repository, validator, audits.service, deploymentService, new GuardianUsageDomainService(apis))
+        );
+
+        assertThatThrownBy(() -> rollbackWhereApisRun.execute(new RollbackGuardianUseCase.Input(actor, GUARDIAN_ID, first)))
+            .as("rolling back to a revision of another phase a guardian an API runs")
+            .isInstanceOf(GuardianInUseException.class);
+        assertThat(repository.findByEnvironmentId(ENVIRONMENT_ID, GUARDIAN_ID))
+            .as("draft unchanged")
+            .hasValueSatisfying(stored -> assertThat(stored.getDefinition().getPhase()).isEqualTo(Phase.RESPONSE));
     }
 
     @Test
