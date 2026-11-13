@@ -24,9 +24,9 @@ import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardedApiPort
 import lombok.RequiredArgsConstructor;
 
 /**
- * Refuses the changes an API running a Guardian cannot follow. An API runs a Guardian as soon as its current
- * definition enables it, deployed or not: the next deployment of the API would otherwise ship a step the gateways
- * refuse.
+ * Refuses the changes an API running a Guardian cannot follow. An API runs a Guardian as soon as its definition
+ * names it: withdrawing it then stops the traffic of an API nobody touched, which is the failure this refusal exists
+ * for.
  *
  * @author GraviteeSource Team
  */
@@ -34,19 +34,19 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class GuardianUsageDomainService {
 
-    private static final int NAMED_IN_THE_MESSAGE = 10;
-
     private final GuardedApiPort apis;
 
     /**
      * @param refusedChange what is refused, which the exception turns into words.
-     * @throws GuardianInUseException naming the first APIs running it, and how many more there are: a Guardian of an
-     *     environment may be enabled on as many APIs as the environment holds, and the message is read by a person.
+     * @throws GuardianInUseException counting the APIs running it. It does not name them: this runs in the domain,
+     *     which has no caller to filter the names against, and the Guardian permission of an environment is not a
+     *     right to read every API of it.
      */
     public void ensureUnused(Guardian guardian, RefusedChange refusedChange) {
-        var using = apis.findByGuardian(guardian.getEnvironmentId(), guardian.getId(), 1, NAMED_IN_THE_MESSAGE);
+        // One row is enough to refuse; the count comes with it either way.
+        var using = apis.findByGuardian(guardian.getEnvironmentId(), guardian.getId(), 1, 1);
         if (using.getTotalElements() > 0) {
-            throw new GuardianInUseException(guardian.getId(), refusedChange, using.getContent(), using.getTotalElements());
+            throw new GuardianInUseException(guardian.getId(), refusedChange, using.getTotalElements());
         }
     }
 

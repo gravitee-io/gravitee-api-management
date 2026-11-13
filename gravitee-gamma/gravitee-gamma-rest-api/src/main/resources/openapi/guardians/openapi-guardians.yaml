@@ -65,6 +65,12 @@ paths:
                 Paged and searchable by name. `q` is matched as **literal text**, not as a pattern:
                 the two storage backends match it differently under the hood, so it is escaped
                 before it reaches either.
+
+                **There is no filter on `lifecycleState` or on `apiTypes` yet**, so a caller offering
+                "the deployed Guardians this API can run" filters the page it received, and only that
+                page. Neither can be pushed to the store as it stands: the deployed state is derived
+                from the deployment history rather than stored, and `apiTypes` lives inside the
+                serialized definition rather than in a column.
             operationId: searchGuardians
             parameters:
                 - name: q
@@ -341,6 +347,16 @@ paths:
                         `Credential leakage`, `credential leakage` and ` Credential leakage ` are the
                         same name here.
 
+                        Also answered while an API runs the Guardian and the payload moves it to
+                        another phase or to other API types: what decides where a Guardian runs cannot
+                        change under the APIs running it. Every other part of the definition stays
+                        editable.
+
+                        **The message counts those APIs, it does not name them.** It is built in the
+                        domain, which has no caller to filter names against, and holding
+                        `ENVIRONMENT_GUARDIAN` is not a right to read every API of the environment.
+                        `GET /guardians/{guardianId}/apis` names the ones the caller may read.
+
                         Also answered to an `If-Match: *` update that other writers overtook on each
                         of its attempts: nothing was stored, and the update can be tried again.
                     content:
@@ -378,10 +394,8 @@ paths:
             description: |
                 Refuses deletion with 409 while the Guardian has an active publication, whether its
                 draft is DEPLOYED or PENDING. Deleting an unpublished draft does not withdraw an event.
-                The PRD's rule — refusing to delete a Guardian that is enabled
-                on an API, with the list of those APIs — is **not implemented yet**: the association
-                between an API and a Guardian lands with AIAM-1533, so there is nothing to look it
-                up in.
+                Refuses it with 409 as well while an API runs the Guardian, counting those APIs in the
+                message: an API runs it as soon as its definition names it.
             operationId: deleteGuardian
             responses:
                 "204":
@@ -391,7 +405,10 @@ paths:
                 "404":
                     $ref: "#/components/responses/NotFound"
                 "409":
-                    description: The Guardian has an active publication and cannot be deleted.
+                    description: |
+                        The Guardian has an active publication, or APIs run it, and cannot be deleted. A message about
+                        APIs counts them rather than naming them; `GET /guardians/{guardianId}/apis` names the ones
+                        the caller may read.
                     content:
                         application/json:
                             schema:
@@ -454,6 +471,15 @@ paths:
                     $ref: "#/components/responses/Forbidden"
                 "404":
                     $ref: "#/components/responses/NotFound"
+                "409":
+                    description: |
+                        An API runs the Guardian and the draft moves it to another phase or to other API
+                        types: publishing it would hand those APIs a Guardian the gateways refuse to run
+                        there. The message counts those APIs, it does not name them.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
 
     /organizations/{orgId}/environments/{envId}/guardians/{guardianId}/_undeploy:
         parameters:
@@ -470,6 +496,9 @@ paths:
                 updatedAt when a publication is withdrawn. Already undeployed Guardians are returned
                 unchanged without another event or audit entry. The returned UNDEPLOYED state is
                 not an acknowledgement from each gateway.
+
+                Refused with 409 while an API runs the Guardian, counting those APIs in the message:
+                withdrawing it would stop the traffic of every API the gateways run it for.
             operationId: undeployGuardian
             responses:
                 "200":
@@ -481,6 +510,65 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Guardian"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+                "409":
+                    description: An API enables the Guardian, which therefore cannot be withdrawn.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /organizations/{orgId}/environments/{envId}/guardians/{guardianId}/apis:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/guardianIdParam"
+        get:
+            tags:
+                - Guardians
+            summary: List the APIs running the Guardian
+            description: |
+                Requires ENVIRONMENT_GUARDIAN READ. The APIs of the environment whose definition runs
+                this Guardian, by name — an API runs it as soon as its definition names it.
+
+                These are the APIs the refusals count: while any API runs the Guardian it cannot be
+                deleted, cannot be withdrawn, and cannot be moved to another phase or to other API
+                types.
+
+                **Only the APIs the caller may read are named.** Holding `ENVIRONMENT_GUARDIAN` is not
+                a right to read every API of the environment, so a page drops the APIs the caller has
+                no `API_DEFINITION[READ]` on. `total` still counts every API running the Guardian, so
+                a page can hold fewer rows than `total` and `perPage` suggest — a non-empty refusal
+                with an empty page means other people's APIs run it.
+            operationId: listGuardianApis
+            parameters:
+                - name: page
+                  in: query
+                  required: false
+                  description: 1-based page number; a value of 0 or less serves the first page.
+                  schema:
+                      type: integer
+                      default: 1
+                - name: perPage
+                  in: query
+                  required: false
+                  description: |
+                      APIs per page. Capped at 100; a value above the cap is served as 100, and a value
+                      of 0 or less falls back to the default. The `perPage` reported in the response is
+                      always the size actually served.
+                  schema:
+                      type: integer
+                      default: 10
+            responses:
+                "200":
+                    description: A page of the APIs running the Guardian.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GuardianApisResponse"
                 "403":
                     $ref: "#/components/responses/Forbidden"
                 "404":
@@ -624,6 +712,10 @@ paths:
                         Another Guardian of the environment holds the name of the revision. Also answered
                         when other writers overtook the rollback on each of its attempts: the draft is
                         left as they stored it, and the rollback can be tried again.
+
+                        Also answered while an API runs the Guardian and the revision moves it to another
+                        phase or to other API types, as an update of the Guardian would be. The message
+                        counts those APIs, it does not name them.
                     content:
                         application/json:
                             schema:
@@ -1147,6 +1239,35 @@ components:
                     type: string
                     maxLength: 256
                     description: Optional label retained with this deployment in the event history.
+
+        GuardianApisResponse:
+            type: object
+            description: |
+                The `{ data, pagination }` envelope the rest of this surface uses. 1-based `page`.
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ApiReference"
+                pagination:
+                    $ref: "#/components/schemas/Pagination"
+            required:
+                - data
+                - pagination
+
+        ApiReference:
+            type: object
+            description: An API named in a Guardian answer, enough to show it and to link to it.
+            properties:
+                id:
+                    type: string
+                    description: Id of the API.
+                name:
+                    type: string
+                    description: Name of the API.
+            required:
+                - id
+                - name
 
         GuardianDeploymentsResponse:
             type: object
