@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { render, screen } from '@testing-library/react';
+import { buttonHarness, inputHarness, pageHeaderHarness, renderWithGraphene } from '@gravitee/graphene-core/testing';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useNavigate, useParams } from 'react-router-dom';
 
@@ -22,7 +23,8 @@ import { ApimApiError } from '../../../shared/api/apimClient';
 import { useHasEnvironmentPermission } from '../../../shared/hooks/useEnvironmentPermissions';
 import { notify } from '../../../shared/notify';
 import { useRotateCredential, useUpdateCredential } from '../hooks/useCredentialMutations';
-import { useCredential, useCredentialOwnerNames } from '../hooks/useCredentials';
+import { useCredential } from '../hooks/useCredentials';
+import { stubLayoutApis } from '../testing/stubLayoutApis';
 import type { Credential } from '../types/credential';
 import { ENVIRONMENT_CREDENTIAL_UPDATE_PERMISSION, ENVIRONMENT_SECRET_UPDATE_PERMISSION } from '../utils/credentialPermissions';
 
@@ -42,6 +44,7 @@ const MANAGED: Credential = {
     strategy: 'API_KEY',
     serviceId: 'anthropic',
     ownerId: 'user-1',
+    ownerName: 'Priya Raman',
     configuration: { headerName: 'x-api-key' },
     secretReferences: { value: { reference: '/gravitee/credential.cred-1.value:value', managed: true } },
     managed: true,
@@ -68,14 +71,15 @@ function givenPermissions(granted: readonly string[]) {
 }
 
 async function save() {
-    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+    await buttonHarness({ name: 'Save changes' }).click();
 }
 
 describe('EditCredentialPage', () => {
+    beforeAll(stubLayoutApis);
+
     beforeEach(() => {
         jest.clearAllMocks();
         jest.mocked(useNavigate).mockReturnValue(navigate);
-        jest.mocked(useCredentialOwnerNames).mockReturnValue({ 'user-1': 'Priya Raman' });
         jest.mocked(useUpdateCredential).mockReturnValue({ mutateAsync: update, isPending: false } as unknown as ReturnType<
             typeof useUpdateCredential
         >);
@@ -90,9 +94,10 @@ describe('EditCredentialPage', () => {
     it('loads the credential with its owner and type fixed', () => {
         given(MANAGED);
 
-        render(<EditCredentialPage />);
+        renderWithGraphene(<EditCredentialPage />);
 
-        expect(screen.getByLabelText(/^Name/)).toHaveValue('Anthropic research');
+        expect(pageHeaderHarness().getTitle()).toBe('Edit credential');
+        expect(inputHarness({ name: /^Name/ }).getValue()).toBe('Anthropic research');
         expect(screen.getByLabelText(/Service/)).toHaveValue('anthropic');
         expect(screen.getByLabelText(/Header name/)).toHaveValue('x-api-key');
         expect(screen.getByLabelText(/Value/)).toHaveValue('');
@@ -100,9 +105,18 @@ describe('EditCredentialPage', () => {
         expect(screen.getByText('API key')).toBeInTheDocument();
     });
 
+    it('never shows the id of an owner whose name the server does not know', () => {
+        given({ ...MANAGED, ownerName: undefined });
+
+        renderWithGraphene(<EditCredentialPage />);
+
+        expect(screen.getByText('Unknown user')).toBeInTheDocument();
+        expect(screen.queryByText('user-1')).not.toBeInTheDocument();
+    });
+
     it('saves the details and keeps the stored values when none are typed', async () => {
         given(MANAGED);
-        render(<EditCredentialPage />);
+        renderWithGraphene(<EditCredentialPage />);
 
         await userEvent.clear(screen.getByLabelText(/^Name/));
         await userEvent.type(screen.getByLabelText(/^Name/), 'Anthropic prod');
@@ -118,7 +132,7 @@ describe('EditCredentialPage', () => {
 
     it('rotates the values the user types', async () => {
         given(MANAGED);
-        render(<EditCredentialPage />);
+        renderWithGraphene(<EditCredentialPage />);
 
         await userEvent.type(screen.getByLabelText(/Value/), 'new-key');
         await save();
@@ -131,7 +145,7 @@ describe('EditCredentialPage', () => {
     it('states when running APIs pick up a replaced value', () => {
         given(MANAGED);
 
-        render(<EditCredentialPage />);
+        renderWithGraphene(<EditCredentialPage />);
 
         expect(screen.getByText(/within 1 day and 15 minutes/)).toBeInTheDocument();
     });
@@ -140,7 +154,7 @@ describe('EditCredentialPage', () => {
         given(MANAGED);
         givenPermissions([ENVIRONMENT_CREDENTIAL_UPDATE_PERMISSION]);
 
-        render(<EditCredentialPage />);
+        renderWithGraphene(<EditCredentialPage />);
 
         expect(screen.getByLabelText(/Value/)).toBeDisabled();
         expect(screen.getByText(/needs the permission to update secrets/)).toBeInTheDocument();
@@ -148,7 +162,7 @@ describe('EditCredentialPage', () => {
 
     it('edits the references of a credential that references secrets', async () => {
         given(REFERENCED);
-        render(<EditCredentialPage />);
+        renderWithGraphene(<EditCredentialPage />);
 
         expect(screen.getByLabelText(/Token/)).toHaveValue('/vault/secret/openai:token');
         await userEvent.clear(screen.getByLabelText(/Token/));
@@ -164,7 +178,7 @@ describe('EditCredentialPage', () => {
 
     it('sends nothing while a field is invalid', async () => {
         given(MANAGED);
-        render(<EditCredentialPage />);
+        renderWithGraphene(<EditCredentialPage />);
 
         await userEvent.clear(screen.getByLabelText(/Header name/));
         await save();
@@ -177,7 +191,7 @@ describe('EditCredentialPage', () => {
         const refusal = new ApimApiError(403, 'Only the owner can change it', { message: 'Only the owner can change it' });
         update.mockRejectedValue(refusal);
         given(MANAGED);
-        render(<EditCredentialPage />);
+        renderWithGraphene(<EditCredentialPage />);
 
         await userEvent.type(screen.getByLabelText(/Value/), 'new-key');
         await save();
@@ -191,7 +205,7 @@ describe('EditCredentialPage', () => {
         const router = jest.requireActual<{ useNavigate: typeof useNavigate }>('react-router-dom');
         jest.mocked(useNavigate).mockImplementation(router.useNavigate);
         given({ ...MANAGED, manageable: false });
-        render(
+        renderWithGraphene(
             <MemoryRouter initialEntries={['/credentials/cred-1/edit']}>
                 <Routes>
                     <Route path="credentials">
@@ -210,7 +224,7 @@ describe('EditCredentialPage', () => {
         const router = jest.requireActual<{ useNavigate: typeof useNavigate }>('react-router-dom');
         jest.mocked(useNavigate).mockImplementation(router.useNavigate);
         given(MANAGED);
-        render(
+        renderWithGraphene(
             <MemoryRouter initialEntries={['/credentials/cred-1/edit']}>
                 <Routes>
                     <Route path="credentials">
@@ -222,7 +236,7 @@ describe('EditCredentialPage', () => {
             </MemoryRouter>,
         );
 
-        await userEvent.click(screen.getByRole('button', { name: button }));
+        await buttonHarness({ name: button }).click();
 
         expect(await screen.findByText('Credential page')).toBeInTheDocument();
     });

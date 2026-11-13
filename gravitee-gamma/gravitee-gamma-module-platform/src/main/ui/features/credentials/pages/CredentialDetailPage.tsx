@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import {
-    Badge,
     Button,
     Card,
     CardContent,
@@ -25,44 +24,48 @@ import {
     DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
+    PageHeader,
     Skeleton,
 } from '@gravitee/graphene-core';
 import { ArrowLeftIcon, MoreVerticalIcon, PencilIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
-import { useState, type ReactNode } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { CredentialConsumerList } from '../components/CredentialConsumerList';
+import { CredentialDetailsCard } from '../components/CredentialDetailsCard';
+import { CredentialLoadError } from '../components/CredentialLoadError';
 import { DeleteCredentialDialog } from '../components/DeleteCredentialDialog';
 import { useCredentialActions } from '../hooks/useCredentialActions';
-import { useCredential, useCredentialConsumers, useCredentialOwnerNames } from '../hooks/useCredentials';
-import type { Credential } from '../types/credential';
-import { isCredentialExpired } from '../utils/credentialExpiry';
+import { useCredential, useCredentialConsumers } from '../hooks/useCredentials';
 import { CREDENTIAL_ROTATION_WINDOW_NOTE } from '../utils/credentialRotation';
-import { CREDENTIAL_STRATEGY_DEFINITIONS, credentialStrategyLabel, isKnownCredentialStrategy } from '../utils/credentialStrategies';
-
-const DATE_FORMAT = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
-
-function formatDate(value: string | undefined, fallback = '—'): string {
-    return value ? DATE_FORMAT.format(new Date(value)) : fallback;
-}
+import { credentialStrategyLabel } from '../utils/credentialStrategies';
 
 export function CredentialDetailPage() {
     const navigate = useNavigate();
     const { credentialId } = useParams<{ credentialId: string }>();
-    const { data: credential, isLoading, isError } = useCredential(credentialId);
+    const { data: credential, isLoading, error, isFetching, refetch } = useCredential(credentialId);
     const { data: consumers, isError: consumersFailed } = useCredentialConsumers(credentialId);
-    const ownerNames = useCredentialOwnerNames([credential?.ownerId]);
     const actions = useCredentialActions();
     const [deleting, setDeleting] = useState(false);
+
+    const backButton = (
+        <div>
+            <Button type="button" variant="ghost" size="sm" onClick={() => navigate('..')}>
+                <ArrowLeftIcon aria-hidden />
+                Back to credentials
+            </Button>
+        </div>
+    );
 
     if (isLoading) {
         return <Skeleton className="h-40 w-full" />;
     }
 
-    if (isError || !credential) {
+    if (!credential) {
         return (
-            <div className="flex items-center justify-center p-8">
-                <p className="text-sm text-muted-foreground">Failed to load the credential. It may have been deleted.</p>
+            <div className="flex flex-col gap-6">
+                {backButton}
+                <CredentialLoadError error={error} retrying={isFetching} onRetry={() => void refetch()} />
             </div>
         );
     }
@@ -72,44 +75,41 @@ export function CredentialDetailPage() {
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="space-y-2">
-                <Button type="button" variant="ghost" className="gap-1.5 px-0 text-muted-foreground" onClick={() => navigate('..')}>
-                    <ArrowLeftIcon className="size-4" aria-hidden />
-                    Back to credentials
-                </Button>
-                <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-1">
-                        <h1 className="text-2xl font-semibold tracking-tight">{credential.name}</h1>
-                        <p className="text-sm text-muted-foreground">{credentialStrategyLabel(credential.strategy)}</p>
-                    </div>
-                    {canEdit || canDelete ? (
+            {backButton}
+            <PageHeader
+                title={credential.name}
+                description={credentialStrategyLabel(credential.strategy)}
+                actions={
+                    (canEdit || canDelete) && (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" aria-label="Credential actions">
-                                    <MoreVerticalIcon className="size-4" aria-hidden />
+                                <Button variant="ghost" size="icon" aria-label={`Actions for ${credential.name}`}>
+                                    <MoreVerticalIcon aria-hidden />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 {canEdit && (
-                                    <DropdownMenuItem onSelect={() => navigate('edit')}>
-                                        <PencilIcon className="size-4 mr-2" aria-hidden />
-                                        Edit
+                                    <DropdownMenuItem asChild>
+                                        <Link to="edit">
+                                            <PencilIcon aria-hidden />
+                                            Edit
+                                        </Link>
                                     </DropdownMenuItem>
                                 )}
                                 {canEdit && canDelete && <DropdownMenuSeparator />}
                                 {canDelete && (
                                     <DropdownMenuItem variant="destructive" onSelect={() => setDeleting(true)}>
-                                        <Trash2Icon className="size-4 mr-2" aria-hidden />
+                                        <Trash2Icon aria-hidden />
                                         Delete
                                     </DropdownMenuItem>
                                 )}
                             </DropdownMenuContent>
                         </DropdownMenu>
-                    ) : null}
-                </div>
-            </div>
+                    )
+                }
+            />
 
-            <CredentialDetailsCard credential={credential} ownerName={credential.ownerId ? ownerNames[credential.ownerId] : undefined} />
+            <CredentialDetailsCard credential={credential} />
 
             <Card>
                 <CardHeader>
@@ -132,62 +132,6 @@ export function CredentialDetailPage() {
             </Card>
 
             <DeleteCredentialDialog credential={credential} open={deleting} onOpenChange={setDeleting} onDeleted={() => navigate('..')} />
-        </div>
-    );
-}
-
-function CredentialDetailsCard({ credential, ownerName }: Readonly<{ credential: Credential; ownerName?: string }>) {
-    const definition = isKnownCredentialStrategy(credential.strategy) ? CREDENTIAL_STRATEGY_DEFINITIONS[credential.strategy] : undefined;
-    const managed = credential.managed !== false;
-
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <dl className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    <Detail label="Service">{credential.serviceId ?? <span className="text-muted-foreground">Not set</span>}</Detail>
-                    <Detail label="Type">
-                        <Badge variant="outline">{credentialStrategyLabel(credential.strategy)}</Badge>
-                    </Detail>
-                    <Detail label="Owner">{ownerName ?? '—'}</Detail>
-                    <Detail label="Secret source">{managed ? 'Stored by Gravitee' : 'References existing secrets'}</Detail>
-                    {definition?.settings.map(field => {
-                        const value = credential.configuration?.[field.key];
-                        return value === undefined ? null : (
-                            <Detail key={field.key} label={field.label}>
-                                {Array.isArray(value) ? value.join(', ') : value}
-                            </Detail>
-                        );
-                    })}
-                    {managed
-                        ? null
-                        : definition?.secrets.map(field => (
-                              <Detail key={field.key} label={`${field.label} reference`}>
-                                  <code className="break-all text-xs">{credential.secretReferences?.[field.key]?.reference ?? '—'}</code>
-                              </Detail>
-                          ))}
-                    <Detail label="Expires">
-                        <span className="flex items-center gap-2">
-                            {formatDate(credential.expiresAt)}
-                            {isCredentialExpired(credential) ? <Badge variant="destructive">Expired</Badge> : null}
-                        </span>
-                    </Detail>
-                    <Detail label="Created">{formatDate(credential.createdAt)}</Detail>
-                    <Detail label="Last updated">{formatDate(credential.updatedAt)}</Detail>
-                    <Detail label="Secret last replaced">{formatDate(credential.rotatedAt, 'Never replaced')}</Detail>
-                </dl>
-            </CardContent>
-        </Card>
-    );
-}
-
-function Detail({ label, children }: Readonly<{ label: string; children: ReactNode }>) {
-    return (
-        <div className="space-y-1">
-            <dt className="text-xs text-muted-foreground">{label}</dt>
-            <dd className="text-sm">{children}</dd>
         </div>
     );
 }

@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { render, screen } from '@testing-library/react';
+import { buttonHarness, pageHeaderHarness, renderWithGraphene } from '@gravitee/graphene-core/testing';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useNavigate, useParams } from 'react-router-dom';
 
 import { CredentialDetailPage } from './CredentialDetailPage';
 import { useCredentialActions } from '../hooks/useCredentialActions';
-import { useCredential, useCredentialConsumers, useCredentialOwnerNames } from '../hooks/useCredentials';
+import { useCredential, useCredentialConsumers } from '../hooks/useCredentials';
+import { stubLayoutApis } from '../testing/stubLayoutApis';
 import type { Credential, CredentialConsumer } from '../types/credential';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({ useEnvironment: () => ({ id: 'env-1' }) }));
@@ -42,6 +44,7 @@ const MANAGED: Credential = {
     strategy: 'API_KEY',
     serviceId: 'anthropic',
     ownerId: 'user-1',
+    ownerName: 'Priya Raman',
     configuration: { headerName: 'x-api-key' },
     secretReferences: { value: { reference: '/gravitee/credential.cred-1.value:value', managed: true } },
     managed: true,
@@ -72,7 +75,7 @@ function givenActions({ canEdit = false, canDelete = false }: { canEdit?: boolea
 }
 
 function renderPage() {
-    render(
+    renderWithGraphene(
         <MemoryRouter>
             <CredentialDetailPage />
         </MemoryRouter>,
@@ -80,18 +83,11 @@ function renderPage() {
 }
 
 describe('CredentialDetailPage', () => {
-    beforeAll(() => {
-        global.ResizeObserver = class ResizeObserver {
-            observe() {}
-            unobserve() {}
-            disconnect() {}
-        } as typeof ResizeObserver;
-    });
+    beforeAll(stubLayoutApis);
 
     beforeEach(() => {
         jest.clearAllMocks();
         jest.mocked(useNavigate).mockReturnValue(navigate);
-        jest.mocked(useCredentialOwnerNames).mockReturnValue({ 'user-1': 'Priya Raman' });
         givenActions();
     });
 
@@ -100,8 +96,8 @@ describe('CredentialDetailPage', () => {
 
         renderPage();
 
-        expect(screen.getByRole('heading', { name: 'Anthropic research' })).toBeInTheDocument();
-        expect(screen.getAllByText('MTLS').length).toBeGreaterThan(0);
+        expect(pageHeaderHarness().getTitle()).toBe('Anthropic research');
+        expect(pageHeaderHarness().getDescription()).toBe('MTLS');
     });
 
     it('shows the details of a credential Gravitee stores', () => {
@@ -109,7 +105,7 @@ describe('CredentialDetailPage', () => {
 
         renderPage();
 
-        expect(screen.getByRole('heading', { name: 'Anthropic research' })).toBeInTheDocument();
+        expect(pageHeaderHarness().getTitle()).toBe('Anthropic research');
         expect(screen.getByText('Service')).toBeInTheDocument();
         expect(screen.getByText('anthropic')).toBeInTheDocument();
         expect(screen.getAllByText('API key').length).toBeGreaterThan(0);
@@ -138,6 +134,47 @@ describe('CredentialDetailPage', () => {
         expect(screen.getByText('LLM proxy')).toBeInTheDocument();
     });
 
+    it('names the actions menu after the credential', () => {
+        given(MANAGED);
+        givenActions({ canEdit: true });
+
+        renderPage();
+
+        expect(pageHeaderHarness().hasActions()).toBe(true);
+        expect(screen.getByRole('button', { name: 'Actions for Anthropic research' })).toBeInTheDocument();
+    });
+
+    it('never shows the id of an owner whose name the server does not know', () => {
+        given({ ...MANAGED, ownerName: undefined });
+
+        renderPage();
+
+        expect(screen.getByText('Unknown user')).toBeInTheDocument();
+        expect(screen.queryByText('user-1')).not.toBeInTheDocument();
+    });
+
+    it('shows the error with a retry when the credential cannot load', async () => {
+        const refetch = jest.fn();
+        jest.mocked(useParams).mockReturnValue({ credentialId: 'cred-1' });
+        jest.mocked(useCredential).mockReturnValue({
+            data: undefined,
+            isLoading: false,
+            error: new Error('Credential not found'),
+            isFetching: false,
+            refetch,
+        } as unknown as ReturnType<typeof useCredential>);
+        jest.mocked(useCredentialConsumers).mockReturnValue({ data: undefined, isError: true } as unknown as ReturnType<
+            typeof useCredentialConsumers
+        >);
+        renderPage();
+
+        expect(screen.getByRole('alert')).toHaveTextContent('Could not load the credential');
+        expect(screen.getByRole('alert')).toHaveTextContent('Credential not found');
+        await buttonHarness({ name: 'Retry' }).click();
+
+        expect(refetch).toHaveBeenCalled();
+    });
+
     it('says when nothing uses the credential', () => {
         given(MANAGED);
 
@@ -159,7 +196,7 @@ describe('CredentialDetailPage', () => {
 
         renderPage();
 
-        expect(screen.queryByRole('button', { name: 'Credential actions' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /^Actions for/ })).not.toBeInTheDocument();
     });
 
     it('opens the edit page when the user may edit the credential', async () => {
@@ -167,10 +204,9 @@ describe('CredentialDetailPage', () => {
         givenActions({ canEdit: true });
         renderPage();
 
-        await userEvent.click(screen.getByRole('button', { name: 'Credential actions' }));
-        await userEvent.click(await screen.findByRole('menuitem', { name: 'Edit' }));
+        await buttonHarness({ name: /^Actions for/ }).click();
 
-        expect(navigate).toHaveBeenCalledWith('edit');
+        expect(await screen.findByRole('menuitem', { name: 'Edit' })).toHaveAttribute('href', '/edit');
     });
 
     it('says so when the consumers fail to load', () => {
@@ -190,7 +226,7 @@ describe('CredentialDetailPage', () => {
         jest.mocked(useCredentialActions).mockReturnValue({ canEdit: () => false, canDelete });
         renderPage();
 
-        await userEvent.click(screen.getByRole('button', { name: 'Credential actions' }));
+        await buttonHarness({ name: /^Actions for/ }).click();
 
         expect(await screen.findByRole('menuitem', { name: 'Delete' })).toBeInTheDocument();
         expect(screen.queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument();
@@ -202,7 +238,7 @@ describe('CredentialDetailPage', () => {
         givenActions({ canDelete: true });
         renderPage();
 
-        await userEvent.click(screen.getByRole('button', { name: 'Credential actions' }));
+        await buttonHarness({ name: /^Actions for/ }).click();
         await userEvent.click(await screen.findByRole('menuitem', { name: 'Delete' }));
         await userEvent.click(screen.getByRole('button', { name: 'Confirm delete' }));
 

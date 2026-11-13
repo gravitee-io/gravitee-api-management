@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { keepPreviousData, useQueries, useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
-import { getOrganizationUser } from '../../users/services/organizationUsers';
-import { formatUserDisplayName } from '../../users/utils/userDetailDisplay';
 import { getCredential, listCredentialConsumers, listCredentials } from '../services/credentials';
 import { credentialKeys } from '../utils/queryKeys';
 
@@ -51,26 +49,4 @@ export function useCredentialConsumers(credentialId: string | undefined, enabled
         queryFn: () => listCredentialConsumers(env!.id, credentialId!),
         enabled: enabled && Boolean(env) && Boolean(credentialId),
     });
-}
-
-/**
- * Owner display names by user id. Reading a user needs an organization permission a credential
- * manager may lack, so an owner that cannot be read keeps its id.
- */
-export function useCredentialOwnerNames(ownerIds: readonly (string | undefined)[]): Readonly<Record<string, string>> {
-    const ids = [...new Set(ownerIds.filter((id): id is string => Boolean(id)))];
-    const results = useQueries({
-        queries: ids.map(id => ({
-            queryKey: credentialKeys.owner(id),
-            queryFn: () => getOrganizationUser(id),
-            staleTime: 5 * 60_000,
-            retry: false,
-        })),
-    });
-    const names: Record<string, string> = {};
-    ids.forEach((id, index) => {
-        const user = results[index]?.data;
-        names[id] = user ? formatUserDisplayName(user) : id;
-    });
-    return names;
 }

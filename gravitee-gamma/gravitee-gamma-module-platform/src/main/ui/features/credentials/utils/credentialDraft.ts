@@ -25,6 +25,10 @@ import type {
 /** `value`: Gravitee stores what the user types. `reference`: the credential points at secrets that already exist. */
 export type CredentialSecretMode = 'value' | 'reference';
 
+export function isCredentialSecretMode(value: string): value is CredentialSecretMode {
+    return value === 'value' || value === 'reference';
+}
+
 export interface CredentialDraft {
     readonly name: string;
     readonly serviceId: string;
@@ -217,7 +221,11 @@ function filledSecrets(draft: CredentialDraft, trim: boolean): Record<string, st
 
 function optionalText<K extends string>(key: K, value: string): Partial<Record<K, string>> {
     const trimmed = value.trim();
-    return trimmed ? ({ [key]: trimmed } as Record<K, string>) : {};
+    const text: Partial<Record<K, string>> = {};
+    if (trimmed) {
+        text[key] = trimmed;
+    }
+    return text;
 }
 
 function listItems(value: string): string[] {

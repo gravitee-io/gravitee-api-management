@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { render, screen, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { buttonHarness, dataTableHarness, renderWithGraphene } from '@gravitee/graphene-core/testing';
+import { screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 import { CredentialsTable } from './CredentialsTable';
+import { useCredentialActions } from '../hooks/useCredentialActions';
+import { stubLayoutApis } from '../testing/stubLayoutApis';
 import type { Credential } from '../types/credential';
+
+jest.mock('../hooks/useCredentialActions');
+jest.mock('./DeleteCredentialDialog', () => ({ DeleteCredentialDialog: () => null }));
 
 const OPENAI: Credential = {
     id: 'cred-1',
@@ -26,28 +31,34 @@ const OPENAI: Credential = {
     strategy: 'BEARER',
     serviceId: 'openai',
     ownerId: 'user-1',
+    ownerName: 'Alex Doyle',
     expiresAt: '2099-03-01T00:00:00Z',
 };
-const LEGACY: Credential = { id: 'cred-2', name: 'Legacy integration', strategy: 'BASIC', expiresAt: '2020-08-01T00:00:00Z' };
+const LEGACY: Credential = {
+    id: 'cred-2',
+    name: 'Legacy integration',
+    strategy: 'BASIC',
+    ownerId: 'deleted-user',
+    expiresAt: '2020-08-01T00:00:00Z',
+};
 
 function renderTable(overrides: Partial<React.ComponentProps<typeof CredentialsTable>> = {}) {
-    return render(
+    return renderWithGraphene(
         <MemoryRouter>
             <CredentialsTable
                 credentials={[OPENAI, LEGACY]}
-                ownerNames={{ 'user-1': 'Alex Doyle' }}
                 totalCount={2}
                 loading={false}
+                searchRef={{ current: null }}
                 search=""
+                hasCriteria={false}
                 page={1}
-                pageSize={25}
-                canEdit={() => false}
-                canDelete={() => false}
+                pageSize={10}
+                pageSizeOptions={[10, 25, 50, 100]}
                 onSearchChange={jest.fn()}
+                onReset={jest.fn()}
                 onPageChange={jest.fn()}
                 onPageSizeChange={jest.fn()}
-                onEdit={jest.fn()}
-                onDelete={jest.fn()}
                 {...overrides}
             />
         </MemoryRouter>,
@@ -55,49 +66,69 @@ function renderTable(overrides: Partial<React.ComponentProps<typeof CredentialsT
 }
 
 describe('CredentialsTable', () => {
-    beforeAll(() => {
-        global.ResizeObserver = class ResizeObserver {
-            observe() {}
-            unobserve() {}
-            disconnect() {}
-        } as typeof ResizeObserver;
+    beforeAll(stubLayoutApis);
+
+    beforeEach(() => {
+        jest.mocked(useCredentialActions).mockReturnValue({ canEdit: () => false, canDelete: () => false });
     });
 
-    it('shows the name, service, type, owner and expiry of each credential', () => {
+    it('shows the name, service, type, expiry and owner of each credential', () => {
+        renderTable();
+        const table = dataTableHarness();
+
+        expect(table.getHeaders()).toEqual(expect.arrayContaining(['Name', 'Service', 'Type', 'Expires', 'Owner']));
+        const openAi = table.getRow('OpenAI production');
+        expect(screen.getByRole('link', { name: 'OpenAI production' })).toHaveAttribute('href', '/cred-1');
+        expect(openAi.getCellText('Service')).toBe('openai');
+        expect(openAi.getCellText('Type')).toBe('Bearer token');
+        expect(openAi.getCellText('Owner')).toBe('Alex Doyle');
+        expect(openAi.getCellText('Expires')).not.toContain('Expired');
+
+        const legacy = table.getRow('Legacy integration');
+        expect(legacy.getCellText('Service')).toBe('Not set');
+        expect(legacy.getCellText('Type')).toBe('Basic auth');
+        expect(legacy.getCellText('Expires')).toContain('Expired');
+    });
+
+    it('never shows the id of an owner whose name the server does not know', () => {
         renderTable();
 
-        expect(screen.getByRole('columnheader', { name: /Service/ })).toBeInTheDocument();
+        expect(dataTableHarness().getRow('Legacy integration').getCellText('Owner')).toBe('Unknown user');
+    });
 
-        const openAiRow = screen.getByRole('link', { name: 'OpenAI production' }).closest('tr')!;
-        expect(screen.getByRole('link', { name: 'OpenAI production' })).toHaveAttribute('href', '/cred-1');
-        expect(within(openAiRow).getByText('openai')).toBeInTheDocument();
-        expect(within(openAiRow).getByText('Bearer token')).toBeInTheDocument();
-        expect(within(openAiRow).getByText('Alex Doyle')).toBeInTheDocument();
-        expect(within(openAiRow).queryByText('Expired')).not.toBeInTheDocument();
+    it('lets the user choose the columns to show', () => {
+        renderTable();
 
-        const legacyRow = screen.getByRole('link', { name: 'Legacy integration' }).closest('tr')!;
-        expect(within(legacyRow).getByText('Not set')).toBeInTheDocument();
-        expect(within(legacyRow).getByText('Basic auth')).toBeInTheDocument();
-        expect(within(legacyRow).getByText('Expired')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /view/i })).toBeInTheDocument();
     });
 
     it('hides the row actions without the update and delete permissions', () => {
         renderTable();
 
-        expect(screen.queryByRole('button', { name: 'OpenAI production actions' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Actions for OpenAI production' })).not.toBeInTheDocument();
     });
 
-    it('offers edit and delete with the permissions', async () => {
-        const onEdit = jest.fn();
-        const onDelete = jest.fn();
-        renderTable({ canEdit: () => true, canDelete: () => true, onEdit, onDelete });
+    it('offers edit and delete with the permissions, delete last', async () => {
+        jest.mocked(useCredentialActions).mockReturnValue({ canEdit: () => true, canDelete: () => true });
+        renderTable();
 
-        await userEvent.click(screen.getByRole('button', { name: 'OpenAI production actions' }));
-        await userEvent.click(await screen.findByRole('menuitem', { name: 'Edit' }));
-        expect(onEdit).toHaveBeenCalledWith(OPENAI);
+        await buttonHarness({ name: 'Actions for OpenAI production' }).click();
 
-        await userEvent.click(screen.getByRole('button', { name: 'OpenAI production actions' }));
-        await userEvent.click(await screen.findByRole('menuitem', { name: 'Delete' }));
-        expect(onDelete).toHaveBeenCalledWith(OPENAI);
+        const items = await screen.findAllByRole('menuitem');
+        expect(items.map(item => item.textContent)).toEqual(['Edit', 'Delete']);
+        expect(screen.getByRole('menuitem', { name: 'Edit' })).toHaveAttribute('href', '/cred-1/edit');
+    });
+
+    it('offers a reset only while a search is active', async () => {
+        const onReset = jest.fn();
+        const { unmount } = renderTable();
+        expect(screen.queryByRole('button', { name: 'Reset' })).not.toBeInTheDocument();
+        unmount();
+
+        renderTable({ search: 'open', hasCriteria: true, credentials: [], totalCount: 0, onReset });
+        expect(screen.getByText('No credential matches your search')).toBeInTheDocument();
+        await buttonHarness({ name: 'Reset' }).click();
+
+        expect(onReset).toHaveBeenCalled();
     });
 });

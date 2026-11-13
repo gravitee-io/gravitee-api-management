@@ -20,5 +20,4 @@ export const credentialKeys = {
         [...credentialKeys.lists(), envId, query, page, perPage] as const,
     detail: (envId: string, credentialId: string) => [...credentialKeys.all, 'detail', envId, credentialId] as const,
     consumers: (envId: string, credentialId: string) => [...credentialKeys.all, 'consumers', envId, credentialId] as const,
-    owner: (ownerId: string) => [...credentialKeys.all, 'owner', ownerId] as const,
 } as const;
