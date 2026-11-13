@@ -31,6 +31,11 @@ annotations:
   ###########
   artifacthub.io/changes: |
     - kind: added
+      description: "Add `api.analytics.elasticsearch.index_mode`, rendered as the management API analytics index mode instead of `es.index_mode`, which the gateway reporter also reads; set it to `data_stream` to read analytics from data streams"
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/22639
+    - kind: added
       description: "Add `gateway.kafka.backendLogin.threads` and `gateway.kafka.backendLogin.queueCapacity`, rendered as `kafka.backendLogin.*` in the gateway gravitee.yml"
       links:
         - name: Github PR
