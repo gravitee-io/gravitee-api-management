@@ -17,7 +17,6 @@ package io.gravitee.repository.elasticsearch.configuration;
 
 import static java.lang.String.format;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -25,37 +24,37 @@ import java.util.Optional;
  */
 public final class FlavorRules {
 
-    public static final String DATA_STREAM_INDEX_MODE = "data_stream";
     private static final String INDEX_MODE_SETTING = "analytics.elasticsearch.index_mode";
-    private static final List<String> INDEX_MODES_MANAGED_BY_SERVERLESS = List.of("ilm", "daily");
 
     private FlavorRules() {}
 
     /**
-     * @return why the configuration cannot work with the flavor, naming the offending setting, or empty when it can
+     * @return what the flavor does not take from the configuration, naming the setting, or empty when it takes all of it
      */
     public static Optional<String> violation(Flavor flavor, RepositoryConfiguration configuration) {
-        final Optional<String> indexMode = configuration.getConfiguredIndexMode();
         if (flavor == Flavor.CLASSIC) {
-            return indexMode
-                .filter(DATA_STREAM_INDEX_MODE::equalsIgnoreCase)
-                .map(mode ->
-                    format(
-                        "'%s' is set to '%s', which is only supported on Elastic Cloud Serverless: set it to 'daily' or 'ilm'.",
-                        INDEX_MODE_SETTING,
-                        mode
-                    )
-                );
+            return Optional.empty();
         }
-        return indexMode
-            .filter(mode -> INDEX_MODES_MANAGED_BY_SERVERLESS.stream().anyMatch(mode::equalsIgnoreCase))
+        return configuration
+            .getConfiguredIndexMode()
+            .filter(mode -> IndexMode.of(mode) != IndexMode.DATA_STREAM)
             .map(mode ->
                 format(
-                    "'%s' is set to '%s', which Elastic Cloud Serverless does not support as it manages indices itself: remove it or set it to '%s'.",
+                    "'%s' is set to '%s', which is ignored on Elastic Cloud Serverless: analytics are read from data streams. Remove it or set it to '%s'.",
                     INDEX_MODE_SETTING,
                     mode,
-                    DATA_STREAM_INDEX_MODE
+                    IndexMode.DATA_STREAM.value()
                 )
             );
+    }
+
+    /**
+     * @return the index mode analytics are read with: always data streams on Serverless, which manages indices itself
+     */
+    public static IndexMode indexMode(Flavor flavor, RepositoryConfiguration configuration) {
+        if (flavor == Flavor.SERVERLESS) {
+            return IndexMode.DATA_STREAM;
+        }
+        return configuration.getConfiguredIndexMode().map(IndexMode::of).orElse(IndexMode.DAILY);
     }
 }
