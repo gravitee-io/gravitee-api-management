@@ -24,7 +24,7 @@ export interface CredentialSecretReference {
     managed: boolean;
 }
 
-/** v2 `Credential`. No response carries a secret value. */
+/** Gamma `Credential`. No response carries a secret value. */
 export interface Credential {
     id: string;
     name: string;
