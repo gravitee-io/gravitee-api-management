@@ -32,6 +32,7 @@ import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -60,6 +61,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -987,5 +989,84 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             1L
         );
         verify(synchronizationService, times(3)).checkSynchronization(any(), any(), any());
+    }
+
+    /**
+     * Setting the Guardians of an API sends that change to the gateways by itself, so the internal flow it stores and
+     * the one they run normally match. A difference is the signal that the change was not applied — the API was never
+     * deployed, it is stopped, or the event write failed — and the API is then out of sync, like for any other
+     * deployment-bearing field.
+     */
+    @Nested
+    class InternalFlow {
+
+        @Test
+        void should_return_false_when_the_gateways_were_not_given_an_enabled_guardian() throws JsonProcessingException {
+            givenDeployed(definitionWithInternalFlow(null));
+
+            var isSynchronized = isSynchronized(definitionWithInternalFlow(guardians("guardian-1")));
+
+            assertThat(isSynchronized).as("API synchronized while the gateways run no guardian").isFalse();
+        }
+
+        @Test
+        void should_return_true_when_the_gateways_run_the_internal_flow_the_api_stores() throws JsonProcessingException {
+            givenDeployed(definitionWithInternalFlow(guardians("guardian-1", "guardian-2")));
+
+            var isSynchronized = isSynchronized(definitionWithInternalFlow(guardians("guardian-1", "guardian-2")));
+
+            assertThat(isSynchronized).as("API synchronized with an unchanged internal flow").isTrue();
+        }
+
+        @Test
+        void should_return_false_when_the_gateways_run_the_guardians_in_another_order() throws JsonProcessingException {
+            givenDeployed(definitionWithInternalFlow(guardians("guardian-1", "guardian-2")));
+
+            var isSynchronized = isSynchronized(definitionWithInternalFlow(guardians("guardian-2", "guardian-1")));
+
+            assertThat(isSynchronized).as("API synchronized while the gateways run another order").isFalse();
+        }
+
+        private io.gravitee.definition.model.v4.Api definitionWithInternalFlow(Flow internalFlow) {
+            return io.gravitee.definition.model.v4.Api.builder()
+                .id("apiId")
+                .name("Api name")
+                .definitionVersion(DefinitionVersion.V4)
+                .internalFlow(internalFlow)
+                .build();
+        }
+
+        private Flow guardians(String... guardianIds) {
+            return Flow.builder()
+                .request(
+                    Arrays.stream(guardianIds)
+                        .map(guardianId ->
+                            Step.builder().policy("guardian-policy").configuration("{\"guardianId\":\"" + guardianId + "\"}").build()
+                        )
+                        .toList()
+                )
+                .build();
+        }
+
+        private void givenDeployed(io.gravitee.definition.model.v4.Api definition) throws JsonProcessingException {
+            Event event = new Event();
+            event.setType(io.gravitee.repository.management.model.EventType.PUBLISH_API);
+            event.setPayload(objectMapper.writeValueAsString(repositoryApi(definition)));
+            when(eventLatestRepository.search(any(), eq(Event.EventProperties.API_ID), eq(0L), eq(1L))).thenReturn(List.of(event));
+        }
+
+        private boolean isSynchronized(io.gravitee.definition.model.v4.Api definition) throws JsonProcessingException {
+            ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), repositoryApi(definition), false, false, false);
+            return apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
+        }
+
+        private Api repositoryApi(io.gravitee.definition.model.v4.Api definition) throws JsonProcessingException {
+            Api api = new Api();
+            api.setId("apiId");
+            api.setName("Api name");
+            api.setDefinitionVersion(DefinitionVersion.V4);
+            api.setDefinition(objectMapper.writeValueAsString(definition));
+            return api;
+        }
     }
 }

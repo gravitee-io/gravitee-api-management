@@ -21,6 +21,7 @@ import io.gravitee.definition.model.ApiDefinition;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
@@ -224,6 +225,23 @@ public class Api {
         return apiDefinitionValue instanceof io.gravitee.definition.model.Api api ? api : null;
     }
 
+    /** Whether the definition can hold an internal flow: a V4 HTTP one, and no other. */
+    public boolean holdsInternalFlow() {
+        return apiDefinitionValue instanceof io.gravitee.definition.model.v4.Api;
+    }
+
+    /** The internal flow of the definition, {@code null} for one that cannot hold any. */
+    public Flow internalFlow() {
+        return apiDefinitionValue instanceof io.gravitee.definition.model.v4.Api definition ? definition.getInternalFlow() : null;
+    }
+
+    /** The API with the internal flow of its definition replaced; a definition that cannot hold one is kept as it is. */
+    public Api withInternalFlow(Flow internalFlow) {
+        return apiDefinitionValue instanceof io.gravitee.definition.model.v4.Api definition
+            ? toBuilder().apiDefinitionValue(definition.toBuilder().internalFlow(internalFlow).build()).build()
+            : this;
+    }
+
     public Api setApiDefinitionValue(ApiDefinition apiDefinition) {
         this.apiDefinitionValue = apiDefinition;
         this.definitionVersion = apiDefinition.getDefinitionVersion();
@@ -284,6 +302,9 @@ public class Api {
                         .failover(source.getFailover())
                         .flowExecution(source.getFlowExecution())
                         .flows(source.getFlows())
+                        // The Guardians the API runs are a step of the internal flow, so they roll back with the
+                        // rest of the definition rather than surviving the rollback.
+                        .internalFlow(source.getInternalFlow())
                         .responseTemplates(source.getResponseTemplates())
                         .services(source.getServices())
                         // Ignore plans from definition for API rollback
