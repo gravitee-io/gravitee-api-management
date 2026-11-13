@@ -57,4 +57,5 @@ public enum AuditProperties {
     MCP_SERVER,
     ENCRYPTED,
     SECRET,
+    CREDENTIAL,
 }
