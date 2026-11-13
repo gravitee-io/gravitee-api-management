@@ -406,6 +406,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@angular-devkit/core@npm:20.3.43":
+  version: 20.3.43
+  resolution: "@angular-devkit/core@npm:20.3.43"
+  dependencies:
+    ajv: "npm:8.18.0"
+    ajv-formats: "npm:3.0.1"
+    jsonc-parser: "npm:3.3.1"
+    picomatch: "npm:4.0.4"
+    rxjs: "npm:7.8.2"
+    source-map: "npm:0.7.6"
+  peerDependencies:
+    chokidar: ^4.0.0
+  peerDependenciesMeta:
+    chokidar:
+      optional: true
+  checksum: 10c0/603e14a1b2d76196dca4407a547be4be0ad5380cd6f2d9d94416dce889a94acdcdf5095193906e0ddf81364908edad434169c78a26b7449b28bba2dc13f266fb
+  languageName: node
+  linkType: hard
+
 "@angular-devkit/core@npm:22.1.8, @angular-devkit/core@npm:>= 22.0.0 < 23.0.0":
   version: 22.1.8
   resolution: "@angular-devkit/core@npm:22.1.8"
@@ -438,16 +457,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular-devkit/schematics@npm:20.3.37":
-  version: 20.3.37
-  resolution: "@angular-devkit/schematics@npm:20.3.37"
+"@angular-devkit/schematics@npm:20.3.43":
+  version: 20.3.43
+  resolution: "@angular-devkit/schematics@npm:20.3.43"
   dependencies:
-    "@angular-devkit/core": "npm:20.3.37"
+    "@angular-devkit/core": "npm:20.3.43"
     jsonc-parser: "npm:3.3.1"
     magic-string: "npm:0.30.17"
     ora: "npm:8.2.0"
     rxjs: "npm:7.8.2"
-  checksum: 10c0/169c66e20219463f7191acf8751b6697b44ae52219dc123d8563f8a2f6eedebceda8af687ad6fa75a870a5acab6bd0edb8a3986abfef57ac8a84158eeae00d97
+  checksum: 10c0/33eb650cc9511c6f781f685037409e9a94d3a396477e0ef64e45706c8f4e617e590fe210e6ce99ceadaa22857e53be95c184d367b3ad94c2efd61dde9fa6e630
   languageName: node
   linkType: hard
 
@@ -11539,14 +11558,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@schematics/angular@npm:20.3.37":
-  version: 20.3.37
-  resolution: "@schematics/angular@npm:20.3.37"
+"@schematics/angular@npm:20.3.43":
+  version: 20.3.43
+  resolution: "@schematics/angular@npm:20.3.43"
   dependencies:
-    "@angular-devkit/core": "npm:20.3.37"
-    "@angular-devkit/schematics": "npm:20.3.37"
+    "@angular-devkit/core": "npm:20.3.43"
+    "@angular-devkit/schematics": "npm:20.3.43"
     jsonc-parser: "npm:3.3.1"
-  checksum: 10c0/3e53474b02303b7a9de51093addde137148129f5bbf7868dc1b3997e4f55e85652e65f767b9645aedde2dc481af1b56deda0e4b14ab90b4507c25d73881fc25f
+  checksum: 10c0/da9ba6d6a75d07232a5cd208db43d3c325ae7142ce1b6f4df14124839a7ad7a30a5f818352ea2b9c7e80996a41ce5ace8b9250f46ec13865a610b910ffc9c2b5
   languageName: node
   linkType: hard
 
@@ -21602,7 +21621,7 @@ __metadata:
     "@rspack/dev-server": "npm:1.1.4"
     "@rspack/plugin-react-refresh": "npm:1.0.0"
     "@scalar/openapi-parser": "npm:0.29.1"
-    "@schematics/angular": "npm:20.3.37"
+    "@schematics/angular": "npm:20.3.43"
     "@storybook/addon-docs": "npm:10.6.0"
     "@storybook/addon-links": "npm:10.6.0"
     "@storybook/angular": "npm:10.6.0"
