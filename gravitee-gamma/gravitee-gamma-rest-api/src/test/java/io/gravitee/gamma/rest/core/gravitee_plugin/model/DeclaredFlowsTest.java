@@ -15,12 +15,11 @@
  */
 package io.gravitee.gamma.rest.core.gravitee_plugin.model;
 
-import static io.gravitee.rest.api.model.v4.policy.ApiProtocolType.GUARDIAN;
-import static io.gravitee.rest.api.model.v4.policy.ApiProtocolType.HTTP_PROXY;
-import static io.gravitee.rest.api.model.v4.policy.ApiProtocolType.LLM_PROXY;
+import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.GUARDIAN;
+import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.HTTP_PROXY;
+import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.LLM_PROXY;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,7 +41,7 @@ class DeclaredFlowsTest {
     @MethodSource("requests")
     void should_tell_whether_the_flows_declare_the_requested_flows_and_phase(
         String description,
-        Set<ApiProtocolType> flows,
+        Set<PolicyFlowType> flows,
         String phase,
         boolean expected
     ) {

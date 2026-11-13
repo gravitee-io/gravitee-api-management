@@ -21,6 +21,7 @@ import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.DeclaredFlows;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
@@ -29,7 +30,6 @@ import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
-import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -71,7 +71,7 @@ public final class GuardianFixtures {
                 "data-logging-masking",
                 new PolicyCapabilities(
                     true,
-                    flows(ApiProtocolType.LLM_PROXY, "REQUEST,RESPONSE", ApiProtocolType.GUARDIAN, "REQUEST,RESPONSE")
+                    flows(PolicyFlowType.LLM_PROXY, "REQUEST,RESPONSE", PolicyFlowType.GUARDIAN, "REQUEST,RESPONSE")
                 )
             )
         );
@@ -82,13 +82,13 @@ public final class GuardianFixtures {
         return new DeclaredFlows(Map.of());
     }
 
-    public static DeclaredFlows flows(ApiProtocolType flow, String phases) {
-        var flows = new EnumMap<ApiProtocolType, List<String>>(ApiProtocolType.class);
+    public static DeclaredFlows flows(PolicyFlowType flow, String phases) {
+        var flows = new EnumMap<PolicyFlowType, List<String>>(PolicyFlowType.class);
         flows.put(flow, phases(phases));
         return new DeclaredFlows(flows);
     }
 
-    public static DeclaredFlows flows(ApiProtocolType flow, String phases, ApiProtocolType otherFlow, String otherPhases) {
+    public static DeclaredFlows flows(PolicyFlowType flow, String phases, PolicyFlowType otherFlow, String otherPhases) {
         var flows = new EnumMap<>(flows(flow, phases).phases());
         flows.put(otherFlow, phases(otherPhases));
         return new DeclaredFlows(flows);

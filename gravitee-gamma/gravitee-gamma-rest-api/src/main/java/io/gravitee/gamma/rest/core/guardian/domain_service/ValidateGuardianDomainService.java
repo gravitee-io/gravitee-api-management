@@ -25,6 +25,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
 import io.gravitee.gamma.rest.core.guardian.model.CreateGuardian;
@@ -264,18 +265,9 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
         );
     }
 
-    /**
-     * The API type a guardrail {@code scope.protocol} designates, case-sensitive, or {@code null} for any other value. The
-     * gateway applies the same table when it deploys a Guardian ({@code GuardianProtocolValidator} in
-     * gravitee-reactor-guardian): change both together.
-     */
+    /** The API type a guardrail {@code scope.protocol} designates, or {@code null} for any other value: see {@link PolicyFlowType}. */
     private static ApiType scopeApiType(String protocol) {
-        return switch (protocol) {
-            case "LLM" -> ApiType.LLM_PROXY;
-            case "MCP" -> ApiType.MCP_PROXY;
-            case "A2A" -> ApiType.A2A_PROXY;
-            default -> null;
-        };
+        return PolicyFlowType.fromScopeProtocol(protocol).flatMap(PolicyFlowType::guardrailApiType).orElse(null);
     }
 
     private static Error incompatibleProtocol(Step step, Set<ApiType> apiTypes) {
