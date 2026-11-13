@@ -261,6 +261,24 @@ public class SubscriptionQueryServiceImplTest {
         }
 
         @Test
+        void should_restrict_search_to_api_subscriptions_so_the_api_filter_applies() throws TechnicalException {
+            // Given
+            when(subscriptionRepository.search(any())).thenAnswer(invocation -> List.of());
+
+            // When
+            service.findActiveByApplicationIdAndApiId("app-id", "api-id");
+
+            // Then
+            var captor = ArgumentCaptor.forClass(SubscriptionCriteria.class);
+            verify(subscriptionRepository).search(captor.capture());
+            assertThat(captor.getValue()).satisfies(criteria -> {
+                assertThat(criteria.getReferenceTypes()).containsExactly(SubscriptionReferenceType.API);
+                assertThat(criteria.getApis()).containsExactly("api-id");
+                assertThat(criteria.getApplications()).containsExactly("app-id");
+            });
+        }
+
+        @Test
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
             // Given
             when(subscriptionRepository.search(any())).thenThrow(TechnicalException.class);

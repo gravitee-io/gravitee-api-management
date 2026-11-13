@@ -82,6 +82,33 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
 
     @Override
     public List<SubscriptionEntity> findActiveByApplicationIdAndApiId(String applicationId, String apiId) {
+<<<<<<< HEAD
+=======
+        return findActiveByApplicationIdsAndApiIds(Set.of(applicationId), Set.of(apiId));
+    }
+
+    @Override
+    public List<SubscriptionEntity> findActiveByApplicationIdsAndApiIds(Set<String> applicationIds, Set<String> apiIds) {
+        var criteria = SubscriptionCriteria.builder()
+            .statuses(List.of(SubscriptionStatus.ACCEPTED.name(), SubscriptionStatus.PENDING.name(), SubscriptionStatus.PAUSED.name()))
+            // The repositories apply the apis filter only together with referenceTypes
+            .referenceTypes(Set.of(io.gravitee.repository.management.model.SubscriptionReferenceType.API))
+            .apis(List.copyOf(apiIds))
+            .applications(List.copyOf(applicationIds))
+            .build();
+        try {
+            return subscriptionRepository.search(criteria).stream().map(subscriptionAdapter::toEntity).toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to find subscriptions", e);
+        }
+    }
+
+    @Override
+    public List<SubscriptionEntity> findActiveByApplicationIdAndPlanSecurityTypes(
+        String applicationId,
+        Collection<String> planSecurityTypes
+    ) {
+>>>>>>> 9d9b879 (fix(portal): skip product subscriptions in API visibility (APIM-15996))
         var criteria = SubscriptionCriteria.builder()
             .statuses(List.of(SubscriptionStatus.ACCEPTED.name(), SubscriptionStatus.PENDING.name(), SubscriptionStatus.PAUSED.name()))
             .apis(List.of(apiId))
