@@ -22,7 +22,11 @@ import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyP
 import io.gravitee.gamma.rest.core.gravitee_plugin.use_case.ListPolicyPluginsUseCase;
 import io.gravitee.gamma.rest.resources.gravitee_plugin.dto.PolicyFlow;
 import io.gravitee.gamma.rest.resources.gravitee_plugin.dto.PolicyPluginDto;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -43,6 +47,7 @@ public class PolicyPluginResource {
     private PolicyPluginProvider policyPluginProvider;
 
     @GET
+    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_POLICIES, acls = RolePermissionAction.READ) })
     @Produces(MediaType.APPLICATION_JSON)
     public List<PolicyPluginDto> getPolicies(
         @PathParam("orgId") String organizationId,
@@ -58,6 +63,7 @@ public class PolicyPluginResource {
     }
 
     @GET
+    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_POLICIES, acls = RolePermissionAction.READ) })
     @Path("/{policyId}")
     @Produces(MediaType.APPLICATION_JSON)
     public PolicyPluginDto getPolicy(@PathParam("orgId") String organizationId, @PathParam("policyId") String policyId) {
@@ -65,6 +71,7 @@ public class PolicyPluginResource {
     }
 
     @GET
+    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_POLICIES, acls = RolePermissionAction.READ) })
     @Path("/{policyId}/schema")
     @Produces(MediaType.APPLICATION_JSON)
     public String getPolicySchema(@PathParam("policyId") String policyId) {
@@ -72,6 +79,7 @@ public class PolicyPluginResource {
     }
 
     @GET
+    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_POLICIES, acls = RolePermissionAction.READ) })
     @Path("/{policyId}/documentation")
     @Produces(MediaType.TEXT_PLAIN)
     public String getPolicyDocumentation(@PathParam("policyId") String policyId) {

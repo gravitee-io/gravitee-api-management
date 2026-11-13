@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.resources.gravitee_plugin;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -34,6 +35,7 @@ import io.gravitee.plugin.agentprovider.AgentProviderPlugin;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import io.gravitee.rest.api.model.permissions.RolePermission;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
@@ -324,6 +326,37 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
             Response response = rootTarget("unknown/documentation").request().get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        }
+    }
+
+    /**
+     * One case per endpoint: {@code @Permissions} is declared per method, so a single case would pass while another
+     * endpoint lost its guard.
+     */
+    @Nested
+    class Authorization {
+
+        @BeforeEach
+        void given_an_installed_policy() throws IOException {
+            given_a_policy("guardrail-rule", Map.of("guardian", "REQUEST"));
+            when(policyPluginManager.getSchema("guardrail-rule", true)).thenReturn("{}");
+            when(policyPluginManager.getDocumentation("guardrail-rule", true)).thenReturn("# Guardrail rule");
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "", "guardrail-rule", "guardrail-rule/schema", "guardrail-rule/documentation" })
+        void should_answer_with_the_organization_policies_read_permission(String path) {
+            givenOnlyReadPermission(RolePermission.ORGANIZATION_POLICIES, ORGANIZATION);
+
+            assertThat(rootTarget(path).request().get().getStatus()).as("GET /%s", path).isEqualTo(HttpStatusCode.OK_200);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "", "guardrail-rule", "guardrail-rule/schema", "guardrail-rule/documentation" })
+        void should_return_403_without_the_organization_policies_read_permission(String path) {
+            when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
+
+            assertThat(rootTarget(path).request().get().getStatus()).as("GET /%s", path).isEqualTo(HttpStatusCode.FORBIDDEN_403);
         }
     }
 
