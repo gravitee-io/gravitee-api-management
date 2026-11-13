@@ -25,8 +25,9 @@ import static java.util.Comparator.comparing;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.model.property.EncryptedPropertyAuditMarker;
-import io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService;
+import io.gravitee.apim.core.deployment.domain_service.ApiDeploymentValidator;
 import io.gravitee.apim.core.utils.CollectionUtils;
+import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.json.jackson.EncryptedPropertyAccessPatch;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -78,6 +79,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -106,7 +108,13 @@ public class ApiStateServiceImpl implements ApiStateService {
     private final SynchronizationService synchronizationService;
     private final EventManager eventManager;
     private final SearchEngineService searchEngineService;
-    private final ValidateApiClusterBindingService validateApiClusterBindingService;
+    /**
+     * An {@link ObjectProvider} and not a collection: a Gamma module registers its validator as a singleton in this
+     * context after the context is refreshed, and a provider resolves the beans on every call. An injected collection
+     * would not — not even a {@code @Lazy} one, whose proxy caches the beans it resolved the first time as soon as
+     * they are all singletons, so the Guardian check would silently stop running until the next restart.
+     */
+    private final ObjectProvider<ApiDeploymentValidator> deploymentValidators;
 
     public ApiStateServiceImpl(
         @Lazy final ApiSearchService apiSearchService,
@@ -126,7 +134,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         final SynchronizationService synchronizationService,
         final EventManager eventManager,
         final SearchEngineService searchEngineService,
-        @Lazy final ValidateApiClusterBindingService validateApiClusterBindingService
+        final ObjectProvider<ApiDeploymentValidator> deploymentValidators
     ) {
         this.apiSearchService = apiSearchService;
         this.apiRepository = apiRepository;
@@ -145,7 +153,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         this.synchronizationService = synchronizationService;
         this.eventManager = eventManager;
         this.searchEngineService = searchEngineService;
-        this.validateApiClusterBindingService = validateApiClusterBindingService;
+        this.deploymentValidators = deploymentValidators;
     }
 
     @Override
@@ -228,12 +236,7 @@ public class ApiStateServiceImpl implements ApiStateService {
             );
         }
 
-        validateApiClusterBindingService.validateDeployable(
-            apiToDeploy.getId(),
-            apiToDeploy.getEnvironmentId(),
-            apiToDeploy.getType(),
-            apiToDeploy.getDefinition()
-        );
+        validateDeployable(apiToDeploy);
 
         // FIXME: improvement: what about updating deployedAt only when the user trigger it manually ?
         this.updateDeploymentDate(apiFromDb);
@@ -447,6 +450,16 @@ public class ApiStateServiceImpl implements ApiStateService {
         }
     }
 
+    /**
+     * Runs every {@link ApiDeploymentValidator} the context holds, so what a module owns inside the definition — the
+     * Guardians of an API, the cluster its endpoints bind to — is checked before the gateways are given it. The
+     * definition is parsed once here, so no validator reads the API back and judges another one than the one deployed.
+     */
+    private void validateDeployable(Api api) {
+        var deployed = ApiAdapter.INSTANCE.toCoreModel(api);
+        deploymentValidators.orderedStream().forEach(validator -> validator.validateDeployable(deployed));
+    }
+
     private GenericApiEntity updateLifecycle(
         ExecutionContext executionContext,
         String apiId,
@@ -458,12 +471,7 @@ public class ApiStateServiceImpl implements ApiStateService {
             Api api = optApi.get();
 
             if (lifecycleState == LifecycleState.STARTED) {
-                validateApiClusterBindingService.validateDeployable(
-                    api.getId(),
-                    api.getEnvironmentId(),
-                    api.getType(),
-                    api.getDefinition()
-                );
+                validateDeployable(api);
             }
 
             Api previousApi = new Api(api);
