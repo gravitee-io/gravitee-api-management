@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { render, screen } from '@testing-library/react';
+import { buttonHarness, inputHarness, pageHeaderHarness, passwordInputHarness, renderWithGraphene } from '@gravitee/graphene-core/testing';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useNavigate } from 'react-router-dom';
 
@@ -22,6 +23,7 @@ import { ApimApiError } from '../../../shared/api/apimClient';
 import { useHasEnvironmentPermission } from '../../../shared/hooks/useEnvironmentPermissions';
 import { notify } from '../../../shared/notify';
 import { useCreateCredential } from '../hooks/useCredentialMutations';
+import { stubLayoutApis } from '../testing/stubLayoutApis';
 import { ENVIRONMENT_CREDENTIAL_CREATE_PERMISSION, ENVIRONMENT_SECRET_CREATE_PERMISSION } from '../utils/credentialPermissions';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({ useEnvironment: () => ({ id: 'env-1' }) }));
@@ -38,14 +40,16 @@ function givenPermissions(granted: readonly string[]) {
 }
 
 async function fillDetails(name: string, type?: string) {
-    await userEvent.type(screen.getByLabelText(/Name/), name);
+    await inputHarness({ name: /Name/ }).type(name);
     if (type) {
         await userEvent.click(screen.getByRole('radio', { name: type }));
     }
-    await userEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await buttonHarness({ name: 'Next' }).click();
 }
 
 describe('NewCredentialPage', () => {
+    beforeAll(stubLayoutApis);
+
     beforeEach(() => {
         jest.clearAllMocks();
         jest.mocked(useNavigate).mockReturnValue(navigate);
@@ -57,11 +61,11 @@ describe('NewCredentialPage', () => {
     });
 
     it('creates a bearer credential with a value Gravitee stores', async () => {
-        render(<NewCredentialPage />);
+        renderWithGraphene(<NewCredentialPage />);
 
         await fillDetails('OpenAI production');
-        await userEvent.type(screen.getByLabelText(/Token/), 'sk-123');
-        await userEvent.click(screen.getByRole('button', { name: 'Create credential' }));
+        await passwordInputHarness({ name: /Token/ }).type('sk-123');
+        await buttonHarness({ name: 'Create credential' }).click();
 
         expect(mutateAsync).toHaveBeenCalledWith({
             name: 'OpenAI production',
@@ -74,21 +78,21 @@ describe('NewCredentialPage', () => {
     });
 
     it('masks the typed values', async () => {
-        render(<NewCredentialPage />);
+        renderWithGraphene(<NewCredentialPage />);
 
         await fillDetails('OpenAI production');
 
-        expect(screen.getByLabelText(/Token/)).toHaveAttribute('type', 'password');
+        expect(passwordInputHarness({ name: /Token/ }).isMasked()).toBe(true);
     });
 
     it('creates an API key credential that references an existing secret', async () => {
-        render(<NewCredentialPage />);
+        renderWithGraphene(<NewCredentialPage />);
 
         await fillDetails('Anthropic research', 'API key');
         await userEvent.click(screen.getByRole('radio', { name: 'Reference a secret' }));
-        await userEvent.type(screen.getByLabelText(/Header name/), 'x-api-key');
-        await userEvent.type(screen.getByLabelText(/Value/), '/vault/secret/anthropic:key');
-        await userEvent.click(screen.getByRole('button', { name: 'Create credential' }));
+        await inputHarness({ name: /Header name/ }).type('x-api-key');
+        await inputHarness({ name: /Value/ }).type('/vault/secret/anthropic:key');
+        await buttonHarness({ name: 'Create credential' }).click();
 
         expect(mutateAsync).toHaveBeenCalledWith({
             name: 'Anthropic research',
@@ -99,7 +103,7 @@ describe('NewCredentialPage', () => {
     });
 
     it('explains the flags that let a referenced secret pick up a rotated value', async () => {
-        render(<NewCredentialPage />);
+        renderWithGraphene(<NewCredentialPage />);
 
         await fillDetails('Anthropic research', 'API key');
         await userEvent.click(screen.getByRole('radio', { name: 'Reference a secret' }));
@@ -108,39 +112,63 @@ describe('NewCredentialPage', () => {
     });
 
     it('stays on the details step until the credential has a name', async () => {
-        render(<NewCredentialPage />);
+        renderWithGraphene(<NewCredentialPage />);
 
-        await userEvent.click(screen.getByRole('button', { name: 'Next' }));
+        await buttonHarness({ name: 'Next' }).click();
 
         expect(screen.getByText('Name is required.')).toBeInTheDocument();
         expect(screen.queryByRole('button', { name: 'Create credential' })).not.toBeInTheDocument();
     });
 
-    it('clears the name error once a name is typed', async () => {
-        render(<NewCredentialPage />);
+    it('heads the page as adding a credential', () => {
+        renderWithGraphene(<NewCredentialPage />);
 
-        await userEvent.click(screen.getByRole('button', { name: 'Next' }));
-        await userEvent.type(screen.getByLabelText(/Name/), 'O');
+        expect(pageHeaderHarness().getTitle()).toBe('Add credential');
+    });
+
+    it('ties the name error to the name field', async () => {
+        renderWithGraphene(<NewCredentialPage />);
+
+        await buttonHarness({ name: 'Next' }).click();
+
+        expect(inputHarness({ name: /Name/ }).isInvalid()).toBe(true);
+        expect(inputHarness({ name: /Name/ }).getElement()).toHaveAccessibleDescription('Name is required.');
+    });
+
+    it('ties a secret field error to its field', async () => {
+        renderWithGraphene(<NewCredentialPage />);
+
+        await fillDetails('OpenAI production');
+        await buttonHarness({ name: 'Create credential' }).click();
+
+        expect(passwordInputHarness({ name: /Token/ }).getElement()).toHaveAccessibleDescription('Token is required.');
+    });
+
+    it('clears the name error once a name is typed', async () => {
+        renderWithGraphene(<NewCredentialPage />);
+
+        await buttonHarness({ name: 'Next' }).click();
+        await inputHarness({ name: /Name/ }).type('O');
 
         expect(screen.queryByText('Name is required.')).not.toBeInTheDocument();
     });
 
     it('clears a secret field error once the field is edited, and keeps the others', async () => {
-        render(<NewCredentialPage />);
+        renderWithGraphene(<NewCredentialPage />);
 
         await fillDetails('Partner API', 'Basic auth');
-        await userEvent.click(screen.getByRole('button', { name: 'Create credential' }));
-        await userEvent.type(screen.getByLabelText(/Username/), 'bob');
+        await buttonHarness({ name: 'Create credential' }).click();
+        await inputHarness({ name: /Username/ }).type('bob');
 
         expect(screen.queryByText('Username is required.')).not.toBeInTheDocument();
         expect(screen.getByText('Password is required.')).toBeInTheDocument();
     });
 
     it('does not create a credential with a missing secret field', async () => {
-        render(<NewCredentialPage />);
+        renderWithGraphene(<NewCredentialPage />);
 
         await fillDetails('OpenAI production');
-        await userEvent.click(screen.getByRole('button', { name: 'Create credential' }));
+        await buttonHarness({ name: 'Create credential' }).click();
 
         expect(screen.getByText('Token is required.')).toBeInTheDocument();
         expect(mutateAsync).not.toHaveBeenCalled();
@@ -148,7 +176,7 @@ describe('NewCredentialPage', () => {
 
     it('only offers references without the secret create permission', async () => {
         givenPermissions([ENVIRONMENT_CREDENTIAL_CREATE_PERMISSION]);
-        render(<NewCredentialPage />);
+        renderWithGraphene(<NewCredentialPage />);
 
         await fillDetails('OpenAI production');
 
@@ -160,11 +188,11 @@ describe('NewCredentialPage', () => {
     it('reports a refused creation', async () => {
         const refusal = new ApimApiError(403, 'Forbidden', { message: 'Forbidden' });
         mutateAsync.mockRejectedValue(refusal);
-        render(<NewCredentialPage />);
+        renderWithGraphene(<NewCredentialPage />);
 
         await fillDetails('OpenAI production');
-        await userEvent.type(screen.getByLabelText(/Token/), 'sk-123');
-        await userEvent.click(screen.getByRole('button', { name: 'Create credential' }));
+        await passwordInputHarness({ name: /Token/ }).type('sk-123');
+        await buttonHarness({ name: 'Create credential' }).click();
 
         expect(notify.error).toHaveBeenCalledWith('Forbidden');
         expect(navigate).not.toHaveBeenCalled();
@@ -174,11 +202,11 @@ describe('NewCredentialPage', () => {
         mutateAsync.mockRejectedValue(
             new ApimApiError(500, 'Secret values cannot be stored or read: api.secrets.encryption.key is not set.'),
         );
-        render(<NewCredentialPage />);
+        renderWithGraphene(<NewCredentialPage />);
 
         await fillDetails('OpenAI production');
-        await userEvent.type(screen.getByLabelText(/Token/), 'sk-123');
-        await userEvent.click(screen.getByRole('button', { name: 'Create credential' }));
+        await passwordInputHarness({ name: /Token/ }).type('sk-123');
+        await buttonHarness({ name: 'Create credential' }).click();
 
         expect(notify.error).toHaveBeenCalledWith('The credential could not be created.');
     });

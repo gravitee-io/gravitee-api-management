@@ -13,89 +13,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { render, screen } from '@testing-library/react';
+import {
+    buttonHarness,
+    dataTableHarness,
+    pageHeaderHarness,
+    renderWithGraphene,
+    searchFieldHarness,
+} from '@gravitee/graphene-core/testing';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useNavigate } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 
 import { CredentialsPage } from './CredentialsPage';
 import { useHasEnvironmentPermission } from '../../../shared/hooks/useEnvironmentPermissions';
 import { useCredentialActions } from '../hooks/useCredentialActions';
-import { useCredentialOwnerNames, useCredentialsPaged } from '../hooks/useCredentials';
+import { useDeleteCredential } from '../hooks/useCredentialMutations';
+import { useCredentialConsumers, useCredentialsPaged } from '../hooks/useCredentials';
+import { stubLayoutApis } from '../testing/stubLayoutApis';
 import type { Credential } from '../types/credential';
 import { ENVIRONMENT_CREDENTIAL_CREATE_PERMISSION } from '../utils/credentialPermissions';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({ useEnvironment: () => ({ id: 'env-1' }) }));
-jest.mock('react-router-dom', () => ({ ...jest.requireActual('react-router-dom'), useNavigate: jest.fn() }));
 jest.mock('../../../shared/hooks/useEnvironmentPermissions');
 jest.mock('../../../shared/hooks/useForbiddenResourceRedirect');
+jest.mock('../../../shared/notify', () => ({ notify: { success: jest.fn(), error: jest.fn() } }));
 jest.mock('../hooks/useCredentials');
 jest.mock('../hooks/useCredentialActions');
-jest.mock('../components/CredentialsTable', () => ({
-    CredentialsTable: ({
-        credentials,
-        ownerNames,
-        loading,
-        canDelete,
-        onPageChange,
-        onEdit,
-        onDelete,
-    }: {
-        credentials: Credential[];
-        ownerNames: Record<string, string>;
-        loading: boolean;
-        canDelete: (credential: Credential) => boolean;
-        onPageChange: (page: number) => void;
-        onEdit: (credential: Credential) => void;
-        onDelete: (credential: Credential) => void;
-    }) => (
-        <div aria-busy={loading}>
-            <button type="button" onClick={() => onPageChange(2)}>
-                Go to page 2
-            </button>
-            {credentials.map(credential => (
-                <div key={credential.id}>
-                    <span>{credential.name}</span>
-                    <span>{ownerNames[credential.ownerId ?? '']}</span>
-                    <button type="button" onClick={() => onEdit(credential)}>
-                        Edit {credential.name}
-                    </button>
-                    {canDelete(credential) ? (
-                        <button type="button" onClick={() => onDelete(credential)}>
-                            Delete {credential.name}
-                        </button>
-                    ) : null}
-                </div>
-            ))}
-        </div>
-    ),
-}));
-jest.mock('../components/DeleteCredentialDialog', () => ({
-    DeleteCredentialDialog: ({ credential, open }: { credential: Credential; open: boolean }) =>
-        open ? <div role="dialog">Delete dialog for {credential.name}</div> : null,
-}));
+jest.mock('../hooks/useCredentialMutations');
 
-const navigate = jest.fn();
-const OPENAI: Credential = { id: 'cred-1', name: 'OpenAI production', strategy: 'BEARER', ownerId: 'user-1' };
+const OPENAI: Credential = { id: 'cred-1', name: 'OpenAI production', strategy: 'BEARER', ownerId: 'user-1', ownerName: 'Alex Doyle' };
+const refetch = jest.fn();
 
-function givenCredentials(
-    credentials: Credential[],
-    state: { isLoading?: boolean; isFetching?: boolean; pageCount?: number; totalCount?: number } = {},
-) {
+function givenCredentials(credentials: Credential[], state: { totalCount?: number; isFetching?: boolean; error?: Error } = {}) {
+    const loaded = !state.error;
     jest.mocked(useCredentialsPaged).mockReturnValue({
-        data: {
-            data: credentials,
-            pagination: {
-                page: 1,
-                perPage: 25,
-                pageCount: state.pageCount ?? 1,
-                pageItemsCount: credentials.length,
-                totalCount: state.totalCount ?? credentials.length,
-            },
-        },
-        isLoading: state.isLoading ?? false,
+        data: loaded
+            ? {
+                  data: credentials,
+                  pagination: {
+                      page: 1,
+                      perPage: 10,
+                      pageCount: 1,
+                      pageItemsCount: credentials.length,
+                      totalCount: state.totalCount ?? credentials.length,
+                  },
+              }
+            : undefined,
+        error: state.error ?? null,
+        isSuccess: loaded,
+        isPlaceholderData: false,
         isFetching: state.isFetching ?? false,
-        isError: false,
-        error: null,
+        refetch,
     } as unknown as ReturnType<typeof useCredentialsPaged>);
 }
 
@@ -103,101 +71,154 @@ function givenPermissions(granted: readonly string[]) {
     jest.mocked(useHasEnvironmentPermission).mockImplementation(anyOf => anyOf.some(permission => granted.includes(permission)));
 }
 
+function LocationProbe() {
+    const location = useLocation();
+    return <output aria-label="Location">{`${location.pathname}${location.search}`}</output>;
+}
+
+function renderPage(search = '') {
+    return renderWithGraphene(
+        <MemoryRouter initialEntries={[`/credentials${search}`]}>
+            <Routes>
+                <Route
+                    path="/credentials"
+                    element={
+                        <>
+                            <CredentialsPage />
+                            <LocationProbe />
+                        </>
+                    }
+                />
+            </Routes>
+        </MemoryRouter>,
+    );
+}
+
+const location = () => screen.getByRole('status', { name: 'Location' }).textContent;
+const lastListRequest = () => jest.mocked(useCredentialsPaged).mock.lastCall?.[0];
+
 describe('CredentialsPage', () => {
+    beforeAll(stubLayoutApis);
+
     beforeEach(() => {
         jest.clearAllMocks();
-        jest.mocked(useNavigate).mockReturnValue(navigate);
-        jest.mocked(useCredentialOwnerNames).mockReturnValue({ 'user-1': 'Alex Doyle' });
         givenPermissions([]);
         jest.mocked(useCredentialActions).mockReturnValue({ canEdit: () => true, canDelete: () => true });
+        jest.mocked(useCredentialConsumers).mockReturnValue({ data: [], isError: false, refetch: jest.fn() } as unknown as ReturnType<
+            typeof useCredentialConsumers
+        >);
+        jest.mocked(useDeleteCredential).mockReturnValue({
+            mutateAsync: jest.fn().mockResolvedValue(undefined),
+            isPending: false,
+        } as unknown as ReturnType<typeof useDeleteCredential>);
     });
 
     it('lists the credentials with their owner names', () => {
         givenCredentials([OPENAI]);
 
-        render(<CredentialsPage />);
+        renderPage();
 
-        expect(screen.getByRole('heading', { name: 'Credentials' })).toBeInTheDocument();
-        expect(screen.getByText('OpenAI production')).toBeInTheDocument();
-        expect(screen.getByText('Alex Doyle')).toBeInTheDocument();
+        expect(pageHeaderHarness().getTitle()).toBe('Credentials');
+        expect(dataTableHarness().getRow('OpenAI production').getCellText('Owner')).toBe('Alex Doyle');
     });
 
-    it('offers to add a credential only with the create permission', async () => {
+    it('offers to add a credential only with the create permission', () => {
         givenCredentials([OPENAI]);
-        const { unmount } = render(<CredentialsPage />);
-        expect(screen.queryByRole('button', { name: 'Add credential' })).not.toBeInTheDocument();
+        const { unmount } = renderPage();
+        expect(pageHeaderHarness().hasActions()).toBe(false);
         unmount();
 
         givenPermissions([ENVIRONMENT_CREDENTIAL_CREATE_PERMISSION]);
-        render(<CredentialsPage />);
-        await userEvent.click(screen.getByRole('button', { name: 'Add credential' }));
+        renderPage();
 
-        expect(navigate).toHaveBeenCalledWith('new');
+        expect(screen.getByRole('link', { name: 'Add credential' })).toHaveAttribute('href', '/credentials/new');
     });
 
-    it('offers to add a credential while the list loads', () => {
-        givenPermissions([ENVIRONMENT_CREDENTIAL_CREATE_PERMISSION]);
-        givenCredentials([], { isLoading: true, isFetching: true });
-
-        render(<CredentialsPage />);
-
-        expect(screen.getByRole('button', { name: 'Add credential' })).toBeInTheDocument();
-    });
-
-    it('marks the table busy while a search or page change refetches', () => {
-        givenCredentials([OPENAI], { isFetching: true });
-
-        render(<CredentialsPage />);
-
-        expect(screen.getByText('OpenAI production').closest('[aria-busy]')).toHaveAttribute('aria-busy', 'true');
-    });
-
-    it('goes back to the last page when the page it shows no longer exists', async () => {
-        givenCredentials([OPENAI], { pageCount: 2, totalCount: 26 });
-        const { rerender } = render(<CredentialsPage />);
-        await userEvent.click(screen.getByRole('button', { name: 'Go to page 2' }));
-        expect(useCredentialsPaged).toHaveBeenLastCalledWith(expect.objectContaining({ page: 2 }));
-
-        givenCredentials([OPENAI], { pageCount: 1, totalCount: 25 });
-        rerender(<CredentialsPage />);
-
-        expect(useCredentialsPaged).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1 }));
-    });
-
-    it('opens the edit page of a credential', async () => {
+    it('asks for the first page of ten credentials by default', () => {
         givenCredentials([OPENAI]);
-        render(<CredentialsPage />);
 
-        await userEvent.click(screen.getByRole('button', { name: 'Edit OpenAI production' }));
+        renderPage();
 
-        expect(navigate).toHaveBeenCalledWith('cred-1/edit');
+        expect(lastListRequest()).toEqual({ query: '', page: 1, perPage: 10 });
     });
 
-    it('offers delete only on the credentials the user may delete', () => {
-        const vault: Credential = { id: 'cred-2', name: 'Vault token', strategy: 'BEARER', managed: false };
-        givenCredentials([OPENAI, vault]);
-        jest.mocked(useCredentialActions).mockReturnValue({ canEdit: () => false, canDelete: credential => credential.id === vault.id });
+    it('restores the search and the page from the URL', () => {
+        givenCredentials([OPENAI], { totalCount: 60 });
 
-        render(<CredentialsPage />);
+        renderPage('?q=open&page=2&size=25');
 
-        expect(screen.queryByRole('button', { name: 'Delete OpenAI production' })).not.toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Delete Vault token' })).toBeInTheDocument();
+        expect(searchFieldHarness({ name: 'Search credentials' }).getValue()).toBe('open');
+        expect(lastListRequest()).toEqual({ query: 'open', page: 2, perPage: 25 });
     });
 
-    it('asks before it deletes a credential', async () => {
+    it('puts a new search in the URL and goes back to the first page', async () => {
+        givenCredentials([OPENAI], { totalCount: 60 });
+        renderPage('?page=3');
+
+        await searchFieldHarness({ name: 'Search credentials' }).type('vault');
+
+        await waitFor(() => expect(location()).toBe('/credentials?q=vault'));
+        expect(lastListRequest()).toEqual({ query: 'vault', page: 1, perPage: 10 });
+    });
+
+    it('resets the search and gives the focus back to the search field', async () => {
         givenCredentials([OPENAI]);
-        render(<CredentialsPage />);
+        renderPage('?q=open');
 
-        await userEvent.click(screen.getByRole('button', { name: 'Delete OpenAI production' }));
+        await buttonHarness({ name: 'Reset' }).click();
 
-        expect(screen.getByRole('dialog')).toHaveTextContent('Delete dialog for OpenAI production');
+        expect(location()).toBe('/credentials');
+        expect(searchFieldHarness({ name: 'Search credentials' }).getElement()).toHaveFocus();
+        expect(screen.queryByRole('button', { name: 'Reset' })).not.toBeInTheDocument();
+    });
+
+    it('goes to the last page when the page in the URL no longer exists', async () => {
+        givenCredentials([OPENAI], { totalCount: 15 });
+
+        renderPage('?page=3');
+
+        await waitFor(() => expect(location()).toBe('/credentials?page=2'));
+    });
+
+    it('shows the error with a retry when the credentials cannot load', async () => {
+        givenCredentials([], { error: new Error('Gateway timeout') });
+        renderPage();
+
+        expect(screen.getByRole('alert')).toHaveTextContent('Could not load the credentials');
+        expect(screen.getByRole('alert')).toHaveTextContent('Gateway timeout');
+        await buttonHarness({ name: 'Retry' }).click();
+
+        expect(refetch).toHaveBeenCalled();
     });
 
     it('explains credentials when there are none yet', () => {
         givenCredentials([]);
 
-        render(<CredentialsPage />);
+        renderPage();
 
         expect(screen.getByText('No credentials yet')).toBeInTheDocument();
+    });
+
+    it('gives the focus back to the row actions when a delete is cancelled', async () => {
+        givenCredentials([OPENAI]);
+        renderPage();
+        const actions = buttonHarness({ name: 'Actions for OpenAI production' });
+
+        await actions.click();
+        await userEvent.click(await screen.findByRole('menuitem', { name: 'Delete' }));
+        await buttonHarness({ name: 'Cancel' }).click();
+
+        await waitFor(() => expect(actions.getElement()).toHaveFocus());
+    });
+
+    it('moves the focus to the search field once the credential is deleted', async () => {
+        givenCredentials([OPENAI]);
+        renderPage();
+
+        await buttonHarness({ name: 'Actions for OpenAI production' }).click();
+        await userEvent.click(await screen.findByRole('menuitem', { name: 'Delete' }));
+        await buttonHarness({ name: 'Delete', within: screen.getByRole('dialog') }).click();
+
+        await waitFor(() => expect(searchFieldHarness({ name: 'Search credentials' }).getElement()).toHaveFocus());
     });
 });

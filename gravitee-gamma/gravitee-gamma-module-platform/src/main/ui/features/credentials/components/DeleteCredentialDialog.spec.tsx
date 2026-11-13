@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { buttonHarness, renderWithGraphene } from '@gravitee/graphene-core/testing';
+import { screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 import { DeleteCredentialDialog } from './DeleteCredentialDialog';
@@ -22,6 +22,7 @@ import { ApimApiError } from '../../../shared/api/apimClient';
 import { notify } from '../../../shared/notify';
 import { useDeleteCredential } from '../hooks/useCredentialMutations';
 import { useCredentialConsumers } from '../hooks/useCredentials';
+import { stubLayoutApis } from '../testing/stubLayoutApis';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({ useEnvironment: () => ({ id: 'env-1' }) }));
 jest.mock('../hooks/useCredentials');
@@ -45,7 +46,7 @@ function deleteMutation(mutateAsync: jest.Mock) {
 }
 
 function renderDialog(onDeleted = jest.fn()) {
-    render(
+    renderWithGraphene(
         <MemoryRouter>
             <DeleteCredentialDialog credential={CREDENTIAL} open onOpenChange={jest.fn()} onDeleted={onDeleted} />
         </MemoryRouter>,
@@ -54,6 +55,8 @@ function renderDialog(onDeleted = jest.fn()) {
 }
 
 describe('DeleteCredentialDialog', () => {
+    beforeAll(stubLayoutApis);
+
     beforeEach(() => jest.clearAllMocks());
 
     it('deletes a credential nothing uses', async () => {
@@ -62,7 +65,7 @@ describe('DeleteCredentialDialog', () => {
         deleteMutation(mutateAsync);
         const onDeleted = renderDialog();
 
-        await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+        await buttonHarness({ name: 'Delete' }).click();
 
         expect(mutateAsync).toHaveBeenCalledWith('cred-1');
         expect(notify.success).toHaveBeenCalledWith('Credential deleted');
@@ -76,7 +79,7 @@ describe('DeleteCredentialDialog', () => {
 
         expect(screen.getByText(/still uses this credential/)).toBeInTheDocument();
         expect(screen.getByRole('link', { name: 'Support proxy' })).toHaveAttribute('href', '/environments/env-1/aim/llm-proxy/proxy-1');
-        expect(screen.getByRole('button', { name: 'Delete' })).toBeDisabled();
+        expect(buttonHarness({ name: 'Delete' }).isDisabled()).toBe(true);
     });
 
     it('waits for the consumers before it allows the delete', () => {
@@ -84,7 +87,7 @@ describe('DeleteCredentialDialog', () => {
         deleteMutation(jest.fn());
         renderDialog();
 
-        expect(screen.getByRole('button', { name: 'Delete' })).toBeDisabled();
+        expect(buttonHarness({ name: 'Delete' }).isDisabled()).toBe(true);
     });
 
     it('still allows the delete when the consumers fail to load, since the server refuses a delete in use', async () => {
@@ -99,7 +102,7 @@ describe('DeleteCredentialDialog', () => {
         renderDialog();
 
         expect(screen.getByText(/could not check what uses this credential/i)).toBeInTheDocument();
-        await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+        await buttonHarness({ name: 'Delete' }).click();
 
         expect(mutateAsync).toHaveBeenCalledWith('cred-1');
     });
@@ -110,7 +113,7 @@ describe('DeleteCredentialDialog', () => {
         deleteMutation(jest.fn().mockRejectedValue(conflict));
         const onDeleted = renderDialog();
 
-        await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+        await buttonHarness({ name: 'Delete' }).click();
 
         await waitFor(() => expect(refetch).toHaveBeenCalled());
         expect(notify.error).toHaveBeenCalledWith('Credential in use');

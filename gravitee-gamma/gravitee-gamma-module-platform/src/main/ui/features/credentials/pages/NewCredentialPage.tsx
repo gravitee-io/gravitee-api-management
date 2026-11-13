@@ -13,28 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    Button,
-    Card,
-    CardContent,
-    Field,
-    FieldDescription,
-    FieldError,
-    FieldLabel,
-    Input,
-    PageFocused,
-    ToggleGroup,
-    ToggleGroupItem,
-} from '@gravitee/graphene-core';
+import { Button, Card, CardContent, PageFocused, PageHeader } from '@gravitee/graphene-core';
 import { ArrowLeftIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useHasEnvironmentPermission } from '../../../shared/hooks/useEnvironmentPermissions';
 import { notify } from '../../../shared/notify';
-import { CredentialAuthenticationFields, CredentialExpiryField } from '../components/CredentialAuthenticationFields';
+import { CredentialAuthenticationFields } from '../components/CredentialAuthenticationFields';
+import { CredentialExpiryField } from '../components/CredentialExpiryField';
+import { CredentialNameAndServiceFields } from '../components/CredentialNameAndServiceFields';
+import { CredentialStepMarker } from '../components/CredentialStepMarker';
+import { CredentialTypeField } from '../components/CredentialTypeField';
 import { useCreateCredential } from '../hooks/useCredentialMutations';
-import { CREDENTIAL_STRATEGIES, type CredentialStrategy } from '../types/credential';
+import type { CredentialStrategy } from '../types/credential';
 import {
     emptyCredentialDraft,
     toCreateCredentialPayload,
@@ -96,71 +88,32 @@ export function NewCredentialPage() {
 
     return (
         <PageFocused>
-            <div className="space-y-6">
-                <div className="space-y-2">
-                    <Button type="button" variant="ghost" className="gap-1.5 px-0 text-muted-foreground" onClick={() => navigate('..')}>
-                        <ArrowLeftIcon className="size-4" aria-hidden />
+            <div className="flex flex-col gap-6">
+                <div>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => navigate('..')}>
+                        <ArrowLeftIcon aria-hidden />
                         Back to credentials
                     </Button>
-                    <h1 className="text-2xl font-semibold tracking-tight">Add credential</h1>
-                    <p className="text-sm text-muted-foreground">Create a credential that modules can reuse to call a service.</p>
                 </div>
+                <PageHeader title="Add credential" description="Create a credential that modules can reuse to call a service." />
 
                 <ol className="flex items-center gap-3 text-sm" aria-label="Steps">
-                    <StepMarker index={1} label="Credential details" current={step === 'details'} done={step === 'authentication'} />
+                    <CredentialStepMarker
+                        index={1}
+                        label="Credential details"
+                        current={step === 'details'}
+                        done={step === 'authentication'}
+                    />
                     <li aria-hidden className="h-px flex-1 bg-border" />
-                    <StepMarker index={2} label="Authentication" current={step === 'authentication'} done={false} />
+                    <CredentialStepMarker index={2} label="Authentication" current={step === 'authentication'} done={false} />
                 </ol>
 
                 <Card>
                     <CardContent className="space-y-4 pt-6">
                         {step === 'details' ? (
                             <>
-                                <Field orientation="vertical" className="gap-1.5">
-                                    <FieldLabel htmlFor="credential-name" required>
-                                        Name
-                                    </FieldLabel>
-                                    <Input
-                                        id="credential-name"
-                                        value={draft.name}
-                                        maxLength={256}
-                                        placeholder="OpenAI production"
-                                        aria-invalid={Boolean(errors.name)}
-                                        onChange={e => updateDraft({ ...draft, name: e.target.value })}
-                                    />
-                                    {errors.name ? <FieldError>{errors.name}</FieldError> : null}
-                                </Field>
-                                <Field orientation="vertical" className="gap-1.5">
-                                    <FieldLabel htmlFor="credential-service">Service</FieldLabel>
-                                    <Input
-                                        id="credential-service"
-                                        value={draft.serviceId}
-                                        placeholder="openai"
-                                        onChange={e => updateDraft({ ...draft, serviceId: e.target.value })}
-                                    />
-                                    <FieldDescription>
-                                        The service the credential calls. Modules use it to find the credential.
-                                    </FieldDescription>
-                                </Field>
-                                <Field orientation="vertical" className="gap-1.5">
-                                    <FieldLabel id="credential-type-label" required>
-                                        Type
-                                    </FieldLabel>
-                                    <ToggleGroup
-                                        type="single"
-                                        className="flex-wrap"
-                                        value={draft.strategy}
-                                        onValueChange={value => value && changeStrategy(value as CredentialStrategy)}
-                                        aria-labelledby="credential-type-label"
-                                    >
-                                        {CREDENTIAL_STRATEGIES.map(strategy => (
-                                            <ToggleGroupItem key={strategy} value={strategy}>
-                                                {credentialStrategyLabel(strategy)}
-                                            </ToggleGroupItem>
-                                        ))}
-                                    </ToggleGroup>
-                                    <FieldDescription>The type cannot change once the credential exists.</FieldDescription>
-                                </Field>
+                                <CredentialNameAndServiceFields draft={draft} errors={errors} onChange={updateDraft} />
+                                <CredentialTypeField value={draft.strategy} onChange={changeStrategy} />
                             </>
                         ) : (
                             <>
@@ -198,7 +151,7 @@ export function NewCredentialPage() {
                     ) : (
                         <div className="flex gap-2">
                             <Button type="button" variant="outline" onClick={() => setStep('details')}>
-                                <ArrowLeftIcon className="size-4" aria-hidden />
+                                <ArrowLeftIcon aria-hidden />
                                 Back
                             </Button>
                             <Button type="button" disabled={createMutation.isPending} onClick={() => void create()}>
@@ -209,19 +162,5 @@ export function NewCredentialPage() {
                 </div>
             </div>
         </PageFocused>
-    );
-}
-
-function StepMarker({ index, label, current, done }: Readonly<{ index: number; label: string; current: boolean; done: boolean }>) {
-    const active = current || done;
-    return (
-        <li className="flex items-center gap-2" aria-current={current ? 'step' : undefined}>
-            <span
-                className={`flex size-6 items-center justify-center rounded-full text-xs font-medium ${active ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
-            >
-                {done ? '✓' : index}
-            </span>
-            <span className={current ? 'font-medium' : 'text-muted-foreground'}>{label}</span>
-        </li>
     );
 }

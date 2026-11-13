@@ -27,9 +27,10 @@ interface DeleteCredentialDialogProps {
     readonly open: boolean;
     readonly onOpenChange: (open: boolean) => void;
     readonly onDeleted: () => void;
+    readonly onCloseAutoFocus?: (event: Event) => void;
 }
 
-export function DeleteCredentialDialog({ credential, open, onOpenChange, onDeleted }: DeleteCredentialDialogProps) {
+export function DeleteCredentialDialog({ credential, open, onOpenChange, onDeleted, onCloseAutoFocus }: DeleteCredentialDialogProps) {
     const { data: consumers, isError: consumersFailed, refetch } = useCredentialConsumers(credential.id, open);
     const deleteMutation = useDeleteCredential();
     const inUse = (consumers?.length ?? 0) > 0;
@@ -64,6 +65,7 @@ export function DeleteCredentialDialog({ credential, open, onOpenChange, onDelet
             // When the consumers cannot load, the delete stays possible: the server refuses it while something uses the credential.
             confirmDisabled={(consumers === undefined && !consumersFailed) || inUse}
             onConfirm={() => void handleConfirm()}
+            onCloseAutoFocus={onCloseAutoFocus}
         >
             {inUse ? <CredentialConsumerList consumers={consumers ?? []} /> : null}
             {consumersFailed ? (

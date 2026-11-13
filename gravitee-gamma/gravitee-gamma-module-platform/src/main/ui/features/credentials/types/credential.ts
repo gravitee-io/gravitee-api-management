@@ -31,6 +31,8 @@ export interface Credential {
     strategy: CredentialStrategy;
     serviceId?: string;
     ownerId?: string;
+    /** On reads only, while the owner is still a user. */
+    ownerName?: string;
     expiresAt?: string;
     configuration?: CredentialSettings;
     secretReferences?: Record<string, CredentialSecretReference>;

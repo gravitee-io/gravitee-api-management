@@ -13,238 +13,85 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    Badge,
-    Button,
-    DataTable,
-    DataTableColumnHeader,
-    DataTableEmptyState,
-    DateCell,
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-    InputGroup,
-    InputGroupAddon,
-    InputGroupInput,
-    type DataTableProps,
-} from '@gravitee/graphene-core';
-import { KeyRoundIcon, MoreVerticalIcon, PencilIcon, SearchIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
-import { Link } from 'react-router-dom';
+import { Button, DataTable, DataTableEmptyState, SearchField } from '@gravitee/graphene-core';
+import { SearchIcon } from '@gravitee/graphene-core/icons';
+import type { Ref } from 'react';
 
-import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes';
-import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
+import { credentialColumns } from './credentialColumns';
 import type { Credential } from '../types/credential';
-import { isCredentialExpired } from '../utils/credentialExpiry';
-import { credentialStrategyLabel } from '../utils/credentialStrategies';
-
-function Empty() {
-    return <span className="text-sm text-muted-foreground">—</span>;
-}
-
-function buildColumns({
-    ownerNames,
-    canEdit,
-    canDelete,
-    onEdit,
-    onDelete,
-}: {
-    ownerNames: Readonly<Record<string, string>>;
-    canEdit: (credential: Credential) => boolean;
-    canDelete: (credential: Credential) => boolean;
-    onEdit: (credential: Credential) => void;
-    onDelete: (credential: Credential) => void;
-}): DataTableProps<Credential>['columns'] {
-    return [
-        {
-            id: 'name',
-            accessorKey: 'name',
-            enableSorting: false,
-            header: ({ column }: ColHeader<Credential>) => <DataTableColumnHeader column={column} title="Name" />,
-            cell: ({ row }: ColCell<Credential>) => (
-                <Link className="text-sm font-medium text-foreground hover:underline" to={row.original.id}>
-                    {row.original.name}
-                </Link>
-            ),
-        },
-        {
-            id: 'service',
-            accessorKey: 'serviceId',
-            enableSorting: false,
-            header: ({ column }: ColHeader<Credential>) => <DataTableColumnHeader column={column} title="Service" />,
-            cell: ({ row }: ColCell<Credential>) =>
-                row.original.serviceId ? (
-                    <span className="text-sm">{row.original.serviceId}</span>
-                ) : (
-                    <span className="text-sm text-muted-foreground">Not set</span>
-                ),
-        },
-        {
-            id: 'type',
-            accessorKey: 'strategy',
-            enableSorting: false,
-            header: ({ column }: ColHeader<Credential>) => <DataTableColumnHeader column={column} title="Type" />,
-            cell: ({ row }: ColCell<Credential>) => <Badge variant="outline">{credentialStrategyLabel(row.original.strategy)}</Badge>,
-        },
-        {
-            id: 'owner',
-            accessorKey: 'ownerId',
-            enableSorting: false,
-            header: ({ column }: ColHeader<Credential>) => <DataTableColumnHeader column={column} title="Owner" />,
-            cell: ({ row }: ColCell<Credential>) =>
-                row.original.ownerId ? (
-                    <span className="text-sm">{ownerNames[row.original.ownerId] ?? row.original.ownerId}</span>
-                ) : (
-                    <Empty />
-                ),
-        },
-        {
-            id: 'expiresAt',
-            accessorKey: 'expiresAt',
-            enableSorting: false,
-            header: ({ column }: ColHeader<Credential>) => <DataTableColumnHeader column={column} title="Expires" />,
-            cell: ({ row }: ColCell<Credential>) =>
-                row.original.expiresAt ? (
-                    <div className="flex items-center gap-2">
-                        <DateCell value={new Date(row.original.expiresAt)} format="absolute" />
-                        {isCredentialExpired(row.original) ? <Badge variant="destructive">Expired</Badge> : null}
-                    </div>
-                ) : (
-                    <Empty />
-                ),
-        },
-        {
-            id: 'actions',
-            header: () => <span className="sr-only">Actions</span>,
-            size: 60,
-            enableSorting: false,
-            enableHiding: false,
-            cell: ({ row }: ColCell<Credential>) => {
-                const credential = row.original;
-                const editable = canEdit(credential);
-                const deletable = canDelete(credential);
-                if (!editable && !deletable) {
-                    return null;
-                }
-                return (
-                    <div className="flex justify-end">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="size-8" aria-label={`${credential.name} actions`}>
-                                    <MoreVerticalIcon className="size-4" aria-hidden />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                {editable && (
-                                    <DropdownMenuItem onSelect={() => onEdit(credential)}>
-                                        <PencilIcon className="size-4 mr-2" aria-hidden />
-                                        Edit
-                                    </DropdownMenuItem>
-                                )}
-                                {editable && deletable && <DropdownMenuSeparator />}
-                                {deletable && (
-                                    <DropdownMenuItem variant="destructive" onSelect={() => onDelete(credential)}>
-                                        <Trash2Icon className="size-4 mr-2" aria-hidden />
-                                        Delete
-                                    </DropdownMenuItem>
-                                )}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                );
-            },
-        },
-    ];
-}
 
 interface CredentialsTableProps {
     readonly credentials: Credential[];
-    readonly ownerNames: Readonly<Record<string, string>>;
     readonly totalCount: number;
     readonly loading: boolean;
+    readonly searchRef: Ref<HTMLInputElement>;
     readonly search: string;
+    readonly hasCriteria: boolean;
     readonly page: number;
     readonly pageSize: number;
-    readonly canEdit: (credential: Credential) => boolean;
-    readonly canDelete: (credential: Credential) => boolean;
+    readonly pageSizeOptions: readonly number[];
     readonly onSearchChange: (value: string) => void;
+    readonly onReset: () => void;
     readonly onPageChange: (page: number) => void;
     readonly onPageSizeChange: (size: number) => void;
-    readonly onEdit: (credential: Credential) => void;
-    readonly onDelete: (credential: Credential) => void;
 }
 
 export function CredentialsTable({
     credentials,
-    ownerNames,
     totalCount,
     loading,
+    searchRef,
     search,
+    hasCriteria,
     page,
     pageSize,
-    canEdit,
-    canDelete,
+    pageSizeOptions,
     onSearchChange,
+    onReset,
     onPageChange,
     onPageSizeChange,
-    onEdit,
-    onDelete,
 }: CredentialsTableProps) {
     return (
         <DataTable
             aria-label="Credentials"
-            columns={buildColumns({ ownerNames, canEdit, canDelete, onEdit, onDelete })}
+            columns={credentialColumns}
             data={credentials}
+            serverSide
+            enableColumnVisibility
             loading={loading}
             skeletonCount={pageSize}
-            serverSide
+            tableOptions={{ getRowId: credential => credential.id }}
             pagination={{
                 page,
                 pageSize,
                 totalCount,
-                pageSizeOptions: [...TABLE_PAGE_SIZE_OPTIONS],
+                pageSizeOptions: [...pageSizeOptions],
                 onPageChange,
-                onPageSizeChange: size => {
-                    onPageSizeChange(size);
-                    onPageChange(1);
-                },
+                onPageSizeChange,
             }}
             emptyMessage={
-                search.trim() ? (
-                    <DataTableEmptyState
-                        variant="no-results"
-                        icon={<SearchIcon className="size-8" aria-hidden />}
-                        title="No credential matches your search"
-                        description="Try adjusting your search terms."
-                        action={
-                            <Button size="sm" variant="outline" onClick={() => onSearchChange('')}>
-                                Clear search
-                            </Button>
-                        }
-                    />
-                ) : (
-                    <DataTableEmptyState
-                        variant="no-results"
-                        icon={<KeyRoundIcon className="size-8" aria-hidden />}
-                        title="No credentials"
-                        description="No credentials to display."
-                    />
-                )
+                <DataTableEmptyState
+                    variant="no-results"
+                    icon={<SearchIcon />}
+                    title="No credential matches your search"
+                    description="Try another search."
+                />
             }
             toolbar={
-                <div className="w-64">
-                    <InputGroup>
-                        <InputGroupAddon align="inline-start">
-                            <SearchIcon className="size-3.5 text-muted-foreground" aria-hidden />
-                        </InputGroupAddon>
-                        <InputGroupInput
-                            aria-label="Search credentials"
-                            placeholder="Search by name…"
-                            value={search}
-                            onChange={e => onSearchChange(e.target.value)}
-                        />
-                    </InputGroup>
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                    <SearchField
+                        ref={searchRef}
+                        aria-label="Search credentials"
+                        placeholder="Search credentials..."
+                        value={search}
+                        onValueChange={onSearchChange}
+                        className="w-64"
+                    />
+                    {hasCriteria && (
+                        <Button variant="ghost" size="sm" onClick={onReset}>
+                            Reset
+                        </Button>
+                    )}
                 </div>
             }
         />

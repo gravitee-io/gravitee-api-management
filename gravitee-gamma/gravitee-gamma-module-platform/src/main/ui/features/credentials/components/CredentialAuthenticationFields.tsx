@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import {
-    DatePicker,
     Field,
     FieldDescription,
     FieldError,
@@ -25,8 +24,14 @@ import {
     ToggleGroupItem,
 } from '@gravitee/graphene-core';
 
-import { toDateInput, type CredentialDraft, type CredentialDraftErrors, type CredentialSecretMode } from '../utils/credentialDraft';
-import { CREDENTIAL_STRATEGY_DEFINITIONS, type CredentialField } from '../utils/credentialStrategies';
+import { CredentialSettingField } from './CredentialSettingField';
+import {
+    isCredentialSecretMode,
+    type CredentialDraft,
+    type CredentialDraftErrors,
+    type CredentialSecretMode,
+} from '../utils/credentialDraft';
+import { CREDENTIAL_STRATEGY_DEFINITIONS } from '../utils/credentialStrategies';
 
 interface CredentialAuthenticationFieldsProps {
     readonly idPrefix: string;
@@ -54,6 +59,7 @@ export function CredentialAuthenticationFields({
 }: CredentialAuthenticationFieldsProps) {
     const definition = CREDENTIAL_STRATEGY_DEFINITIONS[draft.strategy];
     const modeLabelId = `${idPrefix}-mode-label`;
+    const disabledReasonId = `${idPrefix}-secrets-disabled-reason`;
 
     function setSetting(key: string, value: string) {
         onChange({ ...draft, settings: { ...draft.settings, [key]: value } });
@@ -70,7 +76,7 @@ export function CredentialAuthenticationFields({
     return (
         <div className="space-y-4">
             {definition.settings.map(field => (
-                <TextField
+                <CredentialSettingField
                     key={field.key}
                     id={`${idPrefix}-setting-${field.key}`}
                     field={field}
@@ -86,7 +92,7 @@ export function CredentialAuthenticationFields({
                     <ToggleGroup
                         type="single"
                         value={draft.mode}
-                        onValueChange={value => value && setMode(value as CredentialSecretMode)}
+                        onValueChange={value => isCredentialSecretMode(value) && setMode(value)}
                         aria-labelledby={modeLabelId}
                     >
                         <ToggleGroupItem value="value" disabled={!canStoreValues}>
@@ -107,6 +113,10 @@ export function CredentialAuthenticationFields({
                 const error = errors[`secret.${field.key}`];
                 const value = draft.secrets[field.key] ?? '';
                 const disabled = Boolean(secretsDisabledReason);
+                const errorId = `${id}-error`;
+                const describedBy = [error ? errorId : undefined, secretsDisabledReason ? disabledReasonId : undefined]
+                    .filter(Boolean)
+                    .join(' ');
                 return (
                     <Field key={field.key} orientation="vertical" className="gap-1.5">
                         <FieldLabel htmlFor={id} required={!valuesOptional}>
@@ -120,6 +130,7 @@ export function CredentialAuthenticationFields({
                                 placeholder={valuesOptional ? 'Leave empty to keep the stored value' : field.placeholder}
                                 disabled={disabled}
                                 aria-invalid={Boolean(error)}
+                                aria-describedby={describedBy || undefined}
                                 onChange={e => setSecret(field.key, e.target.value)}
                             />
                         ) : (
@@ -129,10 +140,11 @@ export function CredentialAuthenticationFields({
                                 placeholder="/vault/secret/data/my-service:key"
                                 disabled={disabled}
                                 aria-invalid={Boolean(error)}
+                                aria-describedby={describedBy || undefined}
                                 onChange={e => setSecret(field.key, e.target.value)}
                             />
                         )}
-                        {error ? <FieldError>{error}</FieldError> : null}
+                        {error ? <FieldError id={errorId}>{error}</FieldError> : null}
                     </Field>
                 );
             })}
@@ -142,54 +154,11 @@ export function CredentialAuthenticationFields({
                     a rotated value without a redeploy.
                 </p>
             ) : null}
-            {secretsDisabledReason ? <p className="text-sm text-muted-foreground">{secretsDisabledReason}</p> : null}
+            {secretsDisabledReason ? (
+                <p id={disabledReasonId} className="text-sm text-muted-foreground">
+                    {secretsDisabledReason}
+                </p>
+            ) : null}
         </div>
-    );
-}
-
-export function CredentialExpiryField({
-    id,
-    value,
-    error,
-    onChange,
-}: Readonly<{ id: string; value: string; error?: string; onChange: (value: string) => void }>) {
-    return (
-        <Field orientation="vertical" className="gap-1.5">
-            <FieldLabel htmlFor={id}>Expires (optional)</FieldLabel>
-            <DatePicker
-                id={id}
-                aria-label="Expires"
-                placeholder="Never expires"
-                value={value ? new Date(`${value}T00:00:00`) : undefined}
-                onChange={date => onChange(date ? toDateInput(date) : '')}
-            />
-            <FieldDescription>A reminder to replace the credential. It does not stop the credential from being used.</FieldDescription>
-            {error ? <FieldError>{error}</FieldError> : null}
-        </Field>
-    );
-}
-
-function TextField({
-    id,
-    field,
-    value,
-    error,
-    onChange,
-}: Readonly<{ id: string; field: CredentialField; value: string; error?: string; onChange: (value: string) => void }>) {
-    return (
-        <Field orientation="vertical" className="gap-1.5">
-            <FieldLabel htmlFor={id} required={!field.optional}>
-                {field.label}
-            </FieldLabel>
-            <Input
-                id={id}
-                value={value}
-                placeholder={field.placeholder}
-                aria-invalid={Boolean(error)}
-                onChange={e => onChange(e.target.value)}
-            />
-            {field.list ? <FieldDescription>Separate several values with commas.</FieldDescription> : null}
-            {error ? <FieldError>{error}</FieldError> : null}
-        </Field>
     );
 }

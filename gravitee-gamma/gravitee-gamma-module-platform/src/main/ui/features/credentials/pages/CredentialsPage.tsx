@@ -13,45 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, DataTableEmptyState } from '@gravitee/graphene-core';
-import { KeyRoundIcon, PlusIcon } from '@gravitee/graphene-core/icons';
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Alert, AlertAction, AlertDescription, AlertTitle, Button, DataTableEmptyState, PageHeader } from '@gravitee/graphene-core';
+import { CircleXIcon, KeyRoundIcon, PlusIcon } from '@gravitee/graphene-core/icons';
+import { useRef } from 'react';
+import { Link } from 'react-router-dom';
 
 import { useHasEnvironmentPermission } from '../../../shared/hooks/useEnvironmentPermissions';
 import { useForbiddenResourceRedirect } from '../../../shared/hooks/useForbiddenResourceRedirect';
 import { isForbiddenApiError } from '../../../shared/utils/apiErrors';
+import { CredentialDeletedContext } from '../components/CredentialActionsMenu';
 import { CredentialsTable } from '../components/CredentialsTable';
-import { DeleteCredentialDialog } from '../components/DeleteCredentialDialog';
-import { useCredentialActions } from '../hooks/useCredentialActions';
-import { useCredentialOwnerNames, useCredentialsPaged } from '../hooks/useCredentials';
-import type { Credential } from '../types/credential';
+import { useCredentialList } from '../hooks/useCredentialList';
 import { ENVIRONMENT_CREDENTIAL_CREATE_PERMISSION, ENVIRONMENT_CREDENTIAL_PERMISSION_PREFIX } from '../utils/credentialPermissions';
 
-const DEFAULT_PAGE_SIZE = 25;
-const SEARCH_DEBOUNCE_MS = 300;
-
 export function CredentialsPage() {
-    const navigate = useNavigate();
     const canCreate = useHasEnvironmentPermission([ENVIRONMENT_CREDENTIAL_CREATE_PERMISSION]);
-    const { canEdit, canDelete } = useCredentialActions();
+    const list = useCredentialList();
+    const searchRef = useRef<HTMLInputElement>(null);
 
-    const [search, setSearch] = useState('');
-    const [debouncedSearch, setDebouncedSearch] = useState('');
-    const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-    const [credentialToDelete, setCredentialToDelete] = useState<Credential | undefined>();
-
-    useEffect(() => {
-        const timer = setTimeout(() => setDebouncedSearch(search), SEARCH_DEBOUNCE_MS);
-        return () => clearTimeout(timer);
-    }, [search]);
-
-    const { data, isLoading, isFetching, isError, error } = useCredentialsPaged({ query: debouncedSearch, page, perPage: pageSize });
-    const credentials = data?.data ?? [];
-    const ownerNames = useCredentialOwnerNames(credentials.map(credential => credential.ownerId));
-
-    const isForbidden = isForbiddenApiError(isError, error);
+    const { result, error, settled } = list;
+    const isForbidden = isForbiddenApiError(Boolean(error), error);
     useForbiddenResourceRedirect({
         isForbidden,
         navItemKey: 'credentials',
@@ -59,84 +40,82 @@ export function CredentialsPage() {
         redirectTo: '../applications',
     });
 
-    const totalCount = data?.pagination.totalCount ?? 0;
-    const lastPage = data?.pagination.pageCount ?? 0;
-    useEffect(() => {
-        // A delete can empty the last page; show the new last page instead of an empty table.
-        if (lastPage > 0 && page > lastPage) {
-            setPage(lastPage);
-        }
-    }, [lastPage, page]);
-    const isFirstUse = !isLoading && totalCount === 0 && !search.trim() && !debouncedSearch.trim();
-
-    function handleSearchChange(value: string) {
-        setSearch(value);
-        setPage(1);
-    }
+    const totalCount = result?.pagination.totalCount ?? 0;
+    const isFirstUse = settled && totalCount === 0 && !list.hasCriteria;
+    const announcement = !settled || isFirstUse ? '' : totalCount === 0 ? 'No results' : `${totalCount} result${totalCount > 1 ? 's' : ''}`;
+    const focusSearch = () => searchRef.current?.focus();
 
     if (isForbidden) {
         return null;
     }
 
-    if (isError) {
-        return (
-            <div className="flex items-center justify-center p-8">
-                <p className="text-sm text-muted-foreground">Failed to load the credentials. Please refresh and try again.</p>
-            </div>
-        );
-    }
-
     return (
-        <div className="space-y-6">
-            <div className="flex items-start justify-between gap-4">
-                <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold tracking-tight">Credentials</h1>
-                    <p className="text-sm text-muted-foreground">Credentials saved for reuse across modules.</p>
-                </div>
-                {canCreate ? (
-                    <Button className="shrink-0" size="sm" onClick={() => navigate('new')}>
-                        <PlusIcon className="size-4" aria-hidden />
-                        Add credential
-                    </Button>
-                ) : null}
-            </div>
+        <div className="flex flex-col gap-6">
+            <PageHeader
+                title="Credentials"
+                description="Credentials saved for reuse across modules."
+                actions={
+                    canCreate && (
+                        <Button asChild>
+                            <Link to="new">
+                                <PlusIcon aria-hidden />
+                                Add credential
+                            </Link>
+                        </Button>
+                    )
+                }
+            />
+
+            <p role="status" className="sr-only">
+                {announcement}
+            </p>
+
+            {error && (
+                <Alert variant="destructive">
+                    <CircleXIcon aria-hidden />
+                    <AlertTitle>Could not load the credentials</AlertTitle>
+                    <AlertDescription>{result ? 'The list below may be out of date.' : error.message}</AlertDescription>
+                    <AlertAction align="center">
+                        <Button variant="outline" size="xs" disabled={list.isFetching} onClick={() => void list.refetch()}>
+                            {list.isFetching ? 'Retrying...' : 'Retry'}
+                        </Button>
+                    </AlertAction>
+                </Alert>
+            )}
 
             {isFirstUse ? (
                 <div className="rounded-lg border">
                     <DataTableEmptyState
                         variant="first-use"
-                        icon={<KeyRoundIcon className="size-8" aria-hidden />}
+                        icon={<KeyRoundIcon />}
                         title="No credentials yet"
                         description="A credential holds the secrets a module uses to call a service, such as an LLM provider API key. Create it once and reuse it everywhere."
                     />
                 </div>
             ) : (
-                <CredentialsTable
-                    credentials={credentials}
-                    ownerNames={ownerNames}
-                    totalCount={totalCount}
-                    loading={isFetching}
-                    search={search}
-                    page={page}
-                    pageSize={pageSize}
-                    canEdit={canEdit}
-                    canDelete={canDelete}
-                    onSearchChange={handleSearchChange}
-                    onPageChange={setPage}
-                    onPageSizeChange={setPageSize}
-                    onEdit={credential => navigate(`${credential.id}/edit`)}
-                    onDelete={setCredentialToDelete}
-                />
+                (result || !error) && (
+                    <CredentialDeletedContext value={focusSearch}>
+                        <CredentialsTable
+                            credentials={result?.data ?? []}
+                            totalCount={totalCount}
+                            loading={list.isFetching}
+                            searchRef={searchRef}
+                            search={list.q}
+                            hasCriteria={list.hasCriteria}
+                            page={list.page}
+                            pageSize={list.size}
+                            pageSizeOptions={list.pageSizeOptions}
+                            onSearchChange={list.setQuery}
+                            onReset={() => {
+                                list.reset();
+                                focusSearch();
+                            }}
+                            onPageChange={list.setPage}
+                            onPageSizeChange={list.setPageSize}
+                        />
+                    </CredentialDeletedContext>
+                )
             )}
-
-            {credentialToDelete ? (
-                <DeleteCredentialDialog
-                    credential={credentialToDelete}
-                    open
-                    onOpenChange={open => !open && setCredentialToDelete(undefined)}
-                    onDeleted={() => setCredentialToDelete(undefined)}
-                />
-            ) : null}
         </div>
     );
 }
