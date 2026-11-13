@@ -15,11 +15,10 @@
  */
 package io.gravitee.apim.core.credential.model;
 
-import static io.gravitee.apim.core.credential.use_case.CredentialFixture.OTHER_USER_ID;
-import static io.gravitee.apim.core.credential.use_case.CredentialFixture.OWNER_ID;
-import static io.gravitee.apim.core.credential.use_case.CredentialFixture.actor;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -27,6 +26,9 @@ import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class CredentialTest {
+
+    private static final String OWNER_ID = "owner-id";
+    private static final String OTHER_USER_ID = "other-user-id";
 
     private final Credential credential = Credential.builder().id("c1").ownerId(OWNER_ID).build();
 
@@ -43,5 +45,10 @@ class CredentialTest {
     @Test
     void should_not_be_manageable_by_another_user() {
         assertThat(credential.isManageableBy(actor(OTHER_USER_ID, false, Set.of()))).isFalse();
+    }
+
+    private static CredentialActor actor(String userId, boolean admin, Set<CredentialActor.SecretAccess> secretAccess) {
+        var auditInfo = AuditInfo.builder().actor(AuditActor.builder().userId(userId).build()).build();
+        return new CredentialActor(auditInfo, admin, secretAccess);
     }
 }
