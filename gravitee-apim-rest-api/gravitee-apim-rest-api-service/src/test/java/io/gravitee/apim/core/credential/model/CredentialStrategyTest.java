@@ -22,6 +22,7 @@ import io.gravitee.apim.core.credential.exception.InvalidCredentialException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
@@ -104,11 +105,41 @@ class CredentialStrategyTest {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { "login.example.com/token", "ftp://login.example.com/token", "https://", "not a url" })
-        void should_reject_a_token_url_that_is_not_http(String tokenUrl) {
-            assertThatThrownBy(() -> CredentialStrategy.OAUTH2.validateConfiguration(Map.of("tokenUrl", tokenUrl))).isInstanceOf(
-                InvalidCredentialException.class
+        @ValueSource(
+            strings = {
+                "login.example.com/token", "ftp://login.example.com/token", "http://login.example.com/token", "https://", "not a url",
+            }
+        )
+        void should_reject_a_token_url_that_is_not_https(String tokenUrl) {
+            assertThatThrownBy(() -> CredentialStrategy.OAUTH2.validateConfiguration(Map.of("tokenUrl", tokenUrl)))
+                .isInstanceOf(InvalidCredentialException.class)
+                .hasMessage("tokenUrl must be an https URL.");
+        }
+
+        @Test
+        void should_accept_up_to_50_scopes() {
+            var scopes = IntStream.range(0, 50)
+                .mapToObj(i -> "scope-" + i)
+                .toList();
+
+            var settings = CredentialStrategy.OAUTH2.validateConfiguration(
+                Map.of("tokenUrl", "https://login.example.com/token", "scopes", scopes)
             );
+
+            assertThat(settings.get("scopes")).isEqualTo(scopes);
+        }
+
+        @Test
+        void should_reject_more_than_50_scopes() {
+            var scopes = IntStream.range(0, 51)
+                .mapToObj(i -> "scope-" + i)
+                .toList();
+
+            assertThatThrownBy(() ->
+                CredentialStrategy.OAUTH2.validateConfiguration(Map.of("tokenUrl", "https://login.example.com/token", "scopes", scopes))
+            )
+                .isInstanceOf(InvalidCredentialException.class)
+                .hasMessage("scopes must hold at most 50 entries.");
         }
 
         @ParameterizedTest

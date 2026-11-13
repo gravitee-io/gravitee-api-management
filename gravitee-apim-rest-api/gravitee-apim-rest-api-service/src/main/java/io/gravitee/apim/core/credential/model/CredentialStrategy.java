@@ -36,6 +36,7 @@ public enum CredentialStrategy {
 
     private static final Pattern HEADER_NAME = Pattern.compile("[!#$%&'*+.^_`|~0-9A-Za-z-]{1,256}");
     private static final int MAX_SETTING_LENGTH = 2048;
+    private static final int MAX_SCOPES = 50;
 
     private final List<String> secretFields;
 
@@ -102,7 +103,7 @@ public enum CredentialStrategy {
 
     private Map<String, Object> oauth2Settings(Map<String, Object> settings) {
         allowOnly(settings, Set.of("tokenUrl", "scopes", "audience"));
-        requireHttpUrl(requiredText(settings, "tokenUrl"));
+        requireHttpsUrl(requiredText(settings, "tokenUrl"));
         if (settings.containsKey("scopes")) {
             settings.put("scopes", scopes(settings.get("scopes")));
         }
@@ -127,12 +128,12 @@ public enum CredentialStrategy {
         return text;
     }
 
-    private static void requireHttpUrl(String url) {
+    // The gateway sends the client secret to this URL, so it must not travel in clear text.
+    private static void requireHttpsUrl(String url) {
         try {
             var uri = new URI(url);
-            var scheme = uri.getScheme();
-            if (!("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) || uri.getHost() == null) {
-                throw new InvalidCredentialException("tokenUrl must be an http or https URL.");
+            if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null) {
+                throw new InvalidCredentialException("tokenUrl must be an https URL.");
             }
             if (uri.getRawUserInfo() != null) {
                 throw new InvalidCredentialException(
@@ -140,13 +141,16 @@ public enum CredentialStrategy {
                 );
             }
         } catch (URISyntaxException e) {
-            throw new InvalidCredentialException("tokenUrl must be an http or https URL.");
+            throw new InvalidCredentialException("tokenUrl must be an https URL.");
         }
     }
 
     private static List<String> scopes(Object value) {
         if (!(value instanceof List<?> list)) {
             throw new InvalidCredentialException("scopes must be a list of text.");
+        }
+        if (list.size() > MAX_SCOPES) {
+            throw new InvalidCredentialException("scopes must hold at most " + MAX_SCOPES + " entries.");
         }
         var scopes = new ArrayList<String>();
         for (var scope : list) {
