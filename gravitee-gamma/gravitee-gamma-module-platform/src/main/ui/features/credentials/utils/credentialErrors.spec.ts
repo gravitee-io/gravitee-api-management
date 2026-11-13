@@ -18,7 +18,19 @@ import { ApimApiError } from '../../../shared/api/apimClient';
 
 describe('credentialFailureMessage', () => {
     it('shows the reason the server gives for a refused request', () => {
-        expect(credentialFailureMessage(new ApimApiError(400, 'Name is already used.'), 'Could not save.')).toBe('Name is already used.');
+        const error = new ApimApiError(400, 'Name is already used.', { message: 'Name is already used.' });
+
+        expect(credentialFailureMessage(error, 'Could not save.')).toBe('Name is already used.');
+    });
+
+    it('hides a refusal whose body is not the JSON the server sends', () => {
+        const error = new ApimApiError(403, '<html><body>Forbidden by proxy</body></html>');
+
+        expect(credentialFailureMessage(error, 'Could not save.')).toBe('Could not save.');
+    });
+
+    it('hides the detail of a failure that never reached the server', () => {
+        expect(credentialFailureMessage(new TypeError('Failed to fetch'), 'Could not save.')).toBe('Could not save.');
     });
 
     it.each([500, 503])('hides the server detail of a %s behind the fallback', status => {

@@ -158,7 +158,7 @@ describe('NewCredentialPage', () => {
     });
 
     it('reports a refused creation', async () => {
-        const refusal = new ApimApiError(403, 'Forbidden', undefined);
+        const refusal = new ApimApiError(403, 'Forbidden', { message: 'Forbidden' });
         mutateAsync.mockRejectedValue(refusal);
         render(<NewCredentialPage />);
 
