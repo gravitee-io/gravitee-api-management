@@ -90,36 +90,6 @@ fi
 # base64url and dots, nothing the shell can expand — and it never came from Keeper.
 echo "export AZURE_ARTIFACTS_PAT='\${TOKEN}'" >> "$BASH_ENV"`,
       }),
-      new commands.Run({
-        name: 'Check the feed answers',
-        // Without this, a feed that rejects the token is invisible: the settings declare
-        // Artifactory after the feed, so Maven falls back to it with a warning and the build
-        // stays green. The fallback is there for artifacts not yet on the feed, not to paper
-        // over an authentication failure.
-        //
-        // io.gravitee.canary:feed-canary:1.0.0 exists on the feed and nowhere else, so
-        // resolving it proves the feed answered, and answered to this token.
-        //
-        // Scaffolding, to be removed with Artifactory: see the note on job-setup's Maven check.
-        command: `CODE=$(curl -s -o /dev/null -w '%{http_code}' --retry 3 --retry-all-errors --retry-delay 5 --max-time 30 \\
-  -u "bot:\${AZURE_ARTIFACTS_PAT}" \\
-  "${config.maven.azureFeedUrl}/io/gravitee/canary/feed-canary/1.0.0/feed-canary-1.0.0.pom") || CODE=000
-
-# job-setup's Maven check reads this to tell an outage here from its own settings wiring, and
-# print only the cause that applies. A status code, so nothing the shell can expand.
-echo "export AZURE_FEED_HTTP_CODE='\${CODE}'" >> "$BASH_ENV"
-
-case "$CODE" in
-  200) echo "The feed resolves the canary." ;;
-  401) echo "401 — the feed rejected the token." >&2; exit 1 ;;
-  403) echo "403 — Gravitee.io Bot has no role on the feed." >&2; exit 1 ;;
-  404) echo "404 — token accepted but the canary is gone; publish it again." >&2; exit 1 ;;
-  # Everything else is the feed being unavailable rather than misconfigured, and that is what
-  # the Artifactory fallback exists to absorb. Failing here would remove the resilience this
-  # design was built around.
-  *)   echo "The feed answered HTTP \${CODE}; carrying on, Maven falls back to Artifactory." >&2 ;;
-esac`,
-      }),
     ];
 
     return new reusable.ReusableCommand(
