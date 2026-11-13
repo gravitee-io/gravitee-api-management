@@ -143,6 +143,7 @@ export class ApplicationCreationComponent implements OnInit {
   creationInProgress: boolean;
   creationSuccess: boolean;
   creationError: boolean;
+  creationErrorMessage: string;
   createdApplication: Application;
   applicationType: ApplicationTypeOption;
   private stepOneForm: CreationFormType;
@@ -222,6 +223,7 @@ export class ApplicationCreationComponent implements OnInit {
     }
     this.notificationService.reset();
     this.creationError = false;
+    this.creationErrorMessage = null;
     this.setCurrentStep(current);
   }
 
@@ -405,6 +407,7 @@ export class ApplicationCreationComponent implements OnInit {
   createApp() {
     this.creationSuccess = false;
     this.creationError = false;
+    this.creationErrorMessage = null;
     this.creationInProgress = true;
     this.subscriptionErrors = [];
     const applicationInput = mapToApplicationInput(this.applicationForm.getRawValue());
@@ -453,7 +456,8 @@ export class ApplicationCreationComponent implements OnInit {
         this.creationInProgress = false;
         setTimeout(this.updateSteps.bind(this), 200);
       })
-      .catch(() => {
+      .catch(exception => {
+        this.creationErrorMessage = exception?.error?.errors?.[0]?.message ?? null;
         this.creationError = true;
         this.creationInProgress = false;
       });
