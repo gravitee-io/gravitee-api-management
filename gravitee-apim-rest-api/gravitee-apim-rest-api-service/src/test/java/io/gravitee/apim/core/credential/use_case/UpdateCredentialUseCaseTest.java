@@ -18,6 +18,7 @@ package io.gravitee.apim.core.credential.use_case;
 import static io.gravitee.apim.core.credential.use_case.CredentialFixture.FOREIGN_USER_ID;
 import static io.gravitee.apim.core.credential.use_case.CredentialFixture.NEXT_YEAR;
 import static io.gravitee.apim.core.credential.use_case.CredentialFixture.OTHER_USER_ID;
+import static io.gravitee.apim.core.credential.use_case.CredentialFixture.OUTSIDER_ID;
 import static io.gravitee.apim.core.credential.use_case.CredentialFixture.OWNER_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -171,6 +172,15 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
         var credential = fixture.givenACredential();
 
         assertThatThrownBy(() -> update(fixture.owner(), credential, c -> c.ownerId(FOREIGN_USER_ID))).isInstanceOf(
+            InvalidCredentialException.class
+        );
+    }
+
+    @Test
+    void should_reject_an_owner_without_access_to_the_environment() {
+        var credential = fixture.givenACredential();
+
+        assertThatThrownBy(() -> update(fixture.owner(), credential, c -> c.ownerId(OUTSIDER_ID))).isInstanceOf(
             InvalidCredentialException.class
         );
     }

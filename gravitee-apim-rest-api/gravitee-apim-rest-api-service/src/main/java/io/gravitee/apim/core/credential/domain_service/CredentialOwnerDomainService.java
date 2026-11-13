@@ -18,6 +18,8 @@ package io.gravitee.apim.core.credential.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.credential.exception.InvalidCredentialException;
 import io.gravitee.apim.core.credential.model.CredentialActor;
+import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import lombok.RequiredArgsConstructor;
 
@@ -26,8 +28,9 @@ import lombok.RequiredArgsConstructor;
 public class CredentialOwnerDomainService {
 
     private final UserCrudService userCrudService;
+    private final MembershipQueryService membershipQueryService;
 
-    /** @return the owner to give a credential: the actor when no owner is asked for, else a user of the actor's organization */
+    /** @return the owner to give a credential: the actor when no owner is asked for, else a member of the actor's environment */
     public String ownerFor(CredentialActor actor, String requestedOwnerId) {
         if (requestedOwnerId == null || requestedOwnerId.equals(actor.userId())) {
             return actor.userId();
@@ -38,6 +41,13 @@ public class CredentialOwnerDomainService {
             .isPresent();
         if (!isMember) {
             throw new InvalidCredentialException("Owner " + requestedOwnerId + " is not a user of this organization.");
+        }
+        var hasAccess = membershipQueryService
+            .findByMemberIdAndMemberTypeAndReferenceType(requestedOwnerId, Membership.Type.USER, Membership.ReferenceType.ENVIRONMENT)
+            .stream()
+            .anyMatch(membership -> actor.environmentId().equals(membership.getReferenceId()));
+        if (!hasAccess) {
+            throw new InvalidCredentialException("Owner " + requestedOwnerId + " has no access to this environment.");
         }
         return requestedOwnerId;
     }

@@ -19,6 +19,7 @@ import inmemory.AuditCrudServiceInMemory;
 import inmemory.CredentialConsumersInMemory;
 import inmemory.CredentialCrudServiceInMemory;
 import inmemory.CredentialQueryServiceInMemory;
+import inmemory.MembershipQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
@@ -32,6 +33,7 @@ import io.gravitee.apim.core.credential.model.CredentialActor;
 import io.gravitee.apim.core.credential.model.CredentialActor.SecretAccess;
 import io.gravitee.apim.core.credential.model.CredentialStrategy;
 import io.gravitee.apim.core.credential.model.NewCredentialCommand;
+import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.secret.domain_service.SecretDomainService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
@@ -51,6 +53,7 @@ public class CredentialFixture {
     public static final String ADMIN_ID = "admin-id";
     public static final String OTHER_USER_ID = "other-user-id";
     public static final String FOREIGN_USER_ID = "foreign-user-id";
+    public static final String OUTSIDER_ID = "outsider-id";
     public static final Instant NEXT_YEAR = Instant.parse("2024-10-22T10:15:30Z");
 
     public CredentialCrudServiceInMemory credentialCrudService = new CredentialCrudServiceInMemory();
@@ -59,6 +62,7 @@ public class CredentialFixture {
     public CredentialConsumersInMemory consumers = new CredentialConsumersInMemory();
     public AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     public UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
+    public MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
 
     public CreateCredentialUseCase createCredentialUseCase;
     public GetCredentialUseCase getCredentialUseCase;
@@ -70,7 +74,16 @@ public class CredentialFixture {
 
     public CredentialFixture() {
         userCrudService.initWith(
-            List.of(user(OWNER_ID, ORG_ID), user(ADMIN_ID, ORG_ID), user(OTHER_USER_ID, ORG_ID), user(FOREIGN_USER_ID, "other-org"))
+            List.of(
+                user(OWNER_ID, ORG_ID),
+                user(ADMIN_ID, ORG_ID),
+                user(OTHER_USER_ID, ORG_ID),
+                user(OUTSIDER_ID, ORG_ID),
+                user(FOREIGN_USER_ID, "other-org")
+            )
+        );
+        membershipQueryService.initWith(
+            List.of(environmentMember(OWNER_ID), environmentMember(ADMIN_ID), environmentMember(OTHER_USER_ID))
         );
         build();
     }
@@ -83,7 +96,7 @@ public class CredentialFixture {
             new SecretDomainService(secretStore, secretStore.encryptor, auditDomainService),
             secretStore
         );
-        var owners = new CredentialOwnerDomainService(userCrudService);
+        var owners = new CredentialOwnerDomainService(userCrudService, membershipQueryService);
         createCredentialUseCase = new CreateCredentialUseCase(credentialCrudService, secrets, owners, audit);
         getCredentialUseCase = new GetCredentialUseCase(credentialCrudService);
         searchCredentialsUseCase = new SearchCredentialsUseCase(credentialQueryService);
@@ -91,6 +104,17 @@ public class CredentialFixture {
         rotateCredentialUseCase = new RotateCredentialUseCase(credentialCrudService, secrets, audit);
         deleteCredentialUseCase = new DeleteCredentialUseCase(credentialCrudService, secrets, consumers, audit);
         listCredentialConsumersUseCase = new ListCredentialConsumersUseCase(credentialCrudService, consumers);
+    }
+
+    private static Membership environmentMember(String userId) {
+        return Membership.builder()
+            .id(UUID.randomUUID().toString())
+            .memberId(userId)
+            .memberType(Membership.Type.USER)
+            .referenceType(Membership.ReferenceType.ENVIRONMENT)
+            .referenceId(ENV_ID)
+            .roleId("role-id")
+            .build();
     }
 
     public CredentialActor owner() {

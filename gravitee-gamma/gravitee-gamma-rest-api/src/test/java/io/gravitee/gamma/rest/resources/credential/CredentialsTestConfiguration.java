@@ -19,6 +19,7 @@ import inmemory.AuditCrudServiceInMemory;
 import inmemory.CredentialConsumersInMemory;
 import inmemory.CredentialCrudServiceInMemory;
 import inmemory.CredentialQueryServiceInMemory;
+import inmemory.MembershipQueryServiceInMemory;
 import inmemory.SecretCrudServiceInMemory;
 import inmemory.SecretValueEncryptorInMemory;
 import inmemory.UserCrudServiceInMemory;
@@ -90,7 +91,7 @@ class CredentialsTestConfiguration {
 
     @Bean
     CredentialOwnerDomainService credentialOwnerDomainService(UserCrudServiceInMemory userCrudService) {
-        return new CredentialOwnerDomainService(userCrudService);
+        return new CredentialOwnerDomainService(userCrudService, new MembershipQueryServiceInMemory());
     }
 
     @Bean
