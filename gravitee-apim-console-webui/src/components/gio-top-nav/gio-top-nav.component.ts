@@ -18,6 +18,8 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
 import { isEmpty } from 'lodash';
+// Declares the global `pendo` this component reads
+import type {} from '@gravitee/ui-analytics';
 
 import { Constants } from '../../entities/Constants';
 import { User } from '../../entities/user/user';
