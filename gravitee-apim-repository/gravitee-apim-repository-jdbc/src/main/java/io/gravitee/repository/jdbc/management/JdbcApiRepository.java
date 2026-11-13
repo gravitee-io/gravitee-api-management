@@ -484,6 +484,33 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         insertGuardians(api.getId(), api.getGuardians());
     }
 
+    @Override
+    public boolean updateDefinition(String apiId, String definition, Set<String> guardianIds, Date updatedAt, Date expectedUpdatedAt)
+        throws TechnicalException {
+        log.debug("JdbcApiRepository.updateDefinition({})", apiId);
+        try {
+            // Two columns and a guard, in one statement: the other child tables — labels, groups, categories — are
+            // not part of a definition and stay where they are.
+            int written = jdbcTemplate.update(
+                "update " + this.tableName + " set definition = ?, updated_at = ? where id = ? and updated_at = ?",
+                definition,
+                updatedAt,
+                apiId,
+                expectedUpdatedAt
+            );
+            if (written == 0) {
+                // The API moved or is gone: the index of a definition that was not written must not be written either.
+                return false;
+            }
+            jdbcTemplate.update("delete from " + API_GUARDIANS + " where api_id = ?", apiId);
+            insertGuardians(apiId, guardianIds);
+            return true;
+        } catch (final Exception ex) {
+            log.error("Failed to update the definition of api {}:", apiId, ex);
+            throw new TechnicalException("Failed to update the definition of an api", ex);
+        }
+    }
+
     private void insertGuardians(String apiId, Set<String> guardianIds) {
         List<String> filteredGuardians = getOrm().filterStrings(guardianIds);
         if (!filteredGuardians.isEmpty()) {

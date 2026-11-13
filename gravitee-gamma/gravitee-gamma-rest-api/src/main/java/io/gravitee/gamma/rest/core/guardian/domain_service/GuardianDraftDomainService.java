@@ -21,6 +21,8 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.gamma.rest.core.guardian.exception.GuardianInUseException;
+import io.gravitee.gamma.rest.core.guardian.exception.GuardianInUseException.RefusedChange;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
@@ -46,6 +48,7 @@ public class GuardianDraftDomainService {
     private final ValidateGuardianDomainService validateGuardian;
     private final AuditDomainService auditDomainService;
     private final GuardianDeploymentDomainService deployments;
+    private final GuardianUsageDomainService usage;
 
     /** Where a draft being stored comes from, which decides what is done with a configuration its plugin would correct. */
     public enum DraftOrigin {
@@ -66,6 +69,7 @@ public class GuardianDraftDomainService {
      * @param auditProperties what the audit records beside the Guardian
      * @param origin where the draft comes from, see {@link DraftOrigin}
      * @throws ValidationDomainException when the definition is invalid or names a policy or a resource type that is not installed
+     * @throws GuardianInUseException when the draft moves to another phase or to other API types while an API runs it
      */
     public Guardian replace(
         Guardian existingGuardian,
@@ -93,6 +97,10 @@ public class GuardianDraftDomainService {
         switch (origin) {
             case SUBMITTED -> validateGuardian.validateAgainstInstalledPlugins(guardianToUpdate);
             case RESTORED -> validateGuardian.validateStoredAgainstInstalledPlugins(guardianToUpdate);
+        }
+
+        if (!guardianToUpdate.runsWhere(existingGuardian)) {
+            usage.ensureUnused(existingGuardian, RefusedChange.PHASE_OR_API_TYPES_CHANGE);
         }
 
         var publication = deployments.current(existingGuardian);

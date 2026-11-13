@@ -27,6 +27,7 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.common.data.domain.Page;
@@ -1116,5 +1117,142 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
             .extracting(Api::getGuardians)
             .as("guardians of api-to-findById after an update that left the index out")
             .isEqualTo(Set.of("guardian-1", "guardian-2"));
+    }
+
+    @Test
+    public void should_replace_the_definition_of_an_api_that_still_holds_its_update_date() throws TechnicalException {
+        Api before = apiRepository.findById("api-to-findById").orElseThrow();
+        Date advanced = parse("13/11/2026");
+
+        boolean written = apiRepository.updateDefinition(
+            "api-to-findById",
+            "{\"replaced\":true}",
+            Set.of("guardian-1", "guardian-2"),
+            advanced,
+            before.getUpdatedAt()
+        );
+
+        assertThat(apiRepository.findById("api-to-findById"))
+            .get()
+            .satisfies(after ->
+                assertSoftly(softly -> {
+                    softly.assertThat(written).as("the write happened").isTrue();
+                    softly.assertThat(after.getDefinition()).as("definition").isEqualTo("{\"replaced\":true}");
+                    softly.assertThat(after.getUpdatedAt()).as("update date").isEqualTo(advanced);
+                })
+            );
+    }
+
+    /**
+     * The point of the whole method: a concurrent write of another field of the same API must survive. A full-row
+     * save would roll back every field to what the caller read before it computed its definition.
+     */
+    @Test
+    public void should_replace_nothing_but_the_definition_its_index_and_the_update_date() throws TechnicalException {
+        Api before = apiRepository.findById("api-to-findById").orElseThrow();
+
+        apiRepository.updateDefinition(
+            "api-to-findById",
+            "{\"replaced\":true}",
+            Set.of("guardian-3"),
+            parse("13/11/2026"),
+            before.getUpdatedAt()
+        );
+
+        assertThat(apiRepository.findById("api-to-findById"))
+            .get()
+            .usingRecursiveComparison()
+            .ignoringFields("definition", "updatedAt", "guardians")
+            .as("the API around its definition")
+            .isEqualTo(before);
+    }
+
+    /**
+     * The index travels with the definition it projects, in one call: the Guardians the API runs are the ones the
+     * written definition names, and the search answers them from the same write.
+     */
+    @Test
+    public void should_replace_the_guardian_index_with_the_definition() throws TechnicalException {
+        Api before = apiRepository.findById("api-to-findById").orElseThrow();
+
+        apiRepository.updateDefinition(
+            "api-to-findById",
+            "{\"replaced\":true}",
+            Set.of("guardian-3"),
+            parse("13/11/2026"),
+            before.getUpdatedAt()
+        );
+
+        Api after = apiRepository.findById("api-to-findById").orElseThrow();
+        assertSoftly(softly -> {
+            softly
+                .assertThat(after.getGuardians())
+                .as("guardians of api-to-findById after its definition was replaced")
+                .isEqualTo(Set.of("guardian-3"));
+            softly
+                .assertThat(apiRepository.search(new ApiCriteria.Builder().guardian("guardian-3").build(), ApiFieldFilter.defaultFields()))
+                .extracting(Api::getId)
+                .as("APIs running guardian-3")
+                .contains("api-to-findById");
+            softly
+                .assertThat(apiRepository.search(new ApiCriteria.Builder().guardian("guardian-2").build(), ApiFieldFilter.defaultFields()))
+                .as("APIs still running guardian-2")
+                .isEmpty();
+        });
+    }
+
+    @Test
+    public void should_run_no_guardian_at_all_once_the_definition_names_none() throws TechnicalException {
+        Api before = apiRepository.findById("api-to-findById").orElseThrow();
+
+        apiRepository.updateDefinition("api-to-findById", "{\"replaced\":true}", Set.of(), parse("13/11/2026"), before.getUpdatedAt());
+
+        Api after = apiRepository.findById("api-to-findById").orElseThrow();
+        assertSoftly(softly -> {
+            softly
+                .assertThat(after.getGuardians())
+                .as("guardians of api-to-findById after its definition stopped naming any")
+                .isNullOrEmpty();
+            softly
+                .assertThat(apiRepository.search(new ApiCriteria.Builder().guardian("guardian-1").build(), ApiFieldFilter.defaultFields()))
+                .extracting(Api::getId)
+                .as("APIs still running guardian-1")
+                .doesNotContain("api-to-findById");
+        });
+    }
+
+    /** The lost update this method exists to close: the API moved, so the write does not happen at all. */
+    @Test
+    public void should_refuse_to_replace_the_definition_of_an_api_that_moved() throws TechnicalException {
+        Api before = apiRepository.findById("api-to-findById").orElseThrow();
+
+        boolean written = apiRepository.updateDefinition(
+            "api-to-findById",
+            "{\"replaced\":true}",
+            Set.of("guardian-3"),
+            parse("13/11/2026"),
+            parse("01/01/2000")
+        );
+
+        assertThat(apiRepository.findById("api-to-findById"))
+            .get()
+            .satisfies(after ->
+                assertSoftly(softly -> {
+                    softly.assertThat(written).as("the write happened").isFalse();
+                    softly.assertThat(after.getDefinition()).as("definition").isEqualTo(before.getDefinition());
+                    softly.assertThat(after.getUpdatedAt()).as("update date").isEqualTo(before.getUpdatedAt());
+                    softly
+                        .assertThat(after.getGuardians())
+                        .as("guardian index of an API the write refused to touch")
+                        .isEqualTo(Set.of("guardian-1", "guardian-2"));
+                })
+            );
+    }
+
+    @Test
+    public void should_refuse_to_replace_the_definition_of_an_api_that_is_gone() throws TechnicalException {
+        assertThat(apiRepository.updateDefinition("unknown-api", "{}", Set.of(), parse("13/11/2026"), parse("13/11/2026")))
+            .as("the write happened")
+            .isFalse();
     }
 }

@@ -19,14 +19,19 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ENVIRONMENT_
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDIAN_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiQueryServiceInMemory;
 import inmemory.EventCrudInMemory;
 import inmemory.EventLatestCrudInMemory;
 import inmemory.EventLatestQueryServiceInMemory;
 import inmemory.EventQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
@@ -44,7 +49,10 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.ResourcePluginProvider;
+import io.gravitee.gamma.rest.core.guardian.domain_service.DescribeApiGuardiansDomainService;
+import io.gravitee.gamma.rest.core.guardian.domain_service.SetApiGuardiansDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
+import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardedApiPort;
 import io.gravitee.gamma.rest.core.guardian.use_case.DeployGuardianUseCase;
 import io.gravitee.repository.management.api.GuardianRepository;
 import org.junit.jupiter.api.Test;
@@ -74,6 +82,8 @@ class GammaGuardiansConfigurationTest {
             parent.registerBean(GenericEventPublicationDomainService.class, () -> new GenericEventPublicationDomainService(writer, mapper));
             parent.registerBean(JsonSerializer.class, () -> new JacksonJsonSerializer());
             parent.registerBean(JsonDeserializer.class, () -> new JacksonJsonDeserializer());
+            parent.registerBean(ApiCrudService.class, ApiCrudServiceInMemory::new);
+            parent.registerBean(ApiQueryService.class, () -> new ApiQueryServiceInMemory());
             parent.refresh();
             gamma.setParent(parent);
             gamma.register(GammaGuardiansConfiguration.class);
@@ -88,6 +98,54 @@ class GammaGuardiansConfigurationTest {
                 GuardianNotFoundException.class
             );
             verify(repository).findById(GUARDIAN_ID);
+        }
+    }
+
+    /**
+     * The contract the Gamma modules owning a Guardian-bearing API surface are coded against: both halves of "the
+     * Guardians this API runs" are domain services resolvable from the context, so a module never calls a use case of
+     * this one.
+     */
+    @Test
+    void should_offer_the_api_guardian_domain_services_to_a_gamma_module() {
+        var mapper = GraviteeJacksonMapper.getInstance();
+        var writer = new GenericEventWriterDomainService(new EventCrudInMemory(), new EventLatestCrudInMemory(), mapper);
+        try (var parent = new AnnotationConfigApplicationContext(); var gamma = new AnnotationConfigApplicationContext()) {
+            parent.registerBean(GuardianRepository.class, () -> mock(GuardianRepository.class));
+            parent.registerBean(GenericEventWriterDomainService.class, () -> writer);
+            parent.registerBean(GenericEventPublicationDomainService.class, () -> new GenericEventPublicationDomainService(writer, mapper));
+            parent.registerBean(ApiCrudService.class, ApiCrudServiceInMemory::new);
+            parent.registerBean(ApiQueryService.class, () -> new ApiQueryServiceInMemory());
+            parent.registerBean(JsonSerializer.class, () -> new JacksonJsonSerializer());
+            parent.registerBean(JsonDeserializer.class, () -> new JacksonJsonDeserializer());
+            parent.registerBean(EventLatestQueryService.class, EventLatestQueryServiceInMemory::new);
+            parent.registerBean(EventQueryService.class, EventQueryServiceInMemory::new);
+            parent.registerBean(UserCrudService.class, UserCrudServiceInMemory::new);
+            parent.registerBean(PolicyPluginProvider.class, () -> mock(PolicyPluginProvider.class));
+            parent.registerBean(PolicyValidationDomainService.class, () -> mock(PolicyValidationDomainService.class));
+            parent.registerBean(ValidateResourceDomainService.class, () -> mock(ValidateResourceDomainService.class));
+            parent.registerBean(ResourcePluginProvider.class, () -> mock(ResourcePluginProvider.class));
+            parent.registerBean(EnvironmentCrudService.class, () -> mock(EnvironmentCrudService.class));
+            parent.registerBean(AuditDomainService.class, () -> mock(AuditDomainService.class));
+            parent.refresh();
+            gamma.setParent(parent);
+            gamma.register(GammaGuardiansConfiguration.class);
+            gamma.refresh();
+
+            assertSoftly(softly -> {
+                softly
+                    .assertThat(gamma.getBean(SetApiGuardiansDomainService.class))
+                    .as("the write a module sets the Guardians of its API with")
+                    .isNotNull();
+                softly
+                    .assertThat(gamma.getBean(DescribeApiGuardiansDomainService.class))
+                    .as("the read a module names the Guardians of its API with")
+                    .isNotNull();
+                softly
+                    .assertThat(gamma.getBean(GuardedApiPort.class))
+                    .as("the port a module reads the Guardians its API holds from")
+                    .isNotNull();
+            });
         }
     }
 }
