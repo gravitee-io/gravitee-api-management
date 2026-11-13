@@ -124,6 +124,11 @@
         }
       </div>
     </div>
+
+    @if (saveError(); as error) {
+      <p class="settings__form__error m3-body-small" data-testId="save-error" role="alert">{{ error }}</p>
+    }
+
     <div class="settings__form__actions">
       <button
         (click)="submit()"

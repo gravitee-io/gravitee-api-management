@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use '../../../../../scss/theme';
 
 .settings__form {
   display: flex;
@@ -54,6 +55,11 @@
         width: 100%;
       }
     }
+  }
+
+  &__error {
+    margin: 0;
+    color: theme.$error-main-color;
   }
 
   &__actions {
