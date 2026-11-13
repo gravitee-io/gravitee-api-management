@@ -653,7 +653,8 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             " am JOIN " +
             tableName +
             " a ON a.id = am.application_id " +
-            "WHERE am.k=? AND am.v=? AND a.environment_id=? AND a.status=?";
+            "WHERE am.k=? AND am.v=? AND a.environment_id=? AND a.status=? " +
+            "ORDER BY a.created_at, a.id";
         List<String> ids = jdbcTemplate.queryForList(sql, String.class, key, value, environmentId, ApplicationStatus.ACTIVE.name());
         return ids.stream().findFirst();
     }

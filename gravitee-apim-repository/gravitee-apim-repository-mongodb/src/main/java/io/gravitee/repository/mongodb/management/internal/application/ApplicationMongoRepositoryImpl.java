@@ -148,7 +148,8 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
 
     @Override
     public Optional<String> findIdByMetadataEntryForEnv(String key, String value, String environmentId) {
-        var found = mongoTemplate.findOne(metadataEntryQuery(key, value, environmentId), ApplicationMongo.class);
+        var oldestFirst = metadataEntryQuery(key, value, environmentId).with(Sort.by(ASC, "createdAt", "_id"));
+        var found = mongoTemplate.findOne(oldestFirst, ApplicationMongo.class);
         return Optional.ofNullable(found).map(ApplicationMongo::getId);
     }
 

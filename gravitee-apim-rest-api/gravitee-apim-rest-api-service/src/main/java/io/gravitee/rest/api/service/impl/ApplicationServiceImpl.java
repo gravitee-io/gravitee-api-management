@@ -251,6 +251,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     @Override
     public Optional<ApplicationEntity> findByAgentEntityId(final ExecutionContext executionContext, String agentEntityId) {
         log.debug("Find agent application by agent entity ID: {}", agentEntityId);
+        // Mongo matches a null metadata value against every application without the key, so a blank id would name
+        // an arbitrary application instead of none. JDBC already answers empty; this makes both agree.
+        if (StringUtils.isBlank(agentEntityId)) {
+            return Optional.empty();
+        }
         return applicationRepository
             .findIdByMetadataEntryForEnv(METADATA_AGENT_ENTITY_ID, agentEntityId, executionContext.getEnvironmentId())
             .map(applicationId -> findById(executionContext, applicationId));
@@ -737,12 +742,27 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
                 // The identity, unlike the agent, is the caller's to set — that is how one gets attached and, later,
                 // detached. An update that stays silent about it (null) keeps the stored one; one that says so
-                // explicitly (an empty string) clears it, and a null client id alongside drops that too — the
-                // identity and the client id it brought leave together.
+                // explicitly (an empty string) clears it, and the client id it brought leaves with it.
+                boolean detaching = updatedAgentSettings.getIdentityId() != null && updatedAgentSettings.getIdentityId().isBlank();
                 if (updatedAgentSettings.getIdentityId() == null) {
                     updatedAgentSettings.setIdentityId(applicationToUpdate.getMetadata().get(METADATA_AGENT_IDENTITY_ID));
-                } else if (updatedAgentSettings.getIdentityId().isBlank()) {
+                } else if (detaching) {
                     updatedAgentSettings.setIdentityId(null);
+                }
+
+                // The client id reads the same way. Silence has to keep the stored one: the metadata is rebuilt from
+                // the settings the payload carries, and every update of an agent application must carry them, so
+                // dropping it on null would make an edit of the description alone unregister the agent's client.
+                if (updatedAgentSettings.getClientId() == null && !detaching) {
+                    updatedAgentSettings.setClientId(applicationToUpdate.getMetadata().get(METADATA_CLIENT_ID));
+                } else if (updatedAgentSettings.getClientId() != null && updatedAgentSettings.getClientId().isBlank()) {
+                    updatedAgentSettings.setClientId(null);
+                }
+
+                // An agent application loses its client id the same way a simple one does, and its subscriptions to
+                // JWT and OAuth2 plans match on it, so the same guard applies.
+                if (StringUtils.isEmpty(updatedAgentSettings.getClientId())) {
+                    refuseClientIdRemovalWithSubscriptions(executionContext, applicationId);
                 }
 
                 // The name is shared with the agent identity and set at provisioning; a rename is refused
@@ -1014,6 +1034,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             throw new ApplicationArchivedException(applicationToUpdate.getName());
         }
 
+        // Agent settings describe an agent application and nothing else. Without this, they satisfy the count below
+        // on any application, and the update falls through to the client-registration branch, which answers a 500 on
+        // the missing oauth settings instead of saying what is wrong. The mirror of AgentSettingsRequiredException.
+        if (updateApplicationEntity.getSettings().getAgent() != null && applicationToUpdate.getType() != ApplicationType.AGENT) {
+            throw new InvalidApplicationTypeException();
+        }
+
         // Check that exactly one settings kind is defined
         if (countSettingsKinds(updateApplicationEntity.getSettings()) != 1) {
             throw new InvalidApplicationTypeException();
@@ -1156,32 +1183,38 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             null != updateApplicationEntity.getSettings().getApp() &&
             StringUtils.isEmpty(updateApplicationEntity.getSettings().getApp().getClientId())
         ) {
-            Set<String> planIds = subscriptionService
-                .findByApplicationAndPlan(executionContext, applicationId, null)
-                .stream()
-                .filter(subscriptionEntity ->
-                    Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING).contains(
-                        subscriptionEntity.getStatus()
-                    )
+            refuseClientIdRemovalWithSubscriptions(executionContext, applicationId);
+        }
+    }
+
+    /**
+     * Refuses an update that leaves the application without a client id while it holds subscriptions to JWT or OAuth2
+     * plans, which the gateway matches on that very client id.
+     */
+    private void refuseClientIdRemovalWithSubscriptions(ExecutionContext executionContext, String applicationId) {
+        Set<String> planIds = subscriptionService
+            .findByApplicationAndPlan(executionContext, applicationId, null)
+            .stream()
+            .filter(subscriptionEntity ->
+                Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING).contains(
+                    subscriptionEntity.getStatus()
                 )
-                .map(SubscriptionEntity::getPlan)
-                .collect(Collectors.toSet());
+            )
+            .map(SubscriptionEntity::getPlan)
+            .collect(Collectors.toSet());
 
-            if (!planIds.isEmpty()) {
-                Set<GenericPlanEntity> plans = this.planSearchService.findByIdIn(executionContext, planIds)
-                    .stream()
-                    .filter(planEntity -> PlanMode.STANDARD.equals(planEntity.getPlanMode()))
-                    .filter(planEntity -> {
-                        PlanSecurityType security = PlanSecurityType.valueOfLabel(planEntity.getPlanSecurity().getType());
-                        return security == PlanSecurityType.JWT || security == PlanSecurityType.OAUTH2;
-                    })
-                    .collect(toSet());
+        if (!planIds.isEmpty()) {
+            Set<GenericPlanEntity> plans = this.planSearchService.findByIdIn(executionContext, planIds)
+                .stream()
+                .filter(planEntity -> PlanMode.STANDARD.equals(planEntity.getPlanMode()))
+                .filter(planEntity -> {
+                    PlanSecurityType security = PlanSecurityType.valueOfLabel(planEntity.getPlanSecurity().getType());
+                    return security == PlanSecurityType.JWT || security == PlanSecurityType.OAUTH2;
+                })
+                .collect(toSet());
 
-                if (!plans.isEmpty()) {
-                    throw new ApplicationClientIdException(
-                        "Can't update application because client_id is missing and it has subscriptions"
-                    );
-                }
+            if (!plans.isEmpty()) {
+                throw new ApplicationClientIdException("Can't update application because client_id is missing and it has subscriptions");
             }
         }
     }
@@ -1266,6 +1299,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             if (application.getMetadata() != null && application.getMetadata().containsKey(METADATA_CLIENT_ID)) {
                 checkClientIdIsUniqueForEnv(application.getMetadata().get(METADATA_CLIENT_ID), application.getEnvironmentId());
+            }
+
+            // Archiving frees the agent, so the agent may have been given another application since. Restoring without
+            // this check leaves two active applications acting for one agent, which findByAgentEntityId cannot tell
+            // apart. Mirrors the client id check above, and covers the CRD path, which restores through here too.
+            if (application.getMetadata() != null && application.getMetadata().containsKey(METADATA_AGENT_ENTITY_ID)) {
+                checkAgentIsFreeForEnv(application.getMetadata().get(METADATA_AGENT_ENTITY_ID), application.getEnvironmentId());
             }
 
             application.setStatus(ApplicationStatus.ACTIVE);
@@ -1896,6 +1936,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     private void checkClientIdIsUniqueForEnv(String clientId, String environmentId) {
         if (applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, clientId, environmentId)) {
             throw new ClientIdAlreadyExistsException(clientId);
+        }
+    }
+
+    private void checkAgentIsFreeForEnv(String agentEntityId, String environmentId) {
+        if (applicationRepository.existsMetadataEntryForEnv(METADATA_AGENT_ENTITY_ID, agentEntityId, environmentId)) {
+            throw new AgentAlreadyLinkedException(agentEntityId);
         }
     }
 

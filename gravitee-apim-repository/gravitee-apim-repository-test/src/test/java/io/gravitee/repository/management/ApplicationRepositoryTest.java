@@ -633,6 +633,22 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         assertThat(found).extracting(Application::getId).containsExactly("app-with-certificate");
     }
 
+    @Test
+    public void should_find_the_oldest_application_when_several_carry_the_same_metadata_entry() throws TechnicalException {
+        // Nothing in the schema keeps one agent to one application, so the lookup has to answer the same one every
+        // time rather than whichever row the store hands back first.
+        Application newer = agentApplication("agent-app-newer", "agent.twice", "identity-newer");
+        newer.setCreatedAt(new Date(2_000_000_000L));
+        Application older = agentApplication("agent-app-older", "agent.twice", "identity-older");
+        older.setCreatedAt(new Date(1_000_000_000L));
+        applicationRepository.create(newer);
+        applicationRepository.create(older);
+
+        assertThat(applicationRepository.findIdByMetadataEntryForEnv(METADATA_AGENT_ENTITY_ID, "agent.twice", AGENTS_ENV)).contains(
+            "agent-app-older"
+        );
+    }
+
     private static Application agentApplication(String id, String agentEntityId, String agentIdentityId) {
         Application application = new Application();
         application.setId(id);

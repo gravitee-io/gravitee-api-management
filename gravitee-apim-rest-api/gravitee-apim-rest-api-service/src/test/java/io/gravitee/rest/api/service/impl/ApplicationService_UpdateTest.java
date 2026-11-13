@@ -90,6 +90,7 @@ import io.gravitee.rest.api.service.exceptions.ApplicationGrantTypesNotFoundExce
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
+import io.gravitee.rest.api.service.exceptions.InvalidApplicationTypeException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
@@ -432,7 +433,7 @@ public class ApplicationService_UpdateTest {
 
     @Test
     public void shouldKeepTheStoredIdentityWhenAnUpdateStaysSilentAboutIt() throws TechnicalException {
-        // Null is an omission: the stored identity and client id survive an update that says nothing about them.
+        // Null is an omission: the stored identity survives an update that says nothing about it.
         ApplicationSettings settings = new ApplicationSettings();
         settings.setAgent(new AgentSettings("agent.support", CLIENT_ID, null));
         stubAnAgentApplicationCarryingAnIdentity(settings);
@@ -463,6 +464,48 @@ public class ApplicationService_UpdateTest {
         );
     }
 
+    @Test
+    public void shouldKeepTheStoredClientIdWhenAnUpdateStaysSilentAboutIt() throws TechnicalException {
+        // Every update of an agent application has to carry its agent settings, so an edit of the description alone
+        // arrives with no client id. Dropping it there would unregister the agent's client behind the caller's back.
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setAgent(new AgentSettings("agent.support", null, null));
+        stubAnAgentApplicationCarryingAnIdentity(settings);
+
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        verify(applicationRepository).update(
+            argThat(
+                application ->
+                    "client-abc".equals(application.getMetadata().get("client_id")) &&
+                    "am-agent-1".equals(application.getMetadata().get("agent_identity_id"))
+            )
+        );
+    }
+
+    @Test
+    public void shouldRefuseAgentSettingsOnAnApplicationThatIsNotAnAgentApplication() throws TechnicalException {
+        // Agent settings satisfy the "exactly one kind" check on any application, so without this the update falls
+        // through to the client-registration branch and dies there on the missing oauth settings: a 500 where the
+        // caller should hear that the settings do not match the application.
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setAgent(new AgentSettings("agent.support", CLIENT_ID));
+
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(getConsoleConfigEntity(true));
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getGroups()).thenReturn(Set.of("group1"));
+
+        assertThrows(InvalidApplicationTypeException.class, () ->
+            applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication)
+        );
+
+        verify(applicationRepository, never()).update(any());
+    }
+
     private void stubAnAgentApplicationCarryingAnIdentity(ApplicationSettings settings) throws TechnicalException {
         when(
             parameterService.findAsBoolean(
@@ -481,6 +524,10 @@ public class ApplicationService_UpdateTest {
         when(existingApplication.getMetadata()).thenReturn(
             Map.of("agent_entity_id", "agent.support", "agent_identity_id", "am-agent-1", "client_id", "client-abc")
         );
+        // An agent application losing its client id reads its subscriptions, like a simple one does.
+        lenient()
+            .when(subscriptionService.findByApplicationAndPlan(eq(GraviteeContext.getExecutionContext()), any(), isNull()))
+            .thenReturn(List.of());
 
         when(updateApplication.getSettings()).thenReturn(settings);
         when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
