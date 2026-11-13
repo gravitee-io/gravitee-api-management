@@ -45,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BinaryOperator;
-import java.util.stream.Stream;
 
 @DomainService
 public class UpdatePlanDomainService {
@@ -138,7 +137,7 @@ public class UpdatePlanDomainService {
 
     public void validate(Plan planToUpdate, List<Flow> flows, Api api, AuditInfo auditInfo) {
         updatePreFlightChecks(planToUpdate, getPlanStatusMap(api), api, auditInfo);
-        validateAndSanitizeHttpV4Flows(flows, api);
+        flowValidationDomainService.validateAndSanitizeHttpV4PlanFlows(api, flows);
     }
 
     private Map<String, PlanStatus> getPlanStatusMap(Api api) {
@@ -199,7 +198,7 @@ public class UpdatePlanDomainService {
         AuditInfo auditInfo,
         BinaryOperator<Plan> updateFunction
     ) {
-        var sanitizedFlows = validateAndSanitizeHttpV4Flows(flows, api);
+        var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4PlanFlows(api, flows);
         var existingFlows = flowCrudService.getPlanV4Flows(existingPlan.getId());
 
         if (!planSynchronizationService.checkSynchronized(existingPlan, existingFlows, updatePlan, sanitizedFlows)) {
@@ -214,6 +213,7 @@ public class UpdatePlanDomainService {
         return updated;
     }
 
+<<<<<<< HEAD
     private List<Flow> validateAndSanitizeHttpV4Flows(List<Flow> flows, Api api) {
         var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows);
         flowValidationDomainService.validatePathParameters(
@@ -224,6 +224,8 @@ public class UpdatePlanDomainService {
         return sanitizedFlows;
     }
 
+=======
+>>>>>>> a17ae22 (refactor(automation): run the plan writes' own rules in the API dry run)
     private Plan updateNativeV4ApiPlan(
         Plan existingPlan,
         Plan updatePlan,
@@ -333,7 +335,7 @@ public class UpdatePlanDomainService {
     }
 
     private void updatePreFlightChecks(Plan planToUpdate, Map<String, PlanStatus> existingPlanStatuses, Api api, AuditInfo auditInfo) {
-        assertNotClosedStatus(planToUpdate, existingPlanStatuses);
+        assertNotClosedStatus(planToUpdate.getId(), planToUpdate.getName(), planToUpdate.getPlanStatus(), existingPlanStatuses);
         planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId(), api.getType());
         planValidatorDomainService.validatePlanTagsAgainstApiTags(planToUpdate.getTags(), api.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
@@ -370,19 +372,20 @@ public class UpdatePlanDomainService {
         ApiProduct apiProduct,
         AuditInfo auditInfo
     ) {
-        assertNotClosedStatus(planToUpdate, existingPlanStatuses);
+        assertNotClosedStatus(planToUpdate.getId(), planToUpdate.getName(), planToUpdate.getPlanStatus(), existingPlanStatuses);
         planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId(), null);
         planValidatorDomainService.validatePlanTagsAgainstApiProductTags(planToUpdate.getTags(), apiProduct.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
     }
 
-    private void assertNotClosedStatus(Plan planToUpdate, Map<String, PlanStatus> existingPlanStatuses) {
-        if (
-            existingPlanStatuses.containsKey(planToUpdate.getId()) &&
-            existingPlanStatuses.get(planToUpdate.getId()) == PlanStatus.CLOSED &&
-            existingPlanStatuses.get(planToUpdate.getId()) != planToUpdate.getPlanStatus()
-        ) {
-            throw new ValidationDomainException("Invalid status for plan '" + planToUpdate.getName() + "'");
+    public static void assertNotClosedStatus(
+        String planId,
+        String planName,
+        PlanStatus status,
+        Map<String, PlanStatus> existingPlanStatuses
+    ) {
+        if (existingPlanStatuses.get(planId) == PlanStatus.CLOSED && status != PlanStatus.CLOSED) {
+            throw new ValidationDomainException("Invalid status for plan '" + planName + "'");
         }
     }
 
