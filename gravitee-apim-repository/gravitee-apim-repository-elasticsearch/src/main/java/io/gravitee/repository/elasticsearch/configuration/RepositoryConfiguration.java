@@ -275,10 +275,6 @@ public class RepositoryConfiguration {
         return flavor;
     }
 
-    public boolean isILMIndex() {
-        return indexMode != null && indexMode.equalsIgnoreCase("ilm");
-    }
-
     private boolean crossClusterInitialized;
 
     public Map<String, String> getCrossClusterMapping() {

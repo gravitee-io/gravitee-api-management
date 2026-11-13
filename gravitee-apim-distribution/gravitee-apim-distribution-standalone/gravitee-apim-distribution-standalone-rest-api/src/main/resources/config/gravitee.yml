@@ -245,7 +245,7 @@ repositories:
         - http://${ds.elastic.host}:${ds.elastic.port}
 #      index: gravitee
 #      index_per_type: true
-#      index_mode: daily    # "daily" indexes, suffixed with date. Or "ilm" managed indexes, without date
+#      index_mode: daily    # "daily" indexes, suffixed with date. Or "ilm" managed indexes, or "data_stream" data streams, both without date
 #      flavor: auto         # "auto" detects Elastic Cloud Serverless from the cluster. Or "classic", or "serverless"
 #      cross_cluster:
 #        mapping:

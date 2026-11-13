@@ -22,6 +22,7 @@ import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.repository.common.query.QueryContext;
+import io.gravitee.repository.elasticsearch.configuration.IndexMode;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import java.util.ArrayList;
@@ -56,6 +57,9 @@ public abstract class AbstractElasticsearchRepository {
 
     @Autowired
     protected ElasticsearchInfo info;
+
+    @Autowired
+    protected IndexMode indexMode = IndexMode.DAILY;
 
     protected String getQueryIndexesFromDefinitionVersions(
         Type v2Index,

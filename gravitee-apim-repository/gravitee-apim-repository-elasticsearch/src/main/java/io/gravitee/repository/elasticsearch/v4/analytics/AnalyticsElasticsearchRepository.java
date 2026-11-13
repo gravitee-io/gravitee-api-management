@@ -35,6 +35,7 @@ import io.gravitee.repository.analytics.engine.api.result.TimeSeriesResult;
 import io.gravitee.repository.analytics.query.events.EventAnalyticsAggregate;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
+import io.gravitee.repository.elasticsearch.configuration.IndexMode;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.*;
@@ -168,7 +169,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         var indexV2 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
         var index = String.join(",", indexV4, indexV2);
 
-        return this.client.getFieldTypes(index, ENTRYPOINT_ID_FIELD)
+        return fieldTypes(index, ENTRYPOINT_ID_FIELD)
             .map(types -> types.stream().allMatch(KEYWORD::equals))
             .flatMap(isEntrypointIdKeyword ->
                 this.client.search(
@@ -192,7 +193,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     @Override
     public Optional<AverageAggregate> searchAverageConnectionDuration(QueryContext queryContext, AverageConnectionDurationQuery query) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
-        return this.client.getFieldTypes(index, ENTRYPOINT_ID_FIELD)
+        return fieldTypes(index, ENTRYPOINT_ID_FIELD)
             .map(types -> types.stream().allMatch(KEYWORD::equals))
             .flatMap(isEntrypointIdKeyword ->
                 this.client.search(index, null, SearchAverageConnectionDurationQueryAdapter.adapt(query, isEntrypointIdKeyword))
@@ -210,8 +211,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         var adapter = new SearchResponseStatusRangesAdapter();
 
-        return client
-            .getFieldTypes(indices, ENTRYPOINT_ID_FIELD)
+        return fieldTypes(indices, ENTRYPOINT_ID_FIELD)
             .map(types -> types.stream().allMatch(KEYWORD::equals))
             .flatMap(isEntrypointIdKeyword ->
                 client.search(indices, null, ConnectionPhaseClause.excludeEndsFrom(adapter.adaptQuery(query, isEntrypointIdKeyword)))
@@ -811,17 +811,28 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         return probe.readiness().join();
     }
 
+    /**
+     * Types {@code field} has across {@code index}. Data streams are asked through {@code _field_caps}, because Elastic
+     * Cloud Serverless answers {@code _mapping/field} with a 410.
+     */
+    private Single<List<String>> fieldTypes(String index, String field) {
+        if (indexMode == IndexMode.DATA_STREAM) {
+            return client.getFieldCapabilities(index, field).map(types -> List.copyOf(types.getOrDefault(field, Set.of())));
+        }
+        return client.getFieldTypes(index, field);
+    }
+
     /** Every stamped dimension must be a keyword on every index covering the window, or none of them is usable. */
     private boolean dimensionsAreKeyword(String windowIndex) {
         for (var field : CONNECTION_DIMENSION_FIELDS) {
             // Non-empty as well as all-keyword: `allMatch` is vacuously true on an empty set, which
             // would read "every index maps it correctly" as "no index maps it at all" — the one case
             // where the direct path is guaranteed to return nothing.
-            var types = this.client.getFieldTypes(windowIndex, field).blockingGet();
+            var types = fieldTypes(windowIndex, field).blockingGet();
             if (types == null || types.isEmpty()) {
-                // A cross-cluster prefix lands here every time: the mapping endpoint behind
-                // getFieldTypes does not resolve remote indices, so it answers nothing rather than
-                // failing. The join still works there, which is why this only keeps the join.
+                // Outside data streams, a cross-cluster prefix lands here every time: _mapping/field
+                // does not resolve remote indices, so it answers nothing rather than failing. The join
+                // still works there, which is why this only keeps the join. _field_caps does resolve them.
                 log.debug("Message - {} is not mapped on any {} index; keeping the join", field, windowIndex);
                 return false;
             }
