@@ -15,16 +15,24 @@
  */
 import { credentialConsumerHref, credentialConsumerTypeLabel } from './credentialConsumers';
 
+const ENV = { id: 'env-1-id', hrids: ['env-1'] };
+
 describe('credential consumers', () => {
     it.each([
         ['LLM_PROXY', '/environments/env-1/aim/llm-proxy/proxy%2F1'],
         ['AI_WORKSPACE', '/environments/env-1/aim/ai-workspaces/proxy%2F1'],
     ])('links an AIM %s to its page', (type, href) => {
-        expect(credentialConsumerHref('env-1', { module: 'aim', type, id: 'proxy/1', name: 'Proxy' })).toBe(href);
+        expect(credentialConsumerHref(ENV, { module: 'aim', type, id: 'proxy/1', name: 'Proxy' })).toBe(href);
+    });
+
+    it('falls back to the environment id when it has no hrid', () => {
+        expect(credentialConsumerHref({ id: 'env-1-id' }, { module: 'aim', type: 'LLM_PROXY', id: 'p1', name: 'Proxy' })).toBe(
+            '/environments/env-1-id/aim/llm-proxy/p1',
+        );
     });
 
     it('gives no link to a consumer it does not know', () => {
-        expect(credentialConsumerHref('env-1', { module: 'apim', type: 'API', id: 'api-1', name: 'API' })).toBeUndefined();
+        expect(credentialConsumerHref(ENV, { module: 'apim', type: 'API', id: 'api-1', name: 'API' })).toBeUndefined();
     });
 
     it('labels known types and humanizes the others', () => {
