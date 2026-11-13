@@ -22,36 +22,38 @@ import {
     rotateCredential,
     updateCredential,
 } from './credentials';
-import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
+import { gammaFetchJson } from '../../../shared/api/apimClient';
 
 jest.mock('../../../shared/api/apimClient', () => ({
-    apimFetchJsonV2: jest.fn(),
+    gammaFetchJson: jest.fn(),
+    resolveOrganizationId: jest.fn().mockResolvedValue('org-1'),
 }));
 
-const mockApimFetchJsonV2 = jest.mocked(apimFetchJsonV2);
+const mockGammaFetchJson = jest.mocked(gammaFetchJson);
+const BASE = '/organizations/org-1/environments/env-1/credentials';
 
 describe('credentials service', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockApimFetchJsonV2.mockResolvedValue(undefined);
+        mockGammaFetchJson.mockResolvedValue(undefined);
     });
 
     it('lists credentials with pagination and a trimmed search', async () => {
         await listCredentials('env-1', { query: ' open ai ', page: 2, perPage: 25 });
 
-        expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', '/credentials?page=2&perPage=25&q=open+ai');
+        expect(mockGammaFetchJson).toHaveBeenCalledWith(`${BASE}?page=2&perPage=25&q=open+ai`);
     });
 
     it('leaves a blank search out of the list request', async () => {
         await listCredentials('env-1', { query: '  ', page: 1, perPage: 10 });
 
-        expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', '/credentials?page=1&perPage=10');
+        expect(mockGammaFetchJson).toHaveBeenCalledWith(`${BASE}?page=1&perPage=10`);
     });
 
     it('URL-encodes the id when loading a credential', async () => {
         await getCredential('env-1', 'cred/1');
 
-        expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', '/credentials/cred%2F1');
+        expect(mockGammaFetchJson).toHaveBeenCalledWith(`${BASE}/cred%2F1`);
     });
 
     it('creates a credential with the given payload', async () => {
@@ -59,7 +61,7 @@ describe('credentials service', () => {
 
         await createCredential('env-1', payload);
 
-        expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', '/credentials', { method: 'POST', body: JSON.stringify(payload) });
+        expect(mockGammaFetchJson).toHaveBeenCalledWith(BASE, { method: 'POST', body: JSON.stringify(payload) });
     });
 
     it('replaces the details of a credential', async () => {
@@ -67,7 +69,7 @@ describe('credentials service', () => {
 
         await updateCredential('env-1', 'cred/1', payload);
 
-        expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', '/credentials/cred%2F1', {
+        expect(mockGammaFetchJson).toHaveBeenCalledWith(`${BASE}/cred%2F1`, {
             method: 'PUT',
             body: JSON.stringify(payload),
         });
@@ -76,7 +78,7 @@ describe('credentials service', () => {
     it('rotates the values of a credential', async () => {
         await rotateCredential('env-1', 'cred/1', { values: { token: 'sk-2' } });
 
-        expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', '/credentials/cred%2F1/_rotate', {
+        expect(mockGammaFetchJson).toHaveBeenCalledWith(`${BASE}/cred%2F1/_rotate`, {
             method: 'POST',
             body: JSON.stringify({ values: { token: 'sk-2' } }),
         });
@@ -85,14 +87,14 @@ describe('credentials service', () => {
     it('deletes a credential', async () => {
         await deleteCredential('env-1', 'cred/1');
 
-        expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', '/credentials/cred%2F1', { method: 'DELETE' });
+        expect(mockGammaFetchJson).toHaveBeenCalledWith(`${BASE}/cred%2F1`, { method: 'DELETE' });
     });
 
     it('returns the consumers of a credential', async () => {
         const consumer = { module: 'aim', type: 'LLM_PROXY', id: 'proxy-1', name: 'Proxy' };
-        mockApimFetchJsonV2.mockResolvedValue({ data: [consumer] });
+        mockGammaFetchJson.mockResolvedValue({ data: [consumer] });
 
         await expect(listCredentialConsumers('env-1', 'cred/1')).resolves.toEqual([consumer]);
-        expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', '/credentials/cred%2F1/consumers');
+        expect(mockGammaFetchJson).toHaveBeenCalledWith(`${BASE}/cred%2F1/consumers`);
     });
 });

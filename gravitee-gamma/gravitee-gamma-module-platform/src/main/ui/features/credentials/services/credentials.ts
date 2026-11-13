@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
+import { gammaFetchJson, resolveOrganizationId } from '../../../shared/api/apimClient';
 import type {
     CreateCredentialPayload,
     Credential,
@@ -23,8 +23,13 @@ import type {
     UpdateCredentialPayload,
 } from '../types/credential';
 
-function credentialPath(credentialId: string): string {
-    return `/credentials/${encodeURIComponent(credentialId)}`;
+async function credentialsPath(environmentId: string): Promise<string> {
+    const organizationId = await resolveOrganizationId();
+    return `/organizations/${encodeURIComponent(organizationId)}/environments/${encodeURIComponent(environmentId)}/credentials`;
+}
+
+async function credentialPath(environmentId: string, credentialId: string): Promise<string> {
+    return `${await credentialsPath(environmentId)}/${encodeURIComponent(credentialId)}`;
 }
 
 export async function listCredentials(
@@ -38,33 +43,33 @@ export async function listCredentials(
     if (query) {
         searchParams.set('q', query);
     }
-    return apimFetchJsonV2<CredentialsPagedResponse>(environmentId, `/credentials?${searchParams.toString()}`);
+    return gammaFetchJson<CredentialsPagedResponse>(`${await credentialsPath(environmentId)}?${searchParams.toString()}`);
 }
 
 export async function getCredential(environmentId: string, credentialId: string): Promise<Credential> {
-    return apimFetchJsonV2<Credential>(environmentId, credentialPath(credentialId));
+    return gammaFetchJson<Credential>(await credentialPath(environmentId, credentialId));
 }
 
 export async function createCredential(environmentId: string, payload: CreateCredentialPayload): Promise<Credential> {
-    return apimFetchJsonV2<Credential>(environmentId, '/credentials', { method: 'POST', body: JSON.stringify(payload) });
+    return gammaFetchJson<Credential>(await credentialsPath(environmentId), { method: 'POST', body: JSON.stringify(payload) });
 }
 
 export async function updateCredential(environmentId: string, credentialId: string, payload: UpdateCredentialPayload): Promise<Credential> {
-    return apimFetchJsonV2<Credential>(environmentId, credentialPath(credentialId), { method: 'PUT', body: JSON.stringify(payload) });
+    return gammaFetchJson<Credential>(await credentialPath(environmentId, credentialId), { method: 'PUT', body: JSON.stringify(payload) });
 }
 
 export async function rotateCredential(environmentId: string, credentialId: string, payload: RotateCredentialPayload): Promise<Credential> {
-    return apimFetchJsonV2<Credential>(environmentId, `${credentialPath(credentialId)}/_rotate`, {
+    return gammaFetchJson<Credential>(`${await credentialPath(environmentId, credentialId)}/_rotate`, {
         method: 'POST',
         body: JSON.stringify(payload),
     });
 }
 
 export async function deleteCredential(environmentId: string, credentialId: string): Promise<void> {
-    return apimFetchJsonV2<void>(environmentId, credentialPath(credentialId), { method: 'DELETE' });
+    return gammaFetchJson<void>(await credentialPath(environmentId, credentialId), { method: 'DELETE' });
 }
 
 export async function listCredentialConsumers(environmentId: string, credentialId: string): Promise<CredentialConsumer[]> {
-    const response = await apimFetchJsonV2<{ data?: CredentialConsumer[] }>(environmentId, `${credentialPath(credentialId)}/consumers`);
+    const response = await gammaFetchJson<{ data?: CredentialConsumer[] }>(`${await credentialPath(environmentId, credentialId)}/consumers`);
     return response.data ?? [];
 }
