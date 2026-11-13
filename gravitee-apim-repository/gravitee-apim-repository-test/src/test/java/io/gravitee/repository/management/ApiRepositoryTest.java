@@ -27,6 +27,7 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.common.data.domain.Page;
@@ -44,6 +45,7 @@ import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import java.util.*;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -1018,5 +1020,227 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(beforeDeletion.size(), deleted.size());
         assertTrue(deleted.containsAll(beforeDeletion));
         assertEquals(0, nbAfterDeletion);
+    }
+
+    /** The Guardian index of the test data, written the only way it is written: with the definition it projects. */
+    @BeforeEach
+    public void index_the_guardians_of_the_test_data() throws TechnicalException {
+        indexGuardians("api-to-findById", Set.of("guardian-1", "guardian-2"));
+        indexGuardians("grouped-api", Set.of("guardian-1"));
+        indexGuardians("big-name", Set.of("guardian-1"));
+    }
+
+    private void indexGuardians(String apiId, Set<String> guardianIds) throws TechnicalException {
+        Api api = apiRepository.findById(apiId).orElseThrow();
+        apiRepository.updateDefinition(apiId, api.getDefinition(), guardianIds, api.getUpdatedAt(), api.getUpdatedAt());
+    }
+
+    private List<String> apisRunning(String guardianId) {
+        return apiRepository
+            .search(new ApiCriteria.Builder().guardian(guardianId).build(), ApiFieldFilter.defaultFields())
+            .stream()
+            .map(Api::getId)
+            .toList();
+    }
+
+    @Test
+    public void should_forget_the_guardians_of_a_deleted_api() throws TechnicalException {
+        apiRepository.delete("api-to-findById");
+
+        assertThat(apisRunning("guardian-2")).as("APIs running guardian-2 once the only one running it is deleted").isEmpty();
+    }
+
+    @Test
+    public void should_forget_the_guardians_of_the_apis_of_a_deleted_environment() throws TechnicalException {
+        apiRepository.deleteByEnvironmentId("DEV");
+
+        assertThat(apisRunning("guardian-1"))
+            .as("APIs running guardian-1 once the environment DEV is deleted")
+            .containsExactlyInAnyOrder("api-to-findById", "grouped-api");
+    }
+
+    @Test
+    public void should_find_the_apis_of_an_environment_running_a_guardian() {
+        List<Api> apis = apiRepository.search(
+            new ApiCriteria.Builder().environmentId("DEFAULT").guardian("guardian-1").build(),
+            ApiFieldFilter.defaultFields()
+        );
+
+        assertThat(apis)
+            .extracting(Api::getId)
+            .as("APIs of DEFAULT running guardian-1")
+            .containsExactlyInAnyOrder("api-to-findById", "grouped-api");
+    }
+
+    @Test
+    public void should_find_the_apis_running_a_guardian_whatever_their_environment() {
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().guardian("guardian-1").build(), ApiFieldFilter.defaultFields());
+
+        assertThat(apis)
+            .extracting(Api::getId)
+            .as("APIs running guardian-1")
+            .containsExactlyInAnyOrder("api-to-findById", "grouped-api", "big-name");
+    }
+
+    @Test
+    public void should_find_no_api_for_a_guardian_no_api_runs() {
+        List<Api> apis = apiRepository.search(
+            new ApiCriteria.Builder().guardian("unknown-guardian").build(),
+            ApiFieldFilter.defaultFields()
+        );
+
+        assertThat(apis).as("APIs running unknown-guardian").isEmpty();
+    }
+
+    @Test
+    public void should_search_the_ids_of_the_apis_running_a_guardian() {
+        Page<String> apiIds = apiRepository.searchIds(
+            List.of(new ApiCriteria.Builder().guardian("guardian-2").build()),
+            new PageableBuilder().pageNumber(0).pageSize(10).build(),
+            null
+        );
+
+        assertThat(apiIds.getContent()).as("ids of the APIs running guardian-2").containsExactly("api-to-findById");
+    }
+
+    /**
+     * The index is written by the write that replaces a definition, not by a save of the API: a save must leave it
+     * alone, or the refusal to withdraw a Guardian an API runs would stop refusing on the next save of any API. Both
+     * stores have to answer the same here — a full-document store is where this silently went wrong.
+     */
+    @Test
+    public void should_keep_the_guardians_an_api_runs_when_the_api_is_updated() throws TechnicalException {
+        Api api = apiRepository.findById("api-to-findById").orElseThrow();
+        api.setDescription("Updated without the index");
+
+        apiRepository.update(api);
+
+        assertThat(apisRunning("guardian-2"))
+            .as("APIs running guardian-2 after a save of api-to-findById")
+            .containsExactly("api-to-findById");
+    }
+
+    @Test
+    public void should_replace_the_definition_of_an_api_that_still_holds_its_update_date() throws TechnicalException {
+        Api before = apiRepository.findById("api-to-findById").orElseThrow();
+        Date advanced = parse("13/11/2026");
+
+        boolean written = apiRepository.updateDefinition(
+            "api-to-findById",
+            "{\"replaced\":true}",
+            Set.of("guardian-1", "guardian-2"),
+            advanced,
+            before.getUpdatedAt()
+        );
+
+        assertThat(apiRepository.findById("api-to-findById"))
+            .get()
+            .satisfies(after ->
+                assertSoftly(softly -> {
+                    softly.assertThat(written).as("the write happened").isTrue();
+                    softly.assertThat(after.getDefinition()).as("definition").isEqualTo("{\"replaced\":true}");
+                    softly.assertThat(after.getUpdatedAt()).as("update date").isEqualTo(advanced);
+                })
+            );
+    }
+
+    /**
+     * The point of the whole method: a concurrent write of another field of the same API must survive. A full-row
+     * save would roll back every field to what the caller read before it computed its definition.
+     */
+    @Test
+    public void should_replace_nothing_but_the_definition_its_index_and_the_update_date() throws TechnicalException {
+        Api before = apiRepository.findById("api-to-findById").orElseThrow();
+
+        apiRepository.updateDefinition(
+            "api-to-findById",
+            "{\"replaced\":true}",
+            Set.of("guardian-3"),
+            parse("13/11/2026"),
+            before.getUpdatedAt()
+        );
+
+        assertThat(apiRepository.findById("api-to-findById"))
+            .get()
+            .usingRecursiveComparison()
+            .ignoringFields("definition", "updatedAt")
+            .as("the API around its definition")
+            .isEqualTo(before);
+    }
+
+    /**
+     * The index travels with the definition it projects, in one call: the Guardians the API runs are the ones the
+     * written definition names, and the search answers them from the same write.
+     */
+    @Test
+    public void should_replace_the_guardian_index_with_the_definition() throws TechnicalException {
+        Api before = apiRepository.findById("api-to-findById").orElseThrow();
+
+        apiRepository.updateDefinition(
+            "api-to-findById",
+            "{\"replaced\":true}",
+            Set.of("guardian-3"),
+            parse("13/11/2026"),
+            before.getUpdatedAt()
+        );
+
+        assertSoftly(softly -> {
+            softly
+                .assertThat(apiRepository.search(new ApiCriteria.Builder().guardian("guardian-3").build(), ApiFieldFilter.defaultFields()))
+                .extracting(Api::getId)
+                .as("APIs running guardian-3")
+                .contains("api-to-findById");
+            softly
+                .assertThat(apiRepository.search(new ApiCriteria.Builder().guardian("guardian-2").build(), ApiFieldFilter.defaultFields()))
+                .as("APIs still running guardian-2")
+                .isEmpty();
+        });
+    }
+
+    @Test
+    public void should_run_no_guardian_at_all_once_the_definition_names_none() throws TechnicalException {
+        Api before = apiRepository.findById("api-to-findById").orElseThrow();
+
+        apiRepository.updateDefinition("api-to-findById", "{\"replaced\":true}", Set.of(), parse("13/11/2026"), before.getUpdatedAt());
+
+        assertSoftly(softly -> {
+            softly.assertThat(apisRunning("guardian-1")).as("APIs still running guardian-1").doesNotContain("api-to-findById");
+            softly.assertThat(apisRunning("guardian-2")).as("APIs still running guardian-2").isEmpty();
+        });
+    }
+
+    /** The lost update this method exists to close: the API moved, so the write does not happen at all. */
+    @Test
+    public void should_refuse_to_replace_the_definition_of_an_api_that_moved() throws TechnicalException {
+        Api before = apiRepository.findById("api-to-findById").orElseThrow();
+
+        boolean written = apiRepository.updateDefinition(
+            "api-to-findById",
+            "{\"replaced\":true}",
+            Set.of("guardian-3"),
+            parse("13/11/2026"),
+            parse("01/01/2000")
+        );
+
+        assertThat(apiRepository.findById("api-to-findById"))
+            .get()
+            .satisfies(after ->
+                assertSoftly(softly -> {
+                    softly.assertThat(written).as("the write happened").isFalse();
+                    softly.assertThat(after.getDefinition()).as("definition").isEqualTo(before.getDefinition());
+                    softly.assertThat(after.getUpdatedAt()).as("update date").isEqualTo(before.getUpdatedAt());
+                    softly
+                        .assertThat(apisRunning("guardian-2"))
+                        .as("APIs running guardian-2, the write having refused to touch the index")
+                        .containsExactly("api-to-findById");
+                })
+            );
+    }
+
+    @Test
+    public void should_refuse_to_replace_the_definition_of_an_api_that_is_gone() throws TechnicalException {
+        assertThat(apiRepository.updateDefinition("unknown-api", "{}", Set.of(), parse("13/11/2026"), parse("13/11/2026")))
+            .as("the write happened")
+            .isFalse();
     }
 }

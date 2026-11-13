@@ -40,6 +40,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -160,6 +161,9 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
                     if (apiCriteria.getCategory() != null && !apiCriteria.getCategory().isEmpty()) {
                         criteria.add(where("categories").in(apiCriteria.getCategory()));
                     }
+                    if (apiCriteria.getGuardian() != null && !apiCriteria.getGuardian().isEmpty()) {
+                        criteria.add(where("guardians").is(apiCriteria.getGuardian()));
+                    }
                     if (apiCriteria.getVisibility() != null) {
                         criteria.add(where("visibility").is(apiCriteria.getVisibility()));
                     }
@@ -245,5 +249,20 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
             categories.add(category);
         });
         return categories;
+    }
+
+    @Override
+    public boolean updateDefinition(String apiId, String definition, Set<String> guardianIds, Date updatedAt, Date expectedUpdatedAt) {
+        // The update date is part of the filter, not of the document read back: no document matches once another
+        // writer has advanced it, and the whole write is then a no-op rather than a rollback of their fields.
+        var result = mongoTemplate.updateFirst(
+            Query.query(where("_id").is(apiId).and("updatedAt").is(expectedUpdatedAt)),
+            new Update()
+                .set("definition", definition)
+                .set("guardians", guardianIds == null ? Set.of() : guardianIds)
+                .set("updatedAt", updatedAt),
+            ApiMongo.class
+        );
+        return result.getMatchedCount() > 0;
     }
 }
