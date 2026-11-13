@@ -879,4 +879,71 @@ public class ApiAuthorizationServiceImplTest {
                 .count()
         ).isEqualTo(0);
     }
+
+    @Test
+    public void computeApiCriteriaForUser_subscriptionStatusesMatchApiPageAccess() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        givenUserOnlyLinkedToApiThroughSubscriptions(
+            executionContext,
+            SubscriptionStatus.CLOSED,
+            SubscriptionStatus.REJECTED,
+            SubscriptionStatus.PENDING
+        );
+
+        List<ApiCriteria> apiCriterias = apiAuthorizationService.computeApiCriteriaForUser(
+            executionContext,
+            USER_NAME,
+            new ApiQuery(),
+            false
+        );
+
+        assertThat(nonPublicApiIds(apiCriterias)).isEmpty();
+    }
+
+    @Test
+    public void computeApiCriteriaForUser_listsApiOfAcceptedSubscription() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        givenUserOnlyLinkedToApiThroughSubscriptions(executionContext, SubscriptionStatus.ACCEPTED, SubscriptionStatus.CLOSED);
+
+        List<ApiCriteria> apiCriterias = apiAuthorizationService.computeApiCriteriaForUser(
+            executionContext,
+            USER_NAME,
+            new ApiQuery(),
+            false
+        );
+
+        assertThat(nonPublicApiIds(apiCriterias)).containsExactly("api-id");
+    }
+
+    private void givenUserOnlyLinkedToApiThroughSubscriptions(ExecutionContext executionContext, SubscriptionStatus... statuses) {
+        when(
+            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API)
+        ).thenReturn(Set.of());
+        when(roleService.findByScope(RoleScope.API, executionContext.getOrganizationId())).thenReturn(
+            List.of(RoleEntity.builder().id("role1").scope(RoleScope.API).name(SystemRole.PRIMARY_OWNER.name()).build())
+        );
+        when(applicationService.findUserApplicationsIds(executionContext, USER_NAME, ApplicationStatus.ACTIVE)).thenReturn(
+            Set.of("application-id")
+        );
+        List<SubscriptionEntity> subscriptions = Stream.of(statuses)
+            .map(status -> SubscriptionEntity.builder().api("api-id").status(status).build())
+            .toList();
+        when(subscriptionService.search(eq(executionContext), any(SubscriptionQuery.class))).thenAnswer(invocation -> {
+            SubscriptionQuery query = invocation.getArgument(1);
+            return subscriptions
+                .stream()
+                .filter(subscription -> query.matchesStatus(subscription.getStatus()))
+                .toList();
+        });
+    }
+
+    private static Set<String> nonPublicApiIds(List<ApiCriteria> apiCriterias) {
+        Set<String> apiIds = new HashSet<>();
+        apiCriterias
+            .stream()
+            .filter(apiCriteria -> apiCriteria.getVisibility() != Visibility.PUBLIC)
+            .filter(apiCriteria -> apiCriteria.getIds() != null)
+            .forEach(apiCriteria -> apiIds.addAll(apiCriteria.getIds()));
+        return apiIds;
+    }
 }
