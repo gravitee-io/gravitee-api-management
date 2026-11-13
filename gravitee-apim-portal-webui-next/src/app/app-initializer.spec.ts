@@ -18,9 +18,11 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { OAuthService } from 'angular-oauth2-oidc';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, of } from 'rxjs';
 
 import { initApp } from './app-initializer';
+import { IdentityProvider } from '../entities/configuration/identity-provider';
+import { fakePortalNavigationFolder } from '../entities/portal-navigation/portal-navigation-item.fixture';
 import { AuthService } from '../services/auth.service';
 import { ConfigService } from '../services/config.service';
 import { CurrentUserService } from '../services/current-user.service';
@@ -31,6 +33,7 @@ import { IdentityProviderServiceStub, OAuthServiceStub } from '../testing/app-te
 
 describe('initApp', () => {
   const bootstrapUrl = 'https://apim.example.com/portal/ui/bootstrap';
+  const environmentUrl = 'https://apim.example.com/portal/environments/DEFAULT';
   let httpTestingController: HttpTestingController;
   let navigate: jest.SpyInstance;
 
@@ -89,6 +92,48 @@ describe('initApp', () => {
 
     expect(navigate).toHaveBeenCalledWith(['/503'], {
       state: { status: 503, errors: [{ code: 'errors.maintenance.mode', message: 'Portal is under maintenance', status: '503' }] },
+    });
+  });
+
+  describe('when the user comes back from an OAuth2/OIDC identity provider', () => {
+    let finishCodeExchange: () => void;
+
+    beforeEach(() => {
+      localStorage.setItem('user-provider-id', 'keycloak');
+      jest
+        .spyOn(TestBed.inject(IdentityProviderService), 'getPortalIdentityProvider')
+        .mockReturnValue(of({ id: 'keycloak', client_id: 'portal' } as IdentityProvider));
+      jest.spyOn(TestBed.inject(OAuthService), 'tryLoginCodeFlow').mockReturnValue(
+        new Promise<boolean>(resolve => {
+          finishCodeExchange = () => resolve(true);
+        }),
+      );
+    });
+
+    afterEach(() => {
+      localStorage.removeItem('user-provider-id');
+    });
+
+    it('should load the top navbar items only once the code exchange has created the session', async () => {
+      const initialized = runInitializer();
+      httpTestingController.expectOne(bootstrapUrl).flush({ baseURL: 'https://apim.example.com/portal', environmentId: 'DEFAULT' });
+      httpTestingController.expectOne(`${environmentUrl}/theme?type=PORTAL_NEXT`).flush({});
+      httpTestingController.expectOne(`${environmentUrl}/configuration`).flush({});
+
+      httpTestingController.expectNone(req => req.url === `${environmentUrl}/portal-navigation-items`);
+
+      finishCodeExchange();
+      await new Promise(resolve => setTimeout(resolve));
+
+      const privateFolder = fakePortalNavigationFolder({ area: 'TOP_NAVBAR' });
+      httpTestingController
+        .expectOne(req => req.url === `${environmentUrl}/portal-navigation-items` && req.params.get('area') === 'TOP_NAVBAR')
+        .flush([privateFolder]);
+      httpTestingController.expectOne(`${environmentUrl}/user`).flush({ id: 'user' });
+      await initialized;
+
+      expect(TestBed.inject(PortalNavigationItemsService).topNavbarItems()).toEqual([privateFolder]);
+      expect(navigate).not.toHaveBeenCalled();
     });
   });
 });

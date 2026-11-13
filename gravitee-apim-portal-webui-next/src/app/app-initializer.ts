@@ -38,8 +38,11 @@ export function initApp(
         combineLatest([
           themeService.loadTheme(),
           configService.loadConfiguration(),
-          portalNavigationItemsService.loadTopNavBarItems(),
-          authService.load().pipe(switchMap(_ => currentUserService.loadUser())),
+          // Back from an OAuth2/OIDC provider, load() exchanges the code for the session: the navigation items
+          // requested before it would miss those restricted to authenticated users.
+          authService
+            .load()
+            .pipe(switchMap(_ => combineLatest([currentUserService.loadUser(), portalNavigationItemsService.loadTopNavBarItems()]))),
         ]),
       ),
       catchError((error: unknown) => {
