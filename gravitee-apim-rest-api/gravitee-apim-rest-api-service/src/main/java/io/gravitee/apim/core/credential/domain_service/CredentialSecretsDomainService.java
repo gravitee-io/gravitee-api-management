@@ -72,11 +72,12 @@ public class CredentialSecretsDomainService {
     public Rotation rotate(Credential credential, Map<String, String> values, AuditInfo auditInfo) {
         var snapshots = new LinkedHashMap<String, SecretSnapshot>();
         for (var field : credential.strategy().secretFields()) {
-            if (values.containsKey(field)) {
-                var secretId = credential.secretReferences().get(field).secretId();
-                var secret = secretCrudService.get(auditInfo.organizationId(), auditInfo.environmentId(), secretId);
-                snapshots.put(field, secretDomainService.snapshot(secret));
+            if (!values.containsKey(field)) {
+                continue;
             }
+            var secretId = credential.secretReferences().get(field).secretId();
+            var secret = secretCrudService.get(auditInfo.organizationId(), auditInfo.environmentId(), secretId);
+            snapshots.put(field, secretDomainService.snapshot(secret));
         }
         var rotation = new Rotation(credential.id(), new LinkedHashMap<>());
         for (var snapshot : snapshots.entrySet()) {
