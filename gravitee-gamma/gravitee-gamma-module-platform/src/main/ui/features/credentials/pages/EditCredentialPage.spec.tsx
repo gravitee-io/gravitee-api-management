@@ -181,7 +181,7 @@ describe('EditCredentialPage', () => {
         await save();
 
         expect(rotate).not.toHaveBeenCalled();
-        expect(notify.error).toHaveBeenCalledWith(refusal, 'The credential could not be updated.');
+        expect(notify.error).toHaveBeenCalledWith('Only the owner can change it');
         expect(navigate).not.toHaveBeenCalled();
     });
 
