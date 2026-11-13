@@ -95,6 +95,35 @@ describe('validateCredentialDraft', () => {
         expect(errors).toEqual({ 'setting.tokenUrl': 'Token URL must be an https URL.' });
     });
 
+    it('refuses a token URL that carries a user name or password', () => {
+        const errors = validateCredentialDraft(draft({ strategy: 'OAUTH2', settings: { tokenUrl: 'https://client:secret@idp/token' } }), {
+            secretsRequired: false,
+            now: NOW,
+        });
+
+        expect(errors).toEqual({
+            'setting.tokenUrl': 'Token URL must not carry a user name or password. Put the client secret in its own field.',
+        });
+    });
+
+    it('refuses a setting longer than 2048 characters', () => {
+        const errors = validateCredentialDraft(
+            draft({ strategy: 'OAUTH2', settings: { tokenUrl: 'https://idp/token', audience: 'a'.repeat(2049) } }),
+            { secretsRequired: false, now: NOW },
+        );
+
+        expect(errors).toEqual({ 'setting.audience': 'Audience must be at most 2048 characters.' });
+    });
+
+    it('refuses a scope longer than 2048 characters', () => {
+        const errors = validateCredentialDraft(
+            draft({ strategy: 'OAUTH2', settings: { tokenUrl: 'https://idp/token', scopes: `read, ${'s'.repeat(2049)}` } }),
+            { secretsRequired: false, now: NOW },
+        );
+
+        expect(errors).toEqual({ 'setting.scopes': 'Each scope must be at most 2048 characters.' });
+    });
+
     it('takes up to 50 OAuth2 scopes', () => {
         const scopes = Array.from({ length: 50 }, (_, i) => `scope-${i}`).join(', ');
 

@@ -40,7 +40,8 @@ export interface CredentialDraft {
 export type CredentialDraftErrors = Partial<Record<string, string>>;
 
 const MAX_NAME_LENGTH = 256;
-// Same token rule as the backend `CredentialStrategy`, so a bad header name fails before the request.
+// The backend `CredentialStrategy` limits, so a bad setting fails before the request.
+const MAX_SETTING_LENGTH = 2048;
 const MAX_SCOPES = 50;
 const HEADER_NAME = /^[!#$%&'*+.^_`|~0-9A-Za-z-]{1,256}$/;
 
@@ -95,12 +96,22 @@ export function validateCredentialDraft(
             if (!field.optional) {
                 errors[`setting.${field.key}`] = `${field.label} is required.`;
             }
+        } else if (field.key === 'scopes') {
+            const scopes = listItems(value);
+            if (scopes.length > MAX_SCOPES) {
+                errors[`setting.${field.key}`] = `Scopes must hold at most ${MAX_SCOPES} entries.`;
+            } else if (scopes.some(scope => scope.length > MAX_SETTING_LENGTH)) {
+                errors[`setting.${field.key}`] = `Each scope must be at most ${MAX_SETTING_LENGTH} characters.`;
+            }
+        } else if (value.length > MAX_SETTING_LENGTH) {
+            errors[`setting.${field.key}`] = `${field.label} must be at most ${MAX_SETTING_LENGTH} characters.`;
         } else if (field.key === 'headerName' && !HEADER_NAME.test(value)) {
             errors[`setting.${field.key}`] = 'Header name must be a valid HTTP header name.';
-        } else if (field.key === 'tokenUrl' && !isHttpsUrl(value)) {
-            errors[`setting.${field.key}`] = 'Token URL must be an https URL.';
-        } else if (field.key === 'scopes' && listItems(value).length > MAX_SCOPES) {
-            errors[`setting.${field.key}`] = `Scopes must hold at most ${MAX_SCOPES} entries.`;
+        } else if (field.key === 'tokenUrl') {
+            const tokenUrlError = tokenUrlProblem(value);
+            if (tokenUrlError) {
+                errors[`setting.${field.key}`] = tokenUrlError;
+            }
         }
     }
 
@@ -217,13 +228,20 @@ function listItems(value: string): string[] {
 }
 
 // The gateway sends the client secret to the token URL, so the server takes https only.
-function isHttpsUrl(value: string): boolean {
+function tokenUrlProblem(value: string): string | undefined {
+    let url: URL;
     try {
-        const url = new URL(value);
-        return url.protocol === 'https:' && Boolean(url.hostname);
+        url = new URL(value);
     } catch {
-        return false;
+        return 'Token URL must be an https URL.';
     }
+    if (url.protocol !== 'https:' || !url.hostname) {
+        return 'Token URL must be an https URL.';
+    }
+    if (url.username || url.password) {
+        return 'Token URL must not carry a user name or password. Put the client secret in its own field.';
+    }
+    return undefined;
 }
 
 /** The local `YYYY-MM-DD` of a date, as the draft holds it. */
