@@ -21,7 +21,9 @@ import static io.gravitee.rest.api.management.rest.resource.auth.CockpitAuthenti
 import static io.gravitee.rest.api.management.rest.resource.auth.CockpitAuthenticationResource.ORG_CLAIM;
 import static io.gravitee.rest.api.management.rest.resource.auth.CockpitAuthenticationResource.REDIRECT_URI_CLAIM;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,7 +46,9 @@ import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.JWTHelper;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import jakarta.ws.rs.client.Entity;
@@ -312,6 +316,73 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
         assertEquals(HttpStatusCode.SEE_OTHER_303, response.getStatus());
         assertEquals("http://localhost:4200/environments/" + ENVIRONMENT_ID, response.getLocation().toString());
         assertEquals(gcat, sessionCookieJwt().getClaim(JWTHelper.Claims.GCAT).asString());
+    }
+
+    @Test
+    public void shouldRecordConnectionWhenAuthenticatingToConsole() {
+        UserEntity userEntity = mockUserEntity();
+
+        String jwt = this.generateJWT(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID, "audience", null, null, null);
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true)).thenReturn(userEntity);
+        when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
+        when(installationAccessQueryService.getConsoleUrl(ORGANIZATION_ID)).thenReturn(rootTarget("console").getUri().toString());
+        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        assertEquals(HttpStatusCode.SEE_OTHER_303, response.getStatus());
+        verify(userService).connect(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID), userEntity.getId());
+    }
+
+    @Test
+    public void shouldRecordConnectionWhenAuthenticatingToGamma() {
+        UserEntity userEntity = mockUserEntity();
+
+        String jwt = this.generateJWT(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID, "audience", null, null, "gamma_console");
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true)).thenReturn(userEntity);
+        when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
+        when(installationAccessQueryService.getGammaUrl(ORGANIZATION_ID)).thenReturn("http://localhost:4200");
+        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        assertEquals(HttpStatusCode.SEE_OTHER_303, response.getStatus());
+        verify(userService).connect(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID), userEntity.getId());
+    }
+
+    @Test
+    public void shouldRecordConnectionWhenAuthenticatingToGammaWithFormPost() {
+        UserEntity userEntity = mockUserEntity();
+
+        String jwt = this.generateJWT(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID, "audience", null, null, "gamma_console");
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true)).thenReturn(userEntity);
+        when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
+        when(installationAccessQueryService.getGammaUrl(ORGANIZATION_ID)).thenReturn("http://localhost:4200");
+        final Response response = postToken(jwt);
+        assertEquals(HttpStatusCode.SEE_OTHER_303, response.getStatus());
+        verify(userService).connect(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID), userEntity.getId());
+    }
+
+    @Test
+    public void shouldLeaveConnectionToPortalWhenAuthenticatingToPortal() {
+        UserEntity userEntity = mockUserEntity();
+
+        String jwt = this.generateJWT(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID, "audience", null, null, "portal");
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true)).thenReturn(userEntity);
+        when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
+        when(installationAccessQueryService.getPortalAPIUrl(ENVIRONMENT_ID)).thenReturn(rootTarget("portal").getUri().toString());
+        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        assertEquals(HttpStatusCode.SEE_OTHER_303, response.getStatus());
+        verify(userService, never()).connect(any(), any());
+    }
+
+    @Test
+    public void shouldNotOpenSessionWhenConnectionCannotBeRecorded() {
+        UserEntity userEntity = mockUserEntity();
+
+        String jwt = this.generateJWT(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID, "audience", null, null, "gamma_console");
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true)).thenReturn(userEntity);
+        when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
+        when(userService.connect(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID), userEntity.getId())).thenThrow(
+            new TechnicalManagementException("connection not recorded")
+        );
+        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
+        verify(cookieGenerator, never()).generate(any(), any());
     }
 
     private Response postToken(String token) {
