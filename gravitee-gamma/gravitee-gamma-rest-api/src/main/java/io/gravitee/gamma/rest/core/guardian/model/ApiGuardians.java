@@ -19,6 +19,7 @@ import io.gravitee.definition.model.guardian.GuardianSteps;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
+import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotEnabledException;
 import io.gravitee.gamma.rest.core.guardian.exception.InvalidGuardianOrderException;
 import java.util.ArrayList;
 import java.util.List;
@@ -86,6 +87,29 @@ public final class ApiGuardians {
             .map(step -> GuardianSteps.guardianIdOf(step).isPresent() ? byGuardian.get(next.next()) : step)
             .toList();
         return withSteps(phase, reordered);
+    }
+
+    /**
+     * The Guardians without this one.
+     *
+     * @throws GuardianNotEnabledException when the API does not run it.
+     */
+    public ApiGuardians disable(String guardianId) {
+        if (!isEnabled(guardianId)) {
+            throw new GuardianNotEnabledException(guardianId);
+        }
+        var others = new ApiGuardians(internalFlow);
+        for (var phase : Phase.values()) {
+            others = others.withSteps(
+                phase,
+                others
+                    .steps(phase)
+                    .stream()
+                    .filter(step -> GuardianSteps.guardianIdOf(step).filter(guardianId::equals).isEmpty())
+                    .toList()
+            );
+        }
+        return others;
     }
 
     public List<Enabled> list() {

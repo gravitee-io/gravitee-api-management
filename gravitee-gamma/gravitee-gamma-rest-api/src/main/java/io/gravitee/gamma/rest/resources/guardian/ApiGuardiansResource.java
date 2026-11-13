@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.resources.guardian;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.gamma.rest.core.guardian.use_case.DisableApiGuardianUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.EnableApiGuardianUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.ListApiGuardiansUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.ReorderApiGuardiansUseCase;
@@ -34,6 +35,7 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
@@ -54,6 +56,8 @@ import jakarta.ws.rs.Produces;
  *   <li>{@code PUT /_order} — sets the order in which the Guardians of one phase run, from the whole list of that
  *       phase, and answers the enabled Guardians. {@code 400} unless the list holds each Guardian of the phase
  *       exactly once.</li>
+ *   <li>{@code DELETE /{guardianId}} — turns a Guardian off and answers the enabled Guardians. The API stops running
+ *       it once redeployed. {@code 404} when the API does not run it.</li>
  * </ul>
  * Every endpoint answers {@code 404} when the API is unknown <em>or belongs to another environment</em>.
  *
@@ -75,6 +79,9 @@ public class ApiGuardiansResource {
 
     @Inject
     private ReorderApiGuardiansUseCase reorderApiGuardiansUseCase;
+
+    @Inject
+    private DisableApiGuardianUseCase disableApiGuardianUseCase;
 
     @Inject
     private PermissionService permissionService;
@@ -108,6 +115,15 @@ public class ApiGuardiansResource {
         var output = reorderApiGuardiansUseCase.execute(
             new ReorderApiGuardiansUseCase.Input(CurrentAuditInfo.of(), apiId, request.phase(), request.guardianIds())
         );
+        return ApiGuardiansDto.from(output.guardians());
+    }
+
+    @DELETE
+    @Path("/{guardianId}")
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
+    public ApiGuardiansDto disable(@PathParam("apiId") String apiId, @PathParam("guardianId") String guardianId) {
+        requireGuardianRead();
+        var output = disableApiGuardianUseCase.execute(new DisableApiGuardianUseCase.Input(CurrentAuditInfo.of(), apiId, guardianId));
         return ApiGuardiansDto.from(output.guardians());
     }
 

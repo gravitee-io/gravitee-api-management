@@ -22,6 +22,7 @@ import io.gravitee.definition.model.guardian.GuardianSteps;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
+import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotEnabledException;
 import io.gravitee.gamma.rest.core.guardian.exception.InvalidGuardianOrderException;
 import java.util.List;
 import java.util.stream.Stream;
@@ -147,6 +148,28 @@ class ApiGuardiansTest {
             List.of("guardian-1", "guardian-1"),
             List.of("guardian-1", "guardian-4")
         );
+    }
+
+    @Test
+    void should_disable_a_guardian_and_keep_the_other_steps() {
+        var guardians = ApiGuardians.of(
+            Flow.builder().request(List.of(GuardianSteps.of("guardian-1", "One"), aPolicy(), GuardianSteps.of("guardian-2", "Two"))).build()
+        );
+
+        var disabled = guardians.disable("guardian-1");
+
+        assertThat(disabled.internalFlow().getRequest())
+            .as("request steps")
+            .containsExactly(aPolicy(), GuardianSteps.of("guardian-2", "Two"));
+    }
+
+    @Test
+    void should_refuse_to_disable_a_guardian_that_is_not_enabled() {
+        var guardians = ApiGuardians.of(Flow.builder().request(List.of(GuardianSteps.of("guardian-1", "One"))).build());
+
+        assertThatThrownBy(() -> guardians.disable("guardian-2"))
+            .as("disabling a guardian not enabled")
+            .isInstanceOf(GuardianNotEnabledException.class);
     }
 
     private static Step aPolicy() {

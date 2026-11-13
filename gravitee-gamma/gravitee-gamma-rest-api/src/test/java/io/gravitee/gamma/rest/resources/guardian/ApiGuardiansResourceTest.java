@@ -275,6 +275,46 @@ class ApiGuardiansResourceTest extends AbstractResourceTest {
         }
     }
 
+    @Nested
+    class DisableApiGuardian {
+
+        @BeforeEach
+        void given_an_api_running_a_guardian() {
+            apis.givenApi(
+                GuardianFixtures.aGuardedApi()
+                    .environmentId(ENVIRONMENT)
+                    .internalFlow(Flow.builder().request(List.of(GuardianSteps.of(GUARDIAN_ID, "Credential leakage"))).build())
+                    .build()
+            );
+        }
+
+        @Test
+        void should_turn_the_guardian_off() {
+            Response response = rootTarget(GUARDIAN_ID).request().delete();
+
+            assertSoftly(softly -> {
+                softly.assertThat(response.getStatus()).as("status").isEqualTo(HttpStatusCode.OK_200);
+                softly.assertThat(response.readEntity(JsonNode.class).get("data")).as("enabled guardians").isEmpty();
+            });
+        }
+
+        @Test
+        void should_return_404_for_a_guardian_that_is_not_enabled() {
+            Response response = rootTarget("unknown-guardian").request().delete();
+
+            assertThat(response.getStatus()).as("status").isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        }
+
+        @Test
+        void should_return_403_without_the_permission_to_read_the_guardians() {
+            when(permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_GUARDIAN), any(), any())).thenReturn(false);
+
+            Response response = rootTarget(GUARDIAN_ID).request().delete();
+
+            assertThat(response.getStatus()).as("status").isEqualTo(HttpStatusCode.FORBIDDEN_403);
+        }
+    }
+
     private void givenDeployedGuardian() {
         var guardian = GuardianFixtures.aGuardian(d -> d.environmentId(ENVIRONMENT).name("Credential leakage")).build();
         guardianRepository.givenGuardian(guardian);
