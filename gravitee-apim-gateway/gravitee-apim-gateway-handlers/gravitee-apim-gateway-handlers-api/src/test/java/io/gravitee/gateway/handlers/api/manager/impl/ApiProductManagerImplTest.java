@@ -17,8 +17,11 @@ package io.gravitee.gateway.handlers.api.manager.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
@@ -29,7 +32,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.common.event.Event;
+import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.common.event.impl.SimpleEvent;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
@@ -43,9 +49,14 @@ import io.gravitee.gateway.handlers.api.event.ApiProductChangedEvent;
 import io.gravitee.gateway.handlers.api.event.ApiProductEventType;
 import io.gravitee.gateway.handlers.api.manager.ApiProductChange;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
+import io.gravitee.gateway.handlers.api.secrets.ApiProductDefinitionSecretRefsFinder;
 import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeRegistry;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.secrets.api.discovery.Definition;
+import io.gravitee.secrets.api.discovery.DefinitionMetadata;
+import io.gravitee.secrets.api.event.SecretDiscoveryEvent;
+import io.gravitee.secrets.api.event.SecretDiscoveryEventType;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -53,6 +64,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -617,7 +630,7 @@ class ApiProductManagerImplTest {
         }
 
         @Test
-        void should_keep_the_runtime_when_only_the_name_changes() {
+        void should_refresh_the_runtime_when_only_the_name_changes_but_revision_is_new() {
             ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
             ReactableApiProduct renamed = createApiProduct("product-1", "env-1", newDate);
             renamed.setName("Renamed");
@@ -625,7 +638,7 @@ class ApiProductManagerImplTest {
 
             manager.register(renamed);
 
-            verify(apiProductRuntimeRegistry, never()).deploy(renamed);
+            verify(apiProductRuntimeRegistry).deploy(eq(renamed), eq(true), isNull());
         }
 
         @Test
@@ -638,7 +651,7 @@ class ApiProductManagerImplTest {
 
             manager.register(withFlow);
 
-            verify(apiProductRuntimeRegistry).deploy(withFlow);
+            verify(apiProductRuntimeRegistry).deploy(eq(withFlow), eq(true), any());
         }
 
         @Test
@@ -652,7 +665,7 @@ class ApiProductManagerImplTest {
 
             manager.register(bestMatch);
 
-            verify(apiProductRuntimeRegistry).deploy(bestMatch);
+            verify(apiProductRuntimeRegistry).deploy(eq(bestMatch), eq(true), any());
         }
 
         @Test
@@ -665,7 +678,7 @@ class ApiProductManagerImplTest {
 
             manager.register(withResources);
 
-            verify(apiProductRuntimeRegistry).deploy(withResources);
+            verify(apiProductRuntimeRegistry).deploy(eq(withResources), eq(true), any());
         }
 
         @Test
@@ -681,8 +694,8 @@ class ApiProductManagerImplTest {
                 .assertError(IllegalStateException.class);
 
             InOrder inOrder = inOrder(apiProductRuntimeRegistry);
-            inOrder.verify(apiProductRuntimeRegistry).deploy(failed);
-            inOrder.verify(apiProductRuntimeRegistry).deploy(oldProduct);
+            inOrder.verify(apiProductRuntimeRegistry).deploy(eq(failed), eq(true), any());
+            inOrder.verify(apiProductRuntimeRegistry).deploy(eq(oldProduct));
         }
 
         @Test
@@ -732,7 +745,9 @@ class ApiProductManagerImplTest {
             ReactableApiProduct newProduct = createApiProduct("product-1", "env-1", newDate);
             newProduct.setApiIds(Set.of("api-1", "api-2", "api-3"));
             manager.register(oldProduct);
-            doThrow(new IllegalStateException("runtime cannot start")).when(apiProductRuntimeRegistry).deploy(newProduct);
+            doThrow(new IllegalStateException("runtime cannot start"))
+                .when(apiProductRuntimeRegistry)
+                .deploy(eq(newProduct), eq(true), any());
             List<ApiProductChange> beforeEmitCalls = new ArrayList<>();
 
             manager
@@ -758,7 +773,7 @@ class ApiProductManagerImplTest {
             lenient()
                 .doThrow(new IllegalStateException("runtime cannot start"))
                 .when(apiProductRuntimeRegistry)
-                .deploy(argThat(product -> product == oldProduct));
+                .deploy(argThat(product -> product == oldProduct), anyBoolean(), any());
 
             manager
                 .register(failed, change -> Completable.error(new IllegalStateException("repository down")))
@@ -770,7 +785,7 @@ class ApiProductManagerImplTest {
         }
 
         @Test
-        void should_not_touch_the_runtime_when_an_update_that_only_renamed_the_product_fails() {
+        void should_not_put_back_the_runtime_when_a_name_only_update_fails_after_a_new_revision_deploy() {
             ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
             ReactableApiProduct renamed = createApiProduct("product-1", "env-1", newDate);
             renamed.setName("Renamed");
@@ -783,7 +798,8 @@ class ApiProductManagerImplTest {
                 .assertError(IllegalStateException.class);
 
             assertThat(manager.get("product-1")).isSameAs(oldProduct);
-            verifyNoInteractions(apiProductRuntimeRegistry);
+            verify(apiProductRuntimeRegistry).deploy(eq(renamed), eq(true), isNull());
+            verify(apiProductRuntimeRegistry, never()).deploy(eq(oldProduct), anyBoolean(), any());
         }
     }
 
@@ -847,6 +863,243 @@ class ApiProductManagerImplTest {
             thread2.join();
 
             assertThat(manager.getApiProducts()).hasSize(100);
+        }
+    }
+
+    @Nested
+    class SecretDiscovery {
+
+        @Test
+        void should_discover_secrets_when_deploying_a_product() {
+            Date deployedAt = new Date();
+            ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", deployedAt);
+
+            manager.register(apiProduct);
+
+            ArgumentCaptor<SecretDiscoveryEvent> discoverCaptor = ArgumentCaptor.forClass(SecretDiscoveryEvent.class);
+            verify(eventManager).publishEvent(eq(SecretDiscoveryEventType.DISCOVER), discoverCaptor.capture());
+            assertThat(discoverCaptor.getValue().envId()).isEqualTo("env-1");
+            assertThat(discoverCaptor.getValue().definition()).isSameAs(apiProduct);
+            assertThat(discoverCaptor.getValue().metadata().revision()).isEqualTo(String.valueOf(deployedAt.getTime()));
+        }
+
+        @Test
+        void should_revoke_secrets_when_undeploying_a_product() {
+            ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date());
+            manager.register(apiProduct);
+            clearInvocations(eventManager);
+
+            manager.unregister("product-1");
+
+            ArgumentCaptor<SecretDiscoveryEvent> revokeCaptor = ArgumentCaptor.forClass(SecretDiscoveryEvent.class);
+            verify(eventManager).publishEvent(eq(SecretDiscoveryEventType.REVOKE), revokeCaptor.capture());
+            assertThat(revokeCaptor.getValue().definition()).isSameAs(apiProduct);
+        }
+
+        @Test
+        void should_refresh_runtime_when_a_product_secret_value_changes() {
+            ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date());
+            manager.register(apiProduct);
+            clearInvocations(apiProductRuntimeRegistry);
+
+            secretValueChangedListener().onEvent(
+                secretValueChanged("env-1", new Definition(ApiProductDefinitionSecretRefsFinder.API_PRODUCT_DEFINITION_KIND, "product-1"))
+            );
+
+            verify(apiProductRuntimeRegistry).deploy(apiProduct, false);
+        }
+
+        @Test
+        void rename_keeps_flow_secrets_resolving() {
+            Date firstDeployed = new Date(1_000);
+            ReactableApiProduct first = createApiProduct("product-1", "env-1", firstDeployed);
+            manager.register(first);
+            clearInvocations(apiProductRuntimeRegistry, eventManager);
+
+            ReactableApiProduct updated = createApiProduct("product-1", "env-1", new Date(2_000));
+            updated.setName("Renamed product");
+
+            manager.register(updated);
+
+            verify(apiProductRuntimeRegistry).deploy(updated, true, null);
+            verify(eventManager, never()).publishEvent(eq(SecretDiscoveryEventType.DISCOVER), any());
+            verify(eventManager, never()).publishEvent(eq(SecretDiscoveryEventType.REVOKE), any());
+        }
+
+        @Test
+        void index_only_update_neither_discovers_nor_revokes() {
+            ReactableApiProduct first = createApiProduct("product-1", "env-1", new Date(1));
+            manager.register(first);
+            clearInvocations(eventManager, apiProductRuntimeRegistry);
+
+            ReactableApiProduct updated = createApiProduct("product-1", "env-1", new Date(2));
+            updated.setVersion("2");
+            updated.setDescription("Index-only description");
+
+            manager.register(updated);
+
+            verify(apiProductRuntimeRegistry).deploy(updated, true, null);
+            verify(eventManager, never()).publishEvent(eq(SecretDiscoveryEventType.DISCOVER), any());
+            verify(eventManager, never()).publishEvent(eq(SecretDiscoveryEventType.REVOKE), any());
+        }
+
+        @Test
+        void runtime_rebuild_discovers_before_start_and_revokes_previous_after_old_runtime_stops() {
+            Date firstDeployed = new Date(1_000);
+            ReactableApiProduct first = createApiProduct("product-1", "env-1", firstDeployed);
+            manager.register(first);
+            clearInvocations(eventManager, apiProductRuntimeRegistry);
+
+            ReactableApiProduct updated = createApiProduct("product-1", "env-1", new Date(2_000));
+            updated.setApiIds(Set.of("api-1", "api-2", "api-3"));
+
+            ArgumentCaptor<Runnable> whenStopped = ArgumentCaptor.forClass(Runnable.class);
+            manager.register(updated);
+
+            InOrder inOrder = inOrder(eventManager, apiProductRuntimeRegistry);
+            inOrder.verify(eventManager).publishEvent(eq(SecretDiscoveryEventType.DISCOVER), any(SecretDiscoveryEvent.class));
+            inOrder.verify(apiProductRuntimeRegistry).deploy(eq(updated), eq(true), whenStopped.capture());
+
+            verify(eventManager, never()).publishEvent(eq(SecretDiscoveryEventType.REVOKE), any());
+
+            whenStopped.getValue().run();
+
+            ArgumentCaptor<SecretDiscoveryEvent> revokeCaptor = ArgumentCaptor.forClass(SecretDiscoveryEvent.class);
+            verify(eventManager).publishEvent(eq(SecretDiscoveryEventType.REVOKE), revokeCaptor.capture());
+            assertThat(revokeCaptor.getValue().metadata().revision()).isEqualTo(String.valueOf(firstDeployed.getTime()));
+        }
+
+        @Test
+        void failed_first_deploy_revokes_its_discovered_grants() {
+            ReactableApiProduct product = createApiProduct("product-1", "env-1", new Date());
+            doThrow(new RuntimeException("start failed")).when(apiProductRuntimeRegistry).deploy(any(ReactableApiProduct.class));
+
+            try {
+                manager.register(product);
+            } catch (RuntimeException ignored) {
+                // expected
+            }
+
+            verify(eventManager).publishEvent(eq(SecretDiscoveryEventType.DISCOVER), any(SecretDiscoveryEvent.class));
+            verify(eventManager).publishEvent(eq(SecretDiscoveryEventType.REVOKE), any(SecretDiscoveryEvent.class));
+        }
+
+        @Test
+        void failed_update_revokes_new_grants_and_keeps_previous() {
+            ReactableApiProduct first = createApiProduct("product-1", "env-1", new Date(1_000));
+            manager.register(first);
+            clearInvocations(eventManager);
+
+            ReactableApiProduct updated = createApiProduct("product-1", "env-1", new Date(2_000));
+            updated.setApiIds(Set.of("api-1", "api-2", "api-3"));
+            doThrow(new RuntimeException("start failed")).when(apiProductRuntimeRegistry).deploy(eq(updated), eq(true), any());
+
+            try {
+                manager.register(updated);
+            } catch (RuntimeException ignored) {
+                // expected
+            }
+
+            verify(eventManager).publishEvent(eq(SecretDiscoveryEventType.DISCOVER), any(SecretDiscoveryEvent.class));
+            verify(eventManager).publishEvent(eq(SecretDiscoveryEventType.REVOKE), any(SecretDiscoveryEvent.class));
+            verify(eventManager, never()).publishEvent(
+                eq(SecretDiscoveryEventType.REVOKE),
+                argThat((SecretDiscoveryEvent e) -> e.metadata().revision().equals(String.valueOf(first.getDeployedAt().getTime())))
+            );
+            assertThat(manager.get("product-1")).isSameAs(first);
+        }
+
+        @Test
+        void value_changed_after_undeploy_does_nothing() {
+            ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date());
+            manager.register(apiProduct);
+            manager.unregister("product-1");
+            clearInvocations(apiProductRuntimeRegistry);
+
+            secretValueChangedListener().onEvent(
+                secretValueChanged("env-1", new Definition(ApiProductDefinitionSecretRefsFinder.API_PRODUCT_DEFINITION_KIND, "product-1"))
+            );
+
+            verify(apiProductRuntimeRegistry, never()).deploy(any(), anyBoolean());
+        }
+
+        @Test
+        void value_changed_racing_update_never_republishes_the_old_product() throws Exception {
+            ReactableApiProduct first = createApiProduct("product-1", "env-1", new Date(1_000));
+            manager.register(first);
+
+            ReactableApiProduct latest = createApiProduct("product-1", "env-1", new Date(2_000));
+            latest.setName("Latest name");
+
+            CountDownLatch updateEntered = new CountDownLatch(1);
+            CountDownLatch releaseUpdate = new CountDownLatch(1);
+
+            Thread updateThread = new Thread(() ->
+                manager
+                    .register(latest, change ->
+                        Completable.defer(() -> {
+                            updateEntered.countDown();
+                            try {
+                                releaseUpdate.await(5, TimeUnit.SECONDS);
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                            }
+                            return Completable.complete();
+                        })
+                    )
+                    .blockingAwait()
+            );
+            updateThread.start();
+            assertThat(updateEntered.await(5, TimeUnit.SECONDS)).isTrue();
+
+            secretValueChangedListener().onEvent(
+                secretValueChanged("env-1", new Definition(ApiProductDefinitionSecretRefsFinder.API_PRODUCT_DEFINITION_KIND, "product-1"))
+            );
+
+            releaseUpdate.countDown();
+            updateThread.join(5_000);
+
+            verify(apiProductRuntimeRegistry).deploy(eq(latest), eq(false));
+            verify(apiProductRuntimeRegistry, never()).deploy(eq(first), anyBoolean());
+        }
+
+        @Test
+        void should_ignore_secret_changes_for_other_kinds_or_products() {
+            manager.register(createApiProduct("product-1", "env-1", new Date()));
+            clearInvocations(apiProductRuntimeRegistry);
+
+            EventListener<SecretDiscoveryEventType, SecretDiscoveryEvent> listener = secretValueChangedListener();
+            listener.onEvent(secretValueChanged("env-1", new Definition("guardian", "product-1")));
+            listener.onEvent(
+                secretValueChanged("env-1", new Definition(ApiProductDefinitionSecretRefsFinder.API_PRODUCT_DEFINITION_KIND, "other"))
+            );
+            listener.onEvent(
+                secretValueChanged(
+                    "other-env",
+                    new Definition(ApiProductDefinitionSecretRefsFinder.API_PRODUCT_DEFINITION_KIND, "product-1")
+                )
+            );
+
+            verify(apiProductRuntimeRegistry, never()).deploy(any());
+        }
+
+        @SuppressWarnings("unchecked")
+        private EventListener<SecretDiscoveryEventType, SecretDiscoveryEvent> secretValueChangedListener() {
+            ArgumentCaptor<EventListener<SecretDiscoveryEventType, SecretDiscoveryEvent>> listenerCaptor = ArgumentCaptor.forClass(
+                EventListener.class
+            );
+            verify(eventManager).subscribeForEvents(listenerCaptor.capture(), eq(SecretDiscoveryEventType.VALUE_CHANGED));
+            return listenerCaptor.getValue();
+        }
+
+        private static Event<SecretDiscoveryEventType, SecretDiscoveryEvent> secretValueChanged(
+            String environmentId,
+            Definition definition
+        ) {
+            return new SimpleEvent<>(
+                SecretDiscoveryEventType.VALUE_CHANGED,
+                new SecretDiscoveryEvent(environmentId, definition, new DefinitionMetadata(null))
+            );
         }
     }
 

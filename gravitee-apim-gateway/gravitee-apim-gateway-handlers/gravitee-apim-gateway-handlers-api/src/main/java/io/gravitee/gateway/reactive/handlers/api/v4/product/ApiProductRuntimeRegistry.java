@@ -70,10 +70,26 @@ public class ApiProductRuntimeRegistry {
      * runtime keeps serving
      */
     public synchronized void deploy(ReactableApiProduct product) {
+        deploy(product, true);
+    }
+
+    /**
+     * @param reuseProductResources when false, product resources are rebuilt even if the resource list is unchanged
+     * (for example after a referenced secret value changes).
+     */
+    public synchronized void deploy(ReactableApiProduct product, boolean reuseProductResources) {
+        deploy(product, reuseProductResources, null);
+    }
+
+    /**
+     * @param whenPreviousStopped runs once the replaced runtime has fully stopped after drain; skipped when nothing was
+     * replaced
+     */
+    public synchronized void deploy(ReactableApiProduct product, boolean reuseProductResources, Runnable whenPreviousStopped) {
         ApiProductRuntime runtime = null;
         ApiProductRuntime publishedBefore = runtimes.get(new Key(product.getId(), product.getEnvironmentId()));
         try {
-            runtime = runtimeFactory.create(product, publishedBefore);
+            runtime = runtimeFactory.create(product, publishedBefore, reuseProductResources);
             runtime.start();
         } catch (Exception e) {
             if (runtime != null) {
@@ -88,7 +104,7 @@ public class ApiProductRuntimeRegistry {
         ApiProductRuntime previous = next.put(new Key(product.getId(), product.getEnvironmentId()), runtime);
         runtimes = Map.copyOf(next);
         if (previous != null) {
-            retire(previous);
+            retire(previous, whenPreviousStopped);
         }
     }
 
@@ -97,7 +113,7 @@ public class ApiProductRuntimeRegistry {
         ApiProductRuntime previous = next.remove(new Key(apiProductId, environmentId));
         if (previous != null) {
             runtimes = Map.copyOf(next);
-            retire(previous);
+            retire(previous, null);
         }
     }
 
@@ -114,6 +130,10 @@ public class ApiProductRuntimeRegistry {
     }
 
     private void retire(ApiProductRuntime runtime) {
+        retire(runtime, null);
+    }
+
+    private void retire(ApiProductRuntime runtime, Runnable whenStopped) {
         runtime.retire();
         AtomicInteger lastSeenInFlight = new AtomicInteger();
         Flowable.interval(0, DRAIN_POLL_INTERVAL_MS, TimeUnit.MILLISECONDS, scheduler)
@@ -123,7 +143,12 @@ public class ApiProductRuntimeRegistry {
                 return inFlight > 0 && tick * DRAIN_POLL_INTERVAL_MS < drainTimeoutMs;
             })
             .ignoreElements()
-            .doFinally(() -> stop(runtime, lastSeenInFlight.get()))
+            .doFinally(() -> {
+                stop(runtime, lastSeenInFlight.get());
+                if (whenStopped != null) {
+                    whenStopped.run();
+                }
+            })
             .subscribe();
     }
 

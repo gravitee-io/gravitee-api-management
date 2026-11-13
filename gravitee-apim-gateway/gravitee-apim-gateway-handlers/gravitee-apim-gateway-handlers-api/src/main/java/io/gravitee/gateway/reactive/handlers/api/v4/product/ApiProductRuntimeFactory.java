@@ -84,6 +84,10 @@ public class ApiProductRuntimeFactory {
     }
 
     public ApiProductRuntime create(ReactableApiProduct product, ApiProductRuntime previousRuntime) {
+        return create(product, previousRuntime, true);
+    }
+
+    public ApiProductRuntime create(ReactableApiProduct product, ApiProductRuntime previousRuntime, boolean reuseProductResources) {
         List<Plan> plans = plansServedHere(product);
         PolicyManager policyManager = new ApiProductPolicyManager(
             classLoader,
@@ -101,7 +105,7 @@ public class ApiProductRuntimeFactory {
         List<LifecycleComponent<?>> components = new ArrayList<>();
         ResourceLifecycleManager resourceManager = EmptyProductResourceLifecycleManager.INSTANCE;
         if (ProductResourcesComponent.hasConfiguredResources(product)) {
-            ProductResourcesComponent resources = resourcesComponent(product, previousRuntime);
+            ProductResourcesComponent resources = resourcesComponent(product, previousRuntime, reuseProductResources);
             components.add(resources);
             resourceManager = resources.resourceLifecycleManager();
         }
@@ -117,10 +121,16 @@ public class ApiProductRuntimeFactory {
         );
     }
 
-    private ProductResourcesComponent resourcesComponent(ReactableApiProduct product, ApiProductRuntime previousRuntime) {
-        ProductResourcesComponent previousComponent = ProductResourcesComponent.findOn(previousRuntime);
-        if (previousComponent != null && ProductResourcesComponent.sameResources(previousRuntime.product(), product)) {
-            return new ProductResourcesComponent(previousComponent.sharedResources());
+    private ProductResourcesComponent resourcesComponent(
+        ReactableApiProduct product,
+        ApiProductRuntime previousRuntime,
+        boolean reuseProductResources
+    ) {
+        if (reuseProductResources) {
+            ProductResourcesComponent previousComponent = ProductResourcesComponent.findOn(previousRuntime);
+            if (previousComponent != null && ProductResourcesComponent.sameResources(previousRuntime.product(), product)) {
+                return new ProductResourcesComponent(previousComponent.sharedResources());
+            }
         }
         return new ProductResourcesComponent(product, resourceManagerFactory, licenseManager);
     }
