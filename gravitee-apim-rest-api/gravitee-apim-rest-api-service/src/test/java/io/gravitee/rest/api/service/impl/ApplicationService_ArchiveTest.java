@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.notNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -29,7 +30,6 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
-import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.service.ApiKeyService;
@@ -45,6 +45,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -87,9 +88,6 @@ public class ApplicationService_ArchiveTest {
     private ApiKeyService apiKeyService;
 
     @Mock
-    private ApiKeyEntity apiKeyEntity;
-
-    @Mock
     private AuditService auditService;
 
     @Mock
@@ -111,14 +109,9 @@ public class ApplicationService_ArchiveTest {
             Collections.singleton(subscription)
         );
         when(subscription.getId()).thenReturn("sub");
-        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), "sub")).thenReturn(
-            Collections.singletonList(apiKeyEntity)
-        );
-        when(apiKeyEntity.getKey()).thenReturn("key");
 
         applicationService.archive(GraviteeContext.getExecutionContext(), APPLICATION_ID);
 
-        verify(apiKeyService, times(1)).delete("key");
         verify(membershipService, times(1)).deleteReference(
             GraviteeContext.getExecutionContext(),
             MembershipReferenceType.APPLICATION,
@@ -128,6 +121,21 @@ public class ApplicationService_ArchiveTest {
         verify(application, times(1)).setStatus(ApplicationStatus.ARCHIVED);
         verify(applicationRepository, times(1)).update(application);
         verify(applicationAlertService, times(1)).deleteAll(APPLICATION_ID);
+    }
+
+    @Test
+    public void shouldReleaseApiKeysOnceSubscriptionsAreClosed() throws TechnicalException {
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
+        when(subscriptionService.findByApplicationAndPlan(GraviteeContext.getExecutionContext(), APPLICATION_ID, null)).thenReturn(
+            Collections.singleton(subscription)
+        );
+        when(subscription.getId()).thenReturn("sub");
+
+        applicationService.archive(GraviteeContext.getExecutionContext(), APPLICATION_ID);
+
+        InOrder inOrder = inOrder(closeSubscriptionDomainService, apiKeyService);
+        inOrder.verify(closeSubscriptionDomainService).closeSubscription(eq("sub"), notNull(AuditInfo.class));
+        inOrder.verify(apiKeyService).deleteByApplication(APPLICATION_ID);
     }
 
     @Test

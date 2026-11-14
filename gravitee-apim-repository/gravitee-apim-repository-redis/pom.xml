@@ -168,6 +168,10 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
+					<!-- Scanned rather than unpacked: unpacking a reactor artifact fails before `package` (MDEP-98). -->
+					<dependenciesToScan>
+						<dependency>io.gravitee.apim.repository:gravitee-apim-repository-test:jar:tests</dependency>
+					</dependenciesToScan>
 					<excludes>
 						<exclude>**/management/*.java</exclude>
 					</excludes>
@@ -175,9 +179,6 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<artifactId>maven-dependency-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>

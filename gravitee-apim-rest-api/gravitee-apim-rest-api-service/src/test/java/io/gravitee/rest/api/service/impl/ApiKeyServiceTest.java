@@ -726,6 +726,22 @@ public class ApiKeyServiceTest {
     }
 
     @Test
+    public void shouldDeleteTheApiKeysOfTheApplication() throws TechnicalException {
+        when(apiKeyRepository.deleteByApplication(APPLICATION_ID)).thenReturn(List.of("key-1"));
+
+        apiKeyService.deleteByApplication(APPLICATION_ID);
+
+        verify(apiKeyRepository).deleteByApplication(APPLICATION_ID);
+    }
+
+    @Test
+    public void shouldFailToDeleteTheApiKeysOfTheApplicationOnTechnicalError() throws TechnicalException {
+        when(apiKeyRepository.deleteByApplication(APPLICATION_ID)).thenThrow(new TechnicalException("boom"));
+
+        assertThrows(TechnicalManagementException.class, () -> apiKeyService.deleteByApplication(APPLICATION_ID));
+    }
+
+    @Test
     public void shouldNotRenewSubscriptionWithJwtPlan() {
         assertThrows(TechnicalManagementException.class, () -> {
             SubscriptionEntity subscriptionEntity = new SubscriptionEntity();

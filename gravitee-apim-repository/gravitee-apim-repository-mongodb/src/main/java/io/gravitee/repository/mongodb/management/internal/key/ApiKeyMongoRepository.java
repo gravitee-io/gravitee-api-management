@@ -38,5 +38,8 @@ public interface ApiKeyMongoRepository extends MongoRepository<ApiKeyMongo, Stri
     @Query(value = "{ environmentId: ?0 }", fields = "{ _id : 1 }", delete = true)
     List<ApiKeyMongo> deleteByEnvironmentId(String environmentId);
 
+    @Query(value = "{ 'application': ?0 }", fields = "{ _id : 1 }", delete = true)
+    List<ApiKeyMongo> deleteByApplication(String applicationId);
+
     List<ApiKeyMongo> findByKeyAndEnvironmentId(String apiKey, String environmentId);
 }
