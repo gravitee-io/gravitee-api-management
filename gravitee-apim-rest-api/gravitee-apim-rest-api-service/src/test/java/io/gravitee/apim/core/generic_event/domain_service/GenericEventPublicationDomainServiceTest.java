@@ -124,10 +124,45 @@ class GenericEventPublicationDomainServiceTest {
     }
 
     @Test
+    void should_record_the_deployment_number_in_history_and_latest() {
+        var genericEvent = GenericEvent.builder().kind("guardian.definition").id("guardian-1").payload("{}").build();
+
+        service.publish(genericEvent, PublicationOptions.withHistory("Reviewed guardrails", 3), AUDIT_INFO);
+
+        SoftAssertions.assertSoftly(softly -> {
+            softly
+                .assertThat(eventCrudService.storage())
+                .as("deployment history")
+                .singleElement()
+                .extracting(event -> event.getProperties().get(Event.EventProperties.DEPLOYMENT_NUMBER))
+                .isEqualTo("3");
+            softly
+                .assertThat(eventLatestCrudService.storage())
+                .as("latest deployment")
+                .singleElement()
+                .extracting(event -> event.getProperties().get(Event.EventProperties.DEPLOYMENT_NUMBER))
+                .isEqualTo("3");
+        });
+    }
+
+    @Test
+    void should_record_the_deployment_number_of_a_withdrawal() {
+        var withdrawal = GenericEvent.builder().kind("guardian.definition").id("guardian-1").build();
+
+        service.withdraw(withdrawal, PublicationOptions.withHistory(null, 2), AUDIT_INFO);
+
+        assertThat(eventCrudService.storage())
+            .as("withdrawal of the second deployment")
+            .singleElement()
+            .extracting(event -> event.getProperties().get(Event.EventProperties.DEPLOYMENT_NUMBER))
+            .isEqualTo("2");
+    }
+
+    @Test
     void should_record_the_label_when_history_is_disabled() {
         var genericEvent = GenericEvent.builder().kind("guardian.definition").id("guardian-1").payload("{}").build();
 
-        service.publish(genericEvent, new PublicationOptions(false, "Emergency deployment"), AUDIT_INFO);
+        service.publish(genericEvent, new PublicationOptions(false, "Emergency deployment", null), AUDIT_INFO);
 
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(eventCrudService.storage()).as("deployment history disabled").isEmpty();
@@ -149,7 +184,12 @@ class GenericEventPublicationDomainServiceTest {
         assertThat(eventLatestCrudService.storage())
             .as("unlabelled deployment")
             .singleElement()
-            .satisfies(event -> assertThat(event.getProperties()).doesNotContainKey(Event.EventProperties.DEPLOYMENT_LABEL));
+            .satisfies(event ->
+                assertThat(event.getProperties()).doesNotContainKeys(
+                    Event.EventProperties.DEPLOYMENT_LABEL,
+                    Event.EventProperties.DEPLOYMENT_NUMBER
+                )
+            );
     }
 
     @Test
