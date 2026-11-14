@@ -30,10 +30,12 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.api.DashboardRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
+import io.gravitee.repository.management.api.GuardianRepository;
 import io.gravitee.repository.management.api.search.AuditCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Dashboard;
+import io.gravitee.repository.management.model.Guardian;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.audit.AuditEntity;
 import io.gravitee.rest.api.model.audit.AuditQuery;
@@ -71,6 +73,9 @@ class AuditServiceImplTest {
 
     @Mock
     private EnvironmentRepository environmentRepository;
+
+    @Mock
+    private GuardianRepository guardianRepository;
 
     @Mock
     private UserService userService;
@@ -464,6 +469,7 @@ class AuditServiceImplTest {
         private static final String DASHBOARD_NAME = "My Dashboard";
         private static final String USER_ID = "user-id";
         private static final String GUARDIAN_ID = "guardian-id";
+        private static final String GUARDIAN_NAME = "PII Guardian";
 
         private final ExecutionContext executionContext = new ExecutionContext(ORG_ID, ENV_ID);
 
@@ -505,6 +511,28 @@ class AuditServiceImplTest {
                 .as("audits of the page")
                 .extracting(AuditEntity::getId)
                 .containsExactly("audit-id", "guardian-audit-id");
+        }
+
+        @Test
+        void should_resolve_guardian_name_in_metadata() throws TechnicalException {
+            when(auditRepository.search(any(), any())).thenReturn(new Page<>(List.of(guardianAudit()), 0, 1, 1));
+            when(guardianRepository.findById(GUARDIAN_ID)).thenReturn(
+                Optional.of(Guardian.builder().id(GUARDIAN_ID).name(GUARDIAN_NAME).build())
+            );
+
+            var result = auditSearch();
+
+            assertThat(result.getMetadata()).containsEntry("GUARDIAN:" + GUARDIAN_ID + ":name", GUARDIAN_NAME);
+        }
+
+        @Test
+        void should_fallback_to_guardian_id_when_guardian_not_found() throws TechnicalException {
+            when(auditRepository.search(any(), any())).thenReturn(new Page<>(List.of(guardianAudit()), 0, 1, 1));
+            when(guardianRepository.findById(GUARDIAN_ID)).thenReturn(Optional.empty());
+
+            var result = auditSearch();
+
+            assertThat(result.getMetadata()).containsEntry("GUARDIAN:" + GUARDIAN_ID + ":name", GUARDIAN_ID);
         }
 
         @Test

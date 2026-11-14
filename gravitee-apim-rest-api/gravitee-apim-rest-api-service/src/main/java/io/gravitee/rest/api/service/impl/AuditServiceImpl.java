@@ -107,6 +107,10 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
 
     @Lazy
     @Autowired
+    private GuardianRepository guardianRepository;
+
+    @Lazy
+    @Autowired
     private EnvironmentRepository environmentRepository;
 
     @Lazy
@@ -338,6 +342,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                     yield metadata.map(Metadata::getName).orElse(value);
                 }
                 case GROUP -> groupRepository.findById(value).map(Group::getName).orElse(value);
+                case GUARDIAN -> guardianRepository.findById(value).map(Guardian::getName).orElse(value);
                 case USER -> userService.findById(executionContext, value).getDisplayName();
                 default -> value;
             };
