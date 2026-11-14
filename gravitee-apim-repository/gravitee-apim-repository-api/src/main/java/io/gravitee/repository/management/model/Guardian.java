@@ -109,4 +109,16 @@ public class Guardian {
         REQUEST,
         RESPONSE,
     }
+
+    /**
+     * Mirrors the events the gamma Guardian use cases record: the audit event listing only discovers
+     * the {@link Audit.AuditEvent} enums of this package.
+     */
+    public enum AuditEvent implements Audit.AuditEvent {
+        GUARDIAN_CREATED,
+        GUARDIAN_UPDATED,
+        GUARDIAN_DEPLOYED,
+        GUARDIAN_UNDEPLOYED,
+        GUARDIAN_DELETED,
+    }
 }
