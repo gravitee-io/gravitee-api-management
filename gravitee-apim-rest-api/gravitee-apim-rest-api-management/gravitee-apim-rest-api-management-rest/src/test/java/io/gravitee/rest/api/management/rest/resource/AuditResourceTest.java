@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -142,6 +143,22 @@ public class AuditResourceTest extends AbstractResourceTest {
         assertTrue(events.contains("\"DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED\""));
         assertTrue(events.contains("\"API_ENCRYPTED_PROPERTIES_REFRESHED\""));
         assertTrue(events.contains("\"DICTIONARY_ENCRYPTED_PROPERTIES_REFRESHED\""));
+    }
+
+    @Test
+    public void should_list_the_guardian_events() {
+        final Response response = envTarget().path("events").request().get();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        assertThat(response.readEntity(String.class))
+            .as("listed audit events")
+            .contains(
+                "\"GUARDIAN_CREATED\"",
+                "\"GUARDIAN_UPDATED\"",
+                "\"GUARDIAN_DEPLOYED\"",
+                "\"GUARDIAN_UNDEPLOYED\"",
+                "\"GUARDIAN_DELETED\""
+            );
     }
 
     @Test
