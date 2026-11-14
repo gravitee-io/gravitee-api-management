@@ -182,6 +182,32 @@ class ApiDocumentationNavigationItemResource_PatchContentConfigurationTest exten
     }
 
     @Test
+    void should_return_400_when_viewer_is_missing() {
+        var page = anOpenApiPageOwnedBy(API_ID);
+
+        Response response = configure(page.getId(), Map.of());
+
+        assertThat(response)
+            .hasStatus(BAD_REQUEST_400)
+            .asError()
+            .satisfies(error -> assertThat(error.getTechnicalCode()).isEqualTo("invalidValue"));
+        assertThat(storedContentOf(page).getViewerSettings()).isEqualTo(ORIGINAL_CONFIGURATION);
+    }
+
+    @Test
+    void should_return_400_when_viewer_is_unknown() {
+        var page = anOpenApiPageOwnedBy(API_ID);
+
+        Response response = configure(page.getId(), Map.of("viewer", "FOO"));
+
+        assertThat(response)
+            .hasStatus(BAD_REQUEST_400)
+            .asError()
+            .satisfies(error -> assertThat(error.getTechnicalCode()).isEqualTo("invalidValue"));
+        assertThat(storedContentOf(page).getViewerSettings()).isEqualTo(ORIGINAL_CONFIGURATION);
+    }
+
+    @Test
     void should_not_touch_the_content() {
         var page = anOpenApiPageOwnedBy(API_ID);
 
