@@ -46,12 +46,14 @@ import io.gravitee.definition.model.v4.guardian.Guardian;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianDeployment;
+import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardianPublicationHistoryPort;
 import io.gravitee.rest.api.model.EventType;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -97,7 +99,17 @@ class GuardianDeploymentDomainServiceTest {
                 new GenericEventPublicationDomainService(writer, mapper),
                 query,
                 // no earlier publication: the version numbering is covered by ListGuardianDeploymentsUseCaseTest
-                (environmentId, genericEventId, pageNumber, pageSize) -> new Page<>(List.of(), pageNumber, 0, 0)
+                new GuardianPublicationHistoryPort() {
+                    @Override
+                    public Page<Event> publications(String environmentId, String genericEventId, int pageNumber, int pageSize) {
+                        return new Page<>(List.of(), pageNumber, 0, 0);
+                    }
+
+                    @Override
+                    public Optional<Event> publication(String environmentId, String genericEventId, String eventId) {
+                        return Optional.empty();
+                    }
+                }
             );
             service = new GuardianDeploymentDomainService(guardians, store, new JacksonJsonSerializer(), new JacksonJsonDeserializer());
         }

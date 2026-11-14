@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest.core.guardian.port.service_provider;
 
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.common.data.domain.Page;
+import java.util.Optional;
 
 /**
  * The events history of the generic event publications, which the gateways never read.
@@ -32,4 +33,7 @@ public interface GuardianPublicationHistoryPort {
      * @param pageNumber 1-based
      */
     Page<Event> publications(String environmentId, String genericEventId, int pageNumber, int pageSize);
+
+    /** One publication of a generic event of an environment; empty for any other event, a withdrawal included. */
+    Optional<Event> publication(String environmentId, String genericEventId, String eventId);
 }

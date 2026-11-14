@@ -770,6 +770,73 @@ class GuardiansResourceTest extends AbstractResourceTest {
 
             assertThat(rootTarget("/" + GUARDIAN_ID + "/deployments").request().get().getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
         }
+
+        @Test
+        void should_return_a_revision_with_the_definition_it_deployed() {
+            deploy(Map.of("deploymentLabel", "First"));
+            var revisionId = latestRevisionId();
+            guardianRepository.reset();
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Renamed since"));
+            deploy(Map.of());
+
+            var response = rootTarget("/" + GUARDIAN_ID + "/deployments/" + revisionId).request().get();
+
+            assertThat(response.getStatus()).as("revision response").isEqualTo(HttpStatusCode.OK_200);
+            var body = response.readEntity(JsonNode.class);
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(body.at("/id").asText()).as("revision id").isEqualTo(revisionId);
+                softly.assertThat(body.at("/version").asLong()).as("version").isEqualTo(1);
+                softly.assertThat(body.at("/label").asText()).as("deployment label").isEqualTo("First");
+                softly.assertThat(Instant.parse(body.at("/deployedAt").asText())).as("ISO 8601 deployment date").isNotNull();
+                softly.assertThat(body.at("/deployedBy/displayName").asText()).as("deployer name").isEqualTo("Ada Lovelace");
+                softly.assertThat(body.at("/name").asText()).as("deployed name").isEqualTo("Credential leakage");
+                softly.assertThat(body.at("/phase").asText()).as("deployed phase").isEqualTo("REQUEST");
+                softly.assertThat(body.at("/apiTypes/0").asText()).as("deployed API type").isEqualTo("llm-proxy");
+                softly.assertThat(body.at("/policies").isArray()).as("deployed guardrail sequence").isTrue();
+                softly.assertThat(body.has("environmentId")).as("environment left out").isFalse();
+            });
+        }
+
+        @Test
+        void should_return_404_for_an_unknown_revision() {
+            deploy(Map.of());
+
+            assertThat(rootTarget("/" + GUARDIAN_ID + "/deployments/unknown").request().get().getStatus()).isEqualTo(
+                HttpStatusCode.NOT_FOUND_404
+            );
+        }
+
+        @Test
+        void should_return_404_for_a_revision_of_an_unknown_guardian() {
+            deploy(Map.of());
+            var revisionId = latestRevisionId();
+
+            assertThat(rootTarget("/unknown/deployments/" + revisionId).request().get().getStatus()).isEqualTo(
+                HttpStatusCode.NOT_FOUND_404
+            );
+        }
+
+        @Test
+        void should_refuse_a_revision_without_the_read_permission() {
+            deploy(Map.of());
+            var revisionId = latestRevisionId();
+            when(
+                permissionService.hasPermission(
+                    any(),
+                    eq(RolePermission.ENVIRONMENT_GUARDIAN),
+                    any(),
+                    eq(new RolePermissionAction[] { RolePermissionAction.READ })
+                )
+            ).thenReturn(false);
+
+            assertThat(rootTarget("/" + GUARDIAN_ID + "/deployments/" + revisionId).request().get().getStatus()).isEqualTo(
+                HttpStatusCode.FORBIDDEN_403
+            );
+        }
+
+        private String latestRevisionId() {
+            return rootTarget("/" + GUARDIAN_ID + "/deployments").request().get().readEntity(JsonNode.class).at("/data/0/id").asText();
+        }
     }
 
     /**

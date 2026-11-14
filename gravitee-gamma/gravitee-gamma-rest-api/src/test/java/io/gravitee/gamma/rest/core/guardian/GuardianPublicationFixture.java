@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * The event store Guardian publications go through, kept in memory: tests publish and withdraw
@@ -88,18 +89,30 @@ public class GuardianPublicationFixture {
         }
     };
     // The history is kept in the order it is written, which is the date order the store answers in.
-    public final GuardianPublicationHistoryPort historyQuery = (environmentId, genericEventId, pageNumber, pageSize) -> {
-        var publications = history
-            .storage()
-            .stream()
-            .filter(event -> event.getType() == EventType.PUBLISH_GENERIC_EVENT)
-            .filter(event -> event.getEnvironments().contains(environmentId))
-            .filter(event -> genericEventId.equals(event.getProperties().get(Event.EventProperties.GENERIC_EVENT_ID)))
-            .toList()
-            .reversed();
-        var from = Math.min((pageNumber - 1) * pageSize, publications.size());
-        var to = Math.min(from + pageSize, publications.size());
-        return new Page<>(publications.subList(from, to), pageNumber, to - from, publications.size());
+    public final GuardianPublicationHistoryPort historyQuery = new GuardianPublicationHistoryPort() {
+        @Override
+        public Page<Event> publications(String environmentId, String genericEventId, int pageNumber, int pageSize) {
+            var publications = publicationsOf(environmentId, genericEventId).toList().reversed();
+            var from = Math.min((pageNumber - 1) * pageSize, publications.size());
+            var to = Math.min(from + pageSize, publications.size());
+            return new Page<>(publications.subList(from, to), pageNumber, to - from, publications.size());
+        }
+
+        @Override
+        public Optional<Event> publication(String environmentId, String genericEventId, String eventId) {
+            return publicationsOf(environmentId, genericEventId)
+                .filter(event -> eventId.equals(event.getId()))
+                .findFirst();
+        }
+
+        private Stream<Event> publicationsOf(String environmentId, String genericEventId) {
+            return history
+                .storage()
+                .stream()
+                .filter(event -> event.getType() == EventType.PUBLISH_GENERIC_EVENT)
+                .filter(event -> event.getEnvironments().contains(environmentId))
+                .filter(event -> genericEventId.equals(event.getProperties().get(Event.EventProperties.GENERIC_EVENT_ID)));
+        }
     };
     public final GenericEventWriterDomainService writer = new GenericEventWriterDomainService(
         history,

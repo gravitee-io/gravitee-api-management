@@ -41,6 +41,7 @@ import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
@@ -93,17 +94,16 @@ public class GuardianPublicationDomainService {
         var revisions = page
             .getContent()
             .stream()
-            .map(event ->
-                new GuardianRevision(
-                    event.getId(),
-                    read(event, environmentId, guardianId).at(),
-                    version(event, guardianId),
-                    event.getProperties().get(Event.EventProperties.DEPLOYMENT_LABEL),
-                    event.getProperties().get(Event.EventProperties.USER)
-                )
-            )
+            .map(event -> revision(event, environmentId, guardianId))
             .toList();
         return new Page<>(revisions, page.getPageNumber(), revisions.size(), page.getTotalElements());
+    }
+
+    /** One publication of the Guardian; empty for a withdrawal or a publication of another Guardian. */
+    public Optional<GuardianRevision> revision(String environmentId, String guardianId, String revisionId) {
+        return history
+            .publication(environmentId, GenericEvent.latestEventId(environmentId, GUARDIAN_KIND, guardianId), revisionId)
+            .map(event -> revision(event, environmentId, guardianId));
     }
 
     public GuardianDeployment.Published publish(
@@ -150,6 +150,20 @@ public class GuardianPublicationDomainService {
             .map(event -> version(event, guardianId))
             .map(version -> version + 1)
             .orElse(latest.getTotalElements() + 1);
+    }
+
+    private GuardianRevision revision(Event event, String environmentId, String guardianId) {
+        if (!(read(event, environmentId, guardianId) instanceof GuardianDeployment.Published published)) {
+            throw new TechnicalDomainException("Unexpected withdrawal in the deployments of Guardian '" + guardianId + "'");
+        }
+        return new GuardianRevision(
+            event.getId(),
+            published.at(),
+            version(event, guardianId),
+            event.getProperties().get(Event.EventProperties.DEPLOYMENT_LABEL),
+            event.getProperties().get(Event.EventProperties.USER),
+            published.definition()
+        );
     }
 
     private static Long version(Event event, String guardianId) {

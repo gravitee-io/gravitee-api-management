@@ -18,12 +18,14 @@ package io.gravitee.gamma.rest.resources.guardian;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gamma.rest.core.guardian.use_case.DeleteGuardianUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.DeployGuardianUseCase;
+import io.gravitee.gamma.rest.core.guardian.use_case.GetGuardianDeploymentUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.GetGuardianUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.ListGuardianDeploymentsUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.UndeployGuardianUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.UpdateGuardianUseCase;
 import io.gravitee.gamma.rest.resources.CurrentAuditInfo;
 import io.gravitee.gamma.rest.resources.guardian.dto.DeployGuardianRequestDto;
+import io.gravitee.gamma.rest.resources.guardian.dto.GuardianDeploymentDetailDto;
 import io.gravitee.gamma.rest.resources.guardian.dto.GuardianDeploymentDto;
 import io.gravitee.gamma.rest.resources.guardian.dto.GuardianDto;
 import io.gravitee.gamma.rest.resources.guardian.dto.UpdateGuardianRequestDto;
@@ -62,6 +64,8 @@ import jakarta.ws.rs.core.Response;
  *   <li>{@code POST /_undeploy} — withdraws the publication while preserving the draft.</li>
  *   <li>{@code GET /deployments?page=&perPage=} — the deployed revisions, newest first, paginated
  *       (1-based); withdrawals are not revisions and are left out.</li>
+ *   <li>{@code GET /deployments/{deploymentId}} — one revision with the definition it deployed, or {@code 404}
+ *       when the id is not a deployment of this Guardian.</li>
  *   <li>{@code DELETE} — {@code 204}, or {@code 409} while the Guardian has an active publication:
  *       {@code _undeploy} withdraws it first. The PRD's refusal to delete a Guardian enabled on an
  *       API waits on the API-Guardian association (AIAM-1533).</li>
@@ -89,6 +93,9 @@ public class GuardianResource {
 
     @Inject
     private ListGuardianDeploymentsUseCase listGuardianDeploymentsUseCase;
+
+    @Inject
+    private GetGuardianDeploymentUseCase getGuardianDeploymentUseCase;
 
     @POST
     @Path("/_undeploy")
@@ -133,6 +140,20 @@ public class GuardianResource {
             (int) deployments.getPageNumber(),
             output.perPage()
         );
+    }
+
+    @GET
+    @Path("/deployments/{deploymentId}")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GUARDIAN, acls = { RolePermissionAction.READ }) })
+    public GuardianDeploymentDetailDto getDeployment(
+        @PathParam("guardianId") String guardianId,
+        @PathParam("deploymentId") String deploymentId
+    ) {
+        var ctx = GraviteeContext.getExecutionContext();
+        var output = getGuardianDeploymentUseCase.execute(
+            new GetGuardianDeploymentUseCase.Input(ctx.getEnvironmentId(), guardianId, deploymentId)
+        );
+        return GuardianDeploymentDetailDto.from(output);
     }
 
     @GET

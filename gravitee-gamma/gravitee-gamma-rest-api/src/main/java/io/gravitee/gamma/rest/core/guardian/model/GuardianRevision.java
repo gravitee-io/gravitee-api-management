@@ -24,5 +24,13 @@ import java.time.Instant;
  * @param version the rank of the deployment among those of the Guardian; {@code null} for a deployment recorded
  *                before deployments were numbered
  * @param deployerId the id of the user who deployed it; {@code null} when the deployment does not record one
+ * @param definition the definition the gateways ran from {@code deployedAt}
  */
-public record GuardianRevision(String id, Instant deployedAt, Long version, String label, String deployerId) {}
+public record GuardianRevision(
+    String id,
+    Instant deployedAt,
+    Long version,
+    String label,
+    String deployerId,
+    io.gravitee.definition.model.v4.guardian.Guardian definition
+) {}
