@@ -107,6 +107,10 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
 
     @Lazy
     @Autowired
+    private GuardianRepository guardianRepository;
+
+    @Lazy
+    @Autowired
     private EnvironmentRepository environmentRepository;
 
     @Lazy
@@ -318,7 +322,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
 
     private String getName(String property, String value, ExecutionContext executionContext, AuditEntity auditEntity) {
         try {
-            return switch (Audit.AuditProperties.valueOf(property)) {
+            return switch (Audit.AuditProperties.fromName(property).orElse(null)) {
                 case API -> apiRepository.findById(value).map(Api::getName).orElse(value);
                 case APPLICATION -> applicationRepository.findById(value).map(Application::getName).orElse(value);
                 case PAGE -> pageRepository.findById(value).map(io.gravitee.repository.management.model.Page::getName).orElse(value);
@@ -329,7 +333,12 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                     yield metadata.map(Metadata::getName).orElse(value);
                 }
                 case GROUP -> groupRepository.findById(value).map(Group::getName).orElse(value);
+                case GUARDIAN -> guardianRepository.findById(value).map(Guardian::getName).orElse(value);
                 case USER -> userService.findById(executionContext, value).getDisplayName();
+                case null -> {
+                    log.debug("Audit {} carries the property {} unknown to the repository model", auditEntity.getId(), property);
+                    yield value;
+                }
                 default -> value;
             };
         } catch (UserNotFoundException ignored) {

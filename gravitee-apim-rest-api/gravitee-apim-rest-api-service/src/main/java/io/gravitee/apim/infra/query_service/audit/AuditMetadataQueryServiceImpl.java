@@ -101,33 +101,30 @@ public class AuditMetadataQueryServiceImpl implements AuditMetadataQueryService 
     @Override
     public String fetchPropertyMetadata(AuditEntity audit, String propertyName, String propertyValue) {
         try {
-            switch (Audit.AuditProperties.valueOf(propertyName)) {
-                case API:
-                    return apiRepository.findById(propertyValue).map(Api::getName).orElse(propertyValue);
-                case APPLICATION:
-                    return applicationRepository.findById(propertyValue).map(Application::getName).orElse(propertyValue);
-                case GROUP:
-                    return groupRepository.findById(propertyValue).map(Group::getName).orElse(propertyValue);
-                case METADATA:
+            return switch (Audit.AuditProperties.fromName(propertyName).orElse(null)) {
+                case API -> apiRepository.findById(propertyValue).map(Api::getName).orElse(propertyValue);
+                case APPLICATION -> applicationRepository.findById(propertyValue).map(Application::getName).orElse(propertyValue);
+                case GROUP -> groupRepository.findById(propertyValue).map(Group::getName).orElse(propertyValue);
+                case METADATA -> {
                     var refType = MetadataReferenceType.parse(audit.getReferenceType().name());
-                    return metadataRepository
+                    yield metadataRepository
                         .findById(propertyValue, audit.getReferenceId(), refType)
                         .map(Metadata::getName)
                         .orElse(propertyValue);
-                case PAGE:
-                    return pageRepository.findById(propertyValue).map(Page::getName).orElse(propertyValue);
-                case PLAN:
-                    return planRepository.findById(propertyValue).map(Plan::getName).orElse(propertyValue);
-                case API_PRODUCT:
-                    return apiProductRepository.findById(propertyValue).map(ApiProduct::getName).orElse(propertyValue);
-                case USER:
-                    return userRepository
-                        .findById(propertyValue)
-                        .map(user -> UserAdapter.INSTANCE.fromUser(user).displayName())
-                        .orElse(propertyValue);
-                default:
-                    return propertyValue;
-            }
+                }
+                case PAGE -> pageRepository.findById(propertyValue).map(Page::getName).orElse(propertyValue);
+                case PLAN -> planRepository.findById(propertyValue).map(Plan::getName).orElse(propertyValue);
+                case API_PRODUCT -> apiProductRepository.findById(propertyValue).map(ApiProduct::getName).orElse(propertyValue);
+                case USER -> userRepository
+                    .findById(propertyValue)
+                    .map(user -> UserAdapter.INSTANCE.fromUser(user).displayName())
+                    .orElse(propertyValue);
+                case null -> {
+                    log.debug("Audit {} carries the property {} unknown to the repository model", audit.getId(), propertyName);
+                    yield propertyValue;
+                }
+                default -> propertyValue;
+            };
         } catch (TechnicalException e) {
             log.error("Error finding Audit metadata {}:{}", propertyName, propertyValue);
             return propertyValue;
