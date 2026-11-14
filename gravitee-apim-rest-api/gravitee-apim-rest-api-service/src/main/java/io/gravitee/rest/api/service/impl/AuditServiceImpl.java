@@ -321,17 +321,8 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     }
 
     private String getName(String property, String value, ExecutionContext executionContext, AuditEntity auditEntity) {
-        Optional<Audit.AuditProperties> auditProperty = Audit.AuditProperties.fromName(property);
-        if (auditProperty.isEmpty()) {
-            log.warn(
-                "Audit {} carries the property {} unknown to the repository model, showing its raw value",
-                auditEntity.getId(),
-                property
-            );
-            return value;
-        }
         try {
-            return switch (auditProperty.get()) {
+            return switch (Audit.AuditProperties.fromName(property).orElse(null)) {
                 case API -> apiRepository.findById(value).map(Api::getName).orElse(value);
                 case APPLICATION -> applicationRepository.findById(value).map(Application::getName).orElse(value);
                 case PAGE -> pageRepository.findById(value).map(io.gravitee.repository.management.model.Page::getName).orElse(value);
@@ -344,6 +335,10 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                 case GROUP -> groupRepository.findById(value).map(Group::getName).orElse(value);
                 case GUARDIAN -> guardianRepository.findById(value).map(Guardian::getName).orElse(value);
                 case USER -> userService.findById(executionContext, value).getDisplayName();
+                case null -> {
+                    log.debug("Audit {} carries the property {} unknown to the repository model", auditEntity.getId(), property);
+                    yield value;
+                }
                 default -> value;
             };
         } catch (UserNotFoundException ignored) {
