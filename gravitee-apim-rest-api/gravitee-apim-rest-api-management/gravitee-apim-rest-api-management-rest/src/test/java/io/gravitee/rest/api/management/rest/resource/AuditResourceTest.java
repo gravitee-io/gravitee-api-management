@@ -24,8 +24,10 @@ import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.model.audit.AuditEntity;
 import io.gravitee.rest.api.model.audit.AuditQuery;
+import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
 import java.util.*;
 import javax.inject.Inject;
@@ -69,6 +71,17 @@ public class AuditResourceTest extends AbstractResourceTest {
         when(license.isFeatureEnabled("apim-audit-trail")).thenReturn(false);
         final Response response = envTarget().request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
+    }
+
+    @Test
+    public void should_list_the_authorization_audit_events() {
+        final Response response = envTarget().path("events").request().get();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        List<String> events = response.readEntity(new GenericType<>() {});
+        assertTrue(events.containsAll(Arrays.stream(Audit.AuthorizationAuditEvent.values()).map(Enum::name).toList()), events.toString());
+        assertEquals(31, Audit.AuthorizationAuditEvent.values().length);
+        assertEquals(events.size(), new HashSet<>(events).size(), events.toString());
     }
 
     @Test
