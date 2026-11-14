@@ -390,6 +390,53 @@ paths:
                 "404":
                     $ref: "#/components/responses/NotFound"
 
+    /organizations/{orgId}/environments/{envId}/guardians/{guardianId}/deployments:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/guardianIdParam"
+        get:
+            tags:
+                - Guardians
+            summary: List the deployment history of the Guardian
+            description: |
+                Requires ENVIRONMENT_GUARDIAN READ. The revisions deployed to the gateways, newest
+                first. A withdrawal is not a revision and is left out; deploying again after it
+                continues the version numbering. The history keeps only the latest deployments the
+                events cleanup leaves, so the oldest versions may be missing.
+            operationId: listGuardianDeployments
+            parameters:
+                - name: page
+                  in: query
+                  required: false
+                  description: 1-based page number.
+                  schema:
+                      type: integer
+                      minimum: 1
+                      default: 1
+                - name: perPage
+                  in: query
+                  required: false
+                  description: |
+                      Revisions per page. Capped at 100; a value above the cap is served as 100, and a
+                      value of 0 or less falls back to the default.
+                  schema:
+                      type: integer
+                      minimum: 1
+                      maximum: 100
+                      default: 10
+            responses:
+                "200":
+                    description: A page of deployed revisions.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GuardianDeploymentsResponse"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
 components:
     securitySchemes:
         CookieAuth:
@@ -811,6 +858,63 @@ components:
                     type: string
                     maxLength: 256
                     description: Optional label retained with this deployment in the event history.
+
+        GuardianDeploymentsResponse:
+            type: object
+            description: |
+                The `{ data, pagination }` envelope the rest of this surface uses. 1-based `page`.
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/GuardianDeployment"
+                pagination:
+                    $ref: "#/components/schemas/Pagination"
+            required:
+                - data
+                - pagination
+
+        GuardianDeployment:
+            type: object
+            description: A revision of the Guardian deployed to the gateways.
+            properties:
+                id:
+                    type: string
+                    description: Id of the revision in the deployment history.
+                version:
+                    type: integer
+                    format: int64
+                    description: |
+                        Rank of the deployment among those of the Guardian, from 1. Absent on a
+                        deployment recorded before deployments were numbered.
+                label:
+                    type: string
+                    description: The `deploymentLabel` given to `_deploy`; absent when none was.
+                deployedAt:
+                    $ref: "#/components/schemas/Timestamp"
+                deployedBy:
+                    type: object
+                    description: |
+                        The user who deployed the revision. A user unknown to the platform keeps its
+                        id, without a display name.
+                    properties:
+                        id:
+                            type: string
+                        displayName:
+                            type: string
+                    required:
+                        - id
+            required:
+                - id
+                - deployedAt
+            example:
+                id: 6f3c2b1e-9d84-4a7f-b2c5-0e1d7a9f4b36
+                version: 3
+                label: Stricter credential patterns
+                deployedAt: "2026-11-14T09:30:00.000Z"
+                deployedBy:
+                    id: 2a9e1c4d-7b35-4f08-a6d2-5c8e0b1f3a97
+                    displayName: Ada Lovelace
 
         GuardianLifecycleState:
             type: string

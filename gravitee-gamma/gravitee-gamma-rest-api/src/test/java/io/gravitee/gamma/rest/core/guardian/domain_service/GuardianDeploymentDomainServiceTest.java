@@ -39,6 +39,7 @@ import io.gravitee.apim.core.generic_event.model.GenericEvent;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian;
@@ -94,7 +95,9 @@ class GuardianDeploymentDomainServiceTest {
                 new JacksonJsonSerializer(),
                 new JacksonJsonDeserializer(),
                 new GenericEventPublicationDomainService(writer, mapper),
-                query
+                query,
+                // no earlier publication: the version numbering is covered by ListGuardianDeploymentsUseCaseTest
+                (environmentId, genericEventId, pageNumber, pageSize) -> new Page<>(List.of(), pageNumber, 0, 0)
             );
             service = new GuardianDeploymentDomainService(guardians, store, new JacksonJsonSerializer(), new JacksonJsonDeserializer());
         }
@@ -144,7 +147,8 @@ class GuardianDeploymentDomainServiceTest {
                         GenericEvent.latestEventId(ENVIRONMENT_ID, "guardian.definition", GUARDIAN_ID)
                     )
                     .containsEntry(Event.EventProperties.USER, "deployer")
-                    .containsEntry(Event.EventProperties.DEPLOYMENT_LABEL, "Reviewed");
+                    .containsEntry(Event.EventProperties.DEPLOYMENT_LABEL, "Reviewed")
+                    .containsEntry(Event.EventProperties.DEPLOYMENT_NUMBER, "1");
                 softly.assertThat(reloaded).as("gateway payload round trip").isEqualTo(definition);
                 softly.assertThat(deployed.at()).isEqualTo(Instant.parse(envelope.get("updatedAt").asText()));
                 softly.assertThat(history.storage()).as("first deployment is historized").hasSize(1);

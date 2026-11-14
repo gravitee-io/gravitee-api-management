@@ -32,12 +32,14 @@ import io.gravitee.apim.core.generic_event.model.PublicationOptions;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianPublicationDomainService;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianDeployment;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
+import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardianPublicationHistoryPort;
 import io.gravitee.rest.api.model.EventType;
 import java.time.Instant;
 import java.util.List;
@@ -85,6 +87,20 @@ public class GuardianPublicationFixture {
             return super.findLatestByEntityIds(ids, type, key);
         }
     };
+    // The history is kept in the order it is written, which is the date order the store answers in.
+    public final GuardianPublicationHistoryPort historyQuery = (environmentId, genericEventId, pageNumber, pageSize) -> {
+        var publications = history
+            .storage()
+            .stream()
+            .filter(event -> event.getType() == EventType.PUBLISH_GENERIC_EVENT)
+            .filter(event -> event.getEnvironments().contains(environmentId))
+            .filter(event -> genericEventId.equals(event.getProperties().get(Event.EventProperties.GENERIC_EVENT_ID)))
+            .toList()
+            .reversed();
+        var from = Math.min((pageNumber - 1) * pageSize, publications.size());
+        var to = Math.min(from + pageSize, publications.size());
+        return new Page<>(publications.subList(from, to), pageNumber, to - from, publications.size());
+    };
     public final GenericEventWriterDomainService writer = new GenericEventWriterDomainService(
         history,
         latest,
@@ -103,7 +119,13 @@ public class GuardianPublicationFixture {
     }
 
     public GuardianPublicationDomainService store() {
-        return new GuardianPublicationDomainService(new JacksonJsonSerializer(), new JacksonJsonDeserializer(), publisher, query);
+        return new GuardianPublicationDomainService(
+            new JacksonJsonSerializer(),
+            new JacksonJsonDeserializer(),
+            publisher,
+            query,
+            historyQuery
+        );
     }
 
     public void givenPublication(io.gravitee.definition.model.v4.guardian.Guardian definition, Instant publishedAt) {
