@@ -14,27 +14,31 @@
  * limitations under the License.
  */
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { throwError } from 'rxjs';
 
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
+import { ApplicationService } from '../../../../../projects/portal-webclient-sdk/src/lib';
 
 import { ApplicationCreationComponent } from './application-creation.component';
+import { ApplicationCreationStep5Component } from './application-creation-step5/application-creation-step5.component';
 
 describe('ApplicationCreationComponent', () => {
   const enabledApplicationTypes = [
-    { id: 'type1', name: 'type1' },
-    { id: 'type2', name: 'type2' },
+    { id: 'type1', name: 'type1', allowed_grant_types: [], default_grant_types: [], mandatory_grant_types: [] },
+    { id: 'type2', name: 'type2', allowed_grant_types: [], default_grant_types: [], mandatory_grant_types: [] },
   ];
   const createComponent = createComponentFactory({
     component: ApplicationCreationComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [HttpClientTestingModule, RouterTestingModule, FormsModule, ReactiveFormsModule],
-    declarations: [ApiStatesPipe, ApiLabelsPipe],
+    declarations: [ApiStatesPipe, ApiLabelsPipe, ApplicationCreationStep5Component],
     providers: [ApiStatesPipe, ApiLabelsPipe, { provide: ActivatedRoute, useValue: { snapshot: { data: { enabledApplicationTypes } } } }],
   });
 
@@ -48,5 +52,69 @@ describe('ApplicationCreationComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('when the creation fails', () => {
+    const providerMessage =
+      'Unexpected error while registering client: Unexpected response from OIDC Registration endpoint: error[registration_forbidden] description[Not allowed to access to this resource.]';
+
+    function failApplicationCreationWith(error: unknown) {
+      jest
+        .spyOn(spectator.inject(ApplicationService), 'createApplication')
+        .mockReturnValue(throwError(new HttpErrorResponse({ status: 400, error })) as never);
+    }
+
+    async function createApp() {
+      await spectator.fixture.whenStable();
+      component.applicationForm.setValue({
+        name: 'backend-app',
+        description: 'backend-description',
+        domain: null,
+        picture: null,
+        settings: {
+          oauth: {
+            redirect_uris: [],
+            grant_types: ['client_credentials'],
+            application_type: 'backend_to_backend',
+            additionalClientMetadata: [],
+          },
+          tls: { client_certificate: null },
+        },
+      });
+      component.createApp();
+      await spectator.fixture.whenStable();
+      spectator.detectChanges();
+    }
+
+    it('should show the error message of the client registration provider when it refuses the registration', async () => {
+      failApplicationCreationWith({
+        errors: [{ status: '400', message: providerMessage, code: 'errors.clientRegistrationProvider.exception' }],
+      });
+
+      await createApp();
+
+      expect(spectator.query('[data-testid="application-creation-error"]')).toBeTruthy();
+      expect(spectator.query('[data-testid="application-creation-error-message"]')).toHaveText(providerMessage);
+    });
+
+    it('should not show the raw message of any other error', async () => {
+      failApplicationCreationWith({
+        errors: [{ status: '500', message: 'Connection refused: db.internal:5432', code: 'errors.unexpected' }],
+      });
+
+      await createApp();
+
+      expect(spectator.query('[data-testid="application-creation-error"]')).toBeTruthy();
+      expect(spectator.query('[data-testid="application-creation-error-message"]')).toBeNull();
+    });
+
+    it('should show only the generic error when the response carries no message', async () => {
+      failApplicationCreationWith(null);
+
+      await createApp();
+
+      expect(spectator.query('[data-testid="application-creation-error"]')).toBeTruthy();
+      expect(spectator.query('[data-testid="application-creation-error-message"]')).toBeNull();
+    });
   });
 });
