@@ -62,9 +62,11 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.core.workflow.crud_service.WorkflowCrudService;
+import io.gravitee.apim.infra.json.jackson.GraviteeDefinitionJacksonJsonSerializer;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
@@ -306,6 +308,28 @@ class ApiExportDomainServiceImplTest {
         assertThat(export.api().categories())
             .as("V4 API must export categories as keys/names, not internal IDs")
             .containsExactlyInAnyOrder("proxy", "common");
+    }
+
+    @Test
+    void should_leave_the_internal_flow_out_of_a_v4_export() throws Exception {
+        String apiId = UUID.randomUUID().toString();
+        Api proxyApi = ApiFixtures.aProxyApiV4();
+        var definition = ((io.gravitee.definition.model.v4.Api) proxyApi.getApiDefinitionValue()).toBuilder()
+            .internalFlow(
+                Flow.builder()
+                    .request(List.of(Step.builder().policy("guardian-policy").configuration("{\"guardianId\":\"guardian-1\"}").build()))
+                    .build()
+            )
+            .build();
+        Api api = proxyApi.toBuilder().id(apiId).environmentId("DEFAULT").apiDefinitionValue(definition).build();
+        when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
+
+        GraviteeDefinition export = sut.export(apiId, getAuditInfo(), EnumSet.noneOf(Excludable.class));
+
+        assertThat(new GraviteeDefinitionJacksonJsonSerializer().serialize(export))
+            .as("exported definition of an API running a guardian")
+            .doesNotContain("internalFlow")
+            .doesNotContain("guardian-policy");
     }
 
     @Test

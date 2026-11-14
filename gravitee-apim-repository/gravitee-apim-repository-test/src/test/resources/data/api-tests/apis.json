@@ -45,6 +45,7 @@
         "labels": ["label 1", "label 2"],
         "lifecycleState": "STOPPED",
         "categories": ["my-category"],
+        "guardians": ["guardian-1", "guardian-2"],
         "apiLifecycleState": "DEPRECATED",
         "disableMembershipNotifications": true,
         "allowMultiJwtOauth2Subscriptions": true
@@ -66,7 +67,8 @@
         "lifecycleState": "STOPPED",
         "apiLifecycleState": "PUBLISHED",
         "disableMembershipNotifications": true,
-        "categories": ["category-1"]
+        "categories": ["category-1"],
+        "guardians": ["guardian-1"]
     },
     {
         "id": "big-name",
@@ -81,7 +83,8 @@
         "updatedAt": 1439022010883,
         "lifecycleState": "STARTED",
         "apiLifecycleState": "PUBLISHED",
-        "disableMembershipNotifications": false
+        "disableMembershipNotifications": false,
+        "guardians": ["guardian-1"]
     },
     {
         "id": "api-with-categories",

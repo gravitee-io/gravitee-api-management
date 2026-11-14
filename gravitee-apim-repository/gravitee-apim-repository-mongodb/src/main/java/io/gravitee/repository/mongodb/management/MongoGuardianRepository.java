@@ -63,6 +63,20 @@ public class MongoGuardianRepository implements GuardianRepository {
     }
 
     @Override
+    public List<Guardian> findByEnvironmentIdAndIds(String environmentId, Set<String> guardianIds) throws TechnicalException {
+        Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
+        var ids = Set.copyOf(guardianIds);
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        try {
+            return internalGuardianMongoRepo.findByEnvironmentIdAndIdIn(environmentId, ids).stream().map(this::mapGuardian).toList();
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to find Guardians by environment and ids", ex);
+        }
+    }
+
+    @Override
     public List<Guardian> findByEnvironmentIdAndNameIgnoreCase(String environmentId, String name) throws TechnicalException {
         Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
         Objects.requireNonNull(name, "Name must not be null");

@@ -31,6 +31,8 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
+import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianUsageDomainService;
+import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardedApiPort;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
@@ -68,7 +70,12 @@ class UndeployGuardianUseCaseTest {
     }
 
     private UndeployGuardianUseCase useCase(InMemoryGuardianRepository store, GuardianPublicationFixture events) {
-        return new UndeployGuardianUseCase(store, events.service(store), audits.service);
+        return new UndeployGuardianUseCase(
+            store,
+            events.service(store),
+            audits.service,
+            new GuardianUsageDomainService(new InMemoryGuardedApiPort())
+        );
     }
 
     @Test

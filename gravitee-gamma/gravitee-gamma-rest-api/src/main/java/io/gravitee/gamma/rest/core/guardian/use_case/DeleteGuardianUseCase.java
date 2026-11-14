@@ -22,6 +22,7 @@ import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
+import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianUsageDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianAlreadyDeployedException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
@@ -41,10 +42,8 @@ import lombok.RequiredArgsConstructor;
  * <p>A Guardian with an active publication is refused: deleting its draft would leave the gateways
  * running a revision nothing could withdraw anymore. Withdrawing it first is the caller's choice.
  *
- * <p>Not yet implemented, and deliberately so: the PRD refuses the deletion of a Guardian that is
- * enabled on an API, listing those APIs. There is nothing to look that up in until the API-Guardian
- * association lands with AIAM-1533, so the rule belongs to that story rather than to a half-check
- * here.
+ * <p>A Guardian enabled on an API is refused as well, naming those APIs: their next deployment would ship a
+ * step running a Guardian that no longer exists.
  *
  * @author GraviteeSource Team
  */
@@ -55,6 +54,7 @@ public class DeleteGuardianUseCase {
     private final GuardianRepository guardianRepository;
     private final AuditDomainService auditDomainService;
     private final GuardianDeploymentDomainService deployments;
+    private final GuardianUsageDomainService usage;
 
     public Output execute(Input input) {
         Guardian guardianToDelete = guardianRepository
@@ -64,6 +64,7 @@ public class DeleteGuardianUseCase {
         if (deployments.current(guardianToDelete) instanceof GuardianDeployment.Published) {
             throw new GuardianAlreadyDeployedException(guardianToDelete.getId());
         }
+        usage.ensureUnused(guardianToDelete, "deleted");
         guardianRepository.delete(guardianToDelete.getId());
         auditDomainService.createEnvironmentAuditLog(
             EnvironmentAuditLogEntity.builder()

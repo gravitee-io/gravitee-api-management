@@ -35,6 +35,7 @@ import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
@@ -347,6 +348,59 @@ public class ApiMapperTest {
 
         var json = repo.getDefinition();
         assertThat(json).contains("\"allowedInApiProducts\":true");
+    }
+
+    @Test
+    public void should_read_the_internal_flow_from_the_definition() throws Exception {
+        var definition = new io.gravitee.definition.model.v4.Api();
+        definition.setDefinitionVersion(DefinitionVersion.V4);
+        definition.setType(ApiType.LLM_PROXY);
+        definition.setInternalFlow(aGuardianInternalFlow());
+        Api api = new Api();
+        api.setId("id");
+        api.setType(ApiType.LLM_PROXY);
+        api.setDefinition(objectMapper.writeValueAsString(definition));
+
+        var apiEntity = apiMapper.toEntity(api, new PrimaryOwnerEntity());
+
+        assertThat(apiEntity.getInternalFlow()).as("internal flow read from the definition").isEqualTo(aGuardianInternalFlow());
+    }
+
+    @Test
+    public void should_leave_the_internal_flow_out_when_to_repository_from_api_entity() throws Exception {
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId("id");
+        apiEntity.setName("name");
+        apiEntity.setApiVersion("1");
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setType(ApiType.LLM_PROXY);
+        apiEntity.setInternalFlow(aGuardianInternalFlow());
+
+        when(categoryMapper.toCategoryId(any(), any())).thenReturn(Set.of());
+
+        Api repo = apiMapper.toRepository(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(objectMapper.readValue(repo.getDefinition(), io.gravitee.definition.model.v4.Api.class).getInternalFlow())
+            .as("internal flow of an API created from another one")
+            .isNull();
+    }
+
+    @Test
+    public void should_index_the_guardians_of_the_internal_flow_kept_on_update() throws Exception {
+        var definition = new io.gravitee.definition.model.v4.Api();
+        definition.setInternalFlow(aGuardianInternalFlow());
+        Api existingApi = new Api();
+        existingApi.setDefinition(objectMapper.writeValueAsString(definition));
+        UpdateApiEntity update = new UpdateApiEntity();
+        update.setId("id");
+        update.setName("name");
+        update.setApiVersion("1");
+        update.setDefinitionVersion(DefinitionVersion.V4);
+        update.setType(ApiType.LLM_PROXY);
+
+        Api repo = apiMapper.toRepository(GraviteeContext.getExecutionContext(), update, existingApi);
+
+        assertThat(repo.getGuardians()).as("indexed guardians").containsExactly("guardian-1");
     }
 
     @Test
@@ -1027,6 +1081,12 @@ public class ApiMapperTest {
         assertThat(result.getPrimaryOwner().getDisplayName()).isEqualTo("a PO");
         assertThat(result.getOriginContext().integrationId()).isEqualTo(FEDERATED_AGENT_INTEGRATION_ID);
         assertThat(result.getOriginContext().provider()).isEqualTo("A2A");
+    }
+
+    private static Flow aGuardianInternalFlow() {
+        return Flow.builder()
+            .request(List.of(Step.builder().policy("guardian-policy").configuration("{\"guardianId\":\"guardian-1\"}").build()))
+            .build();
     }
 
     private static Api anExistingApi() {

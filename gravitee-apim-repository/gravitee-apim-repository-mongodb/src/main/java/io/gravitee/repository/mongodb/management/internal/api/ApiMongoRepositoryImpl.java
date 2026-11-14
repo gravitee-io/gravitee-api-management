@@ -160,6 +160,9 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
                     if (apiCriteria.getCategory() != null && !apiCriteria.getCategory().isEmpty()) {
                         criteria.add(where("categories").in(apiCriteria.getCategory()));
                     }
+                    if (apiCriteria.getGuardian() != null && !apiCriteria.getGuardian().isEmpty()) {
+                        criteria.add(where("guardians").is(apiCriteria.getGuardian()));
+                    }
                     if (apiCriteria.getVisibility() != null) {
                         criteria.add(where("visibility").is(apiCriteria.getVisibility()));
                     }

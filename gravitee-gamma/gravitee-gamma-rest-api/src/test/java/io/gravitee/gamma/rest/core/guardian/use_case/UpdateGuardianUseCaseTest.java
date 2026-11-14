@@ -36,7 +36,9 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
+import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianUsageDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
+import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardedApiPort;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
@@ -69,7 +71,13 @@ class UpdateGuardianUseCaseTest {
         var publications = new GuardianPublicationFixture();
         publications.givenPublication(aGuardian().build().getDefinition(), DEPLOYED_AT);
         var deployments = publications.service(guardianRepository);
-        useCase = new UpdateGuardianUseCase(guardianRepository, aGuardianValidator(guardianRepository), auditDomainService, deployments);
+        useCase = new UpdateGuardianUseCase(
+            guardianRepository,
+            aGuardianValidator(guardianRepository),
+            auditDomainService,
+            deployments,
+            new GuardianUsageDomainService(new InMemoryGuardedApiPort())
+        );
     }
 
     private UpdateGuardianUseCase.Output update(String environmentId, UpdateGuardianCommand command) {

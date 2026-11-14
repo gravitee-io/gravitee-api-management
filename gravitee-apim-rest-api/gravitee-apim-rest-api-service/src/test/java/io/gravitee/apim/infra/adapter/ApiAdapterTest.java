@@ -23,12 +23,14 @@ import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.federation.FederatedAgent;
+import io.gravitee.definition.model.guardian.GuardianSteps;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.edge.EdgeApi;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -377,6 +379,30 @@ class ApiAdapterTest {
                 soft.assertThat(api.getVisibility()).isEqualTo(Visibility.PUBLIC);
                 soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
             });
+        }
+
+        @Test
+        void should_index_the_guardians_the_internal_flow_runs() {
+            var model = ApiFixtures.aProxyApiV4();
+            model
+                .getApiDefinitionHttpV4()
+                .setInternalFlow(
+                    Flow.builder()
+                        .request(List.of(GuardianSteps.of("guardian-1", "One")))
+                        .response(List.of(GuardianSteps.of("guardian-2", "Two")))
+                        .build()
+                );
+
+            var api = ApiAdapter.INSTANCE.toRepository(model);
+
+            assertThat(api.getGuardians()).as("indexed guardians").containsExactlyInAnyOrder("guardian-1", "guardian-2");
+        }
+
+        @Test
+        void should_index_no_guardian_when_the_api_has_no_internal_flow() {
+            var api = ApiAdapter.INSTANCE.toRepository(ApiFixtures.aProxyApiV4());
+
+            assertThat(api.getGuardians()).as("indexed guardians").isEmpty();
         }
 
         @Test

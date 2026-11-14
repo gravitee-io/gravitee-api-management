@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * In-memory {@link GuardianRepository} for domain tests.
@@ -64,6 +65,16 @@ public class InMemoryGuardianRepository implements GuardianRepository {
             .stream()
             .filter(g -> Objects.equals(g.getId(), guardianId) && Objects.equals(g.getEnvironmentId(), environmentId))
             .findFirst();
+    }
+
+    @Override
+    public List<Guardian> findByEnvironmentIdAndIds(String environmentId, Set<String> guardianIds) {
+        Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
+        var ids = Set.copyOf(guardianIds);
+        return guardians
+            .stream()
+            .filter(g -> environmentId.equals(g.getEnvironmentId()) && ids.contains(g.getId()))
+            .toList();
     }
 
     @Override

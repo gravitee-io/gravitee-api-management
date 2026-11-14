@@ -162,6 +162,11 @@ public class Api {
      */
     private Set<String> categories;
     /**
+     * The ids of the Guardians the API runs, read from the {@code guardian-policy} steps of its internal flow. Kept
+     * apart from the definition so that the APIs running a Guardian can be searched.
+     */
+    private Set<String> guardians;
+    /**
      */
     private List<String> labels;
     /**
@@ -197,6 +202,7 @@ public class Api {
         this.background = cloned.background;
         this.groups = cloned.groups != null ? new HashSet<>(cloned.groups) : null;
         this.categories = cloned.categories;
+        this.guardians = cloned.guardians;
         this.labels = cloned.labels;
         this.apiLifecycleState = cloned.apiLifecycleState;
         this.disableMembershipNotifications = cloned.disableMembershipNotifications;

@@ -136,6 +136,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
             .labels(List.of())
             .categories(Set.of())
             .groups(Set.of())
+            .guardians(Set.of())
             .apiLifecycleState(CREATED)
             .syncFrom("MANAGEMENT")
             .build();
@@ -1018,5 +1019,75 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(beforeDeletion.size(), deleted.size());
         assertTrue(deleted.containsAll(beforeDeletion));
         assertEquals(0, nbAfterDeletion);
+    }
+
+    @Test
+    public void should_read_the_guardians_an_api_runs() throws TechnicalException {
+        assertThat(apiRepository.findById("api-to-findById"))
+            .get()
+            .extracting(Api::getGuardians)
+            .as("guardians of api-to-findById")
+            .isEqualTo(Set.of("guardian-1", "guardian-2"));
+    }
+
+    @Test
+    public void should_find_the_apis_of_an_environment_running_a_guardian() {
+        List<Api> apis = apiRepository.search(
+            new ApiCriteria.Builder().environmentId("DEFAULT").guardian("guardian-1").build(),
+            ApiFieldFilter.defaultFields()
+        );
+
+        assertThat(apis)
+            .extracting(Api::getId)
+            .as("APIs of DEFAULT running guardian-1")
+            .containsExactlyInAnyOrder("api-to-findById", "grouped-api");
+    }
+
+    @Test
+    public void should_find_the_apis_running_a_guardian_whatever_their_environment() {
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().guardian("guardian-1").build(), ApiFieldFilter.defaultFields());
+
+        assertThat(apis)
+            .extracting(Api::getId)
+            .as("APIs running guardian-1")
+            .containsExactlyInAnyOrder("api-to-findById", "grouped-api", "big-name");
+    }
+
+    @Test
+    public void should_find_no_api_for_a_guardian_no_api_runs() {
+        List<Api> apis = apiRepository.search(
+            new ApiCriteria.Builder().guardian("unknown-guardian").build(),
+            ApiFieldFilter.defaultFields()
+        );
+
+        assertThat(apis).as("APIs running unknown-guardian").isEmpty();
+    }
+
+    @Test
+    public void should_search_the_ids_of_the_apis_running_a_guardian() {
+        Page<String> apiIds = apiRepository.searchIds(
+            List.of(new ApiCriteria.Builder().guardian("guardian-2").build()),
+            new PageableBuilder().pageNumber(0).pageSize(10).build(),
+            null
+        );
+
+        assertThat(apiIds.getContent()).as("ids of the APIs running guardian-2").containsExactly("api-to-findById");
+    }
+
+    @Test
+    public void should_replace_the_guardians_of_an_api_on_update() throws TechnicalException {
+        Api api = apiRepository.findById("api-to-findById").orElseThrow();
+        api.setGuardians(Set.of("guardian-3"));
+
+        apiRepository.update(api);
+
+        assertThat(apiRepository.findById("api-to-findById"))
+            .get()
+            .extracting(Api::getGuardians)
+            .as("guardians of api-to-findById after update")
+            .isEqualTo(Set.of("guardian-3"));
+        assertThat(apiRepository.search(new ApiCriteria.Builder().guardian("guardian-2").build(), ApiFieldFilter.defaultFields()))
+            .as("APIs still running guardian-2 after update")
+            .isEmpty();
     }
 }

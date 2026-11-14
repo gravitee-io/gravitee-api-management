@@ -24,6 +24,7 @@ import io.gravitee.gamma.rest.resources.credential.CredentialResource;
 import io.gravitee.gamma.rest.resources.credential.CredentialsResource;
 import io.gravitee.gamma.rest.resources.gravitee_plugin.AgentProviderPluginResource;
 import io.gravitee.gamma.rest.resources.gravitee_plugin.PluginResource;
+import io.gravitee.gamma.rest.resources.guardian.ApiGuardiansResource;
 import io.gravitee.gamma.rest.resources.guardian.GuardianResource;
 import io.gravitee.gamma.rest.resources.guardian.GuardiansResource;
 import io.gravitee.gamma.rest.resources.observability.GammaObservabilityResource;
@@ -76,6 +77,7 @@ public class GammaModuleApplication extends ResourceConfig {
         register(GuardianResource.class);
         register(CredentialsResource.class);
         register(CredentialResource.class);
+        register(ApiGuardiansResource.class);
         register(GammaObservabilityResource.class);
         register(TracingResource.class);
         register(ObservabilityFiltersResource.class);

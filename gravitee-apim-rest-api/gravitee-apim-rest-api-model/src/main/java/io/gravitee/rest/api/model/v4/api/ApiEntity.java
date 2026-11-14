@@ -149,6 +149,12 @@ public class ApiEntity implements GenericApiEntity {
     @DeploymentRequired
     private List<Flow> flows;
 
+    // Managed by the platform, not by the API publisher: kept out of every payload, read only to tell that a change
+    // needs a redeployment.
+    @JsonIgnore
+    @DeploymentRequired
+    private Flow internalFlow;
+
     @DeploymentRequired
     @Schema(
         description = "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-key is missing, ..."

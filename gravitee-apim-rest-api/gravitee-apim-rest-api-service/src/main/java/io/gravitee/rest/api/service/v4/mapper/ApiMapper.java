@@ -27,6 +27,7 @@ import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.federation.FederatedAgent;
+import io.gravitee.definition.model.guardian.GuardianSteps;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -190,6 +191,7 @@ public class ApiMapper {
 
                 apiEntity.setFlowExecution(apiDefinition.getFlowExecution());
                 apiEntity.setFlows(apiDefinition.getFlows());
+                apiEntity.setInternalFlow(apiDefinition.getInternalFlow());
 
                 apiEntity.setResponseTemplates(apiDefinition.getResponseTemplates());
 
@@ -506,7 +508,9 @@ public class ApiMapper {
         repoApi.setBackground(updateApiEntity.getBackground());
 
         repoApi.setDefinitionVersion(updateApiEntity.getDefinitionVersion());
-        repoApi.setDefinition(toApiDefinition(updateApiEntity, internalFlowOf(existingApi)));
+        var internalFlow = internalFlowOf(existingApi);
+        repoApi.setDefinition(toApiDefinition(updateApiEntity, internalFlow));
+        repoApi.setGuardians(GuardianSteps.guardianIdsOf(internalFlow));
 
         repoApi.setCategories(categoryMapper.toCategoryId(executionContext.getEnvironmentId(), updateApiEntity.getCategories()));
 

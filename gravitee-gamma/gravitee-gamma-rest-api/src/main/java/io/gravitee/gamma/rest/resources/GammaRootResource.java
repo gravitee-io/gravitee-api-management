@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest.resources;
 
 import io.gravitee.gamma.rest.resources.credential.CredentialsResource;
 import io.gravitee.gamma.rest.resources.gravitee_plugin.PluginResource;
+import io.gravitee.gamma.rest.resources.guardian.ApiGuardiansResource;
 import io.gravitee.gamma.rest.resources.guardian.GuardiansResource;
 import io.gravitee.gamma.rest.resources.observability.GammaObservabilityResource;
 import jakarta.ws.rs.Path;
@@ -49,6 +50,12 @@ public class GammaRootResource {
     @Path("/organizations/{orgId}/environments/{envId}/guardians")
     public GuardiansResource getGuardiansResource() {
         return resourceContext.getResource(GuardiansResource.class);
+    }
+
+    /** The Guardians enabled on an API of the environment. See {@link ApiGuardiansResource} for the contract. */
+    @Path("/organizations/{orgId}/environments/{envId}/apis/{apiId}/guardians")
+    public ApiGuardiansResource getApiGuardiansResource() {
+        return resourceContext.getResource(ApiGuardiansResource.class);
     }
 
     /**

@@ -32,7 +32,9 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
+import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianUsageDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
+import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardedApiPort;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianDeployment;
@@ -50,8 +52,18 @@ class DeleteGuardianUseCaseTest {
     private final GuardianAuditFixture audits = new GuardianAuditFixture();
     private final GuardianDeploymentDomainService deploymentService = publications.service(guardianRepository);
     private final DeployGuardianUseCase deploy = new DeployGuardianUseCase(guardianRepository, deploymentService, audits.service);
-    private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(guardianRepository, deploymentService, audits.service);
-    private final DeleteGuardianUseCase useCase = new DeleteGuardianUseCase(guardianRepository, audits.service, deploymentService);
+    private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(
+        guardianRepository,
+        deploymentService,
+        audits.service,
+        new GuardianUsageDomainService(new InMemoryGuardedApiPort())
+    );
+    private final DeleteGuardianUseCase useCase = new DeleteGuardianUseCase(
+        guardianRepository,
+        audits.service,
+        deploymentService,
+        new GuardianUsageDomainService(new InMemoryGuardedApiPort())
+    );
     private final AuditInfo actor = auditInfo(ENVIRONMENT_ID);
 
     @BeforeEach

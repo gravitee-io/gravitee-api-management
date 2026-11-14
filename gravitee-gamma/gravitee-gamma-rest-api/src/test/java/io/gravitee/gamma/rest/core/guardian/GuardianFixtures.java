@@ -24,6 +24,7 @@ import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyP
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.CreateGuardian;
+import io.gravitee.gamma.rest.core.guardian.model.GuardedApi;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
@@ -51,6 +52,8 @@ public final class GuardianFixtures {
 
     /** A UUID, because that is what the creation endpoint accepts as a caller-supplied id. */
     public static final String GUARDIAN_ID = "3f1b0f2a-6c14-4b0e-9a3f-7d2c8e5a1b40";
+
+    public static final String API_ID = "api-id";
 
     private GuardianFixtures() {}
 
@@ -126,6 +129,16 @@ public final class GuardianFixtures {
     /** An update payload: the whole definition, plus the description. */
     public static UpdateGuardianCommand.UpdateGuardianCommandBuilder anUpdateGuardianCommand() {
         return UpdateGuardianCommand.builder().definition(aDefinitionToSubmit().build()).description("Renamed description");
+    }
+
+    /** An LLM proxy of the fixtures' environment that runs no Guardian yet. */
+    public static GuardedApi.GuardedApiBuilder aGuardedApi() {
+        return GuardedApi.builder()
+            .id(API_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .name("Support assistant")
+            .type(ApiType.LLM_PROXY)
+            .supportsGuardians(true);
     }
 
     public static Guardian.GuardianBuilder aGuardian() {

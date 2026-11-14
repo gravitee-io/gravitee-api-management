@@ -31,10 +31,13 @@ import io.gravitee.apim.core.json.JsonSerializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.guardian.GuardianSteps;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
 import io.gravitee.gamma.rest.core.guardian.GuardianFixtures;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
+import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardedApiPort;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.resource.AbstractResourceTest;
@@ -114,6 +117,9 @@ class GuardiansResourceTest extends AbstractResourceTest {
     private InMemoryGuardianRepository guardianRepository;
 
     @Inject
+    private InMemoryGuardedApiPort guardedApis;
+
+    @Inject
     private GuardianPublicationFixture guardianPublications;
 
     @Inject
@@ -135,6 +141,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
     @AfterEach
     void resetRepository() {
         guardianRepository.reset();
+        guardedApis.reset();
         guardianPublications.reset();
         withdrawalAudits.reset();
     }
@@ -221,6 +228,40 @@ class GuardiansResourceTest extends AbstractResourceTest {
                     .as("unknown phase")
                     .isEqualTo(HttpStatusCode.BAD_REQUEST_400);
             });
+        }
+    }
+
+    @Nested
+    class ListGuardianApis {
+
+        @Test
+        void should_return_the_apis_the_guardian_is_enabled_on() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+            guardedApis.givenApi(
+                GuardianFixtures.aGuardedApi()
+                    .environmentId(ENVIRONMENT)
+                    .name("Support assistant")
+                    .internalFlow(Flow.builder().request(List.of(GuardianSteps.of(GUARDIAN_ID, "Credential leakage"))).build())
+                    .build()
+            );
+
+            Response response = rootTarget(GUARDIAN_ID + "/apis").request().get();
+
+            assertThat(response.getStatus()).as("status").isEqualTo(HttpStatusCode.OK_200);
+            JsonNode row = response.readEntity(JsonNode.class).get("data").get(0);
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(row.get("id").asText()).as("id").isEqualTo(GuardianFixtures.API_ID);
+                softly.assertThat(row.get("name").asText()).as("name").isEqualTo("Support assistant");
+            });
+        }
+
+        @Test
+        void should_return_404_for_a_guardian_of_another_environment() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, OTHER_ENVIRONMENT, "Credential leakage"));
+
+            Response response = rootTarget(GUARDIAN_ID + "/apis").request().get();
+
+            assertThat(response.getStatus()).as("status").isEqualTo(HttpStatusCode.NOT_FOUND_404);
         }
     }
 
@@ -880,6 +921,26 @@ class GuardiansResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_return_409_while_the_guardian_is_enabled_on_an_api() {
+            var guardian = guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage");
+            guardianRepository.givenGuardian(guardian);
+            guardianPublications.givenPublication(guardian.getDefinition(), Instant.parse("2026-11-09T10:00:00Z"));
+            guardedApis.givenApi(
+                GuardianFixtures.aGuardedApi()
+                    .environmentId(ENVIRONMENT)
+                    .internalFlow(Flow.builder().request(List.of(GuardianSteps.of(GUARDIAN_ID, "Credential leakage"))).build())
+                    .build()
+            );
+
+            var response = rootTarget("/" + GUARDIAN_ID + "/_undeploy").request().post(null);
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(response.getStatus()).as("withdrawal response").isEqualTo(HttpStatusCode.CONFLICT_409);
+                softly.assertThat(guardianPublications.withdrawn(ENVIRONMENT, GUARDIAN_ID)).as("withdrawal published").isFalse();
+            });
+        }
+
+        @Test
         void should_return_404_for_unknown_and_foreign_guardians() {
             guardianRepository.givenGuardian(guardian("foreign", OTHER_ENVIRONMENT, "Theirs"));
 
@@ -980,6 +1041,11 @@ class GuardiansResourceTest extends AbstractResourceTest {
         @Bean
         InMemoryGuardianRepository guardianRepository() {
             return new InMemoryGuardianRepository();
+        }
+
+        @Bean
+        InMemoryGuardedApiPort guardedApiPort() {
+            return new InMemoryGuardedApiPort();
         }
 
         @Bean
