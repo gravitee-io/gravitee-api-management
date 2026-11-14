@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, computed, effect, input } from '@angular/core';
+import { Component, computed, effect, ElementRef, input, untracked, viewChild } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { catchError, filter, Observable, switchMap } from 'rxjs';
@@ -53,10 +53,20 @@ export class DocumentationComponent {
     switchMap(navItem => this.portalNavigationItemsService.getNavigationItemContent(navItem.id)),
     catchError(() => of(null)),
   );
+  private readonly pageContainer = viewChild(NavigationPageFullWidthComponent, { read: ElementRef });
+
   constructor(
     private readonly router: Router,
     private readonly portalNavigationItemsService: PortalNavigationItemsService,
   ) {
+    // The page scrolls inside its own container, not the window, so the router's scroll reset never reaches it.
+    effect(() => {
+      this.navItem();
+      const pageContainer = untracked(this.pageContainer);
+      if (pageContainer) {
+        pageContainer.nativeElement.scrollTop = 0;
+      }
+    });
     effect(() => {
       const itemType = this.navItem()?.type;
       if (itemType !== 'FOLDER' && itemType !== 'PAGE') {

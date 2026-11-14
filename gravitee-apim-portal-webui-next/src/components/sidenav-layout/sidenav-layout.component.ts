@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, input, signal } from '@angular/core';
+import { Component, ElementRef, input, signal, viewChild } from '@angular/core';
 
 import { MobileClassDirective } from '../../directives/mobile-class.directive';
 import { BreadcrumbSkeletonComponent } from '../breadcrumb-skeleton/breadcrumb-skeleton.component';
@@ -31,6 +31,11 @@ export class SidenavLayoutComponent {
   breadcrumbs = input<Breadcrumb[]>([]);
   breadcrumbsLoading = input(false);
   sidenavCollapsed = signal(false);
+  private readonly mainContent = viewChild.required<ElementRef<HTMLElement>>('mainContent');
+
+  scrollContentToTop() {
+    this.mainContent().nativeElement.scrollTop = 0;
+  }
 
   onToggleSidenav() {
     this.sidenavCollapsed.update(val => !val);
