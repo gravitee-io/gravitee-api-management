@@ -16,8 +16,11 @@
 package io.gravitee.gamma.rest.core.observability.analytics.model;
 
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
+import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import java.util.Collection;
 import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +33,9 @@ import java.util.stream.Collectors;
  * grouped by.
  *
  * @param families   In {@link MetricFamily} order, none of them empty; metrics keep their catalog order.
- * @param dimensions Each facet of the metrics once, in order of first appearance in {@code families}.
+ * @param dimensions Each facet of the metrics once, in order of first appearance in {@code families}; a built-in one
+ *                   tied to the kinds of every metric listing it, the kinds the engine accepts the facet for, so a
+ *                   picker offers it for each of them without reading its name.
  * @author GraviteeSource Team
  */
 public record AnalyticsDefinition(List<FamilyMetrics> families, List<DimensionDefinition> dimensions) {
@@ -45,19 +50,32 @@ public record AnalyticsDefinition(List<FamilyMetrics> families, List<DimensionDe
             .stream()
             .map(entry -> new FamilyMetrics(entry.getKey(), List.copyOf(entry.getValue())))
             .toList();
-        var dimensions = families
+        var listed = families
             .stream()
             .flatMap(family -> family.metrics().stream())
+            .toList();
+        Map<String, Set<ApiType>> kindsListing = new HashMap<>();
+        for (MetricDefinition metric : listed) {
+            for (DimensionDefinition facet : metric.facets()) {
+                kindsListing.computeIfAbsent(facet.name(), name -> EnumSet.noneOf(ApiType.class)).addAll(metric.apiTypes());
+            }
+        }
+        var dimensions = listed
+            .stream()
             .flatMap(metric -> metric.facets().stream())
             .collect(Collectors.toMap(DimensionDefinition::name, Function.identity(), (first, next) -> first, LinkedHashMap::new))
-            .values();
-        return new AnalyticsDefinition(families, List.copyOf(dimensions));
+            .values()
+            .stream()
+            .map(dimension -> dimension.tiedTo(kindsListing.get(dimension.name())))
+            .toList();
+        return new AnalyticsDefinition(families, dimensions);
     }
 
     /**
      * The entries of {@code origins} only, metrics and dimensions each narrowed on their own: the metrics of those
      * origins, a family left empty dropped, and the dimensions of those origins, whether or not a kept metric is
-     * grouped by them. A kept metric still names every facet it is grouped by. Every entry when no origin is asked.
+     * grouped by them. A kept metric still names every facet it is grouped by, a kept dimension keeps the kinds the
+     * whole definition tied it to. Every entry when no origin is asked.
      */
     public AnalyticsDefinition narrowedTo(Set<CatalogOrigin> origins) {
         var narrowedFamilies = families

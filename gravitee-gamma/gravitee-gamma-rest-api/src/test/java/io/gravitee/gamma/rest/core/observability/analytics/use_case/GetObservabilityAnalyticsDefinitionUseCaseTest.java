@@ -500,7 +500,7 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
 
         /** The dimension picker groups a facet by the same namespace and kinds the filter catalog serves for its key. */
         @Test
-        void should_serve_the_namespace_and_kinds_of_a_dynamic_dimension_and_none_on_a_built_in_or_an_unknown_namespace() {
+        void should_serve_the_namespace_and_kinds_of_a_dynamic_dimension_and_none_on_an_unknown_namespace() {
             givenBuiltIn(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF, HTTP_KINDS, "API");
             fixture.givenDeclared(PROTOCOL_VERSION);
             fixture.ports.givenDiscovered(
@@ -517,7 +517,7 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
             assertThat(definition.dimensions())
                 .extracting(DimensionDefinition::name, DimensionDefinition::namespace, DimensionDefinition::apiTypes)
                 .containsExactlyInAnyOrder(
-                    tuple("API", null, Set.of()),
+                    tuple("API", null, Set.copyOf(HTTP_KINDS)),
                     tuple(PROTOCOL_VERSION, "mcp-proxy", Set.of(ApiType.MCP)),
                     tuple("additional-metrics.bool_pii_detected", "pii", Set.of(ApiType.LLM)),
                     tuple(
@@ -527,6 +527,102 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
                     ),
                     tuple("additional-metrics.keyword_fraud-check_tier", null, Set.of())
                 );
+        }
+
+        /**
+         * A built-in facet is tied to the kinds of every served metric listing it, the kinds the engine accepts it
+         * for, not guessed from its name: each facet of a metric is offered for the metric's kinds (OBS-193, second
+         * PR). A dynamic facet keeps its namespace's kinds.
+         */
+        @Test
+        void should_tie_a_built_in_dimension_to_the_kinds_of_every_served_metric_listing_it() {
+            givenBuiltIn(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF, HTTP_KINDS, "API", "HTTP_STATUS");
+            givenBuiltIn("LLM_PROMPT_TOTAL_TOKEN", List.of(ApiType.LLM), "API", "LLM_PROXY_MODEL");
+            givenBuiltIn("NATIVE_CONNECTIONS", List.of(ApiType.NATIVE), "API", "NATIVE_TOPIC");
+            fixture.ports.givenDiscovered(
+                List.of(
+                    discovered("bool_pii_detected", AdditionalMetricValueType.BOOL),
+                    discovered("long_failover_count", AdditionalMetricValueType.LONG)
+                ),
+                false
+            );
+
+            var definition = execute(Set.of(ApiType.LLM, ApiType.NATIVE));
+
+            var kindsByDimension = definition
+                .dimensions()
+                .stream()
+                .collect(Collectors.toMap(DimensionDefinition::name, DimensionDefinition::apiTypes));
+            assertThat(kindsByDimension.get("API")).containsExactlyInAnyOrder(
+                ApiType.HTTP_PROXY,
+                ApiType.LLM,
+                ApiType.MESSAGE,
+                ApiType.MCP,
+                ApiType.A2A,
+                ApiType.NATIVE
+            );
+            assertThat(kindsByDimension.get("HTTP_STATUS")).containsExactlyInAnyOrderElementsOf(HTTP_KINDS);
+            assertThat(kindsByDimension.get("LLM_PROXY_MODEL")).containsExactly(ApiType.LLM);
+            assertThat(kindsByDimension.get("NATIVE_TOPIC")).containsExactly(ApiType.NATIVE);
+            assertThat(kindsByDimension.get("additional-metrics.bool_pii_detected"))
+                .as("a dynamic facet keeps its namespace's kinds")
+                .containsExactly(ApiType.LLM);
+            for (var kind : Set.of(ApiType.LLM, ApiType.NATIVE)) {
+                for (var family : definition.families()) {
+                    for (var metric : family.metrics()) {
+                        if (metric.apiTypes().contains(kind)) {
+                            for (var facet : metric.facets()) {
+                                assertThat(kindsByDimension.get(facet.name()))
+                                    .as(kind + " " + metric.name() + " by " + facet.name())
+                                    .contains(kind);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /** The row tooltip reads the description and the last sighting of a dynamic entry as the filter catalog serves them. */
+        @Test
+        void should_serve_the_description_and_last_seen_of_dynamic_entries_to_a_traffic_reader_only() {
+            givenBuiltIn(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF, HTTP_KINDS, "API");
+            fixture.givenDescribed(PROTOCOL_VERSION, "Protocol version", "MCP protocol version negotiated");
+            fixture.ports.givenDiscovered(
+                List.of(
+                    discovered("keyword_mcp-proxy_endpoint-protocol-version", AdditionalMetricValueType.KEYWORD),
+                    discovered("long_failover_count", AdditionalMetricValueType.LONG)
+                ),
+                false
+            );
+
+            var definition = execute(Set.of(ApiType.MCP));
+
+            assertThat(dimension(definition, PROTOCOL_VERSION)).satisfies(protocol -> {
+                assertThat(protocol.description()).isEqualTo("MCP protocol version negotiated");
+                assertThat(protocol.lastSeen()).isEqualTo(SEEN);
+            });
+            assertThat(dimension(definition, "API")).satisfies(api -> {
+                assertThat(api.description()).isNull();
+                assertThat(api.lastSeen()).isNull();
+            });
+            assertThat(additionalMetrics(definition))
+                .singleElement()
+                .satisfies(failover -> assertThat(failover.lastSeen()).isEqualTo(SEEN));
+
+            fixture.ports.givenReadsTraffic(false);
+            var blind = execute(Set.of(ApiType.MCP));
+
+            assertThat(dimension(blind, PROTOCOL_VERSION).lastSeen()).as("traffic data, to a traffic reader only").isNull();
+            assertThat(dimension(blind, PROTOCOL_VERSION).description()).isEqualTo("MCP protocol version negotiated");
+        }
+
+        private static DimensionDefinition dimension(AnalyticsDefinition definition, String name) {
+            return definition
+                .dimensions()
+                .stream()
+                .filter(dimension -> dimension.name().equals(name))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("No dimension " + name));
         }
 
         /** A facet of one kind goes with the metrics of that kind, and with those tied to none. */
@@ -699,6 +795,41 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
             assertThat(definition.dimensions())
                 .extracting(DimensionDefinition::name)
                 .containsExactly("additional-metrics.keyword_fraud-check_tier");
+        }
+
+        /** The kinds of a built-in dimension come from the whole definition: narrowing to some origins keeps them. */
+        @Test
+        void should_keep_the_kinds_of_a_built_in_dimension_whatever_origins_are_asked() {
+            givenBuiltIn(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF, HTTP_KINDS, "API");
+            fixture.ports.givenDiscovered(List.of(discovered("double_risk-score", AdditionalMetricValueType.DOUBLE)), false);
+
+            var all = definitionNarrowedTo(Set.of());
+            var builtInOnly = definitionNarrowedTo(Set.of(CatalogOrigin.BUILT_IN));
+
+            assertThat(metricNames(builtInOnly)).containsExactly(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF);
+            assertThat(kindsOf(builtInOnly, "HTTP_STATUS"))
+                .as("listed by the dropped additional metric only, measured for Edge too")
+                .contains(ApiType.EDGE)
+                .isEqualTo(kindsOf(all, "HTTP_STATUS"));
+            assertThat(kindsOf(builtInOnly, "API")).isEqualTo(kindsOf(all, "API"));
+        }
+
+        private AnalyticsDefinition definitionNarrowedTo(Set<CatalogOrigin> origins) {
+            return useCase
+                .execute(
+                    new GetObservabilityAnalyticsDefinitionUseCase.Input(ORGANIZATION, ENVIRONMENT, Set.of(ApiType.HTTP_PROXY), origins)
+                )
+                .definition();
+        }
+
+        private static Set<ApiType> kindsOf(AnalyticsDefinition definition, String dimension) {
+            return definition
+                .dimensions()
+                .stream()
+                .filter(candidate -> candidate.name().equals(dimension))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("No dimension " + dimension))
+                .apiTypes();
         }
 
         @Test

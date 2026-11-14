@@ -17,7 +17,6 @@ package io.gravitee.gamma.rest.core.observability.catalog.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.gamma.rest.core.observability.analytics.model.MetricDefinition;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.AnalyticsDefinitionPort;
 import io.gravitee.gamma.rest.core.observability.catalog.domain_service.AdditionalMetricCatalogDomainService;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricCatalog;
@@ -27,11 +26,7 @@ import io.gravitee.gamma.rest.core.observability.catalog.port.repository.Additio
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.AdditionalMetricDiscoveryPort;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.BuiltInAdditionalMetricsPort;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.TrafficReadPermissionPort;
-import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
-import java.util.EnumSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 
@@ -76,20 +71,12 @@ public class ListMetricDefinitionsUseCase {
                 .merge(
                     builtInNamesByRawKey,
                     filterRegistry.getFilters(Set.of(), Set.of()),
-                    builtInMetrics().values(),
+                    analyticsDefinition.builtInMetrics(),
                     records,
                     discovered,
                     readsTraffic
                 )
                 .narrowedTo(input.origins())
         );
-    }
-
-    private Map<String, MetricDefinition> builtInMetrics() {
-        Map<String, MetricDefinition> metrics = new LinkedHashMap<>();
-        for (ApiType kind : EnumSet.copyOf(ApiType.API_KINDS)) {
-            analyticsDefinition.metricsOf(kind).forEach(metric -> metrics.putIfAbsent(metric.name(), metric));
-        }
-        return metrics;
     }
 }

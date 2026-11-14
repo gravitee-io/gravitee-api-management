@@ -136,11 +136,15 @@ class ListMetricDefinitionsUseCaseTest {
             });
     }
 
+    /** The filter catalog serves such a key under its dynamic name; this list keeps the built-in name (OBS-193, second PR). */
     @Test
     void should_label_and_scope_a_built_in_metric_the_filter_catalog_does_not_describe_from_the_analytics_definition() {
         fixture.ports.givenBuiltIn("long_llm_tokens-sent", "LLM_PROMPT_TOKEN_SENT");
         fixture.ports.givenBuiltInMetric(aMetric("LLM_PROMPT_TOKEN_SENT", List.of(ApiType.LLM)));
 
+        assertThat(fixture.listed().entries())
+            .extracting(AdditionalMetricCatalogEntry::name)
+            .doesNotContain("additional-metrics.long_llm_tokens-sent");
         assertThat(builtIn("long_llm_tokens-sent")).satisfies(entry -> {
             assertThat(entry.name()).isEqualTo("LLM_PROMPT_TOKEN_SENT");
             assertThat(entry.label()).isEqualTo("LLM_PROMPT_TOKEN_SENT label");

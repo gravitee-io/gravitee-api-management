@@ -54,8 +54,8 @@ class AnalyticsDefinitionResponseDtoTest {
         value = {
             "AnalyticsDefinitionResponse | io.gravitee.gamma.rest.resources.observability.analytics.dto.AnalyticsDefinitionResponseDto |",
             "MetricFamily | io.gravitee.gamma.rest.resources.observability.analytics.dto.AnalyticsDefinitionResponseDto$MetricFamilyDto |",
-            "MetricDefinition | io.gravitee.gamma.rest.resources.observability.analytics.dto.AnalyticsDefinitionResponseDto$MetricDefinitionDto | unit,currency,description,namespace",
-            "DimensionDefinition | io.gravitee.gamma.rest.resources.observability.analytics.dto.AnalyticsDefinitionResponseDto$DimensionDefinitionDto | namespace",
+            "MetricDefinition | io.gravitee.gamma.rest.resources.observability.analytics.dto.AnalyticsDefinitionResponseDto$MetricDefinitionDto | unit,currency,description,namespace,lastSeen",
+            "DimensionDefinition | io.gravitee.gamma.rest.resources.observability.analytics.dto.AnalyticsDefinitionResponseDto$DimensionDefinitionDto | description,namespace,lastSeen",
         },
         delimiter = '|'
     )
