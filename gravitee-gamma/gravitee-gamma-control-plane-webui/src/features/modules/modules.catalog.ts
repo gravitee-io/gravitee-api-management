@@ -23,7 +23,7 @@ interface ModuleProduct {
     readonly tagline: string;
 }
 
-/** Module id for the Developer Portals module. Portal editor in classic console is used until Gamma owns the editor. */
+/** Module id for the Developer Portals module. */
 export const PORTALS_MODULE_ID = 'portals' as const;
 
 /**

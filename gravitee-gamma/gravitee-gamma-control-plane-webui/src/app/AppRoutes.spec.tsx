@@ -20,6 +20,7 @@ import { MemoryRouter, useNavigate, type NavigateFunction } from 'react-router-d
 
 import { AppRoutes } from './AppRoutes';
 import { useAuthStore } from '../features/auth/auth.store';
+import { useEnvironmentStore } from '../features/environment/environment.store';
 import { buildUser, TEST_GAMMA_BASE, TEST_MANAGEMENT_BASE } from '../testing/factories';
 import { respondWith, respondWithError, seedBootstrap, seedEnvironments, seedUser, trackHandler } from '../testing/helpers';
 import { PathnameProbe } from '../testing/PathnameProbe';
@@ -49,6 +50,12 @@ const ACCOUNT_MODULE = {
     version: '1.0.0',
     scope: 'account',
     mfManifest: { name: 'cloud', exposes: [{ name: './App' }] },
+};
+const PORTALS_MODULE = {
+    id: 'portals',
+    name: 'Developer Portals',
+    version: '1.0.0',
+    mfManifest: { name: 'portals', exposes: [{ name: './App' }] },
 };
 
 function renderAt(path: string) {
@@ -105,6 +112,92 @@ describe('AppRoutes', () => {
             expect(await screen.findByText('Activate your account')).toBeTruthy();
             expect(screen.queryByRole('button', { name: 'Sign in' })).toBeNull();
         });
+    });
+});
+
+describe('AppRoutes, Developer Portals', () => {
+    let lastPath = '';
+
+    beforeEach(() => {
+        mockLoadRemote.mockResolvedValue({ default: MockRemoteModule });
+        seedBootstrap({ consoleUrl: undefined });
+        seedUser();
+        seedEnvironments();
+        respondWith('get', `${TEST_GAMMA_BASE}/modules`, [PORTALS_MODULE]);
+        lastPath = '';
+    });
+
+    function renderPortals(path: string, basename = '/') {
+        return render(
+            <MemoryRouter basename={basename} initialEntries={[`${basename === '/' ? '' : basename}${path}`]}>
+                <PathnameProbe onPath={value => (lastPath = value)} />
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+    }
+
+    it.each(['', '/list', '/portal-1/overview'])('should mount the remote at the requested portals path %s', async suffix => {
+        const path = `/environments/env-1/portals${suffix}`;
+
+        renderPortals(path);
+
+        expect(await screen.findByText('Remote module')).toBeTruthy();
+        expect(lastPath).toBe(path);
+        expect(useEnvironmentStore.getState().environmentId).toBe('env-1-id');
+    });
+
+    it('should mount a portals deep link under the host base path in its requested environment', async () => {
+        const path = '/environments/env-2/portals/list';
+
+        renderPortals(path, '/console');
+
+        expect(await screen.findByText('Remote module')).toBeTruthy();
+        expect(lastPath).toBe(path);
+        expect(useEnvironmentStore.getState().environmentId).toBe('env-2-id');
+    });
+
+    it('should keep the portals deep link while module discovery loads, as on reload', async () => {
+        let releaseModules: () => void = () => undefined;
+        const modulesLoaded = new Promise<void>(resolve => (releaseModules = resolve));
+        server.use(
+            http.get(`${TEST_GAMMA_BASE}/modules`, async () => {
+                await modulesLoaded;
+                return HttpResponse.json([PORTALS_MODULE]);
+            }),
+        );
+        const path = '/environments/env-1/portals/list';
+
+        renderPortals(path);
+
+        expect(await screen.findByLabelText('Loading content')).toBeTruthy();
+        expect(lastPath).toBe(path);
+        releaseModules();
+
+        expect(await screen.findByText('Remote module')).toBeTruthy();
+        expect(lastPath).toBe(path);
+    });
+
+    it('should open the original portals deep link once module discovery recovers', async () => {
+        respondWithError('get', `${TEST_GAMMA_BASE}/modules`, 503);
+        const path = '/environments/env-1/portals/portal-1/overview';
+        renderPortals(path);
+        await screen.findByRole('heading', { name: PAGE_ERROR_TITLE });
+        expect(lastPath).toBe(path);
+        respondWith('get', `${TEST_GAMMA_BASE}/modules`, [PORTALS_MODULE]);
+
+        await userEvent.setup().click(screen.getByRole('button', { name: 'Retry' }));
+
+        expect(await screen.findByText('Remote module')).toBeTruthy();
+        expect(lastPath).toBe(path);
+    });
+
+    it('should return to Home when the portals module is not deployed', async () => {
+        respondWith('get', `${TEST_GAMMA_BASE}/modules`, []);
+
+        renderPortals('/environments/env-1/portals/list');
+
+        await waitFor(() => expect(lastPath).toBe('/environments/env-1/home'));
+        expect(screen.queryByText('Remote module')).toBeNull();
     });
 });
 

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
@@ -23,7 +24,8 @@ import { HomePage } from './HomePage';
 import { useAuthStore } from '../../features/auth/auth.store';
 import type { GammaModule } from '../../features/modules';
 import { buildUser, TEST_GAMMA_BASE, TEST_MANAGEMENT_BASE, TEST_MANAGEMENT_V2_ENVIRONMENT_BASE } from '../../testing/factories';
-import { respondWith, respondWithError, seedEnvironments } from '../../testing/helpers';
+import { respondWith, respondWithError, seedBootstrap, seedEnvironments } from '../../testing/helpers';
+import { PathnameProbe } from '../../testing/PathnameProbe';
 import { server } from '../../testing/server';
 
 const ALL_MODULES: readonly GammaModule[] = [
@@ -257,10 +259,34 @@ describe('HomePage', () => {
         expect(aimCta?.getAttribute('href')).toBe('/environments/env-1/aim');
 
         const portalsCta = within(appsSection).getByText('Open Developer Portals').closest('a');
-        expect(portalsCta?.getAttribute('href')).toBe('http://console.test/#!/env-1/_portal/navigation');
-        expect(portalsCta?.getAttribute('target')).toBe('_blank');
-        expect(portalsCta?.getAttribute('rel')).toBe('noopener noreferrer');
+        expect(portalsCta?.getAttribute('href')).toBe('/environments/env-1/portals');
+        expect(portalsCta?.getAttribute('target')).toBeNull();
     });
+
+    it.each(['/', '/console'])(
+        'should open Developer Portals from Home under base path %s without a classic console URL',
+        async basename => {
+            seedBootstrap({ consoleUrl: undefined });
+            let lastPath = '';
+            render(
+                <MemoryRouter basename={basename} initialEntries={[`${basename === '/' ? '' : basename}/environments/env-1/home`]}>
+                    <PathnameProbe onPath={path => (lastPath = path)} />
+                    <Routes>
+                        <Route path="/environments/:envHrid/home" element={<HomePage modules={ALL_MODULES} loading={false} />} />
+                        <Route path="/environments/:envHrid/portals" element={<h1>Portals module</h1>} />
+                    </Routes>
+                </MemoryRouter>,
+            );
+            const link = screen.getByText('Open Developer Portals').closest('a')!;
+            expect(link.getAttribute('href')).toBe(`${basename === '/' ? '' : basename}/environments/env-1/portals`);
+            expect(link.getAttribute('target')).toBeNull();
+
+            await userEvent.setup().click(link);
+
+            expect(screen.getByRole('heading', { name: 'Portals module' })).toBeTruthy();
+            expect(lastPath).toBe('/environments/env-1/portals');
+        },
+    );
 
     it('should show metric view with Open CTA when module has data', async () => {
         seedMetricHandlers({ apiCount: 54, agentCount: 8, appCount: 12, policyCount: 5 });
