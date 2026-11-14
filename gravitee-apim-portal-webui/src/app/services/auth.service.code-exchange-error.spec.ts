@@ -118,6 +118,14 @@ describe('AuthService code exchange failure', () => {
     expect(spectator.inject(NotificationService).error).toHaveBeenCalledTimes(1);
   });
 
+  it('should not notify when the code flow fails before reaching APIM', async () => {
+    tryLoginCodeFlow.mockRejectedValue(new Error('Validating access_token failed, wrong state/nonce.'));
+
+    await loadThenOpenSignInPage();
+
+    expect(spectator.inject(NotificationService).error).not.toHaveBeenCalled();
+  });
+
   it('should not notify when the code exchange succeeds', async () => {
     tryLoginCodeFlow.mockResolvedValue(undefined);
 

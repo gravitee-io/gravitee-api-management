@@ -84,6 +84,8 @@ export class AuthService {
   }
 
   // Read once by the sign-in page: load() runs before the first navigation, which resets any notification raised here.
+  // A failure is only recorded when the URL carries an authorization code, and only the sign-in page starts the code
+  // flow (authenticate()) with its own URL as redirect URI, so the sign-in page is the first page shown after one.
   consumeCodeExchangeFailure(): CodeExchangeFailure | undefined {
     const failure = this.codeExchangeFailure;
     this.codeExchangeFailure = undefined;
