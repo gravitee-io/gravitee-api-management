@@ -59,13 +59,12 @@ import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.MessageDeliveryFailedException;
 import io.gravitee.rest.api.service.exceptions.MessageEmptyException;
 import io.gravitee.rest.api.service.exceptions.MessageRecipientFormatException;
-import io.gravitee.rest.api.service.exceptions.MessageUrlForbiddenException;
-import io.gravitee.rest.api.service.exceptions.NotifierDisabledException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.notification.PortalHook;
+import io.gravitee.rest.api.service.notifiers.WebhookNotifierPolicy;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -80,11 +79,8 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -94,7 +90,7 @@ import org.springframework.util.StringUtils;
  */
 @CustomLog
 @Component
-public class MessageServiceImpl extends AbstractService implements MessageService, InitializingBean {
+public class MessageServiceImpl extends AbstractService implements MessageService {
 
     private static final String API_SUBSCRIBERS = "API_SUBSCRIBERS";
 
@@ -142,29 +138,11 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
     @Autowired
     private NotificationTemplateService notificationTemplateService;
 
-    @Value("${notifiers.webhook.enabled:true}")
-    private boolean httpEnabled;
-
     @Autowired
-    private Environment environment;
+    private WebhookNotifierPolicy webhookNotifierPolicy;
 
     @Autowired
     private ParameterService parameterService;
-
-    private List<String> httpWhitelist;
-
-    @Override
-    public void afterPropertiesSet() {
-        int i = 0;
-        httpWhitelist = new ArrayList<>();
-
-        String whitelistUrl;
-
-        while ((whitelistUrl = environment.getProperty("notifiers.webhook.whitelist[" + i + "]")) != null) {
-            httpWhitelist.add(whitelistUrl);
-            i++;
-        }
-    }
 
     @Override
     public int create(final ExecutionContext executionContext, String apiId, MessageEntity message) {
@@ -236,28 +214,8 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                 portalNotificationService.create(executionContext, hook, new ArrayList<>(recipientsId), getPortalParams(api, message));
                 return recipientsId.size();
             case HTTP:
-                if (!httpEnabled) {
-                    throw new NotifierDisabledException();
-                }
-
                 String url = recipientsId.iterator().next();
-
-                environment.getProperty("notifiers.webhook.whitelist");
-
-                if (httpWhitelist != null && !httpWhitelist.isEmpty()) {
-                    // Check the provided url is allowed.
-                    if (
-                        httpWhitelist
-                            .stream()
-                            .noneMatch(whitelistUrl ->
-                                whitelistUrl.endsWith("/")
-                                    ? url.startsWith(whitelistUrl)
-                                    : (url.equals(whitelistUrl) || url.startsWith(whitelistUrl + '/'))
-                            )
-                    ) {
-                        throw new MessageUrlForbiddenException();
-                    }
-                }
+                webhookNotifierPolicy.assertAllowed(url);
 
                 // Resolved outside the try: only failures of the HTTP call itself are delivery failures.
                 String postMessage = getPostMessage(executionContext, api, message, executionContext.getOrganizationId());
