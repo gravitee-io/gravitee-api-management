@@ -249,7 +249,7 @@ class NotifierServiceImplTest {
                     .referenceType(NotificationReferenceType.API)
                     .referenceId("api-id")
                     .params(params)
-                    .recipients(List.of(new Recipient("default-email", "additional@gio.test")))
+                    .recipients(List.of(new Recipient("EMAIL", "additional@gio.test")))
                     .build()
             );
 
