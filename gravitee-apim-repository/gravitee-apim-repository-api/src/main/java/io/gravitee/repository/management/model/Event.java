@@ -126,7 +126,6 @@ public class Event implements Serializable {
         AUTHZ_ENTITY_ID("authz_entity_id"),
         AUTHZ_PDP_ID("authz_pdp_id"),
         AUTHZ_SCHEMA_ID("authz_schema_id"),
-        CREDENTIAL_ID("credential_id"),
         GENERIC_EVENT_ID("generic_event_id"),
         GENERIC_EVENT_KIND("generic_event_kind");
 
