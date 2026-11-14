@@ -31,8 +31,11 @@ import io.gravitee.apim.core.generic_event.model.PublicationOptions;
 import io.gravitee.apim.core.json.JsonDeserializer;
 import io.gravitee.apim.core.json.JsonProcessingException;
 import io.gravitee.apim.core.json.JsonSerializer;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianDeployment;
+import io.gravitee.gamma.rest.core.guardian.model.GuardianRevision;
+import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardianPublicationHistoryPort;
 import io.gravitee.rest.api.model.EventType;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
@@ -59,6 +62,7 @@ public class GuardianPublicationDomainService {
     private final JsonDeserializer jsonDeserializer;
     private final GenericEventPublicationDomainService publications;
     private final EventLatestQueryService events;
+    private final GuardianPublicationHistoryPort history;
 
     /** The latest publication of each Guardian that has one, by Guardian id. */
     public Map<String, GuardianDeployment> findAll(String environmentId, Set<String> guardianIds) {
@@ -78,6 +82,30 @@ public class GuardianPublicationDomainService {
             .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, maxBy(comparing(GuardianDeployment::at))));
     }
 
+    /** The publications of the Guardian, newest first; its withdrawals are left out. */
+    public Page<GuardianRevision> revisions(String environmentId, String guardianId, int pageNumber, int pageSize) {
+        var page = history.publications(
+            environmentId,
+            GenericEvent.latestEventId(environmentId, GUARDIAN_KIND, guardianId),
+            pageNumber,
+            pageSize
+        );
+        var revisions = page
+            .getContent()
+            .stream()
+            .map(event ->
+                new GuardianRevision(
+                    event.getId(),
+                    read(event, environmentId, guardianId).at(),
+                    version(event, guardianId),
+                    event.getProperties().get(Event.EventProperties.DEPLOYMENT_LABEL),
+                    event.getProperties().get(Event.EventProperties.USER)
+                )
+            )
+            .toList();
+        return new Page<>(revisions, page.getPageNumber(), revisions.size(), page.getTotalElements());
+    }
+
     public GuardianDeployment.Published publish(
         io.gravitee.definition.model.v4.guardian.Guardian definition,
         String label,
@@ -89,7 +117,8 @@ public class GuardianPublicationDomainService {
                 .id(definition.getId())
                 .payload(jsonSerializer.serialize(definition))
                 .build();
-            var publication = publications.publish(event, PublicationOptions.withHistory(label), auditInfo);
+            var version = nextVersion(auditInfo.environmentId(), definition.getId());
+            var publication = publications.publish(event, PublicationOptions.withHistory(label, version), auditInfo);
             return new GuardianDeployment.Published(definition, publication.updatedAt());
         } catch (JsonProcessingException e) {
             throw new TechnicalDomainException("Failed to serialize Guardian '" + definition.getId() + "' for deployment", e);
@@ -108,6 +137,30 @@ public class GuardianPublicationDomainService {
             return new GuardianDeployment.Withdrawn(ended.at(), withdrawal.updatedAt());
         } catch (JsonProcessingException e) {
             throw new TechnicalDomainException("Failed to serialize Guardian withdrawal '" + guardianId + "'", e);
+        }
+    }
+
+    private long nextVersion(String environmentId, String guardianId) {
+        var latest = history.publications(environmentId, GenericEvent.latestEventId(environmentId, GUARDIAN_KIND, guardianId), 1, 1);
+        // A publication recorded before deployments were numbered has none: counting them is the closest guess.
+        return latest
+            .getContent()
+            .stream()
+            .findFirst()
+            .map(event -> version(event, guardianId))
+            .map(version -> version + 1)
+            .orElse(latest.getTotalElements() + 1);
+    }
+
+    private static Long version(Event event, String guardianId) {
+        var number = event.getProperties().get(Event.EventProperties.DEPLOYMENT_NUMBER);
+        if (number == null) {
+            return null;
+        }
+        try {
+            return Long.valueOf(number);
+        } catch (NumberFormatException e) {
+            throw new TechnicalDomainException("Invalid deployment number in the history of Guardian '" + guardianId + "'", e);
         }
     }
 

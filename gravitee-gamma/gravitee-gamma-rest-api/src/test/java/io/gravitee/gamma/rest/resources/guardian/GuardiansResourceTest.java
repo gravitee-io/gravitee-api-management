@@ -28,6 +28,8 @@ import io.gravitee.apim.core.generic_event.domain_service.GenericEventPublicatio
 import io.gravitee.apim.core.generic_event.domain_service.GenericEventWriterDomainService;
 import io.gravitee.apim.core.json.JsonDeserializer;
 import io.gravitee.apim.core.json.JsonSerializer;
+import io.gravitee.apim.core.user.crud_service.UserCrudService;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
 import io.gravitee.common.http.HttpStatusCode;
@@ -37,6 +39,7 @@ import io.gravitee.gamma.rest.core.guardian.GuardianFixtures;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
+import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardianPublicationHistoryPort;
 import io.gravitee.gamma.rest.resource.AbstractResourceTest;
 import io.gravitee.gamma.rest.resources.guardian.GuardiansResourceTest.GuardiansTestConfiguration;
 import io.gravitee.gamma.rest.spring.ResourceContextConfiguration;
@@ -670,6 +673,105 @@ class GuardiansResourceTest extends AbstractResourceTest {
         }
     }
 
+    @Nested
+    class DeploymentHistory {
+
+        @BeforeEach
+        void seed() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+            withdrawalAudits.users.initWith(List.of(BaseUserEntity.builder().id(USER_NAME).firstname("Ada").lastname("Lovelace").build()));
+        }
+
+        private void deploy(Map<String, Object> body) {
+            assertThat(rootTarget("/" + GUARDIAN_ID + "/_deploy").request().post(Entity.json(body)).getStatus())
+                .as("deployment")
+                .isEqualTo(HttpStatusCode.OK_200);
+        }
+
+        @Test
+        void should_list_the_deployed_revisions_newest_first() {
+            deploy(Map.of("deploymentLabel", "First"));
+            deploy(Map.of());
+
+            var response = rootTarget("/" + GUARDIAN_ID + "/deployments").request().get();
+
+            assertThat(response.getStatus()).as("history response").isEqualTo(HttpStatusCode.OK_200);
+            var body = response.readEntity(JsonNode.class);
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(body.at("/data/0/version").asLong()).as("newest version").isEqualTo(2);
+                softly.assertThat(body.at("/data/0/label").isMissingNode()).as("unlabelled revision").isTrue();
+                softly.assertThat(body.at("/data/1/version").asLong()).as("oldest version").isEqualTo(1);
+                softly.assertThat(body.at("/data/1/label").asText()).as("deployment label").isEqualTo("First");
+                softly.assertThat(body.at("/data/1/id").asText()).as("revision id").isNotBlank();
+                softly
+                    .assertThat(Instant.parse(body.at("/data/0/deployedAt").asText()))
+                    .as("ISO 8601 deployment date")
+                    .isEqualTo(guardianPublications.published(ENVIRONMENT, GUARDIAN_ID).at());
+                softly.assertThat(body.at("/data/0/deployedBy/id").asText()).as("deployer id").isEqualTo(USER_NAME);
+                softly.assertThat(body.at("/data/0/deployedBy/displayName").asText()).as("deployer name").isEqualTo("Ada Lovelace");
+                softly.assertThat(body.at("/pagination/totalCount").asLong()).as("total").isEqualTo(2);
+            });
+        }
+
+        @Test
+        void should_paginate_the_revisions() {
+            deploy(Map.of());
+            deploy(Map.of());
+
+            var body = rootTarget("/" + GUARDIAN_ID + "/deployments")
+                .queryParam("page", 2)
+                .queryParam("perPage", 1)
+                .request()
+                .get()
+                .readEntity(JsonNode.class);
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(body.at("/data").size()).as("page content").isEqualTo(1);
+                softly.assertThat(body.at("/data/0/version").asLong()).as("oldest version").isEqualTo(1);
+                softly.assertThat(body.at("/pagination/page").asInt()).as("page").isEqualTo(2);
+                softly.assertThat(body.at("/pagination/perPage").asInt()).as("page size").isEqualTo(1);
+                softly.assertThat(body.at("/pagination/totalCount").asLong()).as("total").isEqualTo(2);
+            });
+        }
+
+        @Test
+        void should_return_an_empty_history_for_a_guardian_never_deployed() {
+            var body = rootTarget("/" + GUARDIAN_ID + "/deployments").request().get().readEntity(JsonNode.class);
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(body.at("/data").isEmpty()).as("no revision").isTrue();
+                softly.assertThat(body.at("/pagination/totalCount").asLong()).as("total").isZero();
+            });
+        }
+
+        @Test
+        void should_return_404_for_an_unknown_guardian() {
+            assertThat(rootTarget("/unknown/deployments").request().get().getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        }
+
+        @Test
+        void should_return_404_for_a_guardian_from_another_environment() {
+            guardianRepository.reset();
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, OTHER_ENVIRONMENT, "Elsewhere"));
+
+            assertThat(rootTarget("/" + GUARDIAN_ID + "/deployments").request().get().getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        }
+
+        @Test
+        void should_refuse_the_history_without_the_read_permission() {
+            when(
+                permissionService.hasPermission(
+                    any(),
+                    eq(RolePermission.ENVIRONMENT_GUARDIAN),
+                    any(),
+                    eq(new RolePermissionAction[] { RolePermissionAction.READ })
+                )
+            ).thenReturn(false);
+
+            assertThat(rootTarget("/" + GUARDIAN_ID + "/deployments").request().get().getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
+        }
+    }
+
     /**
      * Two Guardians of one environment may not share a name. A 409 rather than a 400: the request is
      * well formed and the caller can retry it with another name.
@@ -1000,6 +1102,16 @@ class GuardiansResourceTest extends AbstractResourceTest {
         @Bean
         EventLatestQueryService eventLatestQueryService(GuardianPublicationFixture publications) {
             return publications.query;
+        }
+
+        @Bean
+        GuardianPublicationHistoryPort guardianPublicationHistoryPort(GuardianPublicationFixture publications) {
+            return publications.historyQuery;
+        }
+
+        @Bean
+        UserCrudService userCrudService(GuardianAuditFixture audits) {
+            return audits.users;
         }
 
         @Bean
