@@ -48,6 +48,9 @@ public class GenericEventWriterDomainService {
         if (options.deploymentLabel() != null) {
             properties.put(Event.EventProperties.DEPLOYMENT_LABEL, options.deploymentLabel());
         }
+        if (options.deploymentNumber() != null) {
+            properties.put(Event.EventProperties.DEPLOYMENT_NUMBER, options.deploymentNumber().toString());
+        }
         var event = options.historized()
             ? eventCrudService.createEvent(
                 auditInfo.organizationId(),

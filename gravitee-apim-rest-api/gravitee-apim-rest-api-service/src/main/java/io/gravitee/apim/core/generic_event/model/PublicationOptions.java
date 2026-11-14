@@ -20,17 +20,22 @@ package io.gravitee.apim.core.generic_event.model;
  *
  * @param historized also records this version in deployment history; otherwise only the current version is kept.
  * @param deploymentLabel an optional label shown with the recorded version.
+ * @param deploymentNumber an optional number of the recorded version, counted by the feature that deploys it.
  */
-public record PublicationOptions(boolean historized, String deploymentLabel) {
+public record PublicationOptions(boolean historized, String deploymentLabel, Long deploymentNumber) {
     public static PublicationOptions latestOnly() {
-        return new PublicationOptions(false, null);
+        return new PublicationOptions(false, null, null);
     }
 
     public static PublicationOptions withHistory() {
-        return new PublicationOptions(true, null);
+        return new PublicationOptions(true, null, null);
     }
 
     public static PublicationOptions withHistory(String deploymentLabel) {
-        return new PublicationOptions(true, deploymentLabel);
+        return new PublicationOptions(true, deploymentLabel, null);
+    }
+
+    public static PublicationOptions withHistory(String deploymentLabel, long deploymentNumber) {
+        return new PublicationOptions(true, deploymentLabel, deploymentNumber);
     }
 }
