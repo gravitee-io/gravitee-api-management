@@ -379,6 +379,48 @@ export function fromFormStateToDto(state: DynamicPropertiesFormState): DynamicPr
     };
 }
 
+/**
+ * A V4 API stores what the `http-dynamic-properties` service reads, under other keys than a V2 API and with its schedule
+ * in the configuration. The service fails to start without `transformation`, so a V2-shaped save stops the sync.
+ */
+export function fromV4DtoToFormState(dto: DynamicPropertyConfig): DynamicPropertiesFormState {
+    const { schedule, transformation, systemProxy, http, proxy, ssl, ...shared } = dto.configuration ?? {};
+    return fromDtoToFormState({
+        enabled: dto.enabled,
+        schedule,
+        configuration: {
+            ...shared,
+            specification: transformation,
+            useSystemProxy: systemProxy,
+            httpClientOptions: http,
+            httpProxyOptions: proxy,
+            sslOptions: ssl,
+        },
+    });
+}
+
+export function fromFormStateToV4Dto(state: DynamicPropertiesFormState, stored: DynamicPropertyConfig | undefined): DynamicPropertyConfig {
+    const { enabled, type, configuration } = fromFormStateToDto(state);
+    const { specification, useSystemProxy, httpClientOptions, httpProxyOptions, sslOptions, ...shared } = configuration ?? {};
+    const storedConfiguration = stored?.configuration;
+    return {
+        ...(stored?.overrideConfiguration === undefined ? {} : { overrideConfiguration: stored.overrideConfiguration }),
+        enabled,
+        type,
+        configuration: {
+            ...storedConfiguration,
+            ...shared,
+            schedule: state.schedule,
+            transformation: specification,
+            systemProxy: useSystemProxy,
+            // The form shows a subset of these settings: the others, such as the HTTP version, stay as stored.
+            http: { ...storedConfiguration?.http, ...httpClientOptions },
+            proxy: { ...storedConfiguration?.proxy, ...httpProxyOptions },
+            ssl: { ...storedConfiguration?.ssl, ...sslOptions },
+        },
+    };
+}
+
 export function newHeaderRow(): HeaderEntry {
     return { _id: crypto.randomUUID(), name: '', value: '' };
 }

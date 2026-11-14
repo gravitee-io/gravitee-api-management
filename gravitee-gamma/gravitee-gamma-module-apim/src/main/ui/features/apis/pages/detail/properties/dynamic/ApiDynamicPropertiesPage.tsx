@@ -22,7 +22,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 
 import { DynamicPropertiesForm } from './DynamicPropertiesForm';
 import type { DynamicPropertiesFormState } from './types';
-import { DEFAULT_FORM, fromDtoToFormState, fromFormStateToDto } from './types';
+import { DEFAULT_FORM, fromDtoToFormState, fromFormStateToDto, fromFormStateToV4Dto, fromV4DtoToFormState } from './types';
 import { useApiDetailContext } from '../../../../context/ApiDetailContext';
 import { updateDynamicProperties } from '../../../../services/apis';
 import { apiDetailKeys } from '../../../../utils/queryKeys';
@@ -38,9 +38,12 @@ export function ApiDynamicPropertiesPage() {
     const canEdit = useHasPermission({ allOf: ['api-definition-u'] });
     const isKubernetesManaged = api?.definitionContext?.origin === 'KUBERNETES';
     const isReadOnly = !permissionsReady || !canEdit || isKubernetesManaged;
+    const isV2 = api?.definitionVersion === 'V2';
+    const dynamicPropertyDto = api?.services?.dynamicProperty;
 
     const mutation = useMutation({
-        mutationFn: (state: DynamicPropertiesFormState) => updateDynamicProperties(env!.id, apiId!, fromFormStateToDto(state)),
+        mutationFn: (state: DynamicPropertiesFormState) =>
+            updateDynamicProperties(env!.id, apiId!, isV2 ? fromFormStateToDto(state) : fromFormStateToV4Dto(state, dynamicPropertyDto)),
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env?.id ?? '', apiId ?? '') });
         },
@@ -49,8 +52,10 @@ export function ApiDynamicPropertiesPage() {
     // Stable reference: only re-derived when the DTO object reference changes (i.e. after a
     // successful save triggers invalidation + refetch). Intermediate parent re-renders that
     // don't change the DTO will not reset the form.
-    const dynamicPropertyDto = api?.services?.dynamicProperty;
-    const initialState = useMemo(() => (dynamicPropertyDto ? fromDtoToFormState(dynamicPropertyDto) : DEFAULT_FORM), [dynamicPropertyDto]);
+    const initialState = useMemo(() => {
+        if (!dynamicPropertyDto) return DEFAULT_FORM;
+        return isV2 ? fromDtoToFormState(dynamicPropertyDto) : fromV4DtoToFormState(dynamicPropertyDto);
+    }, [dynamicPropertyDto, isV2]);
 
     // ─── Loading skeleton ──────────────────────────────────────────────────────
     if (isLoading) {

@@ -100,6 +100,7 @@ function makeApi(overrides: Partial<ApiDetailDto> = {}): ApiDetailDto {
     return {
         id: 'api-1',
         name: 'Test API',
+        definitionVersion: 'V2',
         ...overrides,
     };
 }
@@ -256,6 +257,41 @@ it('disables Encrypt on fetch for a user without api-definition-u', () => {
     renderPage(makeApi({ services: { dynamicProperty: DYNAMIC_CONFIG } }));
 
     expect(screen.getByRole('switch', { name: /encrypt on fetch/i })).toBeDisabled();
+});
+
+describe('on a V4 API', () => {
+    const V4_CONFIG: DynamicPropertyConfig = {
+        enabled: true,
+        type: 'http-dynamic-properties',
+        configuration: {
+            schedule: '0 */5 * * * *',
+            method: 'GET',
+            url: 'https://api.example.com/properties',
+            transformation: '[{"operation":"shift"}]',
+        },
+    };
+
+    it('shows the schedule the API stores', () => {
+        renderPage(makeApi({ definitionVersion: 'V4', services: { dynamicProperty: V4_CONFIG } }));
+
+        expect(screen.getByDisplayValue('0 */5 * * * *')).toBeInTheDocument();
+        expect(screen.getByDisplayValue('[{"operation":"shift"}]')).toBeInTheDocument();
+    });
+
+    it('saves the keys the V4 service reads', async () => {
+        const user = userEvent.setup();
+        renderPage(makeApi({ definitionVersion: 'V4', services: { dynamicProperty: V4_CONFIG } }));
+
+        await user.click(screen.getByRole('switch', { name: /encrypt on fetch/i }));
+        await user.click(screen.getByRole('button', { name: /save changes/i }));
+
+        await waitFor(() => expect(mockUpdateDynamicProperties).toHaveBeenCalledTimes(1));
+        const sent = mockUpdateDynamicProperties.mock.calls[0][2];
+        expect(sent.configuration.schedule).toBe('0 */5 * * * *');
+        expect(sent.configuration.transformation).toBe('[{"operation":"shift"}]');
+        expect(sent.configuration.encryption).toEqual({ encryptOnFetch: true });
+        expect(sent.configuration).not.toHaveProperty('specification');
+    });
 });
 
 // ─── 8. Enable toggle: config fields disabled when feature is off ─────────────
