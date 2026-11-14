@@ -18,13 +18,16 @@ import {
     BoxesIcon,
     LayoutDashboardIcon,
     RocketIcon,
+    ServerIcon,
     ShieldIcon,
     SlidersHorizontalIcon,
     UsersIcon,
     UsersRoundIcon,
 } from '@gravitee/graphene-core/icons';
-import type { ComponentType } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useMemo, type ComponentType } from 'react';
+import { NavLink, useParams } from 'react-router-dom';
+
+import { useApiProductResourcePermissions } from '../../hooks/useApiProductPermissions';
 
 interface NavItem {
     path: string;
@@ -71,9 +74,24 @@ interface ApiProductSidebarNavProps {
 }
 
 export function ApiProductSidebarNav({ basePath }: ApiProductSidebarNavProps) {
+    const { productId } = useParams<{ productId: string }>();
+    const { canRead: canReadDefinition, isLoading: definitionPermsLoading } = useApiProductResourcePermissions(productId, 'DEFINITION');
+
+    const navGroups = useMemo((): NavGroup[] => {
+        if (definitionPermsLoading || !canReadDefinition) {
+            return API_PRODUCT_NAV_GROUPS;
+        }
+        const resourcesGroup: NavGroup = {
+            label: 'Design',
+            items: [{ path: 'resources', label: 'Resources', icon: ServerIcon }],
+        };
+        const [general, ...rest] = API_PRODUCT_NAV_GROUPS;
+        return [general, resourcesGroup, ...rest];
+    }, [canReadDefinition, definitionPermsLoading]);
+
     return (
         <div className="space-y-0.5 px-2 py-2">
-            {API_PRODUCT_NAV_GROUPS.map(group => (
+            {navGroups.map(group => (
                 <div key={group.label} className="pt-4 first:pt-0">
                     <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group.label}</p>
                     {group.items.map(item => {

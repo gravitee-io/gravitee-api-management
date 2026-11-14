@@ -15,6 +15,7 @@
  */
 import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
 import type { ApiListResponse } from '../../apis/types';
+import type { ApiResource } from '../../apis/types/resource';
 import type {
     ApiProductListItem,
     ApiProductListResponse,
@@ -87,6 +88,26 @@ export async function updateApiProductShardingTags(environmentId: string, produc
         method: 'PUT',
         headers: JSON_HEADERS,
         body: JSON.stringify({ ...current, tags: tagIds }),
+    });
+}
+
+export type ApiProductResourcesApplyFn = (current: ApiResource[]) => ApiResource[];
+
+/** v2 has no resources sub-resource; GET-then-PUT on the product is the only mechanism. */
+export async function updateApiProductResources(
+    environmentId: string,
+    productId: string,
+    apply: ApiProductResourcesApplyFn,
+): Promise<ApiProductListItem> {
+    const current = await getApiProductById(environmentId, productId);
+    const resources = apply(current.resources ?? []);
+    return updateApiProduct(environmentId, productId, {
+        name: current.name,
+        version: current.version,
+        description: current.description,
+        apiIds: current.apiIds ?? [],
+        analytics: current.analytics,
+        resources,
     });
 }
 

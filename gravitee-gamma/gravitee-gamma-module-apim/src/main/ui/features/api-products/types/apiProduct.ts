@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { Analytics } from '../../apis/types/analytics';
+import type { ApiResource } from '../../apis/types/resource';
 
 export type ApiProductDeploymentState = 'DEPLOYED' | 'NEED_REDEPLOY';
+
+export type ApiProductResource = ApiResource;
 
 export interface ApiProductPrimaryOwner {
     id?: string;
@@ -33,6 +37,8 @@ export interface ApiProductListItem {
     /** Sharding tags assigned to this API Product (controls gateway deployment). */
     tags?: string[];
     deploymentState?: ApiProductDeploymentState;
+    analytics?: Analytics;
+    resources?: ApiProductResource[];
     createdAt?: string;
     updatedAt?: string;
     primaryOwner?: ApiProductPrimaryOwner;
@@ -66,6 +72,8 @@ export interface UpdateApiProductRequest {
     groups?: string[];
     disableMembershipNotifications?: boolean;
     tags?: string[];
+    analytics?: Analytics;
+    resources?: ApiProductResource[];
 }
 
 export interface VerifyApiProductNameRequest {

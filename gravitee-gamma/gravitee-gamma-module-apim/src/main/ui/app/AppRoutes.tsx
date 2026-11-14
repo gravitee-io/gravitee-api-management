@@ -43,6 +43,8 @@ import { ApiProductDeploymentConfigurationPage } from '../features/api-products/
 import { ApiProductGeneralPage } from '../features/api-products/pages/detail/general/ApiProductGeneralPage';
 import { ApiProductPlanFormPage } from '../features/api-products/pages/detail/plans/ApiProductPlanFormPage';
 import { ApiProductPlansPage } from '../features/api-products/pages/detail/plans/ApiProductPlansPage';
+import { ApiProductResourcesPage } from '../features/api-products/pages/detail/resources/ApiProductResourcesPage';
+import { ApiProductResourceWizardPage } from '../features/api-products/pages/detail/resources/ApiProductResourceWizardPage';
 import { ApiProductUserPermissionsPage } from '../features/api-products/pages/detail/user-permissions/ApiProductUserPermissionsPage';
 import { ApiDetailIndexRedirect, ApiDetailLayout } from '../features/apis/components/detail/ApiDetailLayout';
 import { ApisPage } from '../features/apis/pages/ApisPage';
@@ -277,6 +279,11 @@ export function AppRoutes() {
                                     <Route path=":subscriptionId" element={<ApiProductConsumerDetailPage />} />
                                 </Route>
                                 <Route path="user-permissions" element={<ApiProductUserPermissionsPage />} />
+                                <Route path="resources">
+                                    <Route index element={<ApiProductResourcesPage />} />
+                                    <Route path="new" element={<ApiProductResourceWizardPage />} />
+                                    <Route path=":resourceName/edit" element={<ApiProductResourceWizardPage />} />
+                                </Route>
                                 <Route path="deployment">
                                     <Route index element={<Navigate to="configuration" replace />} />
                                     <Route path="configuration" element={<ApiProductDeploymentConfigurationPage />} />
