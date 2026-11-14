@@ -21,6 +21,7 @@ import io.gravitee.gamma.rest.core.guardian.use_case.DeployGuardianUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.GetGuardianDeploymentUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.GetGuardianUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.ListGuardianDeploymentsUseCase;
+import io.gravitee.gamma.rest.core.guardian.use_case.RollbackGuardianUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.UndeployGuardianUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.UpdateGuardianUseCase;
 import io.gravitee.gamma.rest.resources.CurrentAuditInfo;
@@ -66,6 +67,8 @@ import jakarta.ws.rs.core.Response;
  *       (1-based); withdrawals are not revisions and are left out.</li>
  *   <li>{@code GET /deployments/{deploymentId}} — one revision with the definition it deployed, or {@code 404}
  *       when the id is not a deployment of this Guardian.</li>
+ *   <li>{@code POST /deployments/{deploymentId}/_rollback} — replaces the draft with the definition of that
+ *       revision, keeping the description, without deploying it; the checks of a {@code PUT} apply.</li>
  *   <li>{@code DELETE} — {@code 204}, or {@code 409} while the Guardian has an active publication:
  *       {@code _undeploy} withdraws it first. The PRD's refusal to delete a Guardian enabled on an
  *       API waits on the API-Guardian association (AIAM-1533).</li>
@@ -96,6 +99,9 @@ public class GuardianResource {
 
     @Inject
     private GetGuardianDeploymentUseCase getGuardianDeploymentUseCase;
+
+    @Inject
+    private RollbackGuardianUseCase rollbackGuardianUseCase;
 
     @POST
     @Path("/_undeploy")
@@ -154,6 +160,14 @@ public class GuardianResource {
             new GetGuardianDeploymentUseCase.Input(ctx.getEnvironmentId(), guardianId, deploymentId)
         );
         return GuardianDeploymentDetailDto.from(output);
+    }
+
+    @POST
+    @Path("/deployments/{deploymentId}/_rollback")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GUARDIAN, acls = { RolePermissionAction.UPDATE }) })
+    public GuardianDto rollback(@PathParam("guardianId") String guardianId, @PathParam("deploymentId") String deploymentId) {
+        var output = rollbackGuardianUseCase.execute(new RollbackGuardianUseCase.Input(CurrentAuditInfo.of(), guardianId, deploymentId));
+        return GuardianDto.from(output.guardian());
     }
 
     @GET

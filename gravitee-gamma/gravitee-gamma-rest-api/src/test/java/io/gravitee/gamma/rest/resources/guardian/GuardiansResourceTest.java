@@ -858,6 +858,55 @@ class GuardiansResourceTest extends AbstractResourceTest {
             );
         }
 
+        @Test
+        void should_roll_the_draft_back_to_a_revision_without_deploying_it() {
+            deploy(Map.of());
+            var revisionId = latestRevisionId();
+            var renamed = new HashMap<String, Object>(PAYLOAD);
+            renamed.put("name", "Renamed since");
+            assertThat(rootTarget("/" + GUARDIAN_ID).request().put(Entity.json(renamed)).getStatus())
+                .as("update")
+                .isEqualTo(HttpStatusCode.OK_200);
+
+            var response = rollback(revisionId);
+
+            assertThat(response.getStatus()).as("rollback response").isEqualTo(HttpStatusCode.OK_200);
+            var body = response.readEntity(JsonNode.class);
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(body.at("/name").asText()).as("restored name").isEqualTo("Credential leakage");
+                softly.assertThat(body.at("/lifecycleState").asText()).as("draft matches what runs").isEqualTo("DEPLOYED");
+                softly.assertThat(body.at("/deployedVersion").asLong()).as("version running").isEqualTo(1);
+                softly.assertThat(guardianPublications.publications()).as("nothing published").isEqualTo(1);
+            });
+        }
+
+        @Test
+        void should_return_404_when_rolling_back_to_an_unknown_revision() {
+            deploy(Map.of());
+
+            assertThat(rollback("unknown").getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        }
+
+        @Test
+        void should_refuse_a_rollback_without_the_update_permission() {
+            deploy(Map.of());
+            var revisionId = latestRevisionId();
+            when(
+                permissionService.hasPermission(
+                    any(),
+                    eq(RolePermission.ENVIRONMENT_GUARDIAN),
+                    any(),
+                    eq(new RolePermissionAction[] { RolePermissionAction.UPDATE })
+                )
+            ).thenReturn(false);
+
+            assertThat(rollback(revisionId).getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
+        }
+
+        private Response rollback(String revisionId) {
+            return rootTarget("/" + GUARDIAN_ID + "/deployments/" + revisionId + "/_rollback").request().post(Entity.json(Map.of()));
+        }
+
         private String latestRevisionId() {
             return rootTarget("/" + GUARDIAN_ID + "/deployments").request().get().readEntity(JsonNode.class).at("/data/0/id").asText();
         }
