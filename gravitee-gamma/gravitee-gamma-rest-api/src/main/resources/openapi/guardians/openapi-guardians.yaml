@@ -471,6 +471,52 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
 
+    /organizations/{orgId}/environments/{envId}/guardians/{guardianId}/deployments/{deploymentId}/_rollback:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/guardianIdParam"
+            - $ref: "#/components/parameters/deploymentIdParam"
+        post:
+            tags:
+                - Guardians
+            summary: Roll the Guardian back to a deployment
+            description: |
+                Requires ENVIRONMENT_GUARDIAN UPDATE. Replaces the draft with the definition the
+                revision deployed, the way an API is rolled back: nothing is deployed. The Guardian
+                turns PENDING, or DEPLOYED when the revision is the one the gateways run, and
+                deploying it again numbers a new version. The description is kept: it is not part
+                of a definition.
+
+                The checks of an update apply, since the revision may be out of date: a name
+                another Guardian took since answers 409, a guardrail no longer installed 400.
+            operationId: rollbackGuardian
+            responses:
+                "200":
+                    description: The Guardian with the rolled back draft.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Guardian"
+                "400":
+                    $ref: "#/components/responses/BadRequest"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+                "404":
+                    description: |
+                        No Guardian with this id in this environment, or no deployment with this id
+                        in its history.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "409":
+                    description: Another Guardian of the environment holds the name of the revision.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
 components:
     securitySchemes:
         CookieAuth:
