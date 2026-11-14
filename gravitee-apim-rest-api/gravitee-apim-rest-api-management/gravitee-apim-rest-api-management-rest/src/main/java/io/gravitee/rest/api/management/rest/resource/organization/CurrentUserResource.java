@@ -115,6 +115,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class CurrentUserResource extends AbstractResource {
 
     public static final String IDP_SOURCE_MEMORY = "memory";
+    private static final String BASIC_AUTH_SCHEME = "Basic ";
 
     @Inject
     private UserService userService;
@@ -353,6 +354,10 @@ public class CurrentUserResource extends AbstractResource {
     @Operation(summary = "Login")
     @Produces(MediaType.APPLICATION_JSON)
     public Response login(final @Context HttpHeaders headers, final @Context HttpServletResponse servletResponse) {
+        if (!isBasicAuthentication(headers)) {
+            log.warn("Login refused: only Basic authentication can obtain a token, a token cannot be exchanged for a new one");
+            return status(Response.Status.UNAUTHORIZED).build();
+        }
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
             // JWT signer
@@ -428,6 +433,14 @@ public class CurrentUserResource extends AbstractResource {
             return ok(tokenEntity).build();
         }
         return status(Response.Status.UNAUTHORIZED).build();
+    }
+
+    // The token filter authenticates a Bearer header (JWT or personal access token) or the auth cookie before this
+    // resource runs, so the principal alone cannot tell a password login from a token renewal: only the Basic scheme
+    // proves the former.
+    private static boolean isBasicAuthentication(final HttpHeaders headers) {
+        final String authorization = headers.getHeaderString(HttpHeaders.AUTHORIZATION);
+        return authorization != null && authorization.regionMatches(true, 0, BASIC_AUTH_SCHEME, 0, BASIC_AUTH_SCHEME.length());
     }
 
     @POST

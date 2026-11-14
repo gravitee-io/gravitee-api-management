@@ -37,13 +37,16 @@ import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.UpdateUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -205,6 +208,58 @@ public class CurrentUserResourceTest extends AbstractResourceTest {
         final Response response = orgTarget().path("/login").request().post(null);
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.UNAUTHORIZED_401);
         assertThat(response.readEntity(Object.class)).isNull();
+    }
+
+    @Test
+    public void shouldLoginWithBasicAuthentication() {
+        Mockito.reset(userService);
+        authenticateAtLogin();
+
+        final Response response = orgTarget()
+            .path("/login")
+            .request()
+            .header(HttpHeaders.AUTHORIZATION, "Basic " + Base64.getEncoder().encodeToString((USER_NAME + ":any").getBytes()))
+            .post(null);
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        assertThat(response.readEntity(JsonNode.class).get("token").asText()).isNotBlank();
+    }
+
+    @Test
+    public void shouldNotExchangeAnExistingBearerTokenForANewOneAtLogin() {
+        Mockito.reset(userService);
+        authenticateAtLogin();
+
+        final Response response = orgTarget()
+            .path("/login")
+            .request()
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + UUID.randomUUID())
+            .post(null);
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.UNAUTHORIZED_401);
+    }
+
+    @Test
+    public void shouldNotExchangeAnExistingAuthCookieForANewTokenAtLogin() {
+        Mockito.reset(userService);
+        authenticateAtLogin();
+
+        final Response response = orgTarget()
+            .path("/login")
+            .request()
+            .cookie("Auth-Graviteeio-APIM", "Bearer%20" + UUID.randomUUID())
+            .post(null);
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.UNAUTHORIZED_401);
+    }
+
+    private void authenticateAtLogin() {
+        final UserDetails userDetails = new UserDetails(USER_NAME, "", Collections.emptyList());
+        userDetails.setOrganizationId(ORG);
+        final Authentication authentication = mock(Authentication.class);
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_GLOBAL);
+        SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
     }
 
     @Test
