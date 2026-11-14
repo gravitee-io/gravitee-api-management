@@ -29,11 +29,13 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.api.DashboardRepository;
+import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.search.AuditCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Dashboard;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.audit.AuditEntity;
 import io.gravitee.rest.api.model.audit.AuditQuery;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.PermissionService;
@@ -65,6 +67,9 @@ class AuditServiceImplTest {
 
     @Mock
     private DashboardRepository dashboardRepository;
+
+    @Mock
+    private EnvironmentRepository environmentRepository;
 
     @Mock
     private UserService userService;
@@ -457,6 +462,7 @@ class AuditServiceImplTest {
         private static final String DASHBOARD_ID = "dash-id";
         private static final String DASHBOARD_NAME = "My Dashboard";
         private static final String USER_ID = "user-id";
+        private static final String GUARDIAN_ID = "guardian-id";
 
         private final ExecutionContext executionContext = new ExecutionContext(ORG_ID, ENV_ID);
 
@@ -474,6 +480,30 @@ class AuditServiceImplTest {
             audit.setEvent("DASHBOARD_CREATED");
             audit.setPatch("[]");
             return audit;
+        }
+
+        private Audit guardianAudit() {
+            Audit audit = new Audit();
+            audit.setId("guardian-audit-id");
+            audit.setReferenceType(Audit.AuditReferenceType.ENVIRONMENT);
+            audit.setReferenceId(ENV_ID);
+            audit.setUser(USER_ID);
+            audit.setEvent("GUARDIAN_DEPLOYED");
+            audit.setProperties(Map.of("GUARDIAN", GUARDIAN_ID));
+            audit.setPatch("[]");
+            return audit;
+        }
+
+        @Test
+        void should_list_every_audit_of_a_page_holding_a_guardian_audit() {
+            when(auditRepository.search(any(), any())).thenReturn(new Page<>(List.of(dashboardAudit(), guardianAudit()), 0, 2, 2));
+
+            var result = auditSearch();
+
+            assertThat(result.getContent())
+                .as("audits of the page")
+                .extracting(AuditEntity::getId)
+                .containsExactly("audit-id", "guardian-audit-id");
         }
 
         @Test
