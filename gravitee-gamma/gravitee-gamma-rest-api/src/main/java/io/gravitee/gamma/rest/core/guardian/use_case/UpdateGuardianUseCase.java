@@ -20,8 +20,6 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
-import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
@@ -31,7 +29,6 @@ import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
 import java.time.ZoneOffset;
 import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -77,12 +74,7 @@ public class UpdateGuardianUseCase {
             validateGuardian.validateNameIsAvailable(input.auditInfo().environmentId(), guardianToUpdate.getName(), input.guardianId());
         }
 
-        validateGuardian
-            .validateAndSanitize(new ValidateGuardianDomainService.Input(guardianToUpdate))
-            .severe()
-            .ifPresent(errors -> {
-                throw new ValidationDomainException(errors.stream().map(Validator.Error::getMessage).collect(Collectors.joining(", ")));
-            });
+        validateGuardian.validateAgainstInstalledPolicies(guardianToUpdate);
 
         var publication = deployments.current(existingGuardian);
         var updatedGuardian = deployments.state(guardianRepository.update(guardianToUpdate), publication);

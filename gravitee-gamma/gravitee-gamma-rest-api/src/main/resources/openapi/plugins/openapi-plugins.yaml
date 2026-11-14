@@ -1,0 +1,287 @@
+openapi: 3.0.3
+info:
+    title: Gravitee.io Gamma - Policy plugins
+    description: |
+        The policy plugins installed on the platform, as an organization sees them, under
+        `/organizations/{orgId}/plugins/policies`. The other plugin types served under
+        `/organizations/{orgId}/plugins` are not documented here.
+
+        **Nothing here is generated.** The gamma rest-api has no OpenAPI generator wired, so the
+        response bodies are hand-written Java records and this file is documentation kept in step
+        with them by hand. If the two ever disagree, the records are the truth.
+
+        **A plugin is deployed** when the node deployed it and the organization's license enables
+        its feature.
+    version: 1.0.0
+
+security:
+    - CookieAuth: []
+
+servers:
+    - url: "/gamma"
+      description: Gravitee.io Gamma host application
+
+tags:
+    - name: Policies
+      description: |
+          The installed policy plugins and the flows they can run in. Every operation requires the
+          `ORGANIZATION_POLICIES` permission with the `READ` action on the organization of the path.
+
+paths:
+    /organizations/{orgId}/plugins/policies:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+        get:
+            tags:
+                - Policies
+            summary: List the installed policies
+            description: |
+                The installed policies, sorted by name, optionally only those that can run in some
+                flows and phase. Without filter, every installed policy is listed.
+            operationId: listPolicies
+            parameters:
+                - name: flow
+                  in: query
+                  required: false
+                  description: |
+                      Keep only the policies declaring every one of these flows. Repeat the
+                      parameter to request several flows. An unknown flow answers 400.
+                  style: form
+                  explode: true
+                  schema:
+                      type: array
+                      items:
+                          $ref: "#/components/schemas/Flow"
+                - name: phase
+                  in: query
+                  required: false
+                  description: |
+                      Keep only the policies declaring this phase, compared exactly as the plugin
+                      declares it: in each requested `flow`, or in at least one of its flows when
+                      no `flow` is given.
+                  schema:
+                      type: string
+                      example: REQUEST
+            responses:
+                "200":
+                    description: The policies, possibly none.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/PolicyPlugin"
+                "400":
+                    $ref: "#/components/responses/BadRequest"
+                "401":
+                    $ref: "#/components/responses/Unauthorized"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+
+    /organizations/{orgId}/plugins/policies/{policyId}:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/policyIdParam"
+        get:
+            tags:
+                - Policies
+            summary: Get an installed policy
+            operationId: getPolicy
+            responses:
+                "200":
+                    description: The policy.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PolicyPlugin"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+                "401":
+                    $ref: "#/components/responses/Unauthorized"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+
+    /organizations/{orgId}/plugins/policies/{policyId}/schema:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/policyIdParam"
+        get:
+            tags:
+                - Policies
+            summary: Get the configuration schema of a policy
+            operationId: getPolicySchema
+            responses:
+                "200":
+                    description: The JSON schema of the policy configuration.
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                "204":
+                    description: The policy declares no configuration schema.
+                "404":
+                    $ref: "#/components/responses/NotFound"
+                "401":
+                    $ref: "#/components/responses/Unauthorized"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+
+    /organizations/{orgId}/plugins/policies/{policyId}/documentation:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/policyIdParam"
+        get:
+            tags:
+                - Policies
+            summary: Get the documentation of a policy
+            operationId: getPolicyDocumentation
+            responses:
+                "200":
+                    description: The documentation of the policy, in Markdown.
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                "204":
+                    description: The policy ships no documentation.
+                "404":
+                    $ref: "#/components/responses/NotFound"
+                "401":
+                    $ref: "#/components/responses/Unauthorized"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+
+components:
+    securitySchemes:
+        CookieAuth:
+            type: apiKey
+            in: cookie
+            name: GAMMA-SESSION
+            description: |
+                Gamma-host session cookie set by the parent rest-api login flow. The same scheme
+                used by every other gamma endpoint.
+
+    parameters:
+        orgIdParam:
+            name: orgId
+            in: path
+            required: true
+            description: Id of an organization.
+            schema:
+                type: string
+                default: DEFAULT
+        policyIdParam:
+            name: policyId
+            in: path
+            required: true
+            description: Id of a policy plugin.
+            schema:
+                type: string
+
+    responses:
+        Unauthorized:
+            description: The caller is not authenticated.
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"
+        Forbidden:
+            description: The caller lacks the `ORGANIZATION_POLICIES` permission with the `READ` action.
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"
+        BadRequest:
+            description: The request is not acceptable.
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"
+        NotFound:
+            description: No installed policy with this id.
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"
+
+    schemas:
+        Flow:
+            type: string
+            description: A flow a policy can run in.
+            enum:
+                - http-proxy
+                - http-message
+                - native-kafka
+                - mcp-proxy
+                - llm-proxy
+                - a2a-proxy
+                - guardian
+
+        PolicyPlugin:
+            type: object
+            description: An installed policy plugin.
+            properties:
+                id:
+                    type: string
+                    description: The plugin id, the value a flow step carries in `policy`.
+                name:
+                    type: string
+                description:
+                    type: string
+                category:
+                    type: string
+                    description: The category the plugin manifest declares.
+                version:
+                    type: string
+                icon:
+                    type: string
+                    description: The plugin icon, as a data URI.
+                feature:
+                    type: string
+                    description: The license feature the plugin requires.
+                deployed:
+                    type: boolean
+                flow:
+                    type: object
+                    description: |
+                        The phases of each flow the plugin manifest declares, keyed by flow. The
+                        phases are exposed raw, as the plugin declares them: neither validated nor
+                        reduced. A flow the manifest does not declare is absent. The deprecated
+                        `proxy` and `message` keys are read as a fallback for `http-proxy` and
+                        `http-message`, without the legacy phase mapping the Management API applies
+                        (`MESSAGE_REQUEST`, `MESSAGE_RESPONSE`).
+                    additionalProperties:
+                        type: array
+                        items:
+                            type: string
+            required:
+                - id
+                - deployed
+                - flow
+            example:
+                id: guardrail-rule
+                name: Guardrail rule
+                category: guardrail
+                version: 1.0.0
+                feature: apim-guardian-policy-rule
+                deployed: true
+                flow:
+                    llm-proxy: [REQUEST, RESPONSE]
+                    guardian: [REQUEST, RESPONSE]
+
+        Error:
+            type: object
+            description: |
+                The error body of this surface. It carries a human-readable message and the status,
+                and **no technical code** — do not write a client against one.
+            properties:
+                message:
+                    type: string
+                http_status:
+                    type: integer
+            required:
+                - message
+                - http_status
+            example:
+                message: "Invalid flow. Expected one of [http-proxy, http-message, native-kafka, mcp-proxy, llm-proxy, a2a-proxy, guardian]."
+                http_status: 400

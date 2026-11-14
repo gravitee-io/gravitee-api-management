@@ -22,4 +22,5 @@ public enum ApiProtocolType {
     MCP_PROXY,
     LLM_PROXY,
     A2A_PROXY,
+    GUARDIAN,
 }

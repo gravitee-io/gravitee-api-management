@@ -165,6 +165,12 @@ paths:
                         than `llm-proxy`, an `id` that is not a UUID or is already taken, or a key
                         the schema does not declare.
 
+                        A step is refused too: an enabled step whose policy is not installed, or
+                        whose plugin does not declare the Guardian phase in its `guardian` flow; and
+                        for a guardrail, one whose plugin does not declare the Guardian API types,
+                        whatever phases it lists for them, or that declares an incompatible
+                        `scope.protocol`. Every refused step is named in the message.
+
                         The body of a refusal carries `message` and `http_status`, except for the
                         schema constraints — name, description, phase, `apiTypes`, `id` shape — which
                         the host's bean-validation mapper answers with `message`, `path`,
@@ -184,50 +190,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Error"
-                "403":
-                    $ref: "#/components/responses/Forbidden"
-
-    /organizations/{orgId}/environments/{envId}/guardians/_guardrails:
-        parameters:
-            - $ref: "#/components/parameters/orgIdParam"
-            - $ref: "#/components/parameters/envIdParam"
-        get:
-            tags:
-                - Guardians
-            summary: List the guardrails a Guardian can run
-            description: |
-                The installed policies a Guardian of `apiType` and `phase` can run as guardrails,
-                sorted by name. A policy is listed when it is a guardrail and its plugin declares
-                `phase` for `apiType`: the same rule the creation and the update apply to the
-                guardrail sequence, so a listed guardrail is never refused for its API type or phase.
-                An API type no Guardian can be created for lists nothing.
-
-                The configuration schema of a guardrail is served by the plugin endpoints, under its
-                `id`.
-            operationId: listGuardrails
-            parameters:
-                - name: apiType
-                  in: query
-                  required: true
-                  description: The API type of the Guardian, as `apiTypes` carries it.
-                  schema:
-                      $ref: "#/components/schemas/ApiType"
-                - name: phase
-                  in: query
-                  required: true
-                  schema:
-                      $ref: "#/components/schemas/GuardianPhase"
-            responses:
-                "200":
-                    description: The guardrails, possibly none.
-                    content:
-                        application/json:
-                            schema:
-                                type: array
-                                items:
-                                    $ref: "#/components/schemas/Guardrail"
-                "400":
-                    $ref: "#/components/responses/BadRequest"
                 "403":
                     $ref: "#/components/responses/Forbidden"
 
@@ -285,7 +247,18 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Guardian"
                 "400":
-                    $ref: "#/components/responses/BadRequest"
+                    description: |
+                        The payload is not acceptable, for the same reasons as a creation.
+
+                        A step is refused too: an enabled step whose policy is not installed, or
+                        whose plugin does not declare the Guardian phase in its `guardian` flow; and
+                        for a guardrail, one whose plugin does not declare the Guardian API types,
+                        whatever phases it lists for them, or that declares an incompatible
+                        `scope.protocol`. Every refused step is named in the message.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
                 "409":
                     description: |
                         Another Guardian of this environment already carries that name. Names are
@@ -503,7 +476,7 @@ components:
                     - llm-proxy
                 policies:
                     - name: Mask credentials
-                      policy: data-logging-masking
+                      policy: guardrail-rule
                       enabled: true
                 lifecycleState: UNDEPLOYED
                 createdAt: "2026-11-07T10:00:01.119Z"
@@ -608,7 +581,7 @@ components:
                     - llm-proxy
                 policies:
                     - name: Mask credentials
-                      policy: data-logging-masking
+                      policy: guardrail-rule
                       enabled: true
 
         UpdateGuardian:
@@ -760,12 +733,17 @@ components:
                 same shape a flow uses, carrying at least `policy`, plus `name`, `description`,
                 `configuration`, `condition` and `enabled`. Not enumerated here: the shape belongs to
                 `gravitee-apim-definition`, and restating it would let the two drift apart.
+
+                The `policy` of every enabled step must be an installed policy whose plugin declares
+                the Guardian phase in its `guardian` flow (`guardian=REQUEST,RESPONSE` in its
+                manifest); `GET /organizations/{orgId}/plugins/policies?flow=guardian&phase=` lists
+                them.
             items:
                 type: object
                 additionalProperties: true
             example:
                 - name: Mask credentials
-                  policy: data-logging-masking
+                  policy: guardrail-rule
                   enabled: true
 
         Resources:
@@ -786,22 +764,6 @@ components:
             enum:
                 - REQUEST
                 - RESPONSE
-
-        Guardrail:
-            type: object
-            description: An installed policy a Guardian can run as one of its guardrails.
-            properties:
-                id:
-                    type: string
-                    description: The policy plugin id, the value a guardrail step carries in `policy`.
-                name:
-                    type: string
-                    description: The plugin name, for display. Absent when the plugin manifest declares none.
-            required:
-                - id
-            example:
-                id: data-logging-masking
-                name: Data logging masking
 
         DeployGuardian:
             type: object

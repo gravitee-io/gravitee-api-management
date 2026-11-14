@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.rest.core.guardian.model;
+package io.gravitee.gamma.rest.core.gravitee_plugin.model;
 
-/** An installed policy a Guardian can run as one of its guardrails. */
-public record Guardrail(String id, String name) {}
+/** A policy plugin and the flows its manifest declares it can run in. */
+public record PlatformPolicyPlugin(PlatformPlugin plugin, DeclaredFlows flows) {}
