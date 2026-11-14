@@ -101,7 +101,7 @@ public class AuditMetadataQueryServiceImpl implements AuditMetadataQueryService 
     @Override
     public String fetchPropertyMetadata(AuditEntity audit, String propertyName, String propertyValue) {
         try {
-            return switch (Audit.AuditProperties.fromName(propertyName).orElse(null)) {
+            return switch (Audit.AuditProperties.valueOf(propertyName)) {
                 case API -> apiRepository.findById(propertyValue).map(Api::getName).orElse(propertyValue);
                 case APPLICATION -> applicationRepository.findById(propertyValue).map(Application::getName).orElse(propertyValue);
                 case GROUP -> groupRepository.findById(propertyValue).map(Group::getName).orElse(propertyValue);
@@ -119,10 +119,6 @@ public class AuditMetadataQueryServiceImpl implements AuditMetadataQueryService 
                     .findById(propertyValue)
                     .map(user -> UserAdapter.INSTANCE.fromUser(user).displayName())
                     .orElse(propertyValue);
-                case null -> {
-                    log.debug("Audit {} carries the property {} unknown to the repository model", audit.getId(), propertyName);
-                    yield propertyValue;
-                }
                 default -> propertyValue;
             };
         } catch (TechnicalException e) {
