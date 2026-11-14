@@ -209,6 +209,13 @@ class AuditMetadataQueryServiceImplTest {
             Assertions.assertThat(result).isEqualTo("true");
         }
 
+        @Test
+        void should_return_the_value_of_a_property_unknown_to_the_repository_model() {
+            var result = service.fetchPropertyMetadata(AUDIT, "UNKNOWN_PROPERTY", "unknown-id");
+
+            Assertions.assertThat(result).isEqualTo("unknown-id");
+        }
+
         @Nested
         class ApiProperty {
 

@@ -38,6 +38,7 @@ import io.gravitee.repository.management.model.Metadata;
 import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.Plan;
+import java.util.Optional;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -100,8 +101,17 @@ public class AuditMetadataQueryServiceImpl implements AuditMetadataQueryService 
 
     @Override
     public String fetchPropertyMetadata(AuditEntity audit, String propertyName, String propertyValue) {
+        Optional<Audit.AuditProperties> auditProperty = Audit.AuditProperties.fromName(propertyName);
+        if (auditProperty.isEmpty()) {
+            log.warn(
+                "Audit {} carries the property {} unknown to the repository model, showing its raw value",
+                audit.getId(),
+                propertyName
+            );
+            return propertyValue;
+        }
         try {
-            switch (Audit.AuditProperties.valueOf(propertyName)) {
+            switch (auditProperty.get()) {
                 case API:
                     return apiRepository.findById(propertyValue).map(Api::getName).orElse(propertyValue);
                 case APPLICATION:

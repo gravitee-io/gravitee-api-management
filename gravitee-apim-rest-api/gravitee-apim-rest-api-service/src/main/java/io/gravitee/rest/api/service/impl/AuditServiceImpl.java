@@ -317,8 +317,17 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     }
 
     private String getName(String property, String value, ExecutionContext executionContext, AuditEntity auditEntity) {
+        Optional<Audit.AuditProperties> auditProperty = Audit.AuditProperties.fromName(property);
+        if (auditProperty.isEmpty()) {
+            log.warn(
+                "Audit {} carries the property {} unknown to the repository model, showing its raw value",
+                auditEntity.getId(),
+                property
+            );
+            return value;
+        }
         try {
-            return switch (Audit.AuditProperties.valueOf(property)) {
+            return switch (auditProperty.get()) {
                 case API -> apiRepository.findById(value).map(Api::getName).orElse(value);
                 case APPLICATION -> applicationRepository.findById(value).map(Application::getName).orElse(value);
                 case PAGE -> pageRepository.findById(value).map(io.gravitee.repository.management.model.Page::getName).orElse(value);

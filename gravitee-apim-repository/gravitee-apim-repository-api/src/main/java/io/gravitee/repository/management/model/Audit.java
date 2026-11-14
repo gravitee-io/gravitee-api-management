@@ -15,9 +15,11 @@
  */
 package io.gravitee.repository.management.model;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -96,7 +98,17 @@ public class Audit {
         ENCRYPTED,
         MCP_SERVER,
         SECRET,
-        CREDENTIAL,
+        CREDENTIAL;
+
+        /**
+         * The audit property of the given name, or empty when this model does not know it: the stored
+         * audits may carry a property written by a newer or a separately versioned component.
+         */
+        public static Optional<AuditProperties> fromName(String name) {
+            return Arrays.stream(values())
+                .filter(property -> property.name().equals(name))
+                .findFirst();
+        }
     }
 
     private String id;
