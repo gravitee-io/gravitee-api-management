@@ -51,21 +51,6 @@
                 <plugin>
                     <artifactId>maven-dependency-plugin</artifactId>
                     <version>${maven-dependency-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <id>unpack-repository-tests</id>
-                            <phase>test-compile</phase>
-                            <goals>
-                                <goal>unpack-dependencies</goal>
-                            </goals>
-                            <configuration>
-                                <includeGroupIds>io.gravitee.apim.repository</includeGroupIds>
-                                <includeArtifactIds>gravitee-apim-repository-test</includeArtifactIds>
-                                <includeClassifiers>tests</includeClassifiers>
-                                <outputDirectory>${project.build.directory}/test-classes</outputDirectory>
-                            </configuration>
-                        </execution>
-                    </executions>
                 </plugin>
             </plugins>
         </pluginManagement>
