@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
@@ -113,6 +116,22 @@ describe('PlanCardComponent', () => {
       component.onSelectPlan();
 
       expect(emitted).toBeFalsy();
+    });
+  });
+
+  describe('metadata overflow', () => {
+    it('should let long metadata chips wrap inside the plan card instead of overflowing it', () => {
+      component.apiType = 'NATIVE';
+      fixture.componentRef.setInput('plan', fakePlan({ security: 'API_KEY', mode: 'STANDARD' }));
+      fixture.detectChanges();
+
+      const chips: HTMLElement[] = Array.from(fixture.nativeElement.querySelectorAll('mat-chip'));
+      expect(chips.some(chip => chip.textContent?.includes('SASL/SSL with SASL mechanisms PLAIN'))).toBe(true);
+
+      // jsdom does not apply component styles, so inspect the stylesheet the component ships with.
+      const scss = readFileSync(join(__dirname, 'plan-card.component.scss'), 'utf8');
+      expect(scss).toMatch(/\.mdc-evolution-chip__text-label\s*\{[^}]*white-space:\s*normal/);
+      expect(scss).toMatch(/\.mdc-evolution-chip__text-label\s*\{[^}]*overflow-wrap:\s*anywhere/);
     });
   });
 });
