@@ -35,10 +35,20 @@ public class LicenseFixtures {
     }
 
     public static License anOssLicense() {
+        return aLicenseOfTier("oss");
+    }
+
+    public static License aLicenseWithAttribute(String name, Object value) {
+        FakeLicense license = (FakeLicense) anEnterpriseLicense();
+        license.getAttributes().put(name, value);
+        return license;
+    }
+
+    public static License aLicenseOfTier(String tier) {
         return new FakeLicense(
             License.REFERENCE_TYPE_PLATFORM,
             License.REFERENCE_ID_PLATFORM,
-            "oss",
+            tier,
             Date.from(Instant.now().plus(1, ChronoUnit.DAYS))
         );
     }

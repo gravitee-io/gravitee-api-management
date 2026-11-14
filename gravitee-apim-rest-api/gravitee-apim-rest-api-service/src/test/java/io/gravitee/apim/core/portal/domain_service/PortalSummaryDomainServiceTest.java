@@ -61,7 +61,10 @@ class PortalSummaryDomainServiceTest {
     void setUp() {
         themeQueryService.reset();
         navigationItems.clear();
-        cut = new PortalSummaryDomainService(themeQueryService, new PortalNavigationItemsQueryServiceInMemory(navigationItems));
+        cut = new PortalSummaryDomainService(
+            new PortalLogoDomainService(themeQueryService),
+            new PortalNavigationItemsQueryServiceInMemory(navigationItems)
+        );
     }
 
     @Nested
@@ -163,29 +166,55 @@ class PortalSummaryDomainServiceTest {
         }
 
         @Test
-        void should_have_no_logo_when_the_next_gen_theme_is_disabled() {
+        void should_have_no_logo_when_the_environment_has_no_portal_logo() {
             themeQueryService.initWith(List.of(theme(ThemeType.PORTAL_NEXT, ENV_ID, false, "data:image/png;base64,AAA")));
 
             assertThat(summaryOf(portal(PORTAL_ID, false)).hasLogo()).isFalse();
         }
+    }
+
+    @Nested
+    class CountPublishedApis {
 
         @Test
-        void should_have_no_logo_when_the_enabled_next_gen_theme_has_none() {
-            themeQueryService.initWith(List.of(theme(ThemeType.PORTAL_NEXT, ENV_ID, true, " ")));
-
-            assertThat(summaryOf(portal(PORTAL_ID, false)).hasLogo()).isFalse();
-        }
-
-        @Test
-        void should_ignore_the_classic_portal_theme_and_other_environments() {
-            themeQueryService.initWith(
+        void should_count_an_api_published_on_several_portals_once() {
+            navigationItems.addAll(
                 List.of(
-                    theme(ThemeType.PORTAL, ENV_ID, true, "data:image/png;base64,AAA"),
-                    theme(ThemeType.PORTAL_NEXT, OTHER_ENV_ID, true, "data:image/png;base64,AAA")
+                    api(PORTAL_ID, ENV_ID, "api-1", null, true),
+                    api(OTHER_PORTAL_ID, ENV_ID, "api-1", null, true),
+                    api(OTHER_PORTAL_ID, ENV_ID, "api-2", null, true)
                 )
             );
 
-            assertThat(summaryOf(portal(PORTAL_ID, false)).hasLogo()).isFalse();
+            assertThat(cut.countPublishedApis(ENV_ID, List.of(portal(PORTAL_ID, true), portal(OTHER_PORTAL_ID, false)))).isEqualTo(2);
+        }
+
+        @Test
+        void should_ignore_unpublished_apis_and_apis_under_an_unpublished_ancestor() {
+            var unpublishedFolder = folder(PORTAL_ID, null, false);
+            navigationItems.addAll(
+                List.of(
+                    unpublishedFolder,
+                    api(PORTAL_ID, ENV_ID, "unpublished-api", null, false),
+                    api(PORTAL_ID, ENV_ID, "hidden-api", unpublishedFolder.getId(), true),
+                    api(PORTAL_ID, ENV_ID, "visible-api", null, true)
+                )
+            );
+
+            assertThat(cut.countPublishedApis(ENV_ID, List.of(portal(PORTAL_ID, true)))).isEqualTo(1);
+        }
+
+        @Test
+        void should_ignore_other_environments_and_portals_not_counted() {
+            navigationItems.addAll(
+                List.of(
+                    api(PORTAL_ID, OTHER_ENV_ID, "other-env-api", null, true),
+                    api(OTHER_PORTAL_ID, ENV_ID, "deleted-portal-api", null, true),
+                    api(PortalId.ZERO, ENV_ID, "placeholder-api", null, true)
+                )
+            );
+
+            assertThat(cut.countPublishedApis(ENV_ID, List.of(portal(PORTAL_ID, true)))).isZero();
         }
     }
 
