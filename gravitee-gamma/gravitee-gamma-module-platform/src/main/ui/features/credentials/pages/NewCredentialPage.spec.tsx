@@ -41,10 +41,10 @@ function givenPermissions(granted: readonly string[]) {
 
 async function fillDetails(name: string, type?: string) {
     await inputHarness({ name: /Name/ }).type(name);
-    if (type) {
-        await userEvent.click(screen.getByRole('radio', { name: type }));
-    }
     await buttonHarness({ name: 'Next' }).click();
+    if (type) {
+        await userEvent.click(screen.getByRole('tab', { name: type }));
+    }
 }
 
 describe('NewCredentialPage', () => {
@@ -83,6 +83,18 @@ describe('NewCredentialPage', () => {
         await fillDetails('OpenAI production');
 
         expect(passwordInputHarness({ name: /Token/ }).isMasked()).toBe(true);
+    });
+
+    it('picks the type on the authentication step', async () => {
+        renderWithGraphene(<NewCredentialPage />);
+
+        expect(screen.queryByRole('tab', { name: 'Basic auth' })).not.toBeInTheDocument();
+        await fillDetails('Partner API');
+        expect(screen.getByRole('tab', { name: 'Bearer token' })).toHaveAttribute('aria-selected', 'true');
+
+        await userEvent.click(screen.getByRole('tab', { name: 'Basic auth' }));
+
+        expect(screen.getByRole('tabpanel', { name: 'Basic auth' })).toContainElement(screen.getByLabelText(/Username/));
     });
 
     it('creates an API key credential that references an existing secret', async () => {
