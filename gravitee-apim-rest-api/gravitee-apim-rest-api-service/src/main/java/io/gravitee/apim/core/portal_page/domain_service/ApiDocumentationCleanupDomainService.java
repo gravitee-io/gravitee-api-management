@@ -20,6 +20,7 @@ import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudSe
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
@@ -29,6 +30,9 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -46,14 +50,19 @@ public class ApiDocumentationCleanupDomainService {
 
     public void cleanupForApi(String environmentId, String apiId) {
         var owner = new NavigationItemReference.ApiReference(apiId);
-        var documentation = navigationItemsQueryService
-            .search(PortalNavigationItemQueryCriteria.builder().environmentId(environmentId).build())
+        var environmentItems = navigationItemsQueryService.search(
+            PortalNavigationItemQueryCriteria.builder().environmentId(environmentId).build()
+        );
+        var itemsToDelete = new ArrayList<PortalNavigationItem>();
+        environmentItems
             .stream()
             .filter(item -> owner.equals(item.getReference()))
             .filter(ApiDocumentationCleanupDomainService::isDocumentation)
-            .toList();
-        var navigationIds = documentation.stream().map(PortalNavigationItem::getId).collect(Collectors.toSet());
-        var contentIds = documentation
+            .forEach(itemsToDelete::add);
+        // A listing left behind would stay published in the portal as an empty entry for an API that no longer exists
+        itemsToDelete.addAll(findListingsWithDescendants(environmentItems, apiId));
+        var navigationIds = itemsToDelete.stream().map(PortalNavigationItem::getId).collect(Collectors.toSet());
+        var contentIds = itemsToDelete
             .stream()
             .filter(PortalNavigationPage.class::isInstance)
             .map(PortalNavigationPage.class::cast)
@@ -103,6 +112,32 @@ public class ApiDocumentationCleanupDomainService {
             .filter(content -> environmentId.equals(content.getEnvironmentId()))
             .map(PortalPageContent::getId)
             .toList();
+    }
+
+    /**
+     * Items stored under a listing, such as the documentation of the API as a member of an API product, are
+     * only reached through it: they go with it rather than being left without a parent.
+     */
+    private static List<PortalNavigationItem> findListingsWithDescendants(List<PortalNavigationItem> environmentItems, String apiId) {
+        var childrenByParentId = environmentItems
+            .stream()
+            .filter(item -> item.getParentId() != null)
+            .collect(Collectors.groupingBy(PortalNavigationItem::getParentId));
+        var toVisit = new ArrayDeque<PortalNavigationItem>();
+        environmentItems
+            .stream()
+            .filter(item -> item instanceof PortalNavigationApi listing && listing.appliesToApiId(apiId))
+            .forEach(toVisit::push);
+        var found = new ArrayList<PortalNavigationItem>();
+        var visitedIds = new HashSet<PortalNavigationItemId>();
+        while (!toVisit.isEmpty()) {
+            var item = toVisit.pop();
+            if (visitedIds.add(item.getId())) {
+                found.add(item);
+                childrenByParentId.getOrDefault(item.getId(), List.of()).forEach(toVisit::push);
+            }
+        }
+        return found;
     }
 
     private static boolean isDocumentation(PortalNavigationItem item) {
