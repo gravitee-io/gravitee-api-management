@@ -33,6 +33,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -42,6 +43,15 @@ import java.util.Set;
  */
 public interface ApplicationService {
     ApplicationEntity findById(final ExecutionContext executionContext, String applicationId);
+
+    /**
+     * The agent application acting for the given agent in this environment, when one does. One ever should:
+     * creation and restoring refuse an application for an agent that already has one, which is what makes this a
+     * lookup rather than a search — callers read the link from the agent's side without keeping a copy of it.
+     * Those checks read before they write, so two concurrent creates can still both pass; the repository answers
+     * with the oldest application, so a duplicate at least resolves the same way on every read.
+     */
+    Optional<ApplicationEntity> findByAgentEntityId(final ExecutionContext executionContext, String agentEntityId);
 
     Set<ApplicationListItem> findByIds(final ExecutionContext executionContext, Collection<String> applicationIds);
 

@@ -15,11 +15,13 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Application.METADATA_AGENT_ENTITY_ID;
 import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -36,6 +38,7 @@ import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.AgentAlreadyLinkedException;
 import io.gravitee.rest.api.service.exceptions.ApplicationActiveException;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
@@ -67,6 +70,7 @@ public class ApplicationService_RestoreTest {
 
     private static final String CLIENT_ID = "myClientId";
     private static final String ENVIRONMENT_ID = "DEFAULT";
+    private static final String AGENT_ENTITY_ID = "agent.support";
 
     @InjectMocks
     private ApplicationServiceImpl applicationService = new ApplicationServiceImpl();
@@ -134,6 +138,43 @@ public class ApplicationService_RestoreTest {
 
             applicationService.restore(GraviteeContext.getExecutionContext(), APP);
         });
+    }
+
+    @Test
+    public void shouldNotRestoreApp_AgentAlreadyLinked() throws TechnicalException {
+        // Archiving frees the agent, so it may have been given another application since. Restoring without the check
+        // would leave two active applications acting for one agent (AIAM-669).
+        Application appToRestore = fakeApp(false);
+        appToRestore.setStatus(ApplicationStatus.ARCHIVED);
+        appToRestore.setMetadata(Map.of(METADATA_AGENT_ENTITY_ID, AGENT_ENTITY_ID));
+        appToRestore.setEnvironmentId(ENVIRONMENT_ID);
+
+        when(applicationRepository.findById(APP)).thenReturn(Optional.of(appToRestore));
+        when(applicationRepository.existsMetadataEntryForEnv(METADATA_AGENT_ENTITY_ID, AGENT_ENTITY_ID, ENVIRONMENT_ID)).thenReturn(true);
+
+        assertThrows(AgentAlreadyLinkedException.class, () -> applicationService.restore(GraviteeContext.getExecutionContext(), APP));
+
+        verify(applicationRepository, never()).update(any());
+    }
+
+    @Test
+    public void shouldRestoreAgentApp_WhenAgentIsFree() throws TechnicalException {
+        Application app = fakeApp(false);
+        app.setStatus(ApplicationStatus.ARCHIVED);
+        app.setMetadata(Map.of(METADATA_AGENT_ENTITY_ID, AGENT_ENTITY_ID));
+        app.setEnvironmentId(ENVIRONMENT_ID);
+
+        when(applicationRepository.findById(APP)).thenReturn(Optional.of(app));
+        when(applicationRepository.existsMetadataEntryForEnv(METADATA_AGENT_ENTITY_ID, AGENT_ENTITY_ID, ENVIRONMENT_ID)).thenReturn(false);
+        when(applicationRepository.update(app)).thenReturn(fakeApp(true));
+        when(subscriptionService.findByApplicationAndPlan(eq(GraviteeContext.getExecutionContext()), any(), any())).thenReturn(
+            Collections.emptyList()
+        );
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(new UserEntity());
+
+        ApplicationEntity result = applicationService.restore(GraviteeContext.getExecutionContext(), APP);
+
+        Assertions.assertThat(result.getStatus()).isEqualTo(ApplicationStatus.ACTIVE.name());
     }
 
     @Test

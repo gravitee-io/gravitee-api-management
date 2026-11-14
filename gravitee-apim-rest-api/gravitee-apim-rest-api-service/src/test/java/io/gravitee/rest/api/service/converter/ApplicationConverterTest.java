@@ -15,17 +15,62 @@
  */
 package io.gravitee.rest.api.service.converter;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 import io.gravitee.repository.management.model.Application;
+import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
+import io.gravitee.rest.api.model.application.AgentSettings;
+import io.gravitee.rest.api.model.application.ApplicationSettings;
+import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import org.junit.jupiter.api.Test;
 
 public class ApplicationConverterTest {
 
     ApplicationConverter applicationConverter = new ApplicationConverter();
+
+    @Test
+    public void newApplicationEntity_toApplication_should_derive_agent_type_from_agent_settings() {
+        Application application = applicationConverter.toApplication(newEntityWithAgentSettings("agent.support", "agent-client-id"));
+
+        assertSame(ApplicationType.AGENT, application.getType());
+    }
+
+    @Test
+    public void newApplicationEntity_toApplication_should_store_agent_link_and_client_id_as_metadata() {
+        Application application = applicationConverter.toApplication(newEntityWithAgentSettings("agent.support", "agent-client-id"));
+
+        assertEquals("agent.support", application.getMetadata().get("agent_entity_id"));
+        assertEquals("agent-client-id", application.getMetadata().get("client_id"));
+    }
+
+    @Test
+    public void newApplicationEntity_toApplication_should_keep_simple_type_for_app_settings_whatever_their_type_string() {
+        SimpleApplicationSettings app = new SimpleApplicationSettings();
+        app.setType("agent");
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setApp(app);
+        NewApplicationEntity newApplicationEntity = new NewApplicationEntity();
+        newApplicationEntity.setSettings(settings);
+
+        Application application = applicationConverter.toApplication(newApplicationEntity);
+
+        assertSame(ApplicationType.SIMPLE, application.getType());
+    }
+
+    private static NewApplicationEntity newEntityWithAgentSettings(String entityId, String clientId) {
+        AgentSettings agent = new AgentSettings();
+        agent.setEntityId(entityId);
+        agent.setClientId(clientId);
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setAgent(agent);
+        NewApplicationEntity newApplicationEntity = new NewApplicationEntity();
+        newApplicationEntity.setSettings(settings);
+        return newApplicationEntity;
+    }
 
     @Test
     public void newApplicationEntity_toApplication_should_convert_ApiKeyMode() {
