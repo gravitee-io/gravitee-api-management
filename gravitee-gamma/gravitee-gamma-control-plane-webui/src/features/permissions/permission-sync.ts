@@ -21,17 +21,37 @@ import { useEnvironmentStore } from '../environment/environment.store';
 
 type EnvironmentSnapshot = ReturnType<typeof useEnvironmentStore.getState>;
 
+/**
+ * Bumped whenever the permissions held are dropped: an answer to a request made before belongs to a user or an environment
+ * left since, and would pass for the permissions of the current one.
+ */
+let generation = 0;
+
+function dropPermissions(drop: () => void): void {
+    generation += 1;
+    drop();
+}
+
 /** Loads env permissions when both a user and an environment are selected (shared catch logging). */
 function loadEnvironmentPermissionsIfContextReady(environmentId: string | undefined): void {
     if (!environmentId || !useAuthStore.getState().user) return;
-    loadEnvironmentPermissions(environmentId).catch((error: unknown) => {
+    const requestedIn = generation;
+    const isCurrent = () => generation === requestedIn;
+    loadEnvironmentPermissions(environmentId, isCurrent).catch((error: unknown) => {
         console.error('Failed to load environment permissions', error);
+        if (isCurrent()) {
+            permissionService.markLoadFailed('environment');
+        }
     });
+}
+
+export function reloadEnvironmentPermissions(): void {
+    loadEnvironmentPermissionsIfContextReady(useEnvironmentStore.getState().environmentId);
 }
 
 function onEnvironmentChangeForPermissions(state: EnvironmentSnapshot, prev: EnvironmentSnapshot): void {
     if (state.environmentId === prev.environmentId) return;
-    permissionService.clear('environment');
+    dropPermissions(() => permissionService.clear('environment'));
     loadEnvironmentPermissionsIfContextReady(state.environmentId);
 }
 
@@ -44,7 +64,7 @@ function onEnvironmentChangeForPermissions(state: EnvironmentSnapshot, prev: Env
 export function startPermissionSync(): () => void {
     const unsubAuth = useAuthStore.subscribe((state, prev) => {
         if (state.user === prev.user) return;
-        permissionService.reset();
+        dropPermissions(() => permissionService.reset());
         if (state.user) {
             permissionService.load('organization', normalizeOrganizationPermissionsFromRoles(state.user.roles));
             // Env store may not emit a change when env id is unchanged (e.g. login); reload env perms after reset.

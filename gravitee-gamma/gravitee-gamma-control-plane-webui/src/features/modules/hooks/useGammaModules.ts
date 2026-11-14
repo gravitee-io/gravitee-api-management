@@ -27,14 +27,16 @@ export function useGammaModules(): { modules: GammaModule[]; loading: boolean; e
     const user = useAuthStore(s => s.user);
     const modules = useModulesStore(s => s.modules);
     const setModules = useModulesStore(s => s.setModules);
+    const setListStatus = useModulesStore(s => s.setListStatus);
+    const listRequest = useModulesStore(s => s.listRequest);
+    const requestList = useModulesStore(s => s.requestList);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
-    const [retryCount, setRetryCount] = useState(0);
 
     // Shows the retry as running at once: one that fails right away could otherwise end before it was seen to start.
     const retry = () => {
         setLoading(true);
-        setRetryCount(c => c + 1);
+        requestList();
     };
 
     useEffect(() => {
@@ -44,6 +46,7 @@ export function useGammaModules(): { modules: GammaModule[]; loading: boolean; e
 
         if (!user) {
             setModules([]);
+            setListStatus('pending');
             setError(null);
             setLoading(false);
             return;
@@ -63,11 +66,15 @@ export function useGammaModules(): { modules: GammaModule[]; loading: boolean; e
                 const parsed = Array.isArray(data) ? data.filter(hasUi).map(parseModule) : [];
                 registerModuleRemotes(parsed, gammaBaseURL, organizationId);
                 setModules(parsed);
+                setListStatus('loaded');
                 setError(null);
             })
             .catch(err => {
                 if (!controller.signal.aborted) {
                     setError(err instanceof Error ? err : new Error(String(err)));
+                    // The store renders its subscribers at once: the retry must not show as running beside a failed list.
+                    setLoading(false);
+                    setListStatus('failed');
                 }
             })
             .finally(() => {
@@ -77,7 +84,7 @@ export function useGammaModules(): { modules: GammaModule[]; loading: boolean; e
             });
 
         return () => controller.abort();
-    }, [gammaBaseURL, organizationId, user, retryCount]);
+    }, [gammaBaseURL, organizationId, user, listRequest]);
 
     return { modules, loading, error, retry };
 }

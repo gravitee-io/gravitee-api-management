@@ -18,18 +18,30 @@ import { create } from 'zustand';
 import type { RemoteModuleLoadStatus } from './modules.remotes';
 import type { GammaModule } from './modules.types';
 
+/** `pending` until the list is read: until then, no module can be said to be missing. */
+export type ModuleListStatus = 'pending' | 'loaded' | 'failed';
+
 interface ModulesState {
     modules: GammaModule[];
+    listStatus: ModuleListStatus;
+    /** Counts the reads of the list asked for, so that a page outside the module routes can ask for one. */
+    listRequest: number;
     /** The modules whose load the user has been told about, and how it is going. */
     moduleLoadStatuses: Record<string, RemoteModuleLoadStatus>;
     setModules: (modules: GammaModule[]) => void;
+    setListStatus: (listStatus: ModuleListStatus) => void;
+    requestList: () => void;
     setModuleLoadStatus: (moduleId: string, status: RemoteModuleLoadStatus | undefined) => void;
 }
 
 export const useModulesStore = create<ModulesState>(set => ({
     modules: [],
     moduleLoadStatuses: {},
+    listStatus: 'pending',
+    listRequest: 0,
     setModules: modules => set({ modules }),
+    setListStatus: listStatus => set({ listStatus }),
+    requestList: () => set(state => ({ listRequest: state.listRequest + 1 })),
     setModuleLoadStatus: (moduleId, status) =>
         set(state => {
             const moduleLoadStatuses = { ...state.moduleLoadStatuses };

@@ -14,7 +14,15 @@
  * limitations under the License.
  */
 import { Badge, Button, Card, CardContent, toast } from '@gravitee/graphene-core';
-import { ArrowRightIcon, CloudUploadIcon, EyeIcon, KeyIcon, MessageSquareWarningIcon, UserCheckIcon } from '@gravitee/graphene-core/icons';
+import {
+    ArrowRightIcon,
+    CloudUploadIcon,
+    EyeIcon,
+    KeyIcon,
+    MessageSquareWarningIcon,
+    ShieldCheckIcon,
+    UserCheckIcon,
+} from '@gravitee/graphene-core/icons';
 import type { LucideIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -30,6 +38,7 @@ const ICONS: Record<TaskIconKey, LucideIcon> = {
     changes: MessageSquareWarningIcon,
     registration: UserCheckIcon,
     promotion: CloudUploadIcon,
+    approval: ShieldCheckIcon,
 };
 
 const AREA_CLASS: Record<TaskAreaKey, string> = {
@@ -40,6 +49,7 @@ const AREA_CLASS: Record<TaskAreaKey, string> = {
     llm: 'border-highlight/30 text-highlight',
     kafka: 'border-warning/30 text-warning',
     users: 'border-success/30 text-success',
+    aim: 'border-highlight/30 text-highlight',
 };
 
 export function TaskRow({
@@ -61,7 +71,7 @@ export function TaskRow({
     const targetLabel = task.toModuleId ? getModuleLabel(task.toModuleId, targetModule?.name) : undefined;
 
     const isPromotionTask = task.type === 'PROMOTION_APPROVAL';
-    const promotionData = isPromotionTask ? promotionDataOf(task.entity) : undefined;
+    const promotionData = isPromotionTask && task.entity ? promotionDataOf(task.entity) : undefined;
 
     const navigateToTarget = () => {
         if (!task.to || !task.toModuleId) {

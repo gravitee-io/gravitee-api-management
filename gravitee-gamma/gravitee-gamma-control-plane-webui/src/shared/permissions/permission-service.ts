@@ -19,12 +19,15 @@ import type { PermissionScope } from './types';
 
 type Listener = () => void;
 
+type PermissionLoadStatus = 'pending' | 'loaded' | 'failed';
+
 /**
  * Vanilla permission store shared across Gamma host and federated modules.
  * Not tied to Zustand/Redux; consumers can subscribe for custom integrations.
  */
 export class PermissionService implements IPermissionService {
     private readonly scopes = new Map<PermissionScope, string[]>();
+    private readonly failedLoads = new Set<PermissionScope>();
     private version = 0;
     private readonly listeners = new Set<Listener>();
 
@@ -35,12 +38,27 @@ export class PermissionService implements IPermissionService {
 
     clear(scope: PermissionScope): void {
         this.scopes.delete(scope);
+        this.failedLoads.delete(scope);
         this.bump();
     }
 
     reset(): void {
         this.scopes.clear();
+        this.failedLoads.clear();
         this.bump();
+    }
+
+    markLoadFailed(scope: PermissionScope): void {
+        this.failedLoads.add(scope);
+        this.bump();
+    }
+
+    /** Tells a scope holding no permission from one not read yet, which `hasAnyOf` and `hasAllOf` answer alike. */
+    getLoadStatus(scope: PermissionScope): PermissionLoadStatus {
+        if (this.scopes.has(scope)) {
+            return 'loaded';
+        }
+        return this.failedLoads.has(scope) ? 'failed' : 'pending';
     }
 
     /** All normalized permission strings from every loaded scope (flattened). */

@@ -13,7 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { PromotionReviewData, TaskArea, TaskCategory, TaskEntity, TaskIconKey, TaskMetadata, TaskType, TaskView } from './tasks.types';
+import type {
+    HumanApproval,
+    PromotionReviewData,
+    TaskArea,
+    TaskCategory,
+    TaskEntity,
+    TaskIconKey,
+    TaskMetadata,
+    TaskType,
+    TaskView,
+} from './tasks.types';
 
 const CATEGORY_BY_TYPE: Record<TaskType, TaskCategory> = {
     SUBSCRIPTION_APPROVAL: 'SUBSCRIPTION',
@@ -21,6 +31,7 @@ const CATEGORY_BY_TYPE: Record<TaskType, TaskCategory> = {
     REQUEST_FOR_CHANGES: 'CHANGES_REQUESTED',
     USER_REGISTRATION_APPROVAL: 'USER_REGISTRATION',
     PROMOTION_APPROVAL: 'API_PROMOTION',
+    HUMAN_APPROVAL: 'HUMAN_APPROVAL',
 };
 
 const ICON_BY_TYPE: Record<TaskType, TaskIconKey> = {
@@ -29,6 +40,7 @@ const ICON_BY_TYPE: Record<TaskType, TaskIconKey> = {
     REQUEST_FOR_CHANGES: 'changes',
     USER_REGISTRATION_APPROVAL: 'registration',
     PROMOTION_APPROVAL: 'promotion',
+    HUMAN_APPROVAL: 'approval',
 };
 
 const CATEGORY_LABEL: Record<TaskCategory, string> = {
@@ -37,6 +49,7 @@ const CATEGORY_LABEL: Record<TaskCategory, string> = {
     CHANGES_REQUESTED: 'Changes Requested',
     USER_REGISTRATION: 'User Registration',
     API_PROMOTION: 'API Promotion',
+    HUMAN_APPROVAL: 'Human Approval',
 };
 
 const ACTION_LABEL: Record<TaskType, string> = {
@@ -45,6 +58,7 @@ const ACTION_LABEL: Record<TaskType, string> = {
     REQUEST_FOR_CHANGES: 'Address feedback',
     USER_REGISTRATION_APPROVAL: 'Validate user',
     PROMOTION_APPROVAL: 'Review promotion',
+    HUMAN_APPROVAL: 'Review approval',
 };
 
 type ConsumerLevel = 'detail' | 'list' | 'none';
@@ -66,6 +80,8 @@ const OPEN_REVIEW_SEARCH_PARAM = 'review';
 const USERS_AREA: TaskArea = { key: 'users', label: 'Users' };
 
 const EVENT_STREAM_AREA: TaskArea = { key: 'esm', label: 'Event Stream Management' };
+
+const AGENT_MANAGEMENT_AREA: TaskArea = { key: 'aim', label: 'Agent Management' };
 
 /**
  * `message` and `native` APIs are served by the `esm` module, not by `apim`: sending them to
@@ -112,6 +128,7 @@ const EMPTY_COUNTS: Record<TaskCategory, number> = {
     CHANGES_REQUESTED: 0,
     USER_REGISTRATION: 0,
     API_PROMOTION: 0,
+    HUMAN_APPROVAL: 0,
 };
 
 export function categoryOf(type: TaskType): TaskCategory {
@@ -193,6 +210,15 @@ function metaField(metadata: TaskMetadata, id: string | undefined, field: string
 
 function envPath(envHrid: string, ...segments: string[]): string {
     return ['/environments', envHrid, ...segments].join('/');
+}
+
+/** Mirrors the aim module's inbox route; `/:approvalId` under it opens an approval there, where it can be decided. */
+export const AIM_MODULE_ID = 'aim';
+
+export const HUMAN_APPROVALS_INBOX_ROUTE = `${AIM_MODULE_ID}/govern/hitl`;
+
+export function humanApprovalsInboxPath(envHrid: string): string {
+    return envPath(envHrid, HUMAN_APPROVALS_INBOX_ROUTE);
 }
 
 function moduleRoot(envHrid: string, moduleId: string): string {
@@ -320,4 +346,22 @@ export function toTaskView(entity: TaskEntity, metadata: TaskMetadata, resolveEn
             };
         }
     }
+}
+
+export function humanApprovalToTaskView(approval: HumanApproval, envHrid: string): TaskView {
+    const agentName = approval.caller.applicationName ?? approval.caller.applicationId;
+    return {
+        id: `HUMAN_APPROVAL:${approval.id}`,
+        type: 'HUMAN_APPROVAL',
+        category: categoryOf('HUMAN_APPROVAL'),
+        categoryLabel: CATEGORY_LABEL.HUMAN_APPROVAL,
+        actionLabel: ACTION_LABEL.HUMAN_APPROVAL,
+        iconKey: ICON_BY_TYPE.HUMAN_APPROVAL,
+        area: AGENT_MANAGEMENT_AREA,
+        title: approval.toolName,
+        subtitle: `${agentName} · ${approval.rule.name}`,
+        createdAt: Date.parse(approval.createdAt),
+        to: `${humanApprovalsInboxPath(envHrid)}/${approval.id}`,
+        toModuleId: AIM_MODULE_ID,
+    };
 }
