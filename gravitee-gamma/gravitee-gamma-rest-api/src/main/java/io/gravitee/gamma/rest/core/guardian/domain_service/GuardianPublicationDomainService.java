@@ -119,7 +119,7 @@ public class GuardianPublicationDomainService {
                 .build();
             var version = nextVersion(auditInfo.environmentId(), definition.getId());
             var publication = publications.publish(event, PublicationOptions.withHistory(label, version), auditInfo);
-            return new GuardianDeployment.Published(definition, publication.updatedAt());
+            return new GuardianDeployment.Published(definition, publication.updatedAt(), version);
         } catch (JsonProcessingException e) {
             throw new TechnicalDomainException("Failed to serialize Guardian '" + definition.getId() + "' for deployment", e);
         }
@@ -159,7 +159,7 @@ public class GuardianPublicationDomainService {
         return new GuardianRevision(
             event.getId(),
             published.at(),
-            version(event, guardianId),
+            published.version(),
             event.getProperties().get(Event.EventProperties.DEPLOYMENT_LABEL),
             event.getProperties().get(Event.EventProperties.USER),
             published.definition()
@@ -192,13 +192,14 @@ public class GuardianPublicationDomainService {
             var at = Instant.parse(envelope.path("updatedAt").asText());
             return event.getType() == EventType.UNPUBLISH_GENERIC_EVENT
                 ? readWithdrawal(envelope, at)
-                : readPublication(envelope, at, guardianId);
+                : readPublication(envelope, at, version(event, guardianId), guardianId);
         } catch (JsonProcessingException | DateTimeParseException e) {
             throw new TechnicalDomainException("Failed to read the publication of Guardian '" + guardianId + "'", e);
         }
     }
 
-    private GuardianDeployment.Published readPublication(JsonNode envelope, Instant at, String guardianId) throws JsonProcessingException {
+    private GuardianDeployment.Published readPublication(JsonNode envelope, Instant at, Long version, String guardianId)
+        throws JsonProcessingException {
         if (!envelope.hasNonNull("payload")) {
             throw new TechnicalDomainException("Missing published definition for Guardian '" + guardianId + "'");
         }
@@ -206,7 +207,7 @@ public class GuardianPublicationDomainService {
             envelope.get("payload").toString(),
             io.gravitee.definition.model.v4.guardian.Guardian.class
         );
-        return new GuardianDeployment.Published(definition, at);
+        return new GuardianDeployment.Published(definition, at, version);
     }
 
     private GuardianDeployment.Withdrawn readWithdrawal(JsonNode envelope, Instant at) throws JsonProcessingException {
