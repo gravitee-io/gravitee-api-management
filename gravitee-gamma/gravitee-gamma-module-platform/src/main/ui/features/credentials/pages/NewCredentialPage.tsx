@@ -37,7 +37,6 @@ import {
 } from '../utils/credentialDraft';
 import { credentialFailureMessage } from '../utils/credentialErrors';
 import { ENVIRONMENT_SECRET_CREATE_PERMISSION } from '../utils/credentialPermissions';
-import { credentialStrategyLabel } from '../utils/credentialStrategies';
 
 type Step = 'details' | 'authentication';
 
@@ -59,6 +58,7 @@ export function NewCredentialPage() {
 
     function changeStrategy(strategy: CredentialStrategy) {
         setDraft(previous => ({ ...previous, strategy, settings: {}, secrets: {} }));
+        setErrors({});
     }
 
     function goToAuthentication() {
@@ -111,24 +111,19 @@ export function NewCredentialPage() {
                 <Card>
                     <CardContent className="space-y-4 pt-6">
                         {step === 'details' ? (
-                            <>
-                                <CredentialNameAndServiceFields draft={draft} errors={errors} onChange={updateDraft} />
-                                <CredentialTypeField value={draft.strategy} onChange={changeStrategy} />
-                            </>
+                            <CredentialNameAndServiceFields draft={draft} errors={errors} onChange={updateDraft} />
                         ) : (
                             <>
-                                <div className="space-y-1">
-                                    <p className="text-sm font-medium">Authentication type</p>
-                                    <p className="text-sm text-muted-foreground">{credentialStrategyLabel(draft.strategy)}</p>
-                                </div>
-                                <CredentialAuthenticationFields
-                                    idPrefix="credential"
-                                    draft={draft}
-                                    errors={errors}
-                                    onChange={updateDraft}
-                                    showModeChoice
-                                    canStoreValues={canStoreValues}
-                                />
+                                <CredentialTypeField value={draft.strategy} onChange={changeStrategy}>
+                                    <CredentialAuthenticationFields
+                                        idPrefix="credential"
+                                        draft={draft}
+                                        errors={errors}
+                                        onChange={updateDraft}
+                                        showModeChoice
+                                        canStoreValues={canStoreValues}
+                                    />
+                                </CredentialTypeField>
                                 <CredentialExpiryField
                                     id="credential-expires"
                                     value={draft.expiresAt}

@@ -13,35 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Field, FieldDescription, FieldLabel, ToggleGroup, ToggleGroupItem } from '@gravitee/graphene-core';
+import { Field, FieldDescription, FieldLabel, Tabs, TabsContent, TabsList, TabsTrigger } from '@gravitee/graphene-core';
+import type { ReactNode } from 'react';
 
 import { CREDENTIAL_STRATEGIES, type CredentialStrategy } from '../types/credential';
 import { credentialStrategyLabel, isKnownCredentialStrategy } from '../utils/credentialStrategies';
 
+/** The type as tabs; `children` are the fields of the selected type. */
 export function CredentialTypeField({
     value,
     onChange,
-}: Readonly<{ value: CredentialStrategy; onChange: (strategy: CredentialStrategy) => void }>) {
+    children,
+}: Readonly<{ value: CredentialStrategy; onChange: (strategy: CredentialStrategy) => void; children: ReactNode }>) {
     return (
-        <Field orientation="vertical" className="gap-1.5">
-            <FieldLabel id="credential-type-label" required>
-                Type
-            </FieldLabel>
-            <ToggleGroup
-                type="single"
-                className="flex-wrap"
-                value={value}
-                onValueChange={next => isKnownCredentialStrategy(next) && onChange(next)}
-                aria-labelledby="credential-type-label"
-                aria-describedby="credential-type-description"
-            >
-                {CREDENTIAL_STRATEGIES.map(strategy => (
-                    <ToggleGroupItem key={strategy} value={strategy}>
-                        {credentialStrategyLabel(strategy)}
-                    </ToggleGroupItem>
-                ))}
-            </ToggleGroup>
-            <FieldDescription id="credential-type-description">The type cannot change once the credential exists.</FieldDescription>
-        </Field>
+        <Tabs value={value} onValueChange={next => isKnownCredentialStrategy(next) && onChange(next)} className="gap-4">
+            <Field orientation="vertical" className="gap-1.5">
+                <FieldLabel id="credential-type-label" required>
+                    Type
+                </FieldLabel>
+                <TabsList aria-labelledby="credential-type-label" aria-describedby="credential-type-description">
+                    {CREDENTIAL_STRATEGIES.map(strategy => (
+                        <TabsTrigger key={strategy} value={strategy}>
+                            {credentialStrategyLabel(strategy)}
+                        </TabsTrigger>
+                    ))}
+                </TabsList>
+                <FieldDescription id="credential-type-description">The type cannot change once the credential exists.</FieldDescription>
+            </Field>
+            {CREDENTIAL_STRATEGIES.map(strategy => (
+                <TabsContent key={strategy} value={strategy} className="space-y-4">
+                    {children}
+                </TabsContent>
+            ))}
+        </Tabs>
     );
 }

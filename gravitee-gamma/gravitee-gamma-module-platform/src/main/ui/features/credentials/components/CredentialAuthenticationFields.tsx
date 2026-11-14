@@ -91,6 +91,7 @@ export function CredentialAuthenticationFields({
                     <FieldLabel id={modeLabelId}>Secret source</FieldLabel>
                     <ToggleGroup
                         type="single"
+                        variant="outline"
                         value={draft.mode}
                         onValueChange={value => isCredentialSecretMode(value) && setMode(value)}
                         aria-labelledby={modeLabelId}
