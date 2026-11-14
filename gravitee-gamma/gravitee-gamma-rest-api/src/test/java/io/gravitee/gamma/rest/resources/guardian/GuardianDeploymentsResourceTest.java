@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.resources.guardian;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -31,6 +32,8 @@ import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.resource.AbstractResourceTest;
 import io.gravitee.gamma.rest.resources.guardian.GuardiansResourceTest.GuardiansTestConfiguration;
 import io.gravitee.gamma.rest.spring.ResourceContextConfiguration;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -70,6 +73,9 @@ class GuardianDeploymentsResourceTest extends AbstractResourceTest {
     @Inject
     private GuardianAuditFixture withdrawalAudits;
 
+    @Inject
+    private LicenseManager licenseManager;
+
     @Override
     protected String contextPath() {
         return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/guardians";
@@ -81,6 +87,9 @@ class GuardianDeploymentsResourceTest extends AbstractResourceTest {
         env.setId(ENVIRONMENT);
         env.setOrganizationId(ORGANIZATION);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(env);
+        License license = mock(License.class);
+        when(license.isFeatureEnabled("apim-guardians")).thenReturn(true);
+        when(licenseManager.getPlatformLicense()).thenReturn(license);
     }
 
     @AfterEach
