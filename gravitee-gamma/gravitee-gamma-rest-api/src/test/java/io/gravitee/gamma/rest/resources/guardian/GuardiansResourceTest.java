@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.resources.guardian;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -40,6 +41,8 @@ import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.resource.AbstractResourceTest;
 import io.gravitee.gamma.rest.resources.guardian.GuardiansResourceTest.GuardiansTestConfiguration;
 import io.gravitee.gamma.rest.spring.ResourceContextConfiguration;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -119,6 +122,9 @@ class GuardiansResourceTest extends AbstractResourceTest {
     @Inject
     private GuardianAuditFixture withdrawalAudits;
 
+    @Inject
+    private LicenseManager licenseManager;
+
     @Override
     protected String contextPath() {
         return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/guardians";
@@ -130,6 +136,13 @@ class GuardiansResourceTest extends AbstractResourceTest {
         env.setId(ENVIRONMENT);
         env.setOrganizationId(ORGANIZATION);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(env);
+        givenGuardiansLicensed(true);
+    }
+
+    private void givenGuardiansLicensed(boolean licensed) {
+        License license = mock(License.class);
+        when(license.isFeatureEnabled("apim-guardians")).thenReturn(licensed);
+        when(licenseManager.getPlatformLicense()).thenReturn(license);
     }
 
     @AfterEach
@@ -957,6 +970,60 @@ class GuardiansResourceTest extends AbstractResourceTest {
         @Test
         void should_return_403_on_delete_without_the_delete_permission() {
             assertThat(rootTarget("/" + GUARDIAN_ID).request().delete().getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
+        }
+    }
+
+    @Nested
+    class WithoutGuardiansLicense {
+
+        @BeforeEach
+        void removeTheFeatureFromTheLicense() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Created while licensed"));
+            givenGuardiansLicensed(false);
+        }
+
+        @Test
+        void should_refuse_every_guardian_endpoint_with_403() {
+            var guardian = rootTarget("/" + GUARDIAN_ID);
+            Map<String, Response> responses = Map.of(
+                "list",
+                rootTarget().request().get(),
+                "create",
+                post(PAYLOAD),
+                "get",
+                guardian.request().get(),
+                "update",
+                guardian.request().put(Entity.entity(PAYLOAD, MediaType.APPLICATION_JSON_TYPE)),
+                "deploy",
+                rootTarget("/" + GUARDIAN_ID + "/_deploy").request().post(Entity.json(Map.of())),
+                "undeploy",
+                rootTarget("/" + GUARDIAN_ID + "/_undeploy").request().post(null),
+                "delete",
+                guardian.request().delete()
+            );
+
+            SoftAssertions.assertSoftly(soft ->
+                responses.forEach((endpoint, response) -> {
+                    soft.assertThat(response.getStatus()).as(endpoint).isEqualTo(HttpStatusCode.FORBIDDEN_403);
+                    soft
+                        .assertThat(response.readEntity(JsonNode.class).path("technicalCode").asText())
+                        .as(endpoint)
+                        .isEqualTo("feature.missing");
+                })
+            );
+        }
+
+        @Test
+        void should_leave_the_stored_guardians_untouched() {
+            post(PAYLOAD);
+            rootTarget("/" + GUARDIAN_ID).request().put(Entity.entity(PAYLOAD, MediaType.APPLICATION_JSON_TYPE));
+            rootTarget("/" + GUARDIAN_ID + "/_deploy").request().post(Entity.json(Map.of()));
+            rootTarget("/" + GUARDIAN_ID).request().delete();
+
+            assertThat(guardianRepository.storedGuardians())
+                .singleElement()
+                .satisfies(stored -> assertThat(stored.getName()).isEqualTo("Created while licensed"));
+            assertThat(guardianPublications.find(ENVIRONMENT, GUARDIAN_ID)).isEmpty();
         }
     }
 
