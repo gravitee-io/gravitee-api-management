@@ -32,7 +32,6 @@ import io.gravitee.gateway.reactive.debug.handlers.api.DebugV4ApiReactor;
 import io.gravitee.gateway.reactive.debug.policy.DebugV4PolicyChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
-import io.gravitee.gateway.reactive.handlers.api.v4.ApiProductPlanPolicyManagerFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactorFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeRegistry;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
@@ -123,10 +122,8 @@ public class DebugV4ApiReactorHandlerFactory extends DefaultApiReactorFactory {
         LogGuardService logGuardService,
         ConnectionDrainManager connectionDrainManager
     ) {
-        ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory = null;
         ApiProductRuntimeRegistry apiProductRuntimeRegistry = null;
         if (apiProductRegistry != null) {
-            apiProductPlanPolicyManagerFactory = createApiProductPlanPolicyManagerFactory(componentProvider, apiProductRegistry);
             apiProductRuntimeRegistry = applicationContext.getBean(ApiProductRuntimeRegistry.class);
         }
         return new DebugV4ApiReactor(
@@ -151,8 +148,6 @@ public class DebugV4ApiReactorHandlerFactory extends DefaultApiReactorFactory {
             httpAcceptorFactory,
             TracingContext.noop(),
             logGuardService,
-            apiProductRegistry,
-            apiProductPlanPolicyManagerFactory,
             apiProductRuntimeRegistry
         );
     }

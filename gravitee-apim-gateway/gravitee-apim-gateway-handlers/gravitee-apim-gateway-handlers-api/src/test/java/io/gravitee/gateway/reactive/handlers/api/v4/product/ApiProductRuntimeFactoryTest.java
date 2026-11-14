@@ -37,6 +37,8 @@ import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.plan.Plan;
+import io.gravitee.definition.model.v4.plan.PlanMode;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
@@ -135,6 +137,59 @@ class ApiProductRuntimeFactoryTest {
 
         private Flow flowUsing(String policy) {
             return Flow.builder().enabled(true).request(List.of(Step.builder().enabled(true).policy(policy).build())).build();
+        }
+    }
+
+    @Nested
+    class SecurityPlans {
+
+        @Test
+        void should_refuse_to_start_without_the_security_policy_of_a_plan_this_gateway_serves() {
+            Plan served = publishedPlan("plan-served").mode(PlanMode.STANDARD).security(security("not-installed-security")).build();
+
+            ApiProductRuntime runtime = cut.create(product(null, List.of(served)), null);
+
+            assertThatThrownBy(runtime::start).hasMessageContaining("not-installed-security");
+        }
+
+        @Test
+        void should_refuse_to_start_when_the_security_of_a_plan_cannot_be_built() {
+            Plan withoutSecurityType = publishedPlan("plan-broken").name("Broken").mode(PlanMode.STANDARD).security(security(null)).build();
+
+            ApiProductRuntime runtime = cut.create(product(null, List.of(withoutSecurityType)), null);
+
+            assertThatThrownBy(runtime::start)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Broken")
+                .hasMessageContaining("product-1");
+        }
+
+        @Test
+        void should_build_no_security_plan_for_a_plan_in_push_mode() throws Exception {
+            Plan push = publishedPlan("plan-push").mode(PlanMode.PUSH).build();
+
+            ApiProductRuntime runtime = cut.create(product(null, List.of(push)), null);
+            runtime.start();
+
+            assertThat(runtime.securityPlans()).isEmpty();
+        }
+
+        @Test
+        void should_build_no_security_plan_for_a_plan_this_gateway_does_not_serve() throws Exception {
+            Plan otherShard = publishedPlan("plan-other-shard")
+                .tags(Set.of("external"))
+                .mode(PlanMode.STANDARD)
+                .security(security("not-installed-security"))
+                .build();
+
+            ApiProductRuntime runtime = cut.create(product(null, List.of(otherShard)), null);
+            runtime.start();
+
+            assertThat(runtime.securityPlans()).isEmpty();
+        }
+
+        private PlanSecurity security(String type) {
+            return PlanSecurity.builder().type(type).build();
         }
     }
 

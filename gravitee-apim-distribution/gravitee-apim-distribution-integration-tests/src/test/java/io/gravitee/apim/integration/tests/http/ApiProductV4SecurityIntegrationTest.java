@@ -118,7 +118,7 @@ class ApiProductV4SecurityIntegrationTest {
             ReactableApiProduct p = product(productId, Set.of(API_1_ID));
             registerProductPlans(p, List.of(productJwtPlan(planId, PlanStatus.PUBLISHED)));
             deployApiProduct(p);
-            allowJwtSubscriptionForApiAndPlan(API_1_ID, planId, JWT_CLIENT_ID);
+            allowJwtSubscriptionForProductAndPlan(productId, planId, JWT_CLIENT_ID);
 
             int status = getStatusWithHeader(client, API_1_PATH, "Authorization", "Bearer " + generateJWT(5000));
             assertThat(status).isEqualTo(200);
@@ -150,8 +150,7 @@ class ApiProductV4SecurityIntegrationTest {
             ReactableApiProduct p = product(productId, Set.of(API_1_ID, API_2_ID));
             registerProductPlans(p, List.of(productJwtPlan(planId, PlanStatus.PUBLISHED)));
             deployApiProduct(p);
-            allowJwtSubscriptionForApiAndPlan(API_1_ID, planId, JWT_CLIENT_ID);
-            allowJwtSubscriptionForApiAndPlan(API_2_ID, planId, JWT_CLIENT_ID);
+            allowJwtSubscriptionForProductAndPlan(productId, planId, JWT_CLIENT_ID);
 
             assertThat(getStatusWithHeader(client, API_1_PATH, "Authorization", "Bearer " + generateJWT(5000))).isEqualTo(200);
             assertThat(getStatusWithHeader(client, API_2_PATH, "Authorization", "Bearer " + generateJWT(5000))).isEqualTo(200);
@@ -175,7 +174,7 @@ class ApiProductV4SecurityIntegrationTest {
             ReactableApiProduct p = product(productId, Set.of(API_1_ID));
             registerProductPlans(p, List.of(productJwtPlan(planId, PlanStatus.PUBLISHED)));
             deployApiProduct(p);
-            allowJwtSubscriptionForApiAndPlan(API_1_ID, planId, JWT_CLIENT_ID);
+            allowJwtSubscriptionForProductAndPlan(productId, planId, JWT_CLIENT_ID);
 
             int status = getStatusWithHeader(client, API_1_PATH, "Authorization", "Bearer " + generateJWT(-5000));
             assertThat(status).isEqualTo(401);
@@ -225,7 +224,7 @@ class ApiProductV4SecurityIntegrationTest {
             registerProductPlans(p, List.of(productPlan(planId, "mtls", PlanStatus.PUBLISHED)));
             deployApiProduct(p);
 
-            Subscription subscription = mtlsSubscription(API_1_ID, planId, false);
+            Subscription subscription = mtlsSubscription(productId, planId, false);
             subscriptionTrustStoreLoaderManager.registerSubscription(subscription, Set.of());
             try {
                 assertThat(getStatus(client, API_1_PATH)).isEqualTo(200);
@@ -245,7 +244,7 @@ class ApiProductV4SecurityIntegrationTest {
             registerProductPlans(p, List.of(productPlan(planId, "mtls", PlanStatus.PUBLISHED)));
             deployApiProduct(p);
 
-            Subscription subscription = mtlsSubscription(API_1_ID, planId, true);
+            Subscription subscription = mtlsSubscription(productId, planId, true);
             subscriptionTrustStoreLoaderManager.registerSubscription(subscription, Set.of());
             try {
                 assertThat(getStatus(client, API_1_PATH)).isEqualTo(200);
@@ -268,9 +267,9 @@ class ApiProductV4SecurityIntegrationTest {
             assertThat(getStatus(client, API_1_PATH)).isEqualTo(401);
         }
 
-        private Subscription mtlsSubscription(String apiId, String planId, boolean withPkcs7Bundle) throws IOException {
+        private Subscription mtlsSubscription(String apiProductId, String planId, boolean withPkcs7Bundle) throws IOException {
             final Subscription subscription = new Subscription();
-            subscription.setApi(apiId);
+            subscription.setApiProductId(apiProductId);
             subscription.setApplication("application-id");
             subscription.setApplicationName("Application");
             subscription.setId("subscription-mtls-" + planId);
@@ -372,16 +371,16 @@ class ApiProductV4SecurityIntegrationTest {
                 .blockingGet();
         }
 
-        void allowJwtSubscriptionForApiAndPlan(String apiId, String planId, String clientId) {
+        void allowJwtSubscriptionForProductAndPlan(String apiProductId, String planId, String clientId) {
             Subscription subscription = new Subscription();
             subscription.setApplication("application-id");
             subscription.setApplicationName("Application");
             subscription.setId("subscription-jwt-" + planId);
-            subscription.setApi(apiId);
+            subscription.setApiProductId(apiProductId);
             subscription.setPlan(planId);
             when(
                 getBean(SubscriptionService.class).getByApiAndSecurityToken(
-                    eq(apiId),
+                    eq(apiProductId),
                     argThat(
                         securityToken ->
                             securityToken.getTokenType().equals(SecurityToken.TokenType.CLIENT_ID.name()) &&

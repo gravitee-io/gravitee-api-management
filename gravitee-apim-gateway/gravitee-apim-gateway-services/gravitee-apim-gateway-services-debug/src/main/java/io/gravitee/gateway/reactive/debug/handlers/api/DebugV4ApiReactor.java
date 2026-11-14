@@ -23,7 +23,6 @@ import io.gravitee.gateway.debug.definition.ReactableDebugApi;
 import io.gravitee.gateway.debug.reactor.handler.context.PathTransformer;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
-import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
@@ -32,7 +31,6 @@ import io.gravitee.gateway.reactive.debug.invoker.DebugInvokerHook;
 import io.gravitee.gateway.reactive.debug.policy.DebugPolicyHook;
 import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
-import io.gravitee.gateway.reactive.handlers.api.v4.ApiProductPlanPolicyManagerFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeRegistry;
@@ -76,8 +74,6 @@ public class DebugV4ApiReactor extends DefaultApiReactor {
         HttpAcceptorFactory httpAcceptorFactory,
         TracingContext tracingContext,
         LogGuardService logGuardService,
-        ApiProductRegistry apiProductRegistry,
-        ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory,
         ApiProductRuntimeRegistry apiProductRuntimeRegistry
     ) {
         super(
@@ -102,8 +98,6 @@ public class DebugV4ApiReactor extends DefaultApiReactor {
             httpAcceptorFactory,
             tracingContext,
             logGuardService,
-            apiProductRegistry,
-            apiProductPlanPolicyManagerFactory,
             apiProductRuntimeRegistry
         );
         invokerHooks.add(new DebugInvokerHook());
