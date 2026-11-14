@@ -35,4 +35,18 @@ describe('ApplicationCreationStep5Component', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should show the error message returned by the server when the creation fails', () => {
+    const message = 'Unexpected response from OIDC Registration endpoint: error[registration_forbidden]';
+    spectator.setInput({ creationError: true, creationErrorMessage: message });
+
+    expect(spectator.query('[data-testid="application-creation-error"]')).toHaveText(message);
+  });
+
+  it('should show only the generic error when the server returned no message', () => {
+    spectator.setInput({ creationError: true, creationErrorMessage: null });
+
+    expect(spectator.query('[data-testid="application-creation-error"]')).toBeTruthy();
+    expect(spectator.query('[data-testid="application-creation-error-message"]')).toBeNull();
+  });
 });
