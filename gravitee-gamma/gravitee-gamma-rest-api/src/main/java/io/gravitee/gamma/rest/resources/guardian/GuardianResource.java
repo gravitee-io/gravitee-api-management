@@ -27,6 +27,7 @@ import io.gravitee.gamma.rest.resources.guardian.dto.GuardianDto;
 import io.gravitee.gamma.rest.resources.guardian.dto.UpdateGuardianRequestDto;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.rest.annotation.GraviteeLicenseFeature;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -83,6 +84,7 @@ public class GuardianResource {
 
     @POST
     @Path("/_undeploy")
+    @GraviteeLicenseFeature(GuardiansResource.GUARDIANS_LICENSE_FEATURE)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GUARDIAN, acls = { RolePermissionAction.UPDATE }) })
     public GuardianDto undeploy(@PathParam("guardianId") String guardianId) {
         var output = undeployGuardianUseCase.execute(new UndeployGuardianUseCase.Input(CurrentAuditInfo.of(), guardianId));
@@ -92,6 +94,7 @@ public class GuardianResource {
     @POST
     @Path("/_deploy")
     @Consumes(MediaType.APPLICATION_JSON)
+    @GraviteeLicenseFeature(GuardiansResource.GUARDIANS_LICENSE_FEATURE)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GUARDIAN, acls = { RolePermissionAction.UPDATE }) })
     public GuardianDto deploy(@PathParam("guardianId") String guardianId, @Valid DeployGuardianRequestDto request) {
         var output = deployGuardianUseCase.execute(
@@ -101,6 +104,7 @@ public class GuardianResource {
     }
 
     @GET
+    @GraviteeLicenseFeature(GuardiansResource.GUARDIANS_LICENSE_FEATURE)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GUARDIAN, acls = { RolePermissionAction.READ }) })
     public GuardianDto get(@PathParam("guardianId") String guardianId) {
         var ctx = GraviteeContext.getExecutionContext();
@@ -112,6 +116,7 @@ public class GuardianResource {
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
+    @GraviteeLicenseFeature(GuardiansResource.GUARDIANS_LICENSE_FEATURE)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GUARDIAN, acls = { RolePermissionAction.UPDATE }) })
     public GuardianDto update(@PathParam("guardianId") String guardianId, @NotNull UpdateGuardianRequestDto request) {
         var output = updateGuardianUseCase.execute(
@@ -125,6 +130,7 @@ public class GuardianResource {
     }
 
     @DELETE
+    @GraviteeLicenseFeature(GuardiansResource.GUARDIANS_LICENSE_FEATURE)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GUARDIAN, acls = { RolePermissionAction.DELETE }) })
     public Response delete(@PathParam("guardianId") String guardianId) {
         deleteGuardianUseCase.execute(
