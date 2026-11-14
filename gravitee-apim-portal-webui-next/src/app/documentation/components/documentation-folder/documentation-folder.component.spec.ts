@@ -393,6 +393,42 @@ describe('DocumentationFolderComponent', () => {
       expect(await (await harness.getBreadcrumbs())?.getText()).toEqual('Test item/Folder 1/Page 2');
       expect(scrollContainer.scrollTop).toEqual(0);
     });
+
+    it('should still land on the linked section of the selected page after the previous page was scrolled', async () => {
+      await init();
+      (routerSpy as unknown as { url: string }).url = '/documentation?selectedId=p2#deep-section';
+      await harness.getTreeHarness();
+
+      const scrollContainer: HTMLElement = fixture.nativeElement.querySelector('.sidenav-layout__container__content');
+      Object.defineProperty(scrollContainer, 'scrollTop', { configurable: true, writable: true, value: 500 });
+      // jsdom has no layout: scrolling the section into view moves the container to where a browser would put it
+      const containerScrollTopsWhenSectionScrolledIntoView: number[] = [];
+      const originalScrollIntoView = HTMLElement.prototype.scrollIntoView;
+      Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+        configurable: true,
+        value: function (this: HTMLElement) {
+          if (this.id === 'deep-section') {
+            containerScrollTopsWhenSectionScrolledIntoView.push(scrollContainer.scrollTop);
+            scrollContainer.scrollTop = 900;
+          }
+        },
+      });
+
+      try {
+        navigationServiceSpy.getNavigationItemContent = jest
+          .fn()
+          .mockReturnValueOnce(of({ content: 'Intro\n\n<h2 id="deep-section">Deep section</h2>', type: 'GRAVITEE_MARKDOWN' }));
+        const tree = await harness.getTreeHarness();
+        await tree!.clickItemByTitle('Page 2');
+        await fixture.whenStable();
+
+        expect(await (await harness.getBreadcrumbs())?.getText()).toEqual('Test item/Folder 1/Page 2');
+        expect(containerScrollTopsWhenSectionScrolledIntoView).toEqual([0]);
+        expect(scrollContainer.scrollTop).toEqual(900);
+      } finally {
+        Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', { configurable: true, value: originalScrollIntoView });
+      }
+    });
   });
 
   describe('api product', () => {
