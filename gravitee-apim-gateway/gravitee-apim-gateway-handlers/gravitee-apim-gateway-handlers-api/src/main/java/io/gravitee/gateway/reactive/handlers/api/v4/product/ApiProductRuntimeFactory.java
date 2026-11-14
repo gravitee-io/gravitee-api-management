@@ -34,6 +34,7 @@ import io.gravitee.gateway.reactive.handlers.api.v4.processor.pathparameters.Pat
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.v4.policy.HttpPolicyChainFactory;
+import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
@@ -98,8 +99,11 @@ public class ApiProductRuntimeFactory {
         String chainFactoryId = "api-product-" + product.getId();
 
         List<LifecycleComponent<?>> components = new ArrayList<>();
+        ResourceLifecycleManager resourceManager = EmptyProductResourceLifecycleManager.INSTANCE;
         if (ProductResourcesComponent.hasConfiguredResources(product)) {
-            components.add(resourcesComponent(product, previousRuntime));
+            ProductResourcesComponent resources = resourcesComponent(product, previousRuntime);
+            components.add(resources);
+            resourceManager = resources.resourceLifecycleManager();
         }
         components.add(policyManager);
 
@@ -108,7 +112,8 @@ public class ApiProductRuntimeFactory {
             productPlanFlowChain(flowExecution, flowsByPlanId, new HttpPolicyChainFactory(chainFactoryId, policyManager, false), false),
             productPlanFlowChain(flowExecution, flowsByPlanId, new HttpPolicyChainFactory(chainFactoryId, policyManager, true), true),
             pathParametersExtractor(plans),
-            List.copyOf(components)
+            List.copyOf(components),
+            resourceManager
         );
     }
 

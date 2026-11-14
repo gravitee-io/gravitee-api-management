@@ -72,7 +72,7 @@ class ApiProductRuntimeRegistryTest {
             ReactableApiProduct product = invocation.getArgument(0);
             RecordingComponent component = new RecordingComponent();
             built.add(component);
-            return new ApiProductRuntime(product, null, null, null, List.of(component));
+            return new ApiProductRuntime(product, null, null, null, List.of(component), EmptyProductResourceLifecycleManager.INSTANCE);
         });
         cut = new ApiProductRuntimeRegistry(runtimeFactory, DRAIN_TIMEOUT_MS, scheduler);
     }
@@ -234,7 +234,14 @@ class ApiProductRuntimeRegistryTest {
 
         {
             when(componentsFactory.create(any(), any())).thenAnswer(invocation ->
-                new ApiProductRuntime(invocation.getArgument(0), null, null, null, nextComponents.remove(0))
+                new ApiProductRuntime(
+                    invocation.getArgument(0),
+                    null,
+                    null,
+                    null,
+                    nextComponents.remove(0),
+                    EmptyProductResourceLifecycleManager.INSTANCE
+                )
             );
         }
 

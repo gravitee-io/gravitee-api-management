@@ -17,6 +17,7 @@ package io.gravitee.gateway.reactive.handlers.api.v4.product;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -32,9 +33,12 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
+import io.gravitee.gateway.handlers.api.manager.ApiProductResourceManagerFactory;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.pathparameters.PathParametersExtractor;
+import io.gravitee.gateway.resource.ResourceLifecycleManager;
+import io.gravitee.node.api.license.LicenseManager;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Nested;
@@ -70,7 +74,14 @@ class ApiProductRuntimeTest {
 
         @Test
         void should_not_touch_the_request_without_an_extractor() {
-            new ApiProductRuntime(product(Set.of("api-1")), null, null, null, List.of()).extractPathParameters(ctx);
+            new ApiProductRuntime(
+                product(Set.of("api-1")),
+                null,
+                null,
+                null,
+                List.of(),
+                EmptyProductResourceLifecycleManager.INSTANCE
+            ).extractPathParameters(ctx);
 
             verify(ctx, never()).request();
         }
@@ -91,7 +102,14 @@ class ApiProductRuntimeTest {
                 .build();
             Api plansOnly = new Api();
             plansOnly.setPlans(List.of(plan));
-            return new ApiProductRuntime(product(Set.of("api-1")), null, null, new PathParametersExtractor(plansOnly), List.of());
+            return new ApiProductRuntime(
+                product(Set.of("api-1")),
+                null,
+                null,
+                new PathParametersExtractor(plansOnly),
+                List.of(),
+                EmptyProductResourceLifecycleManager.INSTANCE
+            );
         }
     }
 
@@ -100,7 +118,14 @@ class ApiProductRuntimeTest {
 
         @Test
         void should_serve_the_apis_the_product_lists() {
-            ApiProductRuntime runtime = new ApiProductRuntime(product(Set.of("api-1")), null, null, null, List.of());
+            ApiProductRuntime runtime = new ApiProductRuntime(
+                product(Set.of("api-1")),
+                null,
+                null,
+                null,
+                List.of(),
+                EmptyProductResourceLifecycleManager.INSTANCE
+            );
 
             assertThat(runtime.servesApi("api-1")).isTrue();
             assertThat(runtime.servesApi("api-2")).isFalse();
@@ -108,7 +133,53 @@ class ApiProductRuntimeTest {
 
         @Test
         void should_serve_no_api_when_the_product_lists_none() {
-            assertThat(new ApiProductRuntime(product(null), null, null, null, List.of()).servesApi("api-1")).isFalse();
+            assertThat(
+                new ApiProductRuntime(product(null), null, null, null, List.of(), EmptyProductResourceLifecycleManager.INSTANCE).servesApi(
+                    "api-1"
+                )
+            ).isFalse();
+        }
+    }
+
+    @Nested
+    class ResourceManagerAccessor {
+
+        @Test
+        void runtime_resource_manager_accessor_returns_empty_when_no_resources() {
+            ApiProductRuntime runtime = new ApiProductRuntime(
+                product(Set.of("api-1")),
+                null,
+                null,
+                null,
+                List.of(),
+                EmptyProductResourceLifecycleManager.INSTANCE
+            );
+
+            assertThat(runtime.resourceManager()).isSameAs(EmptyProductResourceLifecycleManager.INSTANCE);
+            assertThat(runtime.resourceManager().getResource("any")).isNull();
+        }
+
+        @Test
+        void runtime_resource_manager_accessor_returns_product_manager_when_configured() throws Exception {
+            ResourceLifecycleManager productManager = mock(ResourceLifecycleManager.class);
+            ApiProductResourceManagerFactory factory = mock(ApiProductResourceManagerFactory.class);
+            when(factory.create(any())).thenReturn(productManager);
+            ProductResourcesComponent resources = new ProductResourcesComponent(
+                product(Set.of("api-1")),
+                factory,
+                mock(LicenseManager.class)
+            );
+            resources.start();
+            ApiProductRuntime runtime = new ApiProductRuntime(
+                product(Set.of("api-1")),
+                null,
+                null,
+                null,
+                List.of(resources),
+                productManager
+            );
+
+            assertThat(runtime.resourceManager()).isSameAs(productManager);
         }
     }
 
@@ -123,7 +194,8 @@ class ApiProductRuntimeTest {
                 null,
                 null,
                 null,
-                List.of(new Recording("policies", events), new Recording("resources", events))
+                List.of(new Recording("policies", events), new Recording("resources", events)),
+                EmptyProductResourceLifecycleManager.INSTANCE
             );
 
             runtime.start();
@@ -137,7 +209,14 @@ class ApiProductRuntimeTest {
             Recording policies = new Recording("policies", new StringBuilder());
             FailingToStop first = new FailingToStop("pool already closed");
             FailingToStop second = new FailingToStop("connection reset");
-            ApiProductRuntime runtime = new ApiProductRuntime(product(Set.of("api-1")), null, null, null, List.of(policies, second, first));
+            ApiProductRuntime runtime = new ApiProductRuntime(
+                product(Set.of("api-1")),
+                null,
+                null,
+                null,
+                List.of(policies, second, first),
+                EmptyProductResourceLifecycleManager.INSTANCE
+            );
             runtime.start();
 
             assertThatThrownBy(runtime::stop)
@@ -150,7 +229,14 @@ class ApiProductRuntimeTest {
 
         @Test
         void should_count_no_request_in_once_retired() {
-            ApiProductRuntime runtime = new ApiProductRuntime(product(Set.of("api-1")), null, null, null, List.of());
+            ApiProductRuntime runtime = new ApiProductRuntime(
+                product(Set.of("api-1")),
+                null,
+                null,
+                null,
+                List.of(),
+                EmptyProductResourceLifecycleManager.INSTANCE
+            );
             assertThat(runtime.tryAcquire()).isTrue();
 
             runtime.retire();

@@ -52,6 +52,10 @@ class ProductResourcesComponent extends AbstractLifecycleComponent<ResourceLifec
         return shared;
     }
 
+    ResourceLifecycleManager resourceLifecycleManager() {
+        return shared.resourceLifecycleManager();
+    }
+
     @Override
     protected void doStart() throws Exception {
         shared.acquire();
@@ -104,6 +108,10 @@ class ProductResourcesComponent extends AbstractLifecycleComponent<ResourceLifec
             this.product = product;
             this.licenseManager = licenseManager;
             this.resourceManager = resourceManagerFactory.create(product);
+        }
+
+        ResourceLifecycleManager resourceLifecycleManager() {
+            return resourceManager;
         }
 
         void acquire() throws Exception {
