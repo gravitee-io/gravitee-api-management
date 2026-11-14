@@ -85,6 +85,28 @@ class ValidateKafkaClusterBindingDomainServiceTest {
     }
 
     @Test
+    void should_let_an_api_keep_a_binding_its_cluster_no_longer_resolves() {
+        var groups = List.of(group(CLUSTER_SHARED, endpoint("sasl", true, null)));
+
+        assertThatCode(() -> service.validate(ENV_ID, groups, groups)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void should_check_a_binding_the_api_changes() {
+        deploy(kafkaCluster(ClusterType.KAFKA_CLUSTER, "PLAIN"));
+
+        assertThatThrownBy(() ->
+            service.validate(
+                ENV_ID,
+                List.of(group(CLUSTER_SHARED, endpoint("sasl", true, null))),
+                List.of(group(CLUSTER_SHARED, endpoint("plain", true, null)))
+            )
+        )
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessageContaining("connection [plain] does not exist in the deployed Kafka cluster [my-cluster]");
+    }
+
+    @Test
     void should_reject_an_unknown_cluster() {
         assertThatThrownBy(() -> service.validate(ENV_ID, List.of(group(CLUSTER_SHARED, endpoint("sasl", true, null)))))
             .isInstanceOf(InvalidDataException.class)

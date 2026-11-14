@@ -21,7 +21,6 @@ import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Reads which registered Kafka cluster connections the {@code kafka} endpoints of a Message API are bound to: an endpoint
@@ -128,11 +127,6 @@ public final class KafkaClusterBindings {
             }
         }
         return bindings;
-    }
-
-    /** Distinct cross ids of the clusters the endpoints are bound to. */
-    public static List<String> clusterCrossIds(List<EndpointGroup> endpointGroups, ObjectMapper objectMapper) {
-        return of(endpointGroups, objectMapper).stream().map(Binding::clusterCrossId).filter(Objects::nonNull).distinct().toList();
     }
 
     private static String clusterCrossId(JsonNode node) {

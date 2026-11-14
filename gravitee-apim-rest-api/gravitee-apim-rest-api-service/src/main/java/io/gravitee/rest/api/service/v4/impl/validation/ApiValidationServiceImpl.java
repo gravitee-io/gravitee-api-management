@@ -157,8 +157,9 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
         newApiEntity.setEndpointGroups(
             endpointGroupsValidationService.validateAndSanitizeHttpV4(newApiEntity.getType(), newApiEntity.getEndpointGroups())
         );
-        validateKafkaClusterBindingDomainService.validate(executionContext.getEnvironmentId(), newApiEntity.getEndpointGroups());
+        // Permission first, so a caller who cannot bind a cluster learns nothing of its connections
         validateClusterBindingPermission(executionContext, null, newApiEntity.getEndpointGroups());
+        validateKafkaClusterBindingDomainService.validate(executionContext.getEnvironmentId(), newApiEntity.getEndpointGroups());
         // Validate and clean logging
         newApiEntity.setAnalytics(
             analyticsValidationService.validateAndSanitize(executionContext, newApiEntity.getType(), newApiEntity.getAnalytics())
@@ -216,8 +217,12 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
         updateApiEntity.setEndpointGroups(
             endpointGroupsValidationService.validateAndSanitizeHttpV4(updateApiEntity.getType(), updateApiEntity.getEndpointGroups())
         );
-        validateKafkaClusterBindingDomainService.validate(executionContext.getEnvironmentId(), updateApiEntity.getEndpointGroups());
         validateClusterBindingPermission(executionContext, existingApiEntity.getEndpointGroups(), updateApiEntity.getEndpointGroups());
+        validateKafkaClusterBindingDomainService.validate(
+            executionContext.getEnvironmentId(),
+            existingApiEntity.getEndpointGroups(),
+            updateApiEntity.getEndpointGroups()
+        );
         // Validate and clean logging
         updateApiEntity.setAnalytics(
             analyticsValidationService.validateAndSanitize(executionContext, updateApiEntity.getType(), updateApiEntity.getAnalytics())
@@ -289,8 +294,8 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
         apiEntity.setEndpointGroups(
             endpointGroupsValidationService.validateAndSanitizeHttpV4(apiEntity.getType(), apiEntity.getEndpointGroups())
         );
-        validateKafkaClusterBindingDomainService.validate(executionContext.getEnvironmentId(), apiEntity.getEndpointGroups());
         validateClusterBindingPermission(executionContext, null, apiEntity.getEndpointGroups());
+        validateKafkaClusterBindingDomainService.validate(executionContext.getEnvironmentId(), apiEntity.getEndpointGroups());
         // Validate and clean logging
         apiEntity.setAnalytics(
             analyticsValidationService.validateAndSanitize(executionContext, apiEntity.getType(), apiEntity.getAnalytics())

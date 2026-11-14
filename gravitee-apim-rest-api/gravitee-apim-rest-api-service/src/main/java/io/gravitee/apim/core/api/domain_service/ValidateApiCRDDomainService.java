@@ -219,13 +219,6 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
         existingApi.ifPresent(api ->
             membersDomainService.checkApiMembersUpdate(input.auditInfo(), api.getId(), sanitizedSpec.getMembers())
         );
-        if (apiType(sanitizedSpec) == ApiType.MESSAGE) {
-            try {
-                kafkaClusterBindingValidator.validate(input.auditInfo().environmentId(), httpEndpointGroups(sanitizedSpec));
-            } catch (InvalidDataException e) {
-                errors.add(Error.severe(e.getMessage()));
-            }
-        }
         clusterBindingPermissionDomainService.validate(
             input.auditInfo().organizationId(),
             input.auditInfo().environmentId(),
@@ -235,15 +228,41 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
             apiType(sanitizedSpec),
             sanitizedSpec.getEndpointGroups()
         );
+        int errorsBeforeBindings = errors.size();
+        if (apiType(sanitizedSpec) == ApiType.MESSAGE) {
+            try {
+                kafkaClusterBindingValidator.validate(
+                    input.auditInfo().environmentId(),
+                    existingApi
+                        .map(Api::getApiDefinitionHttpV4)
+                        .map(definition -> definition.getEndpointGroups())
+                        .orElse(null),
+                    httpEndpointGroups(sanitizedSpec)
+                );
+            } catch (InvalidDataException e) {
+                errors.add(Error.severe(e.getMessage()));
+            }
+        }
+        try {
+            apiClusterBindingValidator.validateSavable(
+                input.auditInfo().environmentId(),
+                apiType(sanitizedSpec),
+                existingApi.map(Api::getApiDefinitionNativeV4).map(NativeApi::getEndpointGroups).orElse(null),
+                sanitizedSpec.getEndpointGroups()
+            );
+        } catch (InvalidDataException e) {
+            errors.add(Error.severe(e.getMessage()));
+        }
         if (sanitizedSpec.getState() != null && !isLifecycleState(sanitizedSpec.getState())) {
             errors.add(Error.severe("State [%s] is invalid, expected STARTED or STOPPED", sanitizedSpec.getState()));
         }
         // The import persists the API before starting or deploying it: refuse here, or a failure leaves it saved but not deployed.
         // A spec without state keeps the stored one, so a stored STARTED API is checked too.
+        // Not when a binding is already refused above, which the start check would report again.
         var lifecycleState = sanitizedSpec.getState() != null
             ? sanitizedSpec.getState()
             : existingApi.map(Api::getLifecycleState).map(Enum::name).orElse(null);
-        if (Api.LifecycleState.STARTED.name().equalsIgnoreCase(lifecycleState)) {
+        if (errors.size() == errorsBeforeBindings && Api.LifecycleState.STARTED.name().equalsIgnoreCase(lifecycleState)) {
             try {
                 apiClusterBindingValidator.validateStartable(
                     sanitizedSpec.getId(),

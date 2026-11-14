@@ -49,6 +49,7 @@ import io.gravitee.apim.core.api.model.property.EncryptableProperty;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterResolutionDomainService;
 import io.gravitee.apim.core.cluster.domain_service.DeployedClustersDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService;
 import io.gravitee.apim.core.cluster.domain_service.ValidateKafkaClusterBindingDomainService;
@@ -167,7 +168,18 @@ class ValidateApiCRDDomainServiceTest {
             OBJECT_MAPPER
         ),
         new ClusterBindingPermissionDomainService(clusterQueryService, permissionDomainService, new ObjectMapper()),
-        new ValidateApiClusterBindingService(clusterQueryService, OBJECT_MAPPER),
+        new ValidateApiClusterBindingService(
+            new ClusterResolutionDomainService(
+                clusterQueryService,
+                new DeployedClustersDomainService(eventLatestQueryService, OBJECT_MAPPER),
+                OBJECT_MAPPER
+            ),
+            new ValidateKafkaClusterBindingDomainService(
+                new DeployedClustersDomainService(eventLatestQueryService, OBJECT_MAPPER),
+                OBJECT_MAPPER
+            ),
+            OBJECT_MAPPER
+        ),
         mock(ApiPrimaryOwnerFactory.class),
         mock(ValidateApiDomainService.class),
         updateApiDomainService,
@@ -379,13 +391,77 @@ class ValidateApiCRDDomainServiceTest {
     }
 
     @Test
-    void should_accept_a_stopped_native_api_bound_to_a_cluster_that_is_not_deployed() {
+    void should_report_a_stopped_native_api_bound_to_a_cluster_that_is_not_deployed() {
         givenTheClusterIsUndeployed();
         givenEveryValidatorAccepts();
         var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
         var spec = aNativeSpecBoundTo("plain").toBuilder().state("STOPPED").build();
 
-        assertThat(severeErrorsOf(systemCall, spec)).isEmpty();
+        assertThat(severeErrorsOf(systemCall, spec))
+            .singleElement(STRING)
+            .isEqualTo("The API cannot be saved because its cluster {prod} is not deployed.");
+    }
+
+    @Test
+    void should_let_an_existing_native_api_keep_a_binding_to_a_cluster_that_is_not_deployed_until_it_starts() {
+        givenTheClusterIsUndeployed();
+        givenEveryValidatorAccepts();
+        apiQueryService.initWith(
+            List.of(
+                ApiFixtures.aNativeApiBoundToCluster("api-id", ENV_ID, Api.LifecycleState.STOPPED, "prod", "plain")
+                    .toBuilder()
+                    .crossId(API_CROSS_ID)
+                    .build()
+            )
+        );
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+        var stopped = aNativeSpecBoundTo("plain").toBuilder().state("STOPPED").build();
+
+        assertThat(severeErrorsOf(systemCall, stopped)).isEmpty();
+        assertThat(severeErrorsOf(systemCall, aNativeSpecBoundTo("plain")))
+            .singleElement(STRING)
+            .contains("its cluster {prod} is not deployed");
+    }
+
+    @Test
+    void should_let_an_existing_message_api_keep_a_binding_to_a_cluster_that_is_not_deployed_until_it_starts() {
+        givenTheClusterIsUndeployed();
+        givenEveryValidatorAccepts();
+        apiQueryService.initWith(
+            List.of(
+                ApiFixtures.aMessageApiBoundToCluster("api-id", ENV_ID, Api.LifecycleState.STOPPED, "prod", "plain")
+                    .toBuilder()
+                    .crossId(API_CROSS_ID)
+                    .build()
+            )
+        );
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+        var started = aMessageSpecBoundTo("plain").toBuilder().id("api-id").build();
+
+        assertThat(severeErrorsOf(systemCall, started.toBuilder().state("STOPPED").build())).isEmpty();
+        assertThat(severeErrorsOf(systemCall, started)).singleElement(STRING).contains("its cluster {prod} is not deployed");
+    }
+
+    @Test
+    void should_report_a_native_api_bound_to_a_connection_the_deployed_cluster_does_not_have() {
+        givenAClusterTheUserIsNotAMemberOf();
+        givenTheClusterIsDeployed();
+        givenEveryValidatorAccepts();
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+
+        assertThat(severeErrorsOf(systemCall, aNativeSpecBoundTo("unknown")))
+            .singleElement(STRING)
+            .isEqualTo("The API cannot be saved because its connection {unknown} does not exist in the deployed cluster {prod}.");
+    }
+
+    @Test
+    void should_accept_a_native_api_bound_to_a_connection_of_a_deployed_cluster() {
+        givenAClusterTheUserIsNotAMemberOf();
+        givenTheClusterIsDeployed();
+        givenEveryValidatorAccepts();
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+
+        assertThat(severeErrorsOf(systemCall, aNativeSpecBoundTo("plain"))).isEmpty();
     }
 
     @Test
@@ -402,6 +478,8 @@ class ValidateApiCRDDomainServiceTest {
 
     @Test
     void should_report_a_state_other_than_started_or_stopped() {
+        givenAClusterTheUserIsNotAMemberOf();
+        givenTheClusterIsDeployed();
         givenEveryValidatorAccepts();
         var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
         var spec = aNativeSpecBoundTo("plain").toBuilder().state("PAUSED").build();
@@ -453,6 +531,8 @@ class ValidateApiCRDDomainServiceTest {
 
     @Test
     void should_accept_a_spec_without_state() {
+        givenAClusterTheUserIsNotAMemberOf();
+        givenTheClusterIsDeployed();
         givenEveryValidatorAccepts();
         var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
         var spec = aNativeSpecBoundTo("plain").toBuilder().state(null).build();
