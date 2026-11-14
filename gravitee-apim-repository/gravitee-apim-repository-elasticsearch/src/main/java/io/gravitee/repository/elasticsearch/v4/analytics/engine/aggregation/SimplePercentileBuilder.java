@@ -40,14 +40,10 @@ public class SimplePercentileBuilder {
         };
     }
 
-    /** A built-in percentile, a document without the field counted as 0. */
     public static Map<String, JsonObject> build(String aggName, String field, Measure percentile) {
         var percents = JsonArray.of(
             percent(percentile).orElseThrow(() -> new IllegalArgumentException(percentile + " is not a percentile"))
         );
-        return Map.of(
-            aggName,
-            JsonObject.of(Aggs.PERCENTILES, JsonObject.of(Tokens.FIELD, field, Aggs.MISSING, 0, Aggs.PERCENTS, percents))
-        );
+        return Map.of(aggName, JsonObject.of(Aggs.PERCENTILES, JsonObject.of(Tokens.FIELD, field, Aggs.PERCENTS, percents)));
     }
 }

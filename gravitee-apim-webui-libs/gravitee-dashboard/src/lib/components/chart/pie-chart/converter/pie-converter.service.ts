@@ -16,7 +16,7 @@
 import { Injectable } from '@angular/core';
 import { ChartData } from 'chart.js';
 
-import { Converter } from '../../../converter';
+import { ChartValues, Converter } from '../../../converter';
 import { FacetsResponse } from '../../../widget/model/response/facets-response';
 import { PieType } from '../pie-chart.component';
 
@@ -24,9 +24,9 @@ import { PieType } from '../pie-chart.component';
   providedIn: 'root',
 })
 export class PieConverterService implements Converter {
-  public convert(data: FacetsResponse): ChartData<PieType, number[], string> {
+  public convert(data: FacetsResponse): ChartData<PieType, ChartValues, string> {
     const labels: string[] = [];
-    const dataValues: number[] = [];
+    const dataValues: ChartValues = [];
 
     if (data?.metrics?.length) {
       for (const bucket of data.metrics[0].buckets) {
@@ -39,6 +39,6 @@ export class PieConverterService implements Converter {
     return {
       labels: labels,
       datasets: [{ data: dataValues }],
-    } satisfies ChartData<PieType, number[], string>;
+    } satisfies ChartData<PieType, ChartValues, string>;
   }
 }

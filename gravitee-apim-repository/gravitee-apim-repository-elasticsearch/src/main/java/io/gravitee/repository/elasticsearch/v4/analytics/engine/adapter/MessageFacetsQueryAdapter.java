@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 import io.gravitee.repository.analytics.engine.api.query.FacetName;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
+import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
@@ -73,6 +74,22 @@ public class MessageFacetsQueryAdapter {
     }
 
     /**
+     * The facets of a metric, held to the messages carrying its value when its buckets are ranked by a measure reading
+     * no value on a bucket without one (an average, a bound or a percentile), which Elasticsearch would rank first and
+     * give the limit. Unwrapped by {@link AuthzScopedFacetAggregation#unwrap}.
+     */
+    JsonObject adaptFacets(MetricMeasuresQuery metric, List<FacetName> facets, Integer limit) {
+        var tree = facetTree(metric, facets, limit);
+        if (tree.isEmpty() || !AggregationAdapter.rankedByAMeasureReadingNoValueWhenEmpty(metric)) {
+            return tree;
+        }
+        return new JsonObject().put(
+            AuthzMeasuresQueryAdapter.scopeAggName(metric.metric()),
+            new JsonObject().put(Keys.FILTER, measuresAdapter.carrying(metric.metric())).put(Keys.AGGS, tree)
+        );
+    }
+
+    /**
      * Nests the requested dimensions, outermost first, and hangs the metric's measures off the
      * innermost bucket — the shape {@code AggregationAdapter} unwraps on the way back.
      *
@@ -80,7 +97,7 @@ public class MessageFacetsQueryAdapter {
      * it bottom-up is what let a child be keyed by its parent's name, which the response side —
      * resolving the child strictly by name — cannot survive.
      */
-    JsonObject adaptFacets(MetricMeasuresQuery metric, List<FacetName> facets, Integer limit) {
+    private JsonObject facetTree(MetricMeasuresQuery metric, List<FacetName> facets, Integer limit) {
         var aggs = new JsonObject();
         if (facets == null || facets.isEmpty()) {
             return aggs;
@@ -95,7 +112,7 @@ public class MessageFacetsQueryAdapter {
         if (isLast) {
             aggs.getJsonObject(aggName).put("aggs", measuresAdapter.adaptMeasures(metric));
         } else {
-            aggs.getJsonObject(aggName).put("aggs", adaptFacets(metric, facets.subList(1, facets.size()), limit));
+            aggs.getJsonObject(aggName).put("aggs", facetTree(metric, facets.subList(1, facets.size()), limit));
         }
 
         return aggs;

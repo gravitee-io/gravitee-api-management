@@ -102,7 +102,7 @@ class ComputeFacetsUseCaseTest {
     void setUp() {
         when(contextLoader.load(any(), any(), any())).thenReturn(ANALYTICS_CONTEXT);
         when(bucketNamesPostProcessor.mapBucketNames(any(), any(), any(FacetsResponse.class))).thenAnswer(inv -> inv.getArgument(2));
-        when(unitEnrichmentPostProcessor.enrichUnits(any(FacetsResponse.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(unitEnrichmentPostProcessor.enrichUnits(any(FacetsResponse.class), any())).thenAnswer(inv -> inv.getArgument(0));
     }
 
     /** A caller that already authorized the query (Gamma) hands its own API set over: no scope is loaded. */

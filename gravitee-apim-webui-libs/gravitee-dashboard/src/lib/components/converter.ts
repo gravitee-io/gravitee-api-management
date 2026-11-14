@@ -18,6 +18,9 @@ import { ChartData } from 'chart.js';
 import { PieType } from './chart/pie-chart/pie-chart.component';
 import { Metric, MetricsResponse } from './widget/model/response/response';
 
+/** A chart's values: `null` where no request carries a value, which a chart draws as a gap, not as 0. */
+export type ChartValues = (number | null)[];
+
 export interface Converter {
-  convert(data: MetricsResponse<Metric>): ChartData<PieType | 'line' | 'bar', number[], string> | number[] | string[];
+  convert(data: MetricsResponse<Metric>): ChartData<PieType | 'line' | 'bar', ChartValues, string> | number[] | string[];
 }

@@ -191,7 +191,7 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
                             metric
                                 .getValue()
                                 .stream()
-                                .map(measure -> new Measure(measure, MetricName.emptyValue(metric.getKey(), measure)))
+                                .map(measure -> new Measure(measure, measure.emptyValue()))
                                 .toList(),
                             List.of()
                         )
@@ -214,7 +214,12 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
                 var node = objectMapper.createObjectNode().put("id", metric.query().id());
                 node.setAll(
                     (ObjectNode) objectMapper.valueToTree(
-                        new MetricMeasuresResponse(entry.name(), entry.unit(), own, entry.ignoredFilters())
+                        new MetricMeasuresResponse(
+                            entry.name(),
+                            MetricSpec.servedUnit(entry.unit(), own.stream().map(Measure::name).toList()),
+                            own,
+                            entry.ignoredFilters()
+                        )
                     )
                 );
                 ConditionsNotAppliedEnricher.enrichMetric(node, metric.conditionsNotApplied());

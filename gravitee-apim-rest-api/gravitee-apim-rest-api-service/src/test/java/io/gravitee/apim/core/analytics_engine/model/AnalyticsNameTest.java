@@ -26,12 +26,14 @@ import io.gravitee.apim.core.observability.model.FilterOperator;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -59,13 +61,12 @@ class AnalyticsNameTest {
         assertThat(MetricName.parse("additional-metrics.keyword_fraud-check_tier")).contains(TIER);
     }
 
-    @Test
-    void should_read_what_elasticsearch_answers_over_no_request_carrying_an_additional_metric() {
-        for (var measure : AdditionalMetricName.MEASURES) {
-            var expected = measure == MetricSpec.Measure.SUM || measure == MetricSpec.Measure.COUNT ? 0 : null;
-            assertThat(MetricName.emptyValue(FAILOVERS, measure)).as(measure.name()).isEqualTo(expected);
-            assertThat(MetricName.emptyValue(MetricSpec.Name.HTTP_GATEWAY_LATENCY, measure)).as(measure.name()).isEqualTo(0);
-        }
+    @ParameterizedTest
+    @EnumSource(MetricSpec.Measure.class)
+    void should_read_what_elasticsearch_answers_over_no_request_carrying_the_value(MetricSpec.Measure measure) {
+        var counted = Set.of(MetricSpec.Measure.COUNT, MetricSpec.Measure.SUM, MetricSpec.Measure.PERCENTAGE).contains(measure);
+
+        assertThat(measure.emptyValue()).isEqualTo(counted ? 0 : null);
     }
 
     @Test

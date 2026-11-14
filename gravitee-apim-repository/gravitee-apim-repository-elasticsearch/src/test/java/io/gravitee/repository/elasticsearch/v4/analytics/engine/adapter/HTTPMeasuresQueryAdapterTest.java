@@ -26,6 +26,8 @@ import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -205,90 +207,48 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         assertThat(errorRateBucketScript.has("script")).isTrue();
     }
 
-    @Test
-    void should_build_query_with_llm_total_token_count_measure() throws JsonProcessingException {
-        var timeRange = buildTimeRange();
-        var filters = buildFilters();
-        var metrics = List.of(new MetricMeasuresQuery(Metric.LLM_PROMPT_TOTAL_TOKEN, Set.of(Measure.COUNT)));
+    @ParameterizedTest
+    @CsvSource(
+        {
+            "LLM_PROMPT_TOKEN_SENT, additional-metrics.long_llm-proxy_tokens-sent",
+            "LLM_PROMPT_TOKEN_RECEIVED, additional-metrics.long_llm-proxy_tokens-received",
+            "LLM_PROMPT_TOKEN_SENT_COST, additional-metrics.double_llm-proxy_sent-cost",
+            "LLM_PROMPT_TOKEN_RECEIVED_COST, additional-metrics.double_llm-proxy_received-cost",
+        }
+    )
+    void should_count_the_requests_carrying_an_llm_value_and_sum_it(Metric metric, String field) throws JsonProcessingException {
+        var metrics = List.of(new MetricMeasuresQuery(metric, Set.of(Measure.COUNT, Measure.SUM)));
 
-        var query = new MeasuresQuery(timeRange, filters, metrics);
+        var aggs = JSON.readTree(adapter.adapt(new MeasuresQuery(buildTimeRange(), buildFilters(), metrics))).at("/aggs");
 
-        var queryString = adapter.adapt(query);
-
-        var jsonQuery = JSON.readTree(queryString);
-
-        var aggs = jsonQuery.at("/aggs");
-        assertThat(aggs).isNotEmpty();
-
-        // LLM_PROMPT_TOTAL_TOKEN COUNT uses a sum aggregation with script
-        var sumAgg = aggs.at("/LLM_PROMPT_TOTAL_TOKEN#__COUNTED__/aggs/LLM_PROMPT_TOTAL_TOKEN#COUNT/sum/script/source");
-        assertThat(sumAgg).isNotNull();
-        assertThat(sumAgg.asText()).contains("additional-metrics.long_llm-proxy_tokens-sent");
-        assertThat(sumAgg.asText()).contains("additional-metrics.long_llm-proxy_tokens-received");
+        assertThat(aggs.at("/" + metric + "#__COUNTED__/aggs/" + metric + "#COUNT")).isEqualTo(
+            JSON.readTree("{\"value_count\":{\"field\":\"" + field + "\"}}")
+        );
+        assertThat(aggs.at("/" + metric + "#__MEASURED__/aggs/" + metric + "#SUM")).isEqualTo(
+            JSON.readTree("{\"sum\":{\"field\":\"" + field + "\"}}")
+        );
     }
 
-    @Test
-    void should_build_query_with_llm_total_token_avg_measure() throws JsonProcessingException {
-        var timeRange = buildTimeRange();
-        var filters = buildFilters();
-        var metrics = List.of(new MetricMeasuresQuery(Metric.LLM_PROMPT_TOTAL_TOKEN, Set.of(Measure.AVG)));
+    @ParameterizedTest
+    @CsvSource(
+        {
+            "LLM_PROMPT_TOTAL_TOKEN, COUNT, value_count, long_llm-proxy_tokens-sent, long_llm-proxy_tokens-received",
+            "LLM_PROMPT_TOTAL_TOKEN, SUM, sum, long_llm-proxy_tokens-sent, long_llm-proxy_tokens-received",
+            "LLM_PROMPT_TOTAL_TOKEN, AVG, avg, long_llm-proxy_tokens-sent, long_llm-proxy_tokens-received",
+            "LLM_PROMPT_TOKEN_TOTAL_COST, COUNT, value_count, double_llm-proxy_sent-cost, double_llm-proxy_received-cost",
+            "LLM_PROMPT_TOKEN_TOTAL_COST, SUM, sum, double_llm-proxy_sent-cost, double_llm-proxy_received-cost",
+            "LLM_PROMPT_TOKEN_TOTAL_COST, AVG, avg, double_llm-proxy_sent-cost, double_llm-proxy_received-cost",
+        }
+    )
+    void should_measure_an_llm_total_over_both_of_its_values(Metric metric, Measure measure, String type, String sent, String received)
+        throws JsonProcessingException {
+        var metrics = List.of(new MetricMeasuresQuery(metric, Set.of(measure)));
 
-        var query = new MeasuresQuery(timeRange, filters, metrics);
+        var aggs = JSON.readTree(adapter.adapt(new MeasuresQuery(buildTimeRange(), buildFilters(), metrics))).at("/aggs");
 
-        var queryString = adapter.adapt(query);
-
-        var jsonQuery = JSON.readTree(queryString);
-
-        var aggs = jsonQuery.at("/aggs");
-        assertThat(aggs).isNotEmpty();
-
-        // LLM_PROMPT_TOTAL_TOKEN AVG uses an avg aggregation with script
-        var avgAgg = aggs.at("/LLM_PROMPT_TOTAL_TOKEN#__MEASURED__/aggs/LLM_PROMPT_TOTAL_TOKEN#AVG/avg/script/source");
-        assertThat(avgAgg).isNotNull();
-        assertThat(avgAgg.asText()).contains("additional-metrics.long_llm-proxy_tokens-sent");
-        assertThat(avgAgg.asText()).contains("additional-metrics.long_llm-proxy_tokens-received");
-    }
-
-    @Test
-    void should_build_query_with_llm_total_cost_count_measure() throws JsonProcessingException {
-        var timeRange = buildTimeRange();
-        var filters = buildFilters();
-        var metrics = List.of(new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_TOTAL_COST, Set.of(Measure.COUNT)));
-
-        var query = new MeasuresQuery(timeRange, filters, metrics);
-
-        var queryString = adapter.adapt(query);
-
-        var jsonQuery = JSON.readTree(queryString);
-
-        var aggs = jsonQuery.at("/aggs");
-        assertThat(aggs).isNotEmpty();
-
-        var sumAgg = aggs.at("/LLM_PROMPT_TOKEN_TOTAL_COST#__COUNTED__/aggs/LLM_PROMPT_TOKEN_TOTAL_COST#COUNT/sum/script/source");
-        assertThat(sumAgg).isNotNull();
-        assertThat(sumAgg.asText()).contains("additional-metrics.double_llm-proxy_sent-cost");
-        assertThat(sumAgg.asText()).contains("additional-metrics.double_llm-proxy_received-cost");
-    }
-
-    @Test
-    void should_build_query_with_llm_total_cost_avg_measure() throws JsonProcessingException {
-        var timeRange = buildTimeRange();
-        var filters = buildFilters();
-        var metrics = List.of(new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_TOTAL_COST, Set.of(Measure.AVG)));
-
-        var query = new MeasuresQuery(timeRange, filters, metrics);
-
-        var queryString = adapter.adapt(query);
-
-        var jsonQuery = JSON.readTree(queryString);
-
-        var aggs = jsonQuery.at("/aggs");
-        assertThat(aggs).isNotEmpty();
-
-        var avgAgg = aggs.at("/LLM_PROMPT_TOKEN_TOTAL_COST#__MEASURED__/aggs/LLM_PROMPT_TOKEN_TOTAL_COST#AVG/avg/script/source");
-        assertThat(avgAgg).isNotNull();
-        assertThat(avgAgg.asText()).contains("additional-metrics.double_llm-proxy_sent-cost");
-        assertThat(avgAgg.asText()).contains("additional-metrics.double_llm-proxy_received-cost");
+        var envelope = measure == Measure.COUNT ? "#__COUNTED__" : "#__MEASURED__";
+        var source = aggs.at("/" + metric + envelope + "/aggs/" + metric + "#" + measure + "/" + type + "/script/source").asText();
+        assertThat(source).contains("additional-metrics." + sent).contains("additional-metrics." + received);
     }
 
     @Test

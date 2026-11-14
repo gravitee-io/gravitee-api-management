@@ -22,12 +22,12 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.repository.analytics.engine.api.metric.AdditionalMetric;
 import io.gravitee.repository.analytics.engine.api.metric.Measure;
-import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.metric.MetricName;
 import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.FacetName;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
+import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.Query;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
 import io.gravitee.repository.analytics.engine.api.result.FacetBucketResult;
@@ -117,14 +117,26 @@ public class AggregationAdapter {
     }
 
     /**
-     * What a measure reads where no document matches. A built-in reads 0. An additional metric reads what
-     * Elasticsearch answers over no document carrying its field: 0 for a sum or a count, no value otherwise.
+     * What a measure reads where no document carries the value, on a built-in and an additional metric alike: 0 for a
+     * count, a sum or a percentage, and no value for an average, a bound or a percentile, as Elasticsearch answers over
+     * no document.
      */
-    public static Number emptyValue(MetricName metric, Measure measure) {
-        return switch (metric) {
-            case Metric _ -> 0;
-            case AdditionalMetric _ -> measure == Measure.SUM || measure == Measure.COUNT ? 0 : null;
+    public static Number emptyValue(Measure measure) {
+        return switch (measure) {
+            case COUNT, SUM, PERCENTAGE -> 0;
+            case AVG, MIN, MAX, P50, P90, P95, P99 -> null;
         };
+    }
+
+    /** Whether the buckets of a metric are ranked by a measure reading no value on a bucket where no document carries one. */
+    public static boolean rankedByAMeasureReadingNoValueWhenEmpty(MetricMeasuresQuery metric) {
+        return (
+            metric.sorts() != null &&
+            metric
+                .sorts()
+                .stream()
+                .anyMatch(sort -> emptyValue(sort.measure()) == null)
+        );
     }
 
     public static List<MetricTimeSeriesResult> toMetricsAndTimeSeries(Map<String, Aggregation> aggregations, TimeSeriesQuery query) {
@@ -164,7 +176,7 @@ public class AggregationAdapter {
             if (aggNames.containsKey(aggName)) {
                 var measured = aggNames.get(aggName);
                 var measures = metricsAndMeasures.computeIfAbsent(measured.metric(), m -> new HashMap<>());
-                measures.put(measured.measure(), getValue(measured.metric(), agg));
+                measures.put(measured.measure(), getValue(measured.measure(), agg));
                 continue;
             }
 
@@ -181,7 +193,7 @@ public class AggregationAdapter {
                     aggNames.forEach((name, measured) -> {
                         if (bucket.hasNonNull(name)) {
                             var measures = metricsAndMeasures.computeIfAbsent(measured.metric(), m -> new HashMap<>());
-                            measures.put(measured.measure(), getValue(measured.metric(), bucket.get(name)));
+                            measures.put(measured.measure(), getValue(measured.measure(), bucket.get(name)));
                         }
                     });
                 }
@@ -209,7 +221,7 @@ public class AggregationAdapter {
 
         var defaultMeasures = new HashMap<Measure, Number>();
         for (var measure : expectedMeasures) {
-            defaultMeasures.put(measure, emptyValue(metric, measure));
+            defaultMeasures.put(measure, emptyValue(measure));
         }
         return defaultMeasures;
     }
@@ -470,28 +482,26 @@ public class AggregationAdapter {
 
     private record MeasuredMetric(MetricName metric, Measure measure) {}
 
-    /** An additional metric keeps Elasticsearch's absent value, and reads NaN as one too: it is not 0. */
-    private static Number getValue(MetricName metric, Aggregation agg) {
-        var value = lookupForCount(agg)
+    /** Elasticsearch's absent value, and NaN, read as the measure's empty value: they are not 0. */
+    private static Number getValue(Measure measure, Aggregation agg) {
+        return lookupForCount(agg)
             .or(() -> lookupForValue(agg))
             .or(() -> lookupForValues(agg))
-            .map(Number::doubleValue);
-        return switch (metric) {
-            case Metric _ -> value.orElse(0.0);
-            case AdditionalMetric _ -> value.filter(number -> !Double.isNaN(number)).orElse(null);
-        };
+            .filter(number -> !Double.isNaN(number.doubleValue()))
+            .map(number -> (Number) number.doubleValue())
+            .orElse(emptyValue(measure));
     }
 
-    private static Number getValue(MetricName metric, JsonNode bucketNode) {
+    private static Number getValue(Measure measure, JsonNode bucketNode) {
         var value = bucketNode.get(ES_VALUE_PROP);
         if (value != null && value.isNumber()) {
-            return metric instanceof AdditionalMetric && Double.isNaN(value.asDouble()) ? null : value.asDouble();
+            return Double.isNaN(value.asDouble()) ? emptyValue(measure) : value.asDouble();
         }
         var values = bucketNode.get(ES_VALUES_PROP);
         if (values != null && values.isArray()) {
             return values.get(0).asDouble();
         }
-        return metric instanceof AdditionalMetric ? null : 0;
+        return emptyValue(measure);
     }
 
     private static Optional<Number> lookupForCount(Aggregation agg) {

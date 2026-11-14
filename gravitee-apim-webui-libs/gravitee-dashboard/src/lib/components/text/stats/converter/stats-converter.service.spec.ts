@@ -148,6 +148,44 @@ describe('StatsConverterService', () => {
       expect(result).toEqual(['0', '0', '0']);
     });
 
+    it('should show a dash, without unit, for a measure no request carries a value for', () => {
+      const data: MeasuresResponse = {
+        metrics: [
+          {
+            name: 'HTTP_GATEWAY_LATENCY',
+            unit: 'MILLISECONDS',
+            measures: [
+              { name: 'AVG', value: null },
+              { name: 'SUM', value: 0 },
+            ],
+          },
+        ],
+      };
+
+      const result = service.convert(data);
+
+      expect(result).toEqual(['—', '0 ms']);
+    });
+
+    it('should never suffix a COUNT with the metric unit: it is a number of requests', () => {
+      const data: MeasuresResponse = {
+        metrics: [
+          {
+            name: 'HTTP_REQUEST_CONTENT_LENGTH',
+            unit: 'BYTES',
+            measures: [
+              { name: 'COUNT', value: 345 },
+              { name: 'SUM', value: 2048 },
+            ],
+          },
+        ],
+      };
+
+      const result = service.convert(data);
+
+      expect(result).toEqual(['345', '2,048 bytes']);
+    });
+
     it('should handle negative values', () => {
       const data: MeasuresResponse = {
         metrics: [

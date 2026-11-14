@@ -23,6 +23,9 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.analytics_engine.model.FacetBucketResponse;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
@@ -153,6 +156,68 @@ public class PortalAnalyticsComputationResourceTest extends AbstractResourceTest
         assertThat(body.getMetrics().getFirst().getMeasures()).hasSize(1);
         assertThat(body.getMetrics().getFirst().getMeasures().getFirst().getName()).isEqualTo(AnalyticsMeasureName.COUNT);
         verify(computeMeasuresUseCase).execute(any());
+    }
+
+    /** The Portal renders the dashboards the Console creates, whose LLM totals read SUM. */
+    @Test
+    void post_measures_reads_the_sum_of_an_llm_metric() {
+        when(computeMeasuresUseCase.execute(any())).thenReturn(
+            new ComputeMeasuresUseCase.Output(
+                new MeasuresResponse(
+                    List.of(
+                        new MetricMeasuresResponse(
+                            MetricSpec.Name.LLM_PROMPT_TOTAL_TOKEN,
+                            MetricSpec.Unit.TOKENS,
+                            List.of(new Measure(MetricSpec.Measure.SUM, 5570)),
+                            List.of()
+                        )
+                    )
+                )
+            )
+        );
+        final var json = """
+            {
+              "timeRange": {"from": "2026-01-01T00:00:00Z", "to": "2026-01-02T00:00:00Z"},
+              "metrics": [{"name": "LLM_PROMPT_TOTAL_TOKEN", "measures": ["SUM"]}]
+            }
+            """;
+
+        final var response = target().path("measures").request().post(Entity.json(json));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        final var captor = ArgumentCaptor.forClass(ComputeMeasuresUseCase.Input.class);
+        verify(computeMeasuresUseCase).execute(captor.capture());
+        assertThat(captor.getValue().request().metrics().getFirst().measures()).containsExactly(MetricSpec.Measure.SUM);
+        final var measure = response.readEntity(AnalyticsMeasuresResponse.class).getMetrics().getFirst().getMeasures().getFirst();
+        assertThat(measure.getName()).isEqualTo(AnalyticsMeasureName.SUM);
+        assertThat(measure.getValue().doubleValue()).isEqualTo(5570.0);
+    }
+
+    /** An average over a window where no request carries the value has no value: it is served as null, not 0. */
+    @Test
+    void post_measures_serves_an_average_no_request_carries_a_value_for_as_null() {
+        when(computeMeasuresUseCase.execute(any())).thenReturn(
+            new ComputeMeasuresUseCase.Output(
+                new MeasuresResponse(
+                    List.of(
+                        new MetricMeasuresResponse(
+                            MetricSpec.Name.HTTP_GATEWAY_LATENCY,
+                            MetricSpec.Unit.MILLISECONDS,
+                            List.of(new Measure(MetricSpec.Measure.AVG, null)),
+                            List.of()
+                        )
+                    )
+                )
+            )
+        );
+
+        final var response = target().path("measures").request().post(Entity.json(aMeasuresRequest()));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        final var measure = readTree(response.readEntity(String.class)).at("/metrics/0/measures/0");
+        assertThat(measure.get("name").asText()).isEqualTo("AVG");
+        assertThat(measure.has("value")).isTrue();
+        assertThat(measure.get("value").isNull()).isTrue();
     }
 
     @Test
@@ -381,5 +446,13 @@ public class PortalAnalyticsComputationResourceTest extends AbstractResourceTest
                     new AnalyticsFacetMetricRequest().name(AnalyticsMetricName.HTTP_REQUESTS).measures(List.of(AnalyticsMeasureName.COUNT))
                 )
             );
+    }
+
+    private static JsonNode readTree(String json) {
+        try {
+            return new ObjectMapper().readTree(json);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Response is not JSON: " + json, e);
+        }
     }
 }

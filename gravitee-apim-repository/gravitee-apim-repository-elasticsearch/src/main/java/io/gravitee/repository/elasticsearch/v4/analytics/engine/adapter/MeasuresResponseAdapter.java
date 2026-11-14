@@ -63,9 +63,9 @@ public class MeasuresResponseAdapter extends AbstractResponseAdapter {
     }
 
     private Map<Measure, Number> emptyMeasures(MetricMeasuresQuery query) {
-        // Not Collectors.toMap, which refuses the null an additional metric reads
+        // Not Collectors.toMap, which refuses the null an average, a bound or a percentile reads
         var measures = new HashMap<Measure, Number>();
-        query.measures().forEach(measure -> measures.put(measure, AggregationAdapter.emptyValue(query.metric(), measure)));
+        query.measures().forEach(measure -> measures.put(measure, AggregationAdapter.emptyValue(measure)));
         return measures;
     }
 }

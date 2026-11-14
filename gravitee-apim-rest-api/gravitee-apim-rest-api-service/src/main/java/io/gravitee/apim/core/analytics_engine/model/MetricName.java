@@ -35,15 +35,4 @@ public sealed interface MetricName permits MetricSpec.Name, AdditionalMetricName
             .findFirst()
             .or(() -> AdditionalMetricName.parse(name));
     }
-
-    /**
-     * What a measure reads when no request matches. A built-in reads 0. An additional metric counts only the requests
-     * carrying its field: 0 for a sum or a count, no value for an average, a bound or a percentile.
-     */
-    static Number emptyValue(MetricName metric, MetricSpec.Measure measure) {
-        return switch (metric) {
-            case MetricSpec.Name _ -> 0;
-            case AdditionalMetricName _ -> measure == MetricSpec.Measure.SUM || measure == MetricSpec.Measure.COUNT ? 0 : null;
-        };
-    }
 }

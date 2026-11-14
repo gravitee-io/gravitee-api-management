@@ -530,6 +530,7 @@ spec:
           unit: TOKENS
           measures:
               - COUNT
+              - SUM
               - AVG
           facets:
               - API
@@ -584,6 +585,7 @@ spec:
           unit: TOKENS
           measures:
               - COUNT
+              - SUM
               - AVG
           facets:
               - API
@@ -639,6 +641,8 @@ spec:
           unit: CURRENCY
           measures:
               - COUNT
+              - SUM
+              - AVG
           facets:
               - API
               - APPLICATION
@@ -693,6 +697,8 @@ spec:
           unit: CURRENCY
           measures:
               - COUNT
+              - SUM
+              - AVG
           facets:
               - API
               - APPLICATION
@@ -747,6 +753,7 @@ spec:
           unit: TOKENS
           measures:
               - COUNT
+              - SUM
               - AVG
           facets:
               - API
@@ -802,6 +809,7 @@ spec:
           unit: CURRENCY
           measures:
               - COUNT
+              - SUM
               - AVG
           facets:
               - API
@@ -1039,6 +1047,7 @@ spec:
           unit: NUMBER
           measures:
               - COUNT
+              - SUM
           facets:
               - API
               - APPLICATION

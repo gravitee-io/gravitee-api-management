@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.analytics_engine.model;
 
+import java.util.Collection;
 import java.util.List;
 
 public record MetricSpec(
@@ -93,6 +94,15 @@ public record MetricSpec(
         CURRENCY,
     }
 
+    /**
+     * The unit served with an entry of measures on a metric whose values are in {@code unit}. A COUNT is a number of
+     * requests, so an entry reading COUNT only is served {@link Unit#NUMBER}, on a built-in and an additional metric
+     * alike; any other entry keeps {@code unit}, which then applies to its measures other than COUNT.
+     */
+    public static Unit servedUnit(Unit unit, Collection<Measure> measures) {
+        return !measures.isEmpty() && measures.stream().allMatch(Measure.COUNT::equals) ? Unit.NUMBER : unit;
+    }
+
     public enum Measure {
         AVG,
         COUNT,
@@ -103,6 +113,17 @@ public record MetricSpec(
         P99,
         P95,
         P90,
-        SUM,
+        SUM;
+
+        /**
+         * What the measure reads when no request carries the value, on a built-in and an additional metric alike: 0
+         * for a count, a sum or a percentage, no value for an average, a bound or a percentile.
+         */
+        public Number emptyValue() {
+            return switch (this) {
+                case COUNT, SUM, PERCENTAGE -> 0;
+                case AVG, MAX, MIN, P50, P99, P95, P90 -> null;
+            };
+        }
     }
 }
