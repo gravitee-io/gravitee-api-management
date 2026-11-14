@@ -629,6 +629,30 @@ class GuardiansResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_report_the_version_the_gateways_run() {
+            var neverDeployed = rootTarget("/" + GUARDIAN_ID).request().get().readEntity(JsonNode.class);
+            deploy(Map.of());
+            var deployed = deploy(Map.of()).readEntity(JsonNode.class);
+            var read = rootTarget("/" + GUARDIAN_ID).request().get().readEntity(JsonNode.class);
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(neverDeployed.has("deployedVersion")).as("never deployed").isFalse();
+                softly.assertThat(deployed.at("/deployedVersion").asLong()).as("version answered by the deployment").isEqualTo(2);
+                softly.assertThat(read.at("/deployedVersion").asLong()).as("version read back").isEqualTo(2);
+            });
+        }
+
+        @Test
+        void should_accept_the_get_response_of_a_deployed_guardian_as_an_update_body() {
+            deploy(Map.of());
+            var read = rootTarget("/" + GUARDIAN_ID).request().get().readEntity(JsonNode.class);
+
+            var response = rootTarget("/" + GUARDIAN_ID).request().put(Entity.entity(read, MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).as("update with the read deployed version").isEqualTo(HttpStatusCode.OK_200);
+        }
+
+        @Test
         void should_reject_an_unknown_property_before_publication() {
             var response = deploy(Map.of("deploymentLable", "Reviewed"));
 

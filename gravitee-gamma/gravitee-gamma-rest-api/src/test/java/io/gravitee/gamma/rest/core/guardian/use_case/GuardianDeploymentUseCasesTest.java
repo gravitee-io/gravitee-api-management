@@ -374,6 +374,58 @@ class GuardianDeploymentUseCasesTest {
     }
 
     @Test
+    void should_report_the_version_the_gateways_run() {
+        deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null));
+        var deployed = deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null)).guardian();
+
+        var read = new GetGuardianUseCase(repository, deploymentService).execute(new GetGuardianUseCase.Input(ENVIRONMENT_ID, GUARDIAN_ID));
+
+        assertSoftly(softly -> {
+            softly.assertThat(deployed.getDeployedVersion()).as("version answered by the deployment").isEqualTo(2L);
+            softly.assertThat(read.guardian().getDeployedVersion()).as("version read back").isEqualTo(2L);
+        });
+    }
+
+    @Test
+    void should_keep_reporting_the_deployed_version_of_a_changed_draft() {
+        deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null));
+
+        var result = save(aGuardianDefinition().name("Changed").build(), "description");
+
+        assertSoftly(softly -> {
+            softly.assertThat(result.getLifecycleState()).as("changed draft").isEqualTo(GuardianLifecycleState.PENDING);
+            softly.assertThat(result.getDeployedVersion()).as("version still running").isEqualTo(1L);
+        });
+    }
+
+    @Test
+    void should_report_no_deployed_version_once_withdrawn_or_never_deployed() {
+        var neverDeployed = save(aGuardianDefinition().name("Changed").build(), "description");
+        deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null));
+
+        var withdrawn = undeploy.execute(new UndeployGuardianUseCase.Input(actor, GUARDIAN_ID)).guardian();
+
+        assertSoftly(softly -> {
+            softly.assertThat(neverDeployed.getDeployedVersion()).as("never deployed").isNull();
+            softly.assertThat(withdrawn.getDeployedVersion()).as("withdrawn").isNull();
+        });
+    }
+
+    @Test
+    void should_report_no_deployed_version_for_a_deployment_recorded_before_numbering() {
+        deployments.givenPublication(aGuardianDefinition().build(), Instant.parse("2026-11-09T10:00:00Z"));
+
+        var result = new GetGuardianUseCase(repository, deploymentService).execute(
+            new GetGuardianUseCase.Input(ENVIRONMENT_ID, GUARDIAN_ID)
+        );
+
+        assertSoftly(softly -> {
+            softly.assertThat(result.guardian().getLifecycleState()).as("deployed").isEqualTo(GuardianLifecycleState.DEPLOYED);
+            softly.assertThat(result.guardian().getDeployedVersion()).as("unnumbered deployment").isNull();
+        });
+    }
+
+    @Test
     void should_refuse_undeployment_of_unknown_or_foreign_guardians() {
         var foreign = AuditInfo.builder().organizationId(ORGANIZATION_ID).environmentId("another-environment").actor(actor.actor()).build();
         assertThatThrownBy(() -> undeploy.execute(new UndeployGuardianUseCase.Input(foreign, GUARDIAN_ID))).isInstanceOf(

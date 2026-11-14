@@ -570,6 +570,13 @@ components:
                     $ref: "#/components/schemas/GuardianLifecycleState"
                 deployedAt:
                     $ref: "#/components/schemas/Timestamp"
+                deployedVersion:
+                    type: integer
+                    format: int64
+                    description: |
+                        The version the gateways run, as the deployment history numbers it; it stays
+                        while the draft is PENDING. Absent when the Guardian is not deployed, or when
+                        its deployment was recorded before deployments were numbered.
                 createdAt:
                     $ref: "#/components/schemas/Timestamp"
                 updatedAt:
@@ -709,7 +716,7 @@ components:
                 `id` is accepted only to be ignored: the path owns the identity, so a value in the body
                 is never applied and never has to be stripped.
 
-                Rejects any key it does not declare. The five `readOnly` properties below are
+                Rejects any key it does not declare. The six `readOnly` properties below are
                 declared for exactly that reason: they are what a `GET` returns and only the store
                 writes them, so they are accepted here and ignored rather than refused, and the
                 response of a `GET` can be sent straight back.
@@ -729,6 +736,11 @@ components:
                         - $ref: "#/components/schemas/Timestamp"
                     readOnly: true
                     description: Ignored — the date of the latest deployment.
+                deployedVersion:
+                    type: integer
+                    format: int64
+                    readOnly: true
+                    description: Ignored — the version of the latest deployment.
                 createdAt:
                     allOf:
                         - $ref: "#/components/schemas/Timestamp"
