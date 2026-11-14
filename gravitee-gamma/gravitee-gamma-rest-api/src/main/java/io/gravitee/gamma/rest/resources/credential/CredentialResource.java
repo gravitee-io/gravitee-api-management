@@ -81,15 +81,18 @@ public class CredentialResource {
     @GET
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CREDENTIAL, acls = { RolePermissionAction.READ }) })
     public CredentialDto getCredential(@PathParam("credentialId") String credentialId) {
-        return CredentialDto.from(getCredentialUseCase.execute(new GetCredentialUseCase.Input(actor(), credentialId)).credential());
+        var actor = actor();
+        var output = getCredentialUseCase.execute(new GetCredentialUseCase.Input(actor, credentialId));
+        return CredentialDto.from(output.credential(), actor, output.ownerName());
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CREDENTIAL, acls = { RolePermissionAction.UPDATE }) })
     public CredentialDto updateCredential(@PathParam("credentialId") String credentialId, @NotNull UpdateCredentialRequestDto request) {
-        var output = updateCredentialUseCase.execute(new UpdateCredentialUseCase.Input(actor(), credentialId, request.toCommand()));
-        return CredentialDto.from(output.credential());
+        var actor = actor();
+        var output = updateCredentialUseCase.execute(new UpdateCredentialUseCase.Input(actor, credentialId, request.toCommand()));
+        return CredentialDto.from(output.credential(), actor);
     }
 
     @POST
@@ -100,8 +103,9 @@ public class CredentialResource {
         @PathParam("credentialId") String credentialId,
         @Valid @NotNull RotateCredentialRequestDto request
     ) {
-        var output = rotateCredentialUseCase.execute(new RotateCredentialUseCase.Input(actor(), credentialId, request.values()));
-        return CredentialDto.from(output.credential());
+        var actor = actor();
+        var output = rotateCredentialUseCase.execute(new RotateCredentialUseCase.Input(actor, credentialId, request.values()));
+        return CredentialDto.from(output.credential(), actor);
     }
 
     @DELETE

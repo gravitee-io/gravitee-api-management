@@ -420,6 +420,13 @@ describe('platform nav visibility', () => {
         expect(landingNavItemKey(visibility(['environment-application-r', 'environment-message-c']))).toBe('applications');
     });
 
+    it('gates Credentials on environment-credential-r without the org settings gate', () => {
+        expect(requiresOrganizationSettingsGate('credentials')).toBe(false);
+        expect(pageGuardForNavItem('credentials')).toEqual({ anyOf: ['environment-credential-r'] });
+        expect(isNavItemVisible('credentials', visibility(['environment-credential-r']))).toBe(true);
+        expect(isNavItemVisible('credentials', visibility([...ORGANIZATION_USER, ...ENVIRONMENT_USER]))).toBe(false);
+    });
+
     it('gates Client Registration on environment-client_registration_provider-r without the org settings gate', () => {
         expect(requiresOrganizationSettingsGate('client-registration')).toBe(false);
         expect(pageGuardForNavItem('client-registration')).toEqual({ anyOf: ['environment-client_registration_provider-r'] });

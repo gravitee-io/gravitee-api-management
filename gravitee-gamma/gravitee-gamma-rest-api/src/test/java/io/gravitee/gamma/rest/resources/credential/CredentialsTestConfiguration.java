@@ -110,13 +110,19 @@ class CredentialsTestConfiguration {
     }
 
     @Bean
-    SearchCredentialsUseCase searchCredentialsUseCase(CredentialCrudServiceInMemory credentialCrudService) {
-        return new SearchCredentialsUseCase(new CredentialQueryServiceInMemory(credentialCrudService));
+    SearchCredentialsUseCase searchCredentialsUseCase(
+        CredentialCrudServiceInMemory credentialCrudService,
+        CredentialOwnerDomainService credentialOwnerDomainService
+    ) {
+        return new SearchCredentialsUseCase(new CredentialQueryServiceInMemory(credentialCrudService), credentialOwnerDomainService);
     }
 
     @Bean
-    GetCredentialUseCase getCredentialUseCase(CredentialCrudServiceInMemory credentialCrudService) {
-        return new GetCredentialUseCase(credentialCrudService);
+    GetCredentialUseCase getCredentialUseCase(
+        CredentialCrudServiceInMemory credentialCrudService,
+        CredentialOwnerDomainService credentialOwnerDomainService
+    ) {
+        return new GetCredentialUseCase(credentialCrudService, credentialOwnerDomainService);
     }
 
     @Bean

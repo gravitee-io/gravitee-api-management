@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.resources.credential.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.gravitee.apim.core.credential.model.Credential;
+import io.gravitee.apim.core.credential.model.CredentialActor;
 import io.gravitee.apim.core.credential.model.CredentialStrategy;
 import io.gravitee.apim.core.credential.model.SecretReference;
 import java.time.Instant;
@@ -38,18 +39,26 @@ public record CredentialDto(
     CredentialStrategy strategy,
     String serviceId,
     String ownerId,
+    String ownerName,
     @JsonFormat(shape = JsonFormat.Shape.STRING) Instant expiresAt,
     Map<String, Object> configuration,
     Map<String, SecretReferenceDto> secretReferences,
     boolean managed,
     @JsonFormat(shape = JsonFormat.Shape.STRING) Instant createdAt,
     @JsonFormat(shape = JsonFormat.Shape.STRING) Instant updatedAt,
-    @JsonFormat(shape = JsonFormat.Shape.STRING) Instant rotatedAt
+    @JsonFormat(shape = JsonFormat.Shape.STRING) Instant rotatedAt,
+    boolean manageable
 ) {
     /** @param managed whether Gravitee stores the value behind the reference */
     public record SecretReferenceDto(String reference, boolean managed) {}
 
-    public static CredentialDto from(Credential credential) {
+    /** Without the owner name, which only the reads look up. */
+    public static CredentialDto from(Credential credential, CredentialActor caller) {
+        return from(credential, caller, null);
+    }
+
+    /** @param ownerName null when the owner is no longer a user */
+    public static CredentialDto from(Credential credential, CredentialActor caller, String ownerName) {
         var references = new LinkedHashMap<String, SecretReferenceDto>();
         credential.secretReferences().forEach((field, reference) -> references.put(field, from(reference)));
         return new CredentialDto(
@@ -58,18 +67,23 @@ public record CredentialDto(
             credential.strategy(),
             credential.serviceId(),
             credential.ownerId(),
+            ownerName,
             credential.expiresAt(),
             credential.configuration(),
             references,
             credential.isManaged(),
             credential.createdAt(),
             credential.updatedAt(),
-            credential.rotatedAt()
+            credential.rotatedAt(),
+            credential.isManageableBy(caller)
         );
     }
 
-    public static List<CredentialDto> from(List<Credential> credentials) {
-        return credentials.stream().map(CredentialDto::from).toList();
+    public static List<CredentialDto> from(List<Credential> credentials, CredentialActor caller, Map<String, String> ownerNames) {
+        return credentials
+            .stream()
+            .map(credential -> from(credential, caller, ownerNames.get(credential.ownerId())))
+            .toList();
     }
 
     private static SecretReferenceDto from(SecretReference reference) {

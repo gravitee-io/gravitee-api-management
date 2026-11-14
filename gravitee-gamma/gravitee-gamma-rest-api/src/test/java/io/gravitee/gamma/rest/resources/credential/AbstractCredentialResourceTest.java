@@ -27,6 +27,8 @@ import inmemory.AuditCrudServiceInMemory;
 import inmemory.CredentialConsumersInMemory;
 import inmemory.CredentialCrudServiceInMemory;
 import inmemory.SecretCrudServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.gamma.rest.resource.AbstractResourceTest;
 import io.gravitee.gamma.rest.resources.credential.dto.CredentialDto;
 import io.gravitee.gamma.rest.spring.ResourceContextConfiguration;
@@ -35,6 +37,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterEach;
@@ -58,6 +61,9 @@ abstract class AbstractCredentialResourceTest extends AbstractResourceTest {
     @Inject
     AuditCrudServiceInMemory auditCrudService;
 
+    @Inject
+    UserCrudServiceInMemory userCrudService;
+
     @Override
     protected String contextPath() {
         return "/organizations/" + ORGANIZATION + "/environments/" + ENV_ID + "/credentials";
@@ -77,6 +83,13 @@ abstract class AbstractCredentialResourceTest extends AbstractResourceTest {
         credentialConsumers.reset();
         secretCrudService.reset();
         auditCrudService.reset();
+        userCrudService.reset();
+    }
+
+    void givenTheCallerIsNamed(String firstname, String lastname) {
+        userCrudService.initWith(
+            List.of(BaseUserEntity.builder().id(USER_NAME).organizationId(ORGANIZATION).firstname(firstname).lastname(lastname).build())
+        );
     }
 
     static Map<String, Object> bearer(String name) {
