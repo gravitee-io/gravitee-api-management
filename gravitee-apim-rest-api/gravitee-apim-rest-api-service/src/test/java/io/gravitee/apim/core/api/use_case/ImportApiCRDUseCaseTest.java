@@ -716,6 +716,16 @@ class ImportApiCRDUseCaseTest {
         }
 
         @Test
+        void should_check_the_portal_navigation_for_folder_conflicts_once() {
+            var navigation = List.of(new NavigationPath("/apis/echo", null));
+
+            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().portalNavigation(navigation).build()));
+
+            verify(portalListingSyncDomainService, times(1)).validateApiFolderConflictsForApi(any(), any(), any());
+            verify(portalListingSyncDomainService).validateApiFolderConflictsForApi(AUDIT_INFO, API_ID, navigation);
+        }
+
+        @Test
         void should_refuse_an_endpoint_name_the_api_validation_refuses_with_a_400() {
             var refusal = new EndpointNameAlreadyExistsException("same");
             when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())).thenThrow(refusal);
@@ -1447,6 +1457,18 @@ class ImportApiCRDUseCaseTest {
             var spec = org.mockito.ArgumentCaptor.forClass(ApiCRDSpec.class);
             verify(updateApiDomainService).update(eq(API_ID), spec.capture(), any());
             assertThat(spec.getValue().getGroups()).containsExactlyInAnyOrder(GROUP_ID_1, GROUP_ID_2, DEFAULT_GROUP);
+        }
+
+        @Test
+        void should_check_the_portal_navigation_for_folder_conflicts_once() {
+            apiQueryService.initWith(List.of(API_PROXY_V4));
+            givenExistingPlans(List.of(KEYLESS));
+            var navigation = List.of(new NavigationPath("/apis/echo", null));
+
+            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().portalNavigation(navigation).build()));
+
+            verify(portalListingSyncDomainService, times(1)).validateApiFolderConflictsForApi(any(), any(), any());
+            verify(portalListingSyncDomainService).validateApiFolderConflictsForApi(AUDIT_INFO, API_ID, navigation);
         }
 
         @Test

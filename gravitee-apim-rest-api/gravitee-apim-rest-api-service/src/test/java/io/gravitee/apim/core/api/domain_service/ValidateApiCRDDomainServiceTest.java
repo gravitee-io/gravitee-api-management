@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.InstanceOfAssertFactories.STRING;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -46,6 +47,8 @@ import io.gravitee.apim.core.api.exception.ApiPropertyNotCiphertextException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.property.EncryptableProperty;
+import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
+import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
@@ -68,6 +71,8 @@ import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificationDomainService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
+import io.gravitee.apim.core.portal.exception.PathConflictException;
+import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.common.util.DataEncryptor;
@@ -148,6 +153,8 @@ class ValidateApiCRDDomainServiceTest {
 
     EventLatestQueryServiceInMemory eventLatestQueryService = new EventLatestQueryServiceInMemory();
 
+    ApiFolderConflictsDomainService apiFolderConflictsValidator = mock(ApiFolderConflictsDomainService.class);
+
     ValidateApiCRDDomainService cut = new ValidateApiCRDDomainService(
         categoryIdsValidator,
         pathValidator,
@@ -174,7 +181,7 @@ class ValidateApiCRDDomainServiceTest {
         flowValidator,
         new PlanQueryServiceInMemory(),
         mock(ApiPrimaryOwnerDomainService.class),
-        mock(ApiFolderConflictsDomainService.class)
+        apiFolderConflictsValidator
     );
 
     PortalNotificationConfigEntity consoleNotificationConfiguration = new PortalNotificationConfigEntity();
@@ -272,6 +279,31 @@ class ValidateApiCRDDomainServiceTest {
             .build();
 
         assertThatNoException().isThrownBy(() -> cut.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec)));
+    }
+
+    @Test
+    void should_refuse_on_a_dry_run_a_hand_made_folder_at_a_declared_path_naming_the_path() {
+        givenEveryValidatorAccepts();
+        var spec = ApiCRDFixtures.newBaseSpec()
+            .id("api-to-create")
+            .crossId("api-to-create-cross-id")
+            .type("PROXY")
+            .lifecycleState("CREATED")
+            .visibility("PRIVATE")
+            .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build())
+            .properties(List.of())
+            .consoleNotificationConfiguration(consoleNotificationConfiguration)
+            .portalNavigation(List.of(new NavigationPath("/tba-guides", null)))
+            .build();
+        doThrow(PathConflictException.folderPath("/tba-guides"))
+            .when(apiFolderConflictsValidator)
+            .validateApiFolderConflictsForApi(AUDIT_INFO, spec.getId(), spec.getPortalNavigation());
+
+        var output = new ValidateApiCRDUseCase(cut).execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, spec));
+
+        assertThat(output.status().getErrors().severe())
+            .as("the dry run must refuse the folder conflict, as the import does")
+            .containsExactly("Navigation path [/tba-guides] is already occupied by content not managed by the Automation API");
     }
 
     @Test
