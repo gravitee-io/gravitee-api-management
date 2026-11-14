@@ -1000,7 +1000,8 @@
   "login": {
     "button": "Se connecter",
     "notification": {
-      "error": "Identifiant ou mot de passe invalide"
+      "error": "Identifiant ou mot de passe invalide",
+      "identityProviderError": "La connexion via {provider} a échoué : {error}"
     },
     "password": "Mot de passe",
     "resetPassword": "Réinitialisez votre mot de passe",
