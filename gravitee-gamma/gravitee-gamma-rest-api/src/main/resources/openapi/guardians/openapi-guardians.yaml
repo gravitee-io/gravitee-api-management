@@ -437,6 +437,40 @@ paths:
                 "404":
                     $ref: "#/components/responses/NotFound"
 
+    /organizations/{orgId}/environments/{envId}/guardians/{guardianId}/deployments/{deploymentId}:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/guardianIdParam"
+            - $ref: "#/components/parameters/deploymentIdParam"
+        get:
+            tags:
+                - Guardians
+            summary: Get a deployment of the Guardian
+            description: |
+                Requires ENVIRONMENT_GUARDIAN READ. One revision with the definition it deployed. The
+                definition fields carry the names of `Guardian`, so two revisions, or a revision and
+                the current draft, compare field by field; the comparison is left to the client.
+            operationId: getGuardianDeployment
+            responses:
+                "200":
+                    description: The revision and its deployed definition.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GuardianDeploymentDetail"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+                "404":
+                    description: |
+                        No Guardian with this id in this environment, or no deployment with this id
+                        in its history: unknown, purged by the events cleanup, a withdrawal, or a
+                        deployment of another Guardian.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
 components:
     securitySchemes:
         CookieAuth:
@@ -474,6 +508,13 @@ components:
             schema:
                 type: string
                 maxLength: 64
+        deploymentIdParam:
+            name: deploymentId
+            in: path
+            required: true
+            description: Id of a revision, as the deployment history lists it.
+            schema:
+                type: string
 
     responses:
         BadRequest:
@@ -915,6 +956,29 @@ components:
                 deployedBy:
                     id: 2a9e1c4d-7b35-4f08-a6d2-5c8e0b1f3a97
                     displayName: Ada Lovelace
+
+        GuardianDeploymentDetail:
+            description: |
+                A revision with the definition it deployed. `description` is not part of the
+                definition and is not recorded.
+            allOf:
+                - $ref: "#/components/schemas/GuardianDeployment"
+                - type: object
+                  properties:
+                      name:
+                          type: string
+                          maxLength: 512
+                      phase:
+                          $ref: "#/components/schemas/GuardianPhase"
+                      apiTypes:
+                          $ref: "#/components/schemas/ApiTypes"
+                      policies:
+                          $ref: "#/components/schemas/Policies"
+                      resources:
+                          $ref: "#/components/schemas/Resources"
+                  required:
+                      - name
+                      - phase
 
         GuardianLifecycleState:
             type: string

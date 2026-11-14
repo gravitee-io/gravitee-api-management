@@ -34,17 +34,30 @@ public class GuardianPublicationHistoryPortAdapter implements GuardianPublicatio
     @Override
     public Page<Event> publications(String environmentId, String genericEventId, int pageNumber, int pageSize) {
         var response = eventQueryService.search(
-            new EventQueryService.SearchQuery(
-                environmentId,
-                Optional.empty(),
-                Optional.empty(),
-                List.of(EventType.PUBLISH_GENERIC_EVENT),
-                Map.of(Event.EventProperties.GENERIC_EVENT_ID, genericEventId),
-                Optional.empty(),
-                Optional.empty()
-            ),
+            query(environmentId, genericEventId, Optional.empty()),
             new PageableImpl(pageNumber, pageSize)
         );
         return new Page<>(response.events(), pageNumber, response.events().size(), response.total());
+    }
+
+    @Override
+    public Optional<Event> publication(String environmentId, String genericEventId, String eventId) {
+        return eventQueryService
+            .search(query(environmentId, genericEventId, Optional.of(eventId)), new PageableImpl(1, 1))
+            .events()
+            .stream()
+            .findFirst();
+    }
+
+    private static EventQueryService.SearchQuery query(String environmentId, String genericEventId, Optional<String> eventId) {
+        return new EventQueryService.SearchQuery(
+            environmentId,
+            eventId,
+            Optional.empty(),
+            List.of(EventType.PUBLISH_GENERIC_EVENT),
+            Map.of(Event.EventProperties.GENERIC_EVENT_ID, genericEventId),
+            Optional.empty(),
+            Optional.empty()
+        );
     }
 }

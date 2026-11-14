@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.infra.adapter;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -27,6 +28,7 @@ import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.common.Pageable;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -62,6 +64,33 @@ class GuardianPublicationHistoryPortAdapterTest {
             softly.assertThat(page.getPageNumber()).as("page").isEqualTo(2);
             softly.assertThat(page.getTotalElements()).as("total").isEqualTo(6);
         });
+    }
+
+    @Test
+    void should_find_one_publication_of_the_generic_event_in_its_environment_by_id() {
+        var publication = Event.builder().id("event-1").build();
+        when(
+            eventQueryService.search(
+                argThat(
+                    query ->
+                        query.environmentId().equals("env-id") &&
+                        query.id().equals(Optional.of("event-1")) &&
+                        query.types().equals(List.of(EventType.PUBLISH_GENERIC_EVENT)) &&
+                        query.properties().equals(Map.of(Event.EventProperties.GENERIC_EVENT_ID, "generic-event-id")) &&
+                        query.apiId().isEmpty()
+                ),
+                any()
+            )
+        ).thenReturn(new EventQueryService.SearchResponse(1, List.of(publication)));
+
+        assertThat(adapter.publication("env-id", "generic-event-id", "event-1")).as("publication").contains(publication);
+    }
+
+    @Test
+    void should_find_no_publication_when_the_id_matches_nothing() {
+        when(eventQueryService.search(any(), any())).thenReturn(new EventQueryService.SearchResponse(0, List.of()));
+
+        assertThat(adapter.publication("env-id", "generic-event-id", "event-1")).as("publication").isEmpty();
     }
 
     @Test
