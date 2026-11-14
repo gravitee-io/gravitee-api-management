@@ -22,6 +22,7 @@ import {
     SlidersHorizontalIcon,
     UsersIcon,
     UsersRoundIcon,
+    WorkflowIcon,
 } from '@gravitee/graphene-core/icons';
 import type { ComponentType } from 'react';
 import { NavLink } from 'react-router-dom';
@@ -37,6 +38,8 @@ interface NavGroup {
     label: string;
     items: NavItem[];
 }
+
+const POLICY_STUDIO_PATH = 'policy-studio';
 
 /**
  * An API Product is not an API, but it borrows the canonical API-detail vocabulary (FOUND-304) so a
@@ -57,6 +60,7 @@ const API_PRODUCT_NAV_GROUPS: NavGroup[] = [
         label: 'Consumers',
         items: [
             { path: 'plans', label: 'Plans', icon: ShieldIcon },
+            { path: POLICY_STUDIO_PATH, label: 'Policy Studio', icon: WorkflowIcon },
             { path: 'consumers', label: 'Subscriptions', icon: UsersRoundIcon, end: false },
         ],
     },
@@ -68,12 +72,17 @@ const API_PRODUCT_NAV_GROUPS: NavGroup[] = [
 
 interface ApiProductSidebarNavProps {
     basePath: string;
+    canReadDefinition: boolean;
 }
 
-export function ApiProductSidebarNav({ basePath }: ApiProductSidebarNavProps) {
+export function ApiProductSidebarNav({ basePath, canReadDefinition }: ApiProductSidebarNavProps) {
+    const groups = canReadDefinition
+        ? API_PRODUCT_NAV_GROUPS
+        : API_PRODUCT_NAV_GROUPS.map(group => ({ ...group, items: group.items.filter(item => item.path !== POLICY_STUDIO_PATH) }));
+
     return (
         <div className="space-y-0.5 px-2 py-2">
-            {API_PRODUCT_NAV_GROUPS.map(group => (
+            {groups.map(group => (
                 <div key={group.label} className="pt-4 first:pt-0">
                     <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group.label}</p>
                     {group.items.map(item => {
