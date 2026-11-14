@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -504,6 +505,23 @@ class AuditServiceImplTest {
                 .as("audits of the page")
                 .extracting(AuditEntity::getId)
                 .containsExactly("audit-id", "guardian-audit-id");
+        }
+
+        @Test
+        void should_list_every_audit_of_a_page_holding_a_property_unknown_to_the_repository_model() {
+            Audit audit = guardianAudit();
+            audit.setProperties(Map.of("UNKNOWN_PROPERTY", "unknown-id"));
+            when(auditRepository.search(any(), any())).thenReturn(new Page<>(List.of(dashboardAudit(), audit), 0, 2, 2));
+
+            var result = auditSearch();
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(result.getContent()).as("audits of the page").hasSize(2);
+                softly
+                    .assertThat(result.getMetadata())
+                    .as("metadata of the unknown property")
+                    .containsEntry("UNKNOWN_PROPERTY:unknown-id:name", "unknown-id");
+            });
         }
 
         @Test
