@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.adapter;
+package io.gravitee.apim.infra.query_service.audit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,7 +22,7 @@ import io.gravitee.repository.management.model.Audit;
 import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 
-class AuditPropertiesTest {
+class AuditPropertiesAlignmentTest {
 
     @Test
     void should_read_back_every_audit_property_the_core_writes() {

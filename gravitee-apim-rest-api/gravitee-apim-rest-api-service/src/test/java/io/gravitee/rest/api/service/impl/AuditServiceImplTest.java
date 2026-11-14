@@ -502,27 +502,25 @@ class AuditServiceImplTest {
         }
 
         @Test
-        void should_list_every_audit_of_a_page_holding_a_guardian_audit() {
+        void should_list_every_audit_of_a_page_holding_a_guardian_audit_with_the_guardian_name() throws TechnicalException {
             when(auditRepository.search(any(), any())).thenReturn(new Page<>(List.of(dashboardAudit(), guardianAudit()), 0, 2, 2));
-
-            var result = auditSearch();
-
-            assertThat(result.getContent())
-                .as("audits of the page")
-                .extracting(AuditEntity::getId)
-                .containsExactly("audit-id", "guardian-audit-id");
-        }
-
-        @Test
-        void should_resolve_guardian_name_in_metadata() throws TechnicalException {
-            when(auditRepository.search(any(), any())).thenReturn(new Page<>(List.of(guardianAudit()), 0, 1, 1));
             when(guardianRepository.findById(GUARDIAN_ID)).thenReturn(
                 Optional.of(Guardian.builder().id(GUARDIAN_ID).name(GUARDIAN_NAME).build())
             );
 
             var result = auditSearch();
 
-            assertThat(result.getMetadata()).containsEntry("GUARDIAN:" + GUARDIAN_ID + ":name", GUARDIAN_NAME);
+            SoftAssertions.assertSoftly(softly -> {
+                softly
+                    .assertThat(result.getContent())
+                    .as("audits of the page")
+                    .extracting(AuditEntity::getId)
+                    .containsExactly("audit-id", "guardian-audit-id");
+                softly
+                    .assertThat(result.getMetadata())
+                    .as("metadata of the guardian")
+                    .containsEntry("GUARDIAN:" + GUARDIAN_ID + ":name", GUARDIAN_NAME);
+            });
         }
 
         @Test
