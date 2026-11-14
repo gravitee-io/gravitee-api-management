@@ -151,7 +151,8 @@ export function ApiEntrypointsPage() {
     const contextPathHasDupes = hasDuplicates(contextPaths);
     const virtualHostErrors = virtualHosts.map(r => validatePath(r.path));
 
-    const isContextPathValid = contextPathErrors.every(e => e === null) && !contextPathHasDupes;
+    const contextPathHasRootWithSiblings = contextPaths.length > 1 && contextPaths.some(r => r.path === '/');
+    const isContextPathValid = contextPathErrors.every(e => e === null) && !contextPathHasDupes && !contextPathHasRootWithSiblings;
     const isVirtualHostValid = virtualHostErrors.every(e => e === null);
     const tcpHostTaken = Object.keys(hostUniqueness.errorsById).length > 0;
     const isTcpHostsValid = validateTcpHosts(tcpHosts) === null && !hostUniqueness.pending && !tcpHostTaken;

@@ -19,17 +19,21 @@ import { contextPathModePathSyncValidator } from './context-path-sync-validator.
 
 describe('ContextPathModePathSyncValidator', () => {
   it.each`
-    message                                                  | contextPath
-    ${`Context path is not valid.`}                          | ${'missingSlash'}
-    ${`Context path is not valid.`}                          | ${'invalid/'}
-    ${`Context path has to be more than 3 characters long.`} | ${'/ad'}
-    ${`Context path is required.`}                           | ${''}
-    ${`Context path is required.`}                           | ${null}
+    message                         | contextPath
+    ${`Context path is not valid.`} | ${'missingSlash'}
+    ${`Context path is not valid.`} | ${'invalid/'}
+    ${`Context path is required.`}  | ${''}
+    ${`Context path is required.`}  | ${null}
   `('should be invalid context path: $contextPath because $message', ({ message, contextPath }) => {
     expect(contextPathModePathSyncValidator(new FormControl(contextPath))).toEqual({ contextPath: message });
   });
 
-  it('should be valid contextPath', () => {
-    expect(contextPathModePathSyncValidator(new FormControl('/contextPath'))).toBeNull();
+  it.each`
+    contextPath
+    ${'/'}
+    ${'/ad'}
+    ${'/contextPath'}
+  `('should be valid contextPath: $contextPath', ({ contextPath }) => {
+    expect(contextPathModePathSyncValidator(new FormControl(contextPath))).toBeNull();
   });
 });

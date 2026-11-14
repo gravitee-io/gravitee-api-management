@@ -155,14 +155,42 @@ describe('GioFormListenersContextPathModule', () => {
       await emptyLastContextPathRow.pathInput.setValue('/abc yeh');
       expect(await pathInputHost.hasClass('ng-invalid')).toEqual(true);
 
-      // Invalid: contains < 3 chars
+      // Valid: short path
       await emptyLastContextPathRow.pathInput.setValue('/ba');
-      expect(await pathInputHost.hasClass('ng-invalid')).toEqual(true);
+      expectApiVerify();
+      expect(await pathInputHost.hasClass('ng-invalid')).toEqual(false);
 
       // Valid
       await emptyLastContextPathRow.pathInput.setValue('/good-path');
-      expect(await pathInputHost.hasClass('ng-invalid')).toEqual(false);
       expectApiVerify();
+      expect(await pathInputHost.hasClass('ng-invalid')).toEqual(false);
+    });
+
+    it('should accept the root context path when it is the only one', async () => {
+      const formPaths = await loader.getHarness(GioFormListenersContextPathHarness);
+      const row = await formPaths.getLastListenerRow();
+
+      await row.pathInput.setValue('/');
+      expectApiVerify();
+
+      expect(await (await row.pathInput.host()).hasClass('ng-invalid')).toEqual(false);
+      expect(await loader.getAllHarnesses(SpanHarness.with({ text: /Root context path/ }))).toHaveLength(0);
+      expect(testComponent.formControl.value).toEqual([{ path: '/' }]);
+    });
+
+    it('should reject the root context path when another context path is defined', async () => {
+      const formPaths = await loader.getHarness(GioFormListenersContextPathHarness);
+      await formPaths.addListenerRow();
+
+      const rows = await formPaths.getListenerRows();
+      await rows[0].pathInput.setValue('/api');
+      expectApiVerify();
+      await rows[1].pathInput.setValue('/');
+      expectApiVerify();
+
+      expect(
+        await loader.getHarness(SpanHarness.with({ text: /Root context path "\/" is only allowed when it is the only entrypoint/ })),
+      ).toBeTruthy();
     });
 
     it('should mark control as invalid if path is already defined', async () => {

@@ -433,14 +433,9 @@ describe('ApiService', () => {
     }
 
     it.each([
-      ['a', null, { contextPath: 'Context path has to be more than 3 characters long.' }],
-      [
-        'aa',
-        null,
-        {
-          contextPath: 'Context path has to be more than 3 characters long.',
-        },
-      ],
+      ['/', expectVerifyContextPathPostRequest, null],
+      ['a', expectVerifyContextPathPostRequest, null],
+      ['aa', expectVerifyContextPathPostRequest, null],
       ['aaa', expectVerifyContextPathPostRequest, null],
       ['/aaa', expectVerifyContextPathPostRequest, null],
       ['/echo', expectVerifyContextPathFailedRequest, { contextPath: 'The path [/echo/] is already covered by an other API.' }],
