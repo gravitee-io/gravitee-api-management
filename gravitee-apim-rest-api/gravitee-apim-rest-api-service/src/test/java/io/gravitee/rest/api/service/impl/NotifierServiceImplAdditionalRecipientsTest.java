@@ -38,12 +38,14 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notifiers.EmailNotifierService;
 import io.gravitee.rest.api.service.notifiers.WebhookNotifierService;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -53,6 +55,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @ExtendWith(MockitoExtension.class)
@@ -152,9 +155,7 @@ class NotifierServiceImplAdditionalRecipientsTest {
                 "app-id"
             )
         ).thenReturn(Collections.emptyList());
-        when(emailRecipientsService.processTemplatedRecipients(List.of("subscriber@gio.test"), params)).thenReturn(
-            Set.of("subscriber@gio.test")
-        );
+        when(emailRecipientsService.processTemplatedRecipients(List.of(), params)).thenReturn(Set.of());
 
         cut.trigger(
             executionContext,
@@ -173,5 +174,96 @@ class NotifierServiceImplAdditionalRecipientsTest {
         );
         assertThat(recipientsCaptor.getValue()).containsExactly("subscriber@gio.test");
         verifyNoInteractions(webhookNotifierService);
+    }
+
+    @Test
+    @SneakyThrows
+    void should_only_email_additional_recipients_of_the_email_type() {
+        final Map<String, Object> params = Map.of();
+        final ExecutionContext executionContext = new ExecutionContext("org-1", "env-1");
+
+        when(
+            genericNotificationConfigRepository.findByReferenceAndHook(
+                ApplicationHook.SUBSCRIPTION_ACCEPTED.name(),
+                NotificationReferenceType.APPLICATION,
+                "app-id"
+            )
+        ).thenReturn(
+            List.of(GenericNotificationConfig.builder().notifier(DEFAULT_EMAIL_NOTIFIER_ID).id("cfg").config("creator@gio.test").build())
+        );
+        when(emailRecipientsService.processTemplatedRecipients(any(), eq(params))).thenAnswer(splitAndEvaluateTemplates());
+
+        cut.trigger(
+            executionContext,
+            ApplicationHook.SUBSCRIPTION_ACCEPTED,
+            "app-id",
+            params,
+            List.of(new Recipient("EMAIL", "subscriber@gio.test"), new Recipient("WEBHOOK", "https://hook.gio.test/notify"))
+        );
+
+        final ArgumentCaptor<Collection<String>> recipientsCaptor = ArgumentCaptor.forClass(Collection.class);
+        verify(emailNotifierService).trigger(
+            eq(executionContext),
+            eq(ApplicationHook.SUBSCRIPTION_ACCEPTED),
+            eq(params),
+            recipientsCaptor.capture()
+        );
+        assertThat(recipientsCaptor.getValue()).containsExactlyInAnyOrder("creator@gio.test", "subscriber@gio.test");
+        verifyNoInteractions(webhookNotifierService);
+    }
+
+    @Test
+    @SneakyThrows
+    void should_email_an_additional_recipient_verbatim_without_evaluating_it_as_a_template() {
+        final Map<String, Object> params = Map.of();
+        final ExecutionContext executionContext = new ExecutionContext("org-1", "env-1");
+
+        when(
+            genericNotificationConfigRepository.findByReferenceAndHook(
+                ApplicationHook.SUBSCRIPTION_ACCEPTED.name(),
+                NotificationReferenceType.APPLICATION,
+                "app-id"
+            )
+        ).thenReturn(
+            List.of(
+                GenericNotificationConfig.builder()
+                    .notifier(DEFAULT_EMAIL_NOTIFIER_ID)
+                    .id("cfg")
+                    .config("${(api.primaryOwner.email)!''}")
+                    .build()
+            )
+        );
+        when(emailRecipientsService.processTemplatedRecipients(any(), eq(params))).thenAnswer(splitAndEvaluateTemplates());
+
+        cut.trigger(
+            executionContext,
+            ApplicationHook.SUBSCRIPTION_ACCEPTED,
+            "app-id",
+            params,
+            List.of(new Recipient("EMAIL", "sub${scriber};me@gio.test"))
+        );
+
+        final ArgumentCaptor<Collection<String>> recipientsCaptor = ArgumentCaptor.forClass(Collection.class);
+        verify(emailNotifierService).trigger(
+            eq(executionContext),
+            eq(ApplicationHook.SUBSCRIPTION_ACCEPTED),
+            eq(params),
+            recipientsCaptor.capture()
+        );
+        assertThat(recipientsCaptor.getValue()).containsExactlyInAnyOrder("evaluated@gio.test", "sub${scriber};me@gio.test");
+    }
+
+    /**
+     * Mimics {@link EmailRecipientsServiceImpl}: an entry is split on {@code , ; } and whitespace and an entry
+     * holding a {@code $} is evaluated as a Freemarker template.
+     */
+    private static Answer<Set<String>> splitAndEvaluateTemplates() {
+        return invocation ->
+            invocation
+                .<Collection<String>>getArgument(0)
+                .stream()
+                .flatMap(entry -> Arrays.stream(entry.split("[,;\\s]")))
+                .map(entry -> entry.contains("$") ? "evaluated@gio.test" : entry)
+                .collect(Collectors.toSet());
     }
 }

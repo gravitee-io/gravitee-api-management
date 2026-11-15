@@ -228,12 +228,10 @@ class NotifierServiceImplTest {
             );
             when(
                 emailRecipientsService.processTemplatedRecipients(
-                    argThat(a ->
-                        a.containsAll(List.of("${(api.primaryOwner.email)!''};second.mail-not-opted-in@gio.test", "additional@gio.test"))
-                    ),
-                    eq(params)
+                    List.of("${(api.primaryOwner.email)!''};second.mail-not-opted-in@gio.test"),
+                    params
                 )
-            ).thenReturn(Set.of("additional@gio.test", "recipient@gio.test", "second.mail-not-opted-in@gio.test"));
+            ).thenReturn(Set.of("recipient@gio.test", "second.mail-not-opted-in@gio.test"));
             when(parameterService.findAsBoolean(executionContext, Key.TRIAL_INSTANCE, ParameterReferenceType.SYSTEM)).thenReturn(true);
             when(
                 emailRecipientsService.filterRegisteredUser(
