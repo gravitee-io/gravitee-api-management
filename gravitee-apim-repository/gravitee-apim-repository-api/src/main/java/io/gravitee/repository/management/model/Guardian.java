@@ -119,6 +119,7 @@ public class Guardian {
         GUARDIAN_UPDATED,
         GUARDIAN_DEPLOYED,
         GUARDIAN_UNDEPLOYED,
+        GUARDIAN_ROLLED_BACK,
         GUARDIAN_DELETED,
     }
 }

@@ -24,6 +24,7 @@ import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
+import java.util.Map;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -53,7 +54,7 @@ public class UpdateGuardianUseCase {
             .findByEnvironmentId(input.auditInfo().environmentId(), input.guardianId())
             .orElseThrow(() -> new GuardianNotFoundException(input.guardianId()));
         return new Output(
-            drafts.replace(existingGuardian, input.guardianToUpdate(), input.auditInfo(), GuardianAuditEvent.GUARDIAN_UPDATED)
+            drafts.replace(existingGuardian, input.guardianToUpdate(), input.auditInfo(), GuardianAuditEvent.GUARDIAN_UPDATED, Map.of())
         );
     }
 
