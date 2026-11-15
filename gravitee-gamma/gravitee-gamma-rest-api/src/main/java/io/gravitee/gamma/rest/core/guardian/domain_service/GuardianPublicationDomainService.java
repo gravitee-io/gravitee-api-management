@@ -99,7 +99,11 @@ public class GuardianPublicationDomainService {
         var revisions = response
             .events()
             .stream()
-            .map(event -> revision(event, at(envelope(event, environmentId, guardianId), guardianId), deployers))
+            .map(event -> {
+                var envelope = envelope(event, environmentId, guardianId);
+                var at = at(envelope, guardianId);
+                return revision(event, at, deployers);
+            })
             .toList();
         return new Page<>(revisions, pageNumber, revisions.size(), response.total());
     }
