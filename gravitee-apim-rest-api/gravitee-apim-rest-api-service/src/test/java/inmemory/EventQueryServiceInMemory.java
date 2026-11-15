@@ -21,9 +21,18 @@ import io.gravitee.apim.core.event.query_service.EventQueryService;
 import io.gravitee.apim.infra.query_service.event.EventQueryServiceImpl;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.common.Pageable;
+import java.time.Instant;
 import java.util.*;
 
 public class EventQueryServiceInMemory implements EventQueryService, InMemoryAlternative<Event> {
+
+    // As MongoDB and JDBC sort: updatedAt desc, id desc, a missing date last.
+    private static final Comparator<Event> NEWEST_FIRST = Comparator.comparing(
+        (Event event) -> event.getUpdatedAt() == null ? null : event.getUpdatedAt().toInstant(),
+        Comparator.nullsFirst(Comparator.<Instant>naturalOrder())
+    )
+        .thenComparing(Event::getId, Comparator.nullsFirst(Comparator.<String>naturalOrder()))
+        .reversed();
 
     private final List<Event> storage;
 
@@ -41,7 +50,7 @@ public class EventQueryServiceInMemory implements EventQueryService, InMemoryAlt
             .filter(event ->
                 query
                     .id()
-                    .map(id -> event.getId().equals(id))
+                    .map(id -> id.equals(event.getProperties().get(Event.EventProperties.ID)))
                     .orElse(true)
             )
             .filter(event ->
@@ -62,16 +71,16 @@ public class EventQueryServiceInMemory implements EventQueryService, InMemoryAlt
             .filter(event ->
                 query
                     .from()
-                    .map(from -> event.getCreatedAt().toInstant().isAfter(new Date(from).toInstant()))
+                    .map(from -> event.getUpdatedAt() != null && !event.getUpdatedAt().toInstant().isBefore(Instant.ofEpochMilli(from)))
                     .orElse(true)
             )
             .filter(event ->
                 query
                     .to()
-                    .map(to -> event.getCreatedAt().toInstant().isBefore(new Date(to).toInstant()))
+                    .map(to -> event.getUpdatedAt() != null && event.getUpdatedAt().toInstant().isBefore(Instant.ofEpochMilli(to)))
                     .orElse(true)
             )
-            .sorted(Comparator.comparing(Event::getCreatedAt).reversed())
+            .sorted(NEWEST_FIRST)
             .toList();
 
         var page = matches.size() <= pageSize

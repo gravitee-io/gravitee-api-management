@@ -150,19 +150,19 @@ class ApiEventsResourceTest extends ApiResourceTest {
                         .toBuilder()
                         .id("1")
                         .environments(Set.of(ENVIRONMENT))
-                        .createdAt(ZonedDateTime.parse("2020-02-01T20:00:00.00Z"))
+                        .updatedAt(ZonedDateTime.parse("2020-02-01T20:00:00.00Z"))
                         .build(),
                     EventFixtures.anApiEvent(API)
                         .toBuilder()
                         .id("2")
                         .environments(Set.of(ENVIRONMENT))
-                        .createdAt(ZonedDateTime.parse("2020-02-02T20:00:00.00Z"))
+                        .updatedAt(ZonedDateTime.parse("2020-02-02T20:00:00.00Z"))
                         .build(),
                     EventFixtures.anApiEvent(API)
                         .toBuilder()
                         .id("3")
                         .environments(Set.of(ENVIRONMENT))
-                        .createdAt(ZonedDateTime.parse("2020-02-04T20:00:00.00Z"))
+                        .updatedAt(ZonedDateTime.parse("2020-02-04T20:00:00.00Z"))
                         .build()
                 )
             );
@@ -199,7 +199,7 @@ class ApiEventsResourceTest extends ApiResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(EventsResponse.class)
                 .extracting(r -> r.getData() != null ? r.getData().stream().map(Event::getId).toList() : null)
-                .isEqualTo(List.of("1", "3"));
+                .isEqualTo(List.of("3", "1"));
         }
 
         @Test
