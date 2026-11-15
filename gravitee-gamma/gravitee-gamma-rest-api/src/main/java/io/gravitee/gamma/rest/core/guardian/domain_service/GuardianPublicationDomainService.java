@@ -24,6 +24,7 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.event.query_service.EventLatestQueryService;
+import io.gravitee.apim.core.event.query_service.EventQueryService;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.generic_event.domain_service.GenericEventPublicationDomainService;
 import io.gravitee.apim.core.generic_event.model.GenericEvent;
@@ -35,8 +36,8 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianDeployment;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianRevision;
-import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardianPublicationHistoryPort;
 import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -63,7 +64,7 @@ public class GuardianPublicationDomainService {
     private final JsonDeserializer jsonDeserializer;
     private final GenericEventPublicationDomainService publications;
     private final EventLatestQueryService events;
-    private final GuardianPublicationHistoryPort history;
+    private final EventQueryService eventQueryService;
 
     /** The latest publication of each Guardian that has one, by Guardian id. */
     public Map<String, GuardianDeployment> findAll(String environmentId, Set<String> guardianIds) {
@@ -85,24 +86,22 @@ public class GuardianPublicationDomainService {
 
     /** The publications of the Guardian, newest first; its withdrawals are left out. */
     public Page<GuardianRevision> revisions(String environmentId, String guardianId, int pageNumber, int pageSize) {
-        var page = history.publications(
-            environmentId,
-            GenericEvent.latestEventId(environmentId, GUARDIAN_KIND, guardianId),
-            pageNumber,
-            pageSize
-        );
-        var revisions = page
-            .getContent()
+        var response = publicationEvents(environmentId, guardianId, pageNumber, pageSize);
+        var revisions = response
+            .events()
             .stream()
             .map(event -> revision(event, environmentId, guardianId))
             .toList();
-        return new Page<>(revisions, page.getPageNumber(), revisions.size(), page.getTotalElements());
+        return new Page<>(revisions, pageNumber, revisions.size(), response.total());
     }
 
     /** One publication of the Guardian; empty for a withdrawal or a publication of another Guardian. */
     public Optional<GuardianRevision> revision(String environmentId, String guardianId, String revisionId) {
-        return history
-            .publication(environmentId, GenericEvent.latestEventId(environmentId, GUARDIAN_KIND, guardianId), revisionId)
+        var genericEventId = GenericEvent.latestEventId(environmentId, GUARDIAN_KIND, guardianId);
+        return eventQueryService
+            .findByIdForEnvironment(revisionId, environmentId)
+            .filter(event -> event.getType() == EventType.PUBLISH_GENERIC_EVENT)
+            .filter(event -> genericEventId.equals(event.getProperties().get(Event.EventProperties.GENERIC_EVENT_ID)))
             .map(event -> revision(event, environmentId, guardianId));
     }
 
@@ -140,16 +139,32 @@ public class GuardianPublicationDomainService {
         }
     }
 
+    // Both stores answer this search by update date, newest first.
+    private EventQueryService.SearchResponse publicationEvents(String environmentId, String guardianId, int pageNumber, int pageSize) {
+        return eventQueryService.search(
+            new EventQueryService.SearchQuery(
+                environmentId,
+                Optional.empty(),
+                Optional.empty(),
+                List.of(EventType.PUBLISH_GENERIC_EVENT),
+                Map.of(Event.EventProperties.GENERIC_EVENT_ID, GenericEvent.latestEventId(environmentId, GUARDIAN_KIND, guardianId)),
+                Optional.empty(),
+                Optional.empty()
+            ),
+            new PageableImpl(pageNumber, pageSize)
+        );
+    }
+
     private long nextVersion(String environmentId, String guardianId) {
-        var latest = history.publications(environmentId, GenericEvent.latestEventId(environmentId, GUARDIAN_KIND, guardianId), 1, 1);
+        var latest = publicationEvents(environmentId, guardianId, 1, 1);
         // A publication recorded before deployments were numbered has none: counting them is the closest guess.
         return latest
-            .getContent()
+            .events()
             .stream()
             .findFirst()
             .map(event -> version(event, guardianId))
             .map(version -> version + 1)
-            .orElse(latest.getTotalElements() + 1);
+            .orElse(latest.total() + 1);
     }
 
     private GuardianRevision revision(Event event, String environmentId, String guardianId) {

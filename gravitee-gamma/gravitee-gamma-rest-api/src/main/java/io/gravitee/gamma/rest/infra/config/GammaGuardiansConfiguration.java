@@ -17,11 +17,8 @@ package io.gravitee.gamma.rest.infra.config;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.event.query_service.EventQueryService;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
-import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardianPublicationHistoryPort;
 import io.gravitee.gamma.rest.infra.adapter.GammaGuardianRepositoryAdapter;
-import io.gravitee.gamma.rest.infra.adapter.GuardianPublicationHistoryPortAdapter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -53,10 +50,5 @@ public class GammaGuardiansConfiguration {
         @Lazy io.gravitee.repository.management.api.GuardianRepository guardianRepository
     ) {
         return new GammaGuardianRepositoryAdapter(guardianRepository);
-    }
-
-    @Bean
-    public GuardianPublicationHistoryPort guardianPublicationHistoryPort(EventQueryService eventQueryService) {
-        return new GuardianPublicationHistoryPortAdapter(eventQueryService);
     }
 }

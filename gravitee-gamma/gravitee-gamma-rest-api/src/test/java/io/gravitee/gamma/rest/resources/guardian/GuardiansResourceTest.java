@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.event.query_service.EventLatestQueryService;
+import io.gravitee.apim.core.event.query_service.EventQueryService;
 import io.gravitee.apim.core.generic_event.domain_service.GenericEventPublicationDomainService;
 import io.gravitee.apim.core.generic_event.domain_service.GenericEventWriterDomainService;
 import io.gravitee.apim.core.json.JsonDeserializer;
@@ -39,7 +40,6 @@ import io.gravitee.gamma.rest.core.guardian.GuardianFixtures;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
-import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardianPublicationHistoryPort;
 import io.gravitee.gamma.rest.resource.AbstractResourceTest;
 import io.gravitee.gamma.rest.resources.guardian.GuardiansResourceTest.GuardiansTestConfiguration;
 import io.gravitee.gamma.rest.spring.ResourceContextConfiguration;
@@ -1245,7 +1245,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
         }
 
         @Bean
-        GuardianPublicationHistoryPort guardianPublicationHistoryPort(GuardianPublicationFixture publications) {
+        EventQueryService eventQueryService(GuardianPublicationFixture publications) {
             return publications.historyQuery;
         }
 
