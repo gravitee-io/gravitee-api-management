@@ -94,7 +94,7 @@ class RollbackGuardianUseCaseTest {
     void should_restore_the_revision_as_a_pending_draft_without_deploying_it() {
         var first = deployRevision();
         save("Second name", "Changed description");
-        deployRevision();
+        var second = deployRevision();
 
         var result = rollback.execute(new RollbackGuardianUseCase.Input(actor, GUARDIAN_ID, first)).guardian();
 
@@ -102,7 +102,7 @@ class RollbackGuardianUseCaseTest {
             softly.assertThat(result.getName()).as("restored definition").isEqualTo("First name");
             softly.assertThat(result.getDescription()).as("description kept").isEqualTo("Changed description");
             softly.assertThat(result.getLifecycleState()).as("differs from what runs").isEqualTo(GuardianLifecycleState.PENDING);
-            softly.assertThat(result.getDeployedVersion()).as("version still running").isEqualTo(2L);
+            softly.assertThat(result.getDeployedRevisionId()).as("revision still running").isEqualTo(second);
             softly.assertThat(publications.publications()).as("nothing published").isEqualTo(2);
             softly
                 .assertThat(repository.findByEnvironmentId(ENVIRONMENT_ID, GUARDIAN_ID))
@@ -112,16 +112,16 @@ class RollbackGuardianUseCaseTest {
     }
 
     @Test
-    void should_number_the_next_deployment_after_the_latest_one() {
+    void should_record_a_new_revision_when_the_rolled_back_draft_is_deployed() {
         var first = deployRevision();
         save("Second name", "description");
-        deployRevision();
+        var second = deployRevision();
         rollback.execute(new RollbackGuardianUseCase.Input(actor, GUARDIAN_ID, first));
 
         var redeployed = deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null)).guardian();
 
         assertSoftly(softly -> {
-            softly.assertThat(redeployed.getDeployedVersion()).as("new version").isEqualTo(3L);
+            softly.assertThat(redeployed.getDeployedRevisionId()).as("new revision").isNotIn(first, second);
             softly.assertThat(redeployed.getName()).as("rolled back definition deployed").isEqualTo("First name");
         });
     }

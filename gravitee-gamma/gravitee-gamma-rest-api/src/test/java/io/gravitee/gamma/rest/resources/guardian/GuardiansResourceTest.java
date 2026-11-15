@@ -629,16 +629,22 @@ class GuardiansResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_report_the_version_the_gateways_run() {
+        void should_report_the_revision_the_gateways_run() {
             var neverDeployed = rootTarget("/" + GUARDIAN_ID).request().get().readEntity(JsonNode.class);
             deploy(Map.of());
             var deployed = deploy(Map.of()).readEntity(JsonNode.class);
             var read = rootTarget("/" + GUARDIAN_ID).request().get().readEntity(JsonNode.class);
 
             SoftAssertions.assertSoftly(softly -> {
-                softly.assertThat(neverDeployed.has("deployedVersion")).as("never deployed").isFalse();
-                softly.assertThat(deployed.at("/deployedVersion").asLong()).as("version answered by the deployment").isEqualTo(2);
-                softly.assertThat(read.at("/deployedVersion").asLong()).as("version read back").isEqualTo(2);
+                softly.assertThat(neverDeployed.has("deployedRevisionId")).as("never deployed").isFalse();
+                softly
+                    .assertThat(deployed.at("/deployedRevisionId").asText())
+                    .as("revision answered by the deployment")
+                    .isEqualTo(guardianPublications.lastPublicationId());
+                softly
+                    .assertThat(read.at("/deployedRevisionId").asText())
+                    .as("revision read back")
+                    .isEqualTo(guardianPublications.lastPublicationId());
             });
         }
 
@@ -649,7 +655,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
 
             var response = rootTarget("/" + GUARDIAN_ID).request().put(Entity.entity(read, MediaType.APPLICATION_JSON_TYPE));
 
-            assertThat(response.getStatus()).as("update with the read deployed version").isEqualTo(HttpStatusCode.OK_200);
+            assertThat(response.getStatus()).as("update with the read deployed revision").isEqualTo(HttpStatusCode.OK_200);
         }
 
         @Test
@@ -722,11 +728,11 @@ class GuardiansResourceTest extends AbstractResourceTest {
             assertThat(response.getStatus()).as("history response").isEqualTo(HttpStatusCode.OK_200);
             var body = response.readEntity(JsonNode.class);
             SoftAssertions.assertSoftly(softly -> {
-                softly.assertThat(body.at("/data/0/version").asLong()).as("newest version").isEqualTo(2);
+                softly.assertThat(body.at("/data/0/id").asText()).as("newest revision").isEqualTo(guardianPublications.lastPublicationId());
                 softly.assertThat(body.at("/data/0/label").isMissingNode()).as("unlabelled revision").isTrue();
-                softly.assertThat(body.at("/data/1/version").asLong()).as("oldest version").isEqualTo(1);
                 softly.assertThat(body.at("/data/1/label").asText()).as("deployment label").isEqualTo("First");
                 softly.assertThat(body.at("/data/1/id").asText()).as("revision id").isNotBlank();
+                softly.assertThat(body.at("/data/0/version").isMissingNode()).as("no version number").isTrue();
                 softly
                     .assertThat(Instant.parse(body.at("/data/0/deployedAt").asText()))
                     .as("ISO 8601 deployment date")
@@ -739,7 +745,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
 
         @Test
         void should_paginate_the_revisions() {
-            deploy(Map.of());
+            deploy(Map.of("deploymentLabel", "First"));
             deploy(Map.of());
 
             var body = rootTarget("/" + GUARDIAN_ID + "/deployments")
@@ -751,7 +757,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
 
             SoftAssertions.assertSoftly(softly -> {
                 softly.assertThat(body.at("/data").size()).as("page content").isEqualTo(1);
-                softly.assertThat(body.at("/data/0/version").asLong()).as("oldest version").isEqualTo(1);
+                softly.assertThat(body.at("/data/0/label").asText()).as("oldest revision").isEqualTo("First");
                 softly.assertThat(body.at("/pagination/page").asInt()).as("page").isEqualTo(2);
                 softly.assertThat(body.at("/pagination/perPage").asInt()).as("page size").isEqualTo(1);
                 softly.assertThat(body.at("/pagination/totalCount").asLong()).as("total").isEqualTo(2);
@@ -809,7 +815,6 @@ class GuardiansResourceTest extends AbstractResourceTest {
             var body = response.readEntity(JsonNode.class);
             SoftAssertions.assertSoftly(softly -> {
                 softly.assertThat(body.at("/id").asText()).as("revision id").isEqualTo(revisionId);
-                softly.assertThat(body.at("/version").asLong()).as("version").isEqualTo(1);
                 softly.assertThat(body.at("/label").asText()).as("deployment label").isEqualTo("First");
                 softly.assertThat(Instant.parse(body.at("/deployedAt").asText())).as("ISO 8601 deployment date").isNotNull();
                 softly.assertThat(body.at("/deployedBy/displayName").asText()).as("deployer name").isEqualTo("Ada Lovelace");
@@ -875,7 +880,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
             SoftAssertions.assertSoftly(softly -> {
                 softly.assertThat(body.at("/name").asText()).as("restored name").isEqualTo("Credential leakage");
                 softly.assertThat(body.at("/lifecycleState").asText()).as("draft matches what runs").isEqualTo("DEPLOYED");
-                softly.assertThat(body.at("/deployedVersion").asLong()).as("version running").isEqualTo(1);
+                softly.assertThat(body.at("/deployedRevisionId").asText()).as("revision running").isEqualTo(revisionId);
                 softly.assertThat(guardianPublications.publications()).as("nothing published").isEqualTo(1);
             });
         }

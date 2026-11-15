@@ -27,7 +27,6 @@ import java.time.Instant;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record GuardianDeploymentDto(
     String id,
-    Long version,
     String label,
     @JsonFormat(shape = JsonFormat.Shape.STRING) Instant deployedAt,
     Deployer deployedBy
@@ -40,6 +39,6 @@ public record GuardianDeploymentDto(
         var deployer = deployment.deployer() == null
             ? null
             : new Deployer(deployment.deployer().getId(), deployment.deployer().displayName());
-        return new GuardianDeploymentDto(revision.id(), revision.version(), revision.label(), revision.deployedAt(), deployer);
+        return new GuardianDeploymentDto(revision.id(), revision.label(), revision.deployedAt(), deployer);
     }
 }

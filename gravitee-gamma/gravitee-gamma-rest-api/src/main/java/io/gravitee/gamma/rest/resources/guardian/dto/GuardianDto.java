@@ -49,7 +49,7 @@ public record GuardianDto(
     List<Resource> resources,
     GuardianLifecycleState lifecycleState,
     @JsonFormat(shape = JsonFormat.Shape.STRING) Instant deployedAt,
-    Long deployedVersion,
+    String deployedRevisionId,
     @JsonFormat(shape = JsonFormat.Shape.STRING) Instant createdAt,
     @JsonFormat(shape = JsonFormat.Shape.STRING) Instant updatedAt
 ) {
@@ -64,7 +64,7 @@ public record GuardianDto(
             guardian.getResources(),
             guardian.getLifecycleState(),
             guardian.getDeployedAt(),
-            guardian.getDeployedVersion(),
+            guardian.getDeployedRevisionId(),
             guardian.getCreatedAt(),
             guardian.getUpdatedAt()
         );

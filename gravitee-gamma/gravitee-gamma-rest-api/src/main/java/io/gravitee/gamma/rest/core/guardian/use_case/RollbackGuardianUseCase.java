@@ -29,8 +29,8 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Replaces the draft of a Guardian with the definition one of its deployments put on the gateways, the way an API is
- * rolled back: nothing is deployed, the Guardian turns PENDING until it is deployed again, which numbers a new
- * version. The description is not part of a definition and is kept.
+ * rolled back: nothing is deployed, the Guardian turns PENDING until it is deployed again, which records a new
+ * revision. The description is not part of a definition and is kept.
  */
 @UseCase
 @RequiredArgsConstructor

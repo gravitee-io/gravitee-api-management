@@ -52,7 +52,7 @@ public class GuardianDeploymentDomainService {
     }
 
     /**
-     * The Guardian as its latest publication shows it. The lifecycle state, the deployment date and version come from the
+     * The Guardian as its latest publication shows it. The lifecycle state, the deployment date and revision come from the
      * publication alone, never from the stored Guardian, which no deployment writes; the update date is advanced to
      * the publication, which is also what the store does once the deployment completes.
      */
@@ -62,21 +62,21 @@ public class GuardianDeploymentDomainService {
                 .toBuilder()
                 .lifecycleState(GuardianLifecycleState.UNDEPLOYED)
                 .deployedAt(null)
-                .deployedVersion(null)
+                .deployedRevisionId(null)
                 .build();
             case GuardianDeployment.Published published -> guardian
                 .toBuilder()
                 .updatedAt(advancedTo(guardian, published))
                 .lifecycleState(matches(guardian, published) ? GuardianLifecycleState.DEPLOYED : GuardianLifecycleState.PENDING)
                 .deployedAt(published.at())
-                .deployedVersion(published.version())
+                .deployedRevisionId(published.revisionId())
                 .build();
             case GuardianDeployment.Withdrawn withdrawn -> guardian
                 .toBuilder()
                 .updatedAt(advancedTo(guardian, withdrawn))
                 .lifecycleState(GuardianLifecycleState.UNDEPLOYED)
                 .deployedAt(withdrawn.deployedAt())
-                .deployedVersion(null)
+                .deployedRevisionId(null)
                 .build();
         };
     }

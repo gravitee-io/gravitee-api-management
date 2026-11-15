@@ -32,7 +32,6 @@ import java.util.Set;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record GuardianDeploymentDetailDto(
     String id,
-    Long version,
     String label,
     @JsonFormat(shape = JsonFormat.Shape.STRING) Instant deployedAt,
     GuardianDeploymentDto.Deployer deployedBy,
@@ -50,7 +49,6 @@ public record GuardianDeploymentDetailDto(
             : new GuardianDeploymentDto.Deployer(output.deployer().getId(), output.deployer().displayName());
         return new GuardianDeploymentDetailDto(
             revision.id(),
-            revision.version(),
             revision.label(),
             revision.deployedAt(),
             deployer,

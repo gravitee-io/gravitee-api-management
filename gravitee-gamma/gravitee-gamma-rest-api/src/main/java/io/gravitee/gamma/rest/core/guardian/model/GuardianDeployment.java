@@ -30,16 +30,12 @@ public sealed interface GuardianDeployment {
     /**
      * The definition the gateways run since {@code at}.
      *
-     * @param version the rank of the publication among those of the Guardian; {@code null} for a publication recorded
-     *                before deployments were numbered
+     * @param revisionId the id of the publication in the deployment history
      */
-    record Published(io.gravitee.definition.model.v4.guardian.Guardian definition, Instant at, Long version) implements GuardianDeployment {
+    record Published(io.gravitee.definition.model.v4.guardian.Guardian definition, Instant at, String revisionId) implements
+        GuardianDeployment {
         public Published {
             at = at.truncatedTo(ChronoUnit.MILLIS);
-        }
-
-        public Published(io.gravitee.definition.model.v4.guardian.Guardian definition, Instant at) {
-            this(definition, at, null);
         }
     }
 

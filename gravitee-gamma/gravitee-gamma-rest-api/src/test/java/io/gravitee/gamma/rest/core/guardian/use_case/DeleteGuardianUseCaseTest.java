@@ -151,7 +151,7 @@ class DeleteGuardianUseCaseTest {
         var guardian = guardianRepository.findByEnvironmentId(ENVIRONMENT_ID, GUARDIAN_ID).orElseThrow();
         deploymentService.withdraw(
             guardian,
-            new GuardianDeployment.Published(guardian.getDefinition(), Instant.parse("2026-11-08T10:00:00Z")),
+            new GuardianDeployment.Published(guardian.getDefinition(), Instant.parse("2026-11-08T10:00:00Z"), "revision-id"),
             actor
         );
         var publication = publications.find(ENVIRONMENT_ID, GUARDIAN_ID).orElseThrow();

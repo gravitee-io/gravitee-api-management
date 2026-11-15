@@ -37,7 +37,7 @@ import lombok.NoArgsConstructor;
  *
  * <p>Four things are its own, because the gateway has no use for them: the description the console
  * shows, the lifecycle state, the deployment stamp, and the two timestamps. The lifecycle state,
- * {@code deployedAt} and {@code deployedVersion} are derived from the latest publication of the Guardian
+ * {@code deployedAt} and {@code deployedRevisionId} are derived from the latest publication of the Guardian
  * whenever it is read; the values stored with it are never relied upon.
  *
  * <p>The definition field is spelled out rather than imported: a domain class named {@code Guardian}
@@ -56,7 +56,7 @@ public class Guardian {
     private String description;
     private GuardianLifecycleState lifecycleState;
     private Instant deployedAt;
-    private Long deployedVersion;
+    private String deployedRevisionId;
     private Instant createdAt;
     private Instant updatedAt;
 

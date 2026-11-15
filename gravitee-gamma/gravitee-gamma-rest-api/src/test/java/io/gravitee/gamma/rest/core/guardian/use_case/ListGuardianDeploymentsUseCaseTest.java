@@ -75,7 +75,7 @@ class ListGuardianDeploymentsUseCaseTest {
     }
 
     @Test
-    void should_list_the_deployed_revisions_newest_first_with_their_date_deployer_version_and_label() {
+    void should_list_the_deployed_revisions_newest_first_with_their_date_deployer_and_label() {
         deployAt("2026-11-09T10:00:00Z", GUARDIAN_ID, "First");
         deployAt("2026-11-10T10:00:00Z", GUARDIAN_ID, null);
 
@@ -85,11 +85,8 @@ class ListGuardianDeploymentsUseCaseTest {
             softly
                 .assertThat(output.deployments().getContent())
                 .as("revisions, newest first")
-                .extracting(d -> d.revision().version(), d -> d.revision().label(), d -> d.revision().deployedAt())
-                .containsExactly(
-                    tuple(2L, null, Instant.parse("2026-11-10T10:00:00Z")),
-                    tuple(1L, "First", Instant.parse("2026-11-09T10:00:00Z"))
-                );
+                .extracting(d -> d.revision().label(), d -> d.revision().deployedAt())
+                .containsExactly(tuple(null, Instant.parse("2026-11-10T10:00:00Z")), tuple("First", Instant.parse("2026-11-09T10:00:00Z")));
             softly
                 .assertThat(output.deployments().getContent())
                 .as("deployer of each revision")
@@ -105,7 +102,7 @@ class ListGuardianDeploymentsUseCaseTest {
     }
 
     @Test
-    void should_leave_withdrawals_out_and_keep_counting_versions_after_them() {
+    void should_leave_withdrawals_out() {
         deployAt("2026-11-09T10:00:00Z", GUARDIAN_ID, null);
         TimeProvider.overrideClock(Clock.fixed(Instant.parse("2026-11-10T10:00:00Z"), ZoneOffset.UTC));
         undeploy.execute(new UndeployGuardianUseCase.Input(deployer, GUARDIAN_ID));
@@ -115,8 +112,8 @@ class ListGuardianDeploymentsUseCaseTest {
 
         assertThat(output.deployments().getContent())
             .as("deployed revisions only")
-            .extracting(d -> d.revision().version())
-            .containsExactly(2L, 1L);
+            .extracting(d -> d.revision().deployedAt())
+            .containsExactly(Instant.parse("2026-11-11T10:00:00Z"), Instant.parse("2026-11-09T10:00:00Z"));
     }
 
     @Test
@@ -140,18 +137,10 @@ class ListGuardianDeploymentsUseCaseTest {
 
         var output = list.execute(new ListGuardianDeploymentsUseCase.Input(ENVIRONMENT_ID, GUARDIAN_ID, 1, 10));
 
-        assertSoftly(softly -> {
-            softly
-                .assertThat(output.deployments().getContent())
-                .as("own revisions only")
-                .extracting(d -> d.revision().label())
-                .containsExactly("Mine");
-            softly
-                .assertThat(output.deployments().getContent())
-                .as("versions counted per Guardian")
-                .extracting(d -> d.revision().version())
-                .containsExactly(1L);
-        });
+        assertThat(output.deployments().getContent())
+            .as("own revisions only")
+            .extracting(d -> d.revision().label())
+            .containsExactly("Mine");
     }
 
     @Test
@@ -175,8 +164,8 @@ class ListGuardianDeploymentsUseCaseTest {
             softly
                 .assertThat(output.deployments().getContent())
                 .as("second page")
-                .extracting(d -> d.revision().version())
-                .containsExactly(1L);
+                .extracting(d -> d.revision().deployedAt())
+                .containsExactly(Instant.parse("2026-11-09T10:00:00Z"));
             softly.assertThat(output.deployments().getTotalElements()).as("total").isEqualTo(3);
             softly.assertThat(output.deployments().getPageNumber()).as("page").isEqualTo(2);
             softly.assertThat(output.perPage()).as("page size served").isEqualTo(2);

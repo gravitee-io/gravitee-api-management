@@ -87,7 +87,6 @@ class GetGuardianDeploymentUseCaseTest {
 
         assertSoftly(softly -> {
             softly.assertThat(output.revision().id()).as("revision id").isEqualTo(first);
-            softly.assertThat(output.revision().version()).as("version").isEqualTo(1L);
             softly.assertThat(output.revision().label()).as("label").isEqualTo("First");
             softly.assertThat(output.revision().deployedAt()).as("deployment date").isEqualTo(Instant.parse("2026-11-09T10:00:00Z"));
             softly.assertThat(output.revision().definition().getName()).as("deployed name").isEqualTo("First name");

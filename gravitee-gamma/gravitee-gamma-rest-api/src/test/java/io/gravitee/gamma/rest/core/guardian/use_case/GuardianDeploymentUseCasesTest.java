@@ -374,54 +374,43 @@ class GuardianDeploymentUseCasesTest {
     }
 
     @Test
-    void should_report_the_version_the_gateways_run() {
+    void should_report_the_revision_the_gateways_run() {
         deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null));
+        var first = deployments.lastPublicationId();
         var deployed = deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null)).guardian();
+        var second = deployments.lastPublicationId();
 
         var read = new GetGuardianUseCase(repository, deploymentService).execute(new GetGuardianUseCase.Input(ENVIRONMENT_ID, GUARDIAN_ID));
 
         assertSoftly(softly -> {
-            softly.assertThat(deployed.getDeployedVersion()).as("version answered by the deployment").isEqualTo(2L);
-            softly.assertThat(read.guardian().getDeployedVersion()).as("version read back").isEqualTo(2L);
+            softly.assertThat(second).as("a new revision per deployment").isNotEqualTo(first);
+            softly.assertThat(deployed.getDeployedRevisionId()).as("revision answered by the deployment").isEqualTo(second);
+            softly.assertThat(read.guardian().getDeployedRevisionId()).as("revision read back").isEqualTo(second);
         });
     }
 
     @Test
-    void should_keep_reporting_the_deployed_version_of_a_changed_draft() {
+    void should_keep_reporting_the_deployed_revision_of_a_changed_draft() {
         deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null));
 
         var result = save(aGuardianDefinition().name("Changed").build(), "description");
 
         assertSoftly(softly -> {
             softly.assertThat(result.getLifecycleState()).as("changed draft").isEqualTo(GuardianLifecycleState.PENDING);
-            softly.assertThat(result.getDeployedVersion()).as("version still running").isEqualTo(1L);
+            softly.assertThat(result.getDeployedRevisionId()).as("revision still running").isEqualTo(deployments.lastPublicationId());
         });
     }
 
     @Test
-    void should_report_no_deployed_version_once_withdrawn_or_never_deployed() {
+    void should_report_no_deployed_revision_once_withdrawn_or_never_deployed() {
         var neverDeployed = save(aGuardianDefinition().name("Changed").build(), "description");
         deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null));
 
         var withdrawn = undeploy.execute(new UndeployGuardianUseCase.Input(actor, GUARDIAN_ID)).guardian();
 
         assertSoftly(softly -> {
-            softly.assertThat(neverDeployed.getDeployedVersion()).as("never deployed").isNull();
-            softly.assertThat(withdrawn.getDeployedVersion()).as("withdrawn").isNull();
-        });
-    }
-
-    @Test
-    void should_report_no_deployed_version_for_a_deployment_recorded_before_numbering() {
-        deployments.givenPublication(aGuardianDefinition().build(), Instant.parse("2026-11-09T10:00:00Z"));
-
-        var result = new GetGuardianUseCase(repository, deploymentService).execute(
-            new GetGuardianUseCase.Input(ENVIRONMENT_ID, GUARDIAN_ID)
-        );
-
-        assertSoftly(softly -> {
-            softly.assertThat(result.guardian().getLifecycleState()).as("deployed").isEqualTo(GuardianLifecycleState.DEPLOYED);
-            softly.assertThat(result.guardian().getDeployedVersion()).as("unnumbered deployment").isNull();
+            softly.assertThat(neverDeployed.getDeployedRevisionId()).as("never deployed").isNull();
+            softly.assertThat(withdrawn.getDeployedRevisionId()).as("withdrawn").isNull();
         });
     }
 
