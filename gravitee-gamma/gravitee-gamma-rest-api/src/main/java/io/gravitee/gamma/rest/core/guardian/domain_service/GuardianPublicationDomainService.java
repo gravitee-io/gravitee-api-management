@@ -134,11 +134,7 @@ public class GuardianPublicationDomainService {
                 .payload(jsonSerializer.serialize(definition))
                 .build();
             var publication = publications.publish(event, PublicationOptions.withHistory(label), auditInfo);
-            return new GuardianDeployment.Published(
-                definition,
-                publication.updatedAt(),
-                publishedRevisionId(auditInfo.environmentId(), definition.getId())
-            );
+            return new GuardianDeployment.Published(definition, publication.genericEvent().updatedAt(), publication.eventId());
         } catch (JsonProcessingException e) {
             throw new TechnicalDomainException("Failed to serialize Guardian '" + definition.getId() + "' for deployment", e);
         }
@@ -153,7 +149,7 @@ public class GuardianPublicationDomainService {
                 .payload(jsonSerializer.serialize(new WithdrawalPayload(ended.at())))
                 .build();
             var withdrawal = publications.withdraw(event, PublicationOptions.withHistory(), auditInfo);
-            return new GuardianDeployment.Withdrawn(ended.at(), withdrawal.updatedAt());
+            return new GuardianDeployment.Withdrawn(ended.at(), withdrawal.genericEvent().updatedAt());
         } catch (JsonProcessingException e) {
             throw new TechnicalDomainException("Failed to serialize Guardian withdrawal '" + guardianId + "'", e);
         }
@@ -177,20 +173,6 @@ public class GuardianPublicationDomainService {
             ),
             new PageableImpl(pageNumber, pageSize)
         );
-    }
-
-    // The publisher answers the generic event, not the history entry it wrote: the latest event names it.
-    private String publishedRevisionId(String environmentId, String guardianId) {
-        return events
-            .findLatestByEntityIds(
-                Set.of(genericEventId(environmentId, guardianId)),
-                EventType.PUBLISH_GENERIC_EVENT,
-                Event.EventProperties.GENERIC_EVENT_ID
-            )
-            .stream()
-            .findFirst()
-            .map(event -> event.getProperties().get(Event.EventProperties.ID))
-            .orElseThrow(() -> new TechnicalDomainException("Missing publication of Guardian '" + guardianId + "' after deploying it"));
     }
 
     private static String deployerId(Event event) {
