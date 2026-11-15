@@ -401,9 +401,8 @@ paths:
             summary: List the deployment history of the Guardian
             description: |
                 Requires ENVIRONMENT_GUARDIAN READ. The revisions deployed to the gateways, newest
-                first. A withdrawal is not a revision and is left out; deploying again after it
-                continues the version numbering. The history keeps only the latest deployments the
-                events cleanup leaves, so the oldest versions may be missing.
+                first. A withdrawal is not a revision and is left out. The history keeps only the
+                latest deployments the events cleanup leaves, so the oldest ones may be missing.
             operationId: listGuardianDeployments
             parameters:
                 - name: page
@@ -485,7 +484,7 @@ paths:
                 Requires ENVIRONMENT_GUARDIAN UPDATE. Replaces the draft with the definition the
                 revision deployed, the way an API is rolled back: nothing is deployed. The Guardian
                 turns PENDING, or DEPLOYED when the revision is the one the gateways run, and
-                deploying it again numbers a new version. The description is kept: it is not part
+                deploying it again records a new revision. The description is kept: it is not part
                 of a definition.
 
                 The checks of an update apply, since the revision may be out of date: a name
@@ -616,13 +615,11 @@ components:
                     $ref: "#/components/schemas/GuardianLifecycleState"
                 deployedAt:
                     $ref: "#/components/schemas/Timestamp"
-                deployedVersion:
-                    type: integer
-                    format: int64
+                deployedRevisionId:
+                    type: string
                     description: |
-                        The version the gateways run, as the deployment history numbers it; it stays
-                        while the draft is PENDING. Absent when the Guardian is not deployed, or when
-                        its deployment was recorded before deployments were numbered.
+                        Id of the revision the gateways run, as the deployment history lists it; it
+                        stays while the draft is PENDING. Absent when the Guardian is not deployed.
                 createdAt:
                     $ref: "#/components/schemas/Timestamp"
                 updatedAt:
@@ -782,11 +779,10 @@ components:
                         - $ref: "#/components/schemas/Timestamp"
                     readOnly: true
                     description: Ignored — the date of the latest deployment.
-                deployedVersion:
-                    type: integer
-                    format: int64
+                deployedRevisionId:
+                    type: string
                     readOnly: true
-                    description: Ignored — the version of the latest deployment.
+                    description: Ignored — the revision of the latest deployment.
                 createdAt:
                     allOf:
                         - $ref: "#/components/schemas/Timestamp"
@@ -980,12 +976,6 @@ components:
                 id:
                     type: string
                     description: Id of the revision in the deployment history.
-                version:
-                    type: integer
-                    format: int64
-                    description: |
-                        Rank of the deployment among those of the Guardian, from 1. Absent on a
-                        deployment recorded before deployments were numbered.
                 label:
                     type: string
                     description: The `deploymentLabel` given to `_deploy`; absent when none was.
@@ -1008,7 +998,6 @@ components:
                 - deployedAt
             example:
                 id: 6f3c2b1e-9d84-4a7f-b2c5-0e1d7a9f4b36
-                version: 3
                 label: Stricter credential patterns
                 deployedAt: "2026-11-14T09:30:00.000Z"
                 deployedBy:

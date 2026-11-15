@@ -31,7 +31,7 @@ class GuardianDeploymentTest {
 
     @Test
     void should_keep_the_dates_of_a_deployment_at_the_precision_the_guardian_store_keeps() {
-        var published = new GuardianDeployment.Published(aGuardianDefinition().build(), SUB_MILLISECOND);
+        var published = new GuardianDeployment.Published(aGuardianDefinition().build(), SUB_MILLISECOND, "revision-id");
         var withdrawn = new GuardianDeployment.Withdrawn(SUB_MILLISECOND, SUB_MILLISECOND);
 
         assertSoftly(softly -> {

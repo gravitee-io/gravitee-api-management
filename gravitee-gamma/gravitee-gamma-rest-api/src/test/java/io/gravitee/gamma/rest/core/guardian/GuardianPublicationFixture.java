@@ -44,6 +44,7 @@ import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.common.Pageable;
 import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -58,7 +59,7 @@ public class GuardianPublicationFixture {
 
     private static final String GUARDIAN_KIND = "guardian.definition";
 
-    public final EventLatestCrudInMemory latest = new EventLatestCrudInMemory();
+    public final EventLatestCrudInMemory latest = latestEvents();
     public final EventCrudInMemory history = new EventCrudInMemory() {
         @Override
         public Event createEvent(
@@ -124,6 +125,19 @@ public class GuardianPublicationFixture {
     public Runnable beforeWithdrawal = () -> {};
     public Runnable beforePublication = () -> {};
 
+    /** The latest events, which keep the id of the event they copy, as EventServiceImpl#createOrPatchLatestEvent does. */
+    public static EventLatestCrudInMemory latestEvents() {
+        return new EventLatestCrudInMemory() {
+            @Override
+            public Event createOrPatchLatestEvent(String organizationId, String latestEventId, Event event) {
+                var properties = new EnumMap<Event.EventProperties, String>(Event.EventProperties.class);
+                properties.putAll(event.getProperties());
+                properties.put(Event.EventProperties.ID, event.getId());
+                return super.createOrPatchLatestEvent(organizationId, latestEventId, event.toBuilder().properties(properties).build());
+            }
+        };
+    }
+
     public GuardianDeploymentDomainService service(GuardianRepository repository) {
         return new GuardianDeploymentDomainService(repository, store(), new JacksonJsonSerializer(), new JacksonJsonDeserializer());
     }
@@ -176,6 +190,17 @@ public class GuardianPublicationFixture {
 
     public boolean withdrawn(String environmentId, String guardianId) {
         return find(environmentId, guardianId).orElseThrow() instanceof GuardianDeployment.Withdrawn;
+    }
+
+    /** The id of the latest publication in the deployment history. */
+    public String lastPublicationId() {
+        return history
+            .storage()
+            .stream()
+            .filter(event -> event.getType() == EventType.PUBLISH_GENERIC_EVENT)
+            .map(Event::getId)
+            .reduce((first, second) -> second)
+            .orElseThrow();
     }
 
     public int publications() {

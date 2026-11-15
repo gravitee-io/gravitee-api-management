@@ -79,7 +79,8 @@ public class GuardianPublicationDomainService {
                 if (id == null) {
                     throw new TechnicalDomainException("Unexpected Guardian publication returned by the event store");
                 }
-                return Map.entry(id, read(event, environmentId, id));
+                // the latest event keeps the id of the history event it copies
+                return Map.entry(id, read(event, event.getProperties().get(Event.EventProperties.ID), environmentId, id));
             })
             .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, maxBy(comparing(GuardianDeployment::at))));
     }
@@ -116,9 +117,12 @@ public class GuardianPublicationDomainService {
                 .id(definition.getId())
                 .payload(jsonSerializer.serialize(definition))
                 .build();
-            var version = nextVersion(auditInfo.environmentId(), definition.getId());
-            var publication = publications.publish(event, PublicationOptions.withHistory(label, version), auditInfo);
-            return new GuardianDeployment.Published(definition, publication.updatedAt(), version);
+            var publication = publications.publish(event, PublicationOptions.withHistory(label), auditInfo);
+            return new GuardianDeployment.Published(
+                definition,
+                publication.updatedAt(),
+                publishedRevisionId(auditInfo.environmentId(), definition.getId())
+            );
         } catch (JsonProcessingException e) {
             throw new TechnicalDomainException("Failed to serialize Guardian '" + definition.getId() + "' for deployment", e);
         }
@@ -155,45 +159,34 @@ public class GuardianPublicationDomainService {
         );
     }
 
-    private long nextVersion(String environmentId, String guardianId) {
-        var latest = publicationEvents(environmentId, guardianId, 1, 1);
-        // A publication recorded before deployments were numbered has none: counting them is the closest guess.
-        return latest
-            .events()
+    // The publisher answers the generic event, not the history entry it wrote: the latest event names it.
+    private String publishedRevisionId(String environmentId, String guardianId) {
+        return events
+            .findLatestByEntityIds(
+                Set.of(GenericEvent.latestEventId(environmentId, GUARDIAN_KIND, guardianId)),
+                EventType.PUBLISH_GENERIC_EVENT,
+                Event.EventProperties.GENERIC_EVENT_ID
+            )
             .stream()
             .findFirst()
-            .map(event -> version(event, guardianId))
-            .map(version -> version + 1)
-            .orElse(latest.total() + 1);
+            .map(event -> event.getProperties().get(Event.EventProperties.ID))
+            .orElseThrow(() -> new TechnicalDomainException("Missing publication of Guardian '" + guardianId + "' after deploying it"));
     }
 
     private GuardianRevision revision(Event event, String environmentId, String guardianId) {
-        if (!(read(event, environmentId, guardianId) instanceof GuardianDeployment.Published published)) {
+        if (!(read(event, event.getId(), environmentId, guardianId) instanceof GuardianDeployment.Published published)) {
             throw new TechnicalDomainException("Unexpected withdrawal in the deployments of Guardian '" + guardianId + "'");
         }
         return new GuardianRevision(
             event.getId(),
             published.at(),
-            published.version(),
             event.getProperties().get(Event.EventProperties.DEPLOYMENT_LABEL),
             event.getProperties().get(Event.EventProperties.USER),
             published.definition()
         );
     }
 
-    private static Long version(Event event, String guardianId) {
-        var number = event.getProperties().get(Event.EventProperties.DEPLOYMENT_NUMBER);
-        if (number == null) {
-            return null;
-        }
-        try {
-            return Long.valueOf(number);
-        } catch (NumberFormatException e) {
-            throw new TechnicalDomainException("Invalid deployment number in the history of Guardian '" + guardianId + "'", e);
-        }
-    }
-
-    private GuardianDeployment read(Event event, String environmentId, String guardianId) {
+    private GuardianDeployment read(Event event, String revisionId, String environmentId, String guardianId) {
         try {
             JsonNode envelope = jsonDeserializer.deserialize(event.getPayload(), JsonNode.class);
             if (
@@ -207,13 +200,13 @@ public class GuardianPublicationDomainService {
             var at = Instant.parse(envelope.path("updatedAt").asText());
             return event.getType() == EventType.UNPUBLISH_GENERIC_EVENT
                 ? readWithdrawal(envelope, at)
-                : readPublication(envelope, at, version(event, guardianId), guardianId);
+                : readPublication(envelope, at, revisionId, guardianId);
         } catch (JsonProcessingException | DateTimeParseException e) {
             throw new TechnicalDomainException("Failed to read the publication of Guardian '" + guardianId + "'", e);
         }
     }
 
-    private GuardianDeployment.Published readPublication(JsonNode envelope, Instant at, Long version, String guardianId)
+    private GuardianDeployment.Published readPublication(JsonNode envelope, Instant at, String revisionId, String guardianId)
         throws JsonProcessingException {
         if (!envelope.hasNonNull("payload")) {
             throw new TechnicalDomainException("Missing published definition for Guardian '" + guardianId + "'");
@@ -222,7 +215,7 @@ public class GuardianPublicationDomainService {
             envelope.get("payload").toString(),
             io.gravitee.definition.model.v4.guardian.Guardian.class
         );
-        return new GuardianDeployment.Published(definition, at, version);
+        return new GuardianDeployment.Published(definition, at, revisionId);
     }
 
     private GuardianDeployment.Withdrawn readWithdrawal(JsonNode envelope, Instant at) throws JsonProcessingException {

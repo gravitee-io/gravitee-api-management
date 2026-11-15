@@ -44,6 +44,7 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian;
 import io.gravitee.definition.model.v4.resource.Resource;
+import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianDeployment;
 import io.gravitee.rest.api.model.EventType;
@@ -70,7 +71,7 @@ class GuardianDeploymentDomainServiceTest {
 
         private final InMemoryGuardianRepository guardians = new InMemoryGuardianRepository();
         private final EventCrudInMemory history = new EventCrudInMemory();
-        private final EventLatestCrudInMemory latest = new EventLatestCrudInMemory();
+        private final EventLatestCrudInMemory latest = GuardianPublicationFixture.latestEvents();
         private final EventLatestQueryServiceInMemory query = new EventLatestQueryServiceInMemory() {
             @Override
             public List<Event> findLatestByEntityIds(Set<String> ids, EventType type, Event.EventProperties key) {
@@ -96,7 +97,6 @@ class GuardianDeploymentDomainServiceTest {
                 new JacksonJsonDeserializer(),
                 new GenericEventPublicationDomainService(writer, mapper),
                 query,
-                // no earlier publication: the version numbering is covered by ListGuardianDeploymentsUseCaseTest
                 new EventQueryServiceInMemory()
             );
             service = new GuardianDeploymentDomainService(guardians, store, new JacksonJsonSerializer(), new JacksonJsonDeserializer());
@@ -147,8 +147,8 @@ class GuardianDeploymentDomainServiceTest {
                         GenericEvent.latestEventId(ENVIRONMENT_ID, "guardian.definition", GUARDIAN_ID)
                     )
                     .containsEntry(Event.EventProperties.USER, "deployer")
-                    .containsEntry(Event.EventProperties.DEPLOYMENT_LABEL, "Reviewed")
-                    .containsEntry(Event.EventProperties.DEPLOYMENT_NUMBER, "1");
+                    .containsEntry(Event.EventProperties.DEPLOYMENT_LABEL, "Reviewed");
+                softly.assertThat(deployed.revisionId()).as("revision of the deployment").isEqualTo(history.storage().getFirst().getId());
                 softly.assertThat(reloaded).as("gateway payload round trip").isEqualTo(definition);
                 softly.assertThat(deployed.at()).isEqualTo(Instant.parse(envelope.get("updatedAt").asText()));
                 softly.assertThat(history.storage()).as("first deployment is historized").hasSize(1);
@@ -204,7 +204,7 @@ class GuardianDeploymentDomainServiceTest {
 
             var withdrawal = service.withdraw(
                 aGuardian().build(),
-                new GuardianDeployment.Published(aGuardianDefinition().build(), Instant.parse("2026-11-08T10:00:00Z")),
+                new GuardianDeployment.Published(aGuardianDefinition().build(), Instant.parse("2026-11-08T10:00:00Z"), "revision-id"),
                 actor
             );
             var recovered = service.current(guardian);
@@ -227,7 +227,7 @@ class GuardianDeploymentDomainServiceTest {
         void should_publish_only_the_deployment_date_with_a_withdrawal() throws Exception {
             service.withdraw(
                 aGuardian().build(),
-                new GuardianDeployment.Published(aGuardianDefinition().build(), Instant.parse("2026-11-08T10:00:00Z")),
+                new GuardianDeployment.Published(aGuardianDefinition().build(), Instant.parse("2026-11-08T10:00:00Z"), "revision-id"),
                 actor
             );
             var envelope = GraviteeJacksonMapper.getInstance().readTree(latest.storage().getFirst().getPayload());
@@ -244,7 +244,7 @@ class GuardianDeploymentDomainServiceTest {
             var guardian = aGuardian().build();
             service.withdraw(
                 guardian,
-                new GuardianDeployment.Published(guardian.getDefinition(), Instant.parse("2026-11-08T10:00:00Z")),
+                new GuardianDeployment.Published(guardian.getDefinition(), Instant.parse("2026-11-08T10:00:00Z"), "revision-id"),
                 actor
             );
             var event = latest.storage().getFirst();
@@ -263,7 +263,7 @@ class GuardianDeploymentDomainServiceTest {
             var guardian = aGuardian().build();
             service.withdraw(
                 guardian,
-                new GuardianDeployment.Published(guardian.getDefinition(), Instant.parse("2026-11-08T10:00:00Z")),
+                new GuardianDeployment.Published(guardian.getDefinition(), Instant.parse("2026-11-08T10:00:00Z"), "revision-id"),
                 actor
             );
             var event = latest.storage().getFirst();
@@ -284,7 +284,7 @@ class GuardianDeploymentDomainServiceTest {
             var guardian = aGuardian().build();
             service.withdraw(
                 guardian,
-                new GuardianDeployment.Published(guardian.getDefinition(), Instant.parse("2026-11-08T10:00:00Z")),
+                new GuardianDeployment.Published(guardian.getDefinition(), Instant.parse("2026-11-08T10:00:00Z"), "revision-id"),
                 actor
             );
             var event = latest.storage().getFirst();

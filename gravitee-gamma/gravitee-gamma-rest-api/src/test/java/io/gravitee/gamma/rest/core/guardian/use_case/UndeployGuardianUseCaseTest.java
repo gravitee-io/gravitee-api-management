@@ -116,7 +116,7 @@ class UndeployGuardianUseCaseTest {
 
     @Test
     void should_record_the_withdrawal_in_the_audit_trail() {
-        var deployed = repository.findByEnvironmentId(ENVIRONMENT_ID, GUARDIAN_ID).orElseThrow();
+        var deployed = publications.service(repository).state(repository.findByEnvironmentId(ENVIRONMENT_ID, GUARDIAN_ID).orElseThrow());
 
         var result = useCase(repository, publications).execute(new UndeployGuardianUseCase.Input(actor, GUARDIAN_ID)).guardian();
 
