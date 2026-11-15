@@ -39,6 +39,9 @@ import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApiProductHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApplicationHookContext;
+import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApiHookContext;
+import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApiProductHookContext;
+import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApplicationHookContext;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
@@ -254,7 +257,7 @@ public class AcceptSubscriptionDomainService {
 
         createAudit(subscription, rejected, auditInfo);
 
-        triggerNotifications(auditInfo.organizationId(), auditInfo.environmentId(), rejected);
+        triggerRejectionNotifications(auditInfo.organizationId(), auditInfo.environmentId(), rejected);
 
         return rejected;
     }
@@ -319,13 +322,7 @@ public class AcceptSubscriptionDomainService {
     }
 
     private void triggerNotifications(String organizationId, String environmentId, SubscriptionEntity acceptedSubscription) {
-        var subscriberEmail = userCrudService
-            .findBaseUserById(acceptedSubscription.getSubscribedBy())
-            .map(BaseUserEntity::getEmail)
-            .filter(email -> !email.isEmpty())
-            .map(email -> new Recipient("EMAIL", email));
-
-        var additionalRecipients = subscriberEmail.map(List::of).orElse(Collections.emptyList());
+        var additionalRecipients = subscriberRecipients(acceptedSubscription);
 
         var applicationPrimaryOwner = applicationPrimaryOwnerDomainService.getApplicationPrimaryOwner(
             organizationId,
@@ -373,5 +370,65 @@ public class AcceptSubscriptionDomainService {
             ),
             additionalRecipients
         );
+    }
+
+    private void triggerRejectionNotifications(String organizationId, String environmentId, SubscriptionEntity rejectedSubscription) {
+        var additionalRecipients = subscriberRecipients(rejectedSubscription);
+
+        var applicationPrimaryOwner = applicationPrimaryOwnerDomainService.getApplicationPrimaryOwner(
+            organizationId,
+            rejectedSubscription.getApplicationId()
+        );
+
+        String referenceId = rejectedSubscription.getReferenceId();
+        var referenceType = rejectedSubscription.getReferenceType();
+        if (SubscriptionReferenceType.API_PRODUCT == referenceType) {
+            triggerNotificationDomainService.triggerApiProductNotification(
+                organizationId,
+                environmentId,
+                new SubscriptionRejectedApiProductHookContext(
+                    referenceId,
+                    rejectedSubscription.getApplicationId(),
+                    rejectedSubscription.getPlanId(),
+                    rejectedSubscription.getId(),
+                    applicationPrimaryOwner.id()
+                )
+            );
+        } else {
+            triggerNotificationDomainService.triggerApiSubscriptionNotification(
+                organizationId,
+                environmentId,
+                referenceId,
+                new SubscriptionRejectedApiHookContext(
+                    referenceId,
+                    rejectedSubscription.getApplicationId(),
+                    rejectedSubscription.getPlanId(),
+                    rejectedSubscription.getId(),
+                    applicationPrimaryOwner.id()
+                )
+            );
+        }
+        triggerNotificationDomainService.triggerApplicationNotification(
+            organizationId,
+            environmentId,
+            new SubscriptionRejectedApplicationHookContext(
+                rejectedSubscription.getApplicationId(),
+                referenceType,
+                referenceId,
+                rejectedSubscription.getPlanId(),
+                rejectedSubscription.getId(),
+                applicationPrimaryOwner.id()
+            ),
+            additionalRecipients
+        );
+    }
+
+    private List<Recipient> subscriberRecipients(SubscriptionEntity subscription) {
+        return userCrudService
+            .findBaseUserById(subscription.getSubscribedBy())
+            .map(BaseUserEntity::getEmail)
+            .filter(email -> !email.isEmpty())
+            .<List<Recipient>>map(email -> List.of(new Recipient("EMAIL", email)))
+            .orElse(Collections.emptyList());
     }
 }

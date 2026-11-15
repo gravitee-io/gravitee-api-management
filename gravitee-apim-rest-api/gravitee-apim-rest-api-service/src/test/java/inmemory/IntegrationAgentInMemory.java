@@ -41,6 +41,7 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
     Map<String, Status> statuses = new HashMap<>();
     Map<String, List<String>> subscriptions = new HashMap<>();
     Map<String, List<SubscriptionEntity>> closedSubscriptions = new HashMap<>();
+    Map<String, Throwable> subscriptionFailures = new HashMap<>();
 
     @Override
     public Single<Status> getAgentStatusFor(String integrationId) {
@@ -65,6 +66,10 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
         BaseApplicationEntity application,
         Map<String, String> providerMetadata
     ) {
+        var failure = subscriptionFailures.get(integrationId);
+        if (failure != null) {
+            return Single.error(failure);
+        }
         subscriptions.compute(integrationId, (integration, subscriptionIds) -> {
             if (subscriptionIds == null) {
                 subscriptionIds = new ArrayList<>();
@@ -119,6 +124,7 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
     public void reset() {
         this.storage.clear();
         this.statuses.clear();
+        this.subscriptionFailures.clear();
     }
 
     @Override
@@ -136,5 +142,9 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
 
     public void configureApisNumberToIngest(String integrationId, Long total) {
         apisNumberToIngest.put(integrationId, total);
+    }
+
+    public void configureSubscriptionFailureFor(String integrationId, Throwable failure) {
+        subscriptionFailures.put(integrationId, failure);
     }
 }
