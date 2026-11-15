@@ -26,8 +26,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
-import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.common.utils.TimeProvider;
@@ -40,10 +40,12 @@ import io.gravitee.gamma.rest.core.guardian.exception.GuardianDeploymentNotFound
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
+import io.gravitee.gamma.rest.core.guardian.model.CreateGuardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
 import io.gravitee.rest.api.model.EventType;
+import jakarta.validation.ConstraintViolationException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -72,7 +74,12 @@ class RollbackGuardianUseCaseTest {
     private final DeployGuardianUseCase deploy = new DeployGuardianUseCase(repository, deploymentService, audits.service);
     private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(repository, deploymentService, audits.service);
     private final UpdateGuardianUseCase update = new UpdateGuardianUseCase(repository, aGuardianValidator(repository), drafts);
-    private final RollbackGuardianUseCase rollback = new RollbackGuardianUseCase(repository, publications.store(), drafts);
+    private final RollbackGuardianUseCase rollback = new RollbackGuardianUseCase(
+        repository,
+        aGuardianValidator(repository),
+        publications.store(),
+        drafts
+    );
     private final AuditInfo actor = AuditInfo.builder()
         .organizationId(ORGANIZATION_ID)
         .environmentId(ENVIRONMENT_ID)
@@ -147,8 +154,33 @@ class RollbackGuardianUseCaseTest {
         assertThat(audits.storage())
             .as("rollback audit")
             .singleElement()
-            .extracting(AuditEntity::getEvent)
-            .isEqualTo(GuardianAuditEvent.GUARDIAN_ROLLED_BACK.name());
+            .satisfies(audit ->
+                assertSoftly(softly -> {
+                    softly.assertThat(audit.getEvent()).as("event").isEqualTo(GuardianAuditEvent.GUARDIAN_ROLLED_BACK.name());
+                    softly
+                        .assertThat(audit.getProperties())
+                        .as("restored revision")
+                        .containsEntry(AuditProperties.GUARDIAN.name(), GUARDIAN_ID)
+                        .containsEntry(AuditProperties.GUARDIAN_DEPLOYMENT.name(), first);
+                })
+            );
+    }
+
+    @Test
+    void should_refuse_a_rollback_whose_draft_an_update_would_refuse() {
+        var first = deployRevision();
+        repository.reset();
+        repository.givenGuardian(
+            aGuardian(definition -> definition.name("First name"))
+                .description("x".repeat(CreateGuardian.DESCRIPTION_MAX_LENGTH + 1))
+                .build()
+        );
+        audits.reset();
+
+        assertThatThrownBy(() -> rollback.execute(new RollbackGuardianUseCase.Input(actor, GUARDIAN_ID, first))).isInstanceOf(
+            ConstraintViolationException.class
+        );
+        assertThat(audits.storage()).as("no audit recorded").isEmpty();
     }
 
     @Test

@@ -17,14 +17,17 @@ package io.gravitee.gamma.rest.core.guardian.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDraftDomainService;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianPublicationDomainService;
+import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianDeploymentNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -37,6 +40,7 @@ import lombok.RequiredArgsConstructor;
 public class RollbackGuardianUseCase {
 
     private final GuardianRepository guardianRepository;
+    private final ValidateGuardianDomainService validateGuardian;
     private final GuardianPublicationDomainService publications;
     private final GuardianDraftDomainService drafts;
 
@@ -53,7 +57,17 @@ public class RollbackGuardianUseCase {
             .definition(revision.definition())
             .description(existingGuardian.getDescription())
             .build();
-        return new Output(drafts.replace(existingGuardian, command, input.auditInfo(), GuardianAuditEvent.GUARDIAN_ROLLED_BACK));
+        // a constraint may have tightened since the revision was deployed: an update would refuse it too
+        validateGuardian.validateStructure(command);
+        return new Output(
+            drafts.replace(
+                existingGuardian,
+                command,
+                input.auditInfo(),
+                GuardianAuditEvent.GUARDIAN_ROLLED_BACK,
+                Map.of(AuditProperties.GUARDIAN_DEPLOYMENT, revision.id())
+            )
+        );
     }
 
     public record Input(AuditInfo auditInfo, String guardianId, String deploymentId) {}

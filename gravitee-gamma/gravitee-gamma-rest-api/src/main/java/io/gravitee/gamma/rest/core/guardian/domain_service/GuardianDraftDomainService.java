@@ -27,6 +27,7 @@ import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
 import java.time.ZoneOffset;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -45,10 +46,18 @@ public class GuardianDraftDomainService {
     private final GuardianDeploymentDomainService deployments;
 
     /**
-     * {@link Guardian#update} keeps back only what the caller does not own — the identity, which comes from the path,
-     * and the deployment stamp.
+     * Stores the draft the command describes in place of the existing one, and audits it.
+     *
+     * @param auditProperties what the audit records beside the Guardian
+     * @throws ValidationDomainException when the definition is invalid or names a guardrail that is not installed
      */
-    public Guardian replace(Guardian existingGuardian, UpdateGuardianCommand command, AuditInfo auditInfo, GuardianAuditEvent event) {
+    public Guardian replace(
+        Guardian existingGuardian,
+        UpdateGuardianCommand command,
+        AuditInfo auditInfo,
+        GuardianAuditEvent event,
+        Map<AuditProperties, String> auditProperties
+    ) {
         var guardianToUpdate = existingGuardian.update(command);
         // after the merge, not before: the identity it needs comes from the path
         validateGuardian.validateDefinition(guardianToUpdate.getDefinition());
@@ -58,9 +67,8 @@ public class GuardianDraftDomainService {
         // variant of its name — "Foo" beside "foo", from data that predates the rule or from two creates
         // that raced past it. Nothing else about that Guardian could then be edited.
         //
-        // After validateDefinition, which is what refuses a missing name: UpdateGuardianCommand declares
-        // the definition @NotNull but not @Valid, so a body omitting the name reaches here carrying one,
-        // and asking the store about a null name answered 500 where the payload deserved a 400.
+        // After validateDefinition, which refuses a missing name: the command declares the definition
+        // @NotNull but not @Valid, so the name may still be null here.
         if (!guardianToUpdate.getName().equalsIgnoreCase(existingGuardian.getName())) {
             validateGuardian.validateNameIsAvailable(auditInfo.environmentId(), guardianToUpdate.getName(), existingGuardian.getId());
         }
@@ -74,6 +82,9 @@ public class GuardianDraftDomainService {
 
         var publication = deployments.current(existingGuardian);
         var updatedGuardian = deployments.state(guardianRepository.update(guardianToUpdate), publication);
+        var properties = new EnumMap<AuditProperties, String>(AuditProperties.class);
+        properties.putAll(auditProperties);
+        properties.put(AuditProperties.GUARDIAN, updatedGuardian.getId());
         auditDomainService.createEnvironmentAuditLog(
             EnvironmentAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
@@ -83,7 +94,7 @@ public class GuardianDraftDomainService {
                 .oldValue(deployments.state(existingGuardian, publication))
                 .newValue(updatedGuardian)
                 .createdAt(updatedGuardian.getUpdatedAt().atZone(ZoneOffset.UTC))
-                .properties(Map.of(AuditProperties.GUARDIAN, updatedGuardian.getId()))
+                .properties(properties)
                 .build()
         );
         return updatedGuardian;
