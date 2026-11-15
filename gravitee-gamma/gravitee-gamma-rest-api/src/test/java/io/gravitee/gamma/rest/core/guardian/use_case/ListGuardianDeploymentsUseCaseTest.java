@@ -24,7 +24,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.assertj.core.groups.Tuple.tuple;
 
-import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
@@ -52,11 +51,10 @@ class ListGuardianDeploymentsUseCaseTest {
     private final InMemoryGuardianRepository repository = new InMemoryGuardianRepository();
     private final GuardianPublicationFixture publications = new GuardianPublicationFixture();
     private final GuardianAuditFixture audits = new GuardianAuditFixture();
-    private final UserCrudServiceInMemory users = new UserCrudServiceInMemory();
     private final GuardianDeploymentDomainService deploymentService = publications.service(repository);
     private final DeployGuardianUseCase deploy = new DeployGuardianUseCase(repository, deploymentService, audits.service);
     private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(repository, deploymentService, audits.service);
-    private final ListGuardianDeploymentsUseCase list = new ListGuardianDeploymentsUseCase(repository, publications.store(), users);
+    private final ListGuardianDeploymentsUseCase list = new ListGuardianDeploymentsUseCase(repository, publications.store());
     private final AuditInfo deployer = AuditInfo.builder()
         .organizationId(ORGANIZATION_ID)
         .environmentId(ENVIRONMENT_ID)
@@ -66,7 +64,7 @@ class ListGuardianDeploymentsUseCaseTest {
     @BeforeEach
     void given_an_undeployed_guardian() {
         repository.givenGuardian(aGuardian().build());
-        users.initWith(List.of(BaseUserEntity.builder().id("deployer").firstname("Ada").lastname("Lovelace").build()));
+        publications.users.initWith(List.of(BaseUserEntity.builder().id("deployer").firstname("Ada").lastname("Lovelace").build()));
     }
 
     @AfterEach
@@ -85,7 +83,7 @@ class ListGuardianDeploymentsUseCaseTest {
             softly
                 .assertThat(output.deployments().getContent())
                 .as("revisions, newest first")
-                .extracting(d -> d.revision().label(), d -> d.revision().deployedAt())
+                .extracting(d -> d.label(), d -> d.deployedAt())
                 .containsExactly(tuple(null, Instant.parse("2026-11-10T10:00:00Z")), tuple("First", Instant.parse("2026-11-09T10:00:00Z")));
             softly
                 .assertThat(output.deployments().getContent())
@@ -95,7 +93,7 @@ class ListGuardianDeploymentsUseCaseTest {
             softly
                 .assertThat(output.deployments().getContent())
                 .as("revision ids")
-                .extracting(d -> d.revision().id())
+                .extracting(d -> d.id())
                 .doesNotContainNull();
             softly.assertThat(output.deployments().getTotalElements()).as("total").isEqualTo(2);
         });
@@ -112,13 +110,13 @@ class ListGuardianDeploymentsUseCaseTest {
 
         assertThat(output.deployments().getContent())
             .as("deployed revisions only")
-            .extracting(d -> d.revision().deployedAt())
+            .extracting(d -> d.deployedAt())
             .containsExactly(Instant.parse("2026-11-11T10:00:00Z"), Instant.parse("2026-11-09T10:00:00Z"));
     }
 
     @Test
     void should_keep_a_deployer_the_user_store_no_longer_knows_by_id() {
-        users.reset();
+        publications.users.reset();
         deployAt("2026-11-09T10:00:00Z", GUARDIAN_ID, null);
 
         var output = list.execute(new ListGuardianDeploymentsUseCase.Input(ENVIRONMENT_ID, GUARDIAN_ID, 1, 10));
@@ -139,7 +137,7 @@ class ListGuardianDeploymentsUseCaseTest {
 
         assertThat(output.deployments().getContent())
             .as("own revisions only")
-            .extracting(d -> d.revision().label())
+            .extracting(d -> d.label())
             .containsExactly("Mine");
     }
 
@@ -164,7 +162,7 @@ class ListGuardianDeploymentsUseCaseTest {
             softly
                 .assertThat(output.deployments().getContent())
                 .as("second page")
-                .extracting(d -> d.revision().deployedAt())
+                .extracting(d -> d.deployedAt())
                 .containsExactly(Instant.parse("2026-11-09T10:00:00Z"));
             softly.assertThat(output.deployments().getTotalElements()).as("total").isEqualTo(3);
             softly.assertThat(output.deployments().getPageNumber()).as("page").isEqualTo(2);

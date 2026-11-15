@@ -16,14 +16,10 @@
 package io.gravitee.gamma.rest.core.guardian.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.user.crud_service.UserCrudService;
-import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianPublicationDomainService;
-import io.gravitee.gamma.rest.core.guardian.exception.GuardianDeploymentNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianRevision;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -36,33 +32,15 @@ public class GetGuardianDeploymentUseCase {
 
     private final GuardianRepository guardianRepository;
     private final GuardianPublicationDomainService publications;
-    private final UserCrudService userCrudService;
 
     public Output execute(Input input) {
         guardianRepository
             .findByEnvironmentId(input.environmentId(), input.guardianId())
             .orElseThrow(() -> new GuardianNotFoundException(input.guardianId()));
-
-        var revision = publications
-            .revision(input.environmentId(), input.guardianId(), input.deploymentId())
-            .orElseThrow(() -> new GuardianDeploymentNotFoundException(input.deploymentId()));
-        return new Output(revision, deployer(revision.deployerId()));
-    }
-
-    private BaseUserEntity deployer(String deployerId) {
-        if (deployerId == null) {
-            return null;
-        }
-        // a deleted user still shows by id rather than vanishing from the history
-        return userCrudService
-            .findBaseUsersByIds(List.of(deployerId))
-            .stream()
-            .findFirst()
-            .orElse(BaseUserEntity.builder().id(deployerId).build());
+        return new Output(publications.revision(input.environmentId(), input.guardianId(), input.deploymentId()));
     }
 
     public record Input(String environmentId, String guardianId, String deploymentId) {}
 
-    /** @param deployer {@code null} when the revision does not record who deployed it */
-    public record Output(GuardianRevision revision, BaseUserEntity deployer) {}
+    public record Output(GuardianRevision.Deployed deployment) {}
 }

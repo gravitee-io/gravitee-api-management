@@ -32,18 +32,23 @@ import io.gravitee.apim.core.generic_event.model.PublicationOptions;
 import io.gravitee.apim.core.json.JsonDeserializer;
 import io.gravitee.apim.core.json.JsonProcessingException;
 import io.gravitee.apim.core.json.JsonSerializer;
+import io.gravitee.apim.core.user.crud_service.UserCrudService;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.gamma.rest.core.guardian.model.Guardian;
+import io.gravitee.gamma.rest.core.guardian.exception.GuardianDeploymentNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianDeployment;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianRevision;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -65,13 +70,14 @@ public class GuardianPublicationDomainService {
     private final GenericEventPublicationDomainService publications;
     private final EventLatestQueryService events;
     private final EventQueryService eventQueryService;
+    private final UserCrudService userCrudService;
 
     /** The latest publication of each Guardian that has one, by Guardian id. */
     public Map<String, GuardianDeployment> findAll(String environmentId, Set<String> guardianIds) {
         if (guardianIds.isEmpty()) {
             return Map.of();
         }
-        var ids = guardianIds.stream().collect(toMap(id -> GenericEvent.latestEventId(environmentId, GUARDIAN_KIND, id), id -> id));
+        var ids = guardianIds.stream().collect(toMap(id -> genericEventId(environmentId, id), id -> id));
         return PUBLISH_UNPUBLISH_EVENTS.stream()
             .flatMap(type -> events.findLatestByEntityIds(ids.keySet(), type, Event.EventProperties.GENERIC_EVENT_ID).stream())
             .map(event -> {
@@ -88,22 +94,32 @@ public class GuardianPublicationDomainService {
     /** The publications of the Guardian, newest first; its withdrawals are left out. */
     public Page<GuardianRevision> revisions(String environmentId, String guardianId, int pageNumber, int pageSize) {
         var response = publicationEvents(environmentId, guardianId, pageNumber, pageSize);
+        var deployers = deployers(response.events().stream().map(GuardianPublicationDomainService::deployerId).toList());
+        // a row needs the date of the envelope, not the definition it carries
         var revisions = response
             .events()
             .stream()
-            .map(event -> revision(event, environmentId, guardianId))
+            .map(event -> revision(event, at(envelope(event, environmentId, guardianId), guardianId), deployers))
             .toList();
         return new Page<>(revisions, pageNumber, revisions.size(), response.total());
     }
 
-    /** One publication of the Guardian; empty for a withdrawal or a publication of another Guardian. */
-    public Optional<GuardianRevision> revision(String environmentId, String guardianId, String revisionId) {
-        var genericEventId = GenericEvent.latestEventId(environmentId, GUARDIAN_KIND, guardianId);
-        return eventQueryService
+    /**
+     * One publication of the Guardian with the definition it deployed.
+     *
+     * @throws GuardianDeploymentNotFoundException for an unknown id, a withdrawal or a publication of another Guardian
+     */
+    public GuardianRevision.Deployed revision(String environmentId, String guardianId, String revisionId) {
+        var event = eventQueryService
             .findByIdForEnvironment(revisionId, environmentId)
-            .filter(event -> event.getType() == EventType.PUBLISH_GENERIC_EVENT)
-            .filter(event -> genericEventId.equals(event.getProperties().get(Event.EventProperties.GENERIC_EVENT_ID)))
-            .map(event -> revision(event, environmentId, guardianId));
+            .filter(found -> found.getType() == EventType.PUBLISH_GENERIC_EVENT)
+            .filter(found ->
+                genericEventId(environmentId, guardianId).equals(found.getProperties().get(Event.EventProperties.GENERIC_EVENT_ID))
+            )
+            .orElseThrow(() -> new GuardianDeploymentNotFoundException(revisionId));
+        var envelope = envelope(event, environmentId, guardianId);
+        var deployers = deployers(Optional.ofNullable(deployerId(event)).stream().toList());
+        return new GuardianRevision.Deployed(revision(event, at(envelope, guardianId), deployers), definition(envelope, guardianId));
     }
 
     public GuardianDeployment.Published publish(
@@ -143,6 +159,10 @@ public class GuardianPublicationDomainService {
         }
     }
 
+    private static String genericEventId(String environmentId, String guardianId) {
+        return GenericEvent.latestEventId(environmentId, GUARDIAN_KIND, guardianId);
+    }
+
     // Both stores answer this search by update date, newest first.
     private EventQueryService.SearchResponse publicationEvents(String environmentId, String guardianId, int pageNumber, int pageSize) {
         return eventQueryService.search(
@@ -151,7 +171,7 @@ public class GuardianPublicationDomainService {
                 Optional.empty(),
                 Optional.empty(),
                 List.of(EventType.PUBLISH_GENERIC_EVENT),
-                Map.of(Event.EventProperties.GENERIC_EVENT_ID, GenericEvent.latestEventId(environmentId, GUARDIAN_KIND, guardianId)),
+                Map.of(Event.EventProperties.GENERIC_EVENT_ID, genericEventId(environmentId, guardianId)),
                 Optional.empty(),
                 Optional.empty()
             ),
@@ -163,7 +183,7 @@ public class GuardianPublicationDomainService {
     private String publishedRevisionId(String environmentId, String guardianId) {
         return events
             .findLatestByEntityIds(
-                Set.of(GenericEvent.latestEventId(environmentId, GUARDIAN_KIND, guardianId)),
+                Set.of(genericEventId(environmentId, guardianId)),
                 EventType.PUBLISH_GENERIC_EVENT,
                 Event.EventProperties.GENERIC_EVENT_ID
             )
@@ -173,58 +193,84 @@ public class GuardianPublicationDomainService {
             .orElseThrow(() -> new TechnicalDomainException("Missing publication of Guardian '" + guardianId + "' after deploying it"));
     }
 
-    private GuardianRevision revision(Event event, String environmentId, String guardianId) {
-        if (!(read(event, event.getId(), environmentId, guardianId) instanceof GuardianDeployment.Published published)) {
-            throw new TechnicalDomainException("Unexpected withdrawal in the deployments of Guardian '" + guardianId + "'");
+    private static String deployerId(Event event) {
+        return event.getProperties().get(Event.EventProperties.USER);
+    }
+
+    private Map<String, BaseUserEntity> deployers(Collection<String> ids) {
+        var known = ids.stream().filter(Objects::nonNull).distinct().toList();
+        if (known.isEmpty()) {
+            return Map.of();
         }
-        return new GuardianRevision(
-            event.getId(),
-            published.at(),
-            event.getProperties().get(Event.EventProperties.DEPLOYMENT_LABEL),
-            event.getProperties().get(Event.EventProperties.USER),
-            published.definition()
-        );
+        return userCrudService.findBaseUsersByIds(known).stream().collect(toMap(BaseUserEntity::getId, Function.identity()));
+    }
+
+    private static GuardianRevision revision(Event event, Instant at, Map<String, BaseUserEntity> deployers) {
+        var deployerId = deployerId(event);
+        // a deleted user still shows by id rather than vanishing from the history
+        var deployer = deployerId == null ? null : deployers.getOrDefault(deployerId, BaseUserEntity.builder().id(deployerId).build());
+        return new GuardianRevision(event.getId(), at, event.getProperties().get(Event.EventProperties.DEPLOYMENT_LABEL), deployer);
     }
 
     private GuardianDeployment read(Event event, String revisionId, String environmentId, String guardianId) {
+        var envelope = envelope(event, environmentId, guardianId);
+        var at = at(envelope, guardianId);
+        return event.getType() == EventType.UNPUBLISH_GENERIC_EVENT
+            ? readWithdrawal(envelope, at, guardianId)
+            : new GuardianDeployment.Published(definition(envelope, guardianId), at, revisionId);
+    }
+
+    private JsonNode envelope(Event event, String environmentId, String guardianId) {
+        JsonNode envelope;
         try {
-            JsonNode envelope = jsonDeserializer.deserialize(event.getPayload(), JsonNode.class);
-            if (
-                envelope == null ||
-                !GUARDIAN_KIND.equals(envelope.path("kind").asText()) ||
-                !guardianId.equals(envelope.path("id").asText()) ||
-                !environmentId.equals(envelope.path("environmentId").asText())
-            ) {
-                throw new TechnicalDomainException("Invalid publication for Guardian '" + guardianId + "'");
-            }
-            var at = Instant.parse(envelope.path("updatedAt").asText());
-            return event.getType() == EventType.UNPUBLISH_GENERIC_EVENT
-                ? readWithdrawal(envelope, at)
-                : readPublication(envelope, at, revisionId, guardianId);
-        } catch (JsonProcessingException | DateTimeParseException e) {
+            envelope = jsonDeserializer.deserialize(event.getPayload(), JsonNode.class);
+        } catch (JsonProcessingException e) {
+            throw new TechnicalDomainException("Failed to read the publication of Guardian '" + guardianId + "'", e);
+        }
+        if (
+            envelope == null ||
+            !GUARDIAN_KIND.equals(envelope.path("kind").asText()) ||
+            !guardianId.equals(envelope.path("id").asText()) ||
+            !environmentId.equals(envelope.path("environmentId").asText())
+        ) {
+            throw new TechnicalDomainException("Invalid publication for Guardian '" + guardianId + "'");
+        }
+        return envelope;
+    }
+
+    private static Instant at(JsonNode envelope, String guardianId) {
+        try {
+            return Instant.parse(envelope.path("updatedAt").asText());
+        } catch (DateTimeParseException e) {
             throw new TechnicalDomainException("Failed to read the publication of Guardian '" + guardianId + "'", e);
         }
     }
 
-    private GuardianDeployment.Published readPublication(JsonNode envelope, Instant at, String revisionId, String guardianId)
-        throws JsonProcessingException {
+    private io.gravitee.definition.model.v4.guardian.Guardian definition(JsonNode envelope, String guardianId) {
         if (!envelope.hasNonNull("payload")) {
             throw new TechnicalDomainException("Missing published definition for Guardian '" + guardianId + "'");
         }
-        var definition = jsonDeserializer.deserialize(
-            envelope.get("payload").toString(),
-            io.gravitee.definition.model.v4.guardian.Guardian.class
-        );
-        return new GuardianDeployment.Published(definition, at, revisionId);
+        try {
+            return jsonDeserializer.deserialize(
+                envelope.get("payload").toString(),
+                io.gravitee.definition.model.v4.guardian.Guardian.class
+            );
+        } catch (JsonProcessingException e) {
+            throw new TechnicalDomainException("Failed to read the publication of Guardian '" + guardianId + "'", e);
+        }
     }
 
-    private GuardianDeployment.Withdrawn readWithdrawal(JsonNode envelope, Instant at) throws JsonProcessingException {
+    private GuardianDeployment.Withdrawn readWithdrawal(JsonNode envelope, Instant at, String guardianId) {
         if (!envelope.hasNonNull("payload")) {
             return new GuardianDeployment.Withdrawn(null, at);
         }
-        // non-strict: a withdrawal written before the payload was reduced to this date carries other fields
-        var payload = jsonDeserializer.deserializeNonStrict(envelope.get("payload").toString(), WithdrawalPayload.class);
-        return new GuardianDeployment.Withdrawn(payload.deployedAt(), at);
+        try {
+            // non-strict: a withdrawal written before the payload was reduced to this date carries other fields
+            var payload = jsonDeserializer.deserializeNonStrict(envelope.get("payload").toString(), WithdrawalPayload.class);
+            return new GuardianDeployment.Withdrawn(payload.deployedAt(), at);
+        } catch (JsonProcessingException e) {
+            throw new TechnicalDomainException("Failed to read the publication of Guardian '" + guardianId + "'", e);
+        }
     }
 
     // Only what the management side reads back: the gateways ignore a withdrawal's payload.

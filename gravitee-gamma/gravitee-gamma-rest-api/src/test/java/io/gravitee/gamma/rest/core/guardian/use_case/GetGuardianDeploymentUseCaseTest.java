@@ -23,7 +23,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
-import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.event.model.Event;
@@ -54,11 +53,10 @@ class GetGuardianDeploymentUseCaseTest {
     private final InMemoryGuardianRepository repository = new InMemoryGuardianRepository();
     private final GuardianPublicationFixture publications = new GuardianPublicationFixture();
     private final GuardianAuditFixture audits = new GuardianAuditFixture();
-    private final UserCrudServiceInMemory users = new UserCrudServiceInMemory();
     private final GuardianDeploymentDomainService deploymentService = publications.service(repository);
     private final DeployGuardianUseCase deploy = new DeployGuardianUseCase(repository, deploymentService, audits.service);
     private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(repository, deploymentService, audits.service);
-    private final GetGuardianDeploymentUseCase get = new GetGuardianDeploymentUseCase(repository, publications.store(), users);
+    private final GetGuardianDeploymentUseCase get = new GetGuardianDeploymentUseCase(repository, publications.store());
     private final AuditInfo deployer = AuditInfo.builder()
         .organizationId(ORGANIZATION_ID)
         .environmentId(ENVIRONMENT_ID)
@@ -68,7 +66,7 @@ class GetGuardianDeploymentUseCaseTest {
     @BeforeEach
     void given_an_undeployed_guardian() {
         repository.givenGuardian(aGuardian(definition -> definition.name("First name")).build());
-        users.initWith(List.of(BaseUserEntity.builder().id("deployer").firstname("Ada").lastname("Lovelace").build()));
+        publications.users.initWith(List.of(BaseUserEntity.builder().id("deployer").firstname("Ada").lastname("Lovelace").build()));
     }
 
     @AfterEach
@@ -85,24 +83,29 @@ class GetGuardianDeploymentUseCaseTest {
 
         var output = get.execute(new GetGuardianDeploymentUseCase.Input(ENVIRONMENT_ID, GUARDIAN_ID, first));
 
+        var revision = output.deployment().revision();
+        var definition = output.deployment().definition();
         assertSoftly(softly -> {
-            softly.assertThat(output.revision().id()).as("revision id").isEqualTo(first);
-            softly.assertThat(output.revision().label()).as("label").isEqualTo("First");
-            softly.assertThat(output.revision().deployedAt()).as("deployment date").isEqualTo(Instant.parse("2026-11-09T10:00:00Z"));
-            softly.assertThat(output.revision().definition().getName()).as("deployed name").isEqualTo("First name");
-            softly.assertThat(output.revision().definition().getId()).as("deployed id").isEqualTo(GUARDIAN_ID);
-            softly.assertThat(output.deployer().displayName()).as("deployer").isEqualTo("Ada Lovelace");
+            softly.assertThat(revision.id()).as("revision id").isEqualTo(first);
+            softly.assertThat(revision.label()).as("label").isEqualTo("First");
+            softly.assertThat(revision.deployedAt()).as("deployment date").isEqualTo(Instant.parse("2026-11-09T10:00:00Z"));
+            softly.assertThat(definition.getName()).as("deployed name").isEqualTo("First name");
+            softly.assertThat(definition.getId()).as("deployed id").isEqualTo(GUARDIAN_ID);
+            softly.assertThat(revision.deployer().displayName()).as("deployer").isEqualTo("Ada Lovelace");
         });
     }
 
     @Test
     void should_keep_a_deployer_the_user_store_no_longer_knows_by_id() {
-        users.reset();
+        publications.users.reset();
         var revision = deployAt("2026-11-09T10:00:00Z", GUARDIAN_ID, null);
 
         var output = get.execute(new GetGuardianDeploymentUseCase.Input(ENVIRONMENT_ID, GUARDIAN_ID, revision));
 
-        assertThat(output.deployer()).as("deployer kept by id").extracting(BaseUserEntity::getId).isEqualTo("deployer");
+        assertThat(output.deployment().revision().deployer())
+            .as("deployer kept by id")
+            .extracting(BaseUserEntity::getId)
+            .isEqualTo("deployer");
     }
 
     @Test

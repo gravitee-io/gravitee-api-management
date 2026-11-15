@@ -15,13 +15,13 @@
  */
 package io.gravitee.gamma.rest.resources.guardian.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.guardian.Guardian;
 import io.gravitee.definition.model.v4.resource.Resource;
-import io.gravitee.gamma.rest.core.guardian.use_case.GetGuardianDeploymentUseCase;
-import java.time.Instant;
+import io.gravitee.gamma.rest.core.guardian.model.GuardianRevision;
 import java.util.List;
 import java.util.Set;
 
@@ -31,27 +31,17 @@ import java.util.Set;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record GuardianDeploymentDetailDto(
-    String id,
-    String label,
-    @JsonFormat(shape = JsonFormat.Shape.STRING) Instant deployedAt,
-    GuardianDeploymentDto.Deployer deployedBy,
+    @JsonUnwrapped GuardianDeploymentDto revision,
     String name,
-    io.gravitee.definition.model.v4.guardian.Guardian.Phase phase,
+    Guardian.Phase phase,
     Set<ApiType> apiTypes,
     List<Step> policies,
     List<Resource> resources
 ) {
-    public static GuardianDeploymentDetailDto from(GetGuardianDeploymentUseCase.Output output) {
-        var revision = output.revision();
-        var definition = revision.definition();
-        var deployer = output.deployer() == null
-            ? null
-            : new GuardianDeploymentDto.Deployer(output.deployer().getId(), output.deployer().displayName());
+    public static GuardianDeploymentDetailDto from(GuardianRevision.Deployed deployed) {
+        var definition = deployed.definition();
         return new GuardianDeploymentDetailDto(
-            revision.id(),
-            revision.label(),
-            revision.deployedAt(),
-            deployer,
+            GuardianDeploymentDto.from(deployed.revision()),
             definition.getName(),
             definition.getPhase(),
             definition.getApiTypes(),
