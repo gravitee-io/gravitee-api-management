@@ -68,9 +68,9 @@ class GenericEventPublicationDomainServiceTest {
 
         var output = service.publish(genericEvent, PublicationOptions.latestOnly(), AUDIT_INFO);
 
-        assertThat(output.environmentId()).isEqualTo("env");
-        assertThat(output.organizationId()).isEqualTo("org");
-        assertThat(output.updatedAt()).isEqualTo(NOW);
+        assertThat(output.genericEvent().environmentId()).isEqualTo("env");
+        assertThat(output.genericEvent().organizationId()).isEqualTo("org");
+        assertThat(output.genericEvent().updatedAt()).isEqualTo(NOW);
         assertThat(eventCrudService.storage()).isEmpty();
         var latest = eventLatestCrudService.storage();
         assertThat(latest).hasSize(1);
@@ -99,6 +99,32 @@ class GenericEventPublicationDomainServiceTest {
         var history = eventCrudService.storage().getFirst();
         assertThat(history.getType()).isEqualTo(EventType.PUBLISH_GENERIC_EVENT);
         assertThat(history.getPayload()).isEqualTo(eventLatestCrudService.storage().getFirst().getPayload());
+    }
+
+    @Test
+    void should_answer_the_id_of_the_history_event_it_wrote() {
+        var genericEvent = GenericEvent.builder().kind("aihub.key").id("app-1").payload("{\"teamId\":\"t1\"}").build();
+
+        var published = service.publish(genericEvent, PublicationOptions.withHistory(), AUDIT_INFO);
+        var withdrawn = service.withdraw(
+            GenericEvent.builder().kind("aihub.key").id("app-1").build(),
+            PublicationOptions.withHistory(),
+            AUDIT_INFO
+        );
+
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(published.eventId()).as("published history event").isEqualTo(eventCrudService.storage().getFirst().getId());
+            softly.assertThat(withdrawn.eventId()).as("withdrawn history event").isEqualTo(eventCrudService.storage().getLast().getId());
+        });
+    }
+
+    @Test
+    void should_answer_the_latest_event_id_when_history_is_disabled() {
+        var genericEvent = GenericEvent.builder().kind("aihub.key").id("app-1").payload("{}").build();
+
+        var published = service.publish(genericEvent, PublicationOptions.latestOnly(), AUDIT_INFO);
+
+        assertThat(published.eventId()).as("latest event").isEqualTo(GenericEvent.latestEventId("env", "aihub.key", "app-1"));
     }
 
     @Test
@@ -258,9 +284,9 @@ class GenericEventPublicationDomainServiceTest {
         var output = service.withdraw(withdrawal, PublicationOptions.withHistory(), AUDIT_INFO);
 
         SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(output.environmentId()).as("environment").isEqualTo("env");
-            softly.assertThat(output.organizationId()).as("organization").isEqualTo("org");
-            softly.assertThat(output.updatedAt()).as("withdrawal date").isEqualTo(NOW);
+            softly.assertThat(output.genericEvent().environmentId()).as("environment").isEqualTo("env");
+            softly.assertThat(output.genericEvent().organizationId()).as("organization").isEqualTo("org");
+            softly.assertThat(output.genericEvent().updatedAt()).as("withdrawal date").isEqualTo(NOW);
             softly
                 .assertThat(eventLatestCrudService.storage())
                 .as("latest withdrawal")
