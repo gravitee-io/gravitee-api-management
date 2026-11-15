@@ -76,10 +76,9 @@ paths:
                 - name: page
                   in: query
                   required: false
-                  description: 1-based page number.
+                  description: 1-based page number; a value of 0 or less serves the first page.
                   schema:
                       type: integer
-                      minimum: 1
                       default: 1
                 - name: perPage
                   in: query
@@ -91,8 +90,6 @@ paths:
                       page happens to hold.
                   schema:
                       type: integer
-                      minimum: 1
-                      maximum: 100
                       default: 10
                 - name: sortBy
                   in: query
@@ -408,21 +405,19 @@ paths:
                 - name: page
                   in: query
                   required: false
-                  description: 1-based page number.
+                  description: 1-based page number; a value of 0 or less serves the first page.
                   schema:
                       type: integer
-                      minimum: 1
                       default: 1
                 - name: perPage
                   in: query
                   required: false
                   description: |
                       Revisions per page. Capped at 100; a value above the cap is served as 100, and a
-                      value of 0 or less falls back to the default.
+                      value of 0 or less falls back to the default. The `perPage` reported in the
+                      response is always the size actually served.
                   schema:
                       type: integer
-                      minimum: 1
-                      maximum: 100
                       default: 10
             responses:
                 "200":
