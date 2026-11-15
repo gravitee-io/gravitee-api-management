@@ -15,19 +15,25 @@
  */
 package io.gravitee.gamma.rest.core.guardian.model;
 
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 /**
- * A definition of a Guardian once deployed to the gateways, as its deployment history records it.
+ * A deployment of a Guardian to the gateways, as its deployment history records it.
  *
  * @param id the id of the history entry
- * @param deployerId the id of the user who deployed it; {@code null} when the deployment does not record one
- * @param definition the definition the gateways ran from {@code deployedAt}
+ * @param deployer the user who deployed it, known by id only when the platform no longer knows them; {@code null}
+ *                 when the deployment does not record one
  */
-public record GuardianRevision(
-    String id,
-    Instant deployedAt,
-    String label,
-    String deployerId,
-    io.gravitee.definition.model.v4.guardian.Guardian definition
-) {}
+public record GuardianRevision(String id, Instant deployedAt, String label, BaseUserEntity deployer) {
+    // the precision of GuardianDeployment, so a revision dates the same as the Guardian it deployed
+    public GuardianRevision {
+        deployedAt = deployedAt.truncatedTo(ChronoUnit.MILLIS);
+    }
+
+    /**
+     * A revision with the definition the gateways ran from its {@code deployedAt}.
+     */
+    public record Deployed(GuardianRevision revision, io.gravitee.definition.model.v4.guardian.Guardian definition) {}
+}

@@ -22,6 +22,7 @@ import inmemory.EventCrudInMemory;
 import inmemory.EventLatestCrudInMemory;
 import inmemory.EventLatestQueryServiceInMemory;
 import inmemory.EventQueryServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.event.model.Event;
@@ -60,6 +61,8 @@ public class GuardianPublicationFixture {
     private static final String GUARDIAN_KIND = "guardian.definition";
 
     public final EventLatestCrudInMemory latest = latestEvents();
+    // the deployers the history names
+    public final UserCrudServiceInMemory users = new UserCrudServiceInMemory();
     public final EventCrudInMemory history = new EventCrudInMemory() {
         @Override
         public Event createEvent(
@@ -148,7 +151,8 @@ public class GuardianPublicationFixture {
             new JacksonJsonDeserializer(),
             publisher,
             query,
-            historyQuery
+            historyQuery,
+            users
         );
     }
 
@@ -225,6 +229,7 @@ public class GuardianPublicationFixture {
     public void reset() {
         history.reset();
         latest.reset();
+        users.reset();
         lastWrittenAt = null;
         failWithdrawal = false;
         beforeWithdrawal = () -> {};

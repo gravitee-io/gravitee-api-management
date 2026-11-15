@@ -159,7 +159,7 @@ public class GuardianResource {
         var output = getGuardianDeploymentUseCase.execute(
             new GetGuardianDeploymentUseCase.Input(ctx.getEnvironmentId(), guardianId, deploymentId)
         );
-        return GuardianDeploymentDetailDto.from(output);
+        return GuardianDeploymentDetailDto.from(output.deployment());
     }
 
     @POST

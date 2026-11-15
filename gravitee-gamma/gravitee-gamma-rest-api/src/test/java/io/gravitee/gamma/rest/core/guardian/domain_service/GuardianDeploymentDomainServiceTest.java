@@ -30,6 +30,7 @@ import inmemory.EventCrudInMemory;
 import inmemory.EventLatestCrudInMemory;
 import inmemory.EventLatestQueryServiceInMemory;
 import inmemory.EventQueryServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.event.model.Event;
@@ -97,7 +98,8 @@ class GuardianDeploymentDomainServiceTest {
                 new JacksonJsonDeserializer(),
                 new GenericEventPublicationDomainService(writer, mapper),
                 query,
-                new EventQueryServiceInMemory()
+                new EventQueryServiceInMemory(),
+                new UserCrudServiceInMemory()
             );
             service = new GuardianDeploymentDomainService(guardians, store, new JacksonJsonSerializer(), new JacksonJsonDeserializer());
         }

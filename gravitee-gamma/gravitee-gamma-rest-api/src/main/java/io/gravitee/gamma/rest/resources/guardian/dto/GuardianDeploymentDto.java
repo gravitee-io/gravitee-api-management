@@ -17,7 +17,8 @@ package io.gravitee.gamma.rest.resources.guardian.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.gravitee.gamma.rest.core.guardian.use_case.ListGuardianDeploymentsUseCase;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.gamma.rest.core.guardian.model.GuardianRevision;
 import java.time.Instant;
 
 /**
@@ -32,13 +33,13 @@ public record GuardianDeploymentDto(
     Deployer deployedBy
 ) {
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public record Deployer(String id, String displayName) {}
+    public record Deployer(String id, String displayName) {
+        static Deployer from(BaseUserEntity user) {
+            return user == null ? null : new Deployer(user.getId(), user.displayName());
+        }
+    }
 
-    public static GuardianDeploymentDto from(ListGuardianDeploymentsUseCase.Deployment deployment) {
-        var revision = deployment.revision();
-        var deployer = deployment.deployer() == null
-            ? null
-            : new Deployer(deployment.deployer().getId(), deployment.deployer().displayName());
-        return new GuardianDeploymentDto(revision.id(), revision.label(), revision.deployedAt(), deployer);
+    public static GuardianDeploymentDto from(GuardianRevision revision) {
+        return new GuardianDeploymentDto(revision.id(), revision.label(), revision.deployedAt(), Deployer.from(revision.deployer()));
     }
 }

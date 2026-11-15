@@ -21,7 +21,6 @@ import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDraftDomainService;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianPublicationDomainService;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
-import io.gravitee.gamma.rest.core.guardian.exception.GuardianDeploymentNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
@@ -49,12 +48,10 @@ public class RollbackGuardianUseCase {
         var existingGuardian = guardianRepository
             .findByEnvironmentId(environmentId, input.guardianId())
             .orElseThrow(() -> new GuardianNotFoundException(input.guardianId()));
-        var revision = publications
-            .revision(environmentId, input.guardianId(), input.deploymentId())
-            .orElseThrow(() -> new GuardianDeploymentNotFoundException(input.deploymentId()));
+        var deployed = publications.revision(environmentId, input.guardianId(), input.deploymentId());
 
         var command = UpdateGuardianCommand.builder()
-            .definition(revision.definition())
+            .definition(deployed.definition())
             .description(existingGuardian.getDescription())
             .build();
         // a constraint may have tightened since the revision was deployed: an update would refuse it too
@@ -65,7 +62,7 @@ public class RollbackGuardianUseCase {
                 command,
                 input.auditInfo(),
                 GuardianAuditEvent.GUARDIAN_ROLLED_BACK,
-                Map.of(AuditProperties.GUARDIAN_DEPLOYMENT, revision.id())
+                Map.of(AuditProperties.GUARDIAN_DEPLOYMENT, deployed.revision().id())
             )
         );
     }
