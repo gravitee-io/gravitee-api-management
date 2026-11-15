@@ -22,7 +22,7 @@ import io.gravitee.apim.core.credential.use_case.SearchCredentialsUseCase;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.gamma.rest.resources.credential.dto.CreateCredentialRequestDto;
 import io.gravitee.gamma.rest.resources.credential.dto.CredentialDto;
-import io.gravitee.gamma.rest.resources.tracing.dto.PaginatedResponseDto;
+import io.gravitee.gamma.rest.resources.dto.PaginatedResponseDto;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;

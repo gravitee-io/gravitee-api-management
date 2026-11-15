@@ -23,6 +23,7 @@ import io.gravitee.gamma.rest.core.observability.logs.use_case.GetAuthzDecisionU
 import io.gravitee.gamma.rest.core.observability.logs.use_case.GetObservabilityLogDetailUseCase;
 import io.gravitee.gamma.rest.core.observability.logs.use_case.SearchObservabilityLogMessagesUseCase;
 import io.gravitee.gamma.rest.core.observability.logs.use_case.SearchObservabilityLogsUseCase;
+import io.gravitee.gamma.rest.resources.dto.PaginatedResponseDto;
 import io.gravitee.gamma.rest.resources.observability.ObservabilityPermissions;
 import io.gravitee.gamma.rest.resources.observability.dto.RequestEntries;
 import io.gravitee.gamma.rest.resources.observability.logs.dto.FilterConditionDto;
@@ -30,7 +31,6 @@ import io.gravitee.gamma.rest.resources.observability.logs.dto.LogDetailDto;
 import io.gravitee.gamma.rest.resources.observability.logs.dto.LogEntryDto;
 import io.gravitee.gamma.rest.resources.observability.logs.dto.MessageLogDto;
 import io.gravitee.gamma.rest.resources.observability.logs.dto.SearchLogsRequestDto;
-import io.gravitee.gamma.rest.resources.tracing.dto.PaginatedResponseDto;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
