@@ -28,6 +28,9 @@ public interface EventQueryService {
     SearchResponse search(SearchQuery query, Pageable pageable);
     Optional<Event> findByIdForEnvironmentAndApi(String eventId, String environmentId, String apiId);
 
+    /** The event with this id, when it belongs to the environment; unlike {@link SearchQuery#id()}, which filters on the {@code id} property only latest events carry. */
+    Optional<Event> findByIdForEnvironment(String eventId, String environmentId);
+
     record SearchQuery(
         String environmentId,
         Optional<String> id,

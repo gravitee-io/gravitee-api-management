@@ -50,6 +50,13 @@ public class EventQueryServiceInMemory implements EventQueryService, InMemoryAlt
                     .map(apiId -> event.getProperties().getOrDefault(Event.EventProperties.API_ID, "").equals(apiId))
                     .orElse(true)
             )
+            .filter(event ->
+                query
+                    .properties()
+                    .entrySet()
+                    .stream()
+                    .allMatch(property -> property.getValue().equals(event.getProperties().get(property.getKey())))
+            )
             .filter(event -> event.getEnvironments().contains(query.environmentId()))
             .filter(event -> query.types().isEmpty() || query.types().contains(event.getType()))
             .filter(event ->
@@ -67,7 +74,9 @@ public class EventQueryServiceInMemory implements EventQueryService, InMemoryAlt
             .sorted(Comparator.comparing(Event::getCreatedAt).reversed())
             .toList();
 
-        var page = matches.size() <= pageSize ? matches : matches.subList((pageNumber - 1) * pageSize, pageNumber * pageSize);
+        var page = matches.size() <= pageSize
+            ? matches
+            : matches.subList(Math.min((pageNumber - 1) * pageSize, matches.size()), Math.min(pageNumber * pageSize, matches.size()));
 
         return new SearchResponse(matches.size(), page);
     }
@@ -82,6 +91,14 @@ public class EventQueryServiceInMemory implements EventQueryService, InMemoryAlt
                     event.getEnvironments().contains(environmentId) &&
                     apiId.equalsIgnoreCase(event.getProperties().get(Event.EventProperties.API_ID))
             )
+            .findFirst();
+    }
+
+    @Override
+    public Optional<Event> findByIdForEnvironment(String eventId, String environmentId) {
+        return storage()
+            .stream()
+            .filter(event -> event.getId().equals(eventId) && event.getEnvironments().contains(environmentId))
             .findFirst();
     }
 

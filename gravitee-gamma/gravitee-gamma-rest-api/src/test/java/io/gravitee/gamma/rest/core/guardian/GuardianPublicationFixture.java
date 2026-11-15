@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import inmemory.EventCrudInMemory;
 import inmemory.EventLatestCrudInMemory;
 import inmemory.EventLatestQueryServiceInMemory;
+import inmemory.EventQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.event.model.Event;
@@ -32,21 +33,21 @@ import io.gravitee.apim.core.generic_event.model.PublicationOptions;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
-import io.gravitee.common.data.domain.Page;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianPublicationDomainService;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianDeployment;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
-import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardianPublicationHistoryPort;
 import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.common.Pageable;
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Stream;
 
 /**
  * The event store Guardian publications go through, kept in memory: tests publish and withdraw
@@ -77,9 +78,18 @@ public class GuardianPublicationFixture {
                     throw new TechnicalDomainException("Publication store unavailable");
                 }
             }
-            return super.createEvent(organizationId, environmentId, environmentIds, eventType, content, properties);
+            var event = super.createEvent(organizationId, environmentId, environmentIds, eventType, content, properties);
+            // The stores sort the history by date; each write gets a later one, even under a fixed clock.
+            var writtenAt = lastWrittenAt == null || TimeProvider.now().isAfter(lastWrittenAt)
+                ? TimeProvider.now()
+                : lastWrittenAt.plusNanos(1_000_000);
+            lastWrittenAt = writtenAt;
+            var dated = event.toBuilder().createdAt(writtenAt).updatedAt(writtenAt).build();
+            storage().set(storage().size() - 1, dated);
+            return dated;
         }
     };
+    private ZonedDateTime lastWrittenAt;
     public final EventLatestQueryServiceInMemory query = new EventLatestQueryServiceInMemory() {
         @Override
         public List<Event> findLatestByEntityIds(Set<String> ids, EventType type, Event.EventProperties key) {
@@ -88,30 +98,17 @@ public class GuardianPublicationFixture {
             return super.findLatestByEntityIds(ids, type, key);
         }
     };
-    // The history is kept in the order it is written, which is the date order the store answers in.
-    public final GuardianPublicationHistoryPort historyQuery = new GuardianPublicationHistoryPort() {
+    public final EventQueryServiceInMemory historyQuery = new EventQueryServiceInMemory() {
         @Override
-        public Page<Event> publications(String environmentId, String genericEventId, int pageNumber, int pageSize) {
-            var publications = publicationsOf(environmentId, genericEventId).toList().reversed();
-            var from = Math.min((pageNumber - 1) * pageSize, publications.size());
-            var to = Math.min(from + pageSize, publications.size());
-            return new Page<>(publications.subList(from, to), pageNumber, to - from, publications.size());
+        public SearchResponse search(SearchQuery query, Pageable pageable) {
+            initWith(history.storage());
+            return super.search(query, pageable);
         }
 
         @Override
-        public Optional<Event> publication(String environmentId, String genericEventId, String eventId) {
-            return publicationsOf(environmentId, genericEventId)
-                .filter(event -> eventId.equals(event.getId()))
-                .findFirst();
-        }
-
-        private Stream<Event> publicationsOf(String environmentId, String genericEventId) {
-            return history
-                .storage()
-                .stream()
-                .filter(event -> event.getType() == EventType.PUBLISH_GENERIC_EVENT)
-                .filter(event -> event.getEnvironments().contains(environmentId))
-                .filter(event -> genericEventId.equals(event.getProperties().get(Event.EventProperties.GENERIC_EVENT_ID)));
+        public Optional<Event> findByIdForEnvironment(String eventId, String environmentId) {
+            initWith(history.storage());
+            return super.findByIdForEnvironment(eventId, environmentId);
         }
     };
     public final GenericEventWriterDomainService writer = new GenericEventWriterDomainService(
@@ -203,6 +200,7 @@ public class GuardianPublicationFixture {
     public void reset() {
         history.reset();
         latest.reset();
+        lastWrittenAt = null;
         failWithdrawal = false;
         beforeWithdrawal = () -> {};
         beforePublication = () -> {};

@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import inmemory.EventCrudInMemory;
 import inmemory.EventLatestCrudInMemory;
 import inmemory.EventLatestQueryServiceInMemory;
+import inmemory.EventQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.event.model.Event;
@@ -39,21 +40,18 @@ import io.gravitee.apim.core.generic_event.model.GenericEvent;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianDeployment;
-import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardianPublicationHistoryPort;
 import io.gravitee.rest.api.model.EventType;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -99,17 +97,7 @@ class GuardianDeploymentDomainServiceTest {
                 new GenericEventPublicationDomainService(writer, mapper),
                 query,
                 // no earlier publication: the version numbering is covered by ListGuardianDeploymentsUseCaseTest
-                new GuardianPublicationHistoryPort() {
-                    @Override
-                    public Page<Event> publications(String environmentId, String genericEventId, int pageNumber, int pageSize) {
-                        return new Page<>(List.of(), pageNumber, 0, 0);
-                    }
-
-                    @Override
-                    public Optional<Event> publication(String environmentId, String genericEventId, String eventId) {
-                        return Optional.empty();
-                    }
-                }
+                new EventQueryServiceInMemory()
             );
             service = new GuardianDeploymentDomainService(guardians, store, new JacksonJsonSerializer(), new JacksonJsonDeserializer());
         }
