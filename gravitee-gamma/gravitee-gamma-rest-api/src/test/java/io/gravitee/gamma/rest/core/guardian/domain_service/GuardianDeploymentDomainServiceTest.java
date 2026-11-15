@@ -20,6 +20,7 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDIAN_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianDefinition;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aPolicy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
@@ -42,12 +43,14 @@ import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianDeployment;
+import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
 import io.gravitee.rest.api.model.EventType;
 import java.time.Clock;
 import java.time.Instant;
@@ -300,6 +303,78 @@ class GuardianDeploymentDomainServiceTest {
                 .asInstanceOf(type(GuardianDeployment.Withdrawn.class))
                 .extracting(GuardianDeployment.Withdrawn::deployedAt)
                 .isNull();
+        }
+    }
+
+    @Nested
+    class LifecycleState {
+
+        private final Guardian publishedWithoutLists = aGuardianDefinition().policies(null).resources(null).apiTypes(null).build();
+        private final GuardianDeploymentDomainService service = new GuardianDeploymentDomainService(
+            new InMemoryGuardianRepository(),
+            null,
+            new JacksonJsonSerializer(),
+            new JacksonJsonDeserializer()
+        );
+
+        private GuardianLifecycleState stateOf(Guardian draft, Guardian published) {
+            return service
+                .state(
+                    aGuardian().definition(draft).build(),
+                    new GuardianDeployment.Published(published, Instant.parse("2026-11-08T10:00:00Z"), "revision-id")
+                )
+                .getLifecycleState();
+        }
+
+        @Test
+        void should_show_a_draft_saving_empty_lists_as_deployed_when_the_revision_has_none() {
+            var published = publishedWithoutLists;
+
+            assertSoftly(softly -> {
+                softly
+                    .assertThat(stateOf(published.toBuilder().policies(List.of()).build(), published))
+                    .as("empty policies against absent ones")
+                    .isEqualTo(GuardianLifecycleState.DEPLOYED);
+                softly
+                    .assertThat(stateOf(published.toBuilder().resources(List.of()).build(), published))
+                    .as("empty resources against absent ones")
+                    .isEqualTo(GuardianLifecycleState.DEPLOYED);
+                softly
+                    .assertThat(stateOf(published.toBuilder().apiTypes(Set.of()).build(), published))
+                    .as("empty API types against absent ones")
+                    .isEqualTo(GuardianLifecycleState.DEPLOYED);
+                softly
+                    .assertThat(
+                        stateOf(published, published.toBuilder().policies(List.of()).resources(List.of()).apiTypes(Set.of()).build())
+                    )
+                    .as("absent lists against empty published ones")
+                    .isEqualTo(GuardianLifecycleState.DEPLOYED);
+            });
+        }
+
+        @Test
+        void should_show_a_draft_filling_a_list_the_revision_has_not_as_pending() {
+            var published = publishedWithoutLists;
+            var resource = Resource.builder().name("cache").type("cache").configuration("{}").build();
+
+            assertSoftly(softly -> {
+                softly
+                    .assertThat(stateOf(published.toBuilder().policies(List.of(aPolicy())).build(), published))
+                    .as("policy added")
+                    .isEqualTo(GuardianLifecycleState.PENDING);
+                softly
+                    .assertThat(stateOf(published.toBuilder().resources(List.of(resource)).build(), published))
+                    .as("resource added")
+                    .isEqualTo(GuardianLifecycleState.PENDING);
+                softly
+                    .assertThat(stateOf(published.toBuilder().apiTypes(Set.of(ApiType.LLM_PROXY)).build(), published))
+                    .as("API type restricted")
+                    .isEqualTo(GuardianLifecycleState.PENDING);
+                softly
+                    .assertThat(stateOf(published.toBuilder().name("Renamed").resources(List.of()).build(), published))
+                    .as("renamed with an empty list")
+                    .isEqualTo(GuardianLifecycleState.PENDING);
+            });
         }
     }
 }

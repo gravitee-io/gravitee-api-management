@@ -23,6 +23,7 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.json.JsonDeserializer;
 import io.gravitee.apim.core.json.JsonProcessingException;
 import io.gravitee.apim.core.json.JsonSerializer;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianDeployment;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
@@ -41,6 +42,9 @@ import lombok.RequiredArgsConstructor;
 @DomainService
 @RequiredArgsConstructor
 public class GuardianDeploymentDomainService {
+
+    /** Absent and empty mean the same: the UI saves empty lists, a revision published earlier may have none. */
+    private static final List<String> LISTS = List.of("policies", "resources");
 
     private final GuardianRepository guardianRepository;
     private final GuardianPublicationDomainService publications;
@@ -119,13 +123,20 @@ public class GuardianDeploymentDomainService {
     private boolean matches(Guardian guardian, GuardianDeployment.Published publication) {
         var draft = guardian.getDefinition();
         var published = publication.definition();
-        return Objects.equals(draft.getApiTypes(), published.getApiTypes()) && content(draft).equals(content(published));
+        return orEmpty(draft.getApiTypes()).equals(orEmpty(published.getApiTypes())) && content(draft).equals(content(published));
+    }
+
+    private static Set<ApiType> orEmpty(Set<ApiType> apiTypes) {
+        return Objects.requireNonNullElse(apiTypes, Set.of());
     }
 
     private JsonNode content(Object definition) {
         try {
             var tree = jsonDeserializer.deserialize(jsonSerializer.serialize(definition), ObjectNode.class);
             tree.remove("apiTypes");
+            LISTS.stream()
+                .filter(list -> !tree.hasNonNull(list))
+                .forEach(tree::putArray);
             return tree;
         } catch (JsonProcessingException e) {
             throw new TechnicalDomainException("Failed to compare Guardian definitions", e);
