@@ -100,4 +100,5 @@ public class UpgraderOrder {
     public static final int SECRET_PERMISSION_UPGRADER = 966;
     public static final int CREDENTIAL_PERMISSION_UPGRADER = 967;
     public static final int GAMMA_HITL_PERMISSIONS_UPGRADER = 968;
+    public static final int ENVIRONMENT_USER_DOCUMENTATION_PERMISSION_UPGRADER = 969;
 }
