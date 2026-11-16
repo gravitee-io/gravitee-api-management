@@ -75,6 +75,7 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.test.util.TestSocketUtils;
@@ -444,6 +445,12 @@ public abstract class AbstractGatewayTest
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }
+
+    /**
+     * Runs once the gateway context is created, before its components and services start. Override it to register a bean
+     * that the test container does not provide, such as a repository the management repository plugin would register.
+     */
+    public void configureBootContext(ConfigurableApplicationContext context) {}
 
     /**
      * Ensures the organization has the minimal requirement to be run properly.

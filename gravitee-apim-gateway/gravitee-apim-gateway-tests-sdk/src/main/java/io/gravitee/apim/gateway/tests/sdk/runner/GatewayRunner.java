@@ -265,6 +265,7 @@ public class GatewayRunner {
             gatewayContainer = new GatewayTestContainer(context -> {
                 registerTestLicenseManager(context, licenseManager);
                 applyOnGraviteeYaml(context, gatewayConfiguration.yamlProperties());
+                testInstance.configureBootContext((ConfigurableApplicationContext) context);
                 // secret provider plugins need to be set up during boot to ensure a proper resolution of secrets during startup.
                 registerSecretProvider(context);
             });
