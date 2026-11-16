@@ -35,12 +35,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ElasticBulkSenderTest {
 
     private static final CompressedBulk BULK = new CompressedBulk(Buffer.buffer("bulk"), Map.of("metrics", 4));
@@ -57,15 +60,19 @@ class ElasticBulkSenderTest {
 
     @Test
     void should_complete_when_every_report_is_written() {
+        // Given
         when(client.bulk(any(Buffer.class))).thenReturn(Single.just(response(false, item(201, null), item(200, null))));
 
+        // When / Then
         cut.send(BULK).test().assertComplete();
     }
 
     @Test
     void should_fail_with_a_retryable_error_when_elasticsearch_cannot_be_reached() {
+        // Given
         when(client.bulk(any(Buffer.class))).thenReturn(Single.error(new IOException("Connection refused")));
 
+        // When / Then
         cut
             .send(BULK)
             .test()
@@ -74,18 +81,26 @@ class ElasticBulkSenderTest {
 
     @Test
     void should_report_each_report_elasticsearch_did_not_write_and_whether_to_send_it_again() {
+        // Given
         when(client.bulk(any(Buffer.class))).thenReturn(
             Single.just(
                 response(
                     true,
                     item(201, null),
-                    item(400, failure("document_parsing_exception", "failed to parse field [status]")),
+                    item(
+                        400,
+                        failure(
+                            "document_parsing_exception",
+                            "[1:42] failed to parse field [status] of type [long] in document with id '1'. Preview of field's value: 'Bearer secret'"
+                        )
+                    ),
                     item(429, failure("es_rejected_execution_exception", "rejected execution")),
                     item(503, failure("unavailable_shards_exception", "primary shard is not active"))
                 )
             )
         );
 
+        // When / Then: only the error type is kept, as the reason can quote the content of the document
         cut
             .send(BULK)
             .test()
@@ -102,8 +117,10 @@ class ElasticBulkSenderTest {
 
     @Test
     void should_report_the_status_of_a_failed_report_elasticsearch_gives_no_error_for() {
+        // Given
         when(client.bulk(any(Buffer.class))).thenReturn(Single.just(response(true, item(201, null), item(500, null))));
 
+        // When / Then
         cut
             .send(BULK)
             .test()
@@ -116,17 +133,21 @@ class ElasticBulkSenderTest {
 
     @Test
     void should_fail_with_a_retryable_error_when_a_failed_bulk_does_not_list_its_items() {
+        // Given
         final BulkResponse response = response(true);
         response.setItems(null);
         when(client.bulk(any(Buffer.class))).thenReturn(Single.just(response));
 
+        // When / Then
         cut.send(BULK).test().assertError(SendReportException.class);
     }
 
     @Test
     void should_fail_with_a_retryable_error_when_a_failed_bulk_lists_no_item() {
+        // Given
         when(client.bulk(any(Buffer.class))).thenReturn(Single.just(response(true)));
 
+        // When / Then
         cut.send(BULK).test().assertError(SendReportException.class);
     }
 
