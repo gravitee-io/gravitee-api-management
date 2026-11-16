@@ -72,7 +72,7 @@ public class CreateGuardian {
     private String id;
 
     @NotBlank
-    @Size(max = NAME_MAX_LENGTH)
+    @Size(max = NAME_MAX_LENGTH, message = "Guardian name must be at most {max} characters")
     private String name;
 
     @Size(max = DESCRIPTION_MAX_LENGTH)

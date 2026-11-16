@@ -745,6 +745,69 @@ class GuardiansResourceTest extends AbstractResourceTest {
             assertThat(response.readEntity(JsonNode.class).get("name").asText()).isEqualTo("Credential leakage");
         }
 
+        /**
+         * The update path has to refuse it too, and it does not share the payload's constraints: the
+         * definition's own {@code @NotBlank} answers for it, once the name has been stripped.
+         */
+        @ParameterizedTest(name = "[{0}] is no name on update either")
+        @ValueSource(strings = { " ", "\t", "\u00A0", "\u3000" })
+        void should_refuse_an_update_whose_name_is_only_whitespace_with_400(String blank) {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+
+            Response response = rootTarget("/" + GUARDIAN_ID)
+                .request()
+                .put(Entity.entity(payloadWith("name", blank), MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        /**
+         * The update carries its name in the definition, which declares no maximum length of its own —
+         * the column does, and a longer name used to reach it as a technical failure.
+         */
+        @Test
+        void should_refuse_an_update_whose_name_is_longer_than_the_column_with_400() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+            String tooLong = "x".repeat(513);
+
+            Response response = rootTarget("/" + GUARDIAN_ID)
+                .request()
+                .put(Entity.entity(payloadWith("name", tooLong), MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            assertThat(response.readEntity(JsonNode.class).get("message").asText()).contains("512");
+        }
+
+        /** The creation says the same thing one step earlier, and says it in the same words. */
+        @Test
+        void should_refuse_a_creation_whose_name_is_longer_than_the_column_with_400() {
+            Response response = post(payloadWith("name", "x".repeat(513)));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            assertThat(response.readEntity(JsonNode.class).get("message").asText()).contains(
+                "Guardian name must be at most 512 characters"
+            );
+        }
+
+        /**
+         * The padding is not part of the name, so it is not part of its length either: a name at the
+         * limit is accepted however it was padded. This is what the normalisation has to happen before
+         * the structure check for, and not only before the store.
+         */
+        @Test
+        void should_accept_a_name_at_the_column_length_sent_with_padding() {
+            Response response = post(payloadWith("name", "  " + "x".repeat(512) + "  "));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
+            assertThat(response.readEntity(JsonNode.class).get("name").asText()).hasSize(512);
+        }
+
+        /** The limit itself is reachable: 512 is accepted, so the refusal is the length and not the rule. */
+        @Test
+        void should_accept_a_name_of_exactly_the_column_length() {
+            assertThat(post(payloadWith("name", "x".repeat(512))).getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
+        }
+
         /** Blank once trimmed is no name at all, and that is a 400, not a 409. */
         @ParameterizedTest(name = "[{0}] is no name")
         @ValueSource(strings = { " ", "   ", "\t", "\u00A0", "\u3000", "\u00A0 \u00A0" })
