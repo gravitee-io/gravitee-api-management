@@ -69,7 +69,14 @@ public class Guardian {
      */
     public static Guardian from(CreateGuardian createGuardian, String environmentId) {
         return Guardian.builder()
-            .definition(createGuardian.toDefinition().toBuilder().environmentId(environmentId).build())
+            .definition(
+                createGuardian
+                    .toDefinition()
+                    .toBuilder()
+                    .environmentId(environmentId)
+                    .name(withoutOuterWhitespace(createGuardian.getName()))
+                    .build()
+            )
             .description(createGuardian.getDescription())
             .build();
     }
@@ -81,10 +88,53 @@ public class Guardian {
      */
     public Guardian update(UpdateGuardianCommand command) {
         return this.toBuilder()
-            .definition(command.getDefinition().toBuilder().id(getId()).environmentId(getEnvironmentId()).build())
+            .definition(
+                command
+                    .getDefinition()
+                    .toBuilder()
+                    .id(getId())
+                    .environmentId(getEnvironmentId())
+                    .name(withoutOuterWhitespace(command.getDefinition().getName()))
+                    .build()
+            )
             .description(command.getDescription())
             .updatedAt(TimeProvider.instantNow())
             .build();
+    }
+
+    /**
+     * The name as it is kept. Both writes assemble the stored Guardian here, so this is where the
+     * uniqueness check reads it from.
+     *
+     * <p>Neither {@code trim} nor {@code strip} is enough on their own. {@code trim} stops at
+     * {@code U+0020}, and {@code strip} follows {@link Character#isWhitespace}, which deliberately
+     * excludes the non-breaking spaces — {@code U+00A0} above all, which is what a name pasted from a
+     * page or a document carries. Either way the padded name reads as the same name and compares as a
+     * different one, which is the whole defect. Space characters are therefore taken too.
+     *
+     * <p>Zero-width and other format characters are left alone: they are not spaces, and a name
+     * carrying one is a different name rather than a padded one.
+     *
+     * <p>Blank once stripped is refused upstream by {@code @NotBlank}, on the creation payload and on
+     * the definition, so this only ever shortens a name.
+     */
+    public static String withoutOuterWhitespace(String name) {
+        if (name == null) {
+            return null;
+        }
+        int start = 0;
+        int end = name.length();
+        while (start < end && isOuterSpace(name.codePointAt(start))) {
+            start += Character.charCount(name.codePointAt(start));
+        }
+        while (end > start && isOuterSpace(name.codePointBefore(end))) {
+            end -= Character.charCount(name.codePointBefore(end));
+        }
+        return name.substring(start, end);
+    }
+
+    private static boolean isOuterSpace(int codePoint) {
+        return Character.isWhitespace(codePoint) || Character.isSpaceChar(codePoint);
     }
 
     public String getId() {
