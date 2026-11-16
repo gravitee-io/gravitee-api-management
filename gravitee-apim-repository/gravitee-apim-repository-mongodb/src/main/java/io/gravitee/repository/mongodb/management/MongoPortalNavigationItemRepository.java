@@ -28,6 +28,7 @@ import io.gravitee.repository.mongodb.management.internal.model.PortalNavigation
 import io.gravitee.repository.mongodb.management.internal.portalnavigationitem.PortalNavigationItemMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import io.gravitee.repository.mongodb.utils.IdCriteria;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -217,6 +218,71 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
             return result.getMatchedCount() == 1;
         } catch (Exception ex) {
             throw new TechnicalException("Failed to update the configuration of portal navigation item " + id, ex);
+        }
+    }
+
+    @Override
+    public Set<String> findPortalReferenceIdsByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("Find portal references of environment [{}]", environmentId);
+        try {
+            var query = new Query(where("environmentId").is(environmentId).and("referenceType").is(PortalNavigationReferenceType.PORTAL));
+            return Set.copyOf(mongoTemplate.findDistinct(query, "referenceId", PortalNavigationItemMongo.class, String.class));
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to find the portal references of environment " + environmentId, ex);
+        }
+    }
+
+    @Override
+    public long updatePortalReferences(String environmentId, Collection<String> fromPortalIds, String toPortalId)
+        throws TechnicalException {
+        log.debug("Update portal references {} of environment [{}] to portal [{}]", fromPortalIds, environmentId, toPortalId);
+        if (fromPortalIds.isEmpty()) {
+            return 0;
+        }
+        try {
+            var query = new Query(
+                where("environmentId")
+                    .is(environmentId)
+                    .and("referenceType")
+                    .is(PortalNavigationReferenceType.PORTAL)
+                    .and("automationMetadata")
+                    .is(null)
+                    .and("referenceId")
+                    .in(fromPortalIds)
+            );
+            return mongoTemplate
+                .updateMulti(query, Update.update("referenceId", toPortalId), PortalNavigationItemMongo.class)
+                .getModifiedCount();
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to update the portal references of environment " + environmentId, ex);
+        }
+    }
+
+    @Override
+    public long updateAutomationPortalReferences(String environmentId, Collection<String> fromPortalIds, String portalId)
+        throws TechnicalException {
+        log.debug("Update automation portal references {} of environment [{}] to portal [{}]", fromPortalIds, environmentId, portalId);
+        if (fromPortalIds.isEmpty()) {
+            return 0;
+        }
+        try {
+            var query = new Query(
+                where("environmentId")
+                    .is(environmentId)
+                    .and("referenceType")
+                    .is(PortalNavigationReferenceType.PORTAL)
+                    .and("automationMetadata.referenceType")
+                    .is(AutomationTargetReferenceType.PORTAL)
+                    .and("automationMetadata.referenceId")
+                    .is(portalId)
+                    .and("referenceId")
+                    .in(fromPortalIds)
+            );
+            return mongoTemplate
+                .updateMulti(query, Update.update("referenceId", portalId), PortalNavigationItemMongo.class)
+                .getModifiedCount();
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to update the automation portal references of environment " + environmentId, ex);
         }
     }
 

@@ -15,8 +15,11 @@
  */
 package io.gravitee.apim.core.flow.domain_service;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.isEmpty;
+
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.exception.NativeApiWithMultipleFlowsException;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
 import io.gravitee.apim.core.plugin.model.PlatformPlugin;
@@ -107,6 +110,23 @@ public class FlowValidationDomainService {
     }
 
     /**
+     * Validates the flows of an API Product, or of one of its plans: they run on the requests of HTTP proxy APIs,
+     * in the request and response phases only, and cannot refer to resources since a product declares none.
+     */
+    public List<Flow> validateAndSanitizeApiProductFlows(List<Flow> flows) {
+        for (int index = 0; index < flows.size(); index++) {
+            var flow = flows.get(index);
+            if (!isEmpty(flow.getPublish()) || !isEmpty(flow.getSubscribe())) {
+                var flowName = flow.getName() != null ? flow.getName() : "#" + index;
+                throw new ValidationDomainException(
+                    "Flow '" + flowName + "' has publish or subscribe steps; API Product flows only run in the request and response phases"
+                );
+            }
+        }
+        return validateAndSanitizeHttpV4(ApiType.PROXY, flows, Set.of());
+    }
+
+    /**
      * Validates and sanitizes flows, optionally verifying that registry resource references
      * resolve to declared API resource names.
      *
@@ -138,6 +158,16 @@ public class FlowValidationDomainService {
             });
         }
         return flows;
+    }
+
+    public List<Flow> validateAndSanitizeHttpV4PlanFlows(Api api, List<Flow> flows) {
+        var sanitizedFlows = validateAndSanitizeHttpV4(api.getType(), flows, ApiResourceNames.fromHttpV4(api));
+        validatePathParameters(
+            api.getType(),
+            api.getApiDefinitionHttpV4().getFlows() != null ? api.getApiDefinitionHttpV4().getFlows().stream() : Stream.empty(),
+            sanitizedFlows.stream()
+        );
+        return sanitizedFlows;
     }
 
     public List<NativeFlow> validateAndSanitizeNativeV4(List<NativeFlow> flows) {

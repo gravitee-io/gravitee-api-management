@@ -25,8 +25,8 @@ import org.springframework.stereotype.Component;
  * were persisted before this schema existed, so that Spring Data MongoDB can deserialize them
  * into the now-{@code @Nonnull} fields.
  *
- * Follow-up (multi-portal): items carrying the UNATTACHED sentinel are meant to be reassigned to
- * the first real Portal created in the environment.
+ * Items carrying the UNATTACHED sentinel are reassigned to the portal of their environment by
+ * {@code PortalReferencesUpgrader}.
  */
 @Component
 public class PortalNavigationItemDefaultReferenceMongoUpgrader extends MongoUpgrader {

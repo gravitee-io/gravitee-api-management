@@ -20,6 +20,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
@@ -81,6 +84,49 @@ class ApiProductMapperTest {
                 assertThat(deployable.syncAction()).isEqualTo(apiProductDeployable.syncAction());
                 assertThat(deployable.reactableApiProduct()).isEqualTo(apiProductDeployable.reactableApiProduct());
                 assertThat(deployable.subscribablePlans()).isEqualTo(apiProductDeployable.subscribablePlans());
+                return true;
+            });
+    }
+
+    @Test
+    void should_keep_flows_and_flow_execution_through_a_distributed_event() {
+        FlowExecution flowExecution = new FlowExecution();
+        flowExecution.setMode(FlowMode.BEST_MATCH);
+        flowExecution.setMatchRequired(true);
+        ReactableApiProduct withFlows = apiProductDeployable
+            .reactableApiProduct()
+            .toBuilder()
+            .flows(List.of(Flow.builder().name("product flow").build()))
+            .flowExecution(flowExecution)
+            .build();
+        ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
+            .apiProductId(withFlows.getId())
+            .reactableApiProduct(withFlows)
+            .syncAction(SyncAction.DEPLOY)
+            .build();
+
+        cut
+            .to(deployable)
+            .flatMap(cut::to)
+            .test()
+            .assertValue(read -> {
+                assertThat(read.reactableApiProduct().getFlows()).extracting(Flow::getName).containsExactly("product flow");
+                assertThat(read.reactableApiProduct().getFlowExecution().getMode()).isEqualTo(FlowMode.BEST_MATCH);
+                assertThat(read.reactableApiProduct().getFlowExecution().isMatchRequired()).isTrue();
+                return true;
+            });
+    }
+
+    @Test
+    void should_read_a_payload_written_before_products_had_flows() {
+        distributedEvent.setPayload("{\"id\":\"product-id\",\"apiIds\":[\"api-1\"]}");
+
+        cut
+            .to(distributedEvent)
+            .test()
+            .assertValue(read -> {
+                assertThat(read.reactableApiProduct().getFlows()).isNull();
+                assertThat(read.reactableApiProduct().getFlowExecution()).isNull();
                 return true;
             });
     }

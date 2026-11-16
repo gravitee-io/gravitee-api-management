@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation;
 
+import io.gravitee.repository.elasticsearch.v4.shared.ConnectionPhaseClause;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.Map;
 
@@ -58,8 +60,12 @@ public class HttpErrorRateBuilder {
         return json().put("filter", statusFilter(400, 600)).put("aggs", json().put("count", valueCount()));
     }
 
+    /** A message API connection counts once, as it opens: its end is left out. */
     private JsonObject statusFilter(int gte, int lt) {
-        return json().put("range", json().put("status", json().put("gte", gte).put("lt", lt)));
+        var status = json().put("range", json().put("status", json().put("gte", gte).put("lt", lt)));
+        var filter = ConnectionPhaseClause.notEnd();
+        filter.getJsonObject("bool").put("filter", JsonArray.of(status));
+        return filter;
     }
 
     private JsonObject valueCount() {

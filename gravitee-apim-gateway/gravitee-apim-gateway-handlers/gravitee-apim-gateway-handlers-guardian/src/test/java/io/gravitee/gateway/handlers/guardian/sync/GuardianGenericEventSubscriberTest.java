@@ -32,6 +32,7 @@ import io.gravitee.gateway.handlers.guardian.manager.impl.GuardianManagerImpl;
 import io.gravitee.gateway.handlers.guardian.registry.GuardianRegistry;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.node.api.license.LicenseManager;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
@@ -69,7 +70,7 @@ class GuardianGenericEventSubscriberTest {
     void setUp() {
         GuardianRegistry guardianRegistry = new GuardianRegistry();
         FakeGuardianReactorPlugin.install(eventManager, guardianRegistry);
-        guardianManager = new GuardianManagerImpl(eventManager, licenseManager, guardianRegistry);
+        guardianManager = new GuardianManagerImpl(eventManager, licenseManager, guardianRegistry, new SimpleMeterRegistry());
         cut = new GuardianGenericEventSubscriber(guardianManager, objectMapper);
     }
 

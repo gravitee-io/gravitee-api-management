@@ -38,7 +38,7 @@ class SearchConnectionLogDetailQueryAdapterTest {
         assertThatJson(result).isEqualTo(
             """
             {
-            "size":20,"from":0,"sort":{"@timestamp":{"order":"desc"}}
+            "size":20,"from":0,"sort":[{"@timestamp":{"order":"desc"}},{"request-ended":{"order":"desc","unmapped_type":"boolean"}}]
             }
             """
         );
@@ -59,7 +59,7 @@ class SearchConnectionLogDetailQueryAdapterTest {
             "size":20,
             "from":0,
             "_source": [ "_id", "api" ],
-            "sort":{"@timestamp":{"order":"desc"}}
+            "sort":[{"@timestamp":{"order":"desc"}},{"request-ended":{"order":"desc","unmapped_type":"boolean"}}]
             }
             """
         );
@@ -105,7 +105,7 @@ class SearchConnectionLogDetailQueryAdapterTest {
                                }
                             ]
                         }
-                    },"sort":{"@timestamp":{"order":"desc"}}
+                    },"sort":[{"@timestamp":{"order":"desc"}},{"request-ended":{"order":"desc","unmapped_type":"boolean"}}]
                  }
                 """
             ),
@@ -135,7 +135,7 @@ class SearchConnectionLogDetailQueryAdapterTest {
                                }
                            ]
                         }
-                    },"sort":{"@timestamp":{"order":"desc"}}
+                    },"sort":[{"@timestamp":{"order":"desc"}},{"request-ended":{"order":"desc","unmapped_type":"boolean"}}]
                  }
                 """
             ),
@@ -183,7 +183,7 @@ class SearchConnectionLogDetailQueryAdapterTest {
                                  }
                             ]
                         }
-                    },"sort":{"@timestamp":{"order":"desc"}}
+                    },"sort":[{"@timestamp":{"order":"desc"}},{"request-ended":{"order":"desc","unmapped_type":"boolean"}}]
                  }
                 """
             ),
@@ -292,7 +292,7 @@ class SearchConnectionLogDetailQueryAdapterTest {
                                  }
                             ]
                         }
-                    },"sort":{"@timestamp":{"order":"desc"}}
+                    },"sort":[{"@timestamp":{"order":"desc"}},{"request-ended":{"order":"desc","unmapped_type":"boolean"}}]
                  }
                 """
             ),
@@ -312,7 +312,7 @@ class SearchConnectionLogDetailQueryAdapterTest {
                                  }
                             ]
                         }
-                    },"sort":{"@timestamp":{"order":"desc"}}
+                    },"sort":[{"@timestamp":{"order":"desc"}},{"request-ended":{"order":"desc","unmapped_type":"boolean"}}]
                  }
                 """
             ),
@@ -332,7 +332,7 @@ class SearchConnectionLogDetailQueryAdapterTest {
                                  }
                             ]
                         }
-                    },"sort":{"@timestamp":{"order":"desc"}}
+                    },"sort":[{"@timestamp":{"order":"desc"}},{"request-ended":{"order":"desc","unmapped_type":"boolean"}}]
                  }
                 """
             )

@@ -243,8 +243,8 @@ class UpdatePlanUseCaseTest {
                 updatePlan.getDescription(),
                 updatePlan.getOrder(),
                 updatePlan.getSecurityConfiguration(),
-                updatePlan.getCharacteristics(),
-                updatePlan.getExcludedGroups(),
+                expectedCharacteristics(updatePlan),
+                expectedExcludedGroups(updatePlan),
                 updatePlan.isCommentRequired(),
                 updatePlan.getCommentMessage(),
                 updatePlan.getGeneralConditions(),
@@ -291,8 +291,8 @@ class UpdatePlanUseCaseTest {
                 updatePlan.getName(),
                 updatePlan.getDescription(),
                 updatePlan.getOrder(),
-                updatePlan.getCharacteristics(),
-                updatePlan.getExcludedGroups(),
+                expectedCharacteristics(updatePlan),
+                expectedExcludedGroups(updatePlan),
                 updatePlan.isCommentRequired(),
                 updatePlan.getCommentMessage(),
                 updatePlan.getGeneralConditions(),
@@ -341,8 +341,8 @@ class UpdatePlanUseCaseTest {
                 updatePlan.getDescription(),
                 updatePlan.getOrder(),
                 updatePlan.getSecurityConfiguration(),
-                updatePlan.getCharacteristics(),
-                updatePlan.getExcludedGroups(),
+                expectedCharacteristics(updatePlan),
+                expectedExcludedGroups(updatePlan),
                 updatePlan.isCommentRequired(),
                 updatePlan.getCommentMessage(),
                 updatePlan.getGeneralConditions(),
@@ -565,6 +565,14 @@ class UpdatePlanUseCaseTest {
             .description("plan-description-changed")
             .order(2)
             .build();
+    }
+
+    private static List<String> expectedCharacteristics(PlanUpdates updates) {
+        return updates.getCharacteristics() != null ? updates.getCharacteristics() : List.of();
+    }
+
+    private static List<String> expectedExcludedGroups(PlanUpdates updates) {
+        return updates.getExcludedGroups() != null ? updates.getExcludedGroups() : List.of();
     }
 
     @Test

@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.InstanceOfAssertFactories.STRING;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -33,10 +34,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.core.model.ApiCRDFixtures;
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.ClusterQueryServiceInMemory;
 import inmemory.EventLatestQueryServiceInMemory;
+import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.exception.ApiPropertyEncryptedToPlainException;
 import io.gravitee.apim.core.api.exception.ApiPropertyNotCiphertextException;
@@ -46,6 +49,7 @@ import io.gravitee.apim.core.api.model.property.EncryptableProperty;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterResolutionDomainService;
 import io.gravitee.apim.core.cluster.domain_service.DeployedClustersDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService;
 import io.gravitee.apim.core.cluster.domain_service.ValidateKafkaClusterBindingDomainService;
@@ -55,10 +59,13 @@ import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificationDomainService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
@@ -66,6 +73,7 @@ import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainServi
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
@@ -119,11 +127,17 @@ class ValidateApiCRDDomainServiceTest {
 
     ValidatePortalNotificationDomainService portalNotificationValidator = mock(ValidatePortalNotificationDomainService.class);
 
+    FlowValidationDomainService flowValidator = mock(FlowValidationDomainService.class);
+
+    UpdateApiDomainService updateApiDomainService = mock(UpdateApiDomainService.class);
+
     ValidateHealthCheckScheduleDomainService healthCheckScheduleValidator = new ValidateHealthCheckScheduleDomainService(
         new ObjectMapper()
     );
 
-    ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
+    ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+
+    ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
 
     DataEncryptor dataEncryptor = mock(DataEncryptor.class);
 
@@ -146,7 +160,7 @@ class ValidateApiCRDDomainServiceTest {
         planValidator,
         portalNotificationValidator,
         healthCheckScheduleValidator,
-        apiQueryService,
+        new ApiCRDTargetDomainService(apiQueryService, apiCrudService),
         new PropertyDomainService(dataEncryptor),
         membersDomainService,
         new ValidateKafkaClusterBindingDomainService(
@@ -154,7 +168,25 @@ class ValidateApiCRDDomainServiceTest {
             OBJECT_MAPPER
         ),
         new ClusterBindingPermissionDomainService(clusterQueryService, permissionDomainService, new ObjectMapper()),
-        new ValidateApiClusterBindingService(clusterQueryService, OBJECT_MAPPER)
+        new ValidateApiClusterBindingService(
+            new ClusterResolutionDomainService(
+                clusterQueryService,
+                new DeployedClustersDomainService(eventLatestQueryService, OBJECT_MAPPER),
+                OBJECT_MAPPER
+            ),
+            new ValidateKafkaClusterBindingDomainService(
+                new DeployedClustersDomainService(eventLatestQueryService, OBJECT_MAPPER),
+                OBJECT_MAPPER
+            ),
+            OBJECT_MAPPER
+        ),
+        mock(ApiPrimaryOwnerFactory.class),
+        mock(ValidateApiDomainService.class),
+        updateApiDomainService,
+        flowValidator,
+        new PlanQueryServiceInMemory(),
+        mock(ApiPrimaryOwnerDomainService.class),
+        mock(ApiFolderConflictsDomainService.class)
     );
 
     PortalNotificationConfigEntity consoleNotificationConfiguration = new PortalNotificationConfigEntity();
@@ -163,6 +195,9 @@ class ValidateApiCRDDomainServiceTest {
     void setUp() {
         reset(categoryIdsValidator);
         when(pathValidator.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        lenient()
+            .when(flowValidator.validateAndSanitizeHttpV4(any(), any(), any()))
+            .thenAnswer(call -> call.getArgument(1));
         consoleNotificationConfiguration.setConfigType(NotificationConfigType.PORTAL);
     }
 
@@ -236,13 +271,36 @@ class ValidateApiCRDDomainServiceTest {
     void should_not_check_the_members_of_an_api_to_create() {
         membersDomainService.denyApiMembersUpdate("api-to-create");
         givenEveryValidatorAccepts();
+        // A spec the import can create: the validation of its writes runs too
         var spec = ApiCRDFixtures.newBaseSpec()
             .id("api-to-create")
             .crossId("api-to-create-cross-id")
+            .type("PROXY")
+            .lifecycleState("CREATED")
+            .visibility("PRIVATE")
+            .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build())
+            .properties(List.of())
             .consoleNotificationConfiguration(consoleNotificationConfiguration)
             .build();
 
         assertThatNoException().isThrownBy(() -> cut.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec)));
+    }
+
+    @Test
+    void should_refuse_an_id_that_names_an_api_of_another_environment() {
+        var foreignApi = ApiFixtures.aProxyApiV4().toBuilder().environmentId("other-environment").crossId(API_CROSS_ID).build();
+        apiQueryService.initWith(List.of(foreignApi));
+        givenEveryValidatorAccepts();
+        var spec = ApiCRDFixtures.newBaseSpec()
+            .id(foreignApi.getId())
+            .crossId(API_CROSS_ID)
+            .consoleNotificationConfiguration(consoleNotificationConfiguration)
+            .build();
+
+        assertThatExceptionOfType(ValidationDomainException.class)
+            .isThrownBy(() -> cut.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec)))
+            .withMessageContaining(foreignApi.getId())
+            .withMessageContaining("another environment");
     }
 
     @Test
@@ -333,13 +391,77 @@ class ValidateApiCRDDomainServiceTest {
     }
 
     @Test
-    void should_accept_a_stopped_native_api_bound_to_a_cluster_that_is_not_deployed() {
+    void should_report_a_stopped_native_api_bound_to_a_cluster_that_is_not_deployed() {
         givenTheClusterIsUndeployed();
         givenEveryValidatorAccepts();
         var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
         var spec = aNativeSpecBoundTo("plain").toBuilder().state("STOPPED").build();
 
-        assertThat(severeErrorsOf(systemCall, spec)).isEmpty();
+        assertThat(severeErrorsOf(systemCall, spec))
+            .singleElement(STRING)
+            .isEqualTo("The API cannot be saved because its cluster {prod} is not deployed.");
+    }
+
+    @Test
+    void should_let_an_existing_native_api_keep_a_binding_to_a_cluster_that_is_not_deployed_until_it_starts() {
+        givenTheClusterIsUndeployed();
+        givenEveryValidatorAccepts();
+        apiQueryService.initWith(
+            List.of(
+                ApiFixtures.aNativeApiBoundToCluster("api-id", ENV_ID, Api.LifecycleState.STOPPED, "prod", "plain")
+                    .toBuilder()
+                    .crossId(API_CROSS_ID)
+                    .build()
+            )
+        );
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+        var stopped = aNativeSpecBoundTo("plain").toBuilder().state("STOPPED").build();
+
+        assertThat(severeErrorsOf(systemCall, stopped)).isEmpty();
+        assertThat(severeErrorsOf(systemCall, aNativeSpecBoundTo("plain")))
+            .singleElement(STRING)
+            .contains("its cluster {prod} is not deployed");
+    }
+
+    @Test
+    void should_let_an_existing_message_api_keep_a_binding_to_a_cluster_that_is_not_deployed_until_it_starts() {
+        givenTheClusterIsUndeployed();
+        givenEveryValidatorAccepts();
+        apiQueryService.initWith(
+            List.of(
+                ApiFixtures.aMessageApiBoundToCluster("api-id", ENV_ID, Api.LifecycleState.STOPPED, "prod", "plain")
+                    .toBuilder()
+                    .crossId(API_CROSS_ID)
+                    .build()
+            )
+        );
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+        var started = aMessageSpecBoundTo("plain").toBuilder().id("api-id").build();
+
+        assertThat(severeErrorsOf(systemCall, started.toBuilder().state("STOPPED").build())).isEmpty();
+        assertThat(severeErrorsOf(systemCall, started)).singleElement(STRING).contains("its cluster {prod} is not deployed");
+    }
+
+    @Test
+    void should_report_a_native_api_bound_to_a_connection_the_deployed_cluster_does_not_have() {
+        givenAClusterTheUserIsNotAMemberOf();
+        givenTheClusterIsDeployed();
+        givenEveryValidatorAccepts();
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+
+        assertThat(severeErrorsOf(systemCall, aNativeSpecBoundTo("unknown")))
+            .singleElement(STRING)
+            .isEqualTo("The API cannot be saved because its connection {unknown} does not exist in the deployed cluster {prod}.");
+    }
+
+    @Test
+    void should_accept_a_native_api_bound_to_a_connection_of_a_deployed_cluster() {
+        givenAClusterTheUserIsNotAMemberOf();
+        givenTheClusterIsDeployed();
+        givenEveryValidatorAccepts();
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+
+        assertThat(severeErrorsOf(systemCall, aNativeSpecBoundTo("plain"))).isEmpty();
     }
 
     @Test
@@ -352,6 +474,70 @@ class ValidateApiCRDDomainServiceTest {
         assertThat(severeErrorsOf(systemCall, aMessageSpecBoundTo("plain")))
             .singleElement(STRING)
             .contains("its cluster {prod} is not deployed");
+    }
+
+    @Test
+    void should_report_a_state_other_than_started_or_stopped() {
+        givenAClusterTheUserIsNotAMemberOf();
+        givenTheClusterIsDeployed();
+        givenEveryValidatorAccepts();
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+        var spec = aNativeSpecBoundTo("plain").toBuilder().state("PAUSED").build();
+
+        assertThat(severeErrorsOf(systemCall, spec)).singleElement(STRING).contains("State [PAUSED] is invalid");
+    }
+
+    @Test
+    void should_report_a_state_in_lower_case() {
+        givenEveryValidatorAccepts();
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+        var spec = aNativeSpecBoundTo("plain").toBuilder().state("started").build();
+
+        assertThat(severeErrorsOf(systemCall, spec)).anySatisfy(error -> assertThat(error).contains("State [started] is invalid"));
+    }
+
+    @Test
+    void should_report_a_stored_started_native_api_bound_to_a_cluster_that_is_not_deployed_when_the_spec_has_no_state() {
+        givenTheClusterIsUndeployed();
+        givenEveryValidatorAccepts();
+        givenAStoredNativeApi(Api.LifecycleState.STARTED);
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+        var spec = aNativeSpecBoundTo("plain").toBuilder().state(null).build();
+
+        assertThat(severeErrorsOf(systemCall, spec)).singleElement(STRING).contains("its cluster {prod} is not deployed");
+    }
+
+    @Test
+    void should_accept_a_stored_stopped_native_api_bound_to_a_cluster_that_is_not_deployed_when_the_spec_has_no_state() {
+        givenTheClusterIsUndeployed();
+        givenEveryValidatorAccepts();
+        givenAStoredNativeApi(Api.LifecycleState.STOPPED);
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+        var spec = aNativeSpecBoundTo("plain").toBuilder().state(null).build();
+
+        assertThat(severeErrorsOf(systemCall, spec)).isEmpty();
+    }
+
+    @Test
+    void should_accept_a_stopped_spec_of_a_stored_started_native_api_bound_to_a_cluster_that_is_not_deployed() {
+        givenTheClusterIsUndeployed();
+        givenEveryValidatorAccepts();
+        givenAStoredNativeApi(Api.LifecycleState.STARTED);
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+        var spec = aNativeSpecBoundTo("plain").toBuilder().state("STOPPED").build();
+
+        assertThat(severeErrorsOf(systemCall, spec)).isEmpty();
+    }
+
+    @Test
+    void should_accept_a_spec_without_state() {
+        givenAClusterTheUserIsNotAMemberOf();
+        givenTheClusterIsDeployed();
+        givenEveryValidatorAccepts();
+        var systemCall = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+        var spec = aNativeSpecBoundTo("plain").toBuilder().state(null).build();
+
+        assertThat(severeErrorsOf(systemCall, spec)).isEmpty();
     }
 
     @Test
@@ -390,6 +576,17 @@ class ValidateApiCRDDomainServiceTest {
                     .type(ClusterType.KAFKA_CLUSTER)
                     .environmentId(ENV_ID)
                     .lifecycleState(ClusterLifecycleState.UNDEPLOYED)
+                    .build()
+            )
+        );
+    }
+
+    private void givenAStoredNativeApi(Api.LifecycleState lifecycleState) {
+        apiQueryService.initWith(
+            List.of(
+                ApiFixtures.aNativeApiBoundToCluster("api-id", ENV_ID, lifecycleState, "prod", "plain")
+                    .toBuilder()
+                    .crossId(API_CROSS_ID)
                     .build()
             )
         );
@@ -473,8 +670,11 @@ class ValidateApiCRDDomainServiceTest {
             "prod",
             connectionCrossId
         ).getApiDefinitionNativeV4();
+        // A spec the import can update: the validation of its writes runs too
         return ApiCRDFixtures.newBaseNativeSpec()
             .id("api-id")
+            .lifecycleState("CREATED")
+            .visibility("PRIVATE")
             .endpointGroups(definition.getEndpointGroups())
             .consoleNotificationConfiguration(consoleNotificationConfiguration)
             .build();

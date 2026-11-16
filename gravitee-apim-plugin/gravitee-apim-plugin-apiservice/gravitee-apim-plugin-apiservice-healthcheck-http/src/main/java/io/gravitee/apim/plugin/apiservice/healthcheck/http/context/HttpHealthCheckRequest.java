@@ -21,6 +21,7 @@ import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.core.context.AbstractRequest;
 import io.gravitee.reporter.api.http.Metrics;
@@ -42,14 +43,23 @@ class HttpHealthCheckRequest extends AbstractRequest {
         this.timestamp = System.currentTimeMillis();
         this.id = UUID.random().toString();
 
-        if (configuration.getBody() != null) {
-            this.body(Buffer.buffer(configuration.getBody()));
-        }
-
         final List<HttpHeader> configHeaders = configuration.getHeaders();
 
         if (configHeaders != null && !configHeaders.isEmpty()) {
             configHeaders.forEach(header -> headers.set(header.getName(), header.getValue()));
+        }
+
+        if (configuration.getBody() != null) {
+            final Buffer body = Buffer.buffer(configuration.getBody());
+            this.body(body);
+            // The endpoint connector only forwards a body announced by Content-Length or Transfer-Encoding.
+            if (
+                body.length() > 0 &&
+                !headers.contains(HttpHeaderNames.CONTENT_LENGTH) &&
+                !headers.contains(HttpHeaderNames.TRANSFER_ENCODING)
+            ) {
+                headers.set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(body.length()));
+            }
         }
     }
 }

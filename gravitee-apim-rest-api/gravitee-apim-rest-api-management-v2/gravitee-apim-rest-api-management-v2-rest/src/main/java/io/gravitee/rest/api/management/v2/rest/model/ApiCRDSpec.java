@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
@@ -94,6 +96,8 @@ public class ApiCRDSpec {
 
     private Map<String, @Valid PlanCRD> plans = new HashMap<>();
 
+    @JsonSerialize(using = FlowExecutionCRDJson.Serializer.class)
+    @JsonDeserialize(using = FlowExecutionCRDJson.Deserializer.class)
     private FlowExecution flowExecution;
 
     private List<FlowV4> flows;

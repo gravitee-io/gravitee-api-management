@@ -19,8 +19,11 @@ import static io.gravitee.repository.management.model.Event.EventProperties.API_
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
@@ -75,6 +78,11 @@ public class ApiProductMapper {
                 // Parse the event payload
                 ApiProductPayload payload = objectMapper.readValue(event.getPayload(), ApiProductPayload.class);
 
+                if (!resourcesAreValid(payload.getResources())) {
+                    log.warn("Unable to extract API Product definition from event [{}] because resources are malformed.", event.getId());
+                    return null;
+                }
+
                 final ReactableApiProduct reactableApiProduct = ReactableApiProduct.builder()
                     .id(payload.getId())
                     .name(payload.getName())
@@ -86,6 +94,9 @@ public class ApiProductMapper {
                     .deployedAt(new Date(event.getCreatedAt().getTime()))
                     .plans(filteredPlans(payload.getPlans()))
                     .analytics(payload.getAnalytics())
+                    .flows(payload.getFlows())
+                    .flowExecution(payload.getFlowExecution())
+                    .resources(payload.getResources())
                     .build();
 
                 // Fill environment and organization details
@@ -100,6 +111,24 @@ public class ApiProductMapper {
                 return null;
             }
         });
+    }
+
+    private static boolean resourcesAreValid(List<Resource> resources) {
+        if (resources == null || resources.isEmpty()) {
+            return true;
+        }
+        for (Resource resource : resources) {
+            if (resource == null) {
+                return false;
+            }
+            if (resource.getName() == null || resource.getName().isBlank()) {
+                return false;
+            }
+            if (resource.getType() == null || resource.getType().isBlank()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static List<Plan> filteredPlans(List<Plan> plans) {
@@ -132,5 +161,8 @@ public class ApiProductMapper {
         private Set<String> tags;
         private List<Plan> plans;
         private Analytics analytics;
+        private List<Flow> flows;
+        private FlowExecution flowExecution;
+        private List<Resource> resources;
     }
 }

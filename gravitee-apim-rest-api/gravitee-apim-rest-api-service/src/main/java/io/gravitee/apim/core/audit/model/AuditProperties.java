@@ -43,6 +43,7 @@ public enum AuditProperties {
     USER_FIELD,
     NOTIFICATION_TEMPLATE,
     GUARDIAN,
+    GUARDIAN_DEPLOYMENT,
     SHARED_POLICY_GROUP,
     CLUSTER,
     API_PRODUCT,
@@ -57,4 +58,5 @@ public enum AuditProperties {
     MCP_SERVER,
     ENCRYPTED,
     SECRET,
+    CREDENTIAL,
 }

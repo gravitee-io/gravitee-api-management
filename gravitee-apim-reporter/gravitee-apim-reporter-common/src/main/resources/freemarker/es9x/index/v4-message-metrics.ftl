@@ -4,19 +4,20 @@
 <#-- @ftlvariable name="gateway" type="java.lang.String" -->
 <#-- @ftlvariable name="metrics" type="io.gravitee.reporter.api.v4.metric.MessageMetrics" -->
 <#-- @ftlvariable name="contentLength" type="java.lang.Long" -->
+<#-- @ftlvariable name="documentId" type="java.lang.String" -->
 <#-- @ftlvariable name="count" type="java.lang.Long" -->
 <#-- @ftlvariable name="errorCount" type="java.lang.Long" -->
 <#-- @ftlvariable name="countIncrement" type="java.lang.Long" -->
 <#-- @ftlvariable name="errorCountIncrement" type="java.lang.Long" -->
 <#-- @ftlvariable name="gatewayLatencyMs" type="java.lang.Long" -->
 <#if index??>
-{ "index" : { "_index" : "${index}", "_id" : "${metrics.getCorrelationId()}-${metrics.getConnectorType().getLabel()}"} }
+{ "index" : { "_index" : "${index}", "_id" : "${documentId}"} }
 </#if>
 <@compress single_line=true>
 {
   "gateway":"${gateway}"
   <#if !index??>
-  ,"_id" : "${metrics.getCorrelationId()}-${metrics.getConnectorType().getLabel()}"
+  ,"_id" : "${documentId}"
   ,"type": "v4-message-metrics"
   ,"date" : "${date}"
   </#if>

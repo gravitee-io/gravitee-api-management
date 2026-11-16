@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
+import io.gravitee.repository.elasticsearch.v4.shared.ConnectionEndFirst;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetailQuery;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -32,6 +33,7 @@ public class FindApiMetricsDetailQueryAdapter {
         if (esQuery != null) {
             jsonContent.put("query", esQuery);
         }
+        jsonContent.put("sort", JsonArray.of(ConnectionEndFirst.sort()));
 
         return new JsonObject(jsonContent).encode();
     }

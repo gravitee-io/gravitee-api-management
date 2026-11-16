@@ -21,6 +21,8 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.gravitee.gamma.rest.core.guardian.GuardianDeploymentFixtures;
+import io.gravitee.gamma.rest.core.guardian.GuardianFixtures;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,7 +41,7 @@ class GetGuardianUseCaseTest {
     void setUp() {
         guardianRepository.reset();
         guardianRepository.givenGuardian(aGuardian().build());
-        useCase = new GetGuardianUseCase(guardianRepository);
+        useCase = new GetGuardianUseCase(guardianRepository, GuardianDeploymentFixtures.deploymentService(guardianRepository));
     }
 
     @Test

@@ -185,5 +185,31 @@ public class EventQueryServiceImplTest {
 
             assertThat(result).isNotEmpty();
         }
+
+        @Test
+        @SneakyThrows
+        void should_find_an_event_by_its_id_in_its_environment() {
+            when(eventRepository.findById("event-id")).thenReturn(Optional.of(anEvent().build()));
+
+            assertThat(service.findByIdForEnvironment("event-id", "environment-id"))
+                .as("event of the environment")
+                .hasValueSatisfying(event -> assertThat(event.getId()).isEqualTo("event-id"));
+        }
+
+        @Test
+        @SneakyThrows
+        void should_not_find_an_event_of_another_environment() {
+            when(eventRepository.findById("event-id")).thenReturn(Optional.of(anEvent().build()));
+
+            assertThat(service.findByIdForEnvironment("event-id", "another-environment")).as("event of another environment").isEmpty();
+        }
+
+        @Test
+        @SneakyThrows
+        void should_not_find_an_unknown_event() {
+            when(eventRepository.findById("unknown")).thenReturn(Optional.empty());
+
+            assertThat(service.findByIdForEnvironment("unknown", "environment-id")).as("unknown event").isEmpty();
+        }
     }
 }

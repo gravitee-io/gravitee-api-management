@@ -90,7 +90,7 @@ public class RepositoryConfigurationNewPrefixTest {
 
     @Test
     public void should_read_index_mode_from_new_prefix() {
-        assertThat(configuration.isILMIndex()).isTrue();
+        assertThat(configuration.getConfiguredIndexMode()).contains("ilm");
     }
 
     @Test

@@ -21,7 +21,9 @@ import fixtures.core.model.PortalFixtures;
 import inmemory.PortalCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -39,6 +41,7 @@ class PortalAutomationScopeDomainServiceTest {
 
     private static final PortalId ESTABLISHED_PORTAL_ID = PortalFixtures.PORTAL_ID;
     private static final PortalId OTHER_PORTAL_ID = PortalId.of("00000000-0000-0000-0000-0000000000b2");
+    private static final PortalId DEFAULT_PORTAL_ID = PortalId.of("00000000-0000-0000-0000-0000000000d1");
     private static final PortalAutomationProperties SINGLE_PORTAL = () -> false;
     private static final PortalAutomationProperties MULTI_PORTAL = () -> true;
 
@@ -95,6 +98,84 @@ class PortalAutomationScopeDomainServiceTest {
         var errors = multiPortalService.validate(AUDIT_INFO, OTHER_PORTAL_ID, "hrid");
 
         assertThat(errors).isEmpty();
+    }
+
+    @Test
+    void should_accept_a_new_portal_when_the_default_portal_is_alone() {
+        portalCrudService.initWith(List.of(aDefaultPortal()));
+
+        assertThat(domainService.validatePortal(AUDIT_INFO, OTHER_PORTAL_ID, "hrid")).isEmpty();
+    }
+
+    @Test
+    void should_refuse_a_new_portal_when_the_only_portal_is_not_the_default() {
+        portalCrudService.initWith(List.of(PortalFixtures.aPortal()));
+
+        assertThat(domainService.validatePortal(AUDIT_INFO, OTHER_PORTAL_ID, "hrid"))
+            .singleElement()
+            .satisfies(error -> {
+                assertThat(error.isSevere()).isTrue();
+                assertThat(error.getMessage()).contains("established portal");
+            });
+    }
+
+    @Test
+    void should_refuse_a_new_portal_when_the_default_portal_is_not_alone() {
+        portalCrudService.initWith(List.of(aDefaultPortal(), PortalFixtures.aPortal()));
+
+        assertThat(domainService.validatePortal(AUDIT_INFO, OTHER_PORTAL_ID, "hrid"))
+            .singleElement()
+            .satisfies(error -> {
+                assertThat(error.isSevere()).isTrue();
+                assertThat(error.getMessage()).contains("established portal");
+            });
+    }
+
+    @Test
+    void should_accept_the_existing_portal_again() {
+        portalCrudService.initWith(List.of(aDefaultPortal()));
+
+        assertThat(domainService.validatePortal(AUDIT_INFO, DEFAULT_PORTAL_ID, "hrid")).isEmpty();
+    }
+
+    @Test
+    void should_not_offer_the_default_portal_to_replace_itself() {
+        portalCrudService.initWith(List.of(aDefaultPortal()));
+
+        assertThat(domainService.findReplaceableDefault(AUDIT_INFO, DEFAULT_PORTAL_ID)).isEmpty();
+    }
+
+    @Test
+    void should_offer_the_default_portal_left_next_to_the_portal_that_replaces_it() {
+        portalCrudService.initWith(List.of(aDefaultPortal(), PortalFixtures.aPortal()));
+
+        assertThat(domainService.findReplaceableDefault(AUDIT_INFO, ESTABLISHED_PORTAL_ID)).map(Portal::getId).contains(DEFAULT_PORTAL_ID);
+        assertThat(domainService.validatePortal(AUDIT_INFO, ESTABLISHED_PORTAL_ID, "hrid")).isEmpty();
+    }
+
+    @Test
+    void should_keep_refusing_the_other_automation_writes_while_the_default_portal_is_alone() {
+        portalCrudService.initWith(List.of(aDefaultPortal()));
+
+        assertThat(domainService.validate(AUDIT_INFO, OTHER_PORTAL_ID, "portalHrid"))
+            .singleElement()
+            .satisfies(error -> {
+                assertThat(error.isSevere()).isTrue();
+                assertThat(error.getMessage()).contains("established portal");
+            });
+    }
+
+    private static Portal aDefaultPortal() {
+        return Portal.of(
+            DEFAULT_PORTAL_ID,
+            AUDIT_INFO.environmentId(),
+            AUDIT_INFO.organizationId(),
+            "Developer Portal",
+            PortalNavigationStructure.empty(),
+            null,
+            true,
+            PortalFixtures.PORTAL_URL
+        );
     }
 
     @Test

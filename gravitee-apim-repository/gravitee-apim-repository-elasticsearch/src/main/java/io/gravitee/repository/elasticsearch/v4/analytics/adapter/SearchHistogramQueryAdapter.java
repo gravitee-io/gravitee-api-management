@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
+import io.gravitee.repository.elasticsearch.v4.shared.ConnectionPhaseClause;
 import io.gravitee.repository.log.v4.model.analytics.AggregationType;
 import io.gravitee.repository.log.v4.model.analytics.HistogramAggregate;
 import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
@@ -33,6 +34,8 @@ import java.util.Map;
 public class SearchHistogramQueryAdapter {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final String COUNTED_AGG = "counted";
+    private static final String MEASURED_AGG = "measured";
     private static final List<String> ENTRYPOINT_IDS = List.of("http-post", "http-get", "http-proxy", "llm-proxy", "mcp-proxy", "authzen");
     private static final Map<AggregationType, String> AGGREGATION_PREFIX = Map.of(
         AggregationType.FIELD,
@@ -147,8 +150,14 @@ public class SearchHistogramQueryAdapter {
         return aggs;
     }
 
+    /**
+     * A count reads every connection as it opens, leaving its end out; a value is only known once it has ended, leaving
+     * its opening out. Each kind sits under the filter it needs.
+     */
     private ObjectNode createChildAggregationNodes(HistogramQuery query) {
         ObjectNode subAggs = MAPPER.createObjectNode();
+        ObjectNode countAggs = MAPPER.createObjectNode();
+        ObjectNode valueAggs = MAPPER.createObjectNode();
         for (io.gravitee.repository.log.v4.model.analytics.Aggregation agg : query.aggregations()) {
             String aggName = AGGREGATION_PREFIX.get(agg.getType()) + agg.getField();
             String aggType = AGGREGATION_NAME.get(agg.getType());
@@ -156,11 +165,24 @@ public class SearchHistogramQueryAdapter {
             ObjectNode subAggAgg = MAPPER.createObjectNode();
             subAggAgg.put("field", agg.getField());
             subAgg.set(aggType, subAggAgg);
-            subAggs.set(aggName, subAgg);
+            (agg.getType() == AggregationType.FIELD ? countAggs : valueAggs).set(aggName, subAgg);
             aggFieldMap.put(aggName, agg.getField());
             aggTypeMap.put(aggName, agg.getType());
         }
+        if (!countAggs.isEmpty()) {
+            subAggs.set(COUNTED_AGG, filtered(ConnectionPhaseClause.notEnd().mapTo(Map.class), countAggs));
+        }
+        if (!valueAggs.isEmpty()) {
+            subAggs.set(MEASURED_AGG, filtered(ConnectionPhaseClause.notOpening().mapTo(Map.class), valueAggs));
+        }
         return subAggs;
+    }
+
+    private static ObjectNode filtered(Map<?, ?> filter, ObjectNode aggregations) {
+        ObjectNode node = MAPPER.createObjectNode();
+        node.set("filter", MAPPER.valueToTree(filter));
+        node.set("aggregations", aggregations);
+        return node;
     }
 
     public List<HistogramAggregate> adaptResponse(SearchResponse response) {
@@ -196,7 +218,7 @@ public class SearchHistogramQueryAdapter {
         var counts = new HashMap<String, List<Long>>();
         List<JsonNode> buckets = histogramAgg.getBuckets();
         for (int i = 0; i < buckets.size(); i++) {
-            var bucket = buckets.get(i);
+            var bucket = buckets.get(i).path(COUNTED_AGG);
             if (bucket.has(aggName)) {
                 var aggBuckets = bucket.get(aggName).get("buckets");
                 for (var aggBucket : aggBuckets) {
@@ -220,7 +242,7 @@ public class SearchHistogramQueryAdapter {
         List<Double> values = new ArrayList<>(Collections.nCopies(histogramSize, 0D));
         List<JsonNode> buckets = histogramAgg.getBuckets();
         for (int i = 0; i < buckets.size(); i++) {
-            var bucket = buckets.get(i);
+            var bucket = buckets.get(i).path(MEASURED_AGG);
             if (bucket.has(aggName)) {
                 var aggValue = bucket.get(aggName).get("value");
                 if (!aggValue.isNull()) {

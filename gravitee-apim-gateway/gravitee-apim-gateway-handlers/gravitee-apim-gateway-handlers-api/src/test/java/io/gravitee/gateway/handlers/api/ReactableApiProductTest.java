@@ -17,7 +17,9 @@ package io.gravitee.gateway.handlers.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.definition.model.v4.resource.Resource;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -37,9 +39,19 @@ class ReactableApiProductTest {
     }
 
     @Test
-    void should_return_empty_dependencies() {
+    void should_return_empty_dependencies_for_unknown_types() {
         final ReactableApiProduct apiProduct = new ReactableApiProduct();
         assertThat(apiProduct.dependencies(String.class)).isEmpty();
+        assertThat(apiProduct.dependencies(Resource.class)).isEmpty();
+    }
+
+    @Test
+    void should_return_resources_as_dependencies_including_disabled() {
+        Resource enabled = Resource.builder().name("cache").type("cache").configuration("{}").enabled(true).build();
+        Resource disabled = Resource.builder().name("oauth").type("oauth2").configuration("{}").enabled(false).build();
+        ReactableApiProduct apiProduct = ReactableApiProduct.builder().id("product-id").resources(List.of(enabled, disabled)).build();
+
+        assertThat(apiProduct.dependencies(Resource.class)).containsExactlyInAnyOrder(enabled, disabled);
     }
 
     @Test
@@ -75,6 +87,14 @@ class ReactableApiProductTest {
         ReactableApiProduct apiProduct = ReactableApiProduct.builder().id("product-id").apiIds(Set.of()).build();
 
         assertThat(apiProduct.getApiIds()).isEmpty();
+    }
+
+    @Test
+    void should_keep_resource_configuration_out_of_toString() {
+        Resource resource = Resource.builder().name("cache").type("cache").configuration("{\"password\":\"hidden\"}").enabled(true).build();
+        ReactableApiProduct apiProduct = ReactableApiProduct.builder().id("product-id").resources(List.of(resource)).build();
+
+        assertThat(apiProduct.toString()).contains("product-id").doesNotContain("hidden").doesNotContain("password");
     }
 
     @Test

@@ -15,6 +15,9 @@
  */
 package io.gravitee.apim.infra.domain_service.api;
 
+import static io.gravitee.rest.api.model.permissions.RolePermission.API_PLAN;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
+
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
 import io.gravitee.apim.core.api.domain_service.NotificationCRDDomainService;
@@ -29,8 +32,10 @@ import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.adapter.ApiCRDAdapter;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.exceptions.MissingPermissionException;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -61,9 +66,14 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
 
     private final NotificationCRDDomainService notificationCRDDomainService;
 
+    private final PermissionService permissionService;
+
     @Override
     public ApiCRDSpec export(String apiId, IDExportStrategy idExport, AuditInfo auditInfo, boolean exportNotifications) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
+        if (!permissionService.hasPermission(executionContext, auditInfo.actor().userId(), API_PLAN, apiId, READ)) {
+            throw new MissingPermissionException(API_PLAN, READ, apiId);
+        }
         var exportEntity = exportService.exportApi(executionContext, apiId, null, Set.of());
         var notificationConfigEntity = getPortalNotificationConfigEntity(apiId, auditInfo, exportNotifications);
         var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(exportEntity, exportEntity.getApiEntity(), notificationConfigEntity);

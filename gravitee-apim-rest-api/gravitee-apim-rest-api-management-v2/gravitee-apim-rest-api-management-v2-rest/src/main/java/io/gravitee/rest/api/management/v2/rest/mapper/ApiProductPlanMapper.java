@@ -64,6 +64,7 @@ public interface ApiProductPlanMapper {
     @Mapping(source = "planSecurity.configuration", target = "security.configuration", qualifiedByName = "deserializeConfiguration")
     @Mapping(source = "planStatus", target = "status")
     @Mapping(source = "planMode", target = "mode")
+    @Mapping(source = "planDefinitionHttpV4.flows", target = "flows")
     ApiProductPlan map(Plan plan);
 
     @Mapping(target = "validation", defaultValue = "MANUAL")

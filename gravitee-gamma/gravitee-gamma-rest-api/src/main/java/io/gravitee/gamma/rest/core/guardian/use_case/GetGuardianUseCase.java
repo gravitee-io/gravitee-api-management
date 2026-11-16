@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.core.guardian.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
@@ -35,13 +36,13 @@ import lombok.RequiredArgsConstructor;
 public class GetGuardianUseCase {
 
     private final GuardianRepository guardianRepository;
+    private final GuardianDeploymentDomainService deployments;
 
     public Output execute(Input input) {
-        return new Output(
-            guardianRepository
-                .findByEnvironmentId(input.environmentId(), input.guardianId())
-                .orElseThrow(() -> new GuardianNotFoundException(input.guardianId()))
-        );
+        var guardian = guardianRepository
+            .findByEnvironmentId(input.environmentId(), input.guardianId())
+            .orElseThrow(() -> new GuardianNotFoundException(input.guardianId()));
+        return new Output(deployments.state(guardian));
     }
 
     @Builder

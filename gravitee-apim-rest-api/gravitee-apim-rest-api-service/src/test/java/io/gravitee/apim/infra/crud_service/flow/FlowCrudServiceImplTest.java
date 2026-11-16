@@ -997,5 +997,23 @@ class FlowCrudServiceImplTest {
 
             assertThat(service.getApiProductFlows(API_PRODUCT_ID)).extracting(Flow::getName).containsExactly("a", "b");
         }
+
+        @Test
+        @SneakyThrows
+        void should_read_the_flows_of_several_products_in_one_query_sorted_by_order() {
+            when(flowRepository.findByReferences(FlowReferenceType.API_PRODUCT, Set.of("p1", "p2"))).thenReturn(
+                List.of(
+                    io.gravitee.repository.management.model.flow.Flow.builder().id("b").name("b").referenceId("p1").order(1).build(),
+                    io.gravitee.repository.management.model.flow.Flow.builder().id("c").name("c").referenceId("p2").order(0).build(),
+                    io.gravitee.repository.management.model.flow.Flow.builder().id("a").name("a").referenceId("p1").order(0).build()
+                )
+            );
+
+            var flows = service.getApiProductFlows(Set.of("p1", "p2"));
+
+            assertThat(flows).containsOnlyKeys("p1", "p2");
+            assertThat(flows.get("p1")).extracting(Flow::getName).containsExactly("a", "b");
+            assertThat(flows.get("p2")).extracting(Flow::getName).containsExactly("c");
+        }
     }
 }

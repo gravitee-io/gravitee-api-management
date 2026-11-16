@@ -17,12 +17,18 @@ package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
+import io.gravitee.repository.elasticsearch.v4.shared.ConnectionPhaseClause;
 import io.gravitee.repository.log.v4.model.analytics.StatsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.StatsQuery;
+import java.util.Map;
 import java.util.Optional;
 
 public class StatsQueryAdapter {
+
+    private static final String COUNTED_AGG = "counted";
+    private static final String MEASURED_AGG = "measured";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private String field;
@@ -84,16 +90,29 @@ public class StatsQueryAdapter {
         return queryNode;
     }
 
+    /**
+     * The count reads every connection as it opens, leaving its end out. The values are only known once a connection
+     * has ended: they leave the opening out, so the average is that of the connections measured, not the sum over the
+     * count.
+     */
     private ObjectNode createAggregationsNode(StatsQuery query) {
         ObjectNode aggs = MAPPER.createObjectNode();
-        ObjectNode byField = MAPPER.createObjectNode();
-
-        ObjectNode statsAgg = MAPPER.createObjectNode();
-        statsAgg.put("field", query.field());
-        byField.set("stats", statsAgg);
-
-        aggs.set("by_" + query.field(), byField);
+        aggs.set(COUNTED_AGG, filtered(ConnectionPhaseClause.notEnd().mapTo(Map.class), statsOf(query.field())));
+        aggs.set(MEASURED_AGG, filtered(ConnectionPhaseClause.notOpening().mapTo(Map.class), statsOf(query.field())));
         return aggs;
+    }
+
+    private static ObjectNode filtered(Map<?, ?> filter, ObjectNode aggregations) {
+        ObjectNode node = MAPPER.createObjectNode();
+        node.set("filter", MAPPER.valueToTree(filter));
+        node.set("aggregations", aggregations);
+        return node;
+    }
+
+    private static ObjectNode statsOf(String field) {
+        ObjectNode byField = MAPPER.createObjectNode();
+        byField.set("stats", MAPPER.createObjectNode().put("field", field));
+        return MAPPER.createObjectNode().set("by_" + field, byField);
     }
 
     public Optional<StatsAggregate> adaptResponse(SearchResponse response) {
@@ -102,13 +121,21 @@ public class StatsQueryAdapter {
         }
 
         String aggName = "by_" + this.field;
-        var agg = response.getAggregations().get(aggName);
+        var agg = nested(response, COUNTED_AGG, aggName);
+        var measured = nested(response, MEASURED_AGG, aggName);
 
         if (agg == null) {
             return Optional.empty();
         }
 
-        if (agg.getCount() == null || agg.getSum() == null || agg.getAvg() == null || agg.getMin() == null || agg.getMax() == null) {
+        if (
+            agg.getCount() == null ||
+            measured == null ||
+            measured.getSum() == null ||
+            measured.getAvg() == null ||
+            measured.getMin() == null ||
+            measured.getMax() == null
+        ) {
             return Optional.empty();
         }
 
@@ -116,15 +143,20 @@ public class StatsQueryAdapter {
 
         // StatsAggregate is part of the repository API and still exposes floats; narrowing here
         // keeps this adapter unchanged rather than rippling a type change through its consumers.
-        float sum = agg.getSum().floatValue();
-        float avg = agg.getAvg().floatValue();
-        float min = agg.getMin().floatValue();
-        float max = agg.getMax().floatValue();
+        float sum = measured.getSum().floatValue();
+        float avg = measured.getAvg().floatValue();
+        float min = measured.getMin().floatValue();
+        float max = measured.getMax().floatValue();
 
         float rps = count / this.seconds;
         float rpm = rps * 60L;
         float rph = rpm * 60L;
 
         return Optional.of(new StatsAggregate(this.field, count, sum, avg, min, max, rps, rpm, rph));
+    }
+
+    private static Aggregation nested(SearchResponse response, String filterName, String aggName) {
+        var filter = response.getAggregations().get(filterName);
+        return filter == null ? null : filter.getAggregations().get(aggName);
     }
 }

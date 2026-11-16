@@ -17,12 +17,14 @@ package io.gravitee.apim.core.log.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -67,7 +69,7 @@ public class SearchApiV4ConnectionLogsUseCase {
     }
 
     public Output execute(ExecutionContext executionContext, Input input) {
-        apiCrudService.get(input.apiId()); // 404 propagation if the API doesn't exist
+        var api = apiCrudService.get(input.apiId()); // 404 propagation if the API doesn't exist
 
         var pageable = input.pageable.orElse(new PageableImpl(1, 20));
         var response = connectionLogsCrudService.searchApiConnectionLogs(
@@ -75,10 +77,18 @@ public class SearchApiV4ConnectionLogsUseCase {
             input.apiId(),
             input.logsFilters(),
             pageable,
-            List.of(DefinitionVersion.V2, DefinitionVersion.V4)
+            definitionVersionsOf(api)
         );
 
         return mapToResponse(executionContext, response);
+    }
+
+    /**
+     * An HTTP proxy migrated from v2 keeps its v2 logs. A message API never had any, and reading v4 logs alone lets a
+     * connection it wrote twice, at opening and at end, show once.
+     */
+    private static List<DefinitionVersion> definitionVersionsOf(Api api) {
+        return api.getType() == ApiType.MESSAGE ? List.of(DefinitionVersion.V4) : List.of(DefinitionVersion.V2, DefinitionVersion.V4);
     }
 
     private Output mapToResponse(ExecutionContext executionContext, SearchLogsResponse<BaseConnectionLog> logs) {

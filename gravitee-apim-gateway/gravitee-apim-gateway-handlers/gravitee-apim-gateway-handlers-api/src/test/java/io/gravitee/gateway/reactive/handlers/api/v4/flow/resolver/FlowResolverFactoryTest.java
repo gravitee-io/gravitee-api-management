@@ -23,12 +23,13 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
-import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.v4.flow.AbstractBestMatchFlowSelector;
+import io.gravitee.gateway.reactive.v4.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.reactive.v4.flow.FlowResolver;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,9 +51,6 @@ class FlowResolverFactoryTest {
 
     @Mock
     private AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector;
-
-    @Mock
-    private ApiProductRegistry apiProductRegistry;
 
     private FlowResolverFactory cut;
     private Api api;
@@ -84,10 +82,25 @@ class FlowResolverFactoryTest {
 
     @Test
     void shouldCreateApiProductPlanFlowResolver() {
-        final FlowResolver flowResolver = cut.forApiProductPlan(api, "env-1", apiProductRegistry);
+        final FlowResolver flowResolver = cut.forApiProductPlan(null, Map.of());
 
         assertNotNull(flowResolver);
         assertTrue(flowResolver instanceof ApiProductPlanFlowResolver);
+    }
+
+    @Test
+    void should_create_best_match_api_product_plan_flow_resolver_in_the_product_best_match_mode() {
+        FlowExecution productFlowExecution = new FlowExecution();
+        productFlowExecution.setMode(FlowMode.BEST_MATCH);
+
+        assertThat(cut.forApiProductPlan(productFlowExecution, Map.of())).isInstanceOf(BestMatchFlowResolver.class);
+    }
+
+    @Test
+    void should_run_product_plan_flows_in_default_mode_without_a_product_flow_mode() {
+        api.getDefinition().getFlowExecution().setMode(FlowMode.BEST_MATCH);
+
+        assertThat(cut.forApiProductPlan(null, Map.of())).isInstanceOf(ApiProductPlanFlowResolver.class);
     }
 
     @Test

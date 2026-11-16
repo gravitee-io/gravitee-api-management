@@ -18,11 +18,14 @@ package io.gravitee.repository.mongodb.management.internal.guardians;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.GuardianCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.GuardianMongo;
+import java.util.Date;
 import org.springframework.data.domain.PageRequest;
 
 /**
  * @author GraviteeSource Team
  */
 public interface GuardianMongoRepositoryCustom {
+    void updateUpdatedAt(String environmentId, String guardianId, Date updatedAt);
+
     Page<GuardianMongo> search(GuardianCriteria guardianCriteria, PageRequest pageRequest);
 }

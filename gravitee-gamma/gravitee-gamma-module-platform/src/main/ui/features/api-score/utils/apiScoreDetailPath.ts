@@ -15,6 +15,18 @@
  */
 import { buildModuleNavPath } from '@gravitee/gamma-modules-sdk/routing';
 
-export function apiScoreDetailPath(currentPathname: string, apiId: string): string {
-    return buildModuleNavPath('apim', `apis/${encodeURIComponent(apiId)}/api-score`, currentPathname);
+import type { EnvironmentApiScore } from '../types/scoring';
+
+type ScoreDetailTarget = { module: string; path: (encodedApiId: string) => string };
+
+/** API types whose score page lives outside the APIM module; any other type opens in APIM. */
+const SCORE_DETAIL_TARGETS: Partial<Record<string, ScoreDetailTarget>> = {
+    MCP_PROXY: { module: 'aim', path: id => `mcp-proxy/${id}/api-score` },
+};
+
+const APIM_TARGET: ScoreDetailTarget = { module: 'apim', path: id => `apis/${id}/api-score` };
+
+export function apiScoreDetailPath(currentPathname: string, api: Pick<EnvironmentApiScore, 'id' | 'type'>): string {
+    const target = (api.type && SCORE_DETAIL_TARGETS[api.type]) || APIM_TARGET;
+    return buildModuleNavPath(target.module, target.path(encodeURIComponent(api.id)), currentPathname);
 }

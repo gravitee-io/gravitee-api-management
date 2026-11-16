@@ -33,6 +33,7 @@ import io.gravitee.repository.analytics.query.tabular.TabularQueryBuilder;
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
+import io.gravitee.repository.elasticsearch.configuration.IndexMode;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.log.api.LogRepository;
@@ -211,16 +212,11 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
             sQuery = this.freeMarkerComponent.generateFromTemplate(LOG_BY_ID_TEMPLATE, data);
 
             // Search index must be updated in case of per-type index
-            // WARNING: in the case of ILM, the index could not be the same
-            if (!configuration.isILMIndex()) {
+            // WARNING: with ILM or data streams, the hit is in a backing index the log is not necessarily in
+            if (indexMode == IndexMode.DAILY) {
                 searchHitIndex = searchHitIndex.replaceAll(Type.REQUEST.getType(), Type.LOG.getType());
             } else {
-                searchHitIndex = this.indexNameGenerator.getIndexName(
-                    queryContext.placeholder(),
-                    Type.LOG,
-                    Instant.ofEpochMilli(timestamp),
-                    clusters
-                );
+                searchHitIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.LOG, clusters);
             }
 
             result = this.client.search(searchHitIndex, !info.getVersion().canUseTypeRequests() ? null : Type.LOG.getType(), sQuery);

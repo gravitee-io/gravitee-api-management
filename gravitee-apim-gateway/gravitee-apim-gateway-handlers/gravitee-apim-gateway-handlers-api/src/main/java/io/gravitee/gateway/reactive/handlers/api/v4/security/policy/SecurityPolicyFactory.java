@@ -46,7 +46,7 @@ public class SecurityPolicyFactory {
                 return null;
             }
 
-            String policyName = planSecurity.getType().toLowerCase().replaceAll("_", "-");
+            String policyName = policyName(planSecurity);
             final BasePolicy policy = policyManager.create(executionPhase, new PolicyMetadata(policyName, planSecurity.getConfiguration()));
 
             if (policy instanceof BaseSecurityPolicy) {
@@ -58,5 +58,10 @@ public class SecurityPolicyFactory {
             log.debug("Plan [{}] is using [{}] mode, no security type for this mode", plan.getName(), plan.getMode());
         }
         return null;
+    }
+
+    /** The id of the policy plugin implementing a plan security type, {@code API_KEY} being {@code api-key}. */
+    public static String policyName(PlanSecurity planSecurity) {
+        return planSecurity.getType().toLowerCase().replaceAll("_", "-");
     }
 }

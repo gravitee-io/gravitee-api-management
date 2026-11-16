@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import fixtures.core.model.PortalFixtures;
 import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
@@ -25,6 +26,7 @@ import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainSe
 import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal.model.NavigationPath;
+import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
@@ -46,10 +48,12 @@ class ValidatePortalUseCaseTest {
     private static final String PORTAL_HRID = "default-portal";
     private static final PortalId PORTAL_ID = PortalId.of(HRIDToUUID.portal().context(AUDIT_INFO).hrid(PORTAL_HRID).id());
     private static final String PORTAL_NAME = "Default Portal";
+    private static final PortalId OTHER_PORTAL_ID = PortalId.of("00000000-0000-0000-0000-0000000000d1");
 
     private final InstallationAccessQueryServiceInMemory installationAccessQueryService = new InstallationAccessQueryServiceInMemory();
+    private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
     private final ValidatePortalDomainService validator = new ValidatePortalDomainService(
-        new PortalAutomationScopeDomainService(new PortalCrudServiceInMemory(), () -> false),
+        new PortalAutomationScopeDomainService(portalCrudService, () -> false),
         new PortalUrlDomainService(installationAccessQueryService)
     );
     private ValidatePortalUseCase useCase;
@@ -116,5 +120,56 @@ class ValidatePortalUseCaseTest {
 
         assertThat(output.structure().forArea(PortalArea.TOP_NAVBAR)).containsExactlyElementsOf(nav);
         assertThat(output.errors()).isEmpty();
+    }
+
+    private CreateOrUpdatePortalUseCase.Input aNewPortal() {
+        return new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, PORTAL_ID, PORTAL_NAME, PortalNavigationStructure.empty(), null);
+    }
+
+    private static Portal aStoredPortal(PortalId id, boolean defaultPortal) {
+        return Portal.of(
+            id,
+            AUDIT_INFO.environmentId(),
+            AUDIT_INFO.organizationId(),
+            "Stored Portal",
+            PortalNavigationStructure.empty(),
+            null,
+            defaultPortal,
+            PortalFixtures.PORTAL_URL
+        );
+    }
+
+    @Test
+    void should_report_no_error_when_the_default_portal_is_alone() {
+        portalCrudService.initWith(List.of(aStoredPortal(OTHER_PORTAL_ID, true)));
+
+        var output = useCase.execute(aNewPortal());
+
+        assertThat(output.errors()).isEmpty();
+    }
+
+    @Test
+    void should_report_the_conflict_when_another_automation_portal_exists() {
+        portalCrudService.initWith(List.of(aStoredPortal(OTHER_PORTAL_ID, false)));
+
+        var output = useCase.execute(aNewPortal());
+
+        assertThat(output.errors())
+            .singleElement()
+            .satisfies(error -> assertThat(error.getMessage()).contains("established portal"));
+    }
+
+    @Test
+    void should_leave_the_default_portal_in_place_on_a_dry_run() {
+        portalCrudService.initWith(List.of(aStoredPortal(OTHER_PORTAL_ID, true)));
+
+        useCase.execute(aNewPortal());
+
+        assertThat(portalCrudService.storage())
+            .singleElement()
+            .satisfies(portal -> {
+                assertThat(portal.getId()).isEqualTo(OTHER_PORTAL_ID);
+                assertThat(portal.isDefault()).isTrue();
+            });
     }
 }

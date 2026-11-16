@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -35,6 +36,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -170,6 +172,46 @@ public class PolicyPluginServiceImplTest {
     }
 
     @Nested
+    class GuardianFlowPhaseProperty {
+
+        @Test
+        void should_expose_guardian_phases_declared_in_manifest() {
+            when(mockPluginManifest.properties()).thenReturn(Map.of("guardian", "REQUEST, RESPONSE", "llm_proxy", "REQUEST"));
+
+            PolicyPluginEntity policyPlugin = cut.findById(PLUGIN_ID);
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft
+                    .assertThat(policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.GUARDIAN))
+                    .as("guardian phases")
+                    .containsExactlyInAnyOrder(FlowPhase.REQUEST, FlowPhase.RESPONSE);
+                soft
+                    .assertThat(policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.LLM_PROXY))
+                    .as("llm-proxy phases")
+                    .containsExactly(FlowPhase.REQUEST);
+            });
+        }
+
+        @Test
+        void should_expose_no_guardian_phase_when_manifest_does_not_declare_it() {
+            when(mockPluginManifest.properties()).thenReturn(Map.of("llm_proxy", "REQUEST,RESPONSE"));
+
+            PolicyPluginEntity policyPlugin = cut.findById(PLUGIN_ID);
+
+            assertThat(policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.GUARDIAN)).as("guardian phases").isNotNull().isEmpty();
+        }
+
+        @Test
+        void should_expose_no_guardian_phase_when_manifest_declares_it_blank() {
+            when(mockPluginManifest.properties()).thenReturn(Map.of("guardian", " ", "llm_proxy", "REQUEST"));
+
+            PolicyPluginEntity policyPlugin = cut.findById(PLUGIN_ID);
+
+            assertThat(policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.GUARDIAN)).as("guardian phases").isNotNull().isEmpty();
+        }
+    }
+
+    @Nested
     public class DeprecatedFlowPhaseProperty {
 
         @Test
@@ -216,6 +258,15 @@ public class PolicyPluginServiceImplTest {
     }
 
     @Test
+    void should_get_guardian_schema() throws IOException {
+        when(pluginManager.getSchema(PLUGIN_ID, "guardian.schema", false, true)).thenReturn("guardian-schema");
+
+        String schema = cut.getSchema(PLUGIN_ID, ApiProtocolType.GUARDIAN, null);
+
+        assertThat(schema).as("schema resolved from the guardian.schema key").isEqualTo("guardian-schema");
+    }
+
+    @Test
     public void should_get_schema_with_fallback() throws IOException {
         when(pluginManager.getSchema("my-policy", "http_proxy.schema", false, true)).thenReturn(null);
         when(pluginManager.getSchema("my-policy", "schema", false, true)).thenReturn("schema");
@@ -242,6 +293,19 @@ public class PolicyPluginServiceImplTest {
         PluginDocumentation documentation = cut.getDocumentation("my-policy", ApiProtocolType.NATIVE_KAFKA);
         assertEquals("documentation", documentation.content());
         assertEquals(PluginDocumentation.Language.ASCIIDOC, documentation.language());
+    }
+
+    @Test
+    void should_get_guardian_documentation() throws IOException {
+        when(pluginManager.getPluginDocumentation(PLUGIN_ID, "guardian.documentation", true, true)).thenReturn(
+            new PluginDocumentation("guardian documentation", PluginDocumentation.Language.MARKDOWN)
+        );
+
+        PluginDocumentation documentation = cut.getDocumentation(PLUGIN_ID, ApiProtocolType.GUARDIAN);
+
+        assertThat(documentation.content())
+            .as("documentation resolved from the guardian.documentation key")
+            .isEqualTo("guardian documentation");
     }
 
     @Nested

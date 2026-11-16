@@ -38,7 +38,7 @@ public class EventFixtures {
                     Map.ofEntries(Map.entry(Event.EventProperties.API_ID, "api-id"), Map.entry(Event.EventProperties.USER, "user-id"))
                 )
             )
-            .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+            .updatedAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
             .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()));
 
     public static Event anEvent() {

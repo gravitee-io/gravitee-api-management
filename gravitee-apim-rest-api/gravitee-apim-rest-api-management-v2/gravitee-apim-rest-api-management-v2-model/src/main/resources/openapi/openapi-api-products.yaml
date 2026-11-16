@@ -955,6 +955,50 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /environments/{envId}/api-products/{apiProductId}/plans/_flows:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+    put:
+      tags:
+        - API Product Plans
+      summary: Replace the flows of API Product plans
+      description: |-
+        Replace the flows of each plan listed, in the order given; a plan left out keeps its flows, and an empty list
+        removes every flow of its plan. Nothing is written when one plan is refused: a plan that is not a plan of the
+        API Product, a CLOSED plan, a plan listed twice, or flows that are invalid.
+
+        Flows are validated as flows of an HTTP proxy API and may only have `request` and `response` steps.
+        Saving does not deploy: the API Product must be deployed for the gateways to run the new flows.
+
+        User must have the API_PRODUCT_PLAN[UPDATE] permission.
+      operationId: updateApiProductPlansFlows
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ApiProductPlanFlows'
+      responses:
+        '204':
+          description: The flows of the plans were saved
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /environments/{envId}/api-products/{apiProductId}/plans/{planId}:
     parameters:
       - $ref: "#/components/parameters/envIdParam"
@@ -2170,8 +2214,9 @@ components:
             - "group-uuid-1"
         disableMembershipNotifications:
           type: boolean
-          description: Disable membership notifications.
-          default: false
+          description: |
+            Disable membership notifications.
+            No default: omit the field to leave the stored value unchanged (same as omitted tags/groups).
         tags:
           type: array
           description: The list of sharding tags associated with this API Product.
@@ -2187,6 +2232,15 @@ components:
             Reporter settings governing every API this product exposes.
             Always applied as given, same as an API's own analytics field: send a value to set it,
             send null to clear it back to null so each API reports as it does on its own.
+        resources:
+          type: array
+          description: |
+            Resources available to policies that run on this API Product's plan flows.
+            Unlike analytics, omitted or null leaves the stored list unchanged; send a new array to replace it,
+            send [] to clear it.
+            Names must be unique. Only resource plugins used by API Product policies are accepted.
+          items:
+            $ref: "./openapi-apis.yaml#/components/schemas/Resource"
       required:
         - name
         - version
@@ -2261,6 +2315,11 @@ components:
           allOf:
             - $ref: "./openapi-apis.yaml#/components/schemas/Analytics"
           description: Reporter settings governing every API this product exposes.
+        resources:
+          type: array
+          description: Resources available to policies that run on this API Product's plan flows.
+          items:
+            $ref: "./openapi-apis.yaml#/components/schemas/Resource"
 
     ApiProductFlows:
       type: object
@@ -2278,6 +2337,26 @@ components:
           items:
             $ref: "./openapi-apis.yaml#/components/schemas/FlowV4"
       required:
+        - flows
+
+    ApiProductPlanFlows:
+      type: object
+      title: "ApiProductPlanFlows"
+      description: The flows of one plan of an API Product.
+      properties:
+        planId:
+          type: string
+          description: Id of the plan.
+        flows:
+          type: array
+          nullable: true
+          description: |
+            The flows of the plan, in execution order. Only `request` and `response` steps are allowed.
+            Required, so that a plan sent without flows is refused instead of losing them; an empty list removes every flow.
+          items:
+            $ref: "./openapi-apis.yaml#/components/schemas/FlowV4"
+      required:
+        - planId
         - flows
 
     ApiProductDeploymentState:
@@ -2486,6 +2565,14 @@ components:
       title: "ProductPlan"
       allOf:
         - $ref: "#/components/schemas/GenericApiProductPlan"
+        - properties:
+            flows:
+              type: array
+              description: |
+                The flows of the plan, in execution order. Only returned by the plan list and the plan `GET`; the
+                other plan operations leave it out. Flows are changed with `PUT /plans/_flows`.
+              items:
+                $ref: "./openapi-apis.yaml#/components/schemas/FlowV4"
     PlanSecurity:
       type: object
       properties:

@@ -15,77 +15,39 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver;
 
-import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.plan.Plan;
-import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
-import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry.ApiProductPlanEntry;
-import io.gravitee.gateway.reactive.api.context.ContextAttributes;
+import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
-import io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor;
 import io.gravitee.gateway.reactive.v4.flow.AbstractFlowResolver;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 /**
- * Resolves {@link Flow}s defined on the product plan selected for the current request. Product plans
- * are not part of the {@link Api} definition; they are held in the {@link ApiProductRegistry} and may
- * change on a product redeploy, so flows are read fresh from the registry rather than memoized.
+ * Resolves the flows of the product plan that accepted the request, among the plans of one deployed version of a
+ * product. The plan is read from the internal subscription, never from the public {@code plan} or {@code apiProduct}
+ * attributes, which a policy can rewrite.
  *
  * @author GraviteeSource Team
  */
-@SuppressWarnings("common-java:DuplicatedBlocks")
 class ApiProductPlanFlowResolver extends AbstractFlowResolver {
 
-    private final Api api;
-    private final String environmentId;
-    private final ApiProductRegistry apiProductRegistry;
+    private final Map<String, List<Flow>> flowsByPlanId;
 
-    ApiProductPlanFlowResolver(
-        Api api,
-        String environmentId,
-        ApiProductRegistry apiProductRegistry,
-        ConditionFilter<BaseExecutionContext, Flow> filter
-    ) {
+    ApiProductPlanFlowResolver(Map<String, List<Flow>> flowsByPlanId, ConditionFilter<BaseExecutionContext, Flow> filter) {
         super(filter);
-        this.api = api;
-        this.environmentId = environmentId;
-        this.apiProductRegistry = apiProductRegistry;
+        this.flowsByPlanId = flowsByPlanId;
     }
 
     @Override
     public Flowable<Flow> provideFlows(BaseExecutionContext ctx) {
-        if (apiProductRegistry == null || environmentId == null) {
+        final Subscription subscription = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION);
+        if (subscription == null || subscription.getPlan() == null) {
             return Flowable.empty();
         }
-
-        final String apiProductId = ctx.getAttribute(SubscriptionProcessor.ATTR_API_PRODUCT);
-        if (apiProductId == null) {
-            return Flowable.empty();
-        }
-
-        final String planId = ctx.getAttribute(ContextAttributes.ATTR_PLAN);
-        if (planId == null) {
-            return Flowable.empty();
-        }
-
-        return Flowable.fromIterable(resolveFlows(planId));
-    }
-
-    private List<Flow> resolveFlows(String planId) {
-        return apiProductRegistry
-            .getApiProductPlanEntriesForApi(api.getId(), environmentId)
-            .stream()
-            .map(ApiProductPlanEntry::plan)
-            .filter(plan -> Objects.equals(plan.getId(), planId))
-            .filter(Plan.class::isInstance)
-            .map(Plan.class::cast)
-            .filter(plan -> Objects.nonNull(plan.getFlows()))
-            .flatMap(plan -> plan.getFlows().stream())
-            .filter(Flow::isEnabled)
-            .collect(Collectors.toList());
+        final List<Flow> flows = flowsByPlanId.getOrDefault(subscription.getPlan(), List.of());
+        return Flowable.fromIterable(flows).filter(Flow::isEnabled);
     }
 }

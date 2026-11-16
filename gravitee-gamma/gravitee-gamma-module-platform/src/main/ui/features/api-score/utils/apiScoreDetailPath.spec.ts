@@ -19,18 +19,33 @@ import { apiScoreDetailPath } from './apiScoreDetailPath';
 
 describe('apiScoreDetailPath', () => {
     it('opens API-level Score Details under the APIM module', () => {
-        expect(apiScoreDetailPath('/environments/default/platform/api-score', 'api-petstore')).toBe(
+        expect(apiScoreDetailPath('/environments/default/platform/api-score', { id: 'api-petstore', type: 'PROXY' })).toBe(
             '/environments/default/apim/apis/api-petstore/api-score',
         );
     });
 
     it('keeps the APIM module path when the platform module has no environment prefix', () => {
-        expect(apiScoreDetailPath('/platform/api-score', 'api-1')).toBe('/apim/apis/api-1/api-score');
+        expect(apiScoreDetailPath('/platform/api-score', { id: 'api-1', type: 'MESSAGE' })).toBe('/apim/apis/api-1/api-score');
+    });
+
+    it('opens an API of unknown type under the APIM module', () => {
+        expect(apiScoreDetailPath('/environments/default/platform/api-score', { id: 'api-1' })).toBe(
+            '/environments/default/apim/apis/api-1/api-score',
+        );
+    });
+
+    it('opens an MCP proxy under the AI Management module', () => {
+        expect(apiScoreDetailPath('/environments/default/platform/api-score', { id: 'mcp-1', type: 'MCP_PROXY' })).toBe(
+            '/environments/default/aim/mcp-proxy/mcp-1/api-score',
+        );
     });
 
     it('encodes the API id', () => {
-        expect(apiScoreDetailPath('/environments/default/platform/api-score', 'api/1')).toBe(
+        expect(apiScoreDetailPath('/environments/default/platform/api-score', { id: 'api/1', type: 'PROXY' })).toBe(
             '/environments/default/apim/apis/api%2F1/api-score',
+        );
+        expect(apiScoreDetailPath('/environments/default/platform/api-score', { id: 'mcp/1', type: 'MCP_PROXY' })).toBe(
+            '/environments/default/aim/mcp-proxy/mcp%2F1/api-score',
         );
     });
 });

@@ -74,7 +74,7 @@ export function ApiScoreDashboardPage() {
                 loading={apisQuery.isLoading}
                 page={page}
                 pageSize={pageSize}
-                detailHref={apiId => apiScoreDetailPath(location.pathname, apiId)}
+                detailHref={api => apiScoreDetailPath(location.pathname, api)}
                 onPageChange={setPage}
                 onPageSizeChange={setPageSize}
             />

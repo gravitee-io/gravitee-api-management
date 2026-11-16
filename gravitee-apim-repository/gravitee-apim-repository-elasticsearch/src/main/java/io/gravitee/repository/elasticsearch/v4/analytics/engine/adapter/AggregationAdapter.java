@@ -61,6 +61,12 @@ public class AggregationAdapter {
 
     static final String FILTER_AGG_SUFFIX = "__FILTER__";
 
+    /** Holds the measures of a metric that count, under a filter leaving connection ends out. */
+    static final String COUNTED_AGG_SUFFIX = "__COUNTED__";
+
+    /** Holds the measures of a metric that read values, under a filter leaving connection openings out. */
+    static final String MEASURED_AGG_SUFFIX = "__MEASURED__";
+
     static final String TIME_SERIES_AGG_NAME = "TIME_SERIES";
 
     private AggregationAdapter() {}
@@ -80,6 +86,22 @@ public class AggregationAdapter {
 
     public static String adaptName(MetricName metric, String customAggName) {
         return metric.name() + AGG_NAME_SEPARATOR + customAggName;
+    }
+
+    public static String countedName(MetricName metric) {
+        return envelopeName(metric.name(), COUNTED_AGG_SUFFIX);
+    }
+
+    public static String measuredName(MetricName metric) {
+        return envelopeName(metric.name(), MEASURED_AGG_SUFFIX);
+    }
+
+    /**
+     * An envelope is the head of the path a terms aggregation orders its buckets by, where a dot reads as the separator
+     * of a metric key: the dots of an additional metric's name are replaced there.
+     */
+    private static String envelopeName(String metricName, String suffix) {
+        return metricName.replace('.', '_') + AGG_NAME_SEPARATOR + suffix;
     }
 
     /**
@@ -379,10 +401,16 @@ public class AggregationAdapter {
             if (bucket.hasNonNull(name)) {
                 aggregations.put(name, toAggregation(bucket.get(name)));
             } else {
-                var filterAggName = getMetricPrefix(name) + AGG_NAME_SEPARATOR + FILTER_AGG_SUFFIX;
-                var filterAggNode = bucket.path(filterAggName).path(name);
-                if (!filterAggNode.isMissingNode()) {
-                    aggregations.put(name, toAggregation(filterAggNode));
+                var metricPrefix = getMetricPrefix(name);
+                for (var envelope : List.of(
+                    metricPrefix + AGG_NAME_SEPARATOR + FILTER_AGG_SUFFIX,
+                    envelopeName(metricPrefix, COUNTED_AGG_SUFFIX),
+                    envelopeName(metricPrefix, MEASURED_AGG_SUFFIX)
+                )) {
+                    var envelopedNode = bucket.path(envelope).path(name);
+                    if (!envelopedNode.isMissingNode()) {
+                        aggregations.put(name, toAggregation(envelopedNode));
+                    }
                 }
             }
             if (bucket.hasNonNull("_" + name)) {

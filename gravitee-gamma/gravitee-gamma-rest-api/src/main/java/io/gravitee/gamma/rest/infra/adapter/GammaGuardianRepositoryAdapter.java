@@ -30,8 +30,7 @@ import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import java.io.IOException;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -45,11 +44,13 @@ import org.springframework.dao.DuplicateKeyException;
  * back from it: that column is the record of truth. The {@code id}, {@code environment_id},
  * {@code name} and {@code phase} columns are a projection of it, written on every save so the search
  * can filter, scope and sort without deserializing every row, and never read back — which is what
- * keeps the two from disagreeing. {@code description} and {@code deployed_at} are not a projection:
- * the gateway has no use for either, so they are columns the core owns outright, carried both ways.
+ * keeps the two from disagreeing. {@code description} is not a projection: the gateway has no use for
+ * it, so it is a column the core owns outright, carried both ways. {@code lifecycle_state} and
+ * {@code deployed_at} are carried too, but the core derives both from the Guardian's publications and
+ * writes back only what it read.
  *
  * <p>Three translations the core must not know about: the serialization above, the phase enum, which
- * the SPI declares as its own, and the {@link ZonedDateTime} timestamps, which it declares as
+ * the SPI declares as its own, and the {@link Instant} timestamps, which it declares as
  * {@link Date}.
  *
  * <p>Paging also shifts here: the core counts pages from one, the way the console does, and the SPI
@@ -113,6 +114,17 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
             .stream()
             .map(GammaGuardianRepositoryAdapter::toCore)
             .toList();
+    }
+
+    @Override
+    public void updateUpdatedAt(String environmentId, String guardianId, Instant updatedAt) {
+        RepositoryCalls.wrap(
+            () -> {
+                guardianRepository.updateUpdatedAt(environmentId, guardianId, Date.from(updatedAt));
+                return null;
+            },
+            "Failed to update Guardian timestamp '" + guardianId + "'"
+        );
     }
 
     @Override
@@ -230,9 +242,9 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
             .definition(deserialize(source.getDefinition(), source.getId()))
             .description(source.getDescription())
             .lifecycleState(source.getLifecycleState() == null ? null : GuardianLifecycleState.valueOf(source.getLifecycleState().name()))
-            .deployedAt(source.getDeployedAt())
-            .createdAt(toZonedDateTime(source.getCreatedAt()))
-            .updatedAt(toZonedDateTime(source.getUpdatedAt()))
+            .deployedAt(toInstant(source.getDeployedAt()))
+            .createdAt(toInstant(source.getCreatedAt()))
+            .updatedAt(toInstant(source.getUpdatedAt()))
             .build();
     }
 
@@ -251,7 +263,7 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
                 ? null
                 : io.gravitee.repository.management.model.GuardianLifecycleState.valueOf(source.getLifecycleState().name())
         );
-        target.setDeployedAt(source.getDeployedAt());
+        target.setDeployedAt(toDate(source.getDeployedAt()));
         target.setCreatedAt(toDate(source.getCreatedAt()));
         target.setUpdatedAt(toDate(source.getUpdatedAt()));
         return target;
@@ -282,11 +294,11 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
         }
     }
 
-    private static ZonedDateTime toZonedDateTime(Date date) {
-        return date == null ? null : ZonedDateTime.ofInstant(date.toInstant(), ZoneOffset.UTC);
+    private static Instant toInstant(Date date) {
+        return date == null ? null : date.toInstant();
     }
 
-    private static Date toDate(ZonedDateTime dateTime) {
-        return dateTime == null ? null : Date.from(dateTime.toInstant());
+    private static Date toDate(Instant instant) {
+        return instant == null ? null : Date.from(instant);
     }
 }

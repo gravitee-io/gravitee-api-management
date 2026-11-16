@@ -33,6 +33,7 @@ import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
 import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalContentOwnershipDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
@@ -141,7 +142,8 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
             new NavigationPortalDomainService(
                 new DefaultPortalDomainService(
                     new PortalCrudServiceInMemory(),
-                    new PortalUrlDomainService(new InstallationAccessQueryServiceInMemory())
+                    new PortalUrlDomainService(new InstallationAccessQueryServiceInMemory()),
+                    new PortalContentOwnershipDomainService(new PortalCrudServiceInMemory(), new PortalNavigationItemsCrudServiceInMemory())
                 ),
                 new PortalCrudServiceInMemory()
             )

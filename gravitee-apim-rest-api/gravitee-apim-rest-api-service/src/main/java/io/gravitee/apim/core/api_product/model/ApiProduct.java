@@ -20,13 +20,16 @@ import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.resource.Resource;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @NoArgsConstructor
@@ -59,6 +62,9 @@ public class ApiProduct {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private FlowExecution flowExecution;
 
+    @ToString.Exclude
+    private List<Resource> resources;
+
     public void update(UpdateApiProduct updateApiProduct) {
         this.updatedAt = ZonedDateTime.now(TimeProvider.clock());
         if (updateApiProduct.getName() != null) {
@@ -78,6 +84,9 @@ public class ApiProduct {
         }
         if (updateApiProduct.getDisableMembershipNotifications() != null) {
             this.disableMembershipNotifications = updateApiProduct.getDisableMembershipNotifications();
+        }
+        if (updateApiProduct.getResources() != null) {
+            this.resources = updateApiProduct.getResources();
         }
         // Always applied, unlike the fields above: mirrors how an API's own analytics field is updated
         // (ApiMapper#toApiDefinition), so a caller can explicitly clear it back to null (inherit from each API).

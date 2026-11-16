@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 import fixtures.repository.model.PortalNavigationItemsRepositoryFixtures;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -38,7 +39,9 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -512,6 +515,81 @@ class PortalNavigationItemsCrudServiceImplTest {
             assertThatThrownBy(() -> service.updateSourceFetchState(PortalNavigationItemId.of(ID), FETCHED_SOURCE, FETCH_STATE))
                 .isInstanceOf(TechnicalDomainException.class)
                 .hasMessage("An error occurred while updating the fetch state of portal navigation item with id " + ID)
+                .hasCauseInstanceOf(TechnicalException.class);
+        }
+    }
+
+    @Nested
+    class FindReferencedPortalIds {
+
+        @Test
+        void should_return_the_portal_references_of_the_environment() throws TechnicalException {
+            when(repository.findPortalReferenceIdsByEnvironmentId("env")).thenReturn(
+                Set.of("00000000-0000-0000-0000-000000000000", "11111111-1111-1111-1111-111111111111")
+            );
+
+            assertThat(service.findReferencedPortalIds("env")).containsExactlyInAnyOrder(
+                PortalId.ZERO,
+                PortalId.of("11111111-1111-1111-1111-111111111111")
+            );
+        }
+
+        @Test
+        void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
+            when(repository.findPortalReferenceIdsByEnvironmentId(any())).thenThrow(new TechnicalException("boom"));
+
+            assertThatThrownBy(() -> service.findReferencedPortalIds("env"))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurred while finding the portals referenced by the navigation items of environment env")
+                .hasCauseInstanceOf(TechnicalException.class);
+        }
+    }
+
+    @Nested
+    class UpdatePortalReferences {
+
+        private final PortalId dead = PortalId.of("11111111-1111-1111-1111-111111111111");
+        private final PortalId target = PortalId.of("22222222-2222-2222-2222-222222222222");
+
+        @Test
+        void should_pass_the_portal_ids_as_strings_and_return_the_rows_changed() throws TechnicalException {
+            when(
+                repository.updatePortalReferences("env", List.of(PortalId.ZERO.toString(), dead.toString()), target.toString())
+            ).thenReturn(4L);
+
+            assertThat(service.updatePortalReferences("env", List.of(PortalId.ZERO, dead), target)).isEqualTo(4L);
+        }
+
+        @Test
+        void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
+            when(repository.updatePortalReferences(any(), any(), any())).thenThrow(new TechnicalException("boom"));
+
+            assertThatThrownBy(() -> service.updatePortalReferences("env", List.of(dead), target))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurred while moving the navigation items of environment env to portal " + target)
+                .hasCauseInstanceOf(TechnicalException.class);
+        }
+    }
+
+    @Nested
+    class UpdateAutomationPortalReferences {
+
+        private final PortalId portal = PortalId.of("22222222-2222-2222-2222-222222222222");
+
+        @Test
+        void should_pass_the_portal_ids_as_strings_and_return_the_rows_changed() throws TechnicalException {
+            when(repository.updateAutomationPortalReferences("env", List.of(PortalId.ZERO.toString()), portal.toString())).thenReturn(3L);
+
+            assertThat(service.updateAutomationPortalReferences("env", List.of(PortalId.ZERO), portal)).isEqualTo(3L);
+        }
+
+        @Test
+        void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
+            when(repository.updateAutomationPortalReferences(any(), any(), any())).thenThrow(new TechnicalException("boom"));
+
+            assertThatThrownBy(() -> service.updateAutomationPortalReferences("env", List.of(PortalId.ZERO), portal))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurred while moving the Automation API navigation items of environment env to portal " + portal)
                 .hasCauseInstanceOf(TechnicalException.class);
         }
     }

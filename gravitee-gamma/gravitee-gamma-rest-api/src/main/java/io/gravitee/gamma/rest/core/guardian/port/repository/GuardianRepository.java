@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.core.guardian.port.repository;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianSearchQuery;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,6 +42,8 @@ public interface GuardianRepository {
     Optional<Guardian> findByEnvironmentId(String environmentId, String guardianId);
 
     Guardian update(Guardian guardian);
+
+    void updateUpdatedAt(String environmentId, String guardianId, Instant updatedAt);
 
     void delete(String guardianId);
 

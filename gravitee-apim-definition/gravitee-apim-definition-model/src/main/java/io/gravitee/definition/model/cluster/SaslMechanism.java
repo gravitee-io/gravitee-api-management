@@ -131,7 +131,10 @@ public record SaslMechanism(
             return null;
         }
         if (saslJaasConfig == null || saslJaasConfig.isBlank()) {
-            return type + " needs a JAAS configuration.";
+            // A stored cluster lacks it when saved before the field was kept; on the gateway, a secret may resolve to nothing.
+            return resolved
+                ? type + " needs a JAAS configuration."
+                : type + " needs a JAAS configuration: give it again if this cluster was saved before it was kept.";
         }
         if (!resolved && isExpression(saslJaasConfig)) {
             return null;

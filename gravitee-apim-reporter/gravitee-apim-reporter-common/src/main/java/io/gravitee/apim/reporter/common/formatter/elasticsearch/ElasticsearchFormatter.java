@@ -264,6 +264,7 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
         putWhenMeasured(data, "gatewayLatencyNs", metrics.getGatewayLatencyNs());
         putWhenMeasured(data, "requestContentLength", metrics.getRequestContentLength());
         putWhenMeasured(data, "responseContentLength", metrics.getResponseContentLength());
+        putConnectionDocument(data, metrics.getRequestId(), ConnectionPhase.isOpening(metrics), ConnectionPhase.isEnd(metrics));
 
         return generateData("v4-metrics.ftl", data);
     }
@@ -282,6 +283,7 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
         putWhenMeasured(data, "countIncrement", metrics.getCountIncrement());
         putWhenMeasured(data, "errorCountIncrement", metrics.getErrorCountIncrement());
         putWhenMeasured(data, "gatewayLatencyMs", metrics.getGatewayLatencyMs());
+        putMessageDocumentId(data);
 
         return generateData("v4-message-metrics.ftl", data);
     }
@@ -292,6 +294,7 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
         addCommonFields(data, log, esOptions);
 
         data.put("log", log);
+        putConnectionDocument(data, log.getRequestId(), ConnectionPhase.isOpening(log), false);
 
         return generateData("v4-log.ftl", data);
     }
@@ -304,6 +307,7 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
         ReportableSanitizationUtil.sanitizeMessageMetadata(log.getMessage());
 
         data.put("log", log);
+        putMessageDocumentId(data);
 
         return generateData("v4-message-log.ftl", data);
     }
@@ -355,6 +359,26 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
             return Buffer.buffer(baos.toByteArray());
         } catch (IOException e) {
             return null;
+        }
+    }
+
+    /**
+     * The correlation id does not identify a message: a broker may set the same one on several. Drawn here, the id
+     * is also the one a retried bulk sends again, since a retry resends the formatted bulk.
+     */
+    private static void putMessageDocumentId(Map<String, Object> data) {
+        data.put("documentId", UUID.random().toString());
+    }
+
+    private static void putConnectionDocument(Map<String, Object> data, String requestId, boolean opening, boolean end) {
+        if (opening) {
+            data.put("documentId", ConnectionPhase.openingDocumentId(requestId));
+            data.put("connectionPhase", ConnectionPhase.OPEN);
+            return;
+        }
+        data.put("documentId", requestId);
+        if (end) {
+            data.put("connectionPhase", ConnectionPhase.END);
         }
     }
 

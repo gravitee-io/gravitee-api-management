@@ -30,6 +30,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atMostOnce;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -80,6 +81,7 @@ import inmemory.UserCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.ValidateResourceDomainServiceInMemory;
 import inmemory.WorkflowCrudServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.ApiCRDTargetDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
@@ -95,7 +97,10 @@ import io.gravitee.apim.core.api.domain_service.ValidateHealthCheckScheduleDomai
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
+import io.gravitee.apim.core.api.exception.ApiDeprecatedException;
 import io.gravitee.apim.core.api.exception.ApiPropertyEncryptedToPlainException;
+import io.gravitee.apim.core.api.exception.ApiTypeChangeNotAllowedException;
+import io.gravitee.apim.core.api.exception.NativeApiWithMultipleFlowsException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
@@ -120,6 +125,7 @@ import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
+import io.gravitee.apim.core.exception.AbstractDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
@@ -130,6 +136,7 @@ import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.exception.NoPrimaryOwnerGroupForUserException;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.membership.model.Role;
@@ -145,6 +152,8 @@ import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.portal.exception.PathConflictException;
+import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal_listing.domain_service.PortalListingSyncDomainService;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
@@ -160,6 +169,7 @@ import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.ResponseTemplate;
+import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -189,7 +199,19 @@ import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
+import io.gravitee.rest.api.service.exceptions.EndpointGroupNameAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.EndpointMissingException;
+import io.gravitee.rest.api.service.exceptions.EndpointNameAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
+import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.v4.exception.ApiTypeException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointInvalidQosException;
 import io.vertx.rxjava3.core.Vertx;
 import java.security.GeneralSecurityException;
 import java.time.Clock;
@@ -211,6 +233,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class ImportApiCRDUseCaseTest {
 
@@ -240,6 +265,7 @@ class ImportApiCRDUseCaseTest {
     PolicyValidationDomainService policyValidationDomainService = mock(PolicyValidationDomainService.class);
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
+    ApiCRDTargetDomainService apiCRDTargetDomainService = new ApiCRDTargetDomainService(apiQueryService, apiCrudService);
     PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
@@ -280,8 +306,12 @@ class ImportApiCRDUseCaseTest {
     UpdateNativeApiDomainService updateNativeApiDomainService;
     UpdateNativeApiUseCase updateNativeApiUseCase = null;
     NotificationCRDDomainService notificationCRDService = mock(NotificationCRDDomainService.class);
+    PortalListingSyncDomainService portalListingSyncDomainService = mock(PortalListingSyncDomainService.class);
 
     ImportApiCRDUseCase useCase;
+
+    // What the Automation API dry run runs (ApisResource, dryRun=true)
+    ValidateApiCRDDomainService crdValidator;
 
     @BeforeAll
     static void beforeAll() {
@@ -401,25 +431,6 @@ class ImportApiCRDUseCaseTest {
 
         propertyDomainService = new PropertyDomainService(dataEncryptor);
 
-        var crdValidator = new ValidateApiCRDDomainService(
-            new ValidateCategoryIdsDomainService(categoryQueryService),
-            verifyApiPathDomainService,
-            verifyApiHostsDomainService,
-            new ValidateCRDMembersDomainService(userDomainService, roleQueryService),
-            new ValidateGroupsDomainService(groupQueryService),
-            validateResourceDomainService,
-            new ValidatePagesDomainService(pageSourceValidator, accessControlValidator, validationDomainService, pageCrudService),
-            new ValidatePlanDomainService(planValidatorService, verifyPlanPortRanges),
-            new ValidatePortalNotificationDomainService(new ValidateGroupsDomainService(groupQueryService)),
-            new ValidateHealthCheckScheduleDomainService(new ObjectMapper()),
-            apiQueryService,
-            propertyDomainService,
-            crdMembersDomainService,
-            mock(ValidateKafkaClusterBindingDomainService.class),
-            mock(ClusterBindingPermissionDomainService.class),
-            mock(ValidateApiClusterBindingService.class)
-        );
-
         planQueryService = new PlanQueryServiceInMemory(planCrudService);
 
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
@@ -483,9 +494,35 @@ class ImportApiCRDUseCaseTest {
 
         categoryQueryService.reset();
 
+        crdValidator = new ValidateApiCRDDomainService(
+            new ValidateCategoryIdsDomainService(categoryQueryService),
+            verifyApiPathDomainService,
+            verifyApiHostsDomainService,
+            new ValidateCRDMembersDomainService(userDomainService, roleQueryService),
+            new ValidateGroupsDomainService(groupQueryService),
+            validateResourceDomainService,
+            new ValidatePagesDomainService(pageSourceValidator, accessControlValidator, validationDomainService, pageCrudService),
+            new ValidatePlanDomainService(planValidatorService, verifyPlanPortRanges, planCrudService),
+            new ValidatePortalNotificationDomainService(new ValidateGroupsDomainService(groupQueryService)),
+            new ValidateHealthCheckScheduleDomainService(new ObjectMapper()),
+            apiCRDTargetDomainService,
+            propertyDomainService,
+            crdMembersDomainService,
+            mock(ValidateKafkaClusterBindingDomainService.class),
+            mock(ClusterBindingPermissionDomainService.class),
+            mock(ValidateApiClusterBindingService.class),
+            apiPrimaryOwnerFactory,
+            validateApiDomainService,
+            updateApiDomainService,
+            flowValidationDomainService,
+            planQueryService,
+            apiPrimaryOwnerService,
+            portalListingSyncDomainService
+        );
+
         useCase = new ImportApiCRDUseCase(
             apiCrudService,
-            apiQueryService,
+            apiCRDTargetDomainService,
             apiPrimaryOwnerFactory,
             validateApiDomainService,
             createApiDomainService,
@@ -507,7 +544,7 @@ class ImportApiCRDUseCaseTest {
             updateApiDocumentationDomainService,
             crdValidator,
             notificationCRDService,
-            mock(PortalListingSyncDomainService.class),
+            portalListingSyncDomainService,
             propertyDomainService
         );
 
@@ -632,6 +669,64 @@ class ImportApiCRDUseCaseTest {
         }
 
         @Test
+        void should_refuse_an_id_that_names_an_api_of_another_environment() {
+            // An export of another environment carries that API's id and cross id
+            var foreignApi = aProxyApiV4().toBuilder().id(API_ID).environmentId("other-environment-id").crossId(API_CROSS_ID).build();
+            apiCrudService.initWith(List.of(foreignApi));
+
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().build())));
+
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining(API_ID);
+            assertThat(apiCrudService.storage()).containsExactly(foreignApi);
+            verifyNoInteractions(apiStateDomainService);
+        }
+
+        @Test
+        void should_refuse_a_plan_id_of_another_api() {
+            var otherApi = aProxyApiV4().toBuilder().id("other-api-id").environmentId(ENVIRONMENT_ID).crossId("other-api-cross-id").build();
+            apiQueryService.initWith(List.of(otherApi));
+            var otherApiPlan = Update.API_KEY.toBuilder()
+                .id("other-api-plan-id")
+                .apiId(otherApi.getId())
+                .referenceId(otherApi.getId())
+                .build();
+            givenExistingPlans(List.of(otherApiPlan));
+
+            var throwable = catchThrowable(() ->
+                useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRDWithPlanId(otherApiPlan.getId())))
+            );
+
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining(otherApiPlan.getId());
+            assertThat(planCrudService.storage()).containsExactly(otherApiPlan);
+            assertThat(apiCrudService.storage()).containsExactly(otherApi);
+        }
+
+        @Test
+        void should_create_a_stopped_api_when_the_spec_has_no_state() {
+            // Synced from management, so a STARTED spec would start the API
+            var spec = aCRD()
+                .state(null)
+                .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
+                .build();
+
+            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, spec));
+
+            assertThat(apiCrudService.get(API_ID).getLifecycleState()).isEqualTo(Api.LifecycleState.STOPPED);
+            verify(apiStateDomainService, never()).start(any(), any());
+        }
+
+        @Test
+        void should_refuse_an_endpoint_name_the_api_validation_refuses_with_a_400() {
+            var refusal = new EndpointNameAlreadyExistsException("same");
+            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())).thenThrow(refusal);
+
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().build())));
+
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining(refusal.getMessage());
+            assertThat(apiCrudService.storage()).isEmpty();
+        }
+
+        @Test
         void should_store_encryptable_properties_encrypted() throws GeneralSecurityException {
             when(dataEncryptor.encrypt("prop-value")).thenReturn("ciphertext");
 
@@ -742,7 +837,10 @@ class ImportApiCRDUseCaseTest {
             var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, crd)));
 
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(throwable).isInstanceOf(InvalidFlowException.class);
+                soft
+                    .assertThat(throwable)
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining(InvalidFlowException.missingPathOperator("plan-flow").getMessage());
                 soft.assertThat(flowCrudService.storage()).extracting(AbstractFlow::getName).doesNotContain("plan-flow");
             });
         }
@@ -993,7 +1091,9 @@ class ImportApiCRDUseCaseTest {
 
             var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build())));
 
-            assertThat(throwable).isInstanceOf(InvalidPageParentException.class);
+            assertThat(throwable)
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining(new InvalidPageParentException("markdown-parent-id").getMessage());
         }
 
         @Test
@@ -1426,6 +1526,175 @@ class ImportApiCRDUseCaseTest {
         }
 
         @Test
+        void should_update_the_api_named_by_the_id_when_the_spec_has_no_cross_id() {
+            // Stored first, so a lookup by a null cross id finds it instead of the API the id names
+            var apiWithoutCrossId = API_PROXY_V4.toBuilder().id("api-without-cross-id").crossId(null).name("without-cross-id").build();
+            apiQueryService.initWith(List.of(apiWithoutCrossId, managedByAutomation(API_PROXY_V4)));
+            givenExistingPlans(List.of(KEYLESS));
+
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().crossId(null).build())));
+
+            assertThat(throwable).isNull();
+            verify(updateApiDomainService).update(eq(API_ID), any(), any());
+            assertThat(apiCrudService.get(apiWithoutCrossId.getId())).isEqualTo(apiWithoutCrossId);
+        }
+
+        @Test
+        void should_leave_an_api_created_in_the_console_alone_when_the_spec_has_no_cross_id() {
+            apiQueryService.initWith(List.of(API_PROXY_V4));
+            var consolePlan = KEYLESS.toBuilder().id("console-plan").build();
+            givenExistingPlans(List.of(consolePlan));
+
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().crossId(null).build())));
+
+            assertThat(throwable)
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining(API_ID)
+                .hasMessageContaining("[management]");
+            assertThat(apiCrudService.get(API_ID)).isEqualTo(API_PROXY_V4);
+            assertThat(planCrudService.storage()).containsExactly(consolePlan);
+            verifyNoInteractions(updateApiDomainService, apiStateDomainService);
+        }
+
+        private static Api managedByAutomation(Api api) {
+            return api.toBuilder().originContext(new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED)).build();
+        }
+
+        @Test
+        void should_keep_the_stored_state_when_the_spec_has_no_state() {
+            var stoppedApi = API_PROXY_V4.toBuilder().lifecycleState(Api.LifecycleState.STOPPED).build();
+            apiQueryService.initWith(List.of(stoppedApi));
+            givenExistingPlans(List.of(KEYLESS));
+            when(updateApiDomainService.update(any(), any(), any())).thenReturn(stoppedApi);
+
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().state(null).build())));
+
+            assertThat(throwable).isNull();
+            assertThat(apiCrudService.get(API_ID).getLifecycleState()).isEqualTo(Api.LifecycleState.STOPPED);
+            verify(apiStateDomainService, never()).start(any(), any());
+            verify(apiStateDomainService, never()).stop(any(), any());
+        }
+
+        @Test
+        void should_keep_a_stored_started_state_when_the_spec_has_no_state() {
+            var startedApi = API_PROXY_V4.toBuilder().lifecycleState(Api.LifecycleState.STARTED).build();
+            apiQueryService.initWith(List.of(startedApi));
+            givenExistingPlans(List.of(KEYLESS));
+            when(updateApiDomainService.update(any(), any(), any())).thenReturn(startedApi);
+
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().state(null).build())));
+
+            assertThat(throwable).isNull();
+            assertThat(apiCrudService.get(API_ID).getLifecycleState()).isEqualTo(Api.LifecycleState.STARTED);
+            verify(apiStateDomainService, never()).start(any(), any());
+            verify(apiStateDomainService, never()).stop(any(), any());
+        }
+
+        @Test
+        void should_deploy_a_stored_started_api_when_the_spec_has_no_state() {
+            var startedApi = API_PROXY_V4.toBuilder().lifecycleState(Api.LifecycleState.STARTED).build();
+            apiQueryService.initWith(List.of(startedApi));
+            givenExistingPlans(List.of(KEYLESS));
+            when(updateApiDomainService.update(any(), any(), any())).thenReturn(startedApi);
+
+            useCase.execute(
+                new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aCRD()
+                        .state(null)
+                        .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
+                        .build()
+                )
+            );
+
+            verify(apiStateDomainService).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
+            verify(apiStateDomainService, never()).start(any(), any());
+            verify(apiStateDomainService, never()).stop(any(), any());
+        }
+
+        @Test
+        void should_reject_a_plan_id_of_another_api() {
+            var otherApiPlan = givenAnotherApiWithAPlan();
+
+            var throwable = catchThrowable(() ->
+                useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRDWithPlanId(otherApiPlan.getId())))
+            );
+
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining(otherApiPlan.getId());
+            assertThat(planCrudService.storage())
+                .filteredOn(plan -> plan.getId().equals(otherApiPlan.getId()))
+                .containsExactly(otherApiPlan);
+            verify(updateApiDomainService, never()).update(any(), any(), any());
+            assertThat(auditCrudService.storage()).isEmpty();
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("io.gravitee.apim.core.api.use_case.ImportApiCRDUseCaseTest#refusalsOfTheApiValidation")
+        void should_let_a_4xx_refusal_of_the_api_update_propagate_without_wrapping(String row, AbstractManagementException refusal) {
+            givenExistingApi();
+            givenExistingPlans(List.of(KEYLESS));
+            when(updateApiDomainService.update(any(), any(), any())).thenThrow(refusal);
+
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().build())));
+
+            assertThat(throwable).isSameAs(refusal);
+        }
+
+        @Test
+        void should_reject_a_jwt_plan_id_of_another_api() {
+            var otherApiPlan = givenAnotherApiWithAPlan(aJwtPlan("other-api-jwt-config"));
+
+            var throwable = catchThrowable(() ->
+                useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRDWithPlanId(aJwtPlan("b-jwt-config"), otherApiPlan.getId())))
+            );
+
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining(otherApiPlan.getId());
+            assertThat(planCrudService.storage())
+                .filteredOn(plan -> plan.getId().equals(otherApiPlan.getId()))
+                .singleElement()
+                .satisfies(plan -> assertThat(plan.getPlanSecurity().getConfiguration()).contains("other-api-jwt-config"));
+            verify(updateApiDomainService, never()).update(any(), any(), any());
+            assertThat(auditCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_accept_the_plan_ids_of_the_api_found_by_cross_id_when_the_spec_has_no_id() {
+            // The spec has no id (mgmt-v2 _import/crd): only the cross id finds the API
+            var apiFoundByCrossId = API_PROXY_V4.toBuilder().id("api-found-by-cross-id").build();
+            apiQueryService.initWith(List.of(apiFoundByCrossId));
+            var ownPlan = KEYLESS.toBuilder()
+                .id("own-plan-id")
+                .apiId(apiFoundByCrossId.getId())
+                .referenceId(apiFoundByCrossId.getId())
+                .build();
+            givenExistingPlans(List.of(ownPlan));
+            when(updateApiDomainService.update(any(), any(), any())).thenReturn(apiFoundByCrossId);
+
+            var throwable = catchThrowable(() ->
+                useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRDWithPlanId(ownPlan.getId()).toBuilder().id(null).build()))
+            );
+
+            assertThat(throwable).isNull();
+            verify(updateApiDomainService).update(eq(apiFoundByCrossId.getId()), any(), any());
+            assertThat(planCrudService.storage())
+                .filteredOn(plan -> plan.getId().equals(ownPlan.getId()))
+                .singleElement()
+                .satisfies(plan -> assertThat(plan.getReferenceId()).isEqualTo(apiFoundByCrossId.getId()));
+        }
+
+        @Test
+        void should_wrap_a_5xx_failure_of_the_api_update_in_a_technical_management_exception() {
+            givenExistingApi();
+            givenExistingPlans(List.of(KEYLESS));
+            var failure = new TechnicalManagementException("boom");
+            when(updateApiDomainService.update(any(), any(), any())).thenThrow(failure);
+
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().build())));
+
+            assertThat(throwable).isInstanceOf(TechnicalManagementException.class).isNotSameAs(failure).hasCause(failure);
+        }
+
+        @Test
         void should_let_domain_exceptions_propagate_without_wrapping_in_technical_management_exception() {
             givenExistingApi();
             givenExistingPlans(List.of(KEYLESS));
@@ -1435,6 +1704,37 @@ class ImportApiCRDUseCaseTest {
             var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().build())));
 
             assertThat(throwable).isSameAs(domain);
+        }
+
+        @Test
+        void should_refuse_to_turn_a_native_api_into_a_proxy_api_without_writing() {
+            givenExistingNativeApi();
+
+            var throwable = catchThrowable(() ->
+                useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().plans(Map.of()).build()))
+            );
+
+            assertThat(throwable)
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining(new ApiTypeChangeNotAllowedException(API_ID).getMessage());
+            assertThat(apiCrudService.get(API_ID)).isEqualTo(NATIVE_API);
+            assertThat(auditCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_refuse_to_turn_a_proxy_api_into_a_native_api_without_writing() {
+            givenExistingApi();
+
+            var throwable = catchThrowable(() ->
+                useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aNativeApiCRD().plans(Map.of()).build()))
+            );
+
+            assertThat(throwable)
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining(new ApiTypeChangeNotAllowedException(API_ID).getMessage());
+            verify(updateApiDomainService, never()).update(any(), any(), any());
+            assertThat(apiCrudService.get(API_ID)).isEqualTo(API_PROXY_V4);
+            assertThat(auditCrudService.storage()).isEmpty();
         }
 
         @Test
@@ -2083,6 +2383,273 @@ class ImportApiCRDUseCaseTest {
         }
     }
 
+    @Nested
+    class DryRun {
+
+        @Test
+        void should_refuse_a_plan_id_of_another_api() {
+            var otherApiPlan = givenAnotherApiWithAPlan();
+
+            assertThat(dryRunErrors(aCRDWithPlanId(otherApiPlan.getId()))).anyMatch(message -> message.contains(otherApiPlan.getId()));
+        }
+
+        @Test
+        void should_refuse_a_jwt_plan_id_of_another_api() {
+            var otherApiPlan = givenAnotherApiWithAPlan(aJwtPlan("other-api-jwt-config"));
+
+            assertThat(dryRunErrors(aCRDWithPlanId(aJwtPlan("b-jwt-config"), otherApiPlan.getId()))).anyMatch(message ->
+                message.contains(otherApiPlan.getId())
+            );
+        }
+
+        @Test
+        void should_refuse_a_plan_flow_with_a_wildcard_path_as_the_import_does() {
+            var wildcardFlow = Flow.builder()
+                .selectors(List.of(HttpSelector.builder().path("/**").pathOperator(Operator.STARTS_WITH).build()))
+                .build();
+            var spec = aCRD()
+                .plans(
+                    Map.of(
+                        "keyless-key",
+                        PlanCRD.builder()
+                            .id("keyless-id")
+                            .name("Keyless")
+                            .security(PlanSecurity.builder().type("KEY_LESS").build())
+                            .mode(PlanMode.STANDARD)
+                            .validation(Plan.PlanValidationType.AUTO)
+                            .status(PlanStatus.PUBLISHED)
+                            .type(Plan.PlanType.API)
+                            .flows(List.of(wildcardFlow))
+                            .build()
+                    )
+                )
+                .build();
+
+            assertRefusedAsByTheImport(spec, InvalidFlowException.invalidWildcardPath(null, "/**"));
+        }
+
+        // The API validation of the import is the legacy one, mocked here: the dry run must call it and keep its refusal
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("io.gravitee.apim.core.api.use_case.ImportApiCRDUseCaseTest#refusalsOfTheApiValidation")
+        void should_refuse_a_new_api_the_api_validation_of_the_import_refuses(String row, AbstractManagementException refusal) {
+            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())).thenThrow(refusal);
+
+            assertRefusedAsByTheImport(aCRD().build(), refusal);
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("io.gravitee.apim.core.api.use_case.ImportApiCRDUseCaseTest#refusalsOfTheApiValidation")
+        void should_refuse_an_api_update_the_api_validation_of_the_import_refuses(String row, AbstractManagementException refusal) {
+            givenExistingApi();
+            doThrow(refusal).when(updateApiDomainService).validate(eq(API_ID), any(), eq(AUDIT_INFO));
+
+            assertRefusedAsByTheImport(aCRD().build(), refusal);
+        }
+
+        @Test
+        void should_refuse_a_new_plan_on_a_deprecated_api() {
+            apiQueryService.initWith(List.of(Update.API_PROXY_V4.toBuilder().apiLifecycleState(Api.ApiLifecycleState.DEPRECATED).build()));
+
+            assertRefusedAsByTheImport(aCRD().lifecycleState("DEPRECATED").build(), new ApiDeprecatedException(API_ID));
+        }
+
+        @Test
+        void should_refuse_a_new_plan_on_a_deprecated_api_when_the_spec_has_no_lifecycle_state() {
+            apiQueryService.initWith(List.of(Update.API_PROXY_V4.toBuilder().apiLifecycleState(Api.ApiLifecycleState.DEPRECATED).build()));
+
+            assertRefusedAsByTheImport(aCRD().lifecycleState(null).build(), new ApiDeprecatedException(API_ID));
+        }
+
+        @Test
+        void should_validate_the_update_with_the_stored_groups_when_the_spec_ignores_groups() {
+            apiQueryService.initWith(List.of(Update.API_PROXY_V4.toBuilder().groups(Set.of(GROUP_ID_1)).build()));
+
+            dryRunSevereErrors(aCRD().ignoreGroups(true).groups(Set.of(GROUP_ID_2)).build());
+
+            verify(updateApiDomainService).validate(
+                eq(API_ID),
+                argThat(spec -> Set.of(GROUP_ID_1).equals(spec.getGroups())),
+                eq(AUDIT_INFO)
+            );
+        }
+
+        @Test
+        void should_let_a_technical_failure_of_the_api_validation_propagate() {
+            givenExistingApi();
+            var failure = new TechnicalManagementException("boom");
+            doThrow(failure).when(updateApiDomainService).validate(eq(API_ID), any(), eq(AUDIT_INFO));
+
+            assertThat(catchThrowable(() -> dryRunSevereErrors(aCRD().build()))).isSameAs(failure);
+        }
+
+        @Test
+        void should_refuse_a_native_api_update_the_api_validation_of_the_import_refuses() {
+            givenExistingNativeApi();
+            var refusal = new LifecycleStateChangeNotAllowedException("PUBLISHED");
+            when(
+                validateApiDomainService.validateAndSanitizeForUpdate(
+                    argThat(stored -> API_ID.equals(stored.getId())),
+                    argThat(updated -> updated.getApiLifecycleState() == Api.ApiLifecycleState.PUBLISHED),
+                    any(),
+                    eq(ENVIRONMENT_ID),
+                    eq(ORGANIZATION_ID)
+                )
+            ).thenThrow(refusal);
+
+            assertRefusedAsByTheImport(aNativeApiCRD().lifecycleState("PUBLISHED").plans(Map.of()).build(), refusal);
+        }
+
+        @Test
+        void should_refuse_to_turn_a_native_api_into_a_proxy_api() {
+            givenExistingNativeApi();
+
+            assertRefusedAsByTheImport(aCRD().plans(Map.of()).build(), new ApiTypeChangeNotAllowedException(API_ID));
+        }
+
+        @Test
+        void should_refuse_to_turn_a_proxy_api_into_a_native_api() {
+            givenExistingApi();
+
+            assertRefusedAsByTheImport(aNativeApiCRD().plans(Map.of()).build(), new ApiTypeChangeNotAllowedException(API_ID));
+        }
+
+        @Test
+        void should_refuse_a_native_plan_with_two_flows_as_the_import_does() {
+            var spec = aNativeApiCRD()
+                .plans(
+                    Map.of(
+                        "keyless-key",
+                        PlanCRD.builder()
+                            .id("keyless-id")
+                            .name("Keyless")
+                            .security(PlanSecurity.builder().type("KEY_LESS").build())
+                            .mode(PlanMode.STANDARD)
+                            .validation(Plan.PlanValidationType.AUTO)
+                            .status(PlanStatus.PUBLISHED)
+                            .type(Plan.PlanType.API)
+                            .flows(List.of(FlowFixtures.aNativeFlowV4(), FlowFixtures.aNativeFlowV4()))
+                            .build()
+                    )
+                )
+                .build();
+
+            assertRefusedAsByTheImport(spec, new NativeApiWithMultipleFlowsException());
+        }
+
+        @Test
+        void should_refuse_a_new_api_whose_navigation_conflicts_with_portal_folders() {
+            var conflict = PathConflictException.folderPath("/apis/echo");
+            doThrow(conflict).when(portalListingSyncDomainService).validateApiFolderConflictsForApi(eq(AUDIT_INFO), eq(API_ID), any());
+
+            assertRefusedAsByTheImport(aCRD().build(), conflict);
+            assertThat(apiCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_refuse_an_api_update_whose_navigation_conflicts_with_portal_folders() {
+            var storedId = "stored-api-id";
+            apiQueryService.initWith(List.of(Update.API_PROXY_V4.toBuilder().id(storedId).build()));
+            var conflict = PathConflictException.folderPath("/apis/echo");
+            doThrow(conflict).when(portalListingSyncDomainService).validateApiFolderConflictsForApi(eq(AUDIT_INFO), eq(storedId), any());
+
+            // No spec id: the import finds the API by cross id and checks the stored API's folders
+            assertRefusedAsByTheImport(aCRD().id(null).plans(Map.of()).build(), conflict);
+        }
+
+        @Test
+        void should_refuse_to_reopen_a_closed_plan() {
+            givenExistingApi();
+            givenExistingPlans(List.of(Update.KEYLESS.toBuilder().id(KEYLESS_PLAN_ID).build().setPlanStatus(PlanStatus.CLOSED)));
+
+            assertRefusedAsByTheImport(aCRD().build(), new ValidationDomainException("Invalid status for plan 'Keyless'"));
+        }
+
+        @Test
+        void should_refuse_a_page_whose_parent_is_not_a_folder() {
+            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean())).thenAnswer(call ->
+                call.getArgument(0)
+            );
+            var pages = Map.of(
+                "markdown-parent",
+                PageCRD.builder()
+                    .id("markdown-parent-id")
+                    .name("markdown-parent")
+                    .type(PageCRD.Type.MARKDOWN)
+                    .visibility(PageCRD.Visibility.PUBLIC)
+                    .build(),
+                "child-page",
+                PageCRD.builder()
+                    .id("child-page-id")
+                    .name("child-page")
+                    .type(PageCRD.Type.MARKDOWN)
+                    .parentId("markdown-parent-id")
+                    .visibility(PageCRD.Visibility.PUBLIC)
+                    .build()
+            );
+
+            assertRefusedAsByTheImport(aCRD().pages(pages).build(), new InvalidPageParentException("markdown-parent-id"));
+            assertThat(apiCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_refuse_a_new_api_when_the_caller_is_primary_owner_of_no_group() {
+            parametersQueryService.initWith(
+                List.of(
+                    new Parameter(Key.API_PRIMARY_OWNER_MODE.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "GROUP"),
+                    new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
+                )
+            );
+
+            assertRefusedAsByTheImport(aCRD().build(), new NoPrimaryOwnerGroupForUserException(ACTOR_USER_ID));
+        }
+
+        @Test
+        void should_refuse_an_empty_portal_navigation_path() {
+            var spec = aCRD().portalNavigation(List.of(new NavigationPath("", null))).build();
+
+            var importError = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, spec)));
+
+            assertThat(dryRunErrors(spec)).containsExactly("A portal navigation path must not be empty");
+            assertThat(importError)
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("A portal navigation path must not be empty");
+            assertThat(apiCrudService.storage()).isEmpty();
+        }
+
+        // The dry run answers 200 with the refusal's message as a severe error; the import refuses with a 400 carrying it
+        private void assertRefusedAsByTheImport(ApiCRDSpec spec, Exception expected) {
+            var dryRunErrors = dryRunSevereErrors(spec);
+            var importError = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, spec)));
+
+            assertThat(dryRunErrors).containsExactly(expected.getMessage());
+            assertThat(importError).isInstanceOf(ValidationDomainException.class).hasMessageContaining(expected.getMessage());
+        }
+
+        private List<String> dryRunSevereErrors(ApiCRDSpec spec) {
+            return crdValidator
+                .validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec))
+                .severe()
+                .orElseGet(List::of)
+                .stream()
+                .map(Validator.Error::getMessage)
+                .toList();
+        }
+
+        // Checks that ran before the import's write validation still refuse with an exception the resource maps to a 4xx
+        private List<String> dryRunErrors(ApiCRDSpec spec) {
+            try {
+                return dryRunSevereErrors(spec);
+            } catch (AbstractDomainException e) {
+                return List.of(e.getMessage());
+            } catch (AbstractManagementException e) {
+                if (e.getHttpStatusCode() >= 500) {
+                    throw e;
+                }
+                return List.of(e.getMessage());
+            }
+        }
+    }
+
     @Test
     void should_save_metadata() {
         var metadata = List.of(
@@ -2418,6 +2985,70 @@ class ImportApiCRDUseCaseTest {
 
     void givenExistingPlans(List<Plan> plans) {
         planCrudService.initWith(plans);
+    }
+
+    // API_PROXY_V4 owns KEYLESS; another API of the environment owns an API key plan
+    Plan givenAnotherApiWithAPlan() {
+        return givenAnotherApiWithAPlan(Update.API_KEY);
+    }
+
+    // API_PROXY_V4 owns KEYLESS; another API of the environment owns the given plan
+    Plan givenAnotherApiWithAPlan(Plan plan) {
+        var otherApi = Update.API_PROXY_V4.toBuilder().id("other-api-id").crossId("other-api-cross-id").name("other-api").build();
+        apiQueryService.initWith(List.of(Update.API_PROXY_V4, otherApi));
+        var otherApiPlan = plan.toBuilder().id("other-api-plan-id").apiId(otherApi.getId()).referenceId(otherApi.getId()).build();
+        givenExistingPlans(List.of(Update.KEYLESS, otherApiPlan));
+        return otherApiPlan;
+    }
+
+    private static Plan aJwtPlan(String resolverParameter) {
+        return PlanFixtures.HttpV4.aKeyless()
+            .toBuilder()
+            .id("jwt")
+            .name("JWT")
+            .planDefinitionHttpV4(
+                fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4()
+                    .toBuilder()
+                    .id("jwt")
+                    .name("JWT")
+                    .security(
+                        PlanSecurity.builder()
+                            .type("jwt")
+                            .configuration("{\"signature\":\"HMAC_HS256\",\"resolverParameter\":\"%s\"}".formatted(resolverParameter))
+                            .build()
+                    )
+                    .build()
+            )
+            .build();
+    }
+
+    // Refusals of the legacy API validation the import runs, one per row of APIM-16012 and GKO-3435
+    static Stream<Arguments> refusalsOfTheApiValidation() {
+        return Stream.of(
+            Arguments.of("endpoint group and endpoint share a name", new EndpointNameAlreadyExistsException("same")),
+            Arguments.of("one endpoint name used twice, in one group or two", new EndpointNameAlreadyExistsException("endpoint")),
+            Arguments.of("two endpoint groups with one name", new EndpointGroupNameAlreadyExistsException("group")),
+            Arguments.of("endpoint name with a colon", new EndpointNameInvalidException("end:point")),
+            Arguments.of("endpoint group without endpoints", new EndpointMissingException()),
+            Arguments.of("unknown endpoint type", new PluginNotFoundException("unknown-endpoint")),
+            Arguments.of("stored DEPRECATED, lifecycleState PUBLISHED", new LifecycleStateChangeNotAllowedException("PUBLISHED")),
+            Arguments.of("stored PROXY, type MESSAGE", new ApiTypeException()),
+            Arguments.of("sharding tag the caller may not use", new TagNotAllowedException(new String[] { "unknown-tag" })),
+            Arguments.of("sse entrypoint on a PROXY HTTP listener", new ListenerEntrypointInvalidQosException("sse")),
+            Arguments.of("unknown policy in an API flow", new PluginNotFoundException("unknown-policy")),
+            Arguments.of(
+                "policy configuration its schema refuses",
+                new InvalidDataException("$.scope: does not have a value in the enumeration")
+            )
+        );
+    }
+
+    private static ApiCRDSpec aCRDWithPlanId(String planId) {
+        return aCRDWithPlanId(Update.KEYLESS, planId);
+    }
+
+    private static ApiCRDSpec aCRDWithPlanId(Plan plan, String planId) {
+        return aCRD().plans(Map.of("b-plan", PlanAdapter.INSTANCE.toCRD(plan).toBuilder().id(planId).build())).build();
     }
 
     BaseApplicationEntity givenExistingApplication(BaseApplicationEntity application) {

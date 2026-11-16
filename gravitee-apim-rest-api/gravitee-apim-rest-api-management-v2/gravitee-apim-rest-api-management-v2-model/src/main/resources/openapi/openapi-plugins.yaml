@@ -392,6 +392,7 @@ paths:
                           - A2A_PROXY
                           - MCP_PROXY
                           - LLM_PROXY
+                          - GUARDIAN
             tags:
                 - Plugins - Policies
             summary: Get a policy schema
@@ -550,6 +551,11 @@ components:
                                 items:
                                   $ref: "#/components/schemas/FlowPhase"
                               A2A_PROXY:
+                                type: array
+                                uniqueItems: true
+                                items:
+                                  $ref: "#/components/schemas/FlowPhase"
+                              GUARDIAN:
                                 type: array
                                 uniqueItems: true
                                 items:

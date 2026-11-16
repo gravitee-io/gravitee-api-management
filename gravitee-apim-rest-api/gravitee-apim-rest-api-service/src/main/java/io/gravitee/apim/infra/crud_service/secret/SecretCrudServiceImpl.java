@@ -60,6 +60,18 @@ public class SecretCrudServiceImpl implements SecretCrudService {
     }
 
     @Override
+    public String getEncryptedValue(Secret secret) {
+        try {
+            return secretRepository
+                .findById(secret.organizationId(), secret.environmentId(), secret.id())
+                .map(stored -> stored.getEncryptedValue())
+                .orElseThrow(() -> new SecretNotFoundException(secret.id()));
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("Failed to read secret " + secret.id(), e);
+        }
+    }
+
+    @Override
     public Optional<Secret> findByKey(String organizationId, String environmentId, String key) {
         try {
             return secretRepository.findByKey(organizationId, environmentId, key).map(secretAdapter::fromRepository);

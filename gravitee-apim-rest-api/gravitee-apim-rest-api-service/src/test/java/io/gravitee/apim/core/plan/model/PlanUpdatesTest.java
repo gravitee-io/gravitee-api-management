@@ -20,6 +20,7 @@ import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import java.util.List;
 import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -117,6 +118,34 @@ class PlanUpdatesTest {
         var result = updates.applyTo(oldPlan);
 
         SoftAssertions.assertSoftly(soft -> soft.assertThat(result.getTags()).isEmpty());
+    }
+
+    @Test
+    void applyTo_should_preserve_excluded_groups_and_characteristics_when_updates_omit_them() {
+        var oldPlan = PlanFixtures.HttpV4.anApiKey().toBuilder().excludedGroups(List.of("private")).characteristics(List.of("sla")).build();
+
+        var updates = PlanUpdates.builder().name("new-name").order(1).build();
+
+        var result = updates.applyTo(oldPlan);
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(result.getExcludedGroups()).containsExactly("private");
+            soft.assertThat(result.getCharacteristics()).containsExactly("sla");
+        });
+    }
+
+    @Test
+    void applyTo_should_clear_excluded_groups_and_characteristics_when_updates_send_empty_lists() {
+        var oldPlan = PlanFixtures.HttpV4.anApiKey().toBuilder().excludedGroups(List.of("private")).characteristics(List.of("sla")).build();
+
+        var updates = PlanUpdates.builder().name("new-name").excludedGroups(List.of()).characteristics(List.of()).build();
+
+        var result = updates.applyTo(oldPlan);
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(result.getExcludedGroups()).isEmpty();
+            soft.assertThat(result.getCharacteristics()).isEmpty();
+        });
     }
 
     @Test

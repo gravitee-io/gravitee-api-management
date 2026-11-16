@@ -656,6 +656,21 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public CredentialCrudServiceInMemory credentialCrudService() {
+        return new CredentialCrudServiceInMemory();
+    }
+
+    @Bean
+    public CredentialQueryServiceInMemory credentialQueryService(CredentialCrudServiceInMemory credentialCrudService) {
+        return new CredentialQueryServiceInMemory(credentialCrudService);
+    }
+
+    @Bean
+    public CredentialConsumersInMemory credentialConsumers() {
+        return new CredentialConsumersInMemory();
+    }
+
+    @Bean
     public PortalCategoryCrudServiceInMemory portalCategoryCrudService() {
         return new PortalCategoryCrudServiceInMemory();
     }

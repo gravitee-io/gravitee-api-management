@@ -47,6 +47,7 @@ import io.gravitee.repository.management.api.ClientCertificateRepository;
 import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
 import io.gravitee.repository.management.api.ClusterRepository;
 import io.gravitee.repository.management.api.CommandRepository;
+import io.gravitee.repository.management.api.CredentialRepository;
 import io.gravitee.repository.management.api.CustomDashboardRepository;
 import io.gravitee.repository.management.api.CustomUserFieldsRepository;
 import io.gravitee.repository.management.api.DashboardRepository;
@@ -387,6 +388,9 @@ public class DeleteEnvironmentCommandHandlerTest {
     @Mock
     private SecretRepository secretRepository;
 
+    @Mock
+    private CredentialRepository credentialRepository;
+
     private DeleteEnvironmentCommandHandler cut;
 
     @BeforeEach
@@ -519,6 +523,7 @@ public class DeleteEnvironmentCommandHandlerTest {
             scoringRulesetRepository,
             scoringFunctionRepository,
             secretRepository,
+            credentialRepository,
             sharedPolicyGroupRepository,
             sharedPolicyGroupHistoryRepository,
             subscriptionFormRepository,
@@ -637,6 +642,7 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(clusterRepository).deleteByEnvironmentId(ENV_ID);
         verify(subscriptionFormRepository).deleteByEnvironmentId(ENV_ID);
         verify(secretRepository).deleteByEnvironmentId(ENV_ID);
+        verify(credentialRepository).deleteByEnvironmentId(ENV_ID);
     }
 
     @Test
@@ -679,6 +685,18 @@ public class DeleteEnvironmentCommandHandlerTest {
             .blockingGet();
 
         assertEquals(CommandStatus.ERROR, reply.getCommandStatus());
+    }
+
+    @Test
+    public void should_keep_the_environment_when_its_credentials_cannot_be_deleted() throws Exception {
+        doThrow(new TechnicalException("delete failed")).when(credentialRepository).deleteByEnvironmentId(ENV_ID);
+
+        DeleteEnvironmentReply reply = cut
+            .handle(new DeleteEnvironmentCommand(new DeleteEnvironmentCommandPayload("delete-env", ENV_ID, COCKPIT_USER_ID)))
+            .blockingGet();
+
+        assertEquals(CommandStatus.ERROR, reply.getCommandStatus());
+        verify(environmentService, never()).delete(ENV_ID);
     }
 
     @Test

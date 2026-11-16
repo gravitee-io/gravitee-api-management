@@ -25,6 +25,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiProductAuditEvent;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.common.utils.TimeProvider;
 import java.util.Map;
@@ -63,8 +64,8 @@ public class RemoveApiFromApiProductsDomainService {
             createAuditLog(auditInfo, updated);
             try {
                 validateApiProductService.validateForDeploy(updated);
-                deployApiProductDomainService.deploy(auditInfo, updated);
-            } catch (ValidationDomainException e) {
+                deployApiProductDomainService.deployApiList(auditInfo, updated);
+            } catch (ValidationDomainException | TechnicalDomainException e) {
                 log.warn("API Product [{}] cannot be auto-deployed after API [{}] removal: {}", updated.getId(), apiId, e.getMessage());
             }
         });

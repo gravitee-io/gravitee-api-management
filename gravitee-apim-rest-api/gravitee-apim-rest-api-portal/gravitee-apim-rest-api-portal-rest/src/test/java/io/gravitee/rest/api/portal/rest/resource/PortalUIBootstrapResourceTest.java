@@ -141,6 +141,29 @@ class PortalUIBootstrapResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    void should_return_the_only_portal_when_the_environment_has_no_default_portal() {
+        portalCrudService.initWith(
+            List.of(
+                Portal.of(
+                    DEFAULT_ENV_PORTAL_ID,
+                    ENVIRONMENT,
+                    ORG_ID,
+                    "Automation Portal",
+                    PortalNavigationStructure.empty(),
+                    null,
+                    false,
+                    url()
+                )
+            )
+        );
+
+        var response = bootstrap().request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        assertThat(response.readEntity(Map.class).get("portalId")).isEqualTo(DEFAULT_ENV_PORTAL_ID.toString());
+    }
+
+    @Test
     void should_return_the_default_portal_when_the_base_url_is_built_from_the_request() {
         when(installationAccessQueryService.getPortalAPIUrl(ENVIRONMENT)).thenReturn(null);
         portalCrudService.initWith(List.of(aDefaultPortal(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT)));

@@ -142,6 +142,9 @@
             "request-ended": {
                 "type": "boolean"
             },
+            "connection-phase": {
+                "type": "keyword"
+            },
             "entrypoint-id": {
                 "type": "keyword"
             },

@@ -51,6 +51,7 @@ import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFilterSpecUseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.domain_service.ApiCRDTargetDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
@@ -77,6 +78,7 @@ import io.gravitee.apim.core.api.use_case.PatchApiUseCase.ApiV4Deserializer;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.WsdlToImportApiUseCase;
 import io.gravitee.apim.core.api_key.domain_service.ReconcileApiKeysDomainService;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductResourceValidationDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductTagsValidationDomainService;
 import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDomainService;
@@ -621,6 +623,11 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public ApiProductResourceValidationDomainService apiProductResourceValidationDomainService() {
+        return mock(ApiProductResourceValidationDomainService.class);
+    }
+
+    @Bean
     public PlanSynchronizationService planSynchronizationService() {
         return mock(PlanSynchronizationService.class);
     }
@@ -686,6 +693,11 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiQueryService apiQueryService() {
         return mock(ApiQueryService.class);
+    }
+
+    @Bean
+    public ApiCRDTargetDomainService apiCRDTargetDomainService(ApiQueryService apiQueryService, ApiCrudServiceInMemory apiCrudService) {
+        return new ApiCRDTargetDomainService(apiQueryService, apiCrudService);
     }
 
     @Bean

@@ -21,7 +21,7 @@ import lombok.Getter;
 
 /**
  * Event payload emitted when an API Product is deployed, updated, or undeployed.
- * This event triggers security chain refresh for all APIs that are part of the product.
+ * Member APIs whose eligibility on this gateway may have changed are resynced on it.
  * Event type is specified via {@link ApiProductEventType} enum.
  *
  * @author GraviteeSource Team
@@ -41,7 +41,7 @@ public class ApiProductChangedEvent {
     private final String environmentId;
 
     /**
-     * Set of API IDs that are part of this product and need security chain refresh
+     * Set of API IDs that are part of this product
      */
     private final Set<String> apiIds;
 

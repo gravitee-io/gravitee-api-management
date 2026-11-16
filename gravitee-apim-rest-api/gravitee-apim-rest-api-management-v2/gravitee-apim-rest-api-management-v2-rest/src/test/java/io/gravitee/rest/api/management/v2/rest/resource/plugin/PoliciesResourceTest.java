@@ -111,6 +111,43 @@ class PoliciesResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    void should_expose_guardian_flow_phases() {
+        policyPluginQueryServiceInMemory.initWith(
+            List.of(
+                io.gravitee.apim.core.plugin.model.PolicyPlugin.builder()
+                    .id("guardrail-policy")
+                    .name("guardrail-policy")
+                    .feature("feature-1")
+                    .deployed(true)
+                    .flowPhaseCompatibility(
+                        Map.of(ApiProtocolType.GUARDIAN, Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE), ApiProtocolType.LLM_PROXY, Set.of())
+                    )
+                    .build()
+            )
+        );
+        var license = mock(License.class);
+        when(licenseManager.getOrganizationLicenseOrPlatform("fake-org")).thenReturn(license);
+        when(license.isFeatureEnabled("feature-1")).thenReturn(true);
+
+        final Response response = rootTarget().request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        final Set<PolicyPlugin> policyPlugins = response.readEntity(new GenericType<>() {});
+
+        assertThat(policyPlugins)
+            .as("guardrail policy guardian phases")
+            .filteredOn(policy -> "guardrail-policy".equals(policy.getId()))
+            .singleElement()
+            .extracting(policy -> policy.getFlowPhaseCompatibility().getGUARDIAN())
+            .isEqualTo(
+                Set.of(
+                    io.gravitee.rest.api.management.v2.rest.model.FlowPhase.REQUEST,
+                    io.gravitee.rest.api.management.v2.rest.model.FlowPhase.RESPONSE
+                )
+            );
+    }
+
+    @Test
     void should_return_sorted_policies() {
         policyPluginQueryServiceInMemory.initWith(
             List.of(

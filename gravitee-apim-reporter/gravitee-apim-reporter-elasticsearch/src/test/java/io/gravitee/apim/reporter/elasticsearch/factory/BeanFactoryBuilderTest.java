@@ -33,11 +33,15 @@ import io.gravitee.elasticsearch.exception.ElasticsearchException;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.elasticsearch.version.Version;
 import io.reactivex.rxjava3.core.Single;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -172,6 +176,43 @@ class BeanFactoryBuilderTest {
             assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null)).isInstanceOf(
                 OpenSearchIndexPreparer.class
             );
+        }
+    }
+
+    @Nested
+    class VersionDetection {
+
+        static Stream<Arguments> supportedVersions() {
+            return Stream.of(
+                Arguments.of("", "7.0.0", ES7IndexPreparer.class),
+                Arguments.of("", "7.17.25", ES7IndexPreparer.class),
+                Arguments.of("", "8.0.0", ES8IndexPreparer.class),
+                Arguments.of("", "8.17.2", ES8IndexPreparer.class),
+                Arguments.of("", "9.0.0", ES9IndexPreparer.class),
+                Arguments.of("", "9.2.1", ES9IndexPreparer.class),
+                Arguments.of("opensearch", "1.3.20", OpenSearchIndexPreparer.class),
+                Arguments.of("opensearch", "2.19.1", OpenSearchIndexPreparer.class),
+                Arguments.of("opensearch", "3.1.0", OpenSearchIndexPreparer.class)
+            );
+        }
+
+        @ParameterizedTest(name = "{0} {1}")
+        @MethodSource("supportedVersions")
+        void should_select_the_beans_of_the_major_version(String distribution, String number, Class<?> expectedPreparer) {
+            when(client.getInfo()).thenReturn(Single.just(elasticsearchInfo(distribution, number)));
+
+            BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client, new ReporterConfiguration());
+
+            assertThat(beanFactory).isNotNull();
+            assertThat(beanFactory.createIndexPreparer(new ReporterConfiguration(), null, null, null)).isInstanceOf(expectedPreparer);
+        }
+
+        @ParameterizedTest(name = "{0} {1}")
+        @CsvSource({ "'', 6.8.23", "'', 10.0.0", "opensearch, 4.0.0" })
+        void should_not_support_other_major_versions(String distribution, String number) {
+            when(client.getInfo()).thenReturn(Single.just(elasticsearchInfo(distribution, number)));
+
+            assertThat(BeanFactoryBuilder.buildFactory(client, new ReporterConfiguration())).isNull();
         }
     }
 

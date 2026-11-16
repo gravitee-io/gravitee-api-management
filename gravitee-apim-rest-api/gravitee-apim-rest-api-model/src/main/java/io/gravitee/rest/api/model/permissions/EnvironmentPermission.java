@@ -66,7 +66,8 @@ public enum EnvironmentPermission implements Permission {
     AUTHZ_SCIM_CONNECTION("AUTHZ_SCIM_CONNECTION", 5400),
     AUTHZ_SCIM_SYNC("AUTHZ_SCIM_SYNC", 5500),
     GUARDIAN("GUARDIAN", 5600),
-    SECRET("SECRET", 5700);
+    SECRET("SECRET", 5700),
+    CREDENTIAL("CREDENTIAL", 5800);
 
     String name;
     int mask;

@@ -20,9 +20,12 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.use_case.CreateApiProductPlanUseCase;
 import io.gravitee.apim.core.plan.use_case.GetPlansUseCase;
+import io.gravitee.apim.core.plan.use_case.UpdateApiProductPlanFlowsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiProductPlanMapper;
+import io.gravitee.rest.api.management.v2.rest.mapper.FlowMapper;
+import io.gravitee.rest.api.management.v2.rest.model.ApiProductPlanFlows;
 import io.gravitee.rest.api.management.v2.rest.model.ApiProductPlansResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiProductPlan;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
@@ -47,6 +50,7 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -69,6 +73,9 @@ public class ApiProductPlansResource extends AbstractResource {
 
     @Inject
     private GetPlansUseCase getPlansUseCase;
+
+    @Inject
+    private UpdateApiProductPlanFlowsUseCase updateApiProductPlanFlowsUseCase;
 
     @PathParam("apiProductId")
     private String apiProductId;
@@ -166,6 +173,45 @@ public class ApiProductPlansResource extends AbstractResource {
 
         log.debug("Plan {} created for API Product {}", output.id(), apiProductId);
         return Response.created(this.getLocationHeader(output.id())).entity(planMapper.map(output.plan())).build();
+    }
+
+    @PUT
+    @Path("_flows")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_PLAN, acls = { RolePermissionAction.UPDATE }) })
+    public Response updateApiProductPlansFlows(@Valid @NotNull List<@Valid @NotNull ApiProductPlanFlows> plansFlows) {
+        plansFlows.forEach(planFlows -> ApiProductResource.rejectNativeSteps(planFlows.getFlows()));
+        var plans = plansFlows
+            .stream()
+            .map(planFlows ->
+                new UpdateApiProductPlanFlowsUseCase.PlanFlows(
+                    planFlows.getPlanId(),
+                    null,
+                    FlowMapper.INSTANCE.mapToHttpV4(planFlows.getFlows())
+                )
+            )
+            .toList();
+        var executionContext = GraviteeContext.getExecutionContext();
+        var userDetails = getAuthenticatedUserDetails();
+        updateApiProductPlanFlowsUseCase.execute(
+            new UpdateApiProductPlanFlowsUseCase.Input(
+                apiProductId,
+                plans,
+                AuditInfo.builder()
+                    .organizationId(executionContext.getOrganizationId())
+                    .environmentId(executionContext.getEnvironmentId())
+                    .actor(
+                        AuditActor.builder()
+                            .userId(userDetails.getUsername())
+                            .userSource(userDetails.getSource())
+                            .userSourceId(userDetails.getSourceId())
+                            .build()
+                    )
+                    .build()
+            )
+        );
+        log.debug("Updated the flows of {} plans of API Product {}", plans.size(), apiProductId);
+        return Response.noContent().build();
     }
 
     @Path("{planId}")

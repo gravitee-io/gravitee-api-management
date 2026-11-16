@@ -28,6 +28,8 @@ public interface SecretCrudService {
 
     Secret update(Secret secret, String encryptedValue);
 
+    String getEncryptedValue(Secret secret);
+
     void delete(Secret secret);
 
     default Secret get(String organizationId, String environmentId, String id) {

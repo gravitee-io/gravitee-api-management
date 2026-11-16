@@ -78,6 +78,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>io.gravitee.apim.reporter</groupId>
+            <artifactId>gravitee-apim-reporter-common</artifactId>
+            <version>${apim.core.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <!-- ObservabilityEntrypointsDistributionTest holds the registry to the bundled entrypoint plugins. -->
             <groupId>io.gravitee.apim.repository</groupId>
             <artifactId>gravitee-apim-repository-api</artifactId>

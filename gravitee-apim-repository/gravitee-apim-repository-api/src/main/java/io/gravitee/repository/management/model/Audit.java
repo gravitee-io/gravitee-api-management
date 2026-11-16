@@ -77,6 +77,8 @@ public class Audit {
         TOKEN,
         USER_FIELD,
         NOTIFICATION_TEMPLATE,
+        GUARDIAN,
+        GUARDIAN_DEPLOYMENT,
         SHARED_POLICY_GROUP,
         CLUSTER,
         API_PRODUCT,
@@ -95,6 +97,7 @@ public class Audit {
         ENCRYPTED,
         MCP_SERVER,
         SECRET,
+        CREDENTIAL,
     }
 
     private String id;

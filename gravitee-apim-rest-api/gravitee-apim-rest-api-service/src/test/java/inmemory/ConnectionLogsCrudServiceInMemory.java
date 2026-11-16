@@ -38,6 +38,7 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
 
     private final InMemoryConnectionLogs connectionLogs = new InMemoryConnectionLogs();
     private final InMemoryConnectionLogDetails connectionLogDetails = new InMemoryConnectionLogDetails();
+    private List<DefinitionVersion> searchedDefinitionVersions;
 
     @Override
     public SearchLogsResponse<BaseConnectionLog> searchApiConnectionLogs(
@@ -68,6 +69,7 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
         Pageable pageable,
         List<DefinitionVersion> definitionVersions
     ) {
+        searchedDefinitionVersions = definitionVersions;
         var predicate = getBaseConnectionLogPredicate(logsFilters.toBuilder().apiIds(apiIds).build());
 
         var pageNumber = pageable.getPageNumber();
@@ -83,6 +85,11 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
         var page = matches.size() <= pageSize ? matches : matches.subList((pageNumber - 1) * pageSize, pageNumber * pageSize);
 
         return new SearchLogsResponse<>(matches.size(), page);
+    }
+
+    /** The definition versions whose logs the last API connection logs search read. */
+    public List<DefinitionVersion> searchedDefinitionVersions() {
+        return searchedDefinitionVersions;
     }
 
     @Override
@@ -207,6 +214,7 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
     public void reset() {
         connectionLogs.reset();
         connectionLogDetails.reset();
+        searchedDefinitionVersions = null;
     }
 
     @Override

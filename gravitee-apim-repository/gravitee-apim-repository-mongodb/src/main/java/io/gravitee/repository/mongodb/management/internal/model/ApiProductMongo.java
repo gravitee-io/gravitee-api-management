@@ -56,4 +56,7 @@ public class ApiProductMongo {
     private ApiProductKind kind;
     private String analytics;
     private String flowExecution;
+
+    @ToString.Exclude
+    private String resources;
 }

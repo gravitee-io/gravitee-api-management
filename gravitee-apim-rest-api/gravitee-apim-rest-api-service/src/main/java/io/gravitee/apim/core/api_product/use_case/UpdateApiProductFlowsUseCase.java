@@ -15,8 +15,6 @@
  */
 package io.gravitee.apim.core.api_product.use_case;
 
-import static io.gravitee.apim.core.utils.CollectionUtils.isEmpty;
-
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
@@ -28,17 +26,12 @@ import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiProductAuditEvent;
-import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -67,9 +60,7 @@ public class UpdateApiProductFlowsUseCase {
             .filter(product -> input.auditInfo().environmentId().equals(product.getEnvironmentId()))
             .orElseThrow(() -> new ApiProductNotFoundException(input.apiProductId()));
         var requested = input.apiProductFlows();
-        rejectStepsOutsideRequestAndResponse(requested.flows());
-        // A product declares no resources, and its flows must never resolve those of its member APIs.
-        var flows = flowValidationDomainService.validateAndSanitizeHttpV4(ApiType.PROXY, requested.flows(), Set.of());
+        var flows = flowValidationDomainService.validateAndSanitizeApiProductFlows(requested.flows());
 
         var before = new ApiProductFlows(apiProduct.getFlowExecution(), flowCrudService.getApiProductFlows(apiProduct.getId()));
         var savedFlows = flowCrudService.saveApiProductFlows(apiProduct.getId(), flows);
@@ -80,18 +71,6 @@ public class UpdateApiProductFlowsUseCase {
 
         createAuditLog(apiProduct, before, after, input.auditInfo());
         return new Output(after);
-    }
-
-    private static void rejectStepsOutsideRequestAndResponse(List<Flow> flows) {
-        for (int index = 0; index < flows.size(); index++) {
-            var flow = flows.get(index);
-            if (!isEmpty(flow.getPublish()) || !isEmpty(flow.getSubscribe())) {
-                var flowName = flow.getName() != null ? flow.getName() : "#" + index;
-                throw new ValidationDomainException(
-                    "Flow '" + flowName + "' has publish or subscribe steps; API Product flows only run in the request and response phases"
-                );
-            }
-        }
     }
 
     private void createAuditLog(ApiProduct apiProduct, ApiProductFlows before, ApiProductFlows after, AuditInfo auditInfo) {

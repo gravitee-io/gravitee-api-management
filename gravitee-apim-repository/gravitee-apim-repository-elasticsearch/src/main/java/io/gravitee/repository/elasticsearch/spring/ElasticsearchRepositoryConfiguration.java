@@ -28,6 +28,9 @@ import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.elasticsearch.analytics.spring.AnalyticsConfiguration;
 import io.gravitee.repository.elasticsearch.client.ElasticsearchHttpClientFactory;
+import io.gravitee.repository.elasticsearch.configuration.Flavor;
+import io.gravitee.repository.elasticsearch.configuration.FlavorRules;
+import io.gravitee.repository.elasticsearch.configuration.IndexMode;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.healthcheck.spring.HealthCheckConfiguration;
 import io.gravitee.repository.elasticsearch.log.spring.LogConfiguration;
@@ -88,14 +91,34 @@ public class ElasticsearchRepositoryConfiguration {
     }
 
     @Bean
-    public IndexNameGenerator indexNameGenerator(RepositoryConfiguration repositoryConfiguration, ElasticsearchInfo info) {
-        if (info.getVersion().canUseIlmManagedIndex() && repositoryConfiguration.isILMIndex()) {
+    public IndexNameGenerator indexNameGenerator(
+        RepositoryConfiguration repositoryConfiguration,
+        ElasticsearchInfo info,
+        IndexMode indexMode
+    ) {
+        // A data stream is read by its name, which is the one an ILM rollover alias has.
+        if (indexMode == IndexMode.DATA_STREAM || (info.getVersion().canUseIlmManagedIndex() && indexMode == IndexMode.ILM)) {
             return new ILMIndexNameGenerator(repositoryConfiguration.getIndexName());
         } else if (!info.getVersion().canUseMultiTypeIndex() || repositoryConfiguration.isPerTypeIndex()) {
             return new PerTypeIndexNameGenerator(repositoryConfiguration.getIndexName());
         } else {
             return new MultiTypeIndexNameGenerator(repositoryConfiguration.getIndexName());
         }
+    }
+
+    @Bean
+    public IndexMode indexMode(RepositoryConfiguration repositoryConfiguration, Flavor flavor) {
+        return FlavorRules.indexMode(flavor, repositoryConfiguration);
+    }
+
+    /**
+     * Warns about the settings the flavor ignores.
+     */
+    @Bean
+    public Flavor flavor(RepositoryConfiguration repositoryConfiguration, ElasticsearchInfo info) {
+        final Flavor flavor = Flavor.configured(repositoryConfiguration.getFlavor()).orElseGet(() -> Flavor.detected(info));
+        FlavorRules.violation(flavor, repositoryConfiguration).ifPresent(log::warn);
+        return flavor;
     }
 
     @Bean

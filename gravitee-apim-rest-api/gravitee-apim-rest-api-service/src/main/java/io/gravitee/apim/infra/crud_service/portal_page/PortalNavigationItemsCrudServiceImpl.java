@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.crud_service.portal_page;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -23,8 +24,10 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import io.gravitee.apim.infra.adapter.PortalNavigationItemAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -110,6 +113,65 @@ public class PortalNavigationItemsCrudServiceImpl implements PortalNavigationIte
                 id
             );
             throw new TechnicalDomainException(errorMessage, e);
+        }
+    }
+
+    @Override
+    public Set<PortalId> findReferencedPortalIds(String environmentId) {
+        try {
+            return portalNavigationItemRepository
+                .findPortalReferenceIdsByEnvironmentId(environmentId)
+                .stream()
+                .map(PortalId::of)
+                .collect(Collectors.toSet());
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format(
+                    "An error occurred while finding the portals referenced by the navigation items of environment %s",
+                    environmentId
+                ),
+                e
+            );
+        }
+    }
+
+    @Override
+    public long updatePortalReferences(String environmentId, Collection<PortalId> fromPortalIds, PortalId toPortalId) {
+        try {
+            return portalNavigationItemRepository.updatePortalReferences(
+                environmentId,
+                fromPortalIds.stream().map(PortalId::toString).toList(),
+                toPortalId.toString()
+            );
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format(
+                    "An error occurred while moving the navigation items of environment %s to portal %s",
+                    environmentId,
+                    toPortalId
+                ),
+                e
+            );
+        }
+    }
+
+    @Override
+    public long updateAutomationPortalReferences(String environmentId, Collection<PortalId> fromPortalIds, PortalId portalId) {
+        try {
+            return portalNavigationItemRepository.updateAutomationPortalReferences(
+                environmentId,
+                fromPortalIds.stream().map(PortalId::toString).toList(),
+                portalId.toString()
+            );
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format(
+                    "An error occurred while moving the Automation API navigation items of environment %s to portal %s",
+                    environmentId,
+                    portalId
+                ),
+                e
+            );
         }
     }
 

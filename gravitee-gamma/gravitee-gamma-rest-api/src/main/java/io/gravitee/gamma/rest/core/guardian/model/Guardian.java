@@ -20,8 +20,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.definition.model.v4.resource.Resource;
-import java.time.ZonedDateTime;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -37,8 +36,9 @@ import lombok.NoArgsConstructor;
  * class reads the rest through it rather than keeping a second copy, so the two cannot drift apart.
  *
  * <p>Four things are its own, because the gateway has no use for them: the description the console
- * shows, the lifecycle state, the deployment stamp, and the two timestamps. {@code deployedAt} sits
- * here rather than in the definition because only a deployment writes it.
+ * shows, the lifecycle state, the deployment stamp, and the two timestamps. The lifecycle state,
+ * {@code deployedAt} and {@code deployedRevisionId} are derived from the latest publication of the Guardian
+ * whenever it is read; the values stored with it are never relied upon.
  *
  * <p>The definition field is spelled out rather than imported: a domain class named {@code Guardian}
  * cannot import another one.
@@ -55,9 +55,10 @@ public class Guardian {
 
     private String description;
     private GuardianLifecycleState lifecycleState;
-    private Date deployedAt;
-    private ZonedDateTime createdAt;
-    private ZonedDateTime updatedAt;
+    private Instant deployedAt;
+    private String deployedRevisionId;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     /**
      * The Guardian a creation payload describes, scoped to the environment it is created in — which
@@ -79,7 +80,7 @@ public class Guardian {
         return this.toBuilder()
             .definition(command.getDefinition().toBuilder().id(getId()).environmentId(getEnvironmentId()).build())
             .description(command.getDescription())
-            .updatedAt(TimeProvider.now())
+            .updatedAt(TimeProvider.instantNow())
             .build();
     }
 

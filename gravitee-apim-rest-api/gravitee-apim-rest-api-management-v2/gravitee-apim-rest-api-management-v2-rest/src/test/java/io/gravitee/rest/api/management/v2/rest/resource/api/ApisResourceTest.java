@@ -99,6 +99,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -645,6 +646,13 @@ class ApisResourceTest extends AbstractResourceTest {
             parametersQueryService.define(
                 new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), "fake-env", ParameterReferenceType.ENVIRONMENT, "true")
             );
+            // The dry run resolves the primary owner of an API to create, as the import does
+            parametersQueryService.define(
+                new Parameter(Key.API_PRIMARY_OWNER_MODE.key(), ENVIRONMENT, ParameterReferenceType.ENVIRONMENT, "USER")
+            );
+            userCrudService.initWith(
+                List.of(BaseUserEntity.builder().id(USER_NAME).firstname("John").lastname("Doe").email("john.doe@gravitee.io").build())
+            );
             when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
             roleQueryService.initWith(
                 List.of(
@@ -845,6 +853,19 @@ class ApisResourceTest extends AbstractResourceTest {
             var crdStatus = doImport("/crd/with-unknown-category.json", true);
 
             Assertions.assertThat(crdStatus.getId()).isEqualTo(existing.getId());
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = { false, true })
+        void should_return_400_when_the_id_names_an_api_of_another_environment(boolean dryRun) {
+            apiCrudService.initWith(
+                List.of(aProxyApiV4().toBuilder().id("63cb34e5-e5cb-40cf-94ca-4687e7813473").environmentId("other-environment").build())
+            );
+
+            var response = target.queryParam("dryRun", dryRun).request().put(Entity.json(readJSON("/crd/with-unknown-category.json")));
+
+            assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasMessageContaining("belongs to another environment");
+            Assertions.assertThat(apiCrudService.storage()).extracting(Api::getEnvironmentId).containsExactly("other-environment");
         }
 
         private Api givenExistingApi() {

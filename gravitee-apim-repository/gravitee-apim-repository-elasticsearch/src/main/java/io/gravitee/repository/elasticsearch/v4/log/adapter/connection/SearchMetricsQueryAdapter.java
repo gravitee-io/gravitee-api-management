@@ -21,6 +21,7 @@ import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query;
 import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Tokens;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.HTTPFieldResolver;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
+import io.gravitee.repository.elasticsearch.v4.shared.ConnectionEndFirst;
 import io.gravitee.repository.elasticsearch.v4.shared.EntrypointScopeClause;
 import io.gravitee.repository.elasticsearch.v4.shared.StatusCodeGroups;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
@@ -44,7 +45,32 @@ public class SearchMetricsQueryAdapter {
     // The request documents analytics reads too: an additional metric field resolves here as it does there.
     private static final FieldResolver REQUEST_FIELDS = new HTTPFieldResolver();
 
+    public static final String CONNECTIONS_AGGREGATION = "connections";
+    private static final int CONNECTIONS_PRECISION = 40000;
+    private static final String REQUEST_ID_FIELD = RequestV2MetricsV4Fields.REQUEST_ID.v4Metrics();
+
     private SearchMetricsQueryAdapter() {}
+
+    /**
+     * The same page, one row per connection: a message API connection writes an opening and an end, and only the
+     * end is shown once there is one. The total then counts connections rather than documents — approximately
+     * past {@value #CONNECTIONS_PRECISION}, which is beyond the deepest page a search can reach.
+     *
+     * <p>v4 indices only: collapsing fails on an index that does not map {@code request-id}, the v2 one among them.
+     */
+    public static String adaptOnePerConnection(MetricsQuery query) {
+        var search = new JsonObject(adapt(query));
+        search.put("sort", buildSort().add(ConnectionEndFirst.sort()));
+        search.put("collapse", JsonObject.of("field", REQUEST_ID_FIELD));
+        search.put(
+            "aggs",
+            JsonObject.of(
+                CONNECTIONS_AGGREGATION,
+                JsonObject.of("cardinality", JsonObject.of("field", REQUEST_ID_FIELD, "precision_threshold", CONNECTIONS_PRECISION))
+            )
+        );
+        return search.encode();
+    }
 
     public static String adapt(MetricsQuery query) {
         var jsonContent = new HashMap<String, Object>();

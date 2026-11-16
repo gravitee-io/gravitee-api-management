@@ -26,6 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PlanFixtures;
+import inmemory.FlowCrudServiceInMemory;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.plan.domain_service.PlanExcludedGroupsDomainService;
@@ -34,6 +35,7 @@ import io.gravitee.apim.core.plan.query_service.PlanSearchQueryService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
 import java.util.List;
@@ -67,16 +69,64 @@ class GetPlansUseCaseTest {
     @Mock
     private PlanExcludedGroupsDomainService planExcludedGroupsDomainService;
 
+    private final FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
+
     private GetPlansUseCase getPlansUseCase;
 
     @BeforeEach
     void setUp() {
+        flowCrudService.reset();
         getPlansUseCase = new GetPlansUseCase(
             planSearchQueryService,
             subscriptionQueryService,
             apiProductCrudService,
-            planExcludedGroupsDomainService
+            planExcludedGroupsDomainService,
+            flowCrudService
         );
+    }
+
+    @Nested
+    class PlanFlows {
+
+        @Test
+        void should_return_the_flows_of_each_plan_in_order() {
+            var plan1 = PlanFixtures.aPlanHttpV4().toBuilder().id("plan-1").order(1).build();
+            var plan2 = PlanFixtures.aPlanHttpV4().toBuilder().id("plan-2").order(2).build();
+            flowCrudService.savePlanFlows("plan-1", List.of(Flow.builder().name("first").build(), Flow.builder().name("second").build()));
+            PlanQuery query = PlanQuery.builder().referenceId(API_PRODUCT_ID).build();
+            when(planSearchQueryService.searchPlans(anyString(), any(), any(), anyString(), anyBoolean())).thenReturn(
+                List.of(plan2, plan1)
+            );
+
+            var output = getPlansUseCase.execute(
+                GetPlansUseCase.Input.of(API_PRODUCT_ID, GenericPlanEntity.ReferenceType.API_PRODUCT, USER, true, query, null)
+            );
+
+            assertThat(output.plans())
+                .extracting(plan -> plan.getPlanDefinitionHttpV4().getFlows().stream().map(Flow::getName).toList())
+                .containsExactly(List.of("first", "second"), List.of());
+        }
+
+        @Test
+        void should_return_the_flows_of_a_single_plan() {
+            var plan = PlanFixtures.aPlanHttpV4().toBuilder().id(PLAN_ID).build();
+            flowCrudService.savePlanFlows(PLAN_ID, List.of(Flow.builder().name("budget").build()));
+            when(
+                planSearchQueryService.findByPlanIdAndReferenceIdAndReferenceType(
+                    PLAN_ID,
+                    API_PRODUCT_ID,
+                    GenericPlanEntity.ReferenceType.API_PRODUCT
+                )
+            ).thenReturn(plan);
+
+            var output = getPlansUseCase.execute(
+                GetPlansUseCase.Input.of(API_PRODUCT_ID, PLAN_ID, GenericPlanEntity.ReferenceType.API_PRODUCT)
+            );
+
+            assertThat(output.plan().orElseThrow().getPlanDefinitionHttpV4().getFlows())
+                .extracting(Flow::getName)
+                .containsExactly("budget");
+        }
     }
 
     @Nested

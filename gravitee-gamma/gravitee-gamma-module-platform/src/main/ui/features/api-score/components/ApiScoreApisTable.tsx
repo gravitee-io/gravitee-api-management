@@ -70,7 +70,7 @@ function CountCell({
     );
 }
 
-function buildColumns(detailHref: (apiId: string) => string): DataTableProps<EnvironmentApiScore>['columns'] {
+function buildColumns(detailHref: (api: EnvironmentApiScore) => string): DataTableProps<EnvironmentApiScore>['columns'] {
     return [
         {
             id: 'name',
@@ -83,7 +83,7 @@ function buildColumns(detailHref: (apiId: string) => string): DataTableProps<Env
                     variant="link"
                     className="h-auto cursor-pointer p-0 text-left font-medium text-foreground hover:underline hover:text-foreground"
                 >
-                    <Link to={detailHref(row.original.id)}>{row.original.name}</Link>
+                    <Link to={detailHref(row.original)}>{row.original.name}</Link>
                 </Button>
             ),
         },
@@ -151,7 +151,7 @@ function buildColumns(detailHref: (apiId: string) => string): DataTableProps<Env
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-auto min-w-56">
                             <DropdownMenuItem asChild className="whitespace-nowrap">
-                                <Link to={detailHref(row.original.id)}>View API-level Score Details</Link>
+                                <Link to={detailHref(row.original)}>View API-level Score Details</Link>
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -176,7 +176,7 @@ export function ApiScoreApisTable({
     loading: boolean;
     page: number;
     pageSize: number;
-    detailHref: (apiId: string) => string;
+    detailHref: (api: EnvironmentApiScore) => string;
     onPageChange: (page: number) => void;
     onPageSizeChange: (size: number) => void;
 }>) {

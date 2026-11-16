@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.reporter.elasticsearch.factory;
 
+import io.gravitee.apim.reporter.elasticsearch.config.Flavor;
+import io.gravitee.apim.reporter.elasticsearch.config.FlavorRules;
 import io.gravitee.apim.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.factory.es7.Elastic7xBeanFactory;
 import io.gravitee.apim.reporter.elasticsearch.factory.es8.Elastic8xBeanFactory;
@@ -26,6 +28,7 @@ import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.reactivex.rxjava3.core.BackpressureStrategy;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Observable;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.CustomLog;
@@ -39,9 +42,35 @@ import org.springframework.util.StringUtils;
 public class BeanFactoryBuilder {
 
     private static final Set<Integer> SUPPORTED_OPENSEARCH_MAJOR_VERSIONS = Set.of(1, 2, 3);
+    private static final String REPORTER_DISABLED = "The Elasticsearch reporter is disabled.";
 
+    /**
+     * @return the beans for the cluster, or null when the reporter must stay inactive: the reason is already logged
+     */
     public static BeanFactory buildFactory(final Client client, final ReporterConfiguration configuration) {
+        final Optional<Flavor> configuredFlavor;
+        try {
+            configuredFlavor = Flavor.configured(configuration.getFlavor());
+        } catch (IllegalArgumentException e) {
+            log.error("{} {}", e.getMessage(), REPORTER_DISABLED);
+            return null;
+        }
+
         ElasticsearchInfo info = retrieveElasticSearchInfo(client, configuration);
+        final Flavor flavor = configuredFlavor.orElseGet(() -> Flavor.detected(info));
+        final Optional<String> violation = FlavorRules.violation(flavor, configuration);
+        if (violation.isPresent()) {
+            log.error("{} {}", violation.get(), REPORTER_DISABLED);
+            return null;
+        }
+
+        // Serverless answers with a regular 8.x or 9.x version: it must never reach the classic beans below.
+        if (flavor == Flavor.SERVERLESS) {
+            logStartupSummary(configuration, flavor, configuredFlavor.isEmpty());
+            log.error("The Elastic Cloud Serverless index setup is not available in this version yet. {}", REPORTER_DISABLED);
+            return null;
+        }
+
         BeanFactory beanFactory = getBeanFactoryFromElasticsearchInfo(info);
         if (beanFactory == null) {
             log.error(
@@ -51,7 +80,26 @@ public class BeanFactoryBuilder {
             );
             return null;
         }
+        logStartupSummary(configuration, flavor, configuredFlavor.isEmpty());
         return beanFactory;
+    }
+
+    private static void logStartupSummary(final ReporterConfiguration configuration, final Flavor flavor, final boolean detected) {
+        log.info(
+            "Elasticsearch reporter: flavor [{}] ({}), authentication [{}], index mode [{}], disabled by the flavor [{}]",
+            flavor.value(),
+            detected ? "detected" : "configured",
+            authenticationMode(configuration),
+            FlavorRules.indexMode(flavor, configuration),
+            FlavorRules.disabledFeatures(flavor)
+        );
+    }
+
+    private static String authenticationMode(final ReporterConfiguration configuration) {
+        if (StringUtils.hasText(configuration.getApiKey())) {
+            return "api_key";
+        }
+        return StringUtils.hasText(configuration.getUsername()) ? "basic" : "none";
     }
 
     private static ElasticsearchInfo retrieveElasticSearchInfo(final Client client, final ReporterConfiguration configuration) {

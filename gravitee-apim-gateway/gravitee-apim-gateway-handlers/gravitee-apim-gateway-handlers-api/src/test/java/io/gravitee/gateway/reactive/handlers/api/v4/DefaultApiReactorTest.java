@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.atLeastOnce;
@@ -39,6 +40,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import appender.MemoryAppender;
@@ -46,7 +48,6 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.v4.analytics.Analytics;
@@ -55,11 +56,12 @@ import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
+import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
-import io.gravitee.gateway.handlers.api.event.ApiProductChangedEvent;
+import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.event.ApiProductEventType;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.opentelemetry.TracingContext;
@@ -85,8 +87,11 @@ import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.reactive.core.v4.invoker.HttpEndpointInvoker;
 import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.ConnectionHandlerAdapter;
+import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChain;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
+import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntime;
+import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeRegistry;
 import io.gravitee.gateway.reactive.handlers.api.v4.security.HttpSecurityChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
@@ -119,6 +124,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import org.assertj.core.groups.Tuple;
@@ -323,12 +329,6 @@ class DefaultApiReactorTest {
     @Mock
     private EventManager eventManager;
 
-    @Mock
-    private ApiProductRegistry apiProductRegistry;
-
-    @Mock
-    private ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory;
-
     private TestScheduler testScheduler;
 
     private DefaultApiReactor cut;
@@ -433,6 +433,10 @@ class DefaultApiReactorTest {
     }
 
     private DefaultApiReactor buildApiReactor() {
+        return buildApiReactor(null);
+    }
+
+    private DefaultApiReactor buildApiReactor(ApiProductRuntimeRegistry apiProductRuntimeRegistry) {
         DefaultApiReactor defaultApiReactor = null;
         try {
             defaultApiReactor = new DefaultApiReactor(
@@ -457,8 +461,7 @@ class DefaultApiReactorTest {
                 new HttpAcceptorFactory(false),
                 tracingContext,
                 logGuardService,
-                apiProductRegistry,
-                apiProductPlanPolicyManagerFactory
+                apiProductRuntimeRegistry
             );
             ReflectionTestUtils.setField(defaultApiReactor, "entrypointConnectorResolver", entrypointConnectorResolver);
             ReflectionTestUtils.setField(defaultApiReactor, "defaultInvoker", defaultInvoker);
@@ -1096,34 +1099,8 @@ class DefaultApiReactorTest {
     }
 
     @Test
-    void shouldSubscribeAndUnsubscribeWithSameLambdaListener() throws Exception {
-        ArgumentCaptor<EventListener<ApiProductEventType, ApiProductChangedEvent>> captor = ArgumentCaptor.forClass(EventListener.class);
-        verify(eventManager).subscribeForEvents(captor.capture(), eq(ApiProductEventType.class));
-        EventListener<ApiProductEventType, ApiProductChangedEvent> subscribedListener = captor.getValue();
-
-        assertThat(subscribedListener).isNotSameAs(cut);
-
-        cut.doStop();
-
-        verify(eventManager).unsubscribeForEvents(subscribedListener, ApiProductEventType.class);
-    }
-
-    @Test
-    void shouldNotLoseNewListenerWhenOldReactorStops() throws Exception {
-        ArgumentCaptor<EventListener<ApiProductEventType, ApiProductChangedEvent>> captor1 = ArgumentCaptor.forClass(EventListener.class);
-        verify(eventManager).subscribeForEvents(captor1.capture(), eq(ApiProductEventType.class));
-        EventListener<ApiProductEventType, ApiProductChangedEvent> oldListener = captor1.getValue();
-
-        buildApiReactor();
-        ArgumentCaptor<EventListener<ApiProductEventType, ApiProductChangedEvent>> captor2 = ArgumentCaptor.forClass(EventListener.class);
-        verify(eventManager, times(2)).subscribeForEvents(captor2.capture(), eq(ApiProductEventType.class));
-        EventListener<ApiProductEventType, ApiProductChangedEvent> newListener = captor2.getAllValues().get(1);
-
-        assertThat(newListener).isNotSameAs(oldListener);
-
-        cut.doStop();
-        verify(eventManager).unsubscribeForEvents(oldListener, ApiProductEventType.class);
-        verify(eventManager, never()).unsubscribeForEvents(newListener, ApiProductEventType.class);
+    void should_not_listen_to_api_product_events() {
+        verify(eventManager, never()).subscribeForEvents(any(), eq(ApiProductEventType.class));
     }
 
     @Test
@@ -1423,6 +1400,184 @@ class DefaultApiReactorTest {
             spyEntrypointResponse,
             spyResponseEnd
         );
+    }
+
+    @Nested
+    class ApiProductRuntimePinning {
+
+        private static final String PRODUCT_ID = "product-id";
+
+        private final ApiProductRuntimeRegistry apiProductRuntimeRegistry = mock(ApiProductRuntimeRegistry.class);
+        private final ApiProductRuntime runtime = mock(ApiProductRuntime.class);
+        private final FlowChain productPlanFlowChain = mock(FlowChain.class);
+        private final AtomicReference<Object> pinned = new AtomicReference<>();
+
+        @BeforeEach
+        void stubPinnedRuntimeAttribute() {
+            lenient()
+                .doAnswer(invocation -> {
+                    pinned.set(invocation.getArgument(1));
+                    return null;
+                })
+                .when(ctx)
+                .setInternalAttribute(eq(ApiProductRuntime.ATTR_INTERNAL_API_PRODUCT_RUNTIME), any());
+            lenient()
+                .when(ctx.getInternalAttribute(ApiProductRuntime.ATTR_INTERNAL_API_PRODUCT_RUNTIME))
+                .thenAnswer(invocation -> pinned.get());
+            lenient()
+                .doAnswer(invocation -> {
+                    pinned.set(null);
+                    return null;
+                })
+                .when(ctx)
+                .removeInternalAttribute(ApiProductRuntime.ATTR_INTERNAL_API_PRODUCT_RUNTIME);
+            lenient().when(runtime.productPlanFlowChain(false)).thenReturn(productPlanFlowChain);
+            lenient().when(runtime.resourceManager()).thenReturn(mock(ResourceLifecycleManager.class));
+            lenient().when(productPlanFlowChain.execute(any(), any())).thenReturn(Completable.complete());
+        }
+
+        @Test
+        void should_run_the_product_plan_flows_of_the_pinned_runtime_in_both_phases_and_release_it_once() {
+            givenInternalSubscriptionOfProduct(PRODUCT_ID);
+            when(apiProductRuntimeRegistry.acquire(PRODUCT_ID, ENVIRONMENT_ID)).thenReturn(runtime);
+            when(runtime.servesApi(API_ID)).thenReturn(true);
+            cut = buildApiReactor(apiProductRuntimeRegistry);
+
+            cut.handle(ctx).test().assertComplete();
+
+            InOrder inOrder = inOrder(runtime, productPlanFlowChain);
+            inOrder.verify(runtime).extractPathParameters(ctx);
+            inOrder.verify(productPlanFlowChain).execute(any(), eq(ExecutionPhase.REQUEST));
+            inOrder.verify(productPlanFlowChain).execute(any(), eq(RESPONSE));
+            inOrder.verify(runtime).release();
+            verify(apiProductRuntimeRegistry, times(1)).acquire(PRODUCT_ID, ENVIRONMENT_ID);
+        }
+
+        @Test
+        void should_release_the_runtime_once_when_its_product_plan_flows_fail() {
+            givenInternalSubscriptionOfProduct(PRODUCT_ID);
+            when(apiProductRuntimeRegistry.acquire(PRODUCT_ID, ENVIRONMENT_ID)).thenReturn(runtime);
+            when(runtime.servesApi(API_ID)).thenReturn(true);
+            when(productPlanFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenReturn(
+                Completable.error(new IllegalStateException("policy failed"))
+            );
+            cut = buildApiReactor(apiProductRuntimeRegistry);
+
+            cut.handle(ctx).test().assertComplete();
+
+            verify(runtime, times(1)).release();
+        }
+
+        @Test
+        void should_run_no_product_plan_flow_and_release_the_runtime_of_a_product_not_listing_this_api() {
+            givenInternalSubscriptionOfProduct(PRODUCT_ID);
+            when(apiProductRuntimeRegistry.acquire(PRODUCT_ID, ENVIRONMENT_ID)).thenReturn(runtime);
+            when(runtime.servesApi(API_ID)).thenReturn(false);
+            cut = buildApiReactor(apiProductRuntimeRegistry);
+
+            cut.handle(ctx).test().assertComplete();
+
+            verify(runtime, times(1)).release();
+            verify(runtime, never()).productPlanFlowChain(anyBoolean());
+            verify(runtime, never()).extractPathParameters(any());
+            verify(ctx, never()).setInternalAttribute(eq(ApiProductRuntime.ATTR_INTERNAL_API_PRODUCT_RUNTIME), any());
+        }
+
+        @Test
+        void should_keep_the_runtime_the_security_chain_pinned_for_the_product_of_the_subscription() {
+            givenInternalSubscriptionOfProduct(PRODUCT_ID);
+            ReactableApiProduct product = ReactableApiProduct.builder().id(PRODUCT_ID).build();
+            when(runtime.product()).thenReturn(product);
+            when(securityChain.execute(any())).thenReturn(Completable.fromRunnable(() -> pinned.set(runtime)));
+            cut = buildApiReactor(apiProductRuntimeRegistry);
+
+            cut.handle(ctx).test().assertComplete();
+
+            verify(apiProductRuntimeRegistry, never()).acquire(any(), any());
+            verify(runtime).extractPathParameters(ctx);
+            verify(productPlanFlowChain).execute(any(), eq(ExecutionPhase.REQUEST));
+            verify(runtime, times(1)).release();
+        }
+
+        @Test
+        void should_fail_the_request_instead_of_running_the_plan_flows_of_a_runtime_stopped_at_the_drain_timeout() {
+            givenInternalSubscriptionOfProduct(PRODUCT_ID);
+            when(apiProductRuntimeRegistry.acquire(PRODUCT_ID, ENVIRONMENT_ID)).thenReturn(runtime);
+            when(runtime.servesApi(API_ID)).thenReturn(true);
+            when(runtime.isStopped()).thenReturn(true);
+            cut = buildApiReactor(apiProductRuntimeRegistry);
+
+            cut.handle(ctx).test().assertComplete();
+
+            verify(productPlanFlowChain, never()).execute(any(), any());
+            ArgumentCaptor<ExecutionFailure> failure = ArgumentCaptor.forClass(ExecutionFailure.class);
+            verify(ctx, atLeastOnce()).interruptWith(failure.capture());
+            assertThat(failure.getAllValues()).anySatisfy(executionFailure -> {
+                assertThat(executionFailure.statusCode()).isEqualTo(503);
+                assertThat(executionFailure.key()).isEqualTo("API_PRODUCT_RUNTIME_STOPPED");
+            });
+            verify(runtime, times(1)).release();
+        }
+
+        @Test
+        void should_look_up_no_runtime_when_the_internal_subscription_has_no_product() {
+            givenInternalSubscriptionOfProduct(null);
+            cut = buildApiReactor(apiProductRuntimeRegistry);
+
+            cut.handle(ctx).test().assertComplete();
+
+            verify(apiProductRuntimeRegistry, never()).acquire(any(), any());
+        }
+
+        @Test
+        void should_run_product_plans_for_a_reactor_plugin_built_with_the_registry_and_policy_manager_factory() throws Exception {
+            givenInternalSubscriptionOfProduct(PRODUCT_ID);
+            when(apiProductRuntimeRegistry.acquire(PRODUCT_ID, ENVIRONMENT_ID)).thenReturn(runtime);
+            when(runtime.servesApi(API_ID)).thenReturn(true);
+            when(apiComponentProvider.getComponent(ApiProductRuntimeRegistry.class)).thenReturn(apiProductRuntimeRegistry);
+            ApiProductPlanPolicyManagerFactory unusedFactory = mock(ApiProductPlanPolicyManagerFactory.class);
+            cut = new DefaultApiReactor(
+                api,
+                new DefaultDeploymentContext(),
+                apiComponentProvider,
+                new ArrayList<>(),
+                policyManager,
+                entrypointConnectorPluginManager,
+                apiServicePluginManager,
+                endpointManager,
+                resourceLifecycleManager,
+                apiProcessorChainFactory,
+                flowChainFactory,
+                v4FlowChainFactory,
+                configuration,
+                node,
+                requestTimeoutConfiguration,
+                reporterService,
+                accessPointManager,
+                eventManager,
+                new HttpAcceptorFactory(false),
+                tracingContext,
+                logGuardService,
+                mock(ApiProductRegistry.class),
+                unusedFactory
+            );
+            ReflectionTestUtils.setField(cut, "entrypointConnectorResolver", entrypointConnectorResolver);
+            ReflectionTestUtils.setField(cut, "defaultInvoker", defaultInvoker);
+            cut.doStart();
+            ReflectionTestUtils.setField(cut, "httpSecurityChain", securityChain);
+
+            cut.handle(ctx).test().assertComplete();
+
+            verify(productPlanFlowChain).execute(any(), eq(ExecutionPhase.REQUEST));
+            verify(runtime, times(1)).release();
+            verifyNoInteractions(unusedFactory);
+        }
+
+        private void givenInternalSubscriptionOfProduct(String apiProductId) {
+            Subscription subscription = new Subscription();
+            subscription.setApiProductId(apiProductId);
+            lenient().when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION)).thenReturn(subscription);
+        }
     }
 
     @Nested

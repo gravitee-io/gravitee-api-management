@@ -75,6 +75,8 @@ public class UpgraderOrder {
     public static final int PORTAL_NAVIGATION_ITEM_API_OWNED_REKEY_UPGRADER = 725;
     public static final int PORTAL_NAVIGATION_ITEM_API_OWNED_CONSOLE_MIGRATION_UPGRADER = 726;
     public static final int ENVIRONMENTS_DEFAULT_APIS_FOLDER_UPGRADER = 727;
+    // After every portal navigation upgrader, so nothing they write is left behind on a stale portal reference.
+    public static final int PORTAL_REFERENCES_UPGRADER = 728;
     public static final int CLUSTER_ROLES_UPGRADER = 900;
     public static final int CLUSTER_CROSS_ID_UPGRADER = 901;
     public static final int API_ENDPOINT_WEIGHT_UPGRADER = 560;
@@ -96,4 +98,5 @@ public class UpgraderOrder {
     public static final int GAMMA_AUTHZ_PDP_PERMISSION_UPGRADER = 964;
     public static final int GUARDIAN_ROLES_UPGRADER = 965;
     public static final int SECRET_PERMISSION_UPGRADER = 966;
+    public static final int CREDENTIAL_PERMISSION_UPGRADER = 967;
 }

@@ -20,6 +20,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import io.gravitee.apim.plugin.apiservice.healthcheck.http.HttpHealthCheckServiceConfiguration;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
 import java.util.List;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -58,13 +59,66 @@ public class HttpHealthCheckRequestTest {
         assertThat(cut.path()).isNotNull().isEqualTo(config.getTarget());
         assertThat(cut.method()).isNotNull().isEqualTo(config.getMethod());
         assertThat(cut.headers()).isNotNull();
-        assertThat(cut.headers().size()).isEqualTo(0);
+        assertThat(cut.headers().size()).isEqualTo(1);
+        assertThat(cut.headers().get(HttpHeaderNames.CONTENT_LENGTH)).isEqualTo("12");
         assertThat(cut.body()).isNotNull();
         cut
             .body()
             .test()
             .await()
             .assertValue(boby -> config.getBody().equals(boby.toString()));
+    }
+
+    @Test
+    public void should_set_content_length_to_the_body_size_in_bytes() {
+        final var config = new HttpHealthCheckServiceConfiguration();
+        config.setTarget("/hc");
+        config.setMethod(HttpMethod.POST);
+        config.setBody("{\"ping\":\"pöng\"}");
+        config.setHeaders(List.of(new HttpHeader("Content-Type", "application/json")));
+
+        final var cut = new HttpHealthCheckRequest(config);
+
+        assertThat(cut.headers().get(HttpHeaderNames.CONTENT_LENGTH)).isEqualTo("16");
+        assertThat(cut.headers().get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo("application/json");
+    }
+
+    @Test
+    public void should_keep_the_configured_content_length() {
+        final var config = new HttpHealthCheckServiceConfiguration();
+        config.setTarget("/hc");
+        config.setMethod(HttpMethod.POST);
+        config.setBody("{\"ping\":\"pong\"}");
+        config.setHeaders(List.of(new HttpHeader("content-length", "42")));
+
+        final var cut = new HttpHealthCheckRequest(config);
+
+        assertThat(cut.headers().getAll(HttpHeaderNames.CONTENT_LENGTH)).isEqualTo(List.of("42"));
+    }
+
+    @Test
+    public void should_not_set_content_length_when_body_is_empty() {
+        final var config = new HttpHealthCheckServiceConfiguration();
+        config.setTarget("/hc");
+        config.setMethod(HttpMethod.GET);
+        config.setBody("");
+
+        final var cut = new HttpHealthCheckRequest(config);
+
+        assertThat(cut.headers().contains(HttpHeaderNames.CONTENT_LENGTH)).isFalse();
+    }
+
+    @Test
+    public void should_not_set_content_length_when_transfer_encoding_is_configured() {
+        final var config = new HttpHealthCheckServiceConfiguration();
+        config.setTarget("/hc");
+        config.setMethod(HttpMethod.POST);
+        config.setBody("{\"ping\":\"pong\"}");
+        config.setHeaders(List.of(new HttpHeader("transfer-encoding", "chunked")));
+
+        final var cut = new HttpHealthCheckRequest(config);
+
+        assertThat(cut.headers().contains(HttpHeaderNames.CONTENT_LENGTH)).isFalse();
     }
 
     @Test

@@ -20,12 +20,15 @@ import static io.gravitee.apim.reporter.common.formatter.Mappers.JSON_LINES;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mockStatic;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.reporter.common.formatter.AbstractFormatterTest;
 import io.gravitee.apim.reporter.common.formatter.Type;
 import io.gravitee.reporter.api.monitor.Monitor;
 import java.io.IOException;
 import java.time.ZoneId;
 import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -35,6 +38,8 @@ import org.junit.jupiter.params.provider.CsvSource;
  * @author GraviteeSource Team
  */
 class ElasticsearchFormatterTest extends AbstractFormatterTest {
+
+    private static final String GENERATED_ID = "<generated>";
 
     @Override
     protected Type type() {
@@ -51,6 +56,9 @@ class ElasticsearchFormatterTest extends AbstractFormatterTest {
             "v4 metrics, v4.metric.Metrics, v4/metrics.json, elasticsearch/v4/metrics.json",
             "v4 metrics with invalid remote address, v4.metric.Metrics, v4/metrics-with-invalid-remote-address.json, elasticsearch/v4/metrics-with-invalid-remote-address.json",
             "v4 metrics with null transaction id, v4.metric.Metrics, v4/metrics-with-null-transaction-id.json, elasticsearch/v4/metrics-with-null-transaction-id.json",
+            "v4 metrics of a message connection opening, v4.metric.Metrics, v4/metrics-message-connection-opening.json, elasticsearch/v4/metrics-message-connection-opening.json",
+            "v4 metrics of a message connection ended, v4.metric.Metrics, v4/metrics-message-connection-ended.json, elasticsearch/v4/metrics-message-connection-ended.json",
+            "v4 log of a connection opening, v4.log.Log, v4/log-connection-opening.json, elasticsearch/v4/log-connection-opening.json",
             "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, elasticsearch/v4/message-metrics.json",
             "message metrics with connection dimensions, v4.metric.MessageMetrics, v4/message-metrics-with-connection-dimensions.json, elasticsearch/v4/message-metrics-with-connection-dimensions.json",
             "message log, v4.log.MessageLog, v4/message-log.json, elasticsearch/v4/message-log.json",
@@ -80,7 +88,11 @@ class ElasticsearchFormatterTest extends AbstractFormatterTest {
             var given = readGiven(input, className);
             var expected = readExpected(output);
 
-            assertThat(JSON.readTree(formatter.format(given).getBytes())).usingRecursiveComparison().isEqualTo(JSON.readTree(expected));
+            var actual = JSON.readTree(formatter.format(given).getBytes());
+            var expectedTree = JSON.readTree(expected);
+            acceptGeneratedId((ObjectNode) actual, (ObjectNode) expectedTree);
+
+            assertThat(actual).usingRecursiveComparison().isEqualTo(expectedTree);
         }
     }
 
@@ -94,6 +106,9 @@ class ElasticsearchFormatterTest extends AbstractFormatterTest {
             "v4 metrics, v4.metric.Metrics, v4/metrics.json, elasticsearch/v4/metrics.jsonl",
             "v4 metrics with invalid remote address, v4.metric.Metrics, v4/metrics-with-invalid-remote-address.json, elasticsearch/v4/metrics-with-invalid-remote-address.jsonl",
             "v4 metrics with null transaction id, v4.metric.Metrics, v4/metrics-with-null-transaction-id.json, elasticsearch/v4/metrics-with-null-transaction-id.jsonl",
+            "v4 metrics of a message connection opening, v4.metric.Metrics, v4/metrics-message-connection-opening.json, elasticsearch/v4/metrics-message-connection-opening.jsonl",
+            "v4 metrics of a message connection ended, v4.metric.Metrics, v4/metrics-message-connection-ended.json, elasticsearch/v4/metrics-message-connection-ended.jsonl",
+            "v4 log of a connection opening, v4.log.Log, v4/log-connection-opening.json, elasticsearch/v4/log-connection-opening.jsonl",
             "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, elasticsearch/v4/message-metrics.jsonl",
             "message log, v4.log.MessageLog, v4/message-log.json, elasticsearch/v4/message-log.jsonl",
             "api event metrics, v4.metric.event.ApiEventMetrics, v4/api-event-metrics.json, elasticsearch/v4/api-event-metrics.jsonl",
@@ -119,9 +134,41 @@ class ElasticsearchFormatterTest extends AbstractFormatterTest {
             var given = readGiven(input, className);
             var expected = readExpected(output);
 
-            assertThat(JSON_LINES.readLines(formatter.format(given, options).getBytes()))
-                .usingRecursiveComparison()
-                .isEqualTo(JSON_LINES.readLines(expected));
+            var actual = JSON_LINES.readLines(formatter.format(given, options).getBytes());
+            var expectedLines = JSON_LINES.readLines(expected);
+            acceptGeneratedId(action(actual.getFirst()), action(expectedLines.getFirst()));
+
+            assertThat(actual).usingRecursiveComparison().isEqualTo(expectedLines);
+        }
+    }
+
+    @CsvSource(
+        { "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json", "message log, v4.log.MessageLog, v4/message-log.json" }
+    )
+    @ParameterizedTest(name = "{0}")
+    void should_give_each_message_document_an_id_of_its_own(String testName, String className, String input) throws IOException {
+        resetFormatter();
+        var options = Map.<String, Object>of("index", "gravitee-v4-message-2023.08.28");
+
+        var first = JSON_LINES.readLines(formatter.format(readGiven(input, className), options).getBytes());
+        var second = JSON_LINES.readLines(formatter.format(readGiven(input, className), options).getBytes());
+
+        assertThat(first.getFirst().at("/index/_id").asText()).isNotEqualTo(second.getFirst().at("/index/_id").asText());
+    }
+
+    /**
+     * Message documents get a random id when formatted, which a fixture cannot spell: it says {@value GENERATED_ID}
+     * instead, and the actual id only has to be a UUID.
+     */
+    /** The action line holds a single operation — index or create — whose metadata carries the id. */
+    private static ObjectNode action(JsonNode actionLine) {
+        return (ObjectNode) actionLine.elements().next();
+    }
+
+    private static void acceptGeneratedId(ObjectNode actual, ObjectNode expected) {
+        if (GENERATED_ID.equals(expected.path("_id").asText())) {
+            assertThat(UUID.fromString(actual.path("_id").asText())).isNotNull();
+            actual.put("_id", GENERATED_ID);
         }
     }
 

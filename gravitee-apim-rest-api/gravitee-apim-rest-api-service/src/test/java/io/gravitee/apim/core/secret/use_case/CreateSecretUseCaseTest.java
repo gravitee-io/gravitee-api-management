@@ -25,8 +25,10 @@ import inmemory.SecretValueEncryptorInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
+import io.gravitee.apim.core.secret.domain_service.SecretDomainService;
 import io.gravitee.apim.core.secret.exception.InvalidSecretKeyException;
 import io.gravitee.apim.core.secret.exception.InvalidSecretValueException;
+import io.gravitee.apim.core.secret.exception.SecretKeptForCredentialException;
 import io.gravitee.apim.core.secret.exception.SecretKeyAlreadyExistsException;
 import io.gravitee.apim.core.secret.model.SecretAuditEvent;
 import io.gravitee.apim.core.secret.model.SecretValue;
@@ -53,7 +55,7 @@ class CreateSecretUseCaseTest extends AbstractUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new CreateSecretUseCase(secretCrudService, secretValueEncryptor, auditService);
+        useCase = new CreateSecretUseCase(new SecretDomainService(secretCrudService, secretValueEncryptor, auditService));
     }
 
     @Test
@@ -144,6 +146,19 @@ class CreateSecretUseCaseTest extends AbstractUseCaseTest {
         assertThat(new SecretValue("v".repeat(65536)).plaintext()).hasSize(65536);
         assertThatThrownBy(() -> new SecretValue("v".repeat(65537))).isInstanceOf(InvalidSecretValueException.class);
         assertThatThrownBy(() -> new SecretValue("é".repeat(32769))).isInstanceOf(InvalidSecretValueException.class);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "credential.cred-1.token", "credential." })
+    void should_keep_the_keys_that_start_with_credential_for_credentials(String key) {
+        assertThatThrownBy(() -> useCase.execute(create(key, "sk-ant-123"))).isInstanceOf(SecretKeptForCredentialException.class);
+        assertThat(secretCrudService.storage()).isEmpty();
+        assertThat(auditCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_accept_a_key_that_only_contains_credential() {
+        assertThat(useCase.execute(create("my-credential.token", "v")).secret().key()).isEqualTo("my-credential.token");
     }
 
     @Test

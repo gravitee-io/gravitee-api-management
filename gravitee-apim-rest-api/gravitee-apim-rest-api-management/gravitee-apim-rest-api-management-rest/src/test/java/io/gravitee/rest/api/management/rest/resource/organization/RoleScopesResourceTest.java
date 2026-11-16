@@ -69,6 +69,7 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
             "CATEGORY",
             "CLIENT_REGISTRATION_PROVIDER",
             "CLUSTER",
+            "CREDENTIAL",
             "DASHBOARD",
             "DICTIONARY",
             "DOCUMENTATION",

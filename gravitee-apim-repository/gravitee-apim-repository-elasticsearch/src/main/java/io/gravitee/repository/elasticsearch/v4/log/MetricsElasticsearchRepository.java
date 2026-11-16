@@ -44,9 +44,14 @@ import io.gravitee.repository.log.v4.model.authz.AuthzDecisionLogQuery;
 import io.gravitee.repository.log.v4.model.connection.*;
 import io.gravitee.repository.log.v4.model.message.MessageMetrics;
 import io.gravitee.repository.log.v4.model.message.MessageMetricsQuery;
+import io.reactivex.rxjava3.core.Single;
+import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import lombok.CustomLog;
 
 /**
@@ -55,6 +60,10 @@ import lombok.CustomLog;
  */
 @CustomLog
 public class MetricsElasticsearchRepository extends AbstractElasticsearchRepository implements MetricsRepository {
+
+    private static final Comparator<Metrics> NEWEST_FIRST = Comparator.comparing((Metrics metrics) ->
+        metrics.getTimestamp() == null ? Instant.MIN : OffsetDateTime.parse(metrics.getTimestamp()).toInstant()
+    ).reversed();
 
     private final RepositoryConfiguration configuration;
 
@@ -83,11 +92,61 @@ public class MetricsElasticsearchRepository extends AbstractElasticsearchReposit
 
     @Override
     public LogResponse<Metrics> searchMetrics(QueryContext queryContext, MetricsQuery query, List<DefinitionVersion> definitionVersions) {
-        var indexes = getQueryIndexesFromDefinitionVersions(Type.REQUEST, Type.V4_METRICS, configuration, queryContext, definitionVersions);
+        var readsV2 = reads(definitionVersions, DefinitionVersion.V2);
+        var readsV4 = reads(definitionVersions, DefinitionVersion.V4);
+        var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
+        var v4Index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var v2Index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
 
-        return this.client.search(indexes, null, SearchMetricsQueryAdapter.adapt(query))
-            .map(SearchMetricsResponseAdapter::adapt)
-            .blockingGet();
+        if (readsV2 && readsV4) {
+            return withinResultWindow(searchV2AndV4(v2Index, v4Index, query));
+        }
+        if (readsV4) {
+            return withinResultWindow(search(v4Index, SearchMetricsQueryAdapter.adaptOnePerConnection(query)));
+        }
+        return withinResultWindow(search(v2Index, SearchMetricsQueryAdapter.adapt(query)));
+    }
+
+    /**
+     * The paginator offers every page of the total, and Elasticsearch refuses a page past {@code max_result_window}.
+     * The count of connections is not capped as {@code hits.total} is, so it is capped here.
+     */
+    private LogResponse<Metrics> withinResultWindow(LogResponse<Metrics> response) {
+        return new LogResponse<>(Math.min(response.total(), configuration.getMaxResultWindow()), response.data());
+    }
+
+    /**
+     * A message API connection, written twice, is shown once — the end, or the opening while it is still open. That
+     * takes a collapse, which fails on an index that does not map {@code request-id}, the v2 one among them. So v4
+     * and v2 are searched apart, each for every row up to the requested page, and merged newest first.
+     */
+    private LogResponse<Metrics> searchV2AndV4(String v2Index, String v4Index, MetricsQuery query) {
+        var upToPage = MetricsQuery.builder().filter(query.getFilter()).page(1).size(query.getPage() * query.getSize()).build();
+
+        return Single.zip(
+            this.client.search(v4Index, null, SearchMetricsQueryAdapter.adaptOnePerConnection(upToPage)).map(
+                SearchMetricsResponseAdapter::adapt
+            ),
+            this.client.search(v2Index, null, SearchMetricsQueryAdapter.adapt(upToPage)).map(SearchMetricsResponseAdapter::adapt),
+            (v4, v2) ->
+                new LogResponse<>(
+                    v4.total() + v2.total(),
+                    Stream.concat(v4.data().stream(), v2.data().stream())
+                        .sorted(NEWEST_FIRST)
+                        .skip((long) (query.getPage() - 1) * query.getSize())
+                        .limit(query.getSize())
+                        .toList()
+                )
+        ).blockingGet();
+    }
+
+    private LogResponse<Metrics> search(String index, String search) {
+        return this.client.search(index, null, search).map(SearchMetricsResponseAdapter::adapt).blockingGet();
+    }
+
+    /** No definition version given reads them all. */
+    private static boolean reads(List<DefinitionVersion> definitionVersions, DefinitionVersion version) {
+        return definitionVersions == null || definitionVersions.isEmpty() || definitionVersions.contains(version);
     }
 
     @Override

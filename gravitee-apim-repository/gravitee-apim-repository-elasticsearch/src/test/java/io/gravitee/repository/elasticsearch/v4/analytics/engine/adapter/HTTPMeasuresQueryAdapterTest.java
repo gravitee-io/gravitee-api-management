@@ -67,16 +67,18 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
 
-        var latencyP90 = aggs.at("/HTTP_GATEWAY_LATENCY#P90/percentiles/percents/0").asDouble();
+        var latencyP90 = aggs.at("/HTTP_GATEWAY_LATENCY#__MEASURED__/aggs/HTTP_GATEWAY_LATENCY#P90/percentiles/percents/0").asDouble();
         assertThat(latencyP90).isEqualTo(90.0);
 
-        var latencyP95 = aggs.at("/HTTP_GATEWAY_LATENCY#P95/percentiles/percents/0").asDouble();
+        var latencyP95 = aggs.at("/HTTP_GATEWAY_LATENCY#__MEASURED__/aggs/HTTP_GATEWAY_LATENCY#P95/percentiles/percents/0").asDouble();
         assertThat(latencyP95).isEqualTo(95.0);
 
-        var latencyP99 = aggs.at("/HTTP_GATEWAY_LATENCY#P99/percentiles/percents/0").asDouble();
+        var latencyP99 = aggs.at("/HTTP_GATEWAY_LATENCY#__MEASURED__/aggs/HTTP_GATEWAY_LATENCY#P99/percentiles/percents/0").asDouble();
         assertThat(latencyP99).isEqualTo(99.0);
 
-        var gatewayP90 = aggs.at("/HTTP_GATEWAY_RESPONSE_TIME#P90/percentiles/percents/0").asDouble();
+        var gatewayP90 = aggs
+            .at("/HTTP_GATEWAY_RESPONSE_TIME#__MEASURED__/aggs/HTTP_GATEWAY_RESPONSE_TIME#P90/percentiles/percents/0")
+            .asDouble();
         assertThat(gatewayP90).isEqualTo(90.0);
     }
 
@@ -95,9 +97,10 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
 
-        var avgAgg = aggs.at("/HTTP_GATEWAY_LATENCY#AVG/avg/field");
+        var avgAgg = aggs.at("/HTTP_GATEWAY_LATENCY#__MEASURED__/aggs/HTTP_GATEWAY_LATENCY#AVG/avg/field");
         assertThat(avgAgg).isNotNull();
         assertThat(avgAgg.asText()).isEqualTo("gateway-latency-ms");
+        assertThat(aggs.at("/HTTP_GATEWAY_LATENCY#__MEASURED__/filter/bool/must_not/0/term/connection-phase").asText()).isEqualTo("open");
     }
 
     @Test
@@ -115,7 +118,7 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
 
-        var countAgg = aggs.at("/HTTP_REQUESTS#COUNT/value_count/field");
+        var countAgg = aggs.at("/HTTP_REQUESTS#__COUNTED__/aggs/HTTP_REQUESTS#COUNT/value_count/field");
         assertThat(countAgg).isNotNull();
         assertThat(countAgg.asText()).isEqualTo("@timestamp");
     }
@@ -135,7 +138,7 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
 
-        var maxAgg = aggs.at("/HTTP_GATEWAY_LATENCY#MAX/max/field");
+        var maxAgg = aggs.at("/HTTP_GATEWAY_LATENCY#__MEASURED__/aggs/HTTP_GATEWAY_LATENCY#MAX/max/field");
         assertThat(maxAgg).isNotNull();
         assertThat(maxAgg.asText()).isEqualTo("gateway-latency-ms");
     }
@@ -155,7 +158,7 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
 
-        var minAgg = aggs.at("/HTTP_GATEWAY_LATENCY#MIN/min/field");
+        var minAgg = aggs.at("/HTTP_GATEWAY_LATENCY#__MEASURED__/aggs/HTTP_GATEWAY_LATENCY#MIN/min/field");
         assertThat(minAgg).isNotNull();
         assertThat(minAgg.asText()).isEqualTo("gateway-latency-ms");
     }
@@ -175,7 +178,7 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
 
-        var p50Agg = aggs.at("/HTTP_GATEWAY_LATENCY#P50/percentiles/percents/0").asDouble();
+        var p50Agg = aggs.at("/HTTP_GATEWAY_LATENCY#__MEASURED__/aggs/HTTP_GATEWAY_LATENCY#P50/percentiles/percents/0").asDouble();
         assertThat(p50Agg).isEqualTo(50.0);
     }
 
@@ -218,7 +221,7 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         assertThat(aggs).isNotEmpty();
 
         // LLM_PROMPT_TOTAL_TOKEN COUNT uses a sum aggregation with script
-        var sumAgg = aggs.at("/LLM_PROMPT_TOTAL_TOKEN#COUNT/sum/script/source");
+        var sumAgg = aggs.at("/LLM_PROMPT_TOTAL_TOKEN#__COUNTED__/aggs/LLM_PROMPT_TOTAL_TOKEN#COUNT/sum/script/source");
         assertThat(sumAgg).isNotNull();
         assertThat(sumAgg.asText()).contains("additional-metrics.long_llm-proxy_tokens-sent");
         assertThat(sumAgg.asText()).contains("additional-metrics.long_llm-proxy_tokens-received");
@@ -240,7 +243,7 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         assertThat(aggs).isNotEmpty();
 
         // LLM_PROMPT_TOTAL_TOKEN AVG uses an avg aggregation with script
-        var avgAgg = aggs.at("/LLM_PROMPT_TOTAL_TOKEN#AVG/avg/script/source");
+        var avgAgg = aggs.at("/LLM_PROMPT_TOTAL_TOKEN#__MEASURED__/aggs/LLM_PROMPT_TOTAL_TOKEN#AVG/avg/script/source");
         assertThat(avgAgg).isNotNull();
         assertThat(avgAgg.asText()).contains("additional-metrics.long_llm-proxy_tokens-sent");
         assertThat(avgAgg.asText()).contains("additional-metrics.long_llm-proxy_tokens-received");
@@ -261,7 +264,7 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
 
-        var sumAgg = aggs.at("/LLM_PROMPT_TOKEN_TOTAL_COST#COUNT/sum/script/source");
+        var sumAgg = aggs.at("/LLM_PROMPT_TOKEN_TOTAL_COST#__COUNTED__/aggs/LLM_PROMPT_TOKEN_TOTAL_COST#COUNT/sum/script/source");
         assertThat(sumAgg).isNotNull();
         assertThat(sumAgg.asText()).contains("additional-metrics.double_llm-proxy_sent-cost");
         assertThat(sumAgg.asText()).contains("additional-metrics.double_llm-proxy_received-cost");
@@ -282,14 +285,14 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
 
-        var avgAgg = aggs.at("/LLM_PROMPT_TOKEN_TOTAL_COST#AVG/avg/script/source");
+        var avgAgg = aggs.at("/LLM_PROMPT_TOKEN_TOTAL_COST#__MEASURED__/aggs/LLM_PROMPT_TOKEN_TOTAL_COST#AVG/avg/script/source");
         assertThat(avgAgg).isNotNull();
         assertThat(avgAgg.asText()).contains("additional-metrics.double_llm-proxy_sent-cost");
         assertThat(avgAgg.asText()).contains("additional-metrics.double_llm-proxy_received-cost");
     }
 
     @Test
-    void should_wrap_metric_aggs_in_filter_aggregation_when_metric_has_filters() throws JsonProcessingException {
+    void should_add_the_metric_filters_to_the_envelope_of_its_counts() throws JsonProcessingException {
         var timeRange = buildTimeRange();
         var filters = buildFilters();
         var metricFilters = List.of(new Filter(Filter.Name.API, Filter.Operator.IN, List.of("id1", "id2")));
@@ -304,10 +307,11 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
 
-        var filterAgg = aggs.at("/HTTP_REQUESTS#__FILTER__");
+        var filterAgg = aggs.at("/HTTP_REQUESTS#__COUNTED__");
         assertThat(filterAgg.isMissingNode()).isFalse();
+        assertThat(filterAgg.at("/filter/bool/must_not/0/term/connection-phase").asText()).isEqualTo("end");
 
-        var filterClause = filterAgg.at("/filter/bool/must/0/terms/api-id");
+        var filterClause = filterAgg.at("/filter/bool/filter/0/bool/must/0/terms/api-id");
         assertThat(filterClause.isMissingNode()).isFalse();
         assertThat(filterClause.get(0).asText()).isEqualTo("id1");
         assertThat(filterClause.get(1).asText()).isEqualTo("id2");
@@ -318,7 +322,7 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
     }
 
     @Test
-    void should_not_wrap_metric_aggs_when_metric_has_no_filters() throws JsonProcessingException {
+    void should_filter_the_counts_of_a_metric_without_filters_on_the_connection_phase_only() throws JsonProcessingException {
         var timeRange = buildTimeRange();
         var filters = buildFilters();
         var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
@@ -331,10 +335,11 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
 
         var aggs = jsonQuery.at("/aggs");
 
-        var filterAgg = aggs.at("/HTTP_REQUESTS#__FILTER__");
-        assertThat(filterAgg.isMissingNode()).isTrue();
+        assertThat(aggs.at("/HTTP_REQUESTS#__FILTER__").isMissingNode()).isTrue();
+        assertThat(aggs.at("/HTTP_REQUESTS#__COUNTED__/filter/bool/filter").isMissingNode()).isTrue();
+        assertThat(aggs.at("/HTTP_REQUESTS#__COUNTED__/filter/bool/must_not/0/term/connection-phase").asText()).isEqualTo("end");
 
-        var countAgg = aggs.at("/HTTP_REQUESTS#COUNT/value_count/field");
+        var countAgg = aggs.at("/HTTP_REQUESTS#__COUNTED__/aggs/HTTP_REQUESTS#COUNT/value_count/field");
         assertThat(countAgg.isMissingNode()).isFalse();
         assertThat(countAgg.asText()).isEqualTo("@timestamp");
     }

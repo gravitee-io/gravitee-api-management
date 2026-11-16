@@ -15,17 +15,31 @@
  */
 package io.gravitee.gamma.rest.core.guardian;
 
+import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.DeclaredFlows;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType;
+import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
+import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
+import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.CreateGuardian;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
-import java.time.ZonedDateTime;
+import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
+import org.mockito.Mockito;
 
 /**
  * Builders the Guardian domain tests start from.
@@ -44,6 +58,60 @@ public final class GuardianFixtures {
     public static final String GUARDIAN_ID = "3f1b0f2a-6c14-4b0e-9a3f-7d2c8e5a1b40";
 
     private GuardianFixtures() {}
+
+    public static PolicyPluginProvider aPolicyPluginProvider() {
+        var installed = theInstalledPolicies();
+        return aPolicyPluginProvider(() -> installed);
+    }
+
+    /** The policies installed by default, in a map a test may change to install or remove one. */
+    public static Map<String, PolicyCapabilities> theInstalledPolicies() {
+        return new HashMap<>(
+            Map.of(
+                "data-logging-masking",
+                new PolicyCapabilities(
+                    true,
+                    flows(PolicyFlowType.LLM_PROXY, "REQUEST,RESPONSE", PolicyFlowType.GUARDIAN, "REQUEST,RESPONSE")
+                )
+            )
+        );
+    }
+
+    /** The flows a plugin manifest declares, each with its comma-separated phases. */
+    public static DeclaredFlows flows() {
+        return new DeclaredFlows(Map.of());
+    }
+
+    public static DeclaredFlows flows(PolicyFlowType flow, String phases) {
+        var flows = new EnumMap<PolicyFlowType, List<String>>(PolicyFlowType.class);
+        flows.put(flow, phases(phases));
+        return new DeclaredFlows(flows);
+    }
+
+    public static DeclaredFlows flows(PolicyFlowType flow, String phases, PolicyFlowType otherFlow, String otherPhases) {
+        var flows = new EnumMap<>(flows(flow, phases).phases());
+        flows.put(otherFlow, phases(otherPhases));
+        return new DeclaredFlows(flows);
+    }
+
+    /** Split and stripped the way the plugin provider reads a manifest. */
+    private static List<String> phases(String phases) {
+        return Arrays.stream(phases.split(",")).map(String::strip).toList();
+    }
+
+    public static PolicyPluginProvider aPolicyPluginProvider(Supplier<Map<String, PolicyCapabilities>> policies) {
+        var provider = Mockito.mock(PolicyPluginProvider.class);
+        Mockito.when(provider.findAllCapabilities()).thenAnswer(call -> policies.get());
+        return provider;
+    }
+
+    public static ValidateGuardianDomainService aGuardianValidator() {
+        return aGuardianValidator(new InMemoryGuardianRepository());
+    }
+
+    public static ValidateGuardianDomainService aGuardianValidator(GuardianRepository repository) {
+        return new ValidateGuardianDomainService(repository, aPolicyPluginProvider(), new JacksonJsonDeserializer());
+    }
 
     public static Step aPolicy() {
         return Step.builder().name("Detect credentials").policy("data-logging-masking").enabled(true).build();
@@ -101,7 +169,7 @@ public final class GuardianFixtures {
             .definition(aGuardianDefinition().build())
             .description("Blocks a reply that echoes an API key.")
             .lifecycleState(GuardianLifecycleState.UNDEPLOYED)
-            .createdAt(ZonedDateTime.parse("2026-02-01T20:22:02Z"))
-            .updatedAt(ZonedDateTime.parse("2026-02-02T20:22:02Z"));
+            .createdAt(Instant.parse("2026-02-01T20:22:02Z"))
+            .updatedAt(Instant.parse("2026-02-02T20:22:02Z"));
     }
 }

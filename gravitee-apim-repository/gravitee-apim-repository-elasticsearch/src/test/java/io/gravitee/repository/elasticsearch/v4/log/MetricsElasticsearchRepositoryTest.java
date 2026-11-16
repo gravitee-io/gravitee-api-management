@@ -23,6 +23,8 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.elasticsearch.TimeProvider;
+import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
+import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.connection.Metrics;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery.Filter;
@@ -40,8 +42,14 @@ import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.util.ReflectionTestUtils;
 
 public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRepositoryTest {
+
+    /** Has a message API connection still open, reported at opening only, and a v2 request. */
+    private static final String APPLICATION_WITH_AN_OPEN_CONNECTION = "a7c9e3b1-0000-4000-8000-0000000000a1";
+    private static final String OPEN_CONNECTION = "c0ffee00-0000-4000-8000-000000000001";
+    private static final String V2_REQUEST_OF_THAT_APPLICATION = "d1e2f3a4-0000-4000-8000-0000000000c3";
 
     private final QueryContext queryContext = new QueryContext("org#1", "env#1");
 
@@ -50,6 +58,9 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
 
     @Autowired
     private TimeProvider timeProvider;
+
+    @Autowired
+    private RepositoryConfiguration configuration;
 
     private String today;
     private String yesterday;
@@ -371,6 +382,21 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                 .extracting(Metrics::getRequestId, Metrics::getStatus)
                 .containsExactly(tuple("aed3a207-d5c0-4073-93a2-07d5c0007336", 200), tuple("3aa93e93-eaa3-4fcd-a93e-93eaa3bfcd41", 500));
         }
+
+        @Test
+        void should_count_no_more_connections_than_the_pages_can_reach() {
+            var result = searchWithMaxResultWindow(
+                3,
+                MetricsQuery.builder()
+                    .filter(Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).build())
+                    .size(2)
+                    .build(),
+                List.of(DefinitionVersion.V4)
+            );
+
+            assertThat(result.total()).isEqualTo(3);
+            assertThat(result.data()).hasSize(2);
+        }
     }
 
     @Nested
@@ -641,6 +667,74 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                     tuple("aed3a207-d5c0-4073-93a2-07d5c0007336", yesterday + "T14:08:45.994Z"),
                     tuple("3aa93e93-eaa3-4fcd-a93e-93eaa3bfcd41", yesterday + "T13:51:36.161Z")
                 );
+        }
+
+        @Test
+        void should_show_a_message_connection_still_open_and_one_that_ended_once_among_v2_requests() {
+            var result = metricsV4Repository.searchMetrics(
+                queryContext,
+                MetricsQuery.builder()
+                    .page(1)
+                    .size(10)
+                    .filter(
+                        Filter.builder()
+                            .applicationIds(Set.of(APPLICATION_WITH_AN_OPEN_CONNECTION, "f37a5799-0490-43f6-ba57-990490f3f678"))
+                            .build()
+                    )
+                    .build(),
+                List.of(DefinitionVersion.V4, DefinitionVersion.V2)
+            );
+
+            assertThat(result.total()).isEqualTo(4);
+            assertThat(result.data())
+                .extracting(Metrics::getRequestId, Metrics::isRequestEnded)
+                .containsExactly(
+                    tuple(OPEN_CONNECTION, false),
+                    tuple(V2_REQUEST_OF_THAT_APPLICATION, true),
+                    tuple("aed3a207-d5c0-4073-93a2-07d5c0007336", true),
+                    tuple("3aa93e93-eaa3-4fcd-a93e-93eaa3bfcd41", true)
+                );
+        }
+
+        @Test
+        void should_count_no_more_rows_than_the_pages_can_reach() {
+            var result = searchWithMaxResultWindow(
+                3,
+                MetricsQuery.builder()
+                    .size(2)
+                    .filter(
+                        Filter.builder()
+                            .applicationIds(Set.of(APPLICATION_WITH_AN_OPEN_CONNECTION, "f37a5799-0490-43f6-ba57-990490f3f678"))
+                            .build()
+                    )
+                    .build(),
+                List.of(DefinitionVersion.V4, DefinitionVersion.V2)
+            );
+
+            assertThat(result.total()).isEqualTo(3);
+            assertThat(result.data()).hasSize(2);
+        }
+
+        @Test
+        void should_page_through_message_connections_and_v2_requests_together() {
+            var result = metricsV4Repository.searchMetrics(
+                queryContext,
+                MetricsQuery.builder()
+                    .page(2)
+                    .size(2)
+                    .filter(
+                        Filter.builder()
+                            .applicationIds(Set.of(APPLICATION_WITH_AN_OPEN_CONNECTION, "f37a5799-0490-43f6-ba57-990490f3f678"))
+                            .build()
+                    )
+                    .build(),
+                List.of(DefinitionVersion.V4, DefinitionVersion.V2)
+            );
+
+            assertThat(result.total()).isEqualTo(4);
+            assertThat(result.data())
+                .extracting(Metrics::getRequestId)
+                .containsExactly("aed3a207-d5c0-4073-93a2-07d5c0007336", "3aa93e93-eaa3-4fcd-a93e-93eaa3bfcd41");
         }
 
         @Test
@@ -988,6 +1082,16 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
             var result = metricsV4Repository.searchConnectionLogErrorKeys(queryContext, List.of(), from, to);
 
             assertThat(result).isEmpty();
+        }
+    }
+
+    private LogResponse<Metrics> searchWithMaxResultWindow(int maxResultWindow, MetricsQuery query, List<DefinitionVersion> versions) {
+        int previous = configuration.getMaxResultWindow();
+        ReflectionTestUtils.setField(configuration, "maxResultWindow", maxResultWindow);
+        try {
+            return metricsV4Repository.searchMetrics(queryContext, query, versions);
+        } finally {
+            ReflectionTestUtils.setField(configuration, "maxResultWindow", previous);
         }
     }
 }

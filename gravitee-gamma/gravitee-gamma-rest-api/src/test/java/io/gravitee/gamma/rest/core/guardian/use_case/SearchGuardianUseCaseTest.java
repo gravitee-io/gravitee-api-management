@@ -22,6 +22,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
+import io.gravitee.gamma.rest.core.guardian.GuardianDeploymentFixtures;
+import io.gravitee.gamma.rest.core.guardian.GuardianFixtures;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,7 +44,7 @@ class SearchGuardianUseCaseTest {
         guardianRepository.givenGuardian(aGuardian(d -> d.id("one").name("Credential leakage")).build());
         guardianRepository.givenGuardian(aGuardian(d -> d.id("two").name("Prompt injection")).build());
         guardianRepository.givenGuardian(aGuardian(d -> d.id("elsewhere").environmentId("other-env").name("Credential leakage")).build());
-        useCase = new SearchGuardianUseCase(guardianRepository);
+        useCase = new SearchGuardianUseCase(guardianRepository, GuardianDeploymentFixtures.deploymentService(guardianRepository));
     }
 
     private SearchGuardianUseCase.Output search(SearchGuardianUseCase.Input.InputBuilder input) {

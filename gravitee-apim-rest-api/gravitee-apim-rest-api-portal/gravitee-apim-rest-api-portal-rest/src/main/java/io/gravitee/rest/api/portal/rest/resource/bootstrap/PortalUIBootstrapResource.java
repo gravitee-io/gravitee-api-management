@@ -93,7 +93,7 @@ public class PortalUIBootstrapResource {
         }
 
         String portalId = defaultPortalDomainService
-            .findDefault(environmentId)
+            .findDefaultOrOnly(environmentId)
             .map(portal -> portal.getId().toString())
             .orElse(null);
         String portalApiUrl = installationAccessQueryService.getPortalAPIUrl(environmentId);

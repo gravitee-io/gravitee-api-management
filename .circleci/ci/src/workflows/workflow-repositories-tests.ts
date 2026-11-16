@@ -101,7 +101,7 @@ export class RepositoriesTestsWorkflow {
         requires: [buildJobName],
         matrix: {
           engineType: ['elasticsearch'],
-          engineVersion: ['7.17.29', '8.19.12', '9.3.1'],
+          engineVersion: ['7.17.29', '8.19.25', '9.5.6'],
         },
       }),
       new workflow.WorkflowJob(opensearchTestContainerJob, {
@@ -111,6 +111,26 @@ export class RepositoriesTestsWorkflow {
         matrix: {
           engineType: ['opensearch'],
           engineVersion: ['1', '2', '3'],
+        },
+      }),
+      new workflow.WorkflowJob(elasticTestContainerJob, {
+        name: 'Analytics repository tests - ElasticSearch << matrix.engineVersion >> - data streams',
+        context: ['cicd-orchestrator'],
+        requires: [buildJobName],
+        matrix: {
+          engineType: ['elasticsearch'],
+          engineVersion: ['8.19.25', '9.5.6'],
+          indexMode: ['data_stream'],
+        },
+      }),
+      new workflow.WorkflowJob(opensearchTestContainerJob, {
+        name: 'Analytics repository tests - OpenSearch << matrix.engineVersion >> - data streams',
+        context: ['cicd-orchestrator'],
+        requires: [buildJobName],
+        matrix: {
+          engineType: ['opensearch'],
+          engineVersion: ['2', '3'],
+          indexMode: ['data_stream'],
         },
       }),
       new workflow.WorkflowJob(redisTestContainerJob, {

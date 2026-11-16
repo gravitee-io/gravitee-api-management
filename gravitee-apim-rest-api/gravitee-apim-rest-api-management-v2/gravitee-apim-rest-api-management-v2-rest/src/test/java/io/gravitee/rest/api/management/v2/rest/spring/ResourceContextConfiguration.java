@@ -67,7 +67,9 @@ import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFilterSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ResolveFilterLabelsUseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.domain_service.ApiCRDTargetDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiFolderConflictsDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
@@ -162,6 +164,7 @@ import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDoma
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.environment.domain_service.ValidateEnvironmentInOrganizationDomainService;
 import io.gravitee.apim.core.environment.service_provider.EnvironmentTemplateModelProvider;
+import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
 import io.gravitee.apim.core.group.crud_service.GroupCrudService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
@@ -183,6 +186,8 @@ import io.gravitee.apim.core.log.crud_service.NativeApiLogCrudService;
 import io.gravitee.apim.core.logs_engine.domain_service.LogNamesPostProcessor;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.MembershipDomainService;
 import io.gravitee.apim.core.membership.domain_service.SearchApplicationMembersDomainService;
@@ -205,6 +210,7 @@ import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase;
 import io.gravitee.apim.core.plan.use_case.GetPlansUseCase;
 import io.gravitee.apim.core.plan.use_case.PatchPlanUseCase.PlanFlowsConverter;
 import io.gravitee.apim.core.plan.use_case.PlanOperationsUseCase;
+import io.gravitee.apim.core.plan.use_case.UpdateApiProductPlanFlowsUseCase;
 import io.gravitee.apim.core.plan.use_case.UpdateApiProductPlanUseCase;
 import io.gravitee.apim.core.plan.use_case.UpdateFederatedPlanUseCase;
 import io.gravitee.apim.core.plan.use_case.UpdatePlanUseCase;
@@ -898,6 +904,14 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public ApiCRDTargetDomainService apiCRDTargetDomainService(
+        ApiQueryServiceInMemory apiQueryService,
+        ApiCrudServiceInMemory apiCrudService
+    ) {
+        return new ApiCRDTargetDomainService(apiQueryService, apiCrudService);
+    }
+
+    @Bean
     public ValidateApiCRDUseCase validateApiCRDUseCase(
         CategoryQueryServiceInMemory categoryQueryService,
         UserDomainServiceInMemory userDomainService,
@@ -917,7 +931,16 @@ public class ResourceContextConfiguration {
         CRDMembersDomainServiceInMemory crdMembersDomainService,
         ValidateKafkaClusterBindingDomainService validateKafkaClusterBindingDomainService,
         ClusterBindingPermissionDomainService clusterBindingPermissionDomainService,
-        ValidateApiClusterBindingService validateApiClusterBindingService
+        ValidateApiClusterBindingService validateApiClusterBindingService,
+        ApiCRDTargetDomainService apiCRDTargetDomainService,
+        PlanCrudService planCrudService,
+        ApiPrimaryOwnerFactory apiPrimaryOwnerFactory,
+        ValidateApiDomainService validateApiDomainService,
+        UpdateApiDomainService updateApiDomainService,
+        FlowValidationDomainService flowValidationDomainService,
+        io.gravitee.apim.core.plan.query_service.PlanQueryService planQueryService,
+        ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
+        ApiFolderConflictsDomainService apiFolderConflictsDomainService
     ) {
         ValidateGroupsDomainService groupsValidator = new ValidateGroupsDomainService(groupQueryService);
         return new ValidateApiCRDUseCase(
@@ -936,16 +959,24 @@ public class ResourceContextConfiguration {
                 ),
                 new ValidatePlanDomainService(
                     new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService),
-                    new VerifyPlanPortRangesDomainService(kafkaPortRangeCrudService)
+                    new VerifyPlanPortRangesDomainService(kafkaPortRangeCrudService),
+                    planCrudService
                 ),
                 new ValidatePortalNotificationDomainService(groupsValidator),
                 new ValidateHealthCheckScheduleDomainService(new ObjectMapper()),
-                apiQueryService,
+                apiCRDTargetDomainService,
                 new PropertyDomainService(dataEncryptor),
                 crdMembersDomainService,
                 validateKafkaClusterBindingDomainService,
                 clusterBindingPermissionDomainService,
-                validateApiClusterBindingService
+                validateApiClusterBindingService,
+                apiPrimaryOwnerFactory,
+                validateApiDomainService,
+                updateApiDomainService,
+                flowValidationDomainService,
+                planQueryService,
+                apiPrimaryOwnerDomainService,
+                apiFolderConflictsDomainService
             )
         );
     }
@@ -1420,6 +1451,11 @@ public class ResourceContextConfiguration {
     @Bean
     public CreateApiProductPlanUseCase createApiProductPlanUseCase() {
         return mock(CreateApiProductPlanUseCase.class);
+    }
+
+    @Bean
+    public UpdateApiProductPlanFlowsUseCase updateApiProductPlanFlowsUseCase() {
+        return mock(UpdateApiProductPlanFlowsUseCase.class);
     }
 
     @Bean

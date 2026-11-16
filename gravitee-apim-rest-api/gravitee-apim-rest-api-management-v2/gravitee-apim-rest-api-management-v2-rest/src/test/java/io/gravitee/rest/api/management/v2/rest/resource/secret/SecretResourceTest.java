@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.secret;
 
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
@@ -83,7 +84,11 @@ class SecretResourceTest extends AbstractResourceTest {
     }
 
     private Secret givenTheSecret() {
-        var secret = Secret.create(SECRET_ID, ORGANIZATION, ENV_ID, "anthropic-key", CREATED_AT);
+        return givenTheSecret("anthropic-key");
+    }
+
+    private Secret givenTheSecret(String key) {
+        var secret = Secret.create(SECRET_ID, ORGANIZATION, ENV_ID, key, CREATED_AT);
         return secretCrudService.create(secret, secretValueEncryptor.encrypt(secret, "sk-ant-123"));
     }
 
@@ -129,6 +134,17 @@ class SecretResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_refuse_to_change_the_value_of_a_credential() {
+            var secret = givenTheSecret("credential.cred-1.token");
+
+            var response = rootTarget().request().put(json(new UpdateSecret().value("new-value")));
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+            var stored = secretCrudService.encryptedValueOf(SECRET_ID).orElseThrow();
+            assertThat(secretValueEncryptor.decrypt(secret, stored)).isEqualTo("sk-ant-123");
+        }
+
+        @Test
         void should_return_404_for_an_unknown_secret() {
             var response = rootTarget().request().put(json(new UpdateSecret().value("new-value")));
 
@@ -154,6 +170,16 @@ class SecretResourceTest extends AbstractResourceTest {
 
             assertThat(response.getStatus()).isEqualTo(NO_CONTENT_204);
             assertThat(secretCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_refuse_to_delete_the_value_of_a_credential() {
+            givenTheSecret("credential.cred-1.token");
+
+            var response = rootTarget().request().delete();
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+            assertThat(secretCrudService.storage()).hasSize(1);
         }
 
         @Test

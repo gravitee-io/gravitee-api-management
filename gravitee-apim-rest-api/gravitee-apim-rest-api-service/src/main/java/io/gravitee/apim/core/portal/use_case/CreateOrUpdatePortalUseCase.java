@@ -20,6 +20,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalContentOwnershipDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
@@ -39,10 +40,12 @@ import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
 @RequiredArgsConstructor
+@CustomLog
 public class CreateOrUpdatePortalUseCase {
 
     private final ValidatePortalDomainService validator;
@@ -54,6 +57,7 @@ public class CreateOrUpdatePortalUseCase {
     private final ThemeCrudService themeCrudService;
     private final CurrentThemeDomainService currentThemeDomainService;
     private final PortalUrlDomainService portalUrlDomainService;
+    private final PortalContentOwnershipDomainService portalContentOwnershipDomainService;
 
     /** The portal as the Automation API declares it: no URL, a new portal is served at its environment's portal URL. */
     public record Input(AuditInfo auditInfo, PortalId portalId, String name, PortalNavigationStructure structure, String activeThemeHrid) {}
@@ -90,6 +94,22 @@ public class CreateOrUpdatePortalUseCase {
         var portalToSave = existing.orElseGet(() -> newPortal(input));
         portalToSave.update(input.name(), sanitized.structure(), resolvedActiveThemeId);
         var saved = existing.isPresent() ? portalCrudService.update(portalToSave) : portalCrudService.create(portalToSave);
+        // Deleted only once the new portal is stored, so a failed creation leaves the environment its default portal,
+        // and looked up on every write, so the next one finishes a replacement whose delete failed
+        portalAutomationScopeEnforcer
+            .findReplaceableDefault(input.auditInfo(), saved.getId())
+            .ifPresent(defaultPortal -> {
+                portalCrudService.delete(defaultPortal.getId());
+                log.info(
+                    "Default portal [{}] of environment [{}] replaced by Automation API portal [{}]",
+                    defaultPortal.getId(),
+                    input.auditInfo().environmentId(),
+                    saved.getId()
+                );
+            });
+        // On every write, onto the default portal, else the only one: adopts what a replaced default portal or a skipped
+        // upgrade left behind, and retries an interrupted move
+        portalContentOwnershipDomainService.moveOrphans(input.auditInfo().environmentId());
         var portalExists = portalAutomationScopeEnforcer.portalExistsInEnvironment(input.auditInfo(), saved.getId());
         if (portalExists) {
             portalNavigationSyncDomainService.sync(input.auditInfo(), saved.getId(), previouslyPersisted, sanitized.structure());

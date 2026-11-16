@@ -50,8 +50,9 @@ class SearchHistogramQueryAdapterTest {
     public static final String TO_PTR = "/query/bool/filter/1/range/@timestamp/lte";
     public static final String STRING_QUERY_PTR = "/query/bool/filter/2/query_string/query";
     public static final String INTERVAL_PTR = "/aggregations/by_date/date_histogram/fixed_interval";
-    public static final String FIELD_FIELD_PTR = "/aggregations/by_date/aggregations/by_status/terms/field";
-    public static final String AVG_FIELD_PTR = "/aggregations/by_date/aggregations/avg_gateway-response-time-ms/avg/field";
+    public static final String FIELD_FIELD_PTR = "/aggregations/by_date/aggregations/counted/aggregations/by_status/terms/field";
+    public static final String AVG_FIELD_PTR =
+        "/aggregations/by_date/aggregations/measured/aggregations/avg_gateway-response-time-ms/avg/field";
 
     private final SearchHistogramQueryAdapter cut = new SearchHistogramQueryAdapter();
 
@@ -146,19 +147,23 @@ class SearchHistogramQueryAdapterTest {
                       "buckets": [
                         {
                           "key": 1751414400000,
-                          "by_status": {
-                            "buckets": [
-                              { "key": "200", "doc_count": 1 }
-                            ]
+                          "counted": {
+                            "by_status": {
+                              "buckets": [
+                                { "key": "200", "doc_count": 1 }
+                              ]
+                            }
                           }
                         },
                         {
                           "key": 1751587200000,
-                          "by_status": {
-                            "buckets": [
-                              { "key": "404", "doc_count": 2 },
-                              { "key": "202", "doc_count": 1 }
-                            ]
+                          "counted": {
+                            "by_status": {
+                              "buckets": [
+                                { "key": "404", "doc_count": 2 },
+                                { "key": "202", "doc_count": 1 }
+                              ]
+                            }
                           }
                         }
                       ]
@@ -208,14 +213,18 @@ class SearchHistogramQueryAdapterTest {
                       "buckets": [
                         {
                           "key": 1751414400000,
-                          "avg_gateway-response-time-ms": {
-                            "value": 120.5
+                          "measured": {
+                            "avg_gateway-response-time-ms": {
+                              "value": 120.5
+                            }
                           }
                         },
                         {
                           "key": 1751587200000,
-                          "avg_gateway-response-time-ms": {
-                            "value": 110.0
+                          "measured": {
+                            "avg_gateway-response-time-ms": {
+                              "value": 110.0
+                            }
                           }
                         }
                       ]

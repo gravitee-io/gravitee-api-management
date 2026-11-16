@@ -15,13 +15,16 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.repository.management.model.ApiProduct;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -39,12 +42,14 @@ public interface ApiProductAdapter {
     @Mapping(target = "primaryOwner", ignore = true)
     @Mapping(target = "analytics", qualifiedByName = "deserializeAnalytics")
     @Mapping(target = "flowExecution", qualifiedByName = "deserializeFlowExecution")
+    @Mapping(target = "resources", qualifiedByName = "deserializeResources")
     io.gravitee.apim.core.api_product.model.ApiProduct toModel(ApiProduct repositoryApiProduct);
 
     @Mapping(target = "createdAt", qualifiedByName = "zonedDateTimeToDate")
     @Mapping(target = "updatedAt", qualifiedByName = "zonedDateTimeToDate")
     @Mapping(target = "analytics", qualifiedByName = "serializeAnalytics")
     @Mapping(target = "flowExecution", qualifiedByName = "serializeFlowExecution")
+    @Mapping(target = "resources", qualifiedByName = "serializeResources")
     io.gravitee.repository.management.model.ApiProduct toRepository(io.gravitee.apim.core.api_product.model.ApiProduct domainApiProduct);
 
     @Named("deserializeAnalytics")
@@ -80,7 +85,19 @@ public interface ApiProductAdapter {
         try {
             return GraviteeJacksonMapper.getInstance().readValue(flowExecution, FlowExecution.class);
         } catch (IOException e) {
-            log.error("Unexpected error while deserializing API Product flow execution", e);
+            throw new IllegalStateException("Unable to read the stored flow execution of an API Product", e);
+        }
+    }
+
+    @Named("deserializeResources")
+    default List<Resource> deserializeResources(String resources) {
+        if (resources == null || resources.isBlank()) {
+            return null;
+        }
+        try {
+            return GraviteeJacksonMapper.getInstance().readValue(resources, new TypeReference<List<Resource>>() {});
+        } catch (IOException e) {
+            log.error("Unexpected error while deserializing API Product resources: {}", e.getClass().getSimpleName());
             return null;
         }
     }
@@ -94,6 +111,18 @@ public interface ApiProductAdapter {
             return GraviteeJacksonMapper.getInstance().writeValueAsString(flowExecution);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to serialize API Product flow execution", e);
+        }
+    }
+
+    @Named("serializeResources")
+    default String serializeResources(List<Resource> resources) {
+        if (resources == null) {
+            return null;
+        }
+        try {
+            return GraviteeJacksonMapper.getInstance().writeValueAsString(resources);
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to serialize API Product resources", e);
         }
     }
 

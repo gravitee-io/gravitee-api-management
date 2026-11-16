@@ -30,6 +30,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +44,14 @@ import org.springframework.stereotype.Component;
 public class ApplicationTypeServiceImpl implements ApplicationTypeService {
 
     public static final String DEFINITION_PATH = "/applications/types.json";
+
+    /**
+     * Types that are provisioned programmatically (the agent type, created by the AI gateway when an agent is
+     * routed through it) and deliberately never offered to operators: they are excluded from the enabled-types
+     * listing that feeds the creation wizards and carry no enabled/disabled setting, while
+     * {@link #getApplicationType(String)} still resolves them so existing applications read correctly.
+     */
+    private static final Set<String> INTERNAL_TYPE_IDS = Set.of("agent");
 
     @Autowired
     private ConfigService configService;
@@ -82,6 +91,7 @@ public class ApplicationTypeServiceImpl implements ApplicationTypeService {
         List<ApplicationTypeEntity> filteredData = applicationTypesEntity
             .getData()
             .stream()
+            .filter(typeEntity -> !INTERNAL_TYPE_IDS.contains(typeEntity.getId()))
             .filter(typeEntity -> jsonTypes.get(typeEntity.getId()).get("enabled").asBoolean(false))
             .collect(Collectors.toList());
 

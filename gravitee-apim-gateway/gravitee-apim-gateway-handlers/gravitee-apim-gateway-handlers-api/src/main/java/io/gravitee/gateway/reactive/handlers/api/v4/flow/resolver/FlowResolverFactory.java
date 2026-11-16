@@ -18,7 +18,6 @@ package io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
-import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.CompositeConditionFilter;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
@@ -27,6 +26,8 @@ import io.gravitee.gateway.reactive.v4.flow.AbstractBestMatchFlowSelector;
 import io.gravitee.gateway.reactive.v4.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.reactive.v4.flow.FlowResolver;
 import io.reactivex.rxjava3.core.Maybe;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Factory allowing to create a {@link FlowResolver} to be used to resolve flows to execute at api plan level, api level or platform level.
@@ -87,7 +88,14 @@ public class FlowResolverFactory {
      * resolver evaluating conditions upfront can never see them evaluated a second time.
      */
     public ConditionFilter<BaseExecutionContext, Flow> deferredConditionFilter(final Api api) {
-        if (deferrableConditionFilter == null || isBestMatchFlowMode(api.getDefinition().getFlowExecution())) {
+        return deferredConditionFilter(api.getDefinition().getFlowExecution());
+    }
+
+    /**
+     * Same as {@link #deferredConditionFilter(Api)}, for flows run in the given flow mode.
+     */
+    public ConditionFilter<BaseExecutionContext, Flow> deferredConditionFilter(final FlowExecution flowExecution) {
+        if (deferrableConditionFilter == null || isBestMatchFlowMode(flowExecution)) {
             return NO_DEFERRED_CONDITION;
         }
         return deferrableConditionFilter;
@@ -111,14 +119,13 @@ public class FlowResolverFactory {
         return apiPlanFlowResolver;
     }
 
-    public FlowResolver forApiProductPlan(Api api, String environmentId, ApiProductRegistry apiProductRegistry) {
-        final FlowExecution flowExecution = api.getDefinition().getFlowExecution();
-        ApiProductPlanFlowResolver apiProductPlanFlowResolver = new ApiProductPlanFlowResolver(
-            api.getDefinition(),
-            environmentId,
-            apiProductRegistry,
-            flowFilter(flowExecution)
-        );
+    /**
+     * Builds the resolver of the product plan flows of one deployed version of a product, with the product's flow mode.
+     *
+     * @param flowsByPlanId the flows of each plan of the product
+     */
+    public FlowResolver forApiProductPlan(FlowExecution flowExecution, Map<String, List<Flow>> flowsByPlanId) {
+        ApiProductPlanFlowResolver apiProductPlanFlowResolver = new ApiProductPlanFlowResolver(flowsByPlanId, flowFilter(flowExecution));
         if (isBestMatchFlowMode(flowExecution)) {
             return new BestMatchFlowResolver(apiProductPlanFlowResolver, bestMatchFlowSelector);
         }

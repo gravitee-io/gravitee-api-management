@@ -122,6 +122,15 @@
                         </goals>
                         <configuration>
                             <inputSpec>${project.basedir}/src/main/resources/openapi/openapi-api-products.yaml</inputSpec>
+                            <!-- Omitted arrays stay null so PUT can leave tags/groups/resources unchanged;
+                                 an explicit [] still clears. Same for UpdateGenericApiProductPlan.tags,
+                                 characteristics and excludedGroups. model-management overwrites ApiProduct afterward. -->
+                            <configOptions>
+                                <dateLibrary>java8</dateLibrary>
+                                <enumPropertyNaming>legacy</enumPropertyNaming>
+                                <useBeanValidation>true</useBeanValidation>
+                                <containerDefaultToNull>true</containerDefaultToNull>
+                            </configOptions>
                         </configuration>
                     </execution>
 					<execution>

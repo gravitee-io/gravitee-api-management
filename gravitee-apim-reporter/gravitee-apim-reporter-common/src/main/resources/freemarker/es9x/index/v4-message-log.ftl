@@ -1,14 +1,15 @@
 <#-- @ftlvariable name="index" type="java.lang.String" -->
 <#-- @ftlvariable name="@timestamp" type="java.lang.String" -->
 <#-- @ftlvariable name="log" type="io.gravitee.reporter.api.v4.log.MessageLog" -->
+<#-- @ftlvariable name="documentId" type="java.lang.String" -->
 <#if index??>
-{ "index" : { "_index" : "${index}", "_id" : "${log.getCorrelationId()}-${log.getConnectorType().getLabel()}" } }
+{ "index" : { "_index" : "${index}", "_id" : "${documentId}" } }
 </#if>
 <@compress single_line=true>
 {
   "@timestamp":"${@timestamp}"
   <#if !index??>
-  ,"_id": "${log.getCorrelationId()}-${log.getConnectorType().getLabel()}"
+  ,"_id": "${documentId}"
   ,"type": "v4-message-log"
   ,"date" : "${date}"
   </#if>

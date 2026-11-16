@@ -98,8 +98,9 @@ data:
           endpoints:
             {{ toYaml . | nindent 12 | trim -}}
           {{- end }}
-          {{- if .Values.es.index_mode }}
-          index_mode: {{ .Values.es.index_mode }}
+          {{- $indexMode := ((.Values.api.analytics).elasticsearch).index_mode | default .Values.es.index_mode }}
+          {{- if $indexMode }}
+          index_mode: {{ $indexMode }}
           {{- end }}
           {{- if .Values.es.http }}
           http:

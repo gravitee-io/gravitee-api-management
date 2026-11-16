@@ -101,7 +101,7 @@ class SearchEventsUseCaseTest {
     }
 
     @Test
-    void should_return_events_sorted_by_desc_createdAt() {
+    void should_return_events_sorted_by_desc_updatedAt() {
         // Given
         eventQueryService.initWith(
             List.of(
@@ -109,19 +109,19 @@ class SearchEventsUseCaseTest {
                     .toBuilder()
                     .id("1")
                     .environments(Set.of(ENVIRONMENT_ID))
-                    .createdAt(ZonedDateTime.parse("2020-02-01T20:22:02.00Z"))
+                    .updatedAt(ZonedDateTime.parse("2020-02-03T20:22:02.00Z"))
                     .build(),
                 EventFixtures.anEvent()
                     .toBuilder()
                     .id("2")
                     .environments(Set.of(ENVIRONMENT_ID))
-                    .createdAt(ZonedDateTime.parse("2020-02-02T20:22:02.00Z"))
+                    .updatedAt(ZonedDateTime.parse("2020-02-02T20:22:02.00Z"))
                     .build(),
                 EventFixtures.anEvent()
                     .toBuilder()
                     .id("3")
                     .environments(Set.of(ENVIRONMENT_ID))
-                    .createdAt(ZonedDateTime.parse("2020-02-03T20:22:02.00Z"))
+                    .updatedAt(ZonedDateTime.parse("2020-02-01T20:22:02.00Z"))
                     .build()
             )
         );
@@ -142,7 +142,7 @@ class SearchEventsUseCaseTest {
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(3);
-            soft.assertThat(result.data()).extracting(Event::getId).containsExactly("3", "2", "1");
+            soft.assertThat(result.data()).extracting(Event::getId).containsExactly("1", "2", "3");
         });
     }
 
@@ -154,7 +154,14 @@ class SearchEventsUseCaseTest {
         var pageSize = 5;
         eventQueryService.initWith(
             IntStream.range(0, expectedTotal)
-                .mapToObj(i -> EventFixtures.anEvent().toBuilder().id(String.valueOf(i)).environments(Set.of(ENVIRONMENT_ID)).build())
+                .mapToObj(i ->
+                    EventFixtures.anEvent()
+                        .toBuilder()
+                        .id(String.valueOf(i))
+                        .environments(Set.of(ENVIRONMENT_ID))
+                        .updatedAt(ZonedDateTime.parse("2020-02-01T20:22:02.00Z").plusSeconds(i))
+                        .build()
+                )
                 .collect(Collectors.toList())
         );
 
@@ -175,7 +182,7 @@ class SearchEventsUseCaseTest {
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(expectedTotal);
-            soft.assertThat(result.data()).extracting(Event::getId).containsExactly("5", "6", "7", "8", "9");
+            soft.assertThat(result.data()).extracting(Event::getId).containsExactly("9", "8", "7", "6", "5");
         });
     }
 }

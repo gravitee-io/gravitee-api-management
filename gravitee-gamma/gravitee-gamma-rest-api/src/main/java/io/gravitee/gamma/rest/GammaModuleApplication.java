@@ -20,8 +20,11 @@ import io.gravitee.gamma.rest.resources.GammaRootResource;
 import io.gravitee.gamma.rest.resources.GammaUIResource;
 import io.gravitee.gamma.rest.resources.OpenAPIResource;
 import io.gravitee.gamma.rest.resources.UnknownPropertyExceptionMapper;
+import io.gravitee.gamma.rest.resources.credential.CredentialResource;
+import io.gravitee.gamma.rest.resources.credential.CredentialsResource;
 import io.gravitee.gamma.rest.resources.gravitee_plugin.AgentProviderPluginResource;
 import io.gravitee.gamma.rest.resources.gravitee_plugin.PluginResource;
+import io.gravitee.gamma.rest.resources.gravitee_plugin.PolicyPluginResource;
 import io.gravitee.gamma.rest.resources.guardian.GuardianResource;
 import io.gravitee.gamma.rest.resources.guardian.GuardiansResource;
 import io.gravitee.gamma.rest.resources.observability.GammaObservabilityResource;
@@ -72,6 +75,8 @@ public class GammaModuleApplication extends ResourceConfig {
         register(OpenAPIResource.class);
         register(GuardiansResource.class);
         register(GuardianResource.class);
+        register(CredentialsResource.class);
+        register(CredentialResource.class);
         register(GammaObservabilityResource.class);
         register(TracingResource.class);
         register(ObservabilityFiltersResource.class);
@@ -85,6 +90,7 @@ public class GammaModuleApplication extends ResourceConfig {
         register(ObservabilityCapabilitiesResource.class);
         register(PluginResource.class);
         register(AgentProviderPluginResource.class);
+        register(PolicyPluginResource.class);
 
         register(MultiPartFeature.class);
         register(PayloadInputBodyReader.class);

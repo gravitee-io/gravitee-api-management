@@ -16,12 +16,15 @@
 package io.gravitee.apim.core.api_product.model;
 
 import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.resource.Resource;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @Builder
@@ -39,4 +42,7 @@ public class UpdateApiProduct {
     private ZonedDateTime updatedAt;
     private Boolean disableMembershipNotifications;
     private Analytics analytics;
+
+    @ToString.Exclude
+    private List<Resource> resources;
 }

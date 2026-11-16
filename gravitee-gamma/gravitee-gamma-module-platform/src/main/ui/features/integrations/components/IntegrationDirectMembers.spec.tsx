@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { toast } from '@gravitee/graphene-core';
 import { dataTableHarness, renderWithGraphene } from '@gravitee/graphene-core/testing';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { screen, waitFor, within } from '@testing-library/react';
@@ -183,6 +184,7 @@ describe('IntegrationDirectMembers', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        toast.dismiss();
         mockListIntegrationRoles.mockResolvedValue([{ name: 'PRIMARY_OWNER' }, { name: 'OWNER' }, { name: 'USER' }]);
     });
 

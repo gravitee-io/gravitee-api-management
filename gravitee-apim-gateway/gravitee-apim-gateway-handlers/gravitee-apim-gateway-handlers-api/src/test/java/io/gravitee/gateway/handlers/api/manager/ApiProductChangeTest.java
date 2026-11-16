@@ -23,6 +23,7 @@ import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import java.util.ArrayList;
 import java.util.Date;
@@ -264,6 +265,23 @@ class ApiProductChangeTest {
             assertThat(change.planIdsToEvict()).isEmpty();
             assertThat(change.apiIdsToResync()).isEmpty();
             assertThat(change.affectsMemberApis()).isFalse();
+        }
+
+        @Test
+        void should_affect_member_apis_when_a_resource_configuration_changes() {
+            Resource deployedResource = Resource.builder().name("cache").type("cache").configuration("{\"ttl\":10}").enabled(true).build();
+            Resource incomingResource = Resource.builder().name("cache").type("cache").configuration("{\"ttl\":20}").enabled(true).build();
+            ReactableApiProduct deployed = product(Set.of("api-1"), plan("plan-1"));
+            deployed.setResources(List.of(deployedResource));
+            ReactableApiProduct incoming = redeployed(product(Set.of("api-1"), plan("plan-1")));
+            incoming.setResources(List.of(incomingResource));
+
+            ApiProductChange change = between(deployed, incoming);
+
+            assertThat(change.planIdsToLoadSubscriptionsFor()).isEmpty();
+            assertThat(change.planIdsToEvict()).isEmpty();
+            assertThat(change.apiIdsToResync()).isEmpty();
+            assertThat(change.affectsMemberApis()).isTrue();
         }
     }
 

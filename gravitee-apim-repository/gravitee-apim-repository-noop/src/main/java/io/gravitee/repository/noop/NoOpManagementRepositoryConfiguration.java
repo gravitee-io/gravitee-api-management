@@ -112,4 +112,9 @@ public class NoOpManagementRepositoryConfiguration {
     public OrganizationKeyRepository organizationKeyRepository() {
         return new NoOpOrganizationKeyRepository();
     }
+
+    @Bean
+    public CredentialRepository credentialRepository() {
+        return new NoOpCredentialRepository();
+    }
 }

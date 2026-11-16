@@ -20,7 +20,9 @@ import io.gravitee.repository.management.api.search.PortalNavigationItemCriteria
 import io.gravitee.repository.management.model.AutomationTargetReferenceType;
 import io.gravitee.repository.management.model.PortalNavigationItem;
 import io.gravitee.repository.management.model.PortalNavigationReferenceType;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public interface PortalNavigationItemRepository extends CrudRepository<PortalNavigationItem, String> {
     List<PortalNavigationItem> findAllByOrganizationIdAndEnvironmentId(String organizationId, String environmentId)
@@ -60,6 +62,27 @@ public interface PortalNavigationItemRepository extends CrudRepository<PortalNav
      *   its configuration has changed since it was read
      */
     boolean updateConfigurationIfUnchanged(String id, String expectedConfiguration, String configuration) throws TechnicalException;
+
+    /** @return the distinct portal ids that the environment's items attached to a portal reference */
+    Set<String> findPortalReferenceIdsByEnvironmentId(String environmentId) throws TechnicalException;
+
+    /**
+     * Points every item of the environment attached to one of the portals {@code fromPortalIds} at
+     * {@code toPortalId}, and changes nothing else on those items. Items attached to an API, and items managed by
+     * the Automation API, are left alone: the Automation API derives their ids from their portal's hrid.
+     *
+     * @return the number of items changed, 0 when {@code fromPortalIds} is empty
+     */
+    long updatePortalReferences(String environmentId, Collection<String> fromPortalIds, String toPortalId) throws TechnicalException;
+
+    /**
+     * Points at {@code portalId} every item of the environment that the Automation API synced for that portal and
+     * that is attached to one of the portals {@code fromPortalIds}, and changes nothing else on those items.
+     *
+     * @return the number of items changed, 0 when {@code fromPortalIds} is empty
+     */
+    long updateAutomationPortalReferences(String environmentId, Collection<String> fromPortalIds, String portalId)
+        throws TechnicalException;
 
     void deleteByIds(List<String> ids) throws TechnicalException;
 

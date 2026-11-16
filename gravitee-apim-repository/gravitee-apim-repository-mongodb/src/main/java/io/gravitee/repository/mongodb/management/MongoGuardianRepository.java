@@ -27,6 +27,7 @@ import io.gravitee.repository.management.model.Guardian;
 import io.gravitee.repository.mongodb.management.internal.guardians.GuardianMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.GuardianMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -47,6 +48,11 @@ public class MongoGuardianRepository implements GuardianRepository {
 
     private final GraviteeMapper mapper;
     private final GuardianMongoRepository internalGuardianMongoRepo;
+
+    @Override
+    public void updateUpdatedAt(String environmentId, String guardianId, Date updatedAt) throws TechnicalException {
+        internalGuardianMongoRepo.updateUpdatedAt(environmentId, guardianId, updatedAt);
+    }
 
     @Override
     public Optional<Guardian> findById(String id) throws TechnicalException {

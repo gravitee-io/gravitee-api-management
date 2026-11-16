@@ -44,7 +44,7 @@ public class ValidatePortalDomainService implements Validator<ValidatePortalDoma
     @Override
     public Result<Input> validateAndSanitize(Input input) {
         var errors = new ArrayList<Error>();
-        errors.addAll(portalAutomationScopeEnforcer.validate(input.auditInfo(), input.portalId(), "hrid"));
+        errors.addAll(portalAutomationScopeEnforcer.validatePortal(input.auditInfo(), input.portalId(), "hrid"));
         if (isNewPortalWithoutResolvableUrl(input)) {
             errors.add(
                 Error.severe(

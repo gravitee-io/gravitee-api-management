@@ -15,11 +15,14 @@
  */
 package io.gravitee.apim.core.portal_page.crud_service;
 
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface PortalNavigationItemCrudService {
     PortalNavigationItem create(PortalNavigationItem portalNavigationItem);
@@ -39,6 +42,25 @@ public interface PortalNavigationItemCrudService {
         PortalNavigationItemSource fetchedSource,
         PortalNavigationItemSource.FetchState fetchState
     );
+
+    /** @return the distinct portals that the environment's items attached to a portal reference */
+    Set<PortalId> findReferencedPortalIds(String environmentId);
+
+    /**
+     * Points every item of the environment attached to one of the portals {@code fromPortalIds} at
+     * {@code toPortalId}. Items attached to an API, and items managed by the Automation API, are left alone.
+     *
+     * @return the number of items changed
+     */
+    long updatePortalReferences(String environmentId, Collection<PortalId> fromPortalIds, PortalId toPortalId);
+
+    /**
+     * Points at {@code portalId} every item of the environment that the Automation API synced for that portal and
+     * that is attached to one of the portals {@code fromPortalIds}.
+     *
+     * @return the number of items changed
+     */
+    long updateAutomationPortalReferences(String environmentId, Collection<PortalId> fromPortalIds, PortalId portalId);
 
     void delete(PortalNavigationItemId portalNavigationItemId);
 

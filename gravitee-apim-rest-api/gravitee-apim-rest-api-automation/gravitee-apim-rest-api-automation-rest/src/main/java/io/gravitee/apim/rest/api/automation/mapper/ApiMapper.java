@@ -297,7 +297,7 @@ public interface ApiMapper {
         Map<String, PlanCRD> plans = new LinkedHashMap<>();
         for (int i = 0; i < apiV4Spec.getPlans().size(); i++) {
             PlanV4 planV4 = apiV4Spec.getPlans().get(i);
-            plans.put(planV4.getHrid(), map(planV4, i));
+            plans.put(planV4.getHrid(), map(planV4, i + 1));
         }
         return plans;
     }

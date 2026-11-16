@@ -77,6 +77,7 @@ public class PlanMapper {
         entity.setOrder(plan.getOrder());
         entity.setExcludedGroups(plan.getExcludedGroups());
         entity.setApiType(plan.getApiType());
+        entity.setType(plan.getType() != null ? PlanType.valueOf(plan.getType().name()) : PlanType.API);
         if (plan.getMode() != null) {
             entity.setMode(PlanMode.valueOf(plan.getMode().name()));
         } else {

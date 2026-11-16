@@ -21,6 +21,7 @@ import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.domain_service.ApiCRDTargetDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
@@ -36,12 +37,10 @@ import io.gravitee.apim.core.api.model.crd.PageCRD;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.api.model.property.EncryptableProperty;
-import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
-import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.factory.PageModelFactory;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
@@ -68,6 +67,7 @@ import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Date;
 import java.util.HashMap;
@@ -84,7 +84,7 @@ import lombok.CustomLog;
 @CustomLog
 public class ImportApiCRDUseCase {
 
-    private final ApiQueryService apiQueryService;
+    private final ApiCRDTargetDomainService apiCRDTargetDomainService;
     private final ApiPrimaryOwnerFactory apiPrimaryOwnerFactory;
     private final ValidateApiDomainService validateApiDomainService;
     private final CreateApiDomainService createApiDomainService;
@@ -112,7 +112,7 @@ public class ImportApiCRDUseCase {
 
     public ImportApiCRDUseCase(
         ApiCrudService apiCrudService,
-        ApiQueryService apiQueryService,
+        ApiCRDTargetDomainService apiCRDTargetDomainService,
         ApiPrimaryOwnerFactory apiPrimaryOwnerFactory,
         ValidateApiDomainService validateApiDomainService,
         CreateApiDomainService createApiDomainService,
@@ -138,7 +138,7 @@ public class ImportApiCRDUseCase {
         PropertyDomainService propertyDomainService
     ) {
         this.apiCrudService = apiCrudService;
-        this.apiQueryService = apiQueryService;
+        this.apiCRDTargetDomainService = apiCRDTargetDomainService;
         this.apiPrimaryOwnerFactory = apiPrimaryOwnerFactory;
         this.validateApiDomainService = validateApiDomainService;
         this.createApiDomainService = createApiDomainService;
@@ -187,7 +187,7 @@ public class ImportApiCRDUseCase {
         var warnings = validationResult.warning().orElseGet(List::of);
         var sanitizedInput = validationResult.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
 
-        var api = apiQueryService.findByEnvironmentIdAndCrossId(sanitizedInput.auditInfo.environmentId(), sanitizedInput.spec.getCrossId());
+        var api = apiCRDTargetDomainService.findExistingApi(sanitizedInput.auditInfo.environmentId(), sanitizedInput.spec);
 
         var status = api.map(exiting -> this.update(sanitizedInput, exiting)).orElseGet(() -> this.create(sanitizedInput));
         status.setErrors(ApiCRDStatus.Errors.fromErrorList(warnings));
@@ -252,7 +252,7 @@ public class ImportApiCRDUseCase {
                 input.spec.getConsoleNotificationConfiguration()
             );
 
-            if (shouldDeploy(input.spec())) {
+            if (shouldDeploy(input.spec(), input.spec().getState())) {
                 // This will also DEPLOYS the API because it is the first time it has been started
                 apiStateDomainService.start(createdApi, input.auditInfo);
             }
@@ -265,10 +265,8 @@ public class ImportApiCRDUseCase {
                 .state(createdApi.getLifecycleState().name())
                 .plans(planNameIdMapping)
                 .build();
-        } catch (AbstractDomainException e) {
-            throw e;
         } catch (Exception e) {
-            throw new TechnicalManagementException(e);
+            throw importFailure(e);
         }
     }
 
@@ -310,7 +308,7 @@ public class ImportApiCRDUseCase {
                             input.spec().getDefinitionContext().getSyncFrom().toUpperCase()
                         )
                     )
-                    .lifecycleState(Api.LifecycleState.valueOf(input.spec().getState()))
+                    .lifecycleState(lifecycleStateToUpdate(input.spec(), existingApi))
                     .portalNavigation(input.spec().getPortalNavigation())
                     .build()
             );
@@ -348,15 +346,24 @@ public class ImportApiCRDUseCase {
                 .state(api.getLifecycleState().name())
                 .plans(planKeyIdMapping)
                 .build();
-        } catch (AbstractDomainException e) {
-            throw e;
         } catch (Exception e) {
-            throw new TechnicalManagementException(e);
+            throw importFailure(e);
         }
     }
 
+    // A refusal keeps its declared 4xx status; anything else is a technical failure
+    private static RuntimeException importFailure(Exception e) {
+        if (e instanceof AbstractDomainException domainException) {
+            return domainException;
+        }
+        if (e instanceof AbstractManagementException managementException && managementException.getHttpStatusCode() < 500) {
+            return managementException;
+        }
+        return new TechnicalManagementException(e);
+    }
+
     private void handleLifeCycle(Input input, Api existingApi, Api api) {
-        if (shouldDeploy(input.spec())) {
+        if (shouldDeploy(input.spec(), api.getLifecycleState().name())) {
             apiStateDomainService.deploy(api, "Updated by GKO", input.auditInfo);
         }
 
@@ -511,9 +518,6 @@ public class ImportApiCRDUseCase {
         pages.forEach(page -> {
             page.setReferenceId(apiId);
             page.setReferenceType(Page.ReferenceType.API);
-            if (page.getParentId() != null) {
-                validatePageParent(pages, page.getParentId());
-            }
 
             pageCrudService
                 .findById(page.getId())
@@ -529,22 +533,15 @@ public class ImportApiCRDUseCase {
         });
     }
 
-    private void validatePageParent(List<Page> pages, String parentId) {
-        pages
-            .stream()
-            .filter(page -> parentId.equals(page.getId()))
-            .findFirst()
-            .ifPresent(parent -> {
-                if (!(parent.isFolder() || parent.isRoot())) {
-                    throw new InvalidPageParentException(parent.getId());
-                }
-            });
+    // A spec without state keeps the stored one, so the API is neither started nor stopped
+    private static Api.LifecycleState lifecycleStateToUpdate(ApiCRDSpec spec, Api existingApi) {
+        return spec.getState() == null ? existingApi.getLifecycleState() : Api.LifecycleState.valueOf(spec.getState());
     }
 
-    private static boolean shouldDeploy(ApiCRDSpec spec) {
+    private static boolean shouldDeploy(ApiCRDSpec spec, String lifecycleState) {
         return (
             spec.getDefinitionContext().isSyncFromManagement() &&
-            Api.LifecycleState.STARTED.name().equalsIgnoreCase(spec.getState()) &&
+            Api.LifecycleState.STARTED.name().equalsIgnoreCase(lifecycleState) &&
             spec
                 .getPlans()
                 .values()

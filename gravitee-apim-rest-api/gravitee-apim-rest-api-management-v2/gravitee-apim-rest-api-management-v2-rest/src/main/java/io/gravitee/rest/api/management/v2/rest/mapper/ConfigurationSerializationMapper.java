@@ -41,9 +41,10 @@ public interface ConfigurationSerializationMapper {
         if (Objects.isNull(configuration)) {
             return null;
         }
-        if (configuration instanceof LinkedHashMap) {
+        if (configuration instanceof Map<?, ?> map) {
             try {
-                JsonNode jsonNode = JSON_MAPPER.valueToTree(configuration);
+                // Jackson may produce HashMap; callers may pass Map.of. Accept any Map, not only LinkedHashMap.
+                JsonNode jsonNode = JSON_MAPPER.valueToTree(map);
                 return JSON_MAPPER.writeValueAsString(jsonNode);
             } catch (IllegalArgumentException | JsonProcessingException e) {
                 throw new TechnicalManagementException("An error occurred while trying to parse configuration " + e);
@@ -68,8 +69,8 @@ public interface ConfigurationSerializationMapper {
         if (Objects.isNull(configuration)) {
             return Map.of();
         }
-        if (configuration instanceof LinkedHashMap) {
-            return (Map<String, Object>) configuration;
+        if (configuration instanceof Map<?, ?> map) {
+            return (Map<String, Object>) map;
         } else {
             return Map.of();
         }

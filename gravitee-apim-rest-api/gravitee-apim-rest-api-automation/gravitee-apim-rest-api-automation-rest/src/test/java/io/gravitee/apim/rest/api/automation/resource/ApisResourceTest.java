@@ -39,11 +39,13 @@ import io.gravitee.definition.model.v4.analytics.tracing.MaskingType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -74,6 +76,7 @@ class ApisResourceTest extends AbstractResourceTest {
         reset(validateApiCRDDomainService);
         reset(apiQueryService);
         reset(permissionService);
+        apiCrudService.reset();
     }
 
     @Nested
@@ -134,6 +137,26 @@ class ApisResourceTest extends AbstractResourceTest {
             verify(importApiCRDUseCase).execute(any());
         }
 
+        @ParameterizedTest
+        @ValueSource(booleans = { false, true })
+        void should_return_403_when_the_caller_cannot_update_the_api_named_by_the_id_of_a_spec_without_cross_id(boolean dryRun) {
+            apiCrudService.initWith(List.of(anApiManagedByAutomation()));
+            when(permissionService.hasPermission(any(), eq(API_DEFINITION), eq("api-id"), eq(UPDATE))).thenReturn(false);
+
+            assertThat(statusWithUuidAndNoCrossId(dryRun)).isEqualTo(403);
+            verify(importApiCRDUseCase, never()).execute(any());
+            verify(validateApiCRDDomainService, never()).validateAndSanitize(any());
+        }
+
+        @Test
+        void should_update_the_api_named_by_the_id_of_a_spec_without_cross_id_with_update_on_it() {
+            apiCrudService.initWith(List.of(anApiManagedByAutomation()));
+            when(permissionService.hasPermission(any(), eq(ENVIRONMENT_API), eq(ENVIRONMENT), eq(CREATE))).thenReturn(false);
+
+            assertThat(statusWithUuidAndNoCrossId(false)).isEqualTo(200);
+            verify(importApiCRDUseCase).execute(any());
+        }
+
         private void givenExistingApi() {
             var crossId = HRIDToUUID.api()
                 .context(AuditInfo.builder().organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build())
@@ -151,6 +174,39 @@ class ApisResourceTest extends AbstractResourceTest {
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
                     .put(Entity.json(readJSON("api-with-hrid.json")))
+            ) {
+                return response.getStatus();
+            }
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = { false, true })
+        void should_return_400_when_the_id_of_a_spec_without_cross_id_names_an_api_created_in_the_console(boolean dryRun) {
+            apiCrudService.initWith(
+                List.of(Api.builder().id("api-id").environmentId(ENVIRONMENT).originContext(new OriginContext.Management()).build())
+            );
+
+            assertThat(statusWithUuidAndNoCrossId(dryRun)).isEqualTo(400);
+            verify(importApiCRDUseCase, never()).execute(any());
+        }
+
+        private static Api anApiManagedByAutomation() {
+            return Api.builder()
+                .id("api-id")
+                .environmentId(ENVIRONMENT)
+                .originContext(new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED))
+                .build();
+        }
+
+        private int statusWithUuidAndNoCrossId(boolean dryRun) {
+            var spec = readJSON("api-with-uuid.json").replace("\"crossId\": \"api-cross-id\",", "");
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", dryRun)
+                    .queryParam("hridContainsUUID", true)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(spec))
             ) {
                 return response.getStatus();
             }
@@ -492,6 +548,25 @@ class ApisResourceTest extends AbstractResourceTest {
                     soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                     soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
                 });
+            }
+        }
+
+        @Test
+        void should_return_400_when_the_id_names_an_api_of_another_environment() {
+            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class))).thenAnswer(call ->
+                Validator.Result.ofValue(call.getArgument(0))
+            );
+            apiCrudService.initWith(List.of(Api.builder().id("api-id").environmentId("other-environment").crossId("api-cross-id").build()));
+
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", dryRun)
+                    .queryParam("hridContainsUUID", true)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-with-uuid.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(400);
             }
         }
 

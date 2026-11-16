@@ -80,6 +80,20 @@ class SecretCrudServiceImplTest {
     }
 
     @Test
+    void should_read_the_encrypted_value_of_a_secret() throws TechnicalException {
+        when(secretRepository.findById("org-1", "env-1", "secret-1")).thenReturn(Optional.of(aStoredSecret()));
+
+        assertThat(service.getEncryptedValue(aSecret())).isEqualTo("ciphertext");
+    }
+
+    @Test
+    void should_report_the_encrypted_value_of_a_deleted_secret_as_not_found() throws TechnicalException {
+        when(secretRepository.findById("org-1", "env-1", "secret-1")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.getEncryptedValue(aSecret())).isInstanceOf(SecretNotFoundException.class);
+    }
+
+    @Test
     void should_find_a_secret_by_key() throws TechnicalException {
         when(secretRepository.findByKey("org-1", "env-1", "anthropic-key")).thenReturn(Optional.empty());
 

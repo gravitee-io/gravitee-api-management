@@ -32,11 +32,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
@@ -157,6 +160,84 @@ public class JdbcPortalNavigationItemRepository
             return rows == 1;
         } catch (Exception ex) {
             throw new TechnicalException("Failed to update the configuration of portal navigation item " + id, ex);
+        }
+    }
+
+    @Override
+    public Set<String> findPortalReferenceIdsByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("JdbcPortalNavigationItemRepository.findPortalReferenceIdsByEnvironmentId({})", environmentId);
+        try {
+            return new HashSet<>(
+                jdbcTemplate.queryForList(
+                    "select distinct reference_id from " + this.tableName + " where environment_id = ? and reference_type = ?",
+                    String.class,
+                    environmentId,
+                    PortalNavigationReferenceType.PORTAL.name()
+                )
+            );
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to find the portal references of environment " + environmentId, ex);
+        }
+    }
+
+    @Override
+    public long updatePortalReferences(String environmentId, Collection<String> fromPortalIds, String toPortalId)
+        throws TechnicalException {
+        log.debug("JdbcPortalNavigationItemRepository.updatePortalReferences({}, {}, {})", environmentId, fromPortalIds, toPortalId);
+        if (fromPortalIds.isEmpty()) {
+            return 0;
+        }
+        try {
+            var params = new ArrayList<Object>(List.of(toPortalId, environmentId, PortalNavigationReferenceType.PORTAL.name()));
+            params.addAll(fromPortalIds);
+            return jdbcTemplate.update(
+                "update " +
+                    this.tableName +
+                    " set reference_id = ? where environment_id = ? and reference_type = ? and automation_metadata is null" +
+                    " and reference_id in (" +
+                    getOrm().buildInClause(fromPortalIds) +
+                    ")",
+                params.toArray()
+            );
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to update the portal references of environment " + environmentId, ex);
+        }
+    }
+
+    @Override
+    public long updateAutomationPortalReferences(String environmentId, Collection<String> fromPortalIds, String portalId)
+        throws TechnicalException {
+        log.debug(
+            "JdbcPortalNavigationItemRepository.updateAutomationPortalReferences({}, {}, {})",
+            environmentId,
+            fromPortalIds,
+            portalId
+        );
+        if (fromPortalIds.isEmpty()) {
+            return 0;
+        }
+        try {
+            var params = new ArrayList<Object>(
+                List.of(
+                    portalId,
+                    environmentId,
+                    PortalNavigationReferenceType.PORTAL.name(),
+                    AutomationTargetReferenceType.PORTAL.name(),
+                    portalId
+                )
+            );
+            params.addAll(fromPortalIds);
+            return jdbcTemplate.update(
+                "update " +
+                    this.tableName +
+                    " set reference_id = ? where environment_id = ? and reference_type = ?" +
+                    " and automation_reference_type = ? and automation_reference_id = ? and reference_id in (" +
+                    getOrm().buildInClause(fromPortalIds) +
+                    ")",
+                params.toArray()
+            );
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to update the automation portal references of environment " + environmentId, ex);
         }
     }
 

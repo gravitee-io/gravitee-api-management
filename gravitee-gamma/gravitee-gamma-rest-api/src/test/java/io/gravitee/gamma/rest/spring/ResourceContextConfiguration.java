@@ -21,6 +21,7 @@ import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryS
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.plugin.gamma.internal.GammaModuleService;
 import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PermissionService;
 import org.springframework.context.annotation.Bean;
@@ -37,6 +38,11 @@ public class ResourceContextConfiguration {
     @Bean
     public PermissionService permissionService() {
         return mock(PermissionService.class);
+    }
+
+    @Bean
+    public MembershipService membershipService() {
+        return mock(MembershipService.class);
     }
 
     @Bean

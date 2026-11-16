@@ -60,7 +60,7 @@ function renderTable(apis: EnvironmentApiScore[], overrides: Partial<ComponentPr
                 loading={false}
                 page={1}
                 pageSize={10}
-                detailHref={apiId => `/environments/default/apim/apis/${apiId}/api-score`}
+                detailHref={api => `/environments/default/apim/apis/${api.id}/api-score`}
                 onPageChange={jest.fn()}
                 onPageSizeChange={jest.fn()}
                 {...overrides}

@@ -132,6 +132,10 @@
       />
     }
 
+    @if (saveError(); as error) {
+      <p class="settings-edit__form__error next-gen-small" data-testId="save-error" role="alert">{{ error }}</p>
+    }
+
     <div class="settings-edit__form__actions">
       <button
         mat-flat-button

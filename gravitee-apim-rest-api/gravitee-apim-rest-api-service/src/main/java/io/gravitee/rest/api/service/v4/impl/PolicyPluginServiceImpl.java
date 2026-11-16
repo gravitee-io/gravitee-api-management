@@ -104,6 +104,7 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         var mcpProxyFlowPhase = getFlowPhase(plugin, ApiProtocolType.MCP_PROXY);
         var llmProxyFlowPhase = getFlowPhase(plugin, ApiProtocolType.LLM_PROXY);
         var a2aProxyFlowPhase = getFlowPhase(plugin, ApiProtocolType.A2A_PROXY);
+        var guardianFlowPhase = getFlowPhase(plugin, ApiProtocolType.GUARDIAN);
         if (httpProxyFlowPhase.isEmpty()) {
             httpProxyFlowPhase = getDeprecatedFlowPhase(plugin, "proxy");
         }
@@ -117,6 +118,7 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         entity.putFlowPhaseCompatibility(ApiProtocolType.MCP_PROXY, mcpProxyFlowPhase);
         entity.putFlowPhaseCompatibility(ApiProtocolType.LLM_PROXY, llmProxyFlowPhase);
         entity.putFlowPhaseCompatibility(ApiProtocolType.A2A_PROXY, a2aProxyFlowPhase);
+        entity.putFlowPhaseCompatibility(ApiProtocolType.GUARDIAN, guardianFlowPhase);
         entity.setSupportsMessageCondition(supportsMessageCondition(plugin));
 
         return entity;
@@ -235,7 +237,7 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         }
 
         var apiProtocolTypeProperty = plugin.manifest().properties().get(apiProtocolType.name().toLowerCase());
-        if (apiProtocolTypeProperty != null) {
+        if (apiProtocolTypeProperty != null && !apiProtocolTypeProperty.isBlank()) {
             return Arrays.stream(apiProtocolTypeProperty.split(",")).map(String::trim).map(FlowPhase::valueOf).collect(Collectors.toSet());
         } else {
             return Collections.emptySet();

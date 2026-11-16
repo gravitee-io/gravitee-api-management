@@ -19,12 +19,13 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.gamma.rest.core.guardian.use_case.CreateGuardianUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.SearchGuardianUseCase;
 import io.gravitee.gamma.rest.resources.CurrentAuditInfo;
+import io.gravitee.gamma.rest.resources.dto.PaginatedResponseDto;
 import io.gravitee.gamma.rest.resources.guardian.dto.CreateGuardianRequestDto;
 import io.gravitee.gamma.rest.resources.guardian.dto.GuardianDto;
 import io.gravitee.gamma.rest.resources.guardian.dto.GuardianSummaryDto;
-import io.gravitee.gamma.rest.resources.tracing.dto.PaginatedResponseDto;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.rest.annotation.GraviteeLicenseFeature;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -58,12 +59,15 @@ import jakarta.ws.rs.core.UriInfo;
  *
  * <h2>Authorization</h2>
  * Declarative {@code ENVIRONMENT_GUARDIAN} with per-verb ACLs. CREATE and READ stay distinct so
- * holding read rights never grants creation.
+ * holding read rights never grants creation. The Guardian endpoints also require the
+ * {@code apim-guardians} license feature and answer 403 without it.
  *
  * @author GraviteeSource Team
  */
 @Produces(MediaType.APPLICATION_JSON)
 public class GuardiansResource {
+
+    public static final String GUARDIANS_LICENSE_FEATURE = "apim-guardians";
 
     @Context
     private ResourceContext resourceContext;
@@ -78,6 +82,7 @@ public class GuardiansResource {
     private CreateGuardianUseCase createGuardianUseCase;
 
     @GET
+    @GraviteeLicenseFeature(GUARDIANS_LICENSE_FEATURE)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GUARDIAN, acls = { RolePermissionAction.READ }) })
     public PaginatedResponseDto<GuardianSummaryDto> list(
         @QueryParam("q") String q,
@@ -107,6 +112,7 @@ public class GuardiansResource {
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
+    @GraviteeLicenseFeature(GUARDIANS_LICENSE_FEATURE)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GUARDIAN, acls = { RolePermissionAction.CREATE }) })
     public Response create(@NotNull CreateGuardianRequestDto request) {
         var output = createGuardianUseCase.execute(

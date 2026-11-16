@@ -203,7 +203,7 @@ public class HTTPFacetsQueryAdapter {
             var order = json();
             terms.put("order", order);
             for (var sort : metric.sorts()) {
-                order.put(AggregationAdapter.orderPath(metric.metric(), sort.measure()), sort.order().name().toLowerCase());
+                order.put(HTTPMeasuresQueryAdapter.orderPath(metric.metric(), sort.measure()), sort.order().name().toLowerCase());
             }
         }
 

@@ -26,7 +26,6 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
-import io.gravitee.apim.core.flow.domain_service.ApiResourceNames;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.plan.crud_service.KafkaPortRangeCrudService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
@@ -45,7 +44,6 @@ import java.sql.Date;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 @DomainService
 public class CreatePlanDomainService {
@@ -85,10 +83,14 @@ public class CreatePlanDomainService {
         };
     }
 
-    private PlanWithFlows createV4ApiPlan(Plan plan, List<? extends AbstractFlow> flows, Api api, AuditInfo auditInfo) {
+    public static void assertApiAcceptsNewPlans(Api api) {
         if (api.isDeprecated()) {
-            throw new ApiDeprecatedException(plan.getReferenceId());
+            throw new ApiDeprecatedException(api.getId());
         }
+    }
+
+    private PlanWithFlows createV4ApiPlan(Plan plan, List<? extends AbstractFlow> flows, Api api, AuditInfo auditInfo) {
+        assertApiAcceptsNewPlans(api);
 
         var listeners = api.getApiListeners();
 
@@ -141,12 +143,7 @@ public class CreatePlanDomainService {
     }
 
     private PlanWithFlows createHttpV4ApiPlan(Plan plan, List<Flow> flows, Api api, AuditInfo auditInfo) {
-        var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows, ApiResourceNames.fromHttpV4(api));
-        flowValidationDomainService.validatePathParameters(
-            api.getType(),
-            api.getApiDefinitionHttpV4().getFlows() != null ? api.getApiDefinitionHttpV4().getFlows().stream() : Stream.empty(),
-            sanitizedFlows.stream()
-        );
+        var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4PlanFlows(api, flows);
 
         var createdPlan = planCrudService.create(
             plan
@@ -178,9 +175,7 @@ public class CreatePlanDomainService {
     }
 
     private PlanWithFlows createV2ApiPlan(Plan plan, List<? extends AbstractFlow> flows, Api api, AuditInfo auditInfo) {
-        if (api.isDeprecated()) {
-            throw new ApiDeprecatedException(plan.getReferenceId());
-        }
+        assertApiAcceptsNewPlans(api);
 
         planValidatorDomainService.validatePlanSecurity(plan, auditInfo.organizationId(), auditInfo.environmentId(), api.getType());
         planValidatorDomainService.validatePlanTagsAgainstApiTags(plan.getTags(), api.getTags());

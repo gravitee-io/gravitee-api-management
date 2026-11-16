@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.core.guardian.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianSearchQuery;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
@@ -68,6 +69,7 @@ public class SearchGuardianUseCase {
     );
 
     private final GuardianRepository guardianRepository;
+    private final GuardianDeploymentDomainService deployments;
 
     public Output execute(Input input) {
         var sortBy = input.sortBy() == null ? DEFAULT_SORT : input.sortBy();
@@ -81,7 +83,8 @@ public class SearchGuardianUseCase {
         var size = input.pageSize() > 0 ? Math.min(input.pageSize(), MAX_PAGE_SIZE) : DEFAULT_PAGE_SIZE;
 
         var guardians = guardianRepository.search(new GuardianSearchQuery(input.environmentId(), input.q(), page, size, sortBy));
-        return new Output(guardians, size);
+        var content = deployments.states(input.environmentId(), guardians.getContent());
+        return new Output(new Page<>(content, guardians.getPageNumber(), content.size(), guardians.getTotalElements()), size);
     }
 
     @Builder

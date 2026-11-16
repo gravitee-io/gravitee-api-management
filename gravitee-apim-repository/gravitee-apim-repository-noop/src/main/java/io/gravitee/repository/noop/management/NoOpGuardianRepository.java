@@ -23,12 +23,16 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Guardian;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 /**
  * @author GraviteeSource Team
  */
 public class NoOpGuardianRepository extends AbstractNoOpManagementRepository<Guardian, String> implements GuardianRepository {
+
+    @Override
+    public void updateUpdatedAt(String environmentId, String guardianId, Date updatedAt) {}
 
     @Override
     public Page<Guardian> search(GuardianCriteria criteria, Pageable pageable, Sortable sortable) {
