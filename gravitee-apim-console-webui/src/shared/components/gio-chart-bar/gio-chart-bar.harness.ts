@@ -20,6 +20,7 @@ export class GioChartBarHarness extends ComponentHarness {
 
   protected getBarChart = this.locatorForOptional('.gio-chart-bar__chart');
   protected getNoDataDisplayed = this.locatorForOptional('.gio-chart-bar__no-data');
+  protected getChartContainer = this.locatorForOptional('.highcharts-container');
 
   async hasNoData(): Promise<boolean> {
     return this.getNoDataDisplayed()
@@ -31,5 +32,11 @@ export class GioChartBarHarness extends ComponentHarness {
     return this.getBarChart()
       .then(v => !!v)
       .catch(_ => false);
+  }
+
+  async getChartColorScheme(): Promise<string | undefined> {
+    const container = await this.getChartContainer();
+    const style = await container?.getProperty<CSSStyleDeclaration>('style');
+    return style?.getPropertyValue('color-scheme');
   }
 }

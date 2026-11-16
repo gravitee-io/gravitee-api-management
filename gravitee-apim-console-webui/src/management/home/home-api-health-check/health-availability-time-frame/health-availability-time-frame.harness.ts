@@ -20,6 +20,7 @@ export class HealthAvailabilityTimeFrameHarness extends ComponentHarness {
 
   protected getPieChart = this.locatorFor('.health-availability-time-frame__chart');
   protected getNoDataDisplayed = this.locatorFor('.health-availability-time-frame__no-data');
+  protected getChartContainer = this.locatorForOptional('.highcharts-container');
 
   async hasNoData(): Promise<boolean> {
     await this.waitForTasksOutsideAngular();
@@ -33,5 +34,12 @@ export class HealthAvailabilityTimeFrameHarness extends ComponentHarness {
     return this.getPieChart()
       .then(_ => true)
       .catch(_ => false);
+  }
+
+  async getChartColorScheme(): Promise<string | undefined> {
+    await this.waitForTasksOutsideAngular();
+    const container = await this.getChartContainer();
+    const style = await container?.getProperty<CSSStyleDeclaration>('style');
+    return style?.getPropertyValue('color-scheme');
   }
 }
