@@ -42,6 +42,7 @@ import io.gravitee.gateway.report.spring.ReporterConfiguration;
 import io.gravitee.gateway.repository.plugins.GatewayRepositoryScopeProvider;
 import io.gravitee.gateway.standalone.node.GatewayNode;
 import io.gravitee.gateway.standalone.node.GatewayNodeMetadataResolver;
+import io.gravitee.gateway.standalone.secrets.BuiltInSecretProviderConfiguration;
 import io.gravitee.gateway.standalone.vertx.VertxReactorConfiguration;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.NodeMetadataResolver;
@@ -75,6 +76,7 @@ import org.springframework.context.annotation.Primary;
         PlatformConfiguration.class,
         ConnectorConfiguration.class,
         RequestConfiguration.class,
+        BuiltInSecretProviderConfiguration.class,
     }
 )
 public class StandaloneConfiguration {
