@@ -56,6 +56,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, String> implements ApiKeyRepository {
 
+    private static final String DELETE_FROM = "delete from ";
+
     private final String keySubscriptions;
     private final String subscription;
 
@@ -527,7 +529,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             if (!keyIds.isEmpty()) {
                 deleteSubscriptionLinks(keyIds);
-                jdbcTemplate.update("delete from " + escapeReservedWord(tableName) + " where environment_id = ?", environmentId);
+                jdbcTemplate.update(DELETE_FROM + escapeReservedWord(tableName) + " where environment_id = ?", environmentId);
             }
             log.debug("JdbcApiKeyRepository.deleteByEnvironmentId({}) - Done", environmentId);
             return keyIds;
@@ -549,7 +551,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             if (!keyIds.isEmpty()) {
                 deleteSubscriptionLinks(keyIds);
-                jdbcTemplate.update("delete from " + escapeReservedWord(tableName) + " where application = ?", applicationId);
+                jdbcTemplate.update(DELETE_FROM + escapeReservedWord(tableName) + " where application = ?", applicationId);
             }
             log.debug("JdbcApiKeyRepository.deleteByApplication({}) - Done", applicationId);
             return keyIds;
@@ -562,7 +564,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     /** {@code key_subscriptions} has no foreign key to {@code keys}: its rows have to go before the keys they link. */
     private void deleteSubscriptionLinks(List<String> keyIds) {
         jdbcTemplate.update(
-            "delete from " + keySubscriptions + " where key_id IN (" + getOrm().buildInClause(keyIds) + ")",
+            DELETE_FROM + keySubscriptions + " where key_id IN (" + getOrm().buildInClause(keyIds) + ")",
             keyIds.toArray()
         );
     }
@@ -807,7 +809,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     private void storeSubscriptions(ApiKey key) {
         List<String> subscriptions = key.getSubscriptions();
 
-        jdbcTemplate.update("delete from " + keySubscriptions + " where key_id = ?", key.getId());
+        jdbcTemplate.update(DELETE_FROM + keySubscriptions + " where key_id = ?", key.getId());
 
         jdbcTemplate.batchUpdate(
             "insert into " + keySubscriptions + " ( key_id, subscription_id ) values ( ?, ? )",
