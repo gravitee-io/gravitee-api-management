@@ -39,3 +39,24 @@ export function mavenParallelism(resourceClass: DockerResourceClass | MachineRes
   }
   return `-T ${2 * cpus}`;
 }
+
+/**
+ * Arguments that deploy the distribution modules meant to be consumed from the Azure feed.
+ *
+ * The distribution is not part of the root reactor, so the publish jobs, which deploy that reactor,
+ * never reach it. What gets published is decided by its pom: `-Dfeed-resources` leaves out the
+ * `assemblies` profile, and what remains is the umbrella and the modules it lists outside that profile.
+ *
+ * `-Dbundle` as in the release build: the jdbc-migrations archive is assembled in the bundle-default
+ * profile only, so without it that module deploys its pom and nothing else.
+ *
+ * `-DdeployAtEnd`: nothing is uploaded until every module has built. Otherwise a module failing after
+ * the first upload leaves half a release on the feed, which refuses to overwrite a version, so no
+ * rerun gets past it.
+ */
+export const DISTRIBUTION_DEPLOY_ARGS = [
+  '-f gravitee-apim-distribution/pom.xml',
+  '-Dfeed-resources',
+  '-Dbundle',
+  '-DdeployAtEnd=true',
+].join(' ');

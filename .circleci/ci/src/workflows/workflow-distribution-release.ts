@@ -22,6 +22,7 @@ import {
   BuildDockerChainguardFipsImageJob,
   BuildDockerWebUiImageJob,
   ConsoleWebuiBuildJob,
+  DeployDistributionResourcesJob,
   GammaWebuiBuildJob,
   PackageBundleJob,
   PortalWebuiBuildJob,
@@ -87,6 +88,13 @@ export class DistributionReleaseWorkflow {
       false,
     );
     dynamicConfig.addJob(backendBuildAndPublishOnDownloadWebsiteJob);
+
+    // A rehearsal pushed no tag, so there is no released tree to deploy.
+    const deployDistributionResourcesJob = DeployDistributionResourcesJob.create(dynamicConfig, environment);
+    const deployDistributionResourcesJobName = 'Deploy the distribution resources to the Azure feed';
+    if (!environment.isDryRun) {
+      dynamicConfig.addJob(deployDistributionResourcesJob);
+    }
 
     const packageBundleJob = PackageBundleJob.create(dynamicConfig, environment.graviteeioVersion, environment.isDryRun);
     dynamicConfig.addJob(packageBundleJob);
@@ -182,6 +190,15 @@ export class DistributionReleaseWorkflow {
         name: 'Backend build and publish on download website',
         requires: ['Setup'],
       }),
+      ...(environment.isDryRun
+        ? []
+        : [
+            new workflow.WorkflowJob(deployDistributionResourcesJob, {
+              context: config.jobContext,
+              name: deployDistributionResourcesJobName,
+              requires: ['Setup'],
+            }),
+          ]),
       new workflow.WorkflowJob(buildDockerBackendImageJob, {
         context: config.jobContext,
         name: `Build APIM Management API docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
@@ -363,6 +380,7 @@ export class DistributionReleaseWorkflow {
           'Release Helm Chart',
           'Trigger APIM API docs ingestion',
           `Build and push RPM packages for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+          ...(environment.isDryRun ? [] : [deployDistributionResourcesJobName]),
         ],
       }),
 
