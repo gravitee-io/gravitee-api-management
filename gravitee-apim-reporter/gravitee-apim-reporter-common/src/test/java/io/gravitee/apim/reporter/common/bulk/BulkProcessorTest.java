@@ -19,9 +19,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -31,7 +34,10 @@ import io.gravitee.apim.reporter.common.bulk.BulkProcessor;
 import io.gravitee.apim.reporter.common.bulk.backpressure.BulkDropper;
 import io.gravitee.apim.reporter.common.bulk.compressor.BulkCompressor;
 import io.gravitee.apim.reporter.common.bulk.compressor.CompressedBulk;
+import io.gravitee.apim.reporter.common.bulk.compressor.GzipBulkCompressor;
 import io.gravitee.apim.reporter.common.bulk.compressor.NoneBulkCompressor;
+import io.gravitee.apim.reporter.common.bulk.exception.BulkItemsFailureException;
+import io.gravitee.apim.reporter.common.bulk.exception.BulkItemsFailureException.ItemFailure;
 import io.gravitee.apim.reporter.common.bulk.exception.NonRetryableException;
 import io.gravitee.apim.reporter.common.bulk.exception.SendReportException;
 import io.gravitee.apim.reporter.common.bulk.sender.BulkSender;
@@ -50,6 +56,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,6 +64,7 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -90,7 +98,7 @@ public class BulkProcessorTest {
                 Type.ELASTICSEARCH
             )
         );
-        this.bulkDropper = new BulkDropper();
+        this.bulkDropper = spy(new BulkDropper());
         this.bulkCompressor = new NoneBulkCompressor();
     }
 
@@ -212,6 +220,9 @@ public class BulkProcessorTest {
         await()
             .atMost(10, TimeUnit.SECONDS)
             .untilAsserted(() -> verify(bulkSender, times(6)).send(any()));
+        await()
+            .atMost(10, TimeUnit.SECONDS)
+            .untilAsserted(() -> verify(bulkDropper).drop(any(CompressedBulk.class), eq(BulkDropper.Reason.ERROR)));
     }
 
     @Test
@@ -277,9 +288,103 @@ public class BulkProcessorTest {
             .untilAsserted(() -> verify(bulkSender, times(1)).send(any()));
     }
 
+    @Test
+    void should_drop_the_reports_the_target_rejected_without_sending_them_again() throws Exception {
+        initBulkProcessor(3);
+        when(bulkSender.send(any())).thenReturn(Completable.error(itemsFailure(new ItemFailure(1, false, "mapping error"))));
+        final List<TransformedReport> reports = processReports(3);
+
+        await()
+            .atMost(10, TimeUnit.SECONDS)
+            .untilAsserted(() -> verify(bulkDropper).drop(List.of(reports.get(1)), List.of("mapping error")));
+        await()
+            .during(300, TimeUnit.MILLISECONDS)
+            .atMost(10, TimeUnit.SECONDS)
+            .untilAsserted(() -> verify(bulkSender, times(1)).send(any()));
+    }
+
+    @Test
+    void should_send_again_only_the_reports_the_target_could_not_write_for_now() throws Exception {
+        initBulkProcessor(3);
+        when(bulkSender.send(any())).thenReturn(
+            Completable.error(itemsFailure(new ItemFailure(0, false, "mapping error"), new ItemFailure(2, true, "too many requests"))),
+            Completable.complete()
+        );
+        final List<TransformedReport> reports = processReports(3);
+
+        final ArgumentCaptor<CompressedBulk> sent = ArgumentCaptor.forClass(CompressedBulk.class);
+        await()
+            .atMost(10, TimeUnit.SECONDS)
+            .untilAsserted(() -> verify(bulkSender, times(2)).send(sent.capture()));
+        final CompressedBulk resent = sent.getAllValues().get(1);
+        assertThat(resent.countPerType()).containsExactly(entry("metrics", 1));
+        assertThat(resent.compressed()).isEqualTo(reports.get(2).transformed());
+        verify(bulkDropper).drop(List.of(reports.get(0)), List.of("mapping error"));
+        verify(bulkDropper, times(0)).drop(any(CompressedBulk.class), any());
+    }
+
+    @Test
+    void should_drop_only_the_reports_still_failing_when_max_retries_is_reached() throws Exception {
+        initBulkProcessor(3);
+        when(bulkSender.send(any())).thenReturn(
+            Completable.error(itemsFailure(new ItemFailure(1, true, "too many requests"))),
+            Completable.error(itemsFailure(new ItemFailure(0, true, "too many requests")))
+        );
+        final List<TransformedReport> reports = processReports(3);
+
+        await()
+            .atMost(10, TimeUnit.SECONDS)
+            .untilAsserted(() ->
+                verify(bulkDropper).drop(
+                    argThat((CompressedBulk bulk) -> bulk.countPerType().equals(Map.of("metrics", 1))),
+                    eq(BulkDropper.Reason.ERROR)
+                )
+            );
+        final ArgumentCaptor<CompressedBulk> sent = ArgumentCaptor.forClass(CompressedBulk.class);
+        verify(bulkSender, times(6)).send(sent.capture());
+        assertThat(sent.getAllValues().subList(1, 6)).allSatisfy(resent ->
+            assertThat(resent.compressed()).isEqualTo(reports.get(1).transformed())
+        );
+    }
+
+    @Test
+    void should_send_the_whole_bulk_again_when_the_failed_reports_cannot_be_identified() throws Exception {
+        this.bulkCompressor = new GzipBulkCompressor();
+        initBulkProcessor(3);
+        when(bulkSender.send(any())).thenReturn(
+            Completable.error(itemsFailure(new ItemFailure(1, true, "too many requests"))),
+            Completable.complete()
+        );
+        processReports(3);
+
+        final ArgumentCaptor<CompressedBulk> sent = ArgumentCaptor.forClass(CompressedBulk.class);
+        await()
+            .atMost(10, TimeUnit.SECONDS)
+            .untilAsserted(() -> verify(bulkSender, times(2)).send(sent.capture()));
+        assertThat(sent.getAllValues().get(1)).isSameAs(sent.getAllValues().get(0));
+    }
+
+    private List<TransformedReport> processReports(final int count) {
+        final List<TransformedReport> reports = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            final Metrics reportable = buildMetrics("request-" + i);
+            reports.add(bulkTransformer.transform(reportable));
+            cut.process(reportable);
+        }
+        return reports;
+    }
+
+    private static BulkItemsFailureException itemsFailure(final ItemFailure... failures) {
+        return new BulkItemsFailureException(List.of(failures));
+    }
+
     private static Metrics buildMetrics() {
+        return buildMetrics("requestId");
+    }
+
+    private static Metrics buildMetrics(final String requestId) {
         return Metrics.builder()
-            .requestId("requestId")
+            .requestId(requestId)
             .environmentId("environmentId")
             .organizationId("organizationId")
             .transactionId("transactionId")
