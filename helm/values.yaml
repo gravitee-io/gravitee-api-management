@@ -369,7 +369,9 @@ es:
   # authentication will be provided for the
   # elastic search cluster
   # https://documentation.gravitee.io/apim/getting-started/configuration/configure-repositories/elasticsearch#apim-api-configuration
-  index_mode: daily # Index mode normal (daily index) vs ILM (managed by ILM)
+  # Index mode: daily (one index per day), ilm (rollover alias managed by ILM) or data_stream (one data stream per type,
+  # Elasticsearch 7.9+ or OpenSearch)
+  index_mode: daily
   settings:
     number_of_shards: 1
     number_of_replicas: 1
