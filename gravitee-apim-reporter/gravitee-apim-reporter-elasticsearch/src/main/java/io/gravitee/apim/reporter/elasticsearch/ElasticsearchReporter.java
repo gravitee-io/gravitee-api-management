@@ -167,6 +167,9 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
             if (disposables != null) {
                 disposables.dispose();
             }
+            if (bulkProcessor != null) {
+                bulkProcessor.stop();
+            }
             log.info("Stopping Elastic reporter engine... DONE");
         }
     }
