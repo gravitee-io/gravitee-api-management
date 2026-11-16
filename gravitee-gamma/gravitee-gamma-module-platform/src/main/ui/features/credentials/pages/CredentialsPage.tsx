@@ -26,6 +26,13 @@ import { CredentialsTable } from '../components/CredentialsTable';
 import { useCredentialList } from '../hooks/useCredentialList';
 import { ENVIRONMENT_CREDENTIAL_CREATE_PERMISSION, ENVIRONMENT_CREDENTIAL_PERMISSION_PREFIX } from '../utils/credentialPermissions';
 
+function resultsAnnouncement(count: number): string {
+    if (count === 0) {
+        return 'No results';
+    }
+    return `${count} ${count === 1 ? 'result' : 'results'}`;
+}
+
 export function CredentialsPage() {
     const canCreate = useHasEnvironmentPermission([ENVIRONMENT_CREDENTIAL_CREATE_PERMISSION]);
     const list = useCredentialList();
@@ -42,7 +49,7 @@ export function CredentialsPage() {
 
     const totalCount = result?.pagination.totalCount ?? 0;
     const isFirstUse = settled && totalCount === 0 && !list.hasCriteria;
-    const announcement = !settled || isFirstUse ? '' : totalCount === 0 ? 'No results' : `${totalCount} result${totalCount > 1 ? 's' : ''}`;
+    const announcement = settled && !isFirstUse ? resultsAnnouncement(totalCount) : '';
     const focusSearch = () => searchRef.current?.focus();
 
     // Deleting the last credential swaps the table, and the search field that held the focus, for the empty state.

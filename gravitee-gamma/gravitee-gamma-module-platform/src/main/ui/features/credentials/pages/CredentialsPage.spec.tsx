@@ -122,6 +122,18 @@ describe('CredentialsPage', () => {
         expect(dataTableHarness().getRow('OpenAI production').getCellText('Owner')).toBe('Alex Doyle');
     });
 
+    it.each([
+        [1, '', '1 result'],
+        [12, '', '12 results'],
+        [0, '?q=missing', 'No results'],
+    ])('announces %i matching credentials to assistive technology', (totalCount, search, announcement) => {
+        givenCredentials(totalCount ? [OPENAI] : [], { totalCount });
+
+        renderPage(search);
+
+        expect(screen.getByText(announcement)).toHaveAttribute('role', 'status');
+    });
+
     it('offers to add a credential only with the create permission', () => {
         givenCredentials([OPENAI]);
         const { unmount } = renderPage();
