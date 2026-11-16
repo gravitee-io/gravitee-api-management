@@ -404,6 +404,11 @@
             <artifactId>reactive-streams</artifactId>
         </dependency>
         <!-- Kafka: endpoint-kafka, transform-protobuf-json (kafka-clients, declared above, also brings the zstd-jni, lz4-java and snappy-java codecs they load) -->
+        <!-- jose4j: endpoint-kafka, reactor-native-kafka (the SASL/OAUTHBEARER login of kafka-clients loads it, kafka-clients does not declare it) -->
+        <dependency>
+            <groupId>org.bitbucket.b_c</groupId>
+            <artifactId>jose4j</artifactId>
+        </dependency>
         <!-- transform-protobuf-json -->
         <dependency>
             <groupId>com.google.protobuf</groupId>
