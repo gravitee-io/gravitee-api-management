@@ -33,14 +33,6 @@
     <description>Liquibase changesets of APIM and of the bundled Gamma modules, in one archive. JDBC only.</description>
 
     <properties>
-        <!--
-            The umbrella turns deployment off for the assembly poms; this module is an exception, like
-            es-index-mappings — the archive it produces is the deliverable, and it is meant to reach the download
-            website so that installations running with management.jdbc.liquibase=false have somewhere to get the
-            changesets from.
-        -->
-        <maven.deploy.skip>false</maven.deploy.skip>
-
         <!-- Property used by the publication job in CI-->
         <publish-folder-path>graviteeio-apim/resources</publish-folder-path>
     </properties>

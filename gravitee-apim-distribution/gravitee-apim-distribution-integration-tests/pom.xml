@@ -58,6 +58,9 @@
             java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens
             java.base/java.util.regex=ALL-UNNAMED --add-opens java.base/java.util.stream=ALL-UNNAMED
             --add-opens java.base/java.net=ALL-UNNAMED</surefireArgLine>
+
+        <!-- Test suites: nothing consumes them as an artifact -->
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <dependencies>
