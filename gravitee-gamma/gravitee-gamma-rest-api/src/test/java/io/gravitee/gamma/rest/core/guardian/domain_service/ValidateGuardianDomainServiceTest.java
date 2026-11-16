@@ -29,10 +29,12 @@ import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
+import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyConfigurationValidator;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.DeclaredFlows;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,9 +49,14 @@ class ValidateGuardianDomainServiceTest {
     private final Map<String, PolicyCapabilities> policies = new LinkedHashMap<>(
         Map.of("data-logging-masking", aGuardrail(flows(LLM_PROXY, "REQUEST,RESPONSE", GUARDIAN, "REQUEST,RESPONSE")))
     );
+
+    /** The schema answers, which a test installs to make a step conforming, corrected or refused. */
+    private final InMemoryPolicyConfigurationValidator configurations = new InMemoryPolicyConfigurationValidator();
+
     private final ValidateGuardianDomainService validator = new ValidateGuardianDomainService(
         new InMemoryGuardianRepository(),
         aPolicyPluginProvider(() -> policies),
+        configurations,
         new JacksonJsonDeserializer()
     );
 
@@ -232,20 +239,6 @@ class ValidateGuardianDomainServiceTest {
     }
 
     @Test
-    void should_refuse_invalid_guardrail_json_without_exposing_the_configuration() {
-        var policy = aPolicy();
-        policy.setConfiguration("{invalid-sensitive-configuration");
-        var guardian = aGuardian(definition -> definition.policies(List.of(policy))).build();
-
-        assertThat(validate(guardian).severe().orElseThrow())
-            .singleElement()
-            .extracting(Validator.Error::getMessage)
-            .asString()
-            .contains("Detect credentials", "invalid configuration")
-            .doesNotContain("sensitive-configuration");
-    }
-
-    @Test
     void should_refuse_an_unknown_or_non_textual_scope_protocol() {
         SoftAssertions.assertSoftly(softly -> {
             for (String protocol : List.of("\"UNKNOWN\"", "42", "null")) {
@@ -293,16 +286,155 @@ class ValidateGuardianDomainServiceTest {
     }
 
     @Test
-    void should_refuse_non_object_configuration_or_scope() {
+    void should_refuse_a_scope_that_is_no_object() {
         SoftAssertions.assertSoftly(softly -> {
-            for (String configuration : List.of("[]", "42", "null", "{\"scope\":[]}", "{\"scope\":\"invalid\"}")) {
+            for (String configuration : List.of("{\"scope\":[]}", "{\"scope\":\"invalid\"}")) {
                 var policy = aPolicy();
                 policy.setConfiguration(configuration);
                 var guardian = aGuardian(definition -> definition.policies(List.of(policy))).build();
 
-                softly.assertThat(validate(guardian).severe()).as("invalid configuration shape %s", configuration).isPresent();
+                softly.assertThat(validate(guardian).severe()).as("invalid scope shape in %s", configuration).isPresent();
             }
         });
+    }
+
+    @Test
+    void should_refuse_a_step_whose_configuration_breaks_the_policy_schema() {
+        configurations.givenRefuses("data-logging-masking", "$.rules: is missing but it is required");
+        var policy = aPolicy();
+        policy.setConfiguration("{\"scope\":{\"protocol\":\"LLM\"}}");
+        var guardian = aGuardian(definition -> definition.policies(List.of(policy))).build();
+
+        var errors = validate(guardian).severe().orElseThrow();
+
+        SoftAssertions.assertSoftly(softly -> {
+            softly
+                .assertThat(errors)
+                .as("the step and the schema error, as an API flow reports them")
+                .singleElement()
+                .extracting(Validator.Error::getMessage)
+                .asString()
+                .contains("Detect credentials", "$.rules: is missing but it is required");
+            softly
+                .assertThat(configurations.checks())
+                .as("the configuration of that very step is what was judged")
+                .containsExactly(
+                    new InMemoryPolicyConfigurationValidator.Check("data-logging-masking", "{\"scope\":{\"protocol\":\"LLM\"}}")
+                );
+        });
+    }
+
+    @Test
+    void should_store_the_configuration_the_policy_accepts_rather_than_the_one_submitted() {
+        configurations.givenAccepts("{\"rules\":[]}", "{\"rules\":[],\"threshold\":0.5}");
+        var policy = aPolicy();
+        policy.setConfiguration("{\"rules\":[]}");
+        var guardian = aGuardian(definition -> definition.policies(List.of(policy))).build();
+
+        assertThat(validate(guardian).severe()).as("conforming once corrected").isEmpty();
+        assertThat(policy.getConfiguration())
+            .as("the corrected configuration, which is the one the gateway will build the policy from")
+            .isEqualTo("{\"rules\":[],\"threshold\":0.5}");
+    }
+
+    @Test
+    void should_judge_a_step_carrying_no_configuration_as_one_carrying_an_empty_object() {
+        configurations.givenRefuses("data-logging-masking", "$.rules: is missing but it is required");
+
+        SoftAssertions.assertSoftly(softly -> {
+            for (String configuration : Arrays.asList(null, "", "   ")) {
+                configurations.reset();
+                configurations.givenRefuses("data-logging-masking", "$.rules: is missing but it is required");
+                var policy = aPolicy();
+                policy.setConfiguration(configuration);
+                var guardian = aGuardian(definition -> definition.policies(List.of(policy))).build();
+
+                softly
+                    .assertThat(validate(guardian).severe())
+                    .as("a schema requiring a property refuses configuration [%s]", configuration)
+                    .isPresent();
+                softly
+                    .assertThat(configurations.checks())
+                    .as("configuration [%s] is judged as an empty object", configuration)
+                    .extracting(InMemoryPolicyConfigurationValidator.Check::configuration)
+                    .containsExactly("{}");
+            }
+        });
+    }
+
+    @Test
+    void should_report_the_schema_violation_of_every_step_at_once() {
+        policies.put("other-guardrail", aGuardrail(flows(LLM_PROXY, "REQUEST", GUARDIAN, "REQUEST")));
+        configurations.givenRefuses("data-logging-masking", "$.rules: is missing but it is required");
+        configurations.givenRefuses("other-guardrail", "$.threshold: must have a maximum value of 1");
+        var guardian = aGuardian(definition ->
+            definition.policies(List.of(aPolicy(), step("Other guardrail", "other-guardrail", true)))
+        ).build();
+
+        assertThat(validate(guardian).severe().orElseThrow())
+            .extracting(Validator.Error::getMessage)
+            .satisfiesExactlyInAnyOrder(
+                message -> assertThat(message).contains("Detect credentials", "$.rules"),
+                message -> assertThat(message).contains("Other guardrail", "$.threshold")
+            );
+    }
+
+    @Test
+    void should_not_check_the_schema_of_a_disabled_step() {
+        configurations.givenRefuses("data-logging-masking", "$.rules: is missing but it is required");
+        var guardian = aGuardian(definition ->
+            definition.policies(List.of(step("Disabled guardrail", "data-logging-masking", false)))
+        ).build();
+
+        assertThat(validate(guardian).severe()).isEmpty();
+        assertThat(configurations.checks()).as("a step run by nothing is judged by nothing").isEmpty();
+    }
+
+    @Test
+    void should_not_check_the_schema_of_a_policy_that_is_not_installed() {
+        policies.clear();
+        configurations.givenRefuses("data-logging-masking", "$.rules: is missing but it is required");
+
+        assertThat(validate(aGuardian().build()).severe().orElseThrow())
+            .as("the step is refused for the policy it names, and no schema is asked of a plugin that is gone")
+            .singleElement()
+            .extracting(Validator.Error::getMessage)
+            .asString()
+            .contains("not installed");
+        assertThat(configurations.checks()).isEmpty();
+    }
+
+    @Test
+    void should_refuse_a_configuration_that_is_no_json_object_without_exposing_it() {
+        SoftAssertions.assertSoftly(softly -> {
+            for (String configuration : List.of("{invalid-sensitive-configuration", "[]", "42", "\"sensitive-configuration\"")) {
+                var policy = aPolicy();
+                policy.setConfiguration(configuration);
+                var guardian = aGuardian(definition -> definition.policies(List.of(policy))).build();
+
+                softly
+                    .assertThat(validate(guardian).severe().orElseThrow())
+                    .as("configuration %s is refused on its shape", configuration)
+                    .singleElement()
+                    .extracting(Validator.Error::getMessage)
+                    .asString()
+                    .contains("Detect credentials", "must be a JSON object")
+                    .doesNotContain("sensitive-configuration");
+            }
+        });
+    }
+
+    @Test
+    void should_check_the_schema_of_an_enabled_step_that_is_no_guardrail() {
+        policies.put("data-logging-masking", aConventionalPolicy(flows(GUARDIAN, "REQUEST")));
+        configurations.givenRefuses("data-logging-masking", "$.header: is missing but it is required");
+
+        assertThat(validate(aGuardian().build()).severe().orElseThrow())
+            .as("a conventional policy the gateway could not build is refused too, not only a guardrail")
+            .singleElement()
+            .extracting(Validator.Error::getMessage)
+            .asString()
+            .contains("Detect credentials", "$.header");
     }
 
     private Validator.Result<ValidateGuardianDomainService.Input> validate(Guardian guardian) {
