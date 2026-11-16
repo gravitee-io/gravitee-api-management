@@ -563,10 +563,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
     /** {@code key_subscriptions} has no foreign key to {@code keys}: its rows have to go before the keys they link. */
     private void deleteSubscriptionLinks(List<String> keyIds) {
-        jdbcTemplate.update(
-            DELETE_FROM + keySubscriptions + " where key_id IN (" + getOrm().buildInClause(keyIds) + ")",
-            keyIds.toArray()
-        );
+        jdbcTemplate.update(DELETE_FROM + keySubscriptions + " where key_id IN (" + getOrm().buildInClause(keyIds) + ")", keyIds.toArray());
     }
 
     private boolean addClause(boolean first, StringBuilder query) {
