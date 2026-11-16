@@ -68,6 +68,47 @@ class ElasticBulkSenderTest {
     }
 
     @Test
+    void should_complete_when_the_only_failures_are_reports_already_written() {
+        // Given: a create of a document whose _id is already in the data stream, as a bulk sent again yields
+        when(client.bulk(any(Buffer.class))).thenReturn(
+            Single.just(
+                response(
+                    true,
+                    item(201, null),
+                    item(409, failure("version_conflict_engine_exception", "[id]: version conflict, document already exists"))
+                )
+            )
+        );
+
+        // When / Then
+        cut.send(BULK).test().assertComplete();
+    }
+
+    @Test
+    void should_count_a_report_already_written_as_written_next_to_failed_ones() {
+        // Given
+        when(client.bulk(any(Buffer.class))).thenReturn(
+            Single.just(
+                response(
+                    true,
+                    item(409, failure("version_conflict_engine_exception", "[id]: version conflict, document already exists")),
+                    item(400, failure("document_parsing_exception", "failed to parse"))
+                )
+            )
+        );
+
+        // When / Then
+        cut
+            .send(BULK)
+            .test()
+            .assertError(
+                error ->
+                    error instanceof BulkItemsFailureException failure &&
+                    failure.failures().equals(List.of(new ItemFailure(1, false, "document_parsing_exception")))
+            );
+    }
+
+    @Test
     void should_fail_with_a_retryable_error_when_elasticsearch_cannot_be_reached() {
         // Given
         when(client.bulk(any(Buffer.class))).thenReturn(Single.error(new IOException("Connection refused")));

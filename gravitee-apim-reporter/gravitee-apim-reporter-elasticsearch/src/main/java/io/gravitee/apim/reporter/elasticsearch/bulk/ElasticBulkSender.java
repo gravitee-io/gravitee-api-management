@@ -39,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ElasticBulkSender extends AbstractService<BulkSender> implements BulkSender {
 
+    private static final int CONFLICT = 409;
     private static final int TOO_MANY_REQUESTS = 429;
     private static final int SERVER_ERROR = 500;
 
@@ -55,15 +56,13 @@ public class ElasticBulkSender extends AbstractService<BulkSender> implements Bu
         return elasticClient
             .bulk(bulk.compressed())
             .onErrorResumeNext(throwable -> Single.error(sendFailure(throwable.getMessage(), throwable)))
-            .flatMapCompletable(response ->
-                Boolean.TRUE.equals(response.getErrors()) ? Completable.error(itemsFailure(response)) : Completable.complete()
-            );
+            .flatMapCompletable(response -> Boolean.TRUE.equals(response.getErrors()) ? itemsFailure(response) : Completable.complete());
     }
 
-    private static RuntimeException itemsFailure(final BulkResponse response) {
+    private static Completable itemsFailure(final BulkResponse response) {
         final List<BulkItemResponse> items = response.getItems();
         if (items == null || items.isEmpty()) {
-            return sendFailure("errors without any item in the bulk response", null);
+            return Completable.error(sendFailure("errors without any item in the bulk response", null));
         }
 
         final List<ItemFailure> failures = new ArrayList<>();
@@ -75,12 +74,14 @@ public class ElasticBulkSender extends AbstractService<BulkSender> implements Bu
                 case WRITTEN -> {}
             }
         }
-        return new BulkItemsFailureException(failures);
+        return failures.isEmpty() ? Completable.complete() : Completable.error(new BulkItemsFailureException(failures));
     }
 
     private static Outcome outcome(final Index item) {
         final int status = item.getStatus();
-        if (status < 300) {
+        // A create conflicts when the document with this _id is already in the write index: a bulk sent again after a
+        // partial write. Documents without an _id, or a bulk sent again after a rollover, are created again.
+        if (status < 300 || status == CONFLICT) {
             return Outcome.WRITTEN;
         }
         if (status == TOO_MANY_REQUESTS || status >= SERVER_ERROR) {
