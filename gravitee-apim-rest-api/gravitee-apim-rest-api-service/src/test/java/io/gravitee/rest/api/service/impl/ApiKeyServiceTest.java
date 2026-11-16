@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
@@ -713,9 +714,6 @@ public class ApiKeyServiceTest {
         apiKeyService.renew(GraviteeContext.getExecutionContext(), subscription, "alreadyExistingApiKey");
     }
 
-<<<<<<< HEAD
-    @Test(expected = TechnicalManagementException.class)
-=======
     @Test
     public void shouldDeleteTheApiKeysOfTheApplication() throws TechnicalException {
         when(apiKeyRepository.deleteByApplication(APPLICATION_ID)).thenReturn(List.of("key-1"));
@@ -732,8 +730,7 @@ public class ApiKeyServiceTest {
         assertThrows(TechnicalManagementException.class, () -> apiKeyService.deleteByApplication(APPLICATION_ID));
     }
 
-    @Test
->>>>>>> 8b929f2 (fix(api-key): delete an application's API keys on archive (APIM-16008) (#22727))
+    @Test(expected = TechnicalManagementException.class)
     public void shouldNotRenewSubscriptionWithJwtPlan() {
         SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setPlan(PLAN_ID);
