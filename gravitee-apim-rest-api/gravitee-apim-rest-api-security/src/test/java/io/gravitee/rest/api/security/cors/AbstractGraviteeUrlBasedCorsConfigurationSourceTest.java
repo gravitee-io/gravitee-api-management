@@ -29,10 +29,12 @@ import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.reactivex.rxjava3.annotations.NonNull;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.awaitility.Awaitility;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,8 +54,14 @@ class AbstractGraviteeUrlBasedCorsConfigurationSourceTest {
 
     @BeforeEach
     void setUp() {
+        GraviteeContext.setCurrentOrganization("DEFAULT");
         fakeEnvironment = new MockEnvironment();
         cut = buildCut();
+    }
+
+    @AfterEach
+    void tearDown() {
+        GraviteeContext.cleanContext();
     }
 
     @Test
