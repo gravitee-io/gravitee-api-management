@@ -191,8 +191,9 @@ paths:
                 "409":
                     description: |
                         Another Guardian of this environment already carries that name. Names are
-                        compared without regard to case, so `Credential leakage` and
-                        `credential leakage` are the same name here.
+                        compared without regard to case or to the whitespace around them, so
+                        `Credential leakage`, `credential leakage` and ` Credential leakage ` are the
+                        same name here.
                     content:
                         application/json:
                             schema:
@@ -279,8 +280,9 @@ paths:
                 "409":
                     description: |
                         Another Guardian of this environment already carries that name. Names are
-                        compared without regard to case, so `Credential leakage` and
-                        `credential leakage` are the same name here.
+                        compared without regard to case or to the whitespace around them, so
+                        `Credential leakage`, `credential leakage` and ` Credential leakage ` are the
+                        same name here.
                     content:
                         application/json:
                             schema:
@@ -615,6 +617,7 @@ components:
                 name:
                     type: string
                     maxLength: 512
+                    description: Stored without the whitespace around it.
                 description:
                     type: string
                     maxLength: 1024
@@ -738,6 +741,7 @@ components:
                 name:
                     type: string
                     maxLength: 512
+                    description: Stored without the whitespace around it.
                 description:
                     type: string
                     maxLength: 1024
@@ -814,6 +818,7 @@ components:
                 name:
                     type: string
                     maxLength: 512
+                    description: Stored without the whitespace around it.
                 description:
                     type: string
                     maxLength: 1024
@@ -1022,6 +1027,7 @@ components:
                       name:
                           type: string
                           maxLength: 512
+                          description: Stored without the whitespace around it.
                       phase:
                           $ref: "#/components/schemas/GuardianPhase"
                       apiTypes:
