@@ -80,6 +80,14 @@ public class NoOpApiKeyRepositoryTest extends AbstractNoOpRepositoryTest {
     }
 
     @Test
+    public void deleteByApplication() throws TechnicalException {
+        List<String> deletedIds = cut.deleteByApplication("test_application");
+
+        assertNotNull(deletedIds);
+        assertTrue(deletedIds.isEmpty());
+    }
+
+    @Test
     public void findBySubscription() throws TechnicalException {
         Set<ApiKey> subscription = cut.findBySubscription("test_subscription");
 
