@@ -24,7 +24,6 @@ import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.plugin.agentprovider.AgentProviderPlugin;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;

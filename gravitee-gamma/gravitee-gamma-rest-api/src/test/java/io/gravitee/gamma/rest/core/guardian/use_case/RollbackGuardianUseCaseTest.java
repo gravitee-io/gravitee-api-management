@@ -35,7 +35,7 @@ import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.step.Step;
-import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyConfigurationValidator;
+import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyValidation;
 import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
@@ -71,9 +71,9 @@ class RollbackGuardianUseCaseTest {
     private final GuardianAuditFixture audits = new GuardianAuditFixture();
     private final GuardianDeploymentDomainService deploymentService = publications.service(repository);
     /** The schema answers, which a test installs to make a stored revision non-conforming. */
-    private final InMemoryPolicyConfigurationValidator configurations = new InMemoryPolicyConfigurationValidator();
+    private final InMemoryPolicyValidation policyValidation = new InMemoryPolicyValidation();
 
-    private final ValidateGuardianDomainService validator = aGuardianValidator(repository, aPolicyPluginProvider(), configurations);
+    private final ValidateGuardianDomainService validator = aGuardianValidator(repository, aPolicyPluginProvider(), policyValidation);
     private final GuardianDraftDomainService drafts = new GuardianDraftDomainService(
         repository,
         validator,
@@ -226,7 +226,7 @@ class RollbackGuardianUseCaseTest {
     void should_refuse_a_revision_whose_step_configuration_the_policy_schema_no_longer_accepts() {
         var revision = deployRevision();
         save("Second name", "description");
-        configurations.givenRefuses(GUARDRAIL_POLICY, "$.rules: is missing but it is required");
+        policyValidation.givenRefuses(GUARDRAIL_POLICY, "$.rules: is missing but it is required");
 
         assertSoftly(softly -> {
             softly
@@ -237,6 +237,29 @@ class RollbackGuardianUseCaseTest {
                 )
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessageContainingAll("Detect credentials", "$.rules");
+            softly
+                .assertThat(repository.findByEnvironmentId(ENVIRONMENT_ID, GUARDIAN_ID))
+                .as("draft unchanged")
+                .hasValueSatisfying(stored -> assertThat(stored.getName()).isEqualTo("Second name"));
+        });
+    }
+
+    @Test
+    void should_refuse_a_revision_its_policy_would_only_accept_corrected() {
+        var revision = deployRevision();
+        save("Second name", "description");
+        // the policy gained the default of a required property since the revision was published
+        policyValidation.givenAccepts("{}", "{\"mode\":\"BLOCK\"}");
+
+        assertSoftly(softly -> {
+            softly
+                .assertThatThrownBy(() -> rollback.execute(new RollbackGuardianUseCase.Input(actor, GUARDIAN_ID, revision)))
+                .as(
+                    "a revision is restored as it was published: storing the corrected one would store a definition no gateway " +
+                        "ever ran, and leave the Guardian PENDING straight after the rollback"
+                )
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContainingAll("Detect credentials", "save the Guardian again");
             softly
                 .assertThat(repository.findByEnvironmentId(ENVIRONMENT_ID, GUARDIAN_ID))
                 .as("draft unchanged")

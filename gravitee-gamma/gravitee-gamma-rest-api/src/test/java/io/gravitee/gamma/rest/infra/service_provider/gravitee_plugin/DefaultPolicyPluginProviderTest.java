@@ -28,7 +28,7 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
-import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyConfigurationValidator;
+import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyValidation;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.DeclaredFlows;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.guardian.GuardianFixtures;
@@ -180,7 +180,7 @@ class DefaultPolicyPluginProviderTest {
         var result = new ValidateGuardianDomainService(
             new InMemoryGuardianRepository(),
             provider,
-            new InMemoryPolicyConfigurationValidator(),
+            new InMemoryPolicyValidation(),
             new JacksonJsonDeserializer()
         ).validateAndSanitize(new ValidateGuardianDomainService.Input(guardian));
 
@@ -210,7 +210,7 @@ class DefaultPolicyPluginProviderTest {
         var result = new ValidateGuardianDomainService(
             new InMemoryGuardianRepository(),
             provider,
-            new InMemoryPolicyConfigurationValidator(),
+            new InMemoryPolicyValidation(),
             new JacksonJsonDeserializer()
         ).validateAndSanitize(new ValidateGuardianDomainService.Input(guardian));
 

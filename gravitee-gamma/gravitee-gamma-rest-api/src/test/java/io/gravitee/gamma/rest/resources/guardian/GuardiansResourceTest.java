@@ -34,7 +34,7 @@ import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyConfigurationValidator;
+import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyValidation;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
 import io.gravitee.gamma.rest.core.guardian.GuardianFixtures;
@@ -126,7 +126,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
     private GuardianAuditFixture withdrawalAudits;
 
     @Inject
-    private InMemoryPolicyConfigurationValidator policyConfigurations;
+    private InMemoryPolicyValidation policyConfigurations;
 
     @Inject
     private LicenseManager licenseManager;
@@ -1117,8 +1117,8 @@ class GuardiansResourceTest extends AbstractResourceTest {
         }
 
         @Bean
-        InMemoryPolicyConfigurationValidator policyConfigurationValidator() {
-            return new InMemoryPolicyConfigurationValidator();
+        InMemoryPolicyValidation policyValidationDomainService() {
+            return new InMemoryPolicyValidation();
         }
 
         @Bean

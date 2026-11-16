@@ -20,14 +20,13 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.json.JsonDeserializer;
 import io.gravitee.apim.core.json.JsonProcessingException;
+import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
-import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyConfigurationCheck;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType;
-import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyConfigurationValidator;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianWithoutEnabledGuardrailException;
@@ -35,6 +34,8 @@ import io.gravitee.gamma.rest.core.guardian.model.CreateGuardian;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validation;
 import java.util.ArrayList;
@@ -42,7 +43,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -72,8 +72,10 @@ import lombok.RequiredArgsConstructor;
  * <p>These rules apply to creation and to update, a {@code PUT} replacing the whole definition, and
  * again to the stored draft when it is deployed: a draft may predate a rule, or have been written
  * against policies that have changed since, and a deployment turns it into a revision the gateways
- * must be able to start. One rule runs there only, {@link #validateDeployable} — the sequence must
- * hold an enabled guardrail — so a draft may be saved empty and still be refused at deployment.
+ * must be able to start. One rule runs there only, {@link #validateDeployable(Guardian)} — the
+ * sequence must hold an enabled guardrail — so a draft may be saved empty and still be refused at
+ * deployment. What separates the two passes is the configuration a policy accepts only corrected: a
+ * write path stores it, a deployment or a rollback refuses the step.
  *
  * <p><strong>The name is free</strong> — two Guardians of one environment may not share a name. This
  * is the check users meet, and the only one that reads the store; the unique index behind it is a
@@ -92,13 +94,27 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
     /** What a step carrying no configuration is judged as, so a schema requiring a property refuses it. */
     private static final String EMPTY_CONFIGURATION = "{}";
 
-    /** The deployment path: it reads the stored draft and publishes it, so it writes nothing back. */
-    private static final BiConsumer<Step, String> KEEP_STORED_CONFIGURATION = (step, accepted) -> {};
-
     private final GuardianRepository guardianRepository;
     private final PolicyPluginProvider policyPluginProvider;
-    private final PolicyConfigurationValidator policyConfigurationValidator;
+    private final PolicyValidationDomainService policyValidation;
     private final JsonDeserializer jsonDeserializer;
+
+    /**
+     * What a path does with the configuration a policy accepts when it is not the one it was given.
+     *
+     * <p>The schema validation corrects a document before accepting it — it drops null entries, injects
+     * the default of a missing required property, prunes what a closed schema forbids — so what a policy
+     * accepts is not always what was submitted.
+     */
+    private enum Correction {
+        /** Store it: on a write path, what is stored has to be what the policy validated. */
+        STORE,
+        /**
+         * Refuse the step: a path that publishes or restores a stored definition may not rewrite it, and
+         * publishing a configuration the policy was never validated with is the bug AIAM-1750 reports.
+         */
+        REFUSE,
+    }
 
     public record Input(Guardian guardian) implements Validator.Input {}
 
@@ -185,23 +201,32 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
      * validated.
      */
     public void validateAgainstInstalledPolicies(Guardian guardian) {
-        refuse(validate(guardian, Step::setConfiguration));
+        refuse(validate(guardian, Correction.STORE));
     }
 
     /**
      * Refuses a Guardian the gateway could not run, leaving the definition exactly as it is stored.
      *
-     * <p>For a deployment, which publishes the stored draft. Rewriting the configurations here would
-     * publish a revision the stored draft no longer matches, and the Guardian would turn
-     * {@code PENDING} the moment it was deployed; a draft is sanitised when it is written instead.
+     * <p>For the paths that publish or restore a stored definition — a deployment, a rollback. They may
+     * not rewrite what they read: a deployment that sanitised the draft would publish a revision the
+     * stored draft no longer matches, and the Guardian would turn {@code PENDING} the moment it was
+     * deployed. A configuration its policy only accepts corrected is therefore refused here rather than
+     * ignored, since publishing it would publish one the policy was never validated with; the user saves
+     * the Guardian again, which stores what the policy accepts, and deploys that.
      */
     public void validateStoredAgainstInstalledPolicies(Guardian guardian) {
-        refuse(validate(guardian, KEEP_STORED_CONFIGURATION));
+        refuse(validate(guardian, Correction.REFUSE));
     }
 
+    /**
+     * Validates without touching the Guardian it is given, the {@link Validator} contract being no
+     * licence to rewrite a caller's object: a configuration a policy would correct is reported as a
+     * violation here. The write paths call {@link #validateAgainstInstalledPolicies(Guardian)}, which
+     * stores the corrected configuration instead.
+     */
     @Override
     public Result<Input> validateAndSanitize(Input input) {
-        return Result.ofBoth(input, validate(input.guardian(), Step::setConfiguration));
+        return Result.ofBoth(input, validate(input.guardian(), Correction.REFUSE));
     }
 
     private static void refuse(List<Error> errors) {
@@ -211,10 +236,9 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
     }
 
     /**
-     * @param acceptConfiguration what to do with the configuration a policy accepts: store it on the
-     *     step, or leave the step alone on a path that must not rewrite what it reads
+     * @param correction what to do with a step whose configuration its policy only accepts corrected
      */
-    private List<Error> validate(Guardian guardian, BiConsumer<Step, String> acceptConfiguration) {
+    private List<Error> validate(Guardian guardian, Correction correction) {
         var apiTypes = guardian.getApiTypes();
         if (apiTypes == null || apiTypes.isEmpty()) {
             return List.of(Error.severe("At least one API type is required."));
@@ -233,10 +257,10 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
                 Error.severe("Only %s guardians are supported, not %s.", SUPPORTED_API_TYPE.getLabel(), String.join(", ", unsupported))
             );
         }
-        return validateSteps(guardian.getPolicies(), apiTypes, guardian.getPhase(), acceptConfiguration);
+        return validateSteps(guardian.getPolicies(), apiTypes, guardian.getPhase(), correction);
     }
 
-    private List<Error> validateSteps(List<Step> steps, Set<ApiType> apiTypes, Phase phase, BiConsumer<Step, String> acceptConfiguration) {
+    private List<Error> validateSteps(List<Step> steps, Set<ApiType> apiTypes, Phase phase, Correction correction) {
         if (steps != null && steps.stream().anyMatch(Objects::isNull)) {
             return List.of(Error.severe("Guardian policies must not contain null steps."));
         }
@@ -264,41 +288,78 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
                     validateScopeProtocol(step, apiTypes, errors);
                 }
             }
-            validateConfigurationSchema(step, errors, acceptConfiguration);
+            validateConfigurationSchema(step, errors, correction);
         }
         return errors;
     }
 
     /**
-     * Refuses a configuration the schema of the policy does not accept, naming the step and the schema
-     * error as an API flow does, and hands the accepted one to {@code acceptConfiguration}.
+     * Judges the configuration of a step against the schema its policy declares, through the service the
+     * API flows validate their own steps with, and names the step and the schema error as they do.
      *
      * <p>The gateway builds the policy from the stored configuration when it starts the Guardian: one
      * the policy cannot be created from leaves a revision the API answers {@code DEPLOYED} and the
      * console shows "Deployed", that no gateway ever runs (AIAM-1750). What the policy accepts is not
-     * always what was submitted — the validator drops null entries, injects the default of a missing
-     * required property, prunes what a closed schema forbids — so storing the submitted configuration
-     * instead would store one the policy was never validated with, which is the same bug by another
-     * route.
+     * always what was given to it, so the configuration that ends up stored must be the accepted one:
+     * storing the submitted one instead would store a configuration the policy was never validated
+     * with, which is the same bug by another route. {@link Correction} says which of the two things a
+     * path does with that difference.
      *
      * <p>A step carrying no configuration is judged as one carrying an empty object — what the gateway
      * would build the policy from anyway. A schema requiring a property therefore refuses it, where
-     * skipping the check would accept exactly the Guardian this is about.
+     * skipping the check would accept exactly the Guardian this is about, and a schema that completes
+     * the empty object with defaults has its completed configuration stored like any other.
      */
-    private void validateConfigurationSchema(Step step, List<Error> errors, BiConsumer<Step, String> acceptConfiguration) {
-        switch (policyConfigurationValidator.check(step.getPolicy(), configurationOrEmpty(step))) {
-            case PolicyConfigurationCheck.Conforming(var accepted) -> {
-                // a step that carried no configuration keeps carrying none. It was judged as an empty
-                // object, but writing that object back would change the stored definition for nothing,
-                // and a deployment compares the draft with the revision the gateways run.
-                if (carriesAConfiguration(step)) {
-                    acceptConfiguration.accept(step, accepted);
-                }
-            }
-            case PolicyConfigurationCheck.Violation(var message) -> errors.add(
-                Error.severe("Step [%s] has an invalid configuration: %s", step.getName(), message)
+    private void validateConfigurationSchema(Step step, List<Error> errors, Correction correction) {
+        var judged = configurationAsObject(step);
+        if (judged.isEmpty()) {
+            // refused here rather than by the shared service, which would answer the parser message: it
+            // quotes the configuration it could not read, and that may carry a credential
+            errors.add(Error.severe("Step [%s] has an invalid configuration: it must be a JSON object", step.getName()));
+            return;
+        }
+        String accepted;
+        try {
+            accepted = policyValidation.validateAndSanitizeConfiguration(step.getPolicy(), configurationOrEmpty(step));
+        } catch (InvalidDataException e) {
+            // the message carries the schema paths and keywords the validator reported. A configuration
+            // value only appears in it when the schema itself names it — an enum, a pattern — with one
+            // exception: a `discriminator` mismatch quotes the discriminating value of the instance.
+            errors.add(
+                Error.severe(
+                    "Step [%s] has an invalid configuration: %s",
+                    step.getName(),
+                    Objects.requireNonNullElse(e.getMessage(), "it does not match the schema of the policy")
+                )
+            );
+            return;
+        } catch (PluginNotFoundException e) {
+            // the registry read above is a snapshot, and this service resolves the plugin again: a policy
+            // uninstalled in between is a refused step, not the 404 this exception would answer
+            errors.add(Error.severe("Step [%s] has an invalid configuration: the policy is not installed", step.getName()));
+            return;
+        }
+        if (isSameConfiguration(accepted, judged.get())) {
+            return;
+        }
+        switch (correction) {
+            case STORE -> step.setConfiguration(accepted);
+            case REFUSE -> errors.add(
+                Error.severe(
+                    "Step [%s] has a configuration its policy only accepts corrected: save the Guardian again to store the configuration the policy accepts.",
+                    step.getName()
+                )
             );
         }
+    }
+
+    /**
+     * Compared as JSON rather than as text: the validator rebuilds the document it returns, so the same
+     * configuration may come back with its properties in another order or spaced differently, and a
+     * deployment refusing that difference would refuse a draft nothing is wrong with.
+     */
+    private boolean isSameConfiguration(String accepted, JsonNode judged) {
+        return asJsonObject(accepted).filter(judged::equals).isPresent();
     }
 
     private static boolean carriesAConfiguration(Step step) {
@@ -311,9 +372,13 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
 
     /** The configuration of the step as a JSON object, or nothing when it is not one. */
     private Optional<JsonNode> configurationAsObject(Step step) {
+        return asJsonObject(configurationOrEmpty(step));
+    }
+
+    private Optional<JsonNode> asJsonObject(String configuration) {
         try {
-            JsonNode configuration = jsonDeserializer.deserialize(configurationOrEmpty(step), JsonNode.class);
-            return configuration != null && configuration.isObject() ? Optional.of(configuration) : Optional.empty();
+            JsonNode node = jsonDeserializer.deserialize(configuration, JsonNode.class);
+            return node != null && node.isObject() ? Optional.of(node) : Optional.empty();
         } catch (JsonProcessingException e) {
             return Optional.empty();
         }

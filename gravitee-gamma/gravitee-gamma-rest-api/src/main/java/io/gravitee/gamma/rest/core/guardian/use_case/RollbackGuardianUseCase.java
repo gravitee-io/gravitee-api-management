@@ -33,6 +33,11 @@ import lombok.RequiredArgsConstructor;
  * Replaces the draft of a Guardian with the definition one of its deployments put on the gateways, the way an API is
  * rolled back: nothing is deployed, the Guardian turns PENDING until it is deployed again, which records a new
  * revision. The description is not part of a definition and is kept.
+ *
+ * <p>The revision is restored as it was published, never rewritten: a policy that has gained a default or tightened
+ * its schema since makes the rollback answer a 400 naming the step, rather than storing a corrected definition the
+ * gateways never ran. Going back then takes an edit, which is the only way to store a configuration its policy
+ * accepts.
  */
 @UseCase
 @RequiredArgsConstructor
@@ -62,7 +67,8 @@ public class RollbackGuardianUseCase {
                 command,
                 input.auditInfo(),
                 GuardianAuditEvent.GUARDIAN_ROLLED_BACK,
-                Map.of(AuditProperties.GUARDIAN_DEPLOYMENT, deployed.revision().id())
+                Map.of(AuditProperties.GUARDIAN_DEPLOYMENT, deployed.revision().id()),
+                GuardianDraftDomainService.DraftOrigin.RESTORED
             )
         );
     }

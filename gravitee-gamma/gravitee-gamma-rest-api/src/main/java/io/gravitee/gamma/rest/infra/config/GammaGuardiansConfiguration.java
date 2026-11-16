@@ -17,12 +17,8 @@ package io.gravitee.gamma.rest.infra.config;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.json.JsonDeserializer;
-import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
-import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyConfigurationValidator;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
 import io.gravitee.gamma.rest.infra.adapter.GammaGuardianRepositoryAdapter;
-import io.gravitee.gamma.rest.infra.service_provider.gravitee_plugin.SchemaPolicyConfigurationValidator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -54,17 +50,5 @@ public class GammaGuardiansConfiguration {
         @Lazy io.gravitee.repository.management.api.GuardianRepository guardianRepository
     ) {
         return new GammaGuardianRepositoryAdapter(guardianRepository);
-    }
-
-    /**
-     * Declared with the domain that consumes it rather than with the plugin registry: a Guardian is
-     * what validates step configurations here, and the policy listing has no use for it.
-     */
-    @Bean
-    public PolicyConfigurationValidator gammaPolicyConfigurationValidator(
-        PolicyValidationDomainService policyValidationDomainService,
-        JsonDeserializer jsonDeserializer
-    ) {
-        return new SchemaPolicyConfigurationValidator(policyValidationDomainService, jsonDeserializer);
     }
 }

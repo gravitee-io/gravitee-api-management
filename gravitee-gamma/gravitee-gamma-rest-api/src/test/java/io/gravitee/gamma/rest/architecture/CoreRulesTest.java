@@ -28,6 +28,8 @@ import com.tngtech.archunit.lang.ArchRule;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
 
 /**
  * Enforces gamma-rest-api AGENTS.md §5 (Core layer independence) — the {@code core} package must not
@@ -77,5 +79,13 @@ class CoreRulesTest {
                     equivalentTo(Pageable.class)
                 )
                 .or(equivalentTo(PageableImpl.class))
+                .or(
+                    // what PolicyValidationDomainService#validateAndSanitizeConfiguration throws, which the
+                    // Guardian domain validates its step configurations with, as the API flows do. A port over
+                    // that service would have been a pass-through whose only purpose was to hide these two
+                    // exceptions from this rule. Requested by the lead on gravitee-api-management#22765.
+                    equivalentTo(InvalidDataException.class)
+                )
+                .or(equivalentTo(PluginNotFoundException.class))
         );
 }
