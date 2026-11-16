@@ -44,6 +44,8 @@ export interface UseImportSourceOptionsResult {
     setRemoteUrl: (value: string) => void;
     withDocumentation: boolean;
     setWithDocumentation: (value: boolean) => void;
+    withPathMapping: boolean;
+    setWithPathMapping: (value: boolean) => void;
     withOASValidationPolicy: boolean;
     setWithOASValidationPolicy: (value: boolean) => void;
     withRestToSoap: boolean;
@@ -75,6 +77,7 @@ export function useImportSourceOptions(format: ApiImportFormat, policiesEnabled 
     const [parseError, setParseError] = useState<string | null>(null);
     const [remoteUrl, setRemoteUrl] = useState('');
     const [withDocumentation, setWithDocumentation] = useState(format === 'openapi');
+    const [withPathMapping, setWithPathMapping] = useState(false);
     const [withOASValidationPolicy, setWithOASValidationPolicy] = useState(false);
     const [withRestToSoap, setWithRestToSoap] = useState(false);
 
@@ -121,6 +124,7 @@ export function useImportSourceOptions(format: ApiImportFormat, policiesEnabled 
     const reset = () => {
         resetSourceState();
         setWithDocumentation(format === 'openapi');
+        setWithPathMapping(false);
         setWithOASValidationPolicy(false);
         setWithRestToSoap(false);
         setSeededOasKey(null);
@@ -222,6 +226,7 @@ export function useImportSourceOptions(format: ApiImportFormat, policiesEnabled 
             descriptor: {
                 payload,
                 withDocumentation,
+                withPathMapping,
                 ...(hasOasValidationPolicy ? { withOASValidationPolicy } : {}),
             },
         };
@@ -236,6 +241,8 @@ export function useImportSourceOptions(format: ApiImportFormat, policiesEnabled 
         setRemoteUrl,
         withDocumentation,
         setWithDocumentation,
+        withPathMapping,
+        setWithPathMapping,
         withOASValidationPolicy,
         setWithOASValidationPolicy,
         withRestToSoap,

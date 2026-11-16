@@ -23,6 +23,7 @@ export type ApiImportFormat = 'gravitee' | 'openapi' | 'wsdl';
 export interface ImportSwaggerDescriptor {
     payload: string;
     withDocumentation?: boolean;
+    withPathMapping?: boolean;
     withOASValidationPolicy?: boolean;
 }
 

@@ -51,8 +51,25 @@ jest.mock('@gravitee/graphene-core', () => ({
         placeholder?: string;
     }) => <input id={id} value={value} onChange={onChange} placeholder={placeholder} />,
     Label: ({ children, htmlFor }: { children?: ReactNode; htmlFor?: string }) => <label htmlFor={htmlFor}>{children}</label>,
-    Switch: ({ checked, onCheckedChange, disabled }: { checked?: boolean; onCheckedChange?: (v: boolean) => void; disabled?: boolean }) => (
-        <input type="checkbox" role="switch" checked={checked} onChange={e => onCheckedChange?.(e.target.checked)} disabled={disabled} />
+    Switch: ({
+        checked,
+        onCheckedChange,
+        disabled,
+        id,
+    }: {
+        checked?: boolean;
+        onCheckedChange?: (v: boolean) => void;
+        disabled?: boolean;
+        id?: string;
+    }) => (
+        <input
+            id={id}
+            type="checkbox"
+            role="switch"
+            checked={checked}
+            onChange={e => onCheckedChange?.(e.target.checked)}
+            disabled={disabled}
+        />
     ),
     cn: (...args: string[]) => args.filter(Boolean).join(' '),
 }));
@@ -176,6 +193,7 @@ describe('ImportApiSheet', () => {
 
         expect(screen.getByRole('radio', { name: 'Remote URL' })).toBeInTheDocument();
         expect(screen.getByText(/create documentation page from spec/i)).toBeInTheDocument();
+        expect(screen.getByRole('switch', { name: /create the path mapping for analytics/i })).not.toBeChecked();
         expect(screen.queryByText(/add openapi specification validation/i)).toBeNull();
     });
 
@@ -191,7 +209,7 @@ describe('ImportApiSheet', () => {
 
         expect(onImport).toHaveBeenCalledWith({
             format: 'openapi',
-            descriptor: { payload: 'https://example.com/openapi.yaml', withDocumentation: true },
+            descriptor: { payload: 'https://example.com/openapi.yaml', withDocumentation: true, withPathMapping: false },
         });
     });
 
@@ -207,7 +225,7 @@ describe('ImportApiSheet', () => {
 
         expect(onImport).toHaveBeenCalledWith({
             format: 'openapi',
-            descriptor: { payload: yaml, withDocumentation: true },
+            descriptor: { payload: yaml, withDocumentation: true, withPathMapping: false },
         });
     });
 
@@ -224,7 +242,12 @@ describe('ImportApiSheet', () => {
 
         expect(onImport).toHaveBeenCalledWith({
             format: 'openapi',
-            descriptor: { payload: '{"openapi":"3.0.0"}', withDocumentation: true, withOASValidationPolicy: true },
+            descriptor: {
+                payload: '{"openapi":"3.0.0"}',
+                withDocumentation: true,
+                withPathMapping: false,
+                withOASValidationPolicy: true,
+            },
         });
     });
 
@@ -236,6 +259,7 @@ describe('ImportApiSheet', () => {
         await waitFor(() => expect(screen.getByText(/create documentation page from spec/i)).toBeInTheDocument());
         expect(screen.queryByText(/apply rest to soap transformer policy/i)).toBeNull();
         expect(screen.queryByText(/add openapi specification validation/i)).toBeNull();
+        expect(screen.queryByText(/create the path mapping for analytics/i)).toBeNull();
     });
 
     it('submits a WSDL descriptor with type INLINE once a local WSDL file is picked', async () => {

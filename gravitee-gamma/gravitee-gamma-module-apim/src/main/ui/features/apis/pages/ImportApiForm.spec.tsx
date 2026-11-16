@@ -39,8 +39,25 @@ jest.mock('@gravitee/graphene-core', () => ({
         placeholder?: string;
     }) => <input id={id} value={value} onChange={onChange} placeholder={placeholder} />,
     Label: ({ children, htmlFor }: { children?: ReactNode; htmlFor?: string }) => <label htmlFor={htmlFor}>{children}</label>,
-    Switch: ({ checked, onCheckedChange, disabled }: { checked?: boolean; onCheckedChange?: (v: boolean) => void; disabled?: boolean }) => (
-        <input type="checkbox" role="switch" checked={checked} onChange={e => onCheckedChange?.(e.target.checked)} disabled={disabled} />
+    Switch: ({
+        checked,
+        onCheckedChange,
+        disabled,
+        id,
+    }: {
+        checked?: boolean;
+        onCheckedChange?: (v: boolean) => void;
+        disabled?: boolean;
+        id?: string;
+    }) => (
+        <input
+            id={id}
+            type="checkbox"
+            role="switch"
+            checked={checked}
+            onChange={e => onCheckedChange?.(e.target.checked)}
+            disabled={disabled}
+        />
     ),
     cn: (...args: string[]) => args.filter(Boolean).join(' '),
 }));
@@ -188,7 +205,28 @@ describe('ImportApiForm', () => {
         fireEvent.click(screen.getByRole('button', { name: /create api/i }));
 
         expect(mutate).toHaveBeenCalledWith(
-            { format: 'openapi', descriptor: { payload: yaml, withDocumentation: true } },
+            { format: 'openapi', descriptor: { payload: yaml, withDocumentation: true, withPathMapping: false } },
+            expect.objectContaining({ onSuccess: expect.any(Function) }),
+        );
+    });
+
+    it('sends withPathMapping when Create the path mapping for analytics is selected', async () => {
+        const { container } = renderForm('openapi');
+        const yaml = 'openapi: 3.0.0\npaths:\n  /pets: {}\n';
+        const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+
+        const pathMapping = screen.getByRole('switch', { name: /create the path mapping for analytics/i });
+        expect(pathMapping).not.toBeChecked();
+        expect(screen.getByText(/replaces existing path mappings when updating an api/i)).toBeInTheDocument();
+
+        fireEvent.click(pathMapping);
+        fireEvent.change(fileInput, { target: { files: [fileWithText('api.yaml', yaml, 'application/x-yaml')] } });
+
+        await waitFor(() => expect(screen.getByRole('button', { name: /create api/i })).not.toBeDisabled());
+        fireEvent.click(screen.getByRole('button', { name: /create api/i }));
+
+        expect(mutate).toHaveBeenCalledWith(
+            { format: 'openapi', descriptor: { payload: yaml, withDocumentation: true, withPathMapping: true } },
             expect.objectContaining({ onSuccess: expect.any(Function) }),
         );
     });
@@ -350,7 +388,7 @@ describe('ImportApiForm', () => {
         expect(mutate).toHaveBeenCalledWith(
             {
                 format: 'openapi',
-                descriptor: { payload: 'https://example.com/openapi.yaml', withDocumentation: true },
+                descriptor: { payload: 'https://example.com/openapi.yaml', withDocumentation: true, withPathMapping: false },
             },
             expect.objectContaining({ onSuccess: expect.any(Function) }),
         );

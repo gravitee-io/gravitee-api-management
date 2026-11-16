@@ -100,6 +100,17 @@ export function ImportSourceOptionsFields({
                             disabled={format === 'wsdl' && !state.withRestToSoap}
                         />
                     </div>
+                    {format === 'openapi' && (
+                        <div className="flex items-center justify-between gap-4 rounded-lg border bg-muted/40 px-4 py-3">
+                            <div>
+                                <Label htmlFor="import-path-mapping" className="text-sm font-medium">
+                                    Create the path mapping for analytics
+                                </Label>
+                                <p className="text-xs text-muted-foreground">Replaces existing path mappings when updating an API.</p>
+                            </div>
+                            <Switch id="import-path-mapping" checked={state.withPathMapping} onCheckedChange={state.setWithPathMapping} />
+                        </div>
+                    )}
                     {state.hasOasValidationPolicy && (
                         <div className="flex items-center justify-between gap-4 rounded-lg border bg-muted/40 px-4 py-3">
                             <div>

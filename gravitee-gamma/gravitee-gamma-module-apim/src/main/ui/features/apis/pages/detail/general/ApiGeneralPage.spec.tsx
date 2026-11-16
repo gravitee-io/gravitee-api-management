@@ -121,8 +121,25 @@ jest.mock('@gravitee/graphene-core', () => ({
     SelectValue: () => null,
     Separator: ({ className }: { className?: string }) => <hr className={className} />,
     Skeleton: () => <div data-testid="skeleton" />,
-    Switch: ({ checked, onCheckedChange, disabled }: { checked?: boolean; onCheckedChange?: (v: boolean) => void; disabled?: boolean }) => (
-        <input type="checkbox" checked={checked} onChange={e => onCheckedChange?.(e.target.checked)} disabled={disabled} />
+    Switch: ({
+        checked,
+        onCheckedChange,
+        disabled,
+        id,
+    }: {
+        checked?: boolean;
+        onCheckedChange?: (v: boolean) => void;
+        disabled?: boolean;
+        id?: string;
+    }) => (
+        <input
+            id={id}
+            type="checkbox"
+            role="switch"
+            checked={checked}
+            onChange={e => onCheckedChange?.(e.target.checked)}
+            disabled={disabled}
+        />
     ),
     Textarea: ({
         id,
@@ -1145,7 +1162,35 @@ describe('ApiGeneralPage', () => {
         await waitFor(() => expect(importBtn).not.toBeDisabled());
         fireEvent.click(importBtn);
 
-        await waitFor(() => expect(importSpy).toHaveBeenCalledWith('DEFAULT', 'api-1', { payload: yaml, withDocumentation: true }));
+        await waitFor(() =>
+            expect(importSpy).toHaveBeenCalledWith('DEFAULT', 'api-1', { payload: yaml, withDocumentation: true, withPathMapping: false }),
+        );
+        importSpy.mockRestore();
+    });
+
+    it('calls updateApiFromSwagger with withPathMapping when path mappings are selected', async () => {
+        const importSpy = jest.spyOn(apiServices, 'updateApiFromSwagger').mockResolvedValue({ id: 'api-1', name: 'My Test API' });
+        renderPage();
+        fireEvent.click(screen.getByRole('button', { name: /^import$/i }));
+        const dialog = screen.getByRole('dialog');
+        fireEvent.click(within(dialog).getByRole('tab', { name: 'OpenAPI specification' }));
+        fireEvent.click(within(dialog).getByRole('switch', { name: /create the path mapping for analytics/i }));
+
+        const yaml = 'openapi: 3.0.0\npaths:\n  /pets: {}\n';
+        const file = new File([yaml], 'api.yaml', { type: 'application/x-yaml' });
+        Object.defineProperty(file, 'text', { value: () => Promise.resolve(yaml) });
+        const fileInput = dialog.querySelector('input[type="file"]') as HTMLInputElement;
+        await act(async () => {
+            fireEvent.change(fileInput, { target: { files: [file] } });
+        });
+
+        const importBtn = within(dialog).getByRole('button', { name: /^import$/i });
+        await waitFor(() => expect(importBtn).not.toBeDisabled());
+        fireEvent.click(importBtn);
+
+        await waitFor(() =>
+            expect(importSpy).toHaveBeenCalledWith('DEFAULT', 'api-1', { payload: yaml, withDocumentation: true, withPathMapping: true }),
+        );
         importSpy.mockRestore();
     });
 
