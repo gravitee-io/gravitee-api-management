@@ -81,6 +81,9 @@
     <properties>
         <!-- The flavor to ship, one of the <flavors> below: set by the bundle-default and bundle-dev profiles -->
         <apim.flavor>community</apim.flavor>
+
+        <!-- Assemblies, shipped as zips and images: nobody consumes them from Maven -->
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <modules>
