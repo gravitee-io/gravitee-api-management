@@ -67,7 +67,7 @@ import jakarta.ws.rs.core.UriInfo;
 @Produces(MediaType.APPLICATION_JSON)
 public class GuardiansResource {
 
-    static final String GUARDIANS_LICENSE_FEATURE = "apim-guardians";
+    public static final String GUARDIANS_LICENSE_FEATURE = "apim-guardians";
 
     @Context
     private ResourceContext resourceContext;
