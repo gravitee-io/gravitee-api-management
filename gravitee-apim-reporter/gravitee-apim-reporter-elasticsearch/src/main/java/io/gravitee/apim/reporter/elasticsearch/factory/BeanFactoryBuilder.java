@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.reporter.elasticsearch.factory;
 
+import io.gravitee.apim.reporter.elasticsearch.config.DataStreamRules;
 import io.gravitee.apim.reporter.elasticsearch.config.Flavor;
 import io.gravitee.apim.reporter.elasticsearch.config.FlavorRules;
 import io.gravitee.apim.reporter.elasticsearch.config.ReporterConfiguration;
@@ -22,9 +23,11 @@ import io.gravitee.apim.reporter.elasticsearch.factory.es7.Elastic7xBeanFactory;
 import io.gravitee.apim.reporter.elasticsearch.factory.es8.Elastic8xBeanFactory;
 import io.gravitee.apim.reporter.elasticsearch.factory.es9.Elastic9xBeanFactory;
 import io.gravitee.apim.reporter.elasticsearch.factory.opensearch.OpenSearchBeanFactory;
+import io.gravitee.apim.reporter.elasticsearch.mapping.datastream.DataStreamLifecycle;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.exception.ElasticsearchException;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
+import io.gravitee.elasticsearch.version.Version;
 import io.reactivex.rxjava3.core.BackpressureStrategy;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Observable;
@@ -71,7 +74,7 @@ public class BeanFactoryBuilder {
             return null;
         }
 
-        BeanFactory beanFactory = getBeanFactoryFromElasticsearchInfo(info);
+        final BeanFactory beanFactory = getBeanFactoryFromElasticsearchInfo(info);
         if (beanFactory == null) {
             log.error(
                 "{} version {} is not supported by this connector",
@@ -80,8 +83,20 @@ public class BeanFactoryBuilder {
             );
             return null;
         }
+        if (!configuration.isDataStreamIndex()) {
+            logStartupSummary(configuration, flavor, configuredFlavor.isEmpty());
+            return beanFactory;
+        }
+
+        final Version version = info.getVersion();
+        final Optional<String> dataStreamViolation = DataStreamRules.violation(version, configuration);
+        if (dataStreamViolation.isPresent()) {
+            log.error("{} {}", dataStreamViolation.get(), REPORTER_DISABLED);
+            return null;
+        }
         logStartupSummary(configuration, flavor, configuredFlavor.isEmpty());
-        return beanFactory;
+        DataStreamRules.warnings(version, configuration).forEach(log::warn);
+        return new DataStreamBeanFactory(beanFactory, DataStreamLifecycle.of(version, configuration));
     }
 
     private static void logStartupSummary(final ReporterConfiguration configuration, final Flavor flavor, final boolean detected) {

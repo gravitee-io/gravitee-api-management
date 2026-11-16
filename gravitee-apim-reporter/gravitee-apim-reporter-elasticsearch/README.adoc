@@ -54,6 +54,52 @@ Then you can activate the ILM feature by adding these settings in the gravitee.y
     index_mode: ilm         # "daily" indexes, suffixed with date. Or "ilm" managed indexes, without date
 ```
 
+=== Data streams
+
+On Elasticsearch 7.9 or later, and on OpenSearch, the reporter can write each type to a data stream named
+`<index>-<type>` (`gravitee-request`, `gravitee-v4-log`, ...) instead of daily or ILM-managed indexes:
+
+```yaml
+  elasticsearch:
+    index_mode: data_stream
+    lifecycle:
+      policies:
+        request: hot_delete_request # ILM policy for the gravitee-request, gravitee-v4-metrics and gravitee-v4-message-metrics data streams
+        log: hot_delete_log         # ILM policy for the gravitee-log, gravitee-v4-log and gravitee-v4-message-log data streams
+    retention:                      # Elasticsearch 8.14 or later: data stream lifecycle, used for the types without a policy
+      monitor: 7d
+      health: 3d
+      event_metrics: 30d
+      decisions: 30d
+```
+
+* The reporter refuses to start on an Elasticsearch older than 7.9, and when `retention` is set on an Elasticsearch
+  older than 8.14.
+* A type with both a policy and a retention keeps the policy: Elasticsearch ignores the retention.
+* A type with neither keeps its documents forever: the reporter warns about it at startup.
+* Switch every gateway writing to the cluster at once: a data stream and a daily or ILM index cannot share a name.
+
+==== OpenSearch
+
+ISM ignores the `index.plugins.index_state_management.policy_id` index setting, so the reporter cannot attach an ISM
+policy to a data stream, and OpenSearch has no data stream retention: it refuses to start when `lifecycle.policies` or
+`retention` is set. Give the ISM policy an `ism_template` matching the data streams instead, before they are created:
+
+```json
+PUT _plugins/_ism/policies/hot_delete_request
+{
+  "policy": {
+    "description": "Delete the request analytics after 30 days",
+    "default_state": "hot",
+    "states": [
+      { "name": "hot", "actions": [], "transitions": [ { "state_name": "delete", "conditions": { "min_index_age": "30d" } } ] },
+      { "name": "delete", "actions": [ { "delete": {} } ], "transitions": [] }
+    ],
+    "ism_template": [ { "index_patterns": [ "gravitee-request", "gravitee-v4-metrics", "gravitee-v4-message-metrics" ], "priority": 100 } ]
+  }
+}
+```
+
 === Body indexing
 
 The logging policy can capture request, response and message bodies, and the reporter indexes them so the
