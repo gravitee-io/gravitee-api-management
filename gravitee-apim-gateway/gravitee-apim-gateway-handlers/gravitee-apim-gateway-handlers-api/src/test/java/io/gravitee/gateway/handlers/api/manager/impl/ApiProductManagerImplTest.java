@@ -17,9 +17,12 @@ package io.gravitee.gateway.handlers.api.manager.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
@@ -29,10 +32,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.common.event.impl.SimpleEvent;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -43,9 +50,15 @@ import io.gravitee.gateway.handlers.api.event.ApiProductChangedEvent;
 import io.gravitee.gateway.handlers.api.event.ApiProductEventType;
 import io.gravitee.gateway.handlers.api.manager.ApiProductChange;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
+import io.gravitee.gateway.handlers.api.secrets.ApiProductSecretDiscovery;
 import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeRegistry;
+import io.gravitee.node.api.license.ForbiddenFeatureException;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.secrets.api.discovery.Definition;
+import io.gravitee.secrets.api.discovery.DefinitionMetadata;
+import io.gravitee.secrets.api.event.SecretDiscoveryEvent;
+import io.gravitee.secrets.api.event.SecretDiscoveryEventType;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -90,6 +103,9 @@ class ApiProductManagerImplTest {
     @Mock
     private ApiProductRuntimeRegistry apiProductRuntimeRegistry;
 
+    @Mock
+    private ApiProductSecretDiscovery secretDiscovery;
+
     private ApiProductManagerImpl manager;
 
     @BeforeEach
@@ -103,7 +119,8 @@ class ApiProductManagerImplTest {
             apiProductRuntimeRegistry,
             eventManager,
             licenseManager,
-            gatewayConfiguration
+            gatewayConfiguration,
+            secretDiscovery
         );
     }
 
@@ -632,7 +649,11 @@ class ApiProductManagerImplTest {
         void should_swap_the_runtime_when_a_plan_flow_changes() {
             ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
             ReactableApiProduct withFlow = createApiProduct("product-1", "env-1", newDate);
-            Plan plan = Plan.builder().id("plan-1").flows(List.of(Flow.builder().name("flow").build())).build();
+            Plan plan = Plan.builder()
+                .id("plan-1")
+                .status(PlanStatus.PUBLISHED)
+                .flows(List.of(Flow.builder().name("flow").build()))
+                .build();
             withFlow.setPlans(List.of(plan));
             manager.register(oldProduct);
 
@@ -907,6 +928,438 @@ class ApiProductManagerImplTest {
             assertThat(manager.get("product-1")).isNotNull();
             verify(apiProductRegistry).register(apiProduct);
         }
+    }
+
+    @Nested
+    class PluginLicenseTest {
+
+        private final Date oldDate = new Date(System.currentTimeMillis() - 10000);
+        private final Date newDate = new Date();
+
+        @Test
+        void should_not_deploy_a_product_with_a_policy_the_license_does_not_allow() throws Exception {
+            ReactableApiProduct product = createApiProduct("product-1", "env-1", newDate);
+            product.setFlows(List.of(flowWith("ee-policy")));
+            forbid("ee-policy");
+
+            manager.register(product);
+
+            assertThat(manager.get("product-1")).isNull();
+            verify(apiProductRuntimeRegistry, never()).deploy(any());
+            verify(apiProductRegistry, never()).register(any());
+            verify(eventManager, never()).publishEvent(eq(ApiProductEventType.DEPLOY), any(ApiProductChangedEvent.class));
+        }
+
+        @Test
+        void should_refuse_an_update_adding_an_unlicensed_policy_and_keep_the_deployed_version() throws Exception {
+            ReactableApiProduct deployed = createApiProduct("product-1", "env-1", oldDate);
+            ReactableApiProduct withEePolicy = createApiProduct("product-1", "env-1", newDate);
+            withEePolicy.setPlans(
+                List.of(Plan.builder().id("plan-1").status(PlanStatus.PUBLISHED).flows(List.of(flowWith("ee-policy"))).build())
+            );
+            forbid("ee-policy");
+            manager.register(deployed);
+            clearInvocations(apiProductRuntimeRegistry, apiProductRegistry, eventManager);
+
+            manager.register(withEePolicy);
+
+            assertThat(manager.get("product-1")).isSameAs(deployed);
+            verifyNoInteractions(apiProductRuntimeRegistry, apiProductRegistry);
+            verify(eventManager, never()).publishEvent(any(ApiProductEventType.class), any(ApiProductChangedEvent.class));
+        }
+
+        @Test
+        void should_check_the_security_flows_and_resources_of_the_plans_served_here_and_the_product() throws Exception {
+            when(gatewayConfiguration.hasMatchingTags(Set.of("other-shard"))).thenReturn(false);
+            ReactableApiProduct product = createApiProduct("product-1", "env-1", newDate);
+            product.setPlans(
+                List.of(
+                    Plan.builder()
+                        .id("served")
+                        .status(PlanStatus.PUBLISHED)
+                        .security(PlanSecurity.builder().type("jwt").build())
+                        .flows(List.of(flowWith("plan-policy")))
+                        .build(),
+                    Plan.builder()
+                        .id("other-shard")
+                        .status(PlanStatus.PUBLISHED)
+                        .tags(Set.of("other-shard"))
+                        .security(PlanSecurity.builder().type("oauth2").build())
+                        .flows(List.of(flowWith("other-shard-policy")))
+                        .build()
+                )
+            );
+            product.setFlows(List.of(flowWith("product-policy")));
+            product.setResources(
+                List.of(
+                    Resource.builder().name("cache").type("cache-redis").enabled(true).build(),
+                    Resource.builder().name("off").type("disabled-resource").enabled(false).build()
+                )
+            );
+
+            manager.register(product);
+
+            @SuppressWarnings("unchecked")
+            ArgumentCaptor<Collection<LicenseManager.Plugin>> plugins = ArgumentCaptor.forClass(Collection.class);
+            verify(licenseManager).validatePluginFeatures(eq("org-1"), plugins.capture());
+            assertThat(plugins.getValue()).containsExactlyInAnyOrder(
+                new LicenseManager.Plugin("policy", "jwt"),
+                new LicenseManager.Plugin("policy", "plan-policy"),
+                new LicenseManager.Plugin("policy", "product-policy"),
+                new LicenseManager.Plugin("resource", "cache-redis")
+            );
+        }
+
+        @Test
+        void should_check_a_security_type_under_the_id_of_the_policy_the_runtime_loads() throws Exception {
+            ReactableApiProduct product = createApiProduct("product-1", "env-1", newDate);
+            product.setPlans(
+                List.of(
+                    Plan.builder()
+                        .id("plan-1")
+                        .status(PlanStatus.PUBLISHED)
+                        .security(PlanSecurity.builder().type("API_KEY").build())
+                        .build()
+                )
+            );
+
+            manager.register(product);
+
+            @SuppressWarnings("unchecked")
+            ArgumentCaptor<Collection<LicenseManager.Plugin>> plugins = ArgumentCaptor.forClass(Collection.class);
+            verify(licenseManager).validatePluginFeatures(eq("org-1"), plugins.capture());
+            assertThat(plugins.getValue()).containsExactly(new LicenseManager.Plugin("policy", "api-key"));
+        }
+
+        @Test
+        void should_check_again_on_an_update_that_keeps_the_runtime() throws Exception {
+            ReactableApiProduct deployed = createApiProduct("product-1", "env-1", oldDate);
+            ReactableApiProduct renamed = createApiProduct("product-1", "env-1", newDate);
+            renamed.setName("Renamed");
+            manager.register(deployed);
+            doThrow(new ForbiddenFeatureException(List.of(new LicenseManager.ForbiddenFeature("apim-en-policy", "policy"))))
+                .when(licenseManager)
+                .validatePluginFeatures(eq("org-1"), anyCollection());
+
+            manager.register(renamed);
+
+            assertThat(manager.get("product-1")).isSameAs(deployed);
+        }
+
+        @Test
+        void should_undeploy_a_product_retagged_away_even_when_it_now_uses_an_unlicensed_policy() throws Exception {
+            when(gatewayConfiguration.hasMatchingTags(Set.of("internal"))).thenReturn(true);
+            when(gatewayConfiguration.hasMatchingTags(Set.of("external"))).thenReturn(false);
+            ReactableApiProduct deployed = createApiProduct("product-1", "env-1", oldDate);
+            deployed.setTags(Set.of("internal"));
+            manager.register(deployed);
+            ReactableApiProduct retagged = createApiProduct("product-1", "env-1", newDate);
+            retagged.setTags(Set.of("external"));
+            retagged.setFlows(List.of(flowWith("ee-policy")));
+            forbid("ee-policy");
+
+            manager.register(retagged);
+
+            assertThat(manager.get("product-1")).isNull();
+            verify(apiProductRuntimeRegistry).remove("product-1", "env-1");
+        }
+
+        private void forbid(String policyId) throws Exception {
+            lenient()
+                .doThrow(new ForbiddenFeatureException(List.of(new LicenseManager.ForbiddenFeature("apim-en-policy", policyId))))
+                .when(licenseManager)
+                .validatePluginFeatures(
+                    eq("org-1"),
+                    argThat(plugins -> plugins != null && plugins.contains(new LicenseManager.Plugin("policy", policyId)))
+                );
+        }
+    }
+
+    @Nested
+    class SecretsTest {
+
+        private final Date oldDate = new Date(System.currentTimeMillis() - 10000);
+        private final Date newDate = new Date();
+
+        @Test
+        void should_redeploy_the_runtime_of_a_product_whose_secret_value_changed() {
+            manager.register(createApiProduct("product-1", "env-1", newDate));
+
+            secretValueChanged("api-product", "product-1", "env-1");
+
+            verify(apiProductRuntimeRegistry).redeploy("product-1", "env-1");
+        }
+
+        @Test
+        void should_ignore_a_secret_value_change_of_another_kind_or_an_unknown_product() {
+            manager.register(createApiProduct("product-1", "env-1", newDate));
+
+            secretValueChanged("api-v4", "product-1", "env-1");
+            secretValueChanged("api-product", "unknown", "env-1");
+
+            verify(apiProductRuntimeRegistry, never()).redeploy(any(), any());
+        }
+
+        @Test
+        void should_keep_serving_when_the_runtime_cannot_be_rebuilt_after_a_secret_value_change() {
+            manager.register(createApiProduct("product-1", "env-1", newDate));
+            doThrow(new IllegalStateException("vault down")).when(apiProductRuntimeRegistry).redeploy("product-1", "env-1");
+
+            secretValueChanged("api-product", "product-1", "env-1");
+
+            assertThat(manager.get("product-1")).isNotNull();
+        }
+
+        @Test
+        void should_hold_the_secrets_of_a_deployed_version_until_a_later_version_replaces_its_runtime() {
+            ReactableApiProduct v1 = createApiProduct("product-1", "env-1", oldDate);
+            ReactableApiProduct v2 = createApiProduct("product-1", "env-1", newDate);
+            v2.setPlans(List.of(Plan.builder().id("plan-1").status(PlanStatus.PUBLISHED).flows(List.of(flowWith("plan-policy"))).build()));
+
+            manager.register(v1);
+            verify(secretDiscovery).bind(v1);
+
+            manager.register(v2);
+            InOrder inOrder = inOrder(secretDiscovery);
+            inOrder.verify(secretDiscovery).bind(v2);
+            inOrder.verify(secretDiscovery).release(v1);
+        }
+
+        @Test
+        void should_keep_the_secrets_of_the_runtime_version_on_an_update_that_keeps_the_runtime() {
+            ReactableApiProduct v1 = createApiProduct("product-1", "env-1", oldDate);
+            ReactableApiProduct renamed = createApiProduct("product-1", "env-1", newDate);
+            renamed.setName("Renamed");
+            manager.register(v1);
+
+            manager.register(renamed);
+
+            verify(secretDiscovery, never()).bind(renamed);
+            verify(secretDiscovery, never()).release(v1);
+        }
+
+        @Test
+        void should_keep_the_secrets_of_the_deployed_version_when_an_update_fails() {
+            ReactableApiProduct v1 = createApiProduct("product-1", "env-1", oldDate);
+            ReactableApiProduct failed = createApiProduct("product-1", "env-1", newDate);
+            failed.setApiIds(Set.of("api-3"));
+            manager.register(v1);
+
+            manager
+                .register(failed, change -> Completable.error(new IllegalStateException("repository down")))
+                .test()
+                .assertError(IllegalStateException.class);
+
+            verify(secretDiscovery, never()).bind(failed);
+            verify(secretDiscovery, never()).release(v1);
+        }
+
+        @Test
+        void should_put_back_the_version_the_runtime_was_built_from_when_an_update_fails() {
+            ReactableApiProduct v1 = createApiProduct("product-1", "env-1", new Date(System.currentTimeMillis() - 20000));
+            ReactableApiProduct renamed = createApiProduct("product-1", "env-1", oldDate);
+            renamed.setName("Renamed");
+            ReactableApiProduct failed = createApiProduct("product-1", "env-1", newDate);
+            failed.setApiIds(Set.of("api-3"));
+            manager.register(v1);
+            manager.register(renamed);
+
+            manager
+                .register(failed, change -> Completable.error(new IllegalStateException("repository down")))
+                .test()
+                .assertError(IllegalStateException.class);
+
+            InOrder inOrder = inOrder(apiProductRuntimeRegistry);
+            inOrder.verify(apiProductRuntimeRegistry).deploy(failed);
+            inOrder.verify(apiProductRuntimeRegistry).deploy(v1);
+            assertThat(manager.get("product-1")).isSameAs(renamed);
+        }
+
+        @Test
+        void should_release_the_secrets_of_an_undeployed_product() {
+            ReactableApiProduct v1 = createApiProduct("product-1", "env-1", newDate);
+            manager.register(v1);
+
+            manager.unregister("product-1");
+
+            verify(secretDiscovery).release(v1);
+        }
+
+        @Test
+        void should_never_hold_the_secrets_of_a_first_deployment_that_fails() {
+            ReactableApiProduct product = createApiProduct("product-1", "env-1", newDate);
+
+            manager
+                .register(product, change -> Completable.error(new IllegalStateException("repository down")))
+                .test()
+                .assertError(IllegalStateException.class);
+
+            verify(secretDiscovery, never()).bind(product);
+        }
+
+        @Test
+        void should_build_the_runtime_from_a_copy_equal_to_the_received_version() {
+            HttpSelector selector = new HttpSelector();
+            selector.setPath("/orders/:id");
+            FlowExecution flowExecution = new FlowExecution();
+            flowExecution.setMode(FlowMode.BEST_MATCH);
+            ReactableApiProduct received = createApiProduct("product-1", "env-1", newDate);
+            received.setTags(Set.of("internal"));
+            received.setFlowExecution(flowExecution);
+            received.setPlans(
+                List.of(
+                    Plan.builder()
+                        .id("plan-1")
+                        .name("Plan")
+                        .status(PlanStatus.PUBLISHED)
+                        .security(PlanSecurity.builder().type("api-key").configuration("{\"propagateApiKey\":true}").build())
+                        .flows(
+                            List.of(
+                                Flow.builder()
+                                    .name("plan flow")
+                                    .selectors(List.of(selector))
+                                    .request(
+                                        List.of(
+                                            Step.builder()
+                                                .name("step")
+                                                .policy("plan-policy")
+                                                .configuration("{\"a\":1}")
+                                                .condition("{#true}")
+                                                .build()
+                                        )
+                                    )
+                                    .build()
+                            )
+                        )
+                        .build()
+                )
+            );
+            received.setFlows(List.of(flowWith("product-policy")));
+            received.setResources(List.of(Resource.builder().name("cache").type("cache").configuration("{\"ttl\":10}").build()));
+
+            manager.register(received);
+
+            ArgumentCaptor<ReactableApiProduct> runtimeVersion = ArgumentCaptor.forClass(ReactableApiProduct.class);
+            verify(apiProductRuntimeRegistry).deploy(runtimeVersion.capture());
+            assertThat(runtimeVersion.getValue()).isNotSameAs(received).isEqualTo(received);
+            assertThat(runtimeVersion.getValue().getId()).isEqualTo("product-1");
+            assertThat(runtimeVersion.getValue().getPlans().getFirst()).isNotSameAs(received.getPlans().getFirst());
+            assertThat(runtimeVersion.getValue().getResources().getFirst()).isNotSameAs(received.getResources().getFirst());
+            assertThat(runtimeVersion.getValue().getFlows().getFirst()).isNotSameAs(received.getFlows().getFirst());
+        }
+
+        @Test
+        void should_build_the_runtime_from_the_plans_served_here_only_so_no_other_plan_has_its_secrets_discovered() {
+            when(gatewayConfiguration.hasMatchingTags(Set.of("other-shard"))).thenReturn(false);
+            ReactableApiProduct received = createApiProduct("product-1", "env-1", newDate);
+            received.setPlans(
+                List.of(
+                    Plan.builder().id("published").status(PlanStatus.PUBLISHED).build(),
+                    Plan.builder().id("deprecated").status(PlanStatus.DEPRECATED).build(),
+                    Plan.builder().id("staging").status(PlanStatus.STAGING).build(),
+                    Plan.builder().id("closed").status(PlanStatus.CLOSED).build(),
+                    Plan.builder().id("other-shard").status(PlanStatus.PUBLISHED).tags(Set.of("other-shard")).build()
+                )
+            );
+
+            manager.register(received);
+
+            ArgumentCaptor<ReactableApiProduct> runtimeVersion = ArgumentCaptor.forClass(ReactableApiProduct.class);
+            verify(apiProductRuntimeRegistry).deploy(runtimeVersion.capture());
+            assertThat(runtimeVersion.getValue().getPlans()).extracting(Plan::getId).containsExactly("published", "deprecated");
+            assertThat(manager.get("product-1").getPlans()).hasSize(5);
+            verify(secretDiscovery).bind(same(runtimeVersion.getValue()));
+        }
+
+        @Test
+        void should_build_the_runtime_from_its_own_copy_and_keep_the_received_version_as_deployed() {
+            ReactableApiProduct received = withSecretInPlanSecurity(createApiProduct("product-1", "env-1", newDate));
+            rewriteSecretsOfTheRuntimeVersion();
+
+            manager.register(received);
+
+            ArgumentCaptor<ReactableApiProduct> runtimeVersion = ArgumentCaptor.forClass(ReactableApiProduct.class);
+            verify(apiProductRuntimeRegistry).deploy(runtimeVersion.capture());
+            assertThat(runtimeVersion.getValue()).isNotSameAs(received);
+            assertThat(securityConfigurationOf(runtimeVersion.getValue())).isEqualTo(REWRITTEN);
+            assertThat(securityConfigurationOf(manager.get("product-1"))).isEqualTo(SECRET_REF);
+            verify(secretDiscovery).bind(runtimeVersion.getValue());
+        }
+
+        @Test
+        void should_neither_reload_subscriptions_nor_rebuild_the_runtime_when_only_the_name_of_a_product_with_secrets_changes() {
+            ReactableApiProduct deployed = withSecretInPlanSecurity(createApiProduct("product-1", "env-1", oldDate));
+            ReactableApiProduct renamed = withSecretInPlanSecurity(createApiProduct("product-1", "env-1", newDate));
+            renamed.setName("Renamed");
+            rewriteSecretsOfTheRuntimeVersion();
+            manager.register(deployed);
+            clearInvocations(apiProductRuntimeRegistry);
+            List<ApiProductChange> changes = new ArrayList<>();
+
+            manager
+                .register(renamed, change -> {
+                    changes.add(change);
+                    return Completable.complete();
+                })
+                .test()
+                .assertComplete();
+
+            assertThat(changes.getFirst().planIdsToLoadSubscriptionsFor()).isEmpty();
+            assertThat(changes.getFirst().affectsMemberApis()).isFalse();
+            verify(apiProductRuntimeRegistry, never()).deploy(any());
+        }
+
+        private static final String SECRET_REF = "{\"resolverParameter\":\"{#secrets.get('/vault/secret/product:key')}\"}";
+        private static final String REWRITTEN =
+            "{\"resolverParameter\":\"{#secrets.fromGrant('grant-1', #secret_field_access_control_var)}\"}";
+
+        private ReactableApiProduct withSecretInPlanSecurity(ReactableApiProduct product) {
+            product.setPlans(
+                List.of(
+                    Plan.builder()
+                        .id("plan-1")
+                        .status(PlanStatus.PUBLISHED)
+                        .security(PlanSecurity.builder().type("jwt").configuration(SECRET_REF).build())
+                        .build()
+                )
+            );
+            return product;
+        }
+
+        /** Does what secret discovery does to the version a runtime is built from. */
+        private void rewriteSecretsOfTheRuntimeVersion() {
+            doAnswer(invocation -> {
+                ReactableApiProduct runtimeVersion = invocation.getArgument(0);
+                runtimeVersion.getPlans().forEach(plan -> plan.getSecurity().setConfiguration(REWRITTEN));
+                return null;
+            })
+                .when(apiProductRuntimeRegistry)
+                .deploy(any());
+        }
+
+        private static String securityConfigurationOf(ReactableApiProduct product) {
+            return product.getPlans().getFirst().getSecurity().getConfiguration();
+        }
+
+        @SuppressWarnings("unchecked")
+        private void secretValueChanged(String kind, String id, String envId) {
+            ArgumentCaptor<EventListener<SecretDiscoveryEventType, SecretDiscoveryEvent>> listener = ArgumentCaptor.forClass(
+                EventListener.class
+            );
+            verify(eventManager).subscribeForEvents(listener.capture(), eq(SecretDiscoveryEventType.VALUE_CHANGED));
+            listener
+                .getValue()
+                .onEvent(
+                    new SimpleEvent<>(
+                        SecretDiscoveryEventType.VALUE_CHANGED,
+                        new SecretDiscoveryEvent(envId, new Definition(kind, id), new DefinitionMetadata("1"))
+                    )
+                );
+        }
+    }
+
+    private static Flow flowWith(String policyId) {
+        return Flow.builder().name("flow-" + policyId).request(List.of(Step.builder().policy(policyId).build())).build();
     }
 
     private ReactableApiProduct createApiProduct(String id, String environmentId, Date deployedAt) {
