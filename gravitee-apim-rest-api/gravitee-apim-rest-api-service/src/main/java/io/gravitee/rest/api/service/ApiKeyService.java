@@ -57,6 +57,11 @@ public interface ApiKeyService {
 
     void delete(String apiKey);
 
+    /**
+     * Delete every API Key of the application, so that their values can be used again by another application.
+     */
+    void deleteByApplication(String applicationId);
+
     ApiKeyEntity update(ExecutionContext executionContext, ApiKeyEntity apiKeyEntity);
 
     ApiKeyEntity updateDaysToExpirationOnLastNotification(ExecutionContext executionContext, ApiKeyEntity apiKeyEntity, Integer value);

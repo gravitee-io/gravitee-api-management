@@ -50,7 +50,6 @@ import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.Subscription;
-import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -1174,6 +1173,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             );
 
             subscriptions.forEach(subscription -> {
+<<<<<<< HEAD
                 List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(executionContext, subscription.getId());
                 apiKeys.forEach(apiKey -> {
                     try {
@@ -1183,6 +1183,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     }
                 });
 
+=======
+>>>>>>> 8b929f2 (fix(api-key): delete an application's API keys on archive (APIM-16008) (#22727))
                 try {
                     closeSubscriptionDomainService.closeSubscription(
                         subscription.getId(),
@@ -1197,6 +1199,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     LOGGER.debug("The subscription cannot be closed: {}", snce.getMessage());
                 }
             });
+            // After the subscriptions are closed, so that their keys are revoked first.
+            apiKeyService.deleteByApplication(applicationId);
 
             // Archive the application
             application.setUpdatedAt(new Date());

@@ -50,7 +50,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, String> implements ApiKeyRepository {
 
+<<<<<<< HEAD
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcApiKeyRepository.class);
+=======
+    private static final String DELETE_FROM = "delete from ";
+>>>>>>> 8b929f2 (fix(api-key): delete an application's API keys on archive (APIM-16008) (#22727))
 
     private final String keySubscriptions;
     private final String subscription;
@@ -255,11 +259,16 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
             );
 
             if (!keyIds.isEmpty()) {
+<<<<<<< HEAD
                 jdbcTemplate.update(
                     "delete from " + keySubscriptions + " where key_id IN (" + getOrm().buildInClause(keyIds) + ")",
                     keyIds.toArray()
                 );
                 jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
+=======
+                deleteSubscriptionLinks(keyIds);
+                jdbcTemplate.update(DELETE_FROM + escapeReservedWord(tableName) + " where environment_id = ?", environmentId);
+>>>>>>> 8b929f2 (fix(api-key): delete an application's API keys on archive (APIM-16008) (#22727))
             }
             LOGGER.debug("JdbcApiKeyRepository.deleteByEnvironmentId({}) - Done", environmentId);
             return keyIds;
@@ -267,6 +276,33 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
             LOGGER.error("Failed to delete api keys by environmentId: {}", environmentId, ex);
             throw new TechnicalException("Failed to delete api keys by environment", ex);
         }
+    }
+
+    @Override
+    public List<String> deleteByApplication(String applicationId) throws TechnicalException {
+        log.debug("JdbcApiKeyRepository.deleteByApplication({})", applicationId);
+        try {
+            final var keyIds = jdbcTemplate.queryForList(
+                "select id from " + escapeReservedWord(this.tableName) + " where application = ?",
+                String.class,
+                applicationId
+            );
+
+            if (!keyIds.isEmpty()) {
+                deleteSubscriptionLinks(keyIds);
+                jdbcTemplate.update(DELETE_FROM + escapeReservedWord(tableName) + " where application = ?", applicationId);
+            }
+            log.debug("JdbcApiKeyRepository.deleteByApplication({}) - Done", applicationId);
+            return keyIds;
+        } catch (final Exception ex) {
+            log.error("Failed to delete api keys by application: {}", applicationId, ex);
+            throw new TechnicalException("Failed to delete api keys by application", ex);
+        }
+    }
+
+    /** {@code key_subscriptions} has no foreign key to {@code keys}: its rows have to go before the keys they link. */
+    private void deleteSubscriptionLinks(List<String> keyIds) {
+        jdbcTemplate.update(DELETE_FROM + keySubscriptions + " where key_id IN (" + getOrm().buildInClause(keyIds) + ")", keyIds.toArray());
     }
 
     private boolean addClause(boolean first, StringBuilder query) {
@@ -479,7 +515,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     private void storeSubscriptions(ApiKey key) {
         List<String> subscriptions = key.getSubscriptions();
 
-        jdbcTemplate.update("delete from " + keySubscriptions + " where key_id = ?", key.getId());
+        jdbcTemplate.update(DELETE_FROM + keySubscriptions + " where key_id = ?", key.getId());
 
         jdbcTemplate.batchUpdate(
             "insert into " + keySubscriptions + " ( key_id, subscription_id ) values ( ?, ? )",
