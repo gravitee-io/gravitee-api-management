@@ -34,6 +34,7 @@ describe('SubscriptionInfoComponent', () => {
       api?: Api;
       apiName?: string;
       documentationNavigationTarget?: ApiDocumentationNavigationTarget;
+      canClose?: boolean;
     },
   ) => {
     await TestBed.configureTestingModule({
@@ -47,6 +48,9 @@ describe('SubscriptionInfoComponent', () => {
     component.api = options?.api;
     component.apiName = options?.apiName;
     component.documentationNavigationTarget = options?.documentationNavigationTarget;
+    if (options?.canClose !== undefined) {
+      fixture.componentRef.setInput('canClose', options.canClose);
+    }
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, SubscriptionInfoHarness);
     fixture.detectChanges();
   };
@@ -61,7 +65,7 @@ describe('SubscriptionInfoComponent', () => {
 
   describe('closeSubscription', () => {
     it('should emit closeSubscription event when close button is clicked', async () => {
-      await init({ status: 'ACCEPTED' } as Subscription);
+      await init({ status: 'ACCEPTED' } as Subscription, { canClose: true });
 
       const spy = jest.spyOn(component.closeSubscription, 'emit');
       await harness.closeSubscription();
@@ -69,32 +73,50 @@ describe('SubscriptionInfoComponent', () => {
       expect(spy).toHaveBeenCalled();
     });
 
-    it('should show close button when subscription status is ACCEPTED', async () => {
-      await init({ status: 'ACCEPTED' } as Subscription);
+    it('should show close button when subscription status is ACCEPTED and the user can close it', async () => {
+      await init({ status: 'ACCEPTED' } as Subscription, { canClose: true });
 
       expect(await harness.getCloseButton()).toBeTruthy();
     });
 
-    it('should show close button when subscription status is PAUSED', async () => {
-      await init({ status: 'PAUSED' } as Subscription);
+    it('should show close button when subscription status is PAUSED and the user can close it', async () => {
+      await init({ status: 'PAUSED' } as Subscription, { canClose: true });
 
       expect(await harness.getCloseButton()).toBeTruthy();
+    });
+
+    it('should NOT show close button when subscription status is ACCEPTED but the user cannot close it', async () => {
+      await init({ status: 'ACCEPTED' } as Subscription, { canClose: false });
+
+      expect(await harness.getCloseButton()).toBeFalsy();
+    });
+
+    it('should NOT show close button when subscription status is PAUSED but the user cannot close it', async () => {
+      await init({ status: 'PAUSED' } as Subscription, { canClose: false });
+
+      expect(await harness.getCloseButton()).toBeFalsy();
+    });
+
+    it('should NOT show close button when the close permission is not provided', async () => {
+      await init({ status: 'ACCEPTED' } as Subscription);
+
+      expect(await harness.getCloseButton()).toBeFalsy();
     });
 
     it('should NOT show close button when subscription status is PENDING', async () => {
-      await init({ status: 'PENDING' } as Subscription);
+      await init({ status: 'PENDING' } as Subscription, { canClose: true });
 
       expect(await harness.getCloseButton()).toBeFalsy();
     });
 
     it('should NOT show close button when subscription status is REJECTED', async () => {
-      await init({ status: 'REJECTED' } as Subscription);
+      await init({ status: 'REJECTED' } as Subscription, { canClose: true });
 
       expect(await harness.getCloseButton()).toBeFalsy();
     });
 
     it('should NOT show close button when subscription status is CLOSED', async () => {
-      await init({ status: 'CLOSED' } as Subscription);
+      await init({ status: 'CLOSED' } as Subscription, { canClose: true });
 
       expect(await harness.getCloseButton()).toBeFalsy();
     });
