@@ -46,12 +46,23 @@ public class ApiProductRuntimeRegistry {
     private final ApiProductRuntimeFactory runtimeFactory;
     private final long drainTimeoutMs;
     private final Scheduler scheduler;
+    private final ApiProductRuntimeListener listener;
     private final AtomicReference<Snapshot> snapshot = new AtomicReference<>(Snapshot.EMPTY);
 
     public ApiProductRuntimeRegistry(ApiProductRuntimeFactory runtimeFactory, long drainTimeoutMs, Scheduler scheduler) {
+        this(runtimeFactory, drainTimeoutMs, scheduler, ApiProductRuntimeListener.NOOP);
+    }
+
+    public ApiProductRuntimeRegistry(
+        ApiProductRuntimeFactory runtimeFactory,
+        long drainTimeoutMs,
+        Scheduler scheduler,
+        ApiProductRuntimeListener listener
+    ) {
         this.runtimeFactory = runtimeFactory;
         this.drainTimeoutMs = drainTimeoutMs;
         this.scheduler = scheduler;
+        this.listener = listener;
     }
 
     /**
@@ -92,14 +103,20 @@ public class ApiProductRuntimeRegistry {
      * runtime keeps serving
      */
     public synchronized void deploy(ReactableApiProduct product) {
+        deploy(product, snapshot.get().runtimes().get(new Key(product.getId(), product.getEnvironmentId())));
+    }
+
+    private void deploy(ReactableApiProduct product, ApiProductRuntime reusableRuntime) {
         ApiProductRuntime runtime = null;
-        ApiProductRuntime publishedBefore = snapshot.get().runtimes().get(new Key(product.getId(), product.getEnvironmentId()));
         try {
-            runtime = runtimeFactory.create(product, publishedBefore);
+            listener.beforeStart(product);
+            runtime = runtimeFactory.create(product, reusableRuntime);
             runtime.start();
         } catch (Exception e) {
             if (runtime != null) {
                 stop(runtime, 0);
+            } else {
+                listener.afterStop(product);
             }
             throw new IllegalStateException(
                 "Unable to start the runtime of API Product [" + product.getId() + "] in environment [" + product.getEnvironmentId() + "]",
@@ -113,6 +130,19 @@ public class ApiProductRuntimeRegistry {
         snapshot.set(Snapshot.of(next));
         if (previous != null) {
             retire(previous);
+        }
+    }
+
+    /**
+     * Rebuilds the runtime of the published version of a product, so its policies and resources read their
+     * configuration again: nothing of the published runtime is reused, as its resources would keep the old values.
+     *
+     * @throws IllegalStateException when it cannot be built or started: the published runtime keeps serving
+     */
+    public synchronized void redeploy(String apiProductId, String environmentId) {
+        ApiProductRuntime published = snapshot.get().runtimes().get(new Key(apiProductId, environmentId));
+        if (published != null) {
+            deploy(published.product(), null);
         }
     }
 
@@ -165,6 +195,8 @@ public class ApiProductRuntimeRegistry {
             runtime.stop();
         } catch (Exception e) {
             log.error("Unable to stop a runtime of API Product [{}]", apiProductId, e);
+        } finally {
+            listener.afterStop(runtime.product());
         }
     }
 

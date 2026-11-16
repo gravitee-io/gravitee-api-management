@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -62,6 +64,7 @@ class ApiProductRuntimeRegistryTest {
     private final List<RecordingComponent> built = new ArrayList<>();
     private final MemoryAppender memoryAppender = new MemoryAppender();
     private RuntimeException failNextBuild;
+    private final List<String> lifecycle = new ArrayList<>();
     private final ApiProductRuntimeFactory runtimeFactory = mock(ApiProductRuntimeFactory.class);
     private ApiProductRuntimeRegistry cut;
 
@@ -74,6 +77,7 @@ class ApiProductRuntimeRegistryTest {
                 throw failure;
             }
             ReactableApiProduct product = invocation.getArgument(0);
+            lifecycle.add("build:" + product.getVersion());
             RecordingComponent component = new RecordingComponent();
             built.add(component);
             return new ApiProductRuntime(
@@ -411,6 +415,149 @@ class ApiProductRuntimeRegistryTest {
         void should_ignore_an_unknown_product() {
             cut.remove(PRODUCT_ID, ENV_ID);
 
+            assertThat(cut.acquire(PRODUCT_ID, ENV_ID)).isNull();
+        }
+    }
+
+    @Nested
+    class RuntimeListener {
+
+        private final List<ReactableApiProduct> boundVersions = new ArrayList<>();
+
+        @BeforeEach
+        void listenToRuntimes() {
+            cut = new ApiProductRuntimeRegistry(
+                runtimeFactory,
+                DRAIN_TIMEOUT_MS,
+                scheduler,
+                new ApiProductRuntimeListener() {
+                    @Override
+                    public void beforeStart(ReactableApiProduct product) {
+                        lifecycle.add("bind:" + product.getVersion());
+                        boundVersions.add(product);
+                    }
+
+                    @Override
+                    public void afterStop(ReactableApiProduct product) {
+                        lifecycle.add("release:" + product.getVersion());
+                    }
+                }
+            );
+        }
+
+        @Test
+        void should_bind_a_version_before_its_runtime_is_built() {
+            cut.deploy(product("v1"));
+
+            assertThat(lifecycle).containsExactly("bind:v1", "build:v1");
+        }
+
+        @Test
+        void should_release_a_replaced_version_only_once_its_runtime_has_stopped() {
+            cut.deploy(product("v1"));
+            ApiProductRuntime pinned = cut.acquire(PRODUCT_ID, ENV_ID);
+
+            cut.deploy(product("v2"));
+            scheduler.advanceTimeBy(500, TimeUnit.MILLISECONDS);
+            assertThat(lifecycle).doesNotContain("release:v1");
+
+            pinned.release();
+            scheduler.advanceTimeBy(100, TimeUnit.MILLISECONDS);
+            assertThat(lifecycle).containsExactly("bind:v1", "build:v1", "bind:v2", "build:v2", "release:v1");
+        }
+
+        @Test
+        void should_refuse_a_version_whose_secrets_cannot_be_discovered_and_keep_the_published_runtime() {
+            cut = new ApiProductRuntimeRegistry(
+                runtimeFactory,
+                DRAIN_TIMEOUT_MS,
+                scheduler,
+                new ApiProductRuntimeListener() {
+                    @Override
+                    public void beforeStart(ReactableApiProduct product) {
+                        if ("v2".equals(product.getVersion())) {
+                            throw new IllegalArgumentException("malformed secret reference");
+                        }
+                    }
+
+                    @Override
+                    public void afterStop(ReactableApiProduct product) {}
+                }
+            );
+            cut.deploy(product("v1"));
+            lifecycle.clear();
+
+            assertThatThrownBy(() -> cut.deploy(product("v2")))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining(PRODUCT_ID)
+                .hasRootCauseMessage("malformed secret reference");
+
+            assertThat(lifecycle).isEmpty();
+            ApiProductRuntime serving = cut.acquire(PRODUCT_ID, ENV_ID);
+            assertThat(serving.product().getVersion()).isEqualTo("v1");
+            serving.release();
+        }
+
+        @Test
+        void should_release_a_version_whose_runtime_cannot_be_built() {
+            failNextBuild = new IllegalStateException("security plugin missing");
+
+            assertThatThrownBy(() -> cut.deploy(product("v1"))).isInstanceOf(IllegalStateException.class);
+
+            assertThat(lifecycle).containsExactly("bind:v1", "release:v1");
+        }
+
+        @Test
+        void should_release_a_version_whose_runtime_cannot_start() {
+            doAnswer(invocation ->
+                new ApiProductRuntime(invocation.getArgument(0), null, null, null, List.of(new FailingComponent()), null, List::of)
+            )
+                .when(runtimeFactory)
+                .create(any(), any());
+
+            assertThatThrownBy(() -> cut.deploy(product("v1"))).isInstanceOf(IllegalStateException.class);
+
+            assertThat(lifecycle).containsExactly("bind:v1", "release:v1");
+        }
+
+        @Test
+        void should_release_a_removed_version_once_its_runtime_has_stopped() {
+            cut.deploy(product("v1"));
+
+            cut.remove(PRODUCT_ID, ENV_ID);
+            scheduler.advanceTimeBy(100, TimeUnit.MILLISECONDS);
+
+            assertThat(lifecycle).containsExactly("bind:v1", "build:v1", "release:v1");
+        }
+
+        @Test
+        void should_rebuild_the_published_version_on_redeploy() {
+            cut.deploy(product("v1"));
+
+            cut.redeploy(PRODUCT_ID, ENV_ID);
+            scheduler.advanceTimeBy(100, TimeUnit.MILLISECONDS);
+
+            assertThat(lifecycle).containsExactly("bind:v1", "build:v1", "bind:v1", "build:v1", "release:v1");
+            assertThat(boundVersions.get(1)).isSameAs(boundVersions.get(0));
+            assertThat(built.get(0).lifecycleState()).isEqualTo(Lifecycle.State.STOPPED);
+            assertThat(built.get(1).lifecycleState()).isEqualTo(Lifecycle.State.STARTED);
+        }
+
+        @Test
+        void should_rebuild_without_reusing_the_components_of_the_published_runtime_on_redeploy() {
+            cut.deploy(product("v1"));
+            clearInvocations(runtimeFactory);
+
+            cut.redeploy(PRODUCT_ID, ENV_ID);
+
+            verify(runtimeFactory).create(any(), isNull());
+        }
+
+        @Test
+        void should_do_nothing_on_redeploy_of_an_unknown_product() {
+            cut.redeploy(PRODUCT_ID, ENV_ID);
+
+            assertThat(lifecycle).isEmpty();
             assertThat(cut.acquire(PRODUCT_ID, ENV_ID)).isNull();
         }
     }
