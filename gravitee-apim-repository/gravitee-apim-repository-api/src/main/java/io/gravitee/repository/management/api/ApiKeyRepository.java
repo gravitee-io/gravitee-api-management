@@ -183,6 +183,15 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
     List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
 
     /**
+     * Delete the API Keys of an application, with their links to subscriptions, so that their values can be used again.
+     *
+     * @param applicationId The application ID
+     * @return List of deleted IDs for api key
+     * @throws TechnicalException
+     */
+    List<String> deleteByApplication(String applicationId) throws TechnicalException;
+
+    /**
      * Find an API Key by key, reference id, and reference type (API or API_PRODUCT).
      *
      * @param key API Key

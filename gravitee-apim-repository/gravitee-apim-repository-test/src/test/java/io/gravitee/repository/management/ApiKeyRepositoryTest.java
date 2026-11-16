@@ -1016,6 +1016,23 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(0, nbAfterDeletion);
     }
 
+    @Test
+    public void should_delete_by_application_and_keep_the_keys_of_other_applications() throws TechnicalException {
+        final var allBefore = apiKeyRepository.findAll().size();
+
+        var deleted = apiKeyRepository.deleteByApplication("app1");
+
+        assertEquals(Set.of("id-of-apikey-4", "id-of-apikey-5"), Set.copyOf(deleted));
+        assertTrue(apiKeyRepository.findByApplication("app1").isEmpty());
+        assertTrue(
+            apiKeyRepository
+                .findBySubscription("sub3")
+                .stream()
+                .noneMatch(key -> deleted.contains(key.getId()))
+        );
+        assertEquals(allBefore - deleted.size(), apiKeyRepository.findAll().size());
+    }
+
     private ApiKey givenSharedKey(String id, String... subscriptions) throws TechnicalException {
         return apiKeyRepository.create(
             ApiKey.builder()
