@@ -1595,8 +1595,9 @@ paths:
                 alike; a facet of no known namespace goes with every one of them. The analytics endpoints
                 accept them in `by` at any level.
 
-                Names and labels of the built-ins are those of the analytics engine catalog, the one
-                the analytics endpoints validate metrics, measures and facets against. A metric's
+                Names of the built-ins are those of the analytics engine catalog, the one the analytics
+                endpoints validate metrics, measures and facets against, and so are the labels but a
+                dimension's, which is the label of the filter of the same name when there is one. A metric's
                 `filters` are the catalog's narrowed to the filters the analytics endpoints accept,
                 those of `GET /filters/definition?signal=ANALYTICS`: every name read here is accepted
                 by them.
@@ -4223,6 +4224,9 @@ components:
                     example: "HTTP_STATUS"
                 label:
                     type: string
+                    description: |
+                        On a built-in, the label `GET /filters/definition` serves for the filter of the same name
+                        when there is one (`AUTHZ_SUBJECT_ID` → `Subject`), else the engine catalog's.
                     example: "Status Code"
                 description:
                     type: string
@@ -4551,7 +4555,11 @@ components:
                     description: |
                         The record's unit: a named unit (`PERCENT`, `MILLISECONDS`, `SECONDS`, `BYTES`, `KILOBYTES`,
                         `MEGABYTES`, `GIGABYTES`, `COUNT`, `COUNT_PER_SECOND`, `TOKENS`, `CURRENCY`) or a free suffix of at most 16 printable characters, shown as written.
-                        Absent when none is set.
+                        On a `BUILT_IN` entry of a numeric key, the unit `GET /analytics/definition` serves for the
+                        built-in metric reading the key (`long_llm-proxy_tokens-sent` → `TOKENS`); absent on a
+                        keyword key and when only a facet or a filter reads the key. Absent when none is set.
+                        It is the field's unit: it applies to the measures other than `COUNT`, which is a number
+                        of requests (messages on a message metric).
                     example: "€"
                 type:
                     type: string

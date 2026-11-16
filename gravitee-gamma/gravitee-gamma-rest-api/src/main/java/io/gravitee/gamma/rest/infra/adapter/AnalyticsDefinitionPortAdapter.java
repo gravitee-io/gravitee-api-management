@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 
@@ -48,7 +49,8 @@ import lombok.AllArgsConstructor;
  * <p>Filters are the exception: Gamma checks a query's conditions against its own filter registry on the
  * {@code ANALYTICS} signal, not against the catalog, so a catalog filter the registry does not serve there is
  * left out rather than offered and then refused. A facet is offered for the kinds of every catalog metric grouped by
- * it, whichever kinds a request asks ({@link DimensionDefinition#builtIn}).
+ * it, whichever kinds a request asks ({@link DimensionDefinition#builtIn}), under the label of the Gamma filter of its
+ * name when there is one, so the field reads the same in the filter bar and in the dimension picker.
  *
  * <p>An additional metric field is in no catalog declaration: the engine measures it with
  * {@link AdditionalMetricName#MEASURES} in the request documents, where it is grouped and filtered like the built-in
@@ -69,10 +71,10 @@ public class AnalyticsDefinitionPortAdapter implements AnalyticsDefinitionPort {
     @Override
     public List<MetricDefinition> metricsOf(ApiType apiKind) {
         var analyticsFilters = analyticsFilters();
-        var kindsListing = kindsListingEachFacet();
+        var dimensions = builtInDimensions();
         return metricSpecsOf(apiKind.name())
             .stream()
-            .map(spec -> toCoreModel(spec, analyticsFilters, kindsListing))
+            .map(spec -> toCoreModel(spec, analyticsFilters, dimensions))
             .toList();
     }
 
@@ -97,7 +99,7 @@ public class AnalyticsDefinitionPortAdapter implements AnalyticsDefinitionPort {
         return new AdditionalMetricSupport(
             apiTypes,
             AdditionalMetricName.MEASURES.stream().map(Enum::name).toList(),
-            facetsOf(dimensionsOf.name(), kindsListingEachFacet()),
+            facetsOf(dimensionsOf.name(), builtInDimensions()),
             filtersOf(dimensionsOf.name(), analyticsFilters),
             dimensionsOf.name().name()
         );
@@ -118,27 +120,40 @@ public class AnalyticsDefinitionPortAdapter implements AnalyticsDefinitionPort {
         return filterRegistry.getFilters(Set.of(Signal.ANALYTICS), Set.of()).stream().map(FilterSpec::name).collect(Collectors.toSet());
     }
 
-    /** The kinds of the catalog metrics grouped by each facet, every kind of the catalog read. */
-    private Map<String, Set<ApiType>> kindsListingEachFacet() {
+    /** Every facet of the catalog by name, offered for the kinds of the catalog metrics grouped by it, every kind read. */
+    private Map<String, DimensionDefinition> builtInDimensions() {
+        Map<String, String> filterLabels = filterRegistry
+            .getFilters(Set.of(), Set.of())
+            .stream()
+            .collect(Collectors.toMap(FilterSpec::name, FilterSpec::label, (first, next) -> first));
         Map<String, Set<ApiType>> kinds = new HashMap<>();
+        Map<String, String> catalogLabels = new HashMap<>();
         for (var kind : ApiSpec.Name.values()) {
             for (var spec : metricSpecsOf(kind.name())) {
                 for (var facet : facetSpecsOf(spec.name())) {
                     kinds.computeIfAbsent(facet.name().name(), name -> EnumSet.noneOf(ApiType.class)).addAll(apiTypesOf(spec));
+                    catalogLabels.putIfAbsent(facet.name().name(), facet.label());
                 }
             }
         }
-        return kinds;
+        return kinds
+            .keySet()
+            .stream()
+            .collect(
+                Collectors.toMap(Function.identity(), name ->
+                    DimensionDefinition.builtIn(name, filterLabels.getOrDefault(name, catalogLabels.get(name)), kinds.get(name))
+                )
+            );
     }
 
-    private MetricDefinition toCoreModel(MetricSpec spec, Set<String> analyticsFilters, Map<String, Set<ApiType>> kindsListing) {
+    private MetricDefinition toCoreModel(MetricSpec spec, Set<String> analyticsFilters, Map<String, DimensionDefinition> dimensions) {
         return new MetricDefinition(
             spec.name().name(),
             spec.label(),
             spec.unit() == null ? null : ServedMetricUnit.of(spec.unit()),
             apiTypesOf(spec),
             spec.measures().stream().map(Enum::name).toList(),
-            facetsOf(spec.name(), kindsListing),
+            facetsOf(spec.name(), dimensions),
             filtersOf(spec.name(), analyticsFilters),
             CatalogOrigin.BUILT_IN,
             spec.unit() == null ? null : ServedMetricUnit.currencyOf(spec.unit()).orElse(null)
@@ -153,10 +168,10 @@ public class AnalyticsDefinitionPortAdapter implements AnalyticsDefinitionPort {
             .toList();
     }
 
-    private List<DimensionDefinition> facetsOf(MetricSpec.Name metric, Map<String, Set<ApiType>> kindsListing) {
+    private List<DimensionDefinition> facetsOf(MetricSpec.Name metric, Map<String, DimensionDefinition> dimensions) {
         return facetSpecsOf(metric)
             .stream()
-            .map(facet -> DimensionDefinition.builtIn(facet.name().name(), facet.label(), kindsListing.get(facet.name().name())))
+            .map(facet -> dimensions.get(facet.name().name()))
             .toList();
     }
 

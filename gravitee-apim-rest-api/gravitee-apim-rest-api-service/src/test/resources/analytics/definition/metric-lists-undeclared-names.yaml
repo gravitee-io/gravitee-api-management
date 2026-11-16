@@ -1,0 +1,30 @@
+spec:
+    apis:
+        - name: HTTP_PROXY
+          label: HTTP Proxy
+
+    metrics:
+        - name: HTTP_REQUESTS
+          label: HTTP Requests
+          apis:
+              - HTTP_PROXY
+          unit: NUMBER
+          measures:
+              - COUNT
+          facets:
+              - API
+              - HOST
+          filters:
+              - API
+
+    filters:
+        - name: API
+          label: API
+          type: KEYWORD
+          operators:
+              - EQ
+
+    facets:
+        - name: API
+          label: API
+          type: KEYWORD

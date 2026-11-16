@@ -25,12 +25,14 @@ import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQ
 import io.gravitee.apim.core.observability.model.Signal;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.infra.domain_service.observability.YAMLDefinitionLoader;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -44,7 +46,12 @@ public class AnalyticsDefinitionYAMLQueryService implements AnalyticsDefinitionQ
     private final Map<FilterSpec.Name, FilterSpec> filtersByName;
 
     public AnalyticsDefinitionYAMLQueryService() {
-        var rawSpec = YAMLDefinitionLoader.load(ANALYTICS_DEFINITION_FILE, AnalyticsDefinition.class).spec();
+        this(ANALYTICS_DEFINITION_FILE);
+    }
+
+    AnalyticsDefinitionYAMLQueryService(String definitionFile) {
+        var rawSpec = YAMLDefinitionLoader.load(definitionFile, AnalyticsDefinition.class).spec();
+        requireListedNamesDeclared(rawSpec);
         spec = enrichFiltersWithApiTypes(rawSpec);
         filtersByName = indexByName(spec.filters());
     }
@@ -67,6 +74,31 @@ public class AnalyticsDefinitionYAMLQueryService implements AnalyticsDefinitionQ
             }
         }
         return byName;
+    }
+
+    /**
+     * A facet or filter a metric lists that the file does not declare fails startup: {@code getFacets} and
+     * {@code getFilters} would drop it without a word, so no catalog would offer a dimension the engine answers.
+     */
+    static void requireListedNamesDeclared(AnalyticsDefinitionSpec spec) {
+        Set<FacetSpec.Name> facets = spec.facets().stream().map(FacetSpec::name).collect(Collectors.toSet());
+        Set<FilterSpec.Name> filters = spec.filters().stream().map(FilterSpec::name).collect(Collectors.toSet());
+        List<String> undeclared = new ArrayList<>();
+        for (var metric : spec.metrics()) {
+            metric
+                .facets()
+                .stream()
+                .filter(name -> !facets.contains(name))
+                .forEach(name -> undeclared.add(metric.name() + " -> facet " + name));
+            metric
+                .filters()
+                .stream()
+                .filter(name -> !filters.contains(name))
+                .forEach(name -> undeclared.add(metric.name() + " -> filter " + name));
+        }
+        if (!undeclared.isEmpty()) {
+            throw new IllegalStateException("Metrics list names the analytics definition does not declare: " + undeclared);
+        }
     }
 
     private static AnalyticsDefinitionSpec enrichFiltersWithApiTypes(AnalyticsDefinitionSpec rawSpec) {

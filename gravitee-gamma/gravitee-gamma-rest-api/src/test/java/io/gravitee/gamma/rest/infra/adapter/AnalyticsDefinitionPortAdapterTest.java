@@ -181,7 +181,10 @@ class AnalyticsDefinitionPortAdapterTest extends AnalyticsDefinitionPortContract
         assertThat(definition.dimensions()).extracting(DimensionDefinition::name).contains("NATIVE_TOPIC", "NATIVE_CLIENT_ID");
     }
 
-    /** No re-labelling and no re-listing: every field is the catalog's own, filters narrowed to the analytics ones. */
+    /**
+     * No re-listing: every field is the catalog's own, filters narrowed to the analytics ones, a facet labelled as the
+     * Gamma filter of its name when there is one.
+     */
     @ParameterizedTest
     @EnumSource(value = ApiSpec.Name.class)
     void should_map_each_metric_from_the_catalog_as_is(ApiSpec.Name kind) {
@@ -217,7 +220,7 @@ class AnalyticsDefinitionPortAdapterTest extends AnalyticsDefinitionPortContract
                     .map(f ->
                         new DimensionDefinition(
                             f.name().name(),
-                            f.label(),
+                            filterLabels().getOrDefault(f.name().name(), f.label()),
                             null,
                             null,
                             expectedKinds(f.name().name()),
@@ -499,6 +502,11 @@ class AnalyticsDefinitionPortAdapterTest extends AnalyticsDefinitionPortContract
             }
         }
         return kinds;
+    }
+
+    /** The labels of the Gamma filters, which a dimension of the same name takes. */
+    private Map<String, String> filterLabels() {
+        return filterRegistry.getFilters(Set.of(), Set.of()).stream().collect(Collectors.toMap(FilterSpec::name, FilterSpec::label));
     }
 
     private Set<ApiType> expectedKinds(String facet) {

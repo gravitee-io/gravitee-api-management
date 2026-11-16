@@ -1958,6 +1958,13 @@ spec:
               - EQ
               - IN
 
+        - name: MESSAGE_CONNECTOR_ID
+          label: Connector ID
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
         - name: MESSAGE_OPERATION_TYPE
           label: Operation
           type: ENUM
@@ -2126,6 +2133,27 @@ spec:
 
         - name: EDGE_CLIENT
           label: Edge Client
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
+        - name: EDGE_MODEL
+          label: Edge Model
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
+        - name: EDGE_TOOL
+          label: Edge Tool
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
+        - name: EDGE_VERSION
+          label: Edge Version
           type: KEYWORD
           operators:
               - EQ
@@ -2485,6 +2513,18 @@ spec:
 
         - name: EDGE_CLIENT
           label: Edge Client
+          type: KEYWORD
+
+        - name: EDGE_MODEL
+          label: Edge Model
+          type: KEYWORD
+
+        - name: EDGE_TOOL
+          label: Edge Tool
+          type: KEYWORD
+
+        - name: EDGE_VERSION
+          label: Edge Version
           type: KEYWORD
 
         - name: API_PRODUCT
