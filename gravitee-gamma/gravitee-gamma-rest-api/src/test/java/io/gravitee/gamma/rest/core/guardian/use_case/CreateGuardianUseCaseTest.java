@@ -34,6 +34,7 @@ import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
+import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.CreateGuardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
@@ -75,6 +76,23 @@ class CreateGuardianUseCaseTest {
         assertThat(output.guardian())
             .extracting(g -> g.getEnvironmentId(), g -> g.getLifecycleState(), g -> g.getDeployedAt())
             .containsExactly(ENVIRONMENT_ID, GuardianLifecycleState.UNDEPLOYED, null);
+    }
+
+    @Test
+    void should_store_the_name_without_the_whitespace_around_it() {
+        var output = create(aCreateGuardian().name("  Credential leakage  ").build());
+
+        assertThat(output.guardian().getName()).isEqualTo("Credential leakage");
+    }
+
+    /** Padding is not a different name, so the one already taken is still taken. */
+    @Test
+    void should_refuse_a_name_a_padded_variant_of_which_is_taken() {
+        create(aCreateGuardian().name("Credential leakage").build());
+
+        assertThatThrownBy(() -> create(aCreateGuardian().id(null).name(" Credential leakage ").build())).isInstanceOf(
+            GuardianNameAlreadyExistsException.class
+        );
     }
 
     @Test

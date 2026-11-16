@@ -24,6 +24,7 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianVal
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.anUpdateGuardianCommand;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -37,6 +38,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDraftDomainService;
+import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
@@ -86,6 +88,26 @@ class UpdateGuardianUseCaseTest {
                 .guardianToUpdate(command)
                 .build()
         );
+    }
+
+    @Test
+    void should_store_the_name_without_the_whitespace_around_it() {
+        var output = update(
+            ENVIRONMENT_ID,
+            anUpdateGuardianCommand().definition(aDefinitionToSubmit().name("  Renamed  ").build()).build()
+        );
+
+        assertThat(output.guardian().getName()).isEqualTo("Renamed");
+    }
+
+    /** Padding is not a different name, so a name another Guardian of the environment holds is still refused. */
+    @Test
+    void should_refuse_a_rename_onto_a_padded_variant_of_a_taken_name() {
+        guardianRepository.givenGuardian(aGuardian(definition -> definition.id("other-id").name("Taken")).build());
+
+        assertThatThrownBy(() ->
+            update(ENVIRONMENT_ID, anUpdateGuardianCommand().definition(aDefinitionToSubmit().name(" Taken ").build()).build())
+        ).isInstanceOf(GuardianNameAlreadyExistsException.class);
     }
 
     @Test
