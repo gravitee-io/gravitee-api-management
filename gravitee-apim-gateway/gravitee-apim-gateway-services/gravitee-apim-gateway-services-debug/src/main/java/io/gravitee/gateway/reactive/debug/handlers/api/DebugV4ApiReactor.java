@@ -29,10 +29,13 @@ import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.debug.invoker.DebugInvokerHook;
 import io.gravitee.gateway.reactive.debug.policy.DebugPolicyHook;
+import io.gravitee.gateway.reactive.debug.policy.DebugV4PolicyChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
+import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductFlowChains;
+import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntime;
 import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeRegistry;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactor.handler.Acceptor;
@@ -48,9 +51,14 @@ import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class DebugV4ApiReactor extends DefaultApiReactor {
+
+    private final ApiProductRuntimeRegistry apiProductRuntimeRegistry;
+    private final Map<ApiProductRuntime, ApiProductFlowChains> debugApiProductFlowChains = new ConcurrentHashMap<>();
 
     public DebugV4ApiReactor(
         Api api,
@@ -101,6 +109,7 @@ public class DebugV4ApiReactor extends DefaultApiReactor {
             apiProductRuntimeRegistry
         );
         invokerHooks.add(new DebugInvokerHook());
+        this.apiProductRuntimeRegistry = apiProductRuntimeRegistry;
     }
 
     @Override
@@ -114,6 +123,17 @@ public class DebugV4ApiReactor extends DefaultApiReactor {
         ctx.request().debugContextPath(cleanContextPath);
 
         return super.handle(ctx);
+    }
+
+    /**
+     * Runs a copy of the product chains built with the debug policy chain factory: the runtime's own chains are shared
+     * by every member API, so no debug hook can be added to them. The copy is kept for the response phase.
+     */
+    @Override
+    protected ApiProductFlowChains apiProductFlowChains(final ApiProductRuntime runtime) {
+        return debugApiProductFlowChains.computeIfAbsent(runtime, pinned ->
+            apiProductRuntimeRegistry.copyFlowChains(pinned, DebugV4PolicyChainFactory::new)
+        );
     }
 
     @Override

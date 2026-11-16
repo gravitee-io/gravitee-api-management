@@ -55,13 +55,20 @@ import org.springframework.core.ResolvableType;
 
 /**
  * Builds the runtime of one deployed version of an API Product. A product with no saved flow mode runs its plan flows
- * in {@code DEFAULT} mode, whatever the mode of its member APIs. A runtime whose security plans cannot all be built
- * fails to start.
+ * and its flows in {@code DEFAULT} mode, whatever the mode of its member APIs. A runtime whose security plans cannot
+ * all be built fails to start.
  */
 @RequiredArgsConstructor
 public class ApiProductRuntimeFactory {
 
+    /** Creates the policy chain factory of one chain, as {@link HttpPolicyChainFactory}'s constructor does. */
+    @FunctionalInterface
+    public interface PolicyChainFactoryCreator {
+        HttpPolicyChainFactory create(String id, PolicyManager policyManager, boolean tracing);
+    }
+
     private static final String PRODUCT_PLAN_FLOW_CHAIN_ID = "product-plan";
+    private static final String PRODUCT_FLOW_CHAIN_ID = "product";
 
     private final DefaultClassLoader classLoader;
     private final PolicyFactoryManager policyFactoryManager;
@@ -98,11 +105,9 @@ public class ApiProductRuntimeFactory {
             policyPluginManager,
             policyClassLoaderFactory,
             componentProvider,
-            plans
+            plans,
+            product.getFlows()
         );
-        Map<String, List<Flow>> flowsByPlanId = flowsByPlanId(plans);
-        FlowExecution flowExecution = product.getFlowExecution();
-        String chainFactoryId = "api-product-" + product.getId();
 
         List<LifecycleComponent<?>> components = new ArrayList<>();
         ResourceLifecycleManager resourceManager = EmptyProductResourceLifecycleManager.INSTANCE;
@@ -115,13 +120,22 @@ public class ApiProductRuntimeFactory {
 
         return new ApiProductRuntime(
             product,
-            productPlanFlowChain(flowExecution, flowsByPlanId, new HttpPolicyChainFactory(chainFactoryId, policyManager, false), false),
-            productPlanFlowChain(flowExecution, flowsByPlanId, new HttpPolicyChainFactory(chainFactoryId, policyManager, true), true),
-            pathParametersExtractor(plans),
+            flowChains(product, plans, policyManager, HttpPolicyChainFactory::new, false),
+            flowChains(product, plans, policyManager, HttpPolicyChainFactory::new, true),
+            pathParametersExtractor(plans, product.getFlows()),
             List.copyOf(components),
             resourceManager,
             () -> securityPlans(product, plans, policyManager)
         );
+    }
+
+    /**
+     * Builds a private copy of the chains of a runtime, over the runtime's policies but with its own policy chain
+     * factories, so that hooks can be added to them without touching the chains every member API shares.
+     */
+    public ApiProductFlowChains copyFlowChains(ApiProductRuntime runtime, PolicyChainFactoryCreator policyChainFactoryCreator) {
+        ReactableApiProduct product = runtime.product();
+        return flowChains(product, plansServedHere(product), runtime.policyManager(), policyChainFactoryCreator, false);
     }
 
     private ProductResourcesComponent resourcesComponent(ReactableApiProduct product, ApiProductRuntime previousRuntime) {
@@ -160,24 +174,41 @@ public class ApiProductRuntimeFactory {
         return new HttpSecurityPlan(SecurityPlanContext.builder().fromV4(plan).apiProductId(product.getId()).build(), policy);
     }
 
-    private FlowChain productPlanFlowChain(
-        FlowExecution flowExecution,
-        Map<String, List<Flow>> flowsByPlanId,
-        HttpPolicyChainFactory policyChainFactory,
+    /**
+     * Each chain gets its own policy chain factory, so the product flows do not evict the cached plan flow chains. Both
+     * report a matched flow to the member API's chains; the product chain interrupts with a 404 when the product
+     * requires a match and neither chain matched.
+     */
+    private ApiProductFlowChains flowChains(
+        ReactableApiProduct product,
+        List<Plan> plans,
+        PolicyManager policyManager,
+        PolicyChainFactoryCreator policyChainFactoryCreator,
         boolean tracing
     ) {
-        FlowChain chain = new FlowChain(
+        FlowExecution flowExecution = product.getFlowExecution();
+        boolean matchRequired = flowExecution != null && flowExecution.isMatchRequired();
+        FlowChain productPlanFlowChain = new FlowChain(
             PRODUCT_PLAN_FLOW_CHAIN_ID,
-            flowResolverFactory.forApiProductPlan(flowExecution, flowsByPlanId),
-            policyChainFactory,
+            flowResolverFactory.forApiProductPlan(flowExecution, flowsByPlanId(plans)),
+            policyChainFactoryCreator.create("api-product-" + product.getId(), policyManager, tracing),
             flowResolverFactory.deferredConditionFilter(flowExecution),
             true,
             false
         );
+        FlowChain productFlowChain = new FlowChain(
+            PRODUCT_FLOW_CHAIN_ID,
+            flowResolverFactory.forApiProduct(flowExecution, product.getFlows()),
+            policyChainFactoryCreator.create("api-product-flows-" + product.getId(), policyManager, tracing),
+            flowResolverFactory.deferredConditionFilter(flowExecution),
+            true,
+            matchRequired
+        );
         if (tracing) {
-            chain.addHooks(List.of(new TracingHook("flow")));
+            productPlanFlowChain.addHooks(List.of(new TracingHook("flow")));
+            productFlowChain.addHooks(List.of(new TracingHook("flow")));
         }
-        return chain;
+        return new ApiProductFlowChains(productPlanFlowChain, productFlowChain);
     }
 
     /**
@@ -204,10 +235,11 @@ public class ApiProductRuntimeFactory {
         return Map.copyOf(flowsByPlanId);
     }
 
-    private static PathParametersExtractor pathParametersExtractor(List<Plan> plans) {
-        Api plansOnly = new Api();
-        plansOnly.setPlans(plans);
-        PathParametersExtractor extractor = new PathParametersExtractor(plansOnly);
+    private static PathParametersExtractor pathParametersExtractor(List<Plan> plans, List<Flow> productFlows) {
+        Api flowsOnly = new Api();
+        flowsOnly.setPlans(plans);
+        flowsOnly.setFlows(productFlows);
+        PathParametersExtractor extractor = new PathParametersExtractor(flowsOnly);
         return extractor.canExtractPathParams() ? extractor : null;
     }
 }

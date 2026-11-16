@@ -75,6 +75,7 @@ import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LoggingHoo
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChain;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
+import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductFlowChains;
 import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntime;
 import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeRegistry;
 import io.gravitee.gateway.reactive.handlers.api.v4.security.HttpSecurityChain;
@@ -440,8 +441,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
             .chainWith(handleEntrypointRequest(ctx))
             // Execute the internal flow before the publisher's flows, so they see what it did to the request.
             .chainWith(internalFlowChain.execute(ctx, REQUEST))
-            // Execute all flows for request phases (product plan flows first, then API plan and API flows).
-            .chainWith(executeProductPlanFlowChain(ctx, REQUEST))
+            // Execute all flows for request phases (product plan and product flows first, then API plan and API flows).
+            .chainWith(executeProductFlowChains(ctx, REQUEST))
             .chainWith(apiPlanFlowChain.execute(ctx, REQUEST))
             .chainWith(apiFlowChain.execute(ctx, REQUEST))
             // Run the actions policies registered to be executed right before the endpoint is invoked.
@@ -451,8 +452,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
             .chainWith(invokeBackend(ctx))
             // Start RESPONSE traces
             .chainWith(startPhaseTracing(ctx, RESPONSE))
-            // Execute all flows for response phases (product plan flows first, then API plan and API flows).
-            .chainWith(executeProductPlanFlowChain(ctx, RESPONSE))
+            // Execute all flows for response phases (product plan and product flows first, then API plan and API flows).
+            .chainWith(executeProductFlowChains(ctx, RESPONSE))
             .chainWith(apiPlanFlowChain.execute(ctx, RESPONSE))
             .chainWith(apiFlowChain.execute(ctx, RESPONSE))
             // Execute the internal flow after the publisher's flows, so it sees the response they produced.
@@ -858,7 +859,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
         }
     }
 
-    private Completable executeProductPlanFlowChain(final MutableExecutionContext ctx, final ExecutionPhase phase) {
+    private Completable executeProductFlowChains(final MutableExecutionContext ctx, final ExecutionPhase phase) {
         if (apiProductRuntimeRegistry == null) {
             return Completable.complete();
         }
@@ -876,11 +877,16 @@ public class DefaultApiReactor extends AbstractApiReactor {
                         )
                 );
             }
-            final var chain = runtime.productPlanFlowChain(tracingContext.isEnabled());
+            final var chains = apiProductFlowChains(runtime);
             return ApiProductPlanResourceScope.withProductResourceManager(ctx, componentProvider, runtime.resourceManager(), scopedCtx ->
-                chain.execute(scopedCtx, phase)
+                chains.execute(scopedCtx, phase)
             );
         });
+    }
+
+    /** The chains this reactor runs for a request pinned to the given product runtime. */
+    protected ApiProductFlowChains apiProductFlowChains(final ApiProductRuntime runtime) {
+        return runtime.flowChains(tracingContext.isEnabled());
     }
 
     protected void addInvokerHooks(List<InvokerHook> invokerHooks) {}

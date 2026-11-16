@@ -59,6 +59,7 @@ import io.gravitee.gateway.reactive.handlers.api.processor.subscription.Subscrip
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChain;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
+import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductFlowChains;
 import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntime;
 import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeRegistry;
 import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeTestFixtures;
@@ -125,6 +126,9 @@ class DefaultApiReactorProductResourceScopeTest {
 
     @Mock
     private FlowChain apiProductPlanFlowChain;
+
+    @Mock
+    private FlowChain apiProductFlowChain;
 
     @Mock
     private FlowChain apiPlanFlowChain;
@@ -325,7 +329,7 @@ class DefaultApiReactorProductResourceScopeTest {
         AtomicReference<ResourceManager> managerDuringProductFlow = new AtomicReference<>();
         AtomicReference<Object> resourceDuringProductFlow = new AtomicReference<>();
         when(apiProductPlanFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenAnswer(
-            onProductPlanFlow(flowCtx -> {
+            whenProductChainRuns(flowCtx -> {
                 managerDuringProductFlow.set(flowCtx.getComponent(ResourceManager.class));
                 resourceDuringProductFlow.set(flowCtx.getComponent(ResourceManager.class).getResource(RESOURCE_NAME));
             })
@@ -338,10 +342,37 @@ class DefaultApiReactorProductResourceScopeTest {
     }
 
     @Test
+    void product_flow_sees_the_products_manager() {
+        AtomicReference<Object> resourceDuringProductFlow = new AtomicReference<>();
+        when(apiProductFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenAnswer(
+            whenProductChainRuns(flowCtx ->
+                resourceDuringProductFlow.set(flowCtx.getComponent(ResourceManager.class).getResource(RESOURCE_NAME))
+            )
+        );
+
+        cut.handle(ctx).test().assertComplete();
+
+        assertThat(resourceDuringProductFlow.get()).isSameAs(productResource);
+    }
+
+    @Test
+    void response_phase_product_flow_sees_the_products_manager() {
+        AtomicReference<ResourceManager> managerDuringProductFlow = new AtomicReference<>();
+        when(apiProductFlowChain.execute(any(), eq(ExecutionPhase.RESPONSE))).thenAnswer(
+            whenProductChainRuns(flowCtx -> managerDuringProductFlow.set(flowCtx.getComponent(ResourceManager.class)))
+        );
+
+        cut.handle(ctx).test().assertComplete();
+
+        assertThat(managerDuringProductFlow.get()).isSameAs(productResourceManager);
+        assertThat(resourceManagerSeenByContext.get()).isSameAs(apiResourceManager);
+    }
+
+    @Test
     void response_phase_product_plan_flow_sees_the_products_manager() {
         AtomicReference<ResourceManager> managerDuringProductFlow = new AtomicReference<>();
         when(apiProductPlanFlowChain.execute(any(), eq(ExecutionPhase.RESPONSE))).thenAnswer(
-            onProductPlanFlow(flowCtx -> managerDuringProductFlow.set(flowCtx.getComponent(ResourceManager.class)))
+            whenProductChainRuns(flowCtx -> managerDuringProductFlow.set(flowCtx.getComponent(ResourceManager.class)))
         );
 
         cut.handle(ctx).test().assertComplete();
@@ -403,7 +434,7 @@ class DefaultApiReactorProductResourceScopeTest {
         AtomicReference<Object> duringApi = new AtomicReference<>();
 
         when(apiProductPlanFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenAnswer(
-            onProductPlanFlow(flowCtx -> duringProduct.set(flowCtx.getComponent(ResourceManager.class).getResource(RESOURCE_NAME)))
+            whenProductChainRuns(flowCtx -> duringProduct.set(flowCtx.getComponent(ResourceManager.class).getResource(RESOURCE_NAME)))
         );
         when(apiPlanFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(
             Completable.fromAction(() -> duringApi.set(ctx.getComponent(ResourceManager.class).getResource(RESOURCE_NAME)))
@@ -424,7 +455,7 @@ class DefaultApiReactorProductResourceScopeTest {
         AtomicReference<ResourceManager> duringProduct = new AtomicReference<>();
         AtomicReference<Object> resolved = new AtomicReference<>();
         when(apiProductPlanFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenAnswer(
-            onProductPlanFlow(flowCtx -> {
+            whenProductChainRuns(flowCtx -> {
                 duringProduct.set(flowCtx.getComponent(ResourceManager.class));
                 resolved.set(flowCtx.getComponent(ResourceManager.class).getResource(RESOURCE_NAME));
             })
@@ -443,7 +474,7 @@ class DefaultApiReactorProductResourceScopeTest {
 
         AtomicReference<ResourceManager> duringProductFlow = new AtomicReference<>();
         when(apiProductPlanFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenAnswer(
-            onProductPlanFlow(flowCtx -> duringProductFlow.set(flowCtx.getComponent(ResourceManager.class)))
+            whenProductChainRuns(flowCtx -> duringProductFlow.set(flowCtx.getComponent(ResourceManager.class)))
         );
 
         cut.handle(ctx).test().assertComplete();
@@ -457,14 +488,14 @@ class DefaultApiReactorProductResourceScopeTest {
         ApiProductRuntime v1 = mock(ApiProductRuntime.class);
         ApiProductRuntime v2 = mock(ApiProductRuntime.class);
         when(v1.servesApi(API_ID)).thenReturn(true);
-        when(v1.productPlanFlowChain(anyBoolean())).thenReturn(apiProductPlanFlowChain);
+        when(v1.flowChains(anyBoolean())).thenReturn(new ApiProductFlowChains(apiProductPlanFlowChain, apiProductFlowChain));
         when(v1.resourceManager()).thenReturn(productResourceManager);
         when(v2.resourceManager()).thenReturn(otherProductResourceManager);
         when(apiProductRuntimeRegistry.acquire(eq(PRODUCT_ID), eq("env"))).thenReturn(v1);
 
         AtomicReference<ResourceManager> duringProduct = new AtomicReference<>();
         when(apiProductPlanFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenAnswer(
-            onProductPlanFlow(flowCtx -> {
+            whenProductChainRuns(flowCtx -> {
                 when(apiProductRuntimeRegistry.acquire(eq(PRODUCT_ID), eq("env"))).thenReturn(v2);
                 duringProduct.set(flowCtx.getComponent(ResourceManager.class));
                 assertThat(pinnedRuntime.get()).isSameAs(v1);
@@ -480,7 +511,7 @@ class DefaultApiReactorProductResourceScopeTest {
     void debug_product_subscription_uses_product_resources() {
         AtomicReference<ResourceManager> managerDuringProductFlow = new AtomicReference<>();
         when(apiProductPlanFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenAnswer(
-            onProductPlanFlow(flowCtx -> managerDuringProductFlow.set(flowCtx.getComponent(ResourceManager.class)))
+            whenProductChainRuns(flowCtx -> managerDuringProductFlow.set(flowCtx.getComponent(ResourceManager.class)))
         );
 
         cut.handle(ctx).test().assertComplete();
@@ -619,6 +650,7 @@ class DefaultApiReactorProductResourceScopeTest {
         when(apiPlanFlowChain.execute(any(), any())).thenReturn(Completable.complete());
         when(apiFlowChain.execute(any(), any())).thenReturn(Completable.complete());
         when(apiProductPlanFlowChain.execute(any(), any())).thenReturn(Completable.complete());
+        when(apiProductFlowChain.execute(any(), any())).thenReturn(Completable.complete());
     }
 
     private void stubProductSubscription(String productId) {
@@ -630,7 +662,7 @@ class DefaultApiReactorProductResourceScopeTest {
     private void wireProductRuntime(String productId, ResourceLifecycleManager resourceManager) {
         ApiProductRuntime runtime = mock(ApiProductRuntime.class);
         when(runtime.servesApi(API_ID)).thenReturn(true);
-        when(runtime.productPlanFlowChain(anyBoolean())).thenReturn(apiProductPlanFlowChain);
+        when(runtime.flowChains(anyBoolean())).thenReturn(new ApiProductFlowChains(apiProductPlanFlowChain, apiProductFlowChain));
         when(runtime.resourceManager()).thenReturn(resourceManager);
         lenient().when(apiProductRuntimeRegistry.acquire(eq(productId), eq("env"))).thenReturn(runtime);
     }
@@ -674,7 +706,7 @@ class DefaultApiReactorProductResourceScopeTest {
         }
     }
 
-    private static Answer<Completable> onProductPlanFlow(Consumer<MutableExecutionContext> action) {
+    private static Answer<Completable> whenProductChainRuns(Consumer<MutableExecutionContext> action) {
         return invocation -> {
             MutableExecutionContext flowCtx = invocation.getArgument(0);
             return Completable.fromAction(() -> action.accept(flowCtx));

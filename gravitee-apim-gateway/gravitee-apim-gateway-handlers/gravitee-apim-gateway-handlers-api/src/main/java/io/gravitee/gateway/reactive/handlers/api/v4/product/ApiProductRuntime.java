@@ -19,8 +19,8 @@ import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.handlers.api.security.plan.HttpSecurityPlan;
-import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChain;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.pathparameters.PathParametersExtractor;
+import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,7 +28,8 @@ import java.util.function.Supplier;
 
 /**
  * What one deployed version of an API Product runs on this gateway, whatever the number of its member APIs: the
- * policies of its plans, their security plans, and the chain of its plan flows, built once in the product's flow mode.
+ * policies of its plans, their security plans, and the chains of its plan flows and of its own flows, built once in the
+ * product's flow mode.
  *
  * <p>A member API pins the runtime for the whole request, so the response phase replays the runtime the request phase
  * used. A replaced runtime is retired: it is handed out no more, and stops once its pinned requests have ended.</p>
@@ -38,8 +39,8 @@ public class ApiProductRuntime {
     public static final String ATTR_INTERNAL_API_PRODUCT_RUNTIME = "apiProduct.runtime";
 
     private final ReactableApiProduct product;
-    private final FlowChain productPlanFlowChain;
-    private final FlowChain tracedProductPlanFlowChain;
+    private final ApiProductFlowChains flowChains;
+    private final ApiProductFlowChains tracedFlowChains;
     private final PathParametersExtractor pathParametersExtractor;
     private final List<LifecycleComponent<?>> components;
     private final ResourceLifecycleManager resourceManager;
@@ -50,23 +51,24 @@ public class ApiProductRuntime {
     private volatile boolean stopped;
 
     /**
-     * @param pathParametersExtractor extracts the path parameters declared by the plan flows, null when none declares one
+     * @param pathParametersExtractor extracts the path parameters declared by the plan flows and the product flows, null
+     * when none declares one
      * @param components started in order and stopped in reverse order, the policy manager first
      * @param securityPlansBuilder builds the security plans once the components have started, and throws when one
      * cannot be built
      */
     public ApiProductRuntime(
         ReactableApiProduct product,
-        FlowChain productPlanFlowChain,
-        FlowChain tracedProductPlanFlowChain,
+        ApiProductFlowChains flowChains,
+        ApiProductFlowChains tracedFlowChains,
         PathParametersExtractor pathParametersExtractor,
         List<LifecycleComponent<?>> components,
         ResourceLifecycleManager resourceManager,
         Supplier<List<HttpSecurityPlan>> securityPlansBuilder
     ) {
         this.product = product;
-        this.productPlanFlowChain = productPlanFlowChain;
-        this.tracedProductPlanFlowChain = tracedProductPlanFlowChain;
+        this.flowChains = flowChains;
+        this.tracedFlowChains = tracedFlowChains;
         this.pathParametersExtractor = pathParametersExtractor;
         this.components = List.copyOf(components);
         this.resourceManager = resourceManager;
@@ -74,7 +76,7 @@ public class ApiProductRuntime {
     }
 
     /**
-     * The resource manager this runtime exposes during its product plan flow: the product's started
+     * The resource manager this runtime exposes during its product plan and product flows: the product's started
      * manager, or {@link EmptyProductResourceLifecycleManager} when the product has no resources.
      */
     public ResourceLifecycleManager resourceManager() {
@@ -89,6 +91,16 @@ public class ApiProductRuntime {
         return components;
     }
 
+    /** The policy manager the chains of this runtime take their policies from. */
+    PolicyManager policyManager() {
+        return components
+            .stream()
+            .filter(PolicyManager.class::isInstance)
+            .map(PolicyManager.class::cast)
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("No policy manager in the runtime of API Product [" + product.getId() + "]"));
+    }
+
     public boolean servesApi(String apiId) {
         return product.getApiIds() != null && product.getApiIds().contains(apiId);
     }
@@ -98,12 +110,13 @@ public class ApiProductRuntime {
         return securityPlans;
     }
 
-    public FlowChain productPlanFlowChain(boolean tracing) {
-        return tracing ? tracedProductPlanFlowChain : productPlanFlowChain;
+    public ApiProductFlowChains flowChains(boolean tracing) {
+        return tracing ? tracedFlowChains : flowChains;
     }
 
     /**
-     * Sets the path parameters the product plan flows declare and the member API does not: the API's own value wins.
+     * Sets the path parameters the product plan flows and the product flows declare and the member API does not: the
+     * API's own value wins.
      */
     public void extractPathParameters(HttpExecutionContext ctx) {
         if (pathParametersExtractor == null) {
@@ -146,7 +159,7 @@ public class ApiProductRuntime {
 
     /**
      * Whether the runtime has been stopped. A request still pinned to it was cut short by the drain timeout: its
-     * policies are gone, so its plan flows must not run.
+     * policies are gone, so its plan flows and product flows must not run.
      */
     public boolean isStopped() {
         return stopped;

@@ -31,6 +31,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.common.http.HttpMethod;
+import io.gravitee.common.util.LinkedMultiValueMap;
+import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
@@ -47,13 +50,17 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.manager.ApiProductResourceManagerFactory;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
+import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.v4.flow.FlowResolver;
+import io.gravitee.gateway.reactive.v4.policy.HttpPolicyChainFactory;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -91,6 +98,7 @@ class ApiProductRuntimeFactoryTest {
     @BeforeEach
     void stubResolverFactory() {
         when(flowResolverFactory.forApiProductPlan(any(), anyMap())).thenReturn(mock(FlowResolver.class));
+        when(flowResolverFactory.forApiProduct(any(), any())).thenReturn(mock(FlowResolver.class));
         lenient()
             .when(gatewayConfiguration.hasMatchingTags(any()))
             .thenAnswer(invocation -> !Set.of("external").equals(invocation.getArgument(0)));
@@ -198,7 +206,8 @@ class ApiProductRuntimeFactoryTest {
         cut.create(product(null, List.of()), null);
 
         verify(flowResolverFactory, times(2)).forApiProductPlan(isNull(), anyMap());
-        verify(flowResolverFactory, times(2)).deferredConditionFilter((FlowExecution) isNull());
+        // Once per chain: plan flows and product flows, with and without tracing.
+        verify(flowResolverFactory, times(4)).deferredConditionFilter((FlowExecution) isNull());
     }
 
     @Test
@@ -249,11 +258,94 @@ class ApiProductRuntimeFactoryTest {
     }
 
     @Test
-    void should_build_one_chain_with_and_one_without_tracing() {
+    void should_build_the_chains_once_with_and_once_without_tracing() {
         ApiProductRuntime runtime = cut.create(product(null, List.of()), null);
 
-        assertThat(runtime.productPlanFlowChain(true)).isNotNull().isNotSameAs(runtime.productPlanFlowChain(false));
-        assertThat(runtime.productPlanFlowChain(false)).isNotNull();
+        assertThat(runtime.flowChains(true)).isNotNull().isNotSameAs(runtime.flowChains(false));
+        assertThat(runtime.flowChains(false).productPlanFlowChain()).isNotNull();
+        assertThat(runtime.flowChains(false).productFlowChain()).isNotNull();
+    }
+
+    @Nested
+    class ProductFlows {
+
+        @Test
+        void should_build_the_product_flow_chains_in_default_mode_when_the_product_saved_no_mode() {
+            cut.create(product(null, List.of()), null);
+
+            verify(flowResolverFactory, times(2)).forApiProduct(isNull(), any());
+        }
+
+        @Test
+        void should_build_the_product_flow_chains_in_the_mode_the_product_saved() {
+            FlowExecution bestMatch = new FlowExecution();
+            bestMatch.setMode(FlowMode.BEST_MATCH);
+
+            cut.create(product(bestMatch, List.of()), null);
+
+            verify(flowResolverFactory, times(2)).forApiProduct(same(bestMatch), any());
+        }
+
+        @Test
+        @SuppressWarnings("unchecked")
+        void should_hand_the_product_flows_to_the_resolver() {
+            Flow productFlow = flowOn("/orders");
+            ReactableApiProduct product = product(null, List.of());
+            product.setFlows(List.of(productFlow));
+            ArgumentCaptor<List<Flow>> flows = ArgumentCaptor.forClass(List.class);
+
+            cut.create(product, null);
+
+            verify(flowResolverFactory, atLeastOnce()).forApiProduct(isNull(), flows.capture());
+            assertThat(flows.getValue()).containsExactly(productFlow);
+        }
+
+        @Test
+        void should_refuse_to_start_without_a_policy_of_a_product_flow() {
+            ReactableApiProduct product = product(null, List.of());
+            product.setFlows(
+                List.of(
+                    Flow.builder().enabled(true).request(List.of(Step.builder().enabled(true).policy("not-installed-here").build())).build()
+                )
+            );
+
+            ApiProductRuntime runtime = cut.create(product, null);
+
+            assertThatThrownBy(runtime::start).hasMessageContaining("not-installed-here");
+        }
+
+        @Test
+        void should_copy_the_chains_of_a_runtime_with_the_given_policy_chain_factories_over_its_policy_manager() {
+            ApiProductRuntime runtime = cut.create(product(null, List.of()), null);
+            Map<String, PolicyManager> policyManagerByChainFactoryId = new HashMap<>();
+
+            ApiProductFlowChains copy = cut.copyFlowChains(runtime, (id, policyManager, tracing) -> {
+                policyManagerByChainFactoryId.put(id, policyManager);
+                return new HttpPolicyChainFactory(id, policyManager, tracing);
+            });
+
+            assertThat(copy.productPlanFlowChain()).isNotSameAs(runtime.flowChains(false).productPlanFlowChain());
+            assertThat(copy.productFlowChain()).isNotSameAs(runtime.flowChains(false).productFlowChain());
+            assertThat(policyManagerByChainFactoryId).containsOnlyKeys("api-product-product-1", "api-product-flows-product-1");
+            assertThat(policyManagerByChainFactoryId.values()).containsOnly(runtime.policyManager());
+        }
+
+        @Test
+        void should_extract_a_path_parameter_only_a_product_flow_declares() {
+            ReactableApiProduct product = product(null, List.of());
+            product.setFlows(List.of(flowOn("/orders/:id")));
+            MultiValueMap<String, String> pathParameters = new LinkedMultiValueMap<>();
+            HttpExecutionContext ctx = mock(HttpExecutionContext.class);
+            HttpRequest request = mock(HttpRequest.class);
+            when(ctx.request()).thenReturn(request);
+            when(request.method()).thenReturn(HttpMethod.GET);
+            when(request.pathInfo()).thenReturn("/orders/42");
+            when(request.pathParameters()).thenReturn(pathParameters);
+
+            cut.create(product, null).extractPathParameters(ctx);
+
+            assertThat(pathParameters.getFirst("id")).isEqualTo("42");
+        }
     }
 
     @Test

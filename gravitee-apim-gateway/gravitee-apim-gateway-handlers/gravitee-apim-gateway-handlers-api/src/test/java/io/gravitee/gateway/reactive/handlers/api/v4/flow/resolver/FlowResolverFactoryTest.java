@@ -29,6 +29,7 @@ import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.v4.flow.AbstractBestMatchFlowSelector;
 import io.gravitee.gateway.reactive.v4.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.reactive.v4.flow.FlowResolver;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -101,6 +102,21 @@ class FlowResolverFactoryTest {
         api.getDefinition().getFlowExecution().setMode(FlowMode.BEST_MATCH);
 
         assertThat(cut.forApiProductPlan(null, Map.of())).isInstanceOf(ApiProductPlanFlowResolver.class);
+    }
+
+    @Test
+    void should_create_best_match_api_product_flow_resolver_in_the_product_best_match_mode() {
+        FlowExecution productFlowExecution = new FlowExecution();
+        productFlowExecution.setMode(FlowMode.BEST_MATCH);
+
+        assertThat(cut.forApiProduct(productFlowExecution, List.of())).isInstanceOf(BestMatchFlowResolver.class);
+    }
+
+    @Test
+    void should_run_product_flows_in_default_mode_without_a_product_flow_mode() {
+        api.getDefinition().getFlowExecution().setMode(FlowMode.BEST_MATCH);
+
+        assertThat(cut.forApiProduct(null, List.of())).isInstanceOf(ApiProductFlowResolver.class);
     }
 
     @Test
