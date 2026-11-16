@@ -221,4 +221,21 @@ describe('CredentialsPage', () => {
 
         await waitFor(() => expect(searchFieldHarness({ name: 'Search credentials' }).getElement()).toHaveFocus());
     });
+
+    it('moves the focus to the empty state once the last credential is deleted', async () => {
+        givenCredentials([OPENAI]);
+        const { rerender } = renderPage();
+        searchFieldHarness({ name: 'Search credentials' }).getElement().focus();
+
+        givenCredentials([]);
+        rerender(
+            <MemoryRouter initialEntries={['/credentials']}>
+                <Routes>
+                    <Route path="/credentials" element={<CredentialsPage />} />
+                </Routes>
+            </MemoryRouter>,
+        );
+
+        await waitFor(() => expect(screen.getByRole('region', { name: 'No credentials yet' })).toHaveFocus());
+    });
 });

@@ -105,6 +105,16 @@ describe('EditCredentialPage', () => {
         expect(screen.getByText('API key')).toBeInTheDocument();
     });
 
+    it('names each section of the form', () => {
+        given(MANAGED);
+
+        renderWithGraphene(<EditCredentialPage />);
+
+        expect(screen.getByRole('region', { name: 'Credential details' })).toContainElement(screen.getByLabelText(/^Name/));
+        expect(screen.getByRole('region', { name: 'Secret' })).toBeInTheDocument();
+        expect(screen.getByRole('region', { name: 'Ownership & expiry' })).toBeInTheDocument();
+    });
+
     it('never shows the id of an owner whose name the server does not know', () => {
         given({ ...MANAGED, ownerName: undefined });
 

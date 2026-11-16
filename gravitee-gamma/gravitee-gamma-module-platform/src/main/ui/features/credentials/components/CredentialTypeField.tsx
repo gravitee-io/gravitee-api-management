@@ -26,7 +26,12 @@ export function CredentialTypeField({
     children,
 }: Readonly<{ value: CredentialStrategy; onChange: (strategy: CredentialStrategy) => void; children: ReactNode }>) {
     return (
-        <Tabs value={value} onValueChange={next => isKnownCredentialStrategy(next) && onChange(next)} className="gap-4">
+        <Tabs
+            value={value}
+            activationMode="manual"
+            onValueChange={next => isKnownCredentialStrategy(next) && onChange(next)}
+            className="gap-4"
+        >
             <Field orientation="vertical" className="gap-1.5">
                 <FieldLabel id="credential-type-label" required>
                     Type

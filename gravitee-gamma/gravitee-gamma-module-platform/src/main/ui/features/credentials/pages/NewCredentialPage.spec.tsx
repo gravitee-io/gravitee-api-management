@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { buttonHarness, inputHarness, pageHeaderHarness, passwordInputHarness, renderWithGraphene } from '@gravitee/graphene-core/testing';
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useNavigate } from 'react-router-dom';
 
@@ -95,6 +95,46 @@ describe('NewCredentialPage', () => {
         await userEvent.click(screen.getByRole('tab', { name: 'Basic auth' }));
 
         expect(screen.getByRole('tabpanel', { name: 'Basic auth' })).toContainElement(screen.getByLabelText(/Username/));
+    });
+
+    it('keeps the typed values while the focus moves across the type tabs', async () => {
+        renderWithGraphene(<NewCredentialPage />);
+
+        await fillDetails('OpenAI production');
+        await passwordInputHarness({ name: /Token/ }).type('sk-123');
+        screen.getByRole('tab', { name: 'Bearer token' }).focus();
+        await userEvent.keyboard('{ArrowRight}');
+
+        expect(screen.getByRole('tab', { name: 'Bearer token' })).toHaveAttribute('aria-selected', 'true');
+        expect(passwordInputHarness({ name: /Token/ }).getValue()).toBe('sk-123');
+    });
+
+    it('creates the selected type without the values typed for another type', async () => {
+        renderWithGraphene(<NewCredentialPage />);
+
+        await fillDetails('Partner API');
+        await passwordInputHarness({ name: /Token/ }).type('sk-123');
+        await userEvent.click(screen.getByRole('tab', { name: 'Basic auth' }));
+        await passwordInputHarness({ name: /Username/ }).type('partner');
+        await passwordInputHarness({ name: /Password/ }).type('s3cret');
+        await buttonHarness({ name: 'Create credential' }).click();
+
+        expect(mutateAsync).toHaveBeenCalledWith({
+            name: 'Partner API',
+            strategy: 'BASIC',
+            configuration: {},
+            values: { username: 'partner', password: 's3cret' },
+        });
+    });
+
+    it('tells assistive technology which step is done', async () => {
+        renderWithGraphene(<NewCredentialPage />);
+
+        await fillDetails('Partner API');
+
+        const [details] = within(screen.getByRole('list', { name: 'Steps' })).getAllByRole('listitem');
+        expect(details).toHaveTextContent('Credential details (done)');
+        expect(within(details!).getByText('✓')).toHaveAttribute('aria-hidden', 'true');
     });
 
     it('creates an API key credential that references an existing secret', async () => {

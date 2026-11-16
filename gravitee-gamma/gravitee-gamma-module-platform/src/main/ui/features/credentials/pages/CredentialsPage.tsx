@@ -15,7 +15,7 @@
  */
 import { Alert, AlertAction, AlertDescription, AlertTitle, Button, DataTableEmptyState, PageHeader } from '@gravitee/graphene-core';
 import { CircleXIcon, KeyRoundIcon, PlusIcon } from '@gravitee/graphene-core/icons';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
 import { useHasEnvironmentPermission } from '../../../shared/hooks/useEnvironmentPermissions';
@@ -44,6 +44,16 @@ export function CredentialsPage() {
     const isFirstUse = settled && totalCount === 0 && !list.hasCriteria;
     const announcement = !settled || isFirstUse ? '' : totalCount === 0 ? 'No results' : `${totalCount} result${totalCount > 1 ? 's' : ''}`;
     const focusSearch = () => searchRef.current?.focus();
+
+    // Deleting the last credential swaps the table, and the search field that held the focus, for the empty state.
+    const emptyStateRef = useRef<HTMLDivElement>(null);
+    const wasFirstUse = useRef(isFirstUse);
+    useEffect(() => {
+        if (isFirstUse && !wasFirstUse.current && document.activeElement === document.body) {
+            emptyStateRef.current?.focus();
+        }
+        wasFirstUse.current = isFirstUse;
+    }, [isFirstUse]);
 
     if (isForbidden) {
         return null;
@@ -84,7 +94,13 @@ export function CredentialsPage() {
             )}
 
             {isFirstUse ? (
-                <div className="rounded-lg border">
+                <div
+                    ref={emptyStateRef}
+                    tabIndex={-1}
+                    role="region"
+                    aria-label="No credentials yet"
+                    className="rounded-lg border outline-none"
+                >
                     <DataTableEmptyState
                         variant="first-use"
                         icon={<KeyRoundIcon />}

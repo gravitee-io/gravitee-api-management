@@ -29,9 +29,10 @@ export function CredentialStepMarker({
                     current || done ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground',
                 )}
             >
-                {done ? '✓' : index}
+                <span aria-hidden={done || undefined}>{done ? '✓' : index}</span>
             </span>
             <span className={cn(!current && 'text-muted-foreground', current && 'font-medium')}>{label}</span>
+            {done && <span className="sr-only"> (done)</span>}
         </li>
     );
 }

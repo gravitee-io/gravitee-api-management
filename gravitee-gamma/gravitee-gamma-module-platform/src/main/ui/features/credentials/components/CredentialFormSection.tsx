@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 
 export function CredentialFormSection({
     index,
@@ -21,14 +21,17 @@ export function CredentialFormSection({
     description,
     children,
 }: Readonly<{ index: number; title: string; description: string; children: ReactNode }>) {
+    const titleId = useId();
     return (
-        <section className="flex gap-4">
+        <section className="flex gap-4" aria-labelledby={titleId}>
             <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
                 {index}
             </span>
             <div className="flex-1 space-y-4">
                 <div className="space-y-1">
-                    <h2 className="text-sm font-semibold">{title}</h2>
+                    <h2 id={titleId} className="text-sm font-semibold">
+                        {title}
+                    </h2>
                     <p className="text-xs text-muted-foreground">{description}</p>
                 </div>
                 {children}
