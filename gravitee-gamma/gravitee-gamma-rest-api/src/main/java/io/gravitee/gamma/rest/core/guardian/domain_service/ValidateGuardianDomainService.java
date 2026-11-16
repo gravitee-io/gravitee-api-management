@@ -28,6 +28,7 @@ import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
+import io.gravitee.gamma.rest.core.guardian.exception.GuardianWithoutEnabledGuardrailException;
 import io.gravitee.gamma.rest.core.guardian.model.CreateGuardian;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
@@ -38,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
@@ -64,8 +66,7 @@ import lombok.RequiredArgsConstructor;
  *
  * <p>These rules apply to creation and to update, a {@code PUT} replacing the whole definition. A
  * deployment publishes the stored draft as is, apart from the one rule it adds on its own: the
- * sequence must hold an enabled guardrail, which {@code DeployGuardianUseCase} checks. A draft may
- * therefore be saved empty and still be refused at deployment.
+ * sequence must hold an enabled guardrail, which {@link #validateDeployable} checks.
  *
  * <p><strong>The name is free</strong> — two Guardians of one environment may not share a name. This
  * is the check users meet, and the only one that reads the store; the unique index behind it is a
@@ -135,6 +136,31 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
         if (!violations.isEmpty()) {
             throw new ConstraintViolationException(violations);
         }
+    }
+
+    /**
+     * Refuses a Guardian that would enforce nothing: no enabled step of its sequence runs a guardrail
+     * the platform has installed.
+     *
+     * <p>Run when a Guardian is deployed, not when it is saved — a draft is expected to be empty while
+     * its sequence is being designed, and only a deployment claims that the APIs using it are
+     * protected. It is also the only rule of this class a deployment runs; the rest was checked when
+     * the draft was written.
+     */
+    public void validateDeployable(Guardian guardian) {
+        var installed = policyPluginProvider.findAllCapabilities();
+        Predicate<String> isGuardrail = policy ->
+            installed.get(policy) instanceof PolicyCapabilities capabilities && capabilities.guardrail();
+        if (guardian.hasEnabledGuardrail(isGuardrail)) {
+            return;
+        }
+        throw new GuardianWithoutEnabledGuardrailException(
+            guardian.getId(),
+            guardian
+                .enabledPolicies()
+                .filter(step -> !isGuardrail.test(step.getPolicy()))
+                .toList()
+        );
     }
 
     /** Refuses a Guardian the gateway could not run with the policies installed now. */

@@ -108,9 +108,6 @@ public final class GuardianFixtures {
     public static PolicyPluginProvider aPolicyPluginProvider(Supplier<Map<String, PolicyCapabilities>> policies) {
         var provider = Mockito.mock(PolicyPluginProvider.class);
         Mockito.when(provider.findAllCapabilities()).thenAnswer(call -> policies.get());
-        // a mock answers null to a default method unless told otherwise, and installedGuardrails() is
-        // derived from findAllCapabilities(): stubbing it apart would let the two disagree
-        Mockito.when(provider.installedGuardrails()).thenCallRealMethod();
         return provider;
     }
 
@@ -120,7 +117,7 @@ public final class GuardianFixtures {
         GuardianDeploymentDomainService deployments,
         AuditDomainService audits
     ) {
-        return new DeployGuardianUseCase(repository, deployments, audits, aPolicyPluginProvider());
+        return new DeployGuardianUseCase(repository, deployments, audits, aGuardianValidator(repository));
     }
 
     public static ValidateGuardianDomainService aGuardianValidator() {
@@ -129,6 +126,15 @@ public final class GuardianFixtures {
 
     public static ValidateGuardianDomainService aGuardianValidator(GuardianRepository repository) {
         return new ValidateGuardianDomainService(repository, aPolicyPluginProvider(), new JacksonJsonDeserializer());
+    }
+
+    /** A validator that sees exactly these installed policies. */
+    public static ValidateGuardianDomainService aGuardianValidatorAgainst(Map<String, PolicyCapabilities> installed) {
+        return new ValidateGuardianDomainService(
+            new InMemoryGuardianRepository(),
+            aPolicyPluginProvider(() -> installed),
+            new JacksonJsonDeserializer()
+        );
     }
 
     public static Step aPolicy() {

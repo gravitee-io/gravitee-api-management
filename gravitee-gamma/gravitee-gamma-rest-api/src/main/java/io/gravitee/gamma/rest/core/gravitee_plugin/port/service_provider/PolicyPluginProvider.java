@@ -25,17 +25,6 @@ import java.util.function.Predicate;
 public interface PolicyPluginProvider extends PluginProvider {
     Map<String, PolicyCapabilities> findAllCapabilities();
 
-    /**
-     * Whether a policy id names a guardrail the platform has installed — an unknown id is not one.
-     *
-     * <p>Read once, so a caller testing a whole sequence sees one state of the registry rather than
-     * one per step.
-     */
-    default Predicate<String> installedGuardrails() {
-        var installed = findAllCapabilities();
-        return policy -> installed.get(policy) instanceof PolicyCapabilities capabilities && capabilities.guardrail();
-    }
-
     /** The installed policies whose declared flows match {@code filter}. */
     List<PlatformPolicyPlugin> findAllPolicies(String organizationId, Predicate<DeclaredFlows> filter);
 
