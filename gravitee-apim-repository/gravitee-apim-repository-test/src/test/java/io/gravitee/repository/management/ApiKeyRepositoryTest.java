@@ -494,8 +494,6 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(beforeDeletion, deleted);
         assertEquals(0, nbAfterDeletion);
     }
-<<<<<<< HEAD
-=======
 
     @Test
     public void should_delete_by_application_and_keep_the_keys_of_other_applications() throws TechnicalException {
@@ -514,25 +512,20 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(allBefore - deleted.size(), apiKeyRepository.findAll().size());
     }
 
-    private ApiKey givenSharedKey(String id, String... subscriptions) throws TechnicalException {
-        return apiKeyRepository.create(
-            ApiKey.builder()
-                .id(id)
-                .key("shared-key-value")
-                .environmentId("DEFAULT")
-                .application("shared-app")
-                .subscriptions(new ArrayList<>(List.of(subscriptions)))
-                .createdAt(new Date(1_000_000_000_000L))
-                .updatedAt(new Date(1_000_000_000_000L))
-                .build()
-        );
-    }
+    @Test
+    public void should_delete_the_subscriptions_of_the_keys_deleted_with_their_application() throws TechnicalException {
+        apiKeyRepository.deleteByApplication("app1");
 
-    private Date addSubscriptionAndGetUpdatedAt(String id, String subscriptionId) throws Exception {
-        // Leave the clock time to move so that two consecutive adds cannot share the same timestamp.
-        Thread.sleep(5);
-        apiKeyRepository.addSubscription(id, subscriptionId);
-        return apiKeyRepository.findById(id).orElseThrow().getUpdatedAt();
+        ApiKey reusedKey = new ApiKey();
+        reusedKey.setId("id-of-apikey-4");
+        reusedKey.setKey("findByCriteria1");
+        reusedKey.setEnvironmentId("env4");
+        reusedKey.setApplication("app9");
+        reusedKey.setCreatedAt(new Date());
+        apiKeyRepository.create(reusedKey);
+
+        Optional<ApiKey> created = apiKeyRepository.findById("id-of-apikey-4");
+        assertTrue(created.isPresent());
+        Assertions.assertThat(created.get().getSubscriptions()).isNullOrEmpty();
     }
->>>>>>> 8b929f2 (fix(api-key): delete an application's API keys on archive (APIM-16008) (#22727))
 }

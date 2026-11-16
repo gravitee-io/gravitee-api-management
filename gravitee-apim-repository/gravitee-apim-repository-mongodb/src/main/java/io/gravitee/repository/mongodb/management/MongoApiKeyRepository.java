@@ -117,13 +117,13 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 
     @Override
     public List<String> deleteByApplication(String applicationId) throws TechnicalException {
-        log.debug("Delete by application [{}]", applicationId);
+        LOGGER.debug("Delete by application [{}]", applicationId);
         try {
             final var deletedIds = internalApiKeyRepo.deleteByApplication(applicationId).stream().map(ApiKeyMongo::getId).toList();
-            log.debug("Delete by application [{}] - Done", applicationId);
+            LOGGER.debug("Delete by application [{}] - Done", applicationId);
             return deletedIds;
         } catch (Exception ex) {
-            log.error("Failed to delete api keys by application: {}", applicationId, ex);
+            LOGGER.error("Failed to delete api keys by application: {}", applicationId, ex);
             throw new TechnicalException("Failed to delete api keys by application", ex);
         }
     }

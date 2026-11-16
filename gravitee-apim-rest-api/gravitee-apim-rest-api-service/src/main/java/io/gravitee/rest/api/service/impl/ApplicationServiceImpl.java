@@ -1173,18 +1173,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             );
 
             subscriptions.forEach(subscription -> {
-<<<<<<< HEAD
-                List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(executionContext, subscription.getId());
-                apiKeys.forEach(apiKey -> {
-                    try {
-                        apiKeyService.delete(apiKey.getKey());
-                    } catch (TechnicalManagementException tme) {
-                        LOGGER.error("An error occurs while deleting API Key with id {}", apiKey.getId(), tme);
-                    }
-                });
-
-=======
->>>>>>> 8b929f2 (fix(api-key): delete an application's API keys on archive (APIM-16008) (#22727))
                 try {
                     closeSubscriptionDomainService.closeSubscription(
                         subscription.getId(),
