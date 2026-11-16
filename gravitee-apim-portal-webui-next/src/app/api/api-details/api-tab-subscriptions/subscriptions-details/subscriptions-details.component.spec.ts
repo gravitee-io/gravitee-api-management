@@ -32,7 +32,8 @@ import { PortalApiViewParam } from '../../../../../entities/api/portal-api-view-
 import { Application } from '../../../../../entities/application/application';
 import { fakeApplication } from '../../../../../entities/application/application.fixture';
 import { Configuration } from '../../../../../entities/configuration/configuration';
-import { fakeUserApiPermissions } from '../../../../../entities/permission/permission.fixtures';
+import { UserApplicationPermissions } from '../../../../../entities/permission/permission';
+import { fakeUserApiPermissions, fakeUserApplicationPermissions } from '../../../../../entities/permission/permission.fixtures';
 import { fakePlan, fakePlansResponse } from '../../../../../entities/plan/plan.fixture';
 import { PlansResponse } from '../../../../../entities/plan/plans-response';
 import {
@@ -352,35 +353,74 @@ describe('SubscriptionsDetailsComponent', () => {
     });
   });
 
-  describe('close-subscription-button click', () => {
-    const url = `${TESTING_BASE_URL}/subscriptions/testSubscriptionId/_close`;
-    let subscriptionInfoHarness: SubscriptionInfoHarness;
+  describe('close subscription permission', () => {
+    it('should hide the close button without application subscription delete permission', async () => {
+      expectSubscriptionDetails(fakeSubscription({ status: 'ACCEPTED' }), fakeUserApplicationPermissions({ SUBSCRIPTION: ['C', 'R'] }));
 
-    beforeEach(async () => {
+      const subscriptionInfoHarness = await harnessLoader.getHarness(SubscriptionInfoHarness);
+      expect(await subscriptionInfoHarness.getCloseButton()).toBeNull();
+    });
+
+    it.each<SubscriptionStatusEnum>(['ACCEPTED', 'PAUSED'])(
+      'should show the close button for a %s subscription with application subscription delete permission',
+      async status => {
+        expectSubscriptionDetails(fakeSubscription({ status }), fakeUserApplicationPermissions({ SUBSCRIPTION: ['C', 'R', 'U', 'D'] }));
+
+        const subscriptionInfoHarness = await harnessLoader.getHarness(SubscriptionInfoHarness);
+        expect(await subscriptionInfoHarness.getCloseButton()).not.toBeNull();
+      },
+    );
+
+    it.each<SubscriptionStatusEnum>(['PENDING', 'CLOSED', 'REJECTED'])(
+      'should hide the close button for a %s subscription even with application subscription delete permission',
+      async status => {
+        expectSubscriptionDetails(fakeSubscription({ status }), fakeUserApplicationPermissions({ SUBSCRIPTION: ['C', 'R', 'U', 'D'] }));
+
+        const subscriptionInfoHarness = await harnessLoader.getHarness(SubscriptionInfoHarness);
+        expect(await subscriptionInfoHarness.getCloseButton()).toBeNull();
+      },
+    );
+
+    it('should hide the close button when only the API grants subscription delete permission', async () => {
+      expectSubscriptionWithKeys(fakeSubscription({ status: 'ACCEPTED' }));
+      expectGetApiPermissions(fakeUserApiPermissions({ PLAN: ['R'], SUBSCRIPTION: ['C', 'R', 'U', 'D'] }));
+      expectPlansList(fakePlansResponse());
+      expectApplicationsList(fakeApplication(), fakeUserApplicationPermissions({ SUBSCRIPTION: ['C', 'R'] }));
+      expectGetApi(fakeApi({ id: API_ID }));
+
+      const subscriptionInfoHarness = await harnessLoader.getHarness(SubscriptionInfoHarness);
+      expect(await subscriptionInfoHarness.getCloseButton()).toBeNull();
+    });
+
+    it('should hide the close button when application permissions are unavailable', async () => {
       expectSubscriptionWithKeys(fakeSubscription({ status: 'ACCEPTED' }));
       expectGetApiPermissions();
       expectPlansList(fakePlansResponse());
-      expectApplicationsList(fakeApplication());
+      expectApplicationsList(fakeApplication(), undefined, false);
       expectGetApi(fakeApi({ id: API_ID }));
+
+      const subscriptionInfoHarness = await harnessLoader.getHarness(SubscriptionInfoHarness);
+      expect(await subscriptionInfoHarness.getCloseButton()).toBeNull();
+    });
+  });
+
+  describe('close-subscription-button click', () => {
+    const url = `${TESTING_BASE_URL}/subscriptions/testSubscriptionId/_close`;
+    const closePermissions = fakeUserApplicationPermissions({ SUBSCRIPTION: ['C', 'R', 'U', 'D'] });
+    let subscriptionInfoHarness: SubscriptionInfoHarness;
+
+    beforeEach(async () => {
+      expectSubscriptionDetails(fakeSubscription({ status: 'ACCEPTED' }), closePermissions);
       subscriptionInfoHarness = await harnessLoader.getHarness(SubscriptionInfoHarness);
     });
 
     it('should close subscription when popup is confirmed', async () => {
-      const button = await subscriptionInfoHarness.getCloseButton();
-      expect(button).not.toBeNull();
-      await button!.click();
-
-      const confirmDialog = await closeConfirmDialog();
-      expect(confirmDialog).not.toBeNull();
-      await confirmDialog!.confirm();
+      await confirmClose();
 
       httpTestingController.expectOne(url).flush(null);
 
-      expectSubscriptionWithKeys(fakeSubscription({ status: 'CLOSED' }));
-      expectGetApiPermissions();
-      expectPlansList(fakePlansResponse());
-      expectApplicationsList(fakeApplication());
-      expectGetApi(fakeApi({ id: API_ID }));
+      expectSubscriptionDetails(fakeSubscription({ status: 'CLOSED' }), closePermissions);
+      expect(getCloseError()).toBeNull();
     });
 
     it('should not close subscription when popup is denied', async () => {
@@ -395,8 +435,71 @@ describe('SubscriptionsDetailsComponent', () => {
       httpTestingController.expectNone(url);
     });
 
+    it('should show an inline error and keep the subscription details when close is forbidden', async () => {
+      await confirmClose();
+
+      httpTestingController
+        .expectOne(url)
+        .flush(
+          { errors: [{ code: 'errors.forbidden', message: 'You do not have sufficient rights to access this resource', status: '403' }] },
+          { status: 403, statusText: 'Forbidden' },
+        );
+      fixture.detectChanges();
+
+      await expectCloseErrorWithSubscriptionStillAccepted();
+    });
+
+    it('should show an inline error and keep the subscription details when close fails on the server', async () => {
+      await confirmClose();
+
+      httpTestingController.expectOne(url).flush(null, { status: 500, statusText: 'Internal Server Error' });
+      fixture.detectChanges();
+
+      await expectCloseErrorWithSubscriptionStillAccepted();
+    });
+
+    it('should clear the inline error when close is attempted again and succeeds', async () => {
+      await confirmClose();
+      httpTestingController.expectOne(url).flush(null, { status: 500, statusText: 'Internal Server Error' });
+      fixture.detectChanges();
+      expect(getCloseError()).not.toBeNull();
+
+      await confirmClose();
+      httpTestingController.expectOne(url).flush(null);
+      expectSubscriptionDetails(fakeSubscription({ status: 'CLOSED' }), closePermissions);
+      fixture.detectChanges();
+
+      expect(getCloseError()).toBeNull();
+    });
+
+    async function confirmClose(): Promise<void> {
+      const button = await subscriptionInfoHarness.getCloseButton();
+      expect(button).not.toBeNull();
+      await button!.click();
+
+      const confirmDialog = await closeConfirmDialog();
+      expect(confirmDialog).not.toBeNull();
+      await confirmDialog!.confirm();
+    }
+
     async function closeConfirmDialog(): Promise<ConfirmDialogHarness | null> {
       return await rootLoader.getHarnessOrNull(ConfirmDialogHarness);
+    }
+
+    function getCloseError(): HTMLElement | null {
+      return fixture.nativeElement.querySelector('[data-testid="close-subscription-error"]');
+    }
+
+    async function expectCloseErrorWithSubscriptionStillAccepted(): Promise<void> {
+      const closeError = getCloseError();
+      expect(closeError).not.toBeNull();
+      expect(closeError!.getAttribute('role')).toEqual('alert');
+      expect(closeError!.textContent).toContain('The subscription could not be closed.');
+
+      httpTestingController.expectNone(`${TESTING_BASE_URL}/subscriptions/testSubscriptionId?include=keys&include=consumerConfiguration`);
+      expect(fixture.nativeElement.querySelector('.subscriptions-details__error')).toBeNull();
+      expect(fixture.nativeElement.querySelector('app-subscription-info').textContent).toContain('Accepted');
+      expect(await subscriptionInfoHarness.getCloseButton()).not.toBeNull();
     }
   });
 
@@ -414,6 +517,14 @@ describe('SubscriptionsDetailsComponent', () => {
       expect(button).toBeNull();
     });
   });
+
+  function expectSubscriptionDetails(subscription: Subscription, applicationPermissions: UserApplicationPermissions) {
+    expectSubscriptionWithKeys(subscription);
+    expectGetApiPermissions();
+    expectPlansList(fakePlansResponse());
+    expectApplicationsList(fakeApplication(), applicationPermissions);
+    expectGetApi(fakeApi({ id: API_ID }));
+  }
 
   function expectSubscriptionWithKeys(subscriptionResponse: Subscription = fakeSubscription()) {
     httpTestingController
@@ -451,8 +562,25 @@ describe('SubscriptionsDetailsComponent', () => {
     expectSubscriptionList(fakeSubscriptionResponse({ metadata }), API_ID);
   }
 
-  function expectApplicationsList(applicationsResponse: Application = fakeApplication()) {
+  function expectApplicationsList(
+    applicationsResponse: Application = fakeApplication(),
+    applicationPermissions = fakeUserApplicationPermissions(),
+    hasApplicationAccess = true,
+  ) {
     httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/99c6cbe6-eead-414d-86cb-e6eeadc14db3`).flush(applicationsResponse);
+    expectGetApplicationPermissions(applicationPermissions, hasApplicationAccess);
+  }
+
+  function expectGetApplicationPermissions(permissions = fakeUserApplicationPermissions(), hasApplicationAccess = true) {
+    const req = httpTestingController.expectOne(
+      request =>
+        request.url === `${TESTING_BASE_URL}/permissions` && request.params.get('applicationId') === '99c6cbe6-eead-414d-86cb-e6eeadc14db3',
+    );
+    if (hasApplicationAccess) {
+      req.flush(permissions);
+    } else {
+      req.flush(null, { status: 404, statusText: 'Not Found' });
+    }
   }
 
   function expectGetApi(api: Api = fakeApi()) {
