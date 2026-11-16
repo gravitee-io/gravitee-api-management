@@ -42,7 +42,6 @@ public enum Order {
     AUTHZ_SCHEMA(9),
     AUTHZ_ENTITY(10),
     AUTHZ_POLICY(11),
-    CREDENTIAL(12),
     GENERIC_EVENT(13),
     API_PRODUCT(14),
     API(15),

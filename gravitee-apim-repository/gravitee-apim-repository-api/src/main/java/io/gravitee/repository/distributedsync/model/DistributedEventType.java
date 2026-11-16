@@ -22,7 +22,6 @@ public enum DistributedEventType {
     API_PRODUCT,
     AUTHZ_ENTITY,
     AUTHZ_POLICY,
-    CREDENTIAL,
     DICTIONARY,
     GENERIC_EVENT,
     LICENSE,
