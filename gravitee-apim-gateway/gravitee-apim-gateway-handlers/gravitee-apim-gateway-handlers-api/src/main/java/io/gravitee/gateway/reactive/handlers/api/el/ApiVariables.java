@@ -47,8 +47,25 @@ public class ApiVariables {
         return this.api.getApiVersion();
     }
 
+    /**
+     * The API properties, as exposed to EL by {@code #api.properties}.
+     *
+     * <p>Never {@code null}: an API whose definition has no properties gets an empty map, so
+     * {@code #api.properties['missing']} evaluates to nothing instead of failing with
+     * {@code EL1012E: Cannot index into a null value}. Expressions that relied on
+     * {@code #api.properties == null} to detect an API without properties are now always false;
+     * they must test the key they need instead, e.g. {@code #api.properties['key'] == null}.
+     *
+     * <p>Built lazily, on the first access, then reused: an API whose policies never read its
+     * properties allocates nothing. The empty map is a {@link TemplatedValueHashMap}, the same type
+     * as the populated one.
+     */
     public Map<String, String> getProperties() {
-        if (apiProperties == null && api.getDefinition().getProperties() != null) {
+        if (apiProperties == null) {
+            if (api.getDefinition().getProperties() == null) {
+                this.apiProperties = new TemplatedValueHashMap();
+                return this.apiProperties;
+            }
             this.apiProperties = api
                 .getDefinition()
                 .getProperties()
@@ -66,5 +83,10 @@ public class ApiVariables {
         }
 
         return this.apiProperties;
+    }
+
+    /** Whether the definition carries properties, without building the map {@link #getProperties()} returns. */
+    boolean hasDefinitionProperties() {
+        return api.getDefinition().getProperties() != null;
     }
 }
