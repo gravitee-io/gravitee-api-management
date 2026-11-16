@@ -1709,7 +1709,7 @@ paths:
                                 dimensions:
                                     - name: "API"
                                       label: "API"
-                                      apiTypes: ["A2A", "AUTHZ", "AUTHZ_DECISION", "EDGE", "HTTP_PROXY", "LLM", "MCP", "MESSAGE", "NATIVE"]
+                                      apiTypes: ["A2A", "AUTHZ", "EDGE", "HTTP_PROXY", "LLM", "MCP", "MESSAGE", "NATIVE"]
                                       origin: "BUILT_IN"
                                     - name: "HTTP_STATUS"
                                       label: "Status Code"
@@ -2843,8 +2843,9 @@ components:
                     type: array
                     description: |
                         API kinds this filter is relevant to. Always filled on `BUILT_IN` entries. On a
-                        `DECLARED` or `DISCOVERED` entry, the kinds its `namespace` ties the key to; empty when
-                        the namespace says nothing, since documents do not record which API kind wrote a key:
+                        `DECLARED` or `DISCOVERED` entry, the kinds its `namespace` ties the key to; `[]` when it
+                        is not tied to a kind (unknown namespace), since documents do not record which API kind
+                        wrote a key:
                         such an entry applies to the request rows of every API kind and never to the decisions
                         screen (`AUTHZ_DECISION`). A narrowing `apiType` query keeps an entry carrying kinds when
                         the request shares one, and an entry carrying none for any API kind, dropping it for
@@ -4085,9 +4086,9 @@ components:
                 dimensions:
                     type: array
                     description: |
-                        Every facet the returned metrics can be grouped by, with its label, the API kinds it is tied
-                        to and, on a `DECLARED` or `DISCOVERED` entry, the namespace, description and last sighting
-                        of its key.
+                        Every facet the returned metrics can be grouped by, with its label, the API kinds it is
+                        offered for (see `DimensionDefinition.apiTypes`) and, on a `DECLARED` or `DISCOVERED` entry,
+                        the namespace, description and last sighting of its key.
                     items:
                         $ref: "#/components/schemas/DimensionDefinition"
                 truncated:
@@ -4212,7 +4213,7 @@ components:
         DimensionDefinition:
             type: object
             description: |
-                A facet a metric can be grouped by, with its label, the API kinds it is tied to and, on a
+                A facet a metric can be grouped by, with its label, the API kinds it is offered for and, on a
                 `DECLARED` or `DISCOVERED` entry, the namespace, description and last sighting of its key.
             required: [name, label, apiTypes, origin]
             properties:
@@ -4236,11 +4237,15 @@ components:
                 apiTypes:
                     type: array
                     description: |
-                        API kinds the facet is tied to, sorted: the same values `GET /filters/definition` serves for
-                        the filter of the same name. On a `DECLARED` or `DISCOVERED` entry, the kinds its `namespace`
-                        ties the key to, none when the namespace says nothing; on a built-in, the kinds of the
-                        built-in filter of its name (`LLM_PROXY_MODEL` → `["LLM"]`, `HTTP_STATUS` → the HTTP family,
-                        `API` → every kind), none when no filter carries that name.
+                        The API kinds this dimension is offered for, sorted. On a built-in: those of the engine
+                        metrics that can be grouped by it, narrowed for a kind-specific field (LLM, MCP, API
+                        product) to the kinds its filter declares (`LLM_PROXY_MODEL` → `["LLM"]`, `HTTP_STATUS` →
+                        the HTTP family, `API` → every API kind). A document without the field drops out of the
+                        grouping. They are the same whatever `apiType` and `origin` are asked: on `?apiType=EDGE`,
+                        an additional metric is grouped by HTTP dimensions not offered for `EDGE`. On a `DECLARED`
+                        or `DISCOVERED` entry, the kinds its `namespace` ties the key to, as `GET
+                        /filters/definition` serves them for the key; `[]` when it is not tied to a kind (unknown
+                        namespace).
                     items:
                         $ref: "#/components/schemas/ApiType"
                 origin:
@@ -4560,8 +4565,8 @@ components:
                     description: |
                         API kinds of a `BUILT_IN` entry, so a module can keep those of its scope; on a `DECLARED`
                         or `DISCOVERED` entry, every kind its `namespace` ties the key to, whether or not the
-                        engine measures such a field for it; empty when the namespace says nothing, documents not
-                        recording which API kind wrote a key.
+                        engine measures such a field for it; `[]` when it is not tied to a kind (unknown
+                        namespace), documents not recording which API kind wrote a key.
                     items:
                         $ref: "#/components/schemas/ApiType"
 

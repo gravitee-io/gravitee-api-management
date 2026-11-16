@@ -35,6 +35,7 @@ import io.gravitee.gamma.rest.core.observability.catalog.model.DiscoveredAdditio
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -462,7 +463,7 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
 
         @Test
         void should_add_them_to_the_facets_of_the_built_in_the_additional_metrics_take_theirs_from_and_of_every_additional_metric() {
-            givenBuiltIn(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF, HTTP_KINDS, "API");
+            givenBuiltIn(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF, HTTP_KINDS, "API", "HTTP_STATUS");
             givenBuiltIn("HTTP_ERRORS", HTTP_KINDS, "API");
             fixture.givenDeclared(PROTOCOL_VERSION);
             fixture.ports.givenDiscovered(
@@ -478,6 +479,7 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
             var facetsOf = facetNamesByMetric(definition);
             assertThat(facetsOf.get(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF)).containsExactly(
                 "API",
+                "HTTP_STATUS",
                 PROTOCOL_VERSION,
                 "additional-metrics.bool_pii_detected"
             );
@@ -492,15 +494,15 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
                 .extracting(DimensionDefinition::name, DimensionDefinition::label, DimensionDefinition::origin)
                 .containsExactly(
                     tuple("API", "API label", CatalogOrigin.BUILT_IN),
+                    tuple("HTTP_STATUS", "HTTP_STATUS label", CatalogOrigin.BUILT_IN),
                     tuple(PROTOCOL_VERSION, "Endpoint protocol version", CatalogOrigin.DECLARED),
-                    tuple("additional-metrics.bool_pii_detected", "Detected", CatalogOrigin.DISCOVERED),
-                    tuple("HTTP_STATUS", "HTTP_STATUS label", CatalogOrigin.BUILT_IN)
+                    tuple("additional-metrics.bool_pii_detected", "Detected", CatalogOrigin.DISCOVERED)
                 );
         }
 
         /** The dimension picker groups a facet by the same namespace and kinds the filter catalog serves for its key. */
         @Test
-        void should_serve_the_namespace_and_kinds_of_a_dynamic_dimension_and_none_on_a_built_in_or_an_unknown_namespace() {
+        void should_serve_the_namespace_and_kinds_of_a_dynamic_dimension_and_none_on_an_unknown_namespace() {
             givenBuiltIn(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF, HTTP_KINDS, "API");
             fixture.givenDeclared(PROTOCOL_VERSION);
             fixture.ports.givenDiscovered(
@@ -517,7 +519,7 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
             assertThat(definition.dimensions())
                 .extracting(DimensionDefinition::name, DimensionDefinition::namespace, DimensionDefinition::apiTypes)
                 .containsExactlyInAnyOrder(
-                    tuple("API", null, Set.of()),
+                    tuple("API", null, Set.copyOf(HTTP_KINDS)),
                     tuple(PROTOCOL_VERSION, "mcp-proxy", Set.of(ApiType.MCP)),
                     tuple("additional-metrics.bool_pii_detected", "pii", Set.of(ApiType.LLM)),
                     tuple(
@@ -575,7 +577,7 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
         /** A facet of one kind goes with the metrics of that kind, and with those tied to none. */
         @Test
         void should_group_an_additional_metric_by_the_facets_of_its_kinds_only() {
-            givenBuiltIn(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF, HTTP_KINDS, "API");
+            givenBuiltIn(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF, HTTP_KINDS, "API", "HTTP_STATUS");
             fixture.ports.givenDiscovered(
                 List.of(
                     discovered("keyword_llm-proxy_model-family", AdditionalMetricValueType.KEYWORD),
@@ -607,6 +609,7 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
             assertThat(facetsOf.get("additional-metrics.double_risk-score")).isEqualTo(facetsOf.get(FAILOVER));
             assertThat(facetsOf.get(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF)).containsExactlyInAnyOrder(
                 "API",
+                "HTTP_STATUS",
                 "additional-metrics.keyword_llm-proxy_model-family",
                 PROTOCOL_VERSION,
                 "additional-metrics.keyword_fraud-check_tier"
@@ -616,7 +619,7 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
         /** The built-in takes the facets of its own kinds, like an additional metric: a request mixing kinds adds none of another. */
         @Test
         void should_group_the_built_in_by_the_facets_of_its_kinds_only_when_the_request_mixes_kinds() {
-            givenBuiltIn(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF, HTTP_KINDS, "API");
+            givenBuiltIn(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF, HTTP_KINDS, "API", "HTTP_STATUS");
             givenBuiltIn("NATIVE_CONNECTIONS", List.of(ApiType.NATIVE), "API");
             fixture.ports.givenDiscovered(
                 List.of(
@@ -632,6 +635,7 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
             var facetsOf = facetNamesByMetric(definition);
             assertThat(facetsOf.get(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF)).containsExactlyInAnyOrder(
                 "API",
+                "HTTP_STATUS",
                 "additional-metrics.keyword_fraud-check_tier"
             );
             assertThat(facetsOf.get("NATIVE_CONNECTIONS")).containsExactly("API");
@@ -673,9 +677,41 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
     @Nested
     class Origins {
 
+        /**
+         * A built-in dimension is offered for the kinds of the catalog metrics grouped by it, whatever is asked: the
+         * additional metrics served for Edge and grouped by {@code HTTP_STATUS} do not make it an Edge dimension, and
+         * narrowing to some origins drops none of its kinds.
+         */
+        @Test
+        void should_offer_a_built_in_dimension_for_the_kinds_of_the_catalog_metrics_whatever_kinds_and_origins_are_asked() {
+            givenBuiltIn(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF, HTTP_KINDS, "API", "HTTP_STATUS", "LLM_PROXY_MODEL");
+            givenBuiltIn("EDGE_DETECTION_COUNT", List.of(ApiType.EDGE), "API");
+            fixture.ports.givenDiscovered(List.of(discovered("double_risk-score", AdditionalMetricValueType.DOUBLE)), false);
+            var httpAndEdge = new ArrayList<>(HTTP_KINDS);
+            httpAndEdge.add(ApiType.EDGE);
+
+            for (var kinds : List.of(Set.of(ApiType.EDGE), Set.of(ApiType.HTTP_PROXY), Set.of(ApiType.LLM, ApiType.EDGE))) {
+                for (var origins : List.of(Set.<CatalogOrigin>of(), Set.of(CatalogOrigin.BUILT_IN))) {
+                    var definition = useCase
+                        .execute(new GetObservabilityAnalyticsDefinitionUseCase.Input(ORGANIZATION, ENVIRONMENT, kinds, origins))
+                        .definition();
+
+                    var kindsByDimension = definition
+                        .dimensions()
+                        .stream()
+                        .collect(Collectors.toMap(DimensionDefinition::name, DimensionDefinition::apiTypes));
+                    assertThat(kindsByDimension.get("HTTP_STATUS"))
+                        .as(kinds + " " + origins)
+                        .containsExactlyInAnyOrderElementsOf(HTTP_KINDS);
+                    assertThat(kindsByDimension.get("API")).as(kinds + " " + origins).containsExactlyInAnyOrderElementsOf(httpAndEdge);
+                    assertThat(kindsByDimension.get("LLM_PROXY_MODEL")).as(kinds + " " + origins).containsExactly(ApiType.LLM);
+                }
+            }
+        }
+
         @Test
         void should_keep_the_metrics_and_dimensions_of_the_asked_origins_only_once_the_definition_is_built() {
-            givenBuiltIn(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF, HTTP_KINDS, "API");
+            givenBuiltIn(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF, HTTP_KINDS, "API", "HTTP_STATUS");
             fixture.givenDeclared(BASKET);
             fixture.ports.givenDiscovered(
                 List.of(
@@ -712,13 +748,13 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
             assertThat(discoveredOnly.truncated()).as("the discovery pass is the same whatever origins are kept").isTrue();
             assertThat(metricNames(builtInOnly.definition())).containsExactly(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF);
             assertThat(builtInOnly.definition().dimensions())
-                .as("the built-in facets, those of the dropped additional metric included")
+                .as("the built-in facets")
                 .extracting(DimensionDefinition::name)
                 .containsExactly("API", "HTTP_STATUS");
             assertThat(builtInOnly.definition().families().getFirst().metrics().getFirst().facets())
                 .as("a kept metric still names every facet it is grouped by")
                 .extracting(DimensionDefinition::name)
-                .containsExactly("API", "additional-metrics.keyword_fraud-check_tier");
+                .containsExactly("API", "HTTP_STATUS", "additional-metrics.keyword_fraud-check_tier");
         }
 
         /** The facet rides on a built-in metric, dropped by the narrowing: the dimension is an entry of its own. */

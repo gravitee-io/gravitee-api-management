@@ -19,7 +19,10 @@ import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import java.util.List;
 
-/** Catalog metrics for tests: each name and facet is labelled "{@code <name> label}". */
+/**
+ * Catalog metrics for tests: each name and facet is labelled "{@code <name> label}", each facet offered for the
+ * metric's kinds as the engine catalog would offer it were the metric the only one grouped by it.
+ */
 public final class MetricDefinitionFixtures {
 
     private MetricDefinitionFixtures() {}
@@ -37,7 +40,7 @@ public final class MetricDefinitionFixtures {
             List.of("COUNT", "AVG"),
             List.of(facets)
                 .stream()
-                .map(facet -> new DimensionDefinition(facet, facet + " label", CatalogOrigin.BUILT_IN))
+                .map(facet -> DimensionDefinition.builtIn(facet, facet + " label", apiTypes))
                 .toList(),
             List.of("API", "API_TYPE"),
             CatalogOrigin.BUILT_IN

@@ -17,7 +17,9 @@ package io.gravitee.gamma.rest.core.observability.analytics.model;
 
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
+import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -26,9 +28,9 @@ import java.util.Set;
  * @param description the record's description on a {@code DECLARED} facet; {@code null} otherwise
  * @param namespace the namespace of an additional metric field, as the catalog serves it
  *             ({@code AdditionalMetricNamespace}); {@code null} on a built-in and when unknown
- * @param apiTypes the kinds the facet is tied to, as the filter catalog serves them for the filter of the same name:
- *             on an additional metric field, those its namespace ties it to, none when the namespace says nothing;
- *             on a built-in, those of the filter of its name, none when there is no such filter
+ * @param apiTypes the kinds the facet is offered for: on an additional metric field, those its namespace ties it to,
+ *             as the filter catalog serves them for the key, none when the namespace says nothing; on a built-in, those
+ *             {@link #builtIn} gives, whatever the request
  * @param lastSeen when a document of the environment last carried the key of a {@code DECLARED} or {@code DISCOVERED}
  *             facet, as the filter catalog serves it: to a traffic reader only, {@code null} otherwise and on a built-in
  * @author GraviteeSource Team
@@ -42,8 +44,19 @@ public record DimensionDefinition(
     Instant lastSeen,
     CatalogOrigin origin
 ) {
-    /** A facet tied to no kind: a built-in, or an additional metric field of no known namespace. */
+    /** An additional metric field of no known namespace, tied to no kind. */
     public DimensionDefinition(String name, String label, CatalogOrigin origin) {
         this(name, label, null, null, Set.of(), null, origin);
+    }
+
+    /**
+     * A facet of the engine catalog, offered for the kinds of the engine metrics grouped by it ({@code listingKinds}),
+     * or for a kind-specific field, the kinds its filter declares ({@link StaticFilters#kindSpecificApiTypes}): the
+     * engine carries the LLM and MCP proxy fields on every HTTP connection document, the product reads them for LLM
+     * and MCP traffic only.
+     */
+    public static DimensionDefinition builtIn(String name, String label, Collection<ApiType> listingKinds) {
+        var kinds = StaticFilters.kindSpecificApiTypes(name).orElseGet(() -> Set.copyOf(listingKinds));
+        return new DimensionDefinition(name, label, null, null, kinds, null, CatalogOrigin.BUILT_IN);
     }
 }

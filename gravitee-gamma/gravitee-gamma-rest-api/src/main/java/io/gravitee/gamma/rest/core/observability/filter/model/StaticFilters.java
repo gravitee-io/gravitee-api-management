@@ -24,7 +24,9 @@ import static io.gravitee.gamma.rest.core.observability.filter.model.FilterOpera
 
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec.EnumValue;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec.Range;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -350,6 +352,28 @@ public enum StaticFilters {
     /** A query using one of these, as condition or facet, reads the calls themselves. */
     public static Set<String> identifying() {
         return IDENTIFYING;
+    }
+
+    /**
+     * Fields the product ties to fewer kinds than the engine carries them for: every HTTP connection document holds
+     * the LLM and MCP proxy fields and the API product, but they describe LLM, MCP and product traffic.
+     */
+    private static final Set<StaticFilters> KIND_SPECIFIC = EnumSet.of(
+        LLM_PROXY_MODEL,
+        LLM_PROXY_PROVIDER,
+        MCP_PROXY_METHOD,
+        MCP_PROXY_TOOL,
+        MCP_PROXY_RESOURCE,
+        MCP_PROXY_PROMPT,
+        API_PRODUCT
+    );
+
+    /** The kinds this catalog declares on a kind-specific field; empty for every other field. */
+    public static Optional<Set<ApiType>> kindSpecificApiTypes(String field) {
+        return KIND_SPECIFIC.stream()
+            .filter(filter -> filter.name().equals(field))
+            .findFirst()
+            .map(filter -> filter.apiTypes);
     }
 
     /**

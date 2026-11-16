@@ -116,7 +116,11 @@ class AnalyticsDefinitionResourceTest extends AbstractResourceTest {
         assertThat(body.get("dimensions").get(1).get("name").asText()).isEqualTo("LLM_PROXY_MODEL");
         assertThat(body.get("dimensions").get(1).get("label").asText()).isEqualTo("LLM_PROXY_MODEL label");
         assertThat(body.get("dimensions").get(1).get("origin").asText()).isEqualTo("BUILT_IN");
-        assertThat(body.get("dimensions").get(1).get("apiTypes")).isEmpty();
+        assertThat(body.get("dimensions").get(1).get("apiTypes")).extracting(JsonNode::asText).containsExactly("LLM");
+        assertThat(body.get("dimensions").get(0).get("apiTypes"))
+            .as("as the definition gives them, sorted")
+            .extracting(JsonNode::asText)
+            .containsExactly("HTTP_PROXY", "LLM");
         assertThat(body.get("dimensions").get(1).has("namespace")).isFalse();
         assertThat(body.get("dimensions").get(1).has("description")).isFalse();
         assertThat(body.get("dimensions").get(1).has("lastSeen")).isFalse();

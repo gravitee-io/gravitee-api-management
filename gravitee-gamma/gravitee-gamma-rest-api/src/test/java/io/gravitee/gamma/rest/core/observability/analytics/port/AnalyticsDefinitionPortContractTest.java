@@ -26,6 +26,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -135,6 +136,41 @@ public abstract class AnalyticsDefinitionPortContractTest {
                 }
             });
         }
+    }
+
+    /**
+     * A built-in facet is offered for kinds of its own, never none (which reads as every kind) and never the decisions
+     * screen's: the same whichever kind's metrics list it, so no request changes them.
+     */
+    @Test
+    void should_offer_a_built_in_facet_for_the_same_api_kinds_under_every_kind() {
+        Map<String, Set<ApiType>> kindsByFacet = new HashMap<>();
+        for (var kind : ApiType.API_KINDS) {
+            for (var metric : port().metricsOf(kind)) {
+                for (var facet : metric.facets()) {
+                    assertThat(facet.apiTypes()).as(facet.name()).isNotEmpty().isSubsetOf(ApiType.API_KINDS);
+                    var first = kindsByFacet.putIfAbsent(facet.name(), facet.apiTypes());
+                    if (first != null) {
+                        assertThat(facet.apiTypes()).as(kind + " " + metric.name() + " by " + facet.name()).isEqualTo(first);
+                    }
+                }
+            }
+        }
+        assertThat(kindsByFacet).isNotEmpty();
+    }
+
+    /** An additional metric is grouped like the built-in it takes its dimensions from: the same facets, offered alike. */
+    @Test
+    void should_serve_the_additional_metric_facets_as_the_built_in_they_are_taken_from() {
+        var support = port().additionalMetricSupport();
+
+        var dimensionsOf = port()
+            .builtInMetrics()
+            .stream()
+            .filter(metric -> metric.name().equals(support.dimensionsOf()))
+            .findFirst()
+            .orElseThrow();
+        assertThat(support.facets()).containsExactlyElementsOf(dimensionsOf.facets());
     }
 
     @Test
