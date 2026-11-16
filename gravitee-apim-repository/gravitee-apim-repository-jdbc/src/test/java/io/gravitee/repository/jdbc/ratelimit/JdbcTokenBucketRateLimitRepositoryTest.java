@@ -65,6 +65,12 @@ class JdbcTokenBucketRateLimitRepositoryTest extends AbstractTokenBucketRateLimi
         }
         String managementPrefix = graviteeProperties.getProperty("management.jdbc.prefix", "");
         String rateLimitPrefix = graviteeProperties.getProperty("ratelimit.jdbc.prefix", "");
+
+        final String previousChangeLogTableName = System.getProperty("liquibase.databaseChangeLogTableName");
+        final String previousChangeLogLockTableName = System.getProperty("liquibase.databaseChangeLogLockTableName");
+        final String previousGraviteePrefix = System.getProperty("gravitee_prefix");
+        final String previousGraviteeRateLimitPrefix = System.getProperty("gravitee_rate_limit_prefix");
+
         System.setProperty("liquibase.databaseChangeLogTableName", managementPrefix + "databasechangelog");
         System.setProperty("liquibase.databaseChangeLogLockTableName", managementPrefix + "databasechangeloglock");
         System.setProperty("gravitee_prefix", managementPrefix);
@@ -78,7 +84,20 @@ class JdbcTokenBucketRateLimitRepositoryTest extends AbstractTokenBucketRateLimi
             ).update((Contexts) null);
         } catch (Exception e) {
             throw new IllegalStateException("Failed to set up the JDBC schema via Liquibase", e);
+        } finally {
+            restoreProperty("liquibase.databaseChangeLogTableName", previousChangeLogTableName);
+            restoreProperty("liquibase.databaseChangeLogLockTableName", previousChangeLogLockTableName);
+            restoreProperty("gravitee_prefix", previousGraviteePrefix);
+            restoreProperty("gravitee_rate_limit_prefix", previousGraviteeRateLimitPrefix);
         }
         schemaReady = true;
+    }
+
+    private static void restoreProperty(String key, String previousValue) {
+        if (previousValue == null) {
+            System.clearProperty(key);
+        } else {
+            System.setProperty(key, previousValue);
+        }
     }
 }
