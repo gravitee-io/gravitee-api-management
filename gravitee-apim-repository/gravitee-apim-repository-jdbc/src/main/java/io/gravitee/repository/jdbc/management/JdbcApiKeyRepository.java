@@ -519,7 +519,16 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("JdbcApiKeyRepository.deleteByEnvironmentId({})", environmentId);
         try {
-            final var keyIds = deleteWhere("environment_id", environmentId);
+            final var keyIds = jdbcTemplate.queryForList(
+                "select id from " + escapeReservedWord(this.tableName) + " where environment_id = ?",
+                String.class,
+                environmentId
+            );
+
+            if (!keyIds.isEmpty()) {
+                deleteSubscriptionLinks(keyIds);
+                jdbcTemplate.update("delete from " + escapeReservedWord(tableName) + " where environment_id = ?", environmentId);
+            }
             log.debug("JdbcApiKeyRepository.deleteByEnvironmentId({}) - Done", environmentId);
             return keyIds;
         } catch (final Exception ex) {
@@ -532,7 +541,16 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     public List<String> deleteByApplication(String applicationId) throws TechnicalException {
         log.debug("JdbcApiKeyRepository.deleteByApplication({})", applicationId);
         try {
-            final var keyIds = deleteWhere("application", applicationId);
+            final var keyIds = jdbcTemplate.queryForList(
+                "select id from " + escapeReservedWord(this.tableName) + " where application = ?",
+                String.class,
+                applicationId
+            );
+
+            if (!keyIds.isEmpty()) {
+                deleteSubscriptionLinks(keyIds);
+                jdbcTemplate.update("delete from " + escapeReservedWord(tableName) + " where application = ?", applicationId);
+            }
             log.debug("JdbcApiKeyRepository.deleteByApplication({}) - Done", applicationId);
             return keyIds;
         } catch (final Exception ex) {
@@ -541,25 +559,12 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         }
     }
 
-    /**
-     * @param column a column of the keys table, never user input
-     * @return the ids of the deleted keys
-     */
-    private List<String> deleteWhere(String column, String value) {
-        final var keyIds = jdbcTemplate.queryForList(
-            "select id from " + escapeReservedWord(this.tableName) + " where " + column + " = ?",
-            String.class,
-            value
+    /** {@code key_subscriptions} has no foreign key to {@code keys}: its rows have to go before the keys they link. */
+    private void deleteSubscriptionLinks(List<String> keyIds) {
+        jdbcTemplate.update(
+            "delete from " + keySubscriptions + " where key_id IN (" + getOrm().buildInClause(keyIds) + ")",
+            keyIds.toArray()
         );
-
-        if (!keyIds.isEmpty()) {
-            jdbcTemplate.update(
-                "delete from " + keySubscriptions + " where key_id IN (" + getOrm().buildInClause(keyIds) + ")",
-                keyIds.toArray()
-            );
-            jdbcTemplate.update("delete from " + escapeReservedWord(tableName) + " where " + column + " = ?", value);
-        }
-        return keyIds;
     }
 
     private boolean addClause(boolean first, StringBuilder query) {
