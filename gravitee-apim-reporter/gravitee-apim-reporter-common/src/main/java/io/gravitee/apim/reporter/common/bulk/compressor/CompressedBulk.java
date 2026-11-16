@@ -15,7 +15,9 @@
  */
 package io.gravitee.apim.reporter.common.bulk.compressor;
 
+import io.gravitee.apim.reporter.common.bulk.transformer.TransformedReport;
 import io.vertx.rxjava3.core.buffer.Buffer;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -25,8 +27,13 @@ import java.util.Objects;
  *
  * @param compressed the compressed buffer.
  * @param countPerType a {@link Map} that contains the number of reports compressed per type.
+ * @param reports the reports of the bulk, in order, so that some of them can be sent again; empty when the compressor cannot give them back.
  */
-public record CompressedBulk(Buffer compressed, Map<String, Integer> countPerType) {
+public record CompressedBulk(Buffer compressed, Map<String, Integer> countPerType, List<TransformedReport> reports) {
+    public CompressedBulk(Buffer compressed, Map<String, Integer> countPerType) {
+        this(compressed, countPerType, List.of());
+    }
+
     @Override
     public String toString() {
         return Objects.toString(countPerType);

@@ -19,7 +19,10 @@ import io.gravitee.apim.reporter.common.bulk.backpressure.BulkDropper;
 import io.gravitee.apim.reporter.common.bulk.backpressure.FlowableBackPressureMemoryAware;
 import io.gravitee.apim.reporter.common.bulk.compressor.BulkCompressor;
 import io.gravitee.apim.reporter.common.bulk.compressor.CompressedBulk;
+import io.gravitee.apim.reporter.common.bulk.exception.BulkItemsFailureException;
+import io.gravitee.apim.reporter.common.bulk.exception.BulkItemsFailureException.ItemFailure;
 import io.gravitee.apim.reporter.common.bulk.exception.NonRetryableException;
+import io.gravitee.apim.reporter.common.bulk.exception.SendReportException;
 import io.gravitee.apim.reporter.common.bulk.sender.BulkSender;
 import io.gravitee.apim.reporter.common.bulk.transformer.BulkTransformer;
 import io.gravitee.apim.reporter.common.bulk.transformer.TransformedReport;
@@ -32,10 +35,12 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.processors.UnicastProcessor;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -48,6 +53,7 @@ import lombok.RequiredArgsConstructor;
 public class BulkProcessor extends AbstractService<BulkProcessor> {
 
     public static final double RETRY_FACTOR = 1.5;
+    private static final int MAX_LOGGED_REASONS = 10;
 
     private final BulkSender bulkSender;
     private final BulkConfiguration bulkConfiguration;
@@ -92,9 +98,18 @@ public class BulkProcessor extends AbstractService<BulkProcessor> {
 
     private Completable send(CompressedBulk bulk) {
         final AtomicInteger attempts = new AtomicInteger(0);
+        final AtomicReference<CompressedBulk> pending = new AtomicReference<>(bulk);
 
-        return Completable.defer(() -> bulkSender.send(bulk))
-            .doOnSubscribe(s -> log.debug("Sending bulk of reports [{}] (attempt {}).", bulk, attempts.get()))
+        return Completable.defer(() ->
+            bulkSender
+                .send(pending.get())
+                .onErrorResumeNext(throwable ->
+                    throwable instanceof BulkItemsFailureException failure
+                        ? keepFailedItems(pending, failure)
+                        : Completable.error(throwable)
+                )
+        )
+            .doOnSubscribe(s -> log.debug("Sending bulk of reports [{}] (attempt {}).", pending.get(), attempts.get()))
             .doOnComplete(() -> log.debug("Bulk of reports successfully sent."))
             .retryWhen(
                 RxHelper.retryExponentialBackoff(
@@ -103,9 +118,9 @@ public class BulkProcessor extends AbstractService<BulkProcessor> {
                     TimeUnit.MILLISECONDS,
                     RETRY_FACTOR,
                     t -> {
-                        log.warn("An error occurred when sending bulk of reports [{}]", bulk, t);
+                        log.warn("An error occurred when sending bulk of reports [{}]", pending.get(), t);
                         if (t instanceof NonRetryableException || attempts.incrementAndGet() > bulkConfiguration.maxRetries()) {
-                            bulkDropper.drop(bulk, BulkDropper.Reason.ERROR);
+                            bulkDropper.drop(pending.get(), BulkDropper.Reason.ERROR);
                             return false;
                         }
 
@@ -114,6 +129,43 @@ public class BulkProcessor extends AbstractService<BulkProcessor> {
                 )
             )
             .onErrorComplete();
+    }
+
+    /**
+     * Drops the reports the target rejected and keeps the ones worth sending again as the pending bulk.
+     * Completes when nothing is left to send; otherwise errors so that the pending bulk is retried.
+     */
+    private Completable keepFailedItems(AtomicReference<CompressedBulk> pending, BulkItemsFailureException failure) throws IOException {
+        final List<TransformedReport> reports = pending.get().reports();
+        final List<ItemFailure> failures = failure.failures();
+        if (failures.stream().anyMatch(item -> item.position() < 0 || item.position() >= reports.size())) {
+            return Completable.error(new SendReportException("Unable to identify the failed reports of the bulk", failure));
+        }
+
+        final List<ItemFailure> rejected = failures
+            .stream()
+            .filter(item -> !item.retryable())
+            .toList();
+        if (!rejected.isEmpty()) {
+            bulkDropper.drop(
+                rejected
+                    .stream()
+                    .map(item -> reports.get(item.position()))
+                    .toList(),
+                rejected.stream().map(ItemFailure::reason).distinct().limit(MAX_LOGGED_REASONS).toList()
+            );
+        }
+
+        final List<TransformedReport> retryable = failures
+            .stream()
+            .filter(ItemFailure::retryable)
+            .map(item -> reports.get(item.position()))
+            .toList();
+        if (retryable.isEmpty()) {
+            return Completable.complete();
+        }
+        pending.set(bulkCompressor.compress(retryable));
+        return Completable.error(failure);
     }
 
     @Override
