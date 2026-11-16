@@ -11,7 +11,7 @@
 <#-- @ftlvariable name="errorCountIncrement" type="java.lang.Long" -->
 <#-- @ftlvariable name="gatewayLatencyMs" type="java.lang.Long" -->
 <#if index??>
-{ "index" : { "_index" : "${index}", "_id" : "${documentId}"} }
+{ "${bulkOperation}" : { "_index" : "${index}", "_id" : "${documentId}"} }
 </#if>
 <@compress single_line=true>
 {
