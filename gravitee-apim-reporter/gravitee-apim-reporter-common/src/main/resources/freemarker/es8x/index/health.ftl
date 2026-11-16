@@ -10,7 +10,7 @@
     null</#if>
 </#macro>
 <#if index??>
-{ "index" : { "_index" : "${index}", "_id" : "${status.getId()}" } }
+{ "${bulkOperation}" : { "_index" : "${index}", "_id" : "${status.getId()}" } }
 </#if>
 <#--noinspection FtlReferencesInspection-->
 <@compress single_line=true>

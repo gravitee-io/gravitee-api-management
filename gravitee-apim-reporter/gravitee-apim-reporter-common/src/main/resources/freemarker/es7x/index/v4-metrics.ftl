@@ -18,7 +18,7 @@
 <#-- @ftlvariable name="documentId" type="java.lang.String" -->
 <#-- @ftlvariable name="connectionPhase" type="java.lang.String" -->
 <#if index??>
-{ "index" : { "_index" : "${index}", "_id" : "${documentId}"<#if pipeline??>, "pipeline" : "${pipeline}"</#if>} }
+{ "${bulkOperation}" : { "_index" : "${index}", "_id" : "${documentId}"<#if pipeline??>, "pipeline" : "${pipeline}"</#if>} }
 </#if>
 <@compress single_line=true>
 {

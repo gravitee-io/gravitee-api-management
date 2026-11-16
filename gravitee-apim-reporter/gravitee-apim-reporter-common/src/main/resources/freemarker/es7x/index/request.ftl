@@ -1,5 +1,5 @@
 <#if index??>
-{ "index" : { "_index" : "${index}", "_id" : "${metrics.getRequestId()}"<#if pipeline??>, "pipeline" : "${pipeline}"</#if>} }
+{ "${bulkOperation}" : { "_index" : "${index}", "_id" : "${metrics.getRequestId()}"<#if pipeline??>, "pipeline" : "${pipeline}"</#if>} }
 </#if>
 <@compress single_line=true>
 {

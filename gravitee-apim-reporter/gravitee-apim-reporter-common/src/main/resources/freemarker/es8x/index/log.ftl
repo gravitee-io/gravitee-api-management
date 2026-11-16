@@ -3,7 +3,7 @@
 <#-- @ftlvariable name="date" type="java.lang.String" -->
 <#-- @ftlvariable name="log" type="io.gravitee.reporter.api.log.Log" -->
 <#if index??>
-{ "index" : { "_index" : "${index}", "_id" : "${log.getRequestId()}" } }
+{ "${bulkOperation}" : { "_index" : "${index}", "_id" : "${log.getRequestId()}" } }
 </#if>
 <@compress single_line=true>
 {

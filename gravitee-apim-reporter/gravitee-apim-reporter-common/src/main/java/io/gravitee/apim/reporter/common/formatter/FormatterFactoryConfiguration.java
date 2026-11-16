@@ -16,6 +16,7 @@
 package io.gravitee.apim.reporter.common.formatter;
 
 import io.gravitee.apim.reporter.common.MetricsType;
+import io.gravitee.apim.reporter.common.formatter.elasticsearch.BulkOperation;
 import io.gravitee.reporter.api.configuration.Rules;
 import java.util.Map;
 import lombok.Builder;
@@ -25,11 +26,14 @@ import lombok.Singular;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Builder
+@Builder(toBuilder = true)
 public class FormatterFactoryConfiguration {
 
     @Builder.Default
     int elasticSearchVersion = 9;
+
+    @Builder.Default
+    BulkOperation bulkOperation = BulkOperation.INDEX;
 
     @Singular
     Map<MetricsType, Rules> rules;

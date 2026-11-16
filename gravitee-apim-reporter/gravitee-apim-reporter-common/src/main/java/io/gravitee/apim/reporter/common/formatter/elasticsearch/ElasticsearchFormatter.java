@@ -72,10 +72,17 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
 
     private final Node node;
 
+    private final BulkOperation bulkOperation;
+
     private final FreeMarkerComponent freeMarkerComponent;
 
     public ElasticsearchFormatter(Node node, int elasticSearchVersion) {
+        this(node, elasticSearchVersion, BulkOperation.INDEX);
+    }
+
+    public ElasticsearchFormatter(Node node, int elasticSearchVersion, BulkOperation bulkOperation) {
         this.node = node;
+        this.bulkOperation = bulkOperation;
         this.dtf = dtfWithDefaultZone("yyyy-MM-dd'T'HH:mm:ss.SSS[XXX]");
         this.sdf = dtfWithDefaultZone("yyyy.MM.dd");
 
@@ -385,6 +392,8 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
     private void addCommonFields(Map<String, Object> data, Reportable reportable, Map<String, Object> esOptions) {
         data.put(Fields.SPECIAL_TIMESTAMP, dtf.format(reportable.timestamp()));
         data.put(Fields.GATEWAY, node.id());
+
+        data.put("bulkOperation", bulkOperation.action());
 
         if (esOptions != null) {
             if (esOptions.get("index") != null) {

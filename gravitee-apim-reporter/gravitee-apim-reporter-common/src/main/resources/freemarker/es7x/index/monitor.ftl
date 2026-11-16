@@ -1,5 +1,5 @@
 <#if index??>
-{ "index" : { "_index" : "${index}" } }
+{ "${bulkOperation}" : { "_index" : "${index}" } }
 </#if>
 <@compress single_line=true>
 {

@@ -48,7 +48,7 @@ public class FormatterFactory {
             case CSV -> new CsvFormatter<>();
             case MESSAGE_PACK -> new MsgPackFormatter<>(configuration.getRules(metricsType));
             case JSON -> new JsonFormatter<>(configuration.getRules(metricsType));
-            case ELASTICSEARCH -> new ElasticsearchFormatter<>(node, configuration.elasticSearchVersion);
+            case ELASTICSEARCH -> new ElasticsearchFormatter<>(node, configuration.elasticSearchVersion, configuration.bulkOperation);
         };
     }
 }
