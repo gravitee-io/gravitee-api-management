@@ -115,8 +115,15 @@ public class JdbcPortalNavigationItemRepository
         }
     }
 
+    private static void requireReference(PortalNavigationItem item) {
+        if (item == null || item.getReferenceType() == null || item.getReferenceId() == null || item.getReferenceId().isBlank()) {
+            throw new IllegalStateException("Portal navigation item must have a reference type and id");
+        }
+    }
+
     @Override
     public PortalNavigationItem create(PortalNavigationItem item) throws TechnicalException {
+        requireReference(item);
         log.debug("JdbcPortalNavigationItemRepository.create({})", item.getId());
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
@@ -129,10 +136,8 @@ public class JdbcPortalNavigationItemRepository
 
     @Override
     public PortalNavigationItem update(PortalNavigationItem item) throws TechnicalException {
-        log.debug("JdbcPortalNavigationItemRepository.update({})", item == null ? null : item.getId());
-        if (item == null) {
-            throw new IllegalStateException("Unable to update null item");
-        }
+        requireReference(item);
+        log.debug("JdbcPortalNavigationItemRepository.update({})", item.getId());
         try {
             int rows = jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(item, item.getId()));
             if (rows == 0) {

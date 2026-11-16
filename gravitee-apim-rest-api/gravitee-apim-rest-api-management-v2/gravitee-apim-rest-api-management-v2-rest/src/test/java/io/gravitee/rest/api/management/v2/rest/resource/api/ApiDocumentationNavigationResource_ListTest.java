@@ -109,7 +109,7 @@ class ApiDocumentationNavigationResource_ListTest extends AbstractResourceTest {
                 assertThat(entity.getPublications())
                     .singleElement()
                     .satisfies(publication -> {
-                        assertThat(publication.getPortalId()).isEqualTo(PortalId.ZERO.toString());
+                        assertThat(publication.getPortalId()).isEqualTo(PortalId.of("11111111-1111-1111-1111-111111111111").toString());
                         assertThat(publication.getSectionName()).isEqualTo("APIs");
                         assertThat(publication.getPortalNavigationItem().getId()).isEqualTo(listing.getId().id());
                         assertThat(publication.getPortalNavigationItem().getParentId()).isEqualTo(section.getId().id());

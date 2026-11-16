@@ -46,6 +46,7 @@ public class BulkCreatePortalNavigationItemUseCase {
         final var environmentId = input.environmentId();
         final var expansion = creationExpansionDomainService.expand(input.items(), environmentId);
 
+        domainService.resolveOwners(organizationId, environmentId, expansion.itemsToCreate());
         validatorService.validateAll(expansion.itemsToCreate(), environmentId);
         var renderedParents = renderingDomainService.prepareRenderingParents(environmentId, expansion.itemsToCreate());
 

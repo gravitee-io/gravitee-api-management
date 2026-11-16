@@ -77,6 +77,7 @@ class PublishApiToPortalUseCaseTest {
 
     @BeforeEach
     void setUp() {
+        navigationPortals.givenDefaultPortalForNavigationFixtures();
         var pageContentCrudService = new PortalPageContentCrudServiceInMemory();
         var pageContentQueryService = PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage());
         var sourceDomainService = new PortalNavigationItemSourceDomainServiceInMemory();

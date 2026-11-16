@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.core.model.PortalPageContentFixtures;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -149,7 +150,7 @@ class ApiDocumentationNavigationItemResource_GetContentTest extends AbstractReso
 
     @Test
     void should_return_404_for_a_portal_owned_page() {
-        var portalPage = aPage(NavigationItemReference.defaultReference(), null);
+        var portalPage = aPage(new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")), null);
 
         Response response = getContentOf(portalPage.getId());
 

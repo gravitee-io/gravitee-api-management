@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.domain_service;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -219,6 +220,7 @@ class PortalLinkSyncDomainServiceTest {
         navItemCrud.initWith(
             List.of(
                 PortalNavigationFolder.builder()
+                    .reference(PORTAL_REFERENCE)
                     .id(PortalNavigationItemId.of("22222222-2222-2222-2222-222222222222"))
                     .organizationId(AUDIT_INFO.organizationId())
                     .environmentId(AUDIT_INFO.environmentId())
@@ -251,6 +253,7 @@ class PortalLinkSyncDomainServiceTest {
         );
 
         var squatter = PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.of("33333333-3333-3333-3333-333333333333"))
             .organizationId(AUDIT_INFO.organizationId())
             .environmentId(AUDIT_INFO.environmentId())
@@ -461,6 +464,7 @@ class PortalLinkSyncDomainServiceTest {
         navItemCrud.initWith(
             List.of(
                 PortalNavigationFolder.builder()
+                    .reference(PORTAL_REFERENCE)
                     .id(parentFolderId)
                     .organizationId(AUDIT_INFO.organizationId())
                     .environmentId(AUDIT_INFO.environmentId())
@@ -498,6 +502,7 @@ class PortalLinkSyncDomainServiceTest {
 
     private PortalNavigationLink linkRow(String title, PortalNavigationItemId parentId, int order) {
         return PortalNavigationLink.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(AUDIT_INFO.organizationId())
             .environmentId(AUDIT_INFO.environmentId())

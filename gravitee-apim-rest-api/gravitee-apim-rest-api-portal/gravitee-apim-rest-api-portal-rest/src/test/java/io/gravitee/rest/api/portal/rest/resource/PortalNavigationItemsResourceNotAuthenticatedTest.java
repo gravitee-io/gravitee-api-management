@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.ApiProductQueryServiceInMemory;
@@ -113,6 +114,7 @@ public class PortalNavigationItemsResourceNotAuthenticatedTest extends AbstractR
     void should_not_return_private_api_product_in_catalog_search() {
         var apiProductId = "00000000-0000-0000-0000-000000000101";
         var item = PortalNavigationApiProduct.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000102"))
             .organizationId("org")
             .environmentId(ENV_ID)
@@ -150,6 +152,7 @@ public class PortalNavigationItemsResourceNotAuthenticatedTest extends AbstractR
     void should_not_return_private_api_product_in_category_filtered_catalog_search() {
         var apiProductId = "00000000-0000-0000-0000-000000000101";
         var item = PortalNavigationApiProduct.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000102"))
             .organizationId("org")
             .environmentId(ENV_ID)
@@ -188,6 +191,7 @@ public class PortalNavigationItemsResourceNotAuthenticatedTest extends AbstractR
     void should_return_public_api_product_in_category_filtered_catalog_search() {
         var apiProductId = "00000000-0000-0000-0000-000000000201";
         var item = PortalNavigationApiProduct.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000202"))
             .organizationId("org")
             .environmentId(ENV_ID)

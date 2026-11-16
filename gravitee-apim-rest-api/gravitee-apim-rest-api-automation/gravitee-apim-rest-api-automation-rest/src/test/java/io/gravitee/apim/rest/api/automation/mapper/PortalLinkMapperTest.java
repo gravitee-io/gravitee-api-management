@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.rest.api.automation.mapper;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -93,6 +94,7 @@ class PortalLinkMapperTest {
     @Test
     void get_state_copies_persisted_entity_fields() {
         var link = PortalNavigationLink.builder()
+            .reference(PORTAL_REFERENCE)
             .id(LINK_ID)
             .organizationId("organization-id")
             .environmentId("environment-id")
@@ -157,6 +159,7 @@ class PortalLinkMapperTest {
     @Test
     void get_state_returns_null_location_when_automation_metadata_is_null() {
         var link = PortalNavigationLink.builder()
+            .reference(PORTAL_REFERENCE)
             .id(LINK_ID)
             .organizationId("organization-id")
             .environmentId("environment-id")
@@ -285,6 +288,7 @@ class PortalLinkMapperTest {
 
     private static PortalNavigationLink aLink(PortalVisibility visibility) {
         return PortalNavigationLink.builder()
+            .reference(PORTAL_REFERENCE)
             .id(LINK_ID)
             .organizationId("organization-id")
             .environmentId("environment-id")

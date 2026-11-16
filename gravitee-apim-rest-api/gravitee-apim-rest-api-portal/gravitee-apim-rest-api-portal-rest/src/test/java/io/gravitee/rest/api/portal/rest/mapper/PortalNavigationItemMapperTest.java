@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.portal.model.PortalArea;
@@ -86,6 +87,7 @@ class PortalNavigationItemMapperTest {
         var category1 = PortalCategoryId.random();
         var category2 = PortalCategoryId.random();
         var api = PortalNavigationApi.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationFixtures.randomNavigationId())
             .organizationId("org")
             .environmentId("env")
@@ -111,6 +113,7 @@ class PortalNavigationItemMapperTest {
         var category1 = PortalCategoryId.random();
         var category2 = PortalCategoryId.random();
         var apiProduct = PortalNavigationApiProduct.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationFixtures.randomNavigationId())
             .organizationId("org")
             .environmentId("env")

@@ -78,6 +78,8 @@ class UnpublishApiFromPortalUseCaseTest {
         var pageContentQueryService = PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage());
         var sourceDomainService = new PortalNavigationItemSourceDomainServiceInMemory();
         var apiOwnedNavigationDomainService = new ApiOwnedNavigationDomainService(queryService, crudService);
+        var navigationPortals = new NavigationPortalDomainServiceInMemory();
+        navigationPortals.givenDefaultPortalForNavigationFixtures();
         var domainService = new PortalNavigationItemDomainService(
             crudService,
             queryService,
@@ -86,7 +88,7 @@ class UnpublishApiFromPortalUseCaseTest {
             apiCrudService,
             sourceDomainService,
             apiOwnedNavigationDomainService,
-            new NavigationPortalDomainServiceInMemory()
+            navigationPortals
         );
         var validatorService = new PortalNavigationItemValidatorService(
             queryService,

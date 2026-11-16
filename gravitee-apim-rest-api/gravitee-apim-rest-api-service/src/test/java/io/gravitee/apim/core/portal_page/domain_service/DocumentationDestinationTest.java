@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.DocumentationDestination.Parent;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference.ApiReference;
@@ -32,7 +33,9 @@ import org.junit.jupiter.params.provider.EnumSource;
 class DocumentationDestinationTest {
 
     private static final PortalNavigationItemId PARENT_ID = PortalNavigationItemId.random();
-    private static final NavigationItemReference PORTAL = NavigationItemReference.defaultReference();
+    private static final NavigationItemReference PORTAL = new NavigationItemReference.PortalReference(
+        PortalId.of("00000000-0000-0000-0000-000000000000")
+    );
     private static final ApiReference API = new ApiReference("api-a");
 
     @Test

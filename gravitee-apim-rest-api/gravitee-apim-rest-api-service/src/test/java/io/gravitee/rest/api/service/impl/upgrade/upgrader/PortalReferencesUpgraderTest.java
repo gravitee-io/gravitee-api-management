@@ -127,7 +127,7 @@ class PortalReferencesUpgraderTest {
             .id(PortalNavigationItemId.random())
             .organizationId(environment.getOrganizationId())
             .environmentId(environment.getId())
-            .reference(NavigationItemReference.defaultReference())
+            .reference(new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")))
             .title("Docs")
             .segment("docs")
             .area(PortalArea.TOP_NAVBAR)
@@ -176,7 +176,9 @@ class PortalReferencesUpgraderTest {
 
         assertThat(upgrader.upgrade()).isTrue();
 
-        assertThat(postponedItem.getReference()).isEqualTo(NavigationItemReference.defaultReference());
+        assertThat(postponedItem.getReference()).isEqualTo(
+            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000"))
+        );
         assertThat(movedItem.getReference()).isEqualTo(onPortal(PORTAL_B));
         assertThat(logLines(Level.WARN))
             .singleElement()
@@ -197,7 +199,9 @@ class PortalReferencesUpgraderTest {
 
         assertThat(upgrader.upgrade()).isTrue();
 
-        assertThat(keptItem.getReference()).isEqualTo(NavigationItemReference.defaultReference());
+        assertThat(keptItem.getReference()).isEqualTo(
+            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000"))
+        );
         assertThat(movedItem.getReference()).isEqualTo(onPortal(PORTAL_B));
         assertThat(logLines(Level.WARN))
             .singleElement()
@@ -275,7 +279,7 @@ class PortalReferencesUpgraderTest {
         givenEnvironments(ENV_A);
         givenPortal(PORTAL_A, ENV_A, true);
         var failingNavigation = mock(PortalNavigationItemCrudService.class);
-        when(failingNavigation.findReferencedPortalIds(any())).thenReturn(Set.of(PortalId.ZERO));
+        when(failingNavigation.findReferencedPortalIds(any())).thenReturn(Set.of(PortalId.of("00000000-0000-0000-0000-000000000000")));
         when(failingNavigation.updatePortalReferences(any(), any(), any())).thenThrow(new TechnicalManagementException("boom"));
         var failing = new PortalReferencesUpgrader(
             environmentRepository,

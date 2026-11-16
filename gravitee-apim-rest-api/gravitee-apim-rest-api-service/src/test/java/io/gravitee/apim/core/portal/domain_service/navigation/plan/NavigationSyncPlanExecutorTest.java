@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal.domain_service.navigation.plan;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
@@ -24,6 +25,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.domain_service.navigation.actions.FolderActions;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
@@ -88,7 +90,7 @@ class NavigationSyncPlanExecutorTest {
             AUDIT_INFO,
             PortalArea.TOP_NAVBAR,
             null,
-            NavigationItemReference.defaultReference(),
+            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")),
             path -> PortalNavigationItemId.random(),
             new DeleteStrategy(item -> false, false)
         );
@@ -116,7 +118,7 @@ class NavigationSyncPlanExecutorTest {
             AUDIT_INFO,
             PortalArea.TOP_NAVBAR,
             null,
-            NavigationItemReference.defaultReference(),
+            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")),
             path -> PortalNavigationItemId.random(),
             new DeleteStrategy(item -> false, false)
         );
@@ -136,7 +138,7 @@ class NavigationSyncPlanExecutorTest {
             AUDIT_INFO,
             PortalArea.TOP_NAVBAR,
             null,
-            NavigationItemReference.defaultReference(),
+            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")),
             path -> FIXED_ID,
             new DeleteStrategy(item -> false, false)
         );
@@ -157,7 +159,7 @@ class NavigationSyncPlanExecutorTest {
             AUDIT_INFO,
             PortalArea.TOP_NAVBAR,
             null,
-            NavigationItemReference.defaultReference(),
+            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")),
             path -> PortalNavigationItemId.random(),
             new DeleteStrategy(item -> false, false)
         );
@@ -178,7 +180,7 @@ class NavigationSyncPlanExecutorTest {
             AUDIT_INFO,
             PortalArea.TOP_NAVBAR,
             null,
-            NavigationItemReference.defaultReference(),
+            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")),
             path -> PortalNavigationItemId.random(),
             new DeleteStrategy(item -> false, false)
         );
@@ -200,7 +202,7 @@ class NavigationSyncPlanExecutorTest {
             AUDIT_INFO,
             PortalArea.TOP_NAVBAR,
             null,
-            NavigationItemReference.defaultReference(),
+            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")),
             path -> PortalNavigationItemId.random(),
             new DeleteStrategy(item -> false, false)
         );
@@ -220,7 +222,7 @@ class NavigationSyncPlanExecutorTest {
             AUDIT_INFO,
             PortalArea.TOP_NAVBAR,
             privateRoot,
-            NavigationItemReference.defaultReference(),
+            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")),
             path -> FIXED_ID,
             new DeleteStrategy(item -> false, false)
         );
@@ -247,7 +249,7 @@ class NavigationSyncPlanExecutorTest {
             AUDIT_INFO,
             PortalArea.TOP_NAVBAR,
             privateParent,
-            NavigationItemReference.defaultReference(),
+            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")),
             path -> PortalNavigationItemId.random(),
             new DeleteStrategy(item -> false, false)
         );
@@ -276,7 +278,7 @@ class NavigationSyncPlanExecutorTest {
             AUDIT_INFO,
             PortalArea.TOP_NAVBAR,
             null,
-            NavigationItemReference.defaultReference(),
+            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")),
             path -> PortalNavigationItemId.random(),
             new DeleteStrategy(item -> skipIds.contains(item.getId()), false)
         );
@@ -302,6 +304,7 @@ class NavigationSyncPlanExecutorTest {
         PortalVisibility visibility
     ) {
         return PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(id)
             .organizationId(AUDIT_INFO.organizationId())
             .environmentId(AUDIT_INFO.environmentId())

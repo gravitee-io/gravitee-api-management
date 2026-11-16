@@ -270,6 +270,7 @@ public class PortalNavigationItemRootIdUpgraderTest {
 
     private static PortalNavigationItem navItem(String id, String parentId, String rootId) {
         return PortalNavigationItem.builder()
+            .referenceId("00000000-0000-0000-0000-000000000000")
             .id(id)
             .organizationId("DEFAULT")
             .environmentId("DEFAULT")

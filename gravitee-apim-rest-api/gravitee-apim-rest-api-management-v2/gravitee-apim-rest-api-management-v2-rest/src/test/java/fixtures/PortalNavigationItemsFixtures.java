@@ -15,6 +15,8 @@
  */
 package fixtures;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
+
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
@@ -167,6 +169,7 @@ public class PortalNavigationItemsFixtures {
 
     public static PortalNavigationItem aPortalNavigationPage(String organizationId, String environmentId) {
         return PortalNavigationPage.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000001"))
             .organizationId(organizationId)
             .environmentId(environmentId)
@@ -183,6 +186,7 @@ public class PortalNavigationItemsFixtures {
 
     public static PortalNavigationItem aPortalNavigationFolder(String organizationId, String environmentId) {
         return PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000001"))
             .organizationId(organizationId)
             .environmentId(environmentId)
@@ -198,6 +202,7 @@ public class PortalNavigationItemsFixtures {
 
     public static PortalNavigationItem aPortalNavigationLink(String organizationId, String environmentId) {
         return PortalNavigationLink.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000001"))
             .organizationId(organizationId)
             .environmentId(environmentId)
@@ -214,6 +219,7 @@ public class PortalNavigationItemsFixtures {
 
     public static PortalNavigationItem aPortalNavigationApi(String organizationId, String environmentId) {
         return PortalNavigationApi.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000001"))
             .organizationId(organizationId)
             .environmentId(environmentId)
@@ -230,6 +236,7 @@ public class PortalNavigationItemsFixtures {
 
     public static PortalNavigationItem aPortalNavigationApiProduct(String organizationId, String environmentId) {
         return PortalNavigationApiProduct.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000018"))
             .organizationId(organizationId)
             .environmentId(environmentId)
@@ -246,6 +253,7 @@ public class PortalNavigationItemsFixtures {
 
     public static PortalNavigationItem aPrivatePortalNavigationPage(String organizationId, String environmentId) {
         return PortalNavigationPage.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000001"))
             .organizationId(organizationId)
             .environmentId(environmentId)

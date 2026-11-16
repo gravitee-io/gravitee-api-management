@@ -201,6 +201,7 @@ class PortalNavigationItemAutomationMetadataUpgraderTest {
     void should_ignore_non_page_nav_items() {
         PortalPageContent content = content("content-1", ORG, ENV, automationMetadata("api-1"));
         PortalNavigationItem folder = PortalNavigationItem.builder()
+            .referenceId("00000000-0000-0000-0000-000000000000")
             .id("folder-1")
             .organizationId(ORG)
             .environmentId(ENV)
@@ -255,6 +256,7 @@ class PortalNavigationItemAutomationMetadataUpgraderTest {
     void should_skip_page_with_unparsable_configuration() {
         PortalPageContent content = content("content-1", ORG, ENV, automationMetadata("api-1"));
         PortalNavigationItem malformedPage = PortalNavigationItem.builder()
+            .referenceId("00000000-0000-0000-0000-000000000000")
             .id("page-1")
             .organizationId(ORG)
             .environmentId(ENV)
@@ -295,6 +297,7 @@ class PortalNavigationItemAutomationMetadataUpgraderTest {
         AutomationMetadata automationMetadata
     ) {
         return PortalNavigationItem.builder()
+            .referenceId("00000000-0000-0000-0000-000000000000")
             .id(id)
             .organizationId(organizationId)
             .environmentId(environmentId)

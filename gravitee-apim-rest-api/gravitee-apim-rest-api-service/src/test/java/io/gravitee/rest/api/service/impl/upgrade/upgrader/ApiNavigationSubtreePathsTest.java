@@ -67,6 +67,7 @@ class ApiNavigationSubtreePathsTest {
         // hand happens to sit where automation would have written one. The child beneath it would only
         // be reachable if the walk (wrongly) descended anyway.
         var handCreated = PortalNavigationItem.builder()
+            .referenceId("00000000-0000-0000-0000-000000000000")
             .id("22222222-2222-2222-2222-222222222222")
             .organizationId(ORG)
             .environmentId(ENV)
@@ -90,6 +91,7 @@ class ApiNavigationSubtreePathsTest {
     @Test
     void gives_up_on_a_branch_with_a_blank_segment_instead_of_emitting_a_double_slash() {
         var blank = PortalNavigationItem.builder()
+            .referenceId("00000000-0000-0000-0000-000000000000")
             .id("33333333-3333-3333-3333-333333333333")
             .organizationId(ORG)
             .environmentId(ENV)
@@ -107,6 +109,7 @@ class ApiNavigationSubtreePathsTest {
     @Test
     void ignores_non_folder_children() {
         var page = PortalNavigationItem.builder()
+            .referenceId("00000000-0000-0000-0000-000000000000")
             .id("44444444-4444-4444-4444-444444444444")
             .organizationId(ORG)
             .environmentId(ENV)
@@ -140,6 +143,7 @@ class ApiNavigationSubtreePathsTest {
         var segment = path.substring(path.lastIndexOf('/') + 1);
         var id = HRIDToUUID.navigation().context(ORG, ENV).api(API_ID).folder(path).id();
         return PortalNavigationItem.builder()
+            .referenceId("00000000-0000-0000-0000-000000000000")
             .id(id)
             .organizationId(ORG)
             .environmentId(ENV)

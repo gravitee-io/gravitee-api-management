@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.domain_service;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
@@ -370,6 +371,7 @@ class PortalNavigationApiVisibilityDomainServiceTest {
 
     private PortalNavigationApi publishedApiNavItem(String apiId, PortalVisibility visibility) {
         return PortalNavigationApi.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)

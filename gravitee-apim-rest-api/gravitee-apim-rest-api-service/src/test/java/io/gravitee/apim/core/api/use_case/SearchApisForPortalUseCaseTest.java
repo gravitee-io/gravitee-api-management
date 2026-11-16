@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.ApiPortalSearchQueryServiceInMemory;
@@ -132,6 +133,7 @@ class SearchApisForPortalUseCaseTest {
 
     private PortalNavigationApi publishedApiNavItem(String apiId, PortalVisibility visibility) {
         return PortalNavigationApi.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)

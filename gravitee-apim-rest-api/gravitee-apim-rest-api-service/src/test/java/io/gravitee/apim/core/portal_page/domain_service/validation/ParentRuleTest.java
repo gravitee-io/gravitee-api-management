@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.domain_service.validation;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -109,6 +110,7 @@ class ParentRuleTest {
             .storage()
             .add(
                 PortalNavigationPage.builder()
+                    .reference(PORTAL_REFERENCE)
                     .id(FOLDER_ID)
                     .organizationId(ORG_ID)
                     .environmentId(ENV_ID)
@@ -541,6 +543,7 @@ class ParentRuleTest {
 
     private static PortalNavigationFolder folder(PortalNavigationItemId id, PortalArea area, PortalVisibility visibility) {
         return PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(id)
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -555,6 +558,7 @@ class ParentRuleTest {
 
     private static PortalNavigationPage pageExisting(PortalNavigationItemId id, PortalArea area, AutomationMetadata meta) {
         return PortalNavigationPage.builder()
+            .reference(PORTAL_REFERENCE)
             .id(id)
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -572,7 +576,7 @@ class ParentRuleTest {
     private static AutomationMetadata automationMeta() {
         return new AutomationMetadata(
             AutomationMetadata.ReferenceType.PORTAL,
-            PortalId.ZERO.toString(),
+            PortalId.of("00000000-0000-0000-0000-000000000000").toString(),
             "Doc",
             Optional.empty(),
             Optional.empty()

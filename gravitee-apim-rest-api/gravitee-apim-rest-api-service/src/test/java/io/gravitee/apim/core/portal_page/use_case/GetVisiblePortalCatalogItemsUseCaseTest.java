@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.use_case;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.ApiPortalSearchQueryServiceInMemory;
@@ -560,6 +561,7 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
 
     private PortalNavigationFolder folder(String id, String title, PortalNavigationItemId parentId) {
         return PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(navigationItemId(id))
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -585,6 +587,7 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
         List<PortalCategoryId> categoryIds
     ) {
         return PortalNavigationApi.builder()
+            .reference(PORTAL_REFERENCE)
             .id(navigationItemId(id))
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -617,6 +620,7 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
         List<PortalCategoryId> categoryIds
     ) {
         return PortalNavigationApiProduct.builder()
+            .reference(PORTAL_REFERENCE)
             .id(navigationItemId(id))
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)

@@ -522,6 +522,7 @@ class PortalNavigationItemApiOwnedConsoleMigrationUpgraderTest {
     /** A portal-owned item in the main navigation; its root is the top section, as for any item stored below it. */
     private static PortalNavigationItem item(String id, PortalNavigationItem.Type type, String parentId, int order, String segment) {
         return PortalNavigationItem.builder()
+            .referenceId("00000000-0000-0000-0000-000000000000")
             .id(id)
             .organizationId(ORG)
             .environmentId(ENV)

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static java.util.Arrays.asList;
@@ -595,6 +596,7 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         portalNavigationItemsQueryService.initWith(
             List.of(
                 PortalNavigationApiProduct.builder()
+                    .reference(PORTAL_REFERENCE)
                     .id(PortalNavigationItemId.random())
                     .organizationId("organization-id")
                     .environmentId(GraviteeContext.getCurrentEnvironment())

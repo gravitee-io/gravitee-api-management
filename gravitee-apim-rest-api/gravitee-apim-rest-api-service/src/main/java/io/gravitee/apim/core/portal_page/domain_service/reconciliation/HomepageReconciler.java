@@ -39,9 +39,10 @@ public class HomepageReconciler {
 
     /** Homepages that {@link #dropStaleHomepages} would remove, without removing them. */
     public List<PortalNavigationItem> findStaleHomepages(String environmentId, String portalId, PortalNavigationItemId activeHomepageId) {
-        return Stream.concat(
-            staleHomepagesMatching(environmentId, new NavigationItemReference.PortalReference(PortalId.of(portalId)), activeHomepageId),
-            staleHomepagesMatching(environmentId, NavigationItemReference.defaultReference(), activeHomepageId)
+        return staleHomepagesMatching(
+            environmentId,
+            new NavigationItemReference.PortalReference(PortalId.of(portalId)),
+            activeHomepageId
         ).toList();
     }
 

@@ -24,6 +24,7 @@ import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.repository.model.PortalNavigationItemsRepositoryFixtures;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -185,13 +186,13 @@ class PortalNavigationItemsQueryServiceImplTest {
             var repoItem = PortalNavigationItemsRepositoryFixtures.aFolder("00000000-0000-0000-0000-0000000000f1", "Console Home");
             repoItem.setEnvironmentId(envId);
             repoItem.setReferenceType(repoRefType);
-            repoItem.setReferenceId(io.gravitee.apim.core.portal.model.PortalId.ZERO.toString());
+            repoItem.setReferenceId(PortalId.of("00000000-0000-0000-0000-000000000000").toString());
             when(
                 repository.findAllTopLevelByAreaAndEnvironmentAndReference(
                     repoArea,
                     envId,
                     repoRefType,
-                    io.gravitee.apim.core.portal.model.PortalId.ZERO.toString()
+                    PortalId.of("00000000-0000-0000-0000-000000000000").toString()
                 )
             ).thenReturn(List.of(repoItem));
 
@@ -199,7 +200,7 @@ class PortalNavigationItemsQueryServiceImplTest {
                 envId,
                 PortalArea.HOMEPAGE,
                 new io.gravitee.apim.core.portal_page.model.NavigationItemReference.PortalReference(
-                    io.gravitee.apim.core.portal.model.PortalId.ZERO
+                    PortalId.of("00000000-0000-0000-0000-000000000000")
                 )
             );
 
@@ -243,7 +244,7 @@ class PortalNavigationItemsQueryServiceImplTest {
                     repoArea,
                     envId,
                     repoRefType,
-                    io.gravitee.apim.core.portal.model.PortalId.ZERO.toString()
+                    PortalId.of("00000000-0000-0000-0000-000000000000").toString()
                 )
             ).thenThrow(new TechnicalException("Database error"));
 
@@ -252,7 +253,7 @@ class PortalNavigationItemsQueryServiceImplTest {
                     envId,
                     PortalArea.HOMEPAGE,
                     new io.gravitee.apim.core.portal_page.model.NavigationItemReference.PortalReference(
-                        io.gravitee.apim.core.portal.model.PortalId.ZERO
+                        PortalId.of("00000000-0000-0000-0000-000000000000")
                     )
                 )
             )

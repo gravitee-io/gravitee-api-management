@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.use_case;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.PortalFixtures;
@@ -136,6 +137,7 @@ class ValidatePortalLinkUseCaseTest {
         navCrudService.initWith(
             List.of(
                 PortalNavigationFolder.builder()
+                    .reference(PORTAL_REFERENCE)
                     .id(PortalNavigationItemId.of("22222222-2222-2222-2222-222222222222"))
                     .organizationId(AUDIT_INFO.organizationId())
                     .environmentId(AUDIT_INFO.environmentId())

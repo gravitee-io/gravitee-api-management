@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.domain_service.validation;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -88,6 +89,7 @@ class SourcedPageDescendantsFinderTest {
 
     private PortalNavigationFolder aFolder(PortalNavigationItemId id, String title, PortalNavigationItemId parentId) {
         var folder = PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(id)
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -105,6 +107,7 @@ class SourcedPageDescendantsFinderTest {
 
     private PortalNavigationPage aPage(String title, PortalNavigationItemId parentId, PortalNavigationItemSource source) {
         var page = PortalNavigationPage.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)

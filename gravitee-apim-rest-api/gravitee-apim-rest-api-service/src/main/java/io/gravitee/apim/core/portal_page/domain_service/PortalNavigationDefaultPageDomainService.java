@@ -97,6 +97,7 @@ public class PortalNavigationDefaultPageDomainService {
             .visibility(navigationItem.getVisibility())
             .build();
         var normalized = creationExpansionDomainService.expand(List.of(candidate), environmentId).itemsToCreate().getFirst();
+        portalNavigationItemDomainService.resolveOwners(organizationId, environmentId, List.of(normalized));
         if (hasDocumentation(environmentId, navigationItemId, normalized.getReference())) {
             return false;
         }
@@ -131,6 +132,7 @@ public class PortalNavigationDefaultPageDomainService {
         CreatePortalNavigationItem page,
         String templatePath
     ) {
+        portalNavigationItemDomainService.resolveOwners(organizationId, environmentId, List.of(page));
         var content = GraviteeMarkdownPageContent.create(organizationId, environmentId, loadContent(templatePath));
         var toCreate = page.toBuilder().portalPageContentId(content.getId()).build();
 

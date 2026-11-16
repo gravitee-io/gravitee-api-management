@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.14.0_16_drop_default_reference_id_from_portal_navigation_items
+      author: GraviteeSource Team
+      changes:
+        - dropDefaultValue:
+            tableName: ${gravitee_prefix}portal_navigation_items
+            columnName: reference_id
+            columnDataType: nvarchar(64)

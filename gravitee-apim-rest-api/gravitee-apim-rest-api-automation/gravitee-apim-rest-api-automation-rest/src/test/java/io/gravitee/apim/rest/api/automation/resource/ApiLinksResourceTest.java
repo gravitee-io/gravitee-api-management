@@ -30,6 +30,7 @@ import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.use_case.CreateOrUpdateApiLinkUseCase;
@@ -74,6 +75,7 @@ class ApiLinksResourceTest extends AbstractResourceTest {
 
     private static PortalNavigationLink aPersistedLink() {
         return PortalNavigationLink.builder()
+            .reference(new NavigationItemReference.ApiReference(API_ID))
             .id(LINK_ID)
             .organizationId(ORGANIZATION)
             .environmentId(ENVIRONMENT)

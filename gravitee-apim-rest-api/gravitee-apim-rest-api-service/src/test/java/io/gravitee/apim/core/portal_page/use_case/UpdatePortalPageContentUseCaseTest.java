@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.use_case;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static fixtures.core.model.PortalPageContentFixtures.CONTENT_ID;
 import static fixtures.core.model.PortalPageContentFixtures.ENVIRONMENT_ID;
 import static fixtures.core.model.PortalPageContentFixtures.ORGANIZATION_ID;
@@ -97,6 +98,7 @@ class UpdatePortalPageContentUseCaseTest {
     @Test
     void should_reject_content_edit_when_page_is_managed_by_a_source() {
         var sourcedPage = io.gravitee.apim.core.portal_page.model.PortalNavigationPage.builder()
+            .reference(PORTAL_REFERENCE)
             .id(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.of("00000000-0000-0000-0000-00000000ff01"))
             .organizationId(ORGANIZATION_ID)
             .environmentId(ENVIRONMENT_ID)

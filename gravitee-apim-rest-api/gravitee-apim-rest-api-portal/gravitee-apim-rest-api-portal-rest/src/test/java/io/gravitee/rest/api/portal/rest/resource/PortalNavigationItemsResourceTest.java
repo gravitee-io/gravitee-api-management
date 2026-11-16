@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -288,6 +289,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     void should_return_paginated_api_navigation_items() {
         // Given
         var apiItem = PortalNavigationApi.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId("org")
             .environmentId(ENV_ID)
@@ -332,6 +334,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     void should_return_empty_results_when_query_matches_nothing() {
         // Given
         var apiItem = PortalNavigationApi.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId("org")
             .environmentId(ENV_ID)
@@ -360,6 +363,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     void should_return_all_api_navigation_items_when_no_category_id_param() {
         // Given
         var apiItem = PortalNavigationApi.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId("org")
             .environmentId(ENV_ID)
@@ -389,6 +393,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     void should_filter_api_navigation_items_by_known_category_id() {
         // Given
         var itemInCategory = PortalNavigationApi.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId("org")
             .environmentId(ENV_ID)
@@ -402,6 +407,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
             .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID_1)))
             .build();
         var itemOutsideCategory = PortalNavigationApi.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId("org")
             .environmentId(ENV_ID)
@@ -431,6 +437,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     void should_return_empty_results_when_category_id_does_not_match() {
         // Given
         var apiItem = PortalNavigationApi.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId("org")
             .environmentId(ENV_ID)
@@ -461,6 +468,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         // Given
         String apiId = "api-uuid-1";
         var apiItem = PortalNavigationApi.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId("org")
             .environmentId(ENV_ID)
@@ -542,6 +550,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     @Test
     void should_filter_catalog_api_items_by_known_category_id() {
         var itemInCategory = PortalNavigationApi.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId("org")
             .environmentId(ENV_ID)
@@ -555,6 +564,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
             .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID_1)))
             .build();
         var itemOutsideCategory = PortalNavigationApi.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId("org")
             .environmentId(ENV_ID)
@@ -587,6 +597,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     @Test
     void should_return_api_and_api_product_assigned_to_catalog_category() {
         var apiItem = PortalNavigationApi.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId("org")
             .environmentId(ENV_ID)

@@ -45,6 +45,7 @@ public class CreatePortalNavigationItemUseCase {
         final var environmentId = input.environmentId();
         final var expansion = creationExpansionDomainService.expand(List.of(input.item()), environmentId);
 
+        domainService.resolveOwners(organizationId, environmentId, expansion.itemsToCreate());
         validatorService.validateAll(expansion.itemsToCreate(), environmentId);
         var renderedParents = renderingDomainService.prepareRenderingParents(environmentId, expansion.itemsToCreate());
 

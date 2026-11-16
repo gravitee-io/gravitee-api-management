@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_listing.domain_service;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -377,6 +378,7 @@ class PortalListingSyncDomainServiceTest {
 
         var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, apiId, "/guides");
         var link = PortalNavigationLink.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.forApiLink(AUDIT_INFO, apiId, "external-docs"))
             .organizationId(AUDIT_INFO.organizationId())
             .environmentId(AUDIT_INFO.environmentId())
@@ -402,6 +404,7 @@ class PortalListingSyncDomainServiceTest {
 
     private static PortalNavigationFolder portalRootFolder(String title, String segment) {
         return PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(AUDIT_INFO.organizationId())
             .environmentId(AUDIT_INFO.environmentId())
@@ -659,6 +662,7 @@ class PortalListingSyncDomainServiceTest {
             var parentP = PortalNavigationItemId.forPortalFolder(AUDIT_INFO, PORTAL_ID.toString(), "/projects/alpha");
 
             var existingA = PortalNavigationApi.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(PortalNavigationItemId.forListingApi(AUDIT_INFO, PORTAL_ID.toString(), apiIdA))
                 .organizationId(AUDIT_INFO.organizationId())
                 .environmentId(AUDIT_INFO.environmentId())
@@ -850,6 +854,7 @@ class PortalListingSyncDomainServiceTest {
                     .type(PortalNavigationItemType.API)
                     .apiId(apiId)
                     .area(PortalArea.TOP_NAVBAR)
+                    .reference(section.getReference())
                     .parentId(section.getId())
                     .published(true)
                     .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
@@ -858,7 +863,7 @@ class PortalListingSyncDomainServiceTest {
             var portalOwned = itemDomainService.create(
                 AUDIT_INFO.organizationId(),
                 AUDIT_INFO.environmentId(),
-                aFolderToCreate("Guides", listing.getId()).build()
+                aFolderToCreate("Guides", listing.getId()).reference(section.getReference()).build()
             );
 
             syncService.syncApiFolders(AUDIT_INFO, apiId, List.of());

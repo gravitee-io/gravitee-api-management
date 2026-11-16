@@ -77,7 +77,7 @@ public class PortalNavigationItemDomainService {
      * written, so a refusal leaves no item of the batch behind.
      */
     public List<PortalNavigationItem> createAll(String organizationId, String environmentId, List<CreatePortalNavigationItem> items) {
-        nameOwners(organizationId, environmentId, items);
+        resolveOwners(organizationId, environmentId, items);
         return items
             .stream()
             .map(item -> create(organizationId, environmentId, item))
@@ -85,7 +85,7 @@ public class PortalNavigationItemDomainService {
     }
 
     public PortalNavigationItem create(String organizationId, String environmentId, CreatePortalNavigationItem createPortalNavigationItem) {
-        nameOwners(organizationId, environmentId, List.of(createPortalNavigationItem));
+        resolveOwners(organizationId, environmentId, List.of(createPortalNavigationItem));
         int sanitizedOrder = this.sanitizeOrderForInsertion(
             createPortalNavigationItem.getParentId(),
             environmentId,
@@ -211,36 +211,43 @@ public class PortalNavigationItemDomainService {
         return crudService.updateSourceFetchState(page.getId(), source, fetchState).orElse(page);
     }
 
-    /**
-     * The model default reference means the caller did not name the item's portal: it is stored on the portal
-     * the console writes to, which refuses a parent of another portal. PORTAL-345 removes that default.
-     */
-    private void nameOwners(String organizationId, String environmentId, List<CreatePortalNavigationItem> items) {
+    /** Resolves all missing owners before validating or creating the requested items and their content. */
+    public void resolveOwners(String organizationId, String environmentId, List<CreatePortalNavigationItem> items) {
         var unnamed = items
             .stream()
-            .filter(item -> NavigationItemReference.PortalReference.DEFAULT.equals(item.getReference()))
+            .filter(item -> item.getReference() == null)
             .toList();
         if (unnamed.isEmpty()) {
             return;
         }
         var portal = navigationPortalDomainService.resolveReference(organizationId, environmentId);
+        var pending = items
+            .stream()
+            .filter(item -> item.getId() != null)
+            .collect(Collectors.toMap(CreatePortalNavigationItem::getId, item -> item, (first, ignored) -> first));
         for (var item : unnamed) {
-            if (
-                item.getParentId() != null &&
-                belongsToAnotherPortal(queryService.findByIdAndEnvironmentId(environmentId, item.getParentId()), portal)
-            ) {
+            if (item.getParentId() == null) {
+                continue;
+            }
+            var pendingParent = pending.get(item.getParentId());
+            if (pendingParent != null) {
+                if (
+                    pendingParent.getReference() instanceof NavigationItemReference.PortalReference parentPortal &&
+                    !parentPortal.equals(portal)
+                ) {
+                    throw NavigationPortalNotResolvedException.foreignDestination(environmentId);
+                }
+            } else if (belongsToAnotherPortal(queryService.findByIdAndEnvironmentId(environmentId, item.getParentId()), portal)) {
                 throw NavigationPortalNotResolvedException.foreignDestination(environmentId);
             }
         }
         unnamed.forEach(item -> item.setReference(portal));
     }
 
-    /** A legacy parent, still on the zero UUID, belongs to no portal in particular. */
     private static boolean belongsToAnotherPortal(@Nullable PortalNavigationItem parent, NavigationItemReference.PortalReference portal) {
         return (
             parent != null &&
             parent.getReference() instanceof NavigationItemReference.PortalReference parentPortal &&
-            !NavigationItemReference.PortalReference.DEFAULT.equals(parentPortal) &&
             !parentPortal.equals(portal)
         );
     }
@@ -248,9 +255,7 @@ public class PortalNavigationItemDomainService {
     /**
      * At root level the sibling set must match what the navigation actually renders side by side, which
      * is every root in the area except the API subtrees spliced in elsewhere — not the rows sharing an
-     * identical reference. The reference-scoped query cannot express that: it matches on exact
-     * (type, id), so it would split a console-authored root (PortalId.ZERO) from a portal-attached link
-     * (the portal's own id) even though both render in the same ordered list.
+     * identical reference, since all portal roots still share the environment's root namespace.
      */
     private List<PortalNavigationItem> retrieveSiblingItems(
         PortalNavigationItemId parentId,
@@ -394,10 +399,6 @@ public class PortalNavigationItemDomainService {
         return resolved;
     }
 
-    /**
-     * An API item is left to {@link #newOwnerAt}. A row still on the zero UUID belongs to the portal the console
-     * writes to, whether it is the item or its new parent: a lookup is only needed in that case.
-     */
     private void refuseMoveToAnotherPortal(UpdatePortalNavigationItem requested, PortalNavigationItem existing) {
         if (
             !(existing.getReference() instanceof NavigationItemReference.PortalReference itemPortal) ||
@@ -412,16 +413,6 @@ public class PortalNavigationItemDomainService {
             parent == null ||
             !(parent.getReference() instanceof NavigationItemReference.PortalReference parentPortal) ||
             parentPortal.equals(itemPortal)
-        ) {
-            return;
-        }
-        var itemIsLegacy = NavigationItemReference.PortalReference.DEFAULT.equals(itemPortal);
-        var parentIsLegacy = NavigationItemReference.PortalReference.DEFAULT.equals(parentPortal);
-        if (
-            (itemIsLegacy || parentIsLegacy) &&
-            navigationPortalDomainService
-                .resolveReference(existing.getOrganizationId(), environmentId)
-                .equals(itemIsLegacy ? parentPortal : itemPortal)
         ) {
             return;
         }

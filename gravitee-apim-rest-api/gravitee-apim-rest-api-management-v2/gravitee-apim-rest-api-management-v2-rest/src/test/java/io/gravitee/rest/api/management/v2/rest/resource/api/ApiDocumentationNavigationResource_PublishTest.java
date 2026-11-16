@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static assertions.MAPIAssertions.assertThat;
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
@@ -24,10 +25,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.PortalFixtures;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
@@ -83,6 +87,18 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
         apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("My API").environmentId(ENVIRONMENT).build()));
+        portalCrudService.create(
+            Portal.of(
+                ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId(),
+                ENVIRONMENT,
+                ORGANIZATION,
+                "Developer Portal",
+                PortalNavigationStructure.empty(),
+                null,
+                true,
+                PortalFixtures.PORTAL_URL
+            )
+        );
     }
 
     @AfterEach
