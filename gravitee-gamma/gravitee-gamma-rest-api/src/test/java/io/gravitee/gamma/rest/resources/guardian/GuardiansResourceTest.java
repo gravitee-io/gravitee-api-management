@@ -260,6 +260,26 @@ class GuardiansResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_refuse_a_non_numeric_page_with_400_naming_the_parameter() {
+            Response response = rootTarget().queryParam("page", "abc").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            JsonNode body = response.readEntity(JsonNode.class);
+            assertThat(body.get("message").asText()).isEqualTo("Query parameter page does not have a valid format");
+            assertThat(body.get("http_status").asInt()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_refuse_a_non_numeric_per_page_with_400_naming_the_parameter() {
+            Response response = rootTarget().queryParam("perPage", "abc").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            assertThat(response.readEntity(JsonNode.class).get("message").asText()).isEqualTo(
+                "Query parameter perPage does not have a valid format"
+            );
+        }
+
+        @Test
         void should_report_the_default_page_size_when_perPage_is_omitted() {
             guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
 
