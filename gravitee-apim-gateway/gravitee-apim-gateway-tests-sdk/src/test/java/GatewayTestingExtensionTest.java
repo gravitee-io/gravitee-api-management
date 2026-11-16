@@ -157,6 +157,24 @@ class GatewayTestingExtensionTest {
     }
 
     @Test
+    void should_deliver_deployed_generic_events_to_the_subscribers_and_remove_them_afterwards() {
+        EngineTestKit.engine("junit-jupiter")
+            .selectors(selectClass(GenericEventDeploymentTestCase.class))
+            .execute()
+            .testEvents()
+            .assertStatistics(stats -> stats.started(5).succeeded(5));
+    }
+
+    @Test
+    void should_fail_if_trying_to_deploy_an_already_deployed_generic_event_at_class_level() {
+        EngineTestKit.engine("junit-jupiter")
+            .selectors(selectClass(RegisterTwiceSameGenericEventClassLevelTestCase.class))
+            .execute()
+            .testEvents()
+            .assertStatistics(stats -> stats.started(0));
+    }
+
+    @Test
     void should_fail_if_trying_to_deploy_an_already_deployed_api() {
         EngineTestKit.engine("junit-jupiter")
             .selectors(selectClass(RegisterTwiceSameApiMethodLevelTestCase.class))

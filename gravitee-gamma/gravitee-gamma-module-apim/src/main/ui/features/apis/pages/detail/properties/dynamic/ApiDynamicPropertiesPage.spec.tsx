@@ -100,6 +100,7 @@ function makeApi(overrides: Partial<ApiDetailDto> = {}): ApiDetailDto {
     return {
         id: 'api-1',
         name: 'Test API',
+        definitionVersion: 'V2',
         ...overrides,
     };
 }
@@ -121,6 +122,12 @@ beforeEach(() => {
     mockUseHasPermission.mockReturnValue(true);
     mockUpdateDynamicProperties.mockResolvedValue(undefined);
 });
+
+/** The save is built from the API as it is when the request runs: `current` is that dynamic property. */
+function sentDto(current?: DynamicPropertyConfig): DynamicPropertyConfig {
+    const [, , build] = mockUpdateDynamicProperties.mock.calls[0];
+    return build(current);
+}
 
 /** Save / Discard bar is shown only after the user edits the form (isDirty). */
 async function revealSaveBar(user: ReturnType<typeof userEvent.setup>) {
@@ -218,11 +225,11 @@ it('calls updateDynamicProperties with the correct payload on successful save', 
 
     await waitFor(() => expect(mockUpdateDynamicProperties).toHaveBeenCalledTimes(1));
 
-    const [, , sentDto] = mockUpdateDynamicProperties.mock.calls[0];
-    expect(sentDto.enabled).toBe(true);
-    expect(sentDto.provider).toBe('HTTP');
-    expect(sentDto.configuration.url).toBe('https://api.example.com/properties');
-    expect(sentDto.configuration.method).toBe('GET');
+    const sent = sentDto();
+    expect(sent.enabled).toBe(true);
+    expect(sent.provider).toBe('HTTP');
+    expect(sent.configuration?.url).toBe('https://api.example.com/properties');
+    expect(sent.configuration?.method).toBe('GET');
 });
 
 it('saves encryptOnFetch when the Encrypt on fetch switch is turned on', async () => {
@@ -233,7 +240,7 @@ it('saves encryptOnFetch when the Encrypt on fetch switch is turned on', async (
     await user.click(screen.getByRole('button', { name: /save changes/i }));
 
     await waitFor(() => expect(mockUpdateDynamicProperties).toHaveBeenCalledTimes(1));
-    expect(mockUpdateDynamicProperties.mock.calls[0][2].configuration.encryption).toEqual({ encryptOnFetch: true });
+    expect(sentDto().configuration?.encryption).toEqual({ encryptOnFetch: true });
 });
 
 it('shows Encrypt on fetch as on when the API has it enabled', () => {
@@ -256,6 +263,75 @@ it('disables Encrypt on fetch for a user without api-definition-u', () => {
     renderPage(makeApi({ services: { dynamicProperty: DYNAMIC_CONFIG } }));
 
     expect(screen.getByRole('switch', { name: /encrypt on fetch/i })).toBeDisabled();
+});
+
+describe('on a V4 API', () => {
+    const V4_CONFIG: DynamicPropertyConfig = {
+        enabled: true,
+        type: 'http-dynamic-properties',
+        configuration: {
+            schedule: '0 */5 * * * *',
+            method: 'GET',
+            url: 'https://api.example.com/properties',
+            transformation: '[{"operation":"shift"}]',
+        },
+    };
+
+    it('shows the schedule the API stores', () => {
+        renderPage(makeApi({ definitionVersion: 'V4', services: { dynamicProperty: V4_CONFIG } }));
+
+        expect(screen.getByDisplayValue('0 */5 * * * *')).toBeInTheDocument();
+        expect(screen.getByDisplayValue('[{"operation":"shift"}]')).toBeInTheDocument();
+    });
+
+    it('saves the keys the V4 service reads', async () => {
+        const user = userEvent.setup();
+        renderPage(makeApi({ definitionVersion: 'V4', services: { dynamicProperty: V4_CONFIG } }));
+
+        await user.click(screen.getByRole('switch', { name: /encrypt on fetch/i }));
+        await user.click(screen.getByRole('button', { name: /save changes/i }));
+
+        await waitFor(() => expect(mockUpdateDynamicProperties).toHaveBeenCalledTimes(1));
+        const sent = sentDto(V4_CONFIG);
+        expect(sent.configuration?.schedule).toBe('0 */5 * * * *');
+        expect(sent.configuration?.transformation).toBe('[{"operation":"shift"}]');
+        expect(sent.configuration?.encryption).toEqual({ encryptOnFetch: true });
+        expect(sent.configuration).not.toHaveProperty('specification');
+    });
+
+    it('keeps the settings the form does not show from the dynamic property as it is when saving, not when the page opened', async () => {
+        const user = userEvent.setup();
+        renderPage(makeApi({ definitionVersion: 'V4', services: { dynamicProperty: V4_CONFIG } }));
+
+        await user.click(screen.getByRole('switch', { name: /encrypt on fetch/i }));
+        await user.click(screen.getByRole('button', { name: /save changes/i }));
+
+        await waitFor(() => expect(mockUpdateDynamicProperties).toHaveBeenCalledTimes(1));
+        const changedMeanwhile: DynamicPropertyConfig = {
+            ...V4_CONFIG,
+            overrideConfiguration: true,
+            configuration: { ...V4_CONFIG.configuration, http: { version: 'HTTP_2' } },
+        };
+        const sent = sentDto(changedMeanwhile);
+        expect(sent.overrideConfiguration).toBe(true);
+        expect(sent.configuration?.http).toEqual(expect.objectContaining({ version: 'HTTP_2' }));
+    });
+});
+
+describe('on an API that is neither V2 nor V4', () => {
+    it('saves the same payload as before the V4 shape was added', async () => {
+        const user = userEvent.setup();
+        renderPage(makeApi({ definitionVersion: 'V4_NATIVE', services: { dynamicProperty: DYNAMIC_CONFIG } }));
+
+        await user.click(screen.getByRole('switch', { name: /encrypt on fetch/i }));
+        await user.click(screen.getByRole('button', { name: /save changes/i }));
+
+        await waitFor(() => expect(mockUpdateDynamicProperties).toHaveBeenCalledTimes(1));
+        const sent = sentDto();
+        expect(sent.schedule).toBe('0 */5 * * * *');
+        expect(sent.configuration).toHaveProperty('specification');
+        expect(sent.configuration).not.toHaveProperty('transformation');
+    });
 });
 
 // ─── 8. Enable toggle: config fields disabled when feature is off ─────────────

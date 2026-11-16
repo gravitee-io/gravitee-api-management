@@ -24,6 +24,7 @@ import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -71,8 +72,14 @@ public class ClusterBoundApisQueryService {
      *
      * @param connectionCrossId the connection of a registered cluster the API uses; {@code null} for a virtual cluster,
      *     which has no connection, or when the endpoint does not name one
+     * @param clusterType the type of cluster the endpoint expects: {@code KAFKA_CLUSTER} or {@code KAFKA_VIRTUAL_CLUSTER}
      */
-    public record ClusterUse(String clusterCrossId, String connectionCrossId) {}
+    public record ClusterUse(String clusterCrossId, String connectionCrossId, ClusterType clusterType) {
+        /** A use of a connection of a registered cluster. */
+        public ClusterUse(String clusterCrossId, String connectionCrossId) {
+            this(clusterCrossId, connectionCrossId, ClusterType.KAFKA_CLUSTER);
+        }
+    }
 
     private final ApiQueryService apiQueryService;
     private final ObjectMapper objectMapper;
@@ -165,7 +172,7 @@ public class ClusterBoundApisQueryService {
                 if (NATIVE_KAFKA_VIRTUAL_CLUSTER_ENDPOINT_TYPE.equals(endpoint.getType())) {
                     read(endpoint.getConfiguration(), objectMapper)
                         .flatMap(node -> text(node, VIRTUAL_CLUSTER_CROSS_ID_FIELD))
-                        .ifPresent(crossId -> uses.add(new ClusterUse(crossId, null)));
+                        .ifPresent(crossId -> uses.add(new ClusterUse(crossId, null, ClusterType.KAFKA_VIRTUAL_CLUSTER)));
                 } else if (NATIVE_KAFKA_CLUSTER_ENDPOINT_TYPE.equals(endpoint.getType())) {
                     read(endpoint.getConfiguration(), objectMapper).ifPresent(node ->
                         text(node, CLUSTER_CROSS_ID_FIELD).ifPresent(crossId ->

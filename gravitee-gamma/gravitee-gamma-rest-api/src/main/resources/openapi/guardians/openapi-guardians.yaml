@@ -76,10 +76,9 @@ paths:
                 - name: page
                   in: query
                   required: false
-                  description: 1-based page number.
+                  description: 1-based page number; a value of 0 or less serves the first page.
                   schema:
                       type: integer
-                      minimum: 1
                       default: 1
                 - name: perPage
                   in: query
@@ -91,8 +90,6 @@ paths:
                       page happens to hold.
                   schema:
                       type: integer
-                      minimum: 1
-                      maximum: 100
                       default: 10
                 - name: sortBy
                   in: query
@@ -165,6 +162,12 @@ paths:
                         than `llm-proxy`, an `id` that is not a UUID or is already taken, or a key
                         the schema does not declare.
 
+                        A step is refused too: an enabled step whose policy is not installed, or
+                        whose plugin does not declare the Guardian phase in its `guardian` flow; and
+                        for a guardrail, one whose plugin does not declare the Guardian API types,
+                        whatever phases it lists for them, or that declares an incompatible
+                        `scope.protocol`. Every refused step is named in the message.
+
                         The body of a refusal carries `message` and `http_status`, except for the
                         schema constraints — name, description, phase, `apiTypes`, `id` shape — which
                         the host's bean-validation mapper answers with `message`, `path`,
@@ -184,50 +187,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Error"
-                "403":
-                    $ref: "#/components/responses/Forbidden"
-
-    /organizations/{orgId}/environments/{envId}/guardians/_guardrails:
-        parameters:
-            - $ref: "#/components/parameters/orgIdParam"
-            - $ref: "#/components/parameters/envIdParam"
-        get:
-            tags:
-                - Guardians
-            summary: List the guardrails a Guardian can run
-            description: |
-                The installed policies a Guardian of `apiType` and `phase` can run as guardrails,
-                sorted by name. A policy is listed when it is a guardrail and its plugin declares
-                `phase` for `apiType`: the same rule the creation and the update apply to the
-                guardrail sequence, so a listed guardrail is never refused for its API type or phase.
-                An API type no Guardian can be created for lists nothing.
-
-                The configuration schema of a guardrail is served by the plugin endpoints, under its
-                `id`.
-            operationId: listGuardrails
-            parameters:
-                - name: apiType
-                  in: query
-                  required: true
-                  description: The API type of the Guardian, as `apiTypes` carries it.
-                  schema:
-                      $ref: "#/components/schemas/ApiType"
-                - name: phase
-                  in: query
-                  required: true
-                  schema:
-                      $ref: "#/components/schemas/GuardianPhase"
-            responses:
-                "200":
-                    description: The guardrails, possibly none.
-                    content:
-                        application/json:
-                            schema:
-                                type: array
-                                items:
-                                    $ref: "#/components/schemas/Guardrail"
-                "400":
-                    $ref: "#/components/responses/BadRequest"
                 "403":
                     $ref: "#/components/responses/Forbidden"
 
@@ -285,7 +244,18 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Guardian"
                 "400":
-                    $ref: "#/components/responses/BadRequest"
+                    description: |
+                        The payload is not acceptable, for the same reasons as a creation.
+
+                        A step is refused too: an enabled step whose policy is not installed, or
+                        whose plugin does not declare the Guardian phase in its `guardian` flow; and
+                        for a guardrail, one whose plugin does not declare the Guardian API types,
+                        whatever phases it lists for them, or that declares an incompatible
+                        `scope.protocol`. Every refused step is named in the message.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
                 "409":
                     description: |
                         Another Guardian of this environment already carries that name. Names are
@@ -390,6 +360,132 @@ paths:
                 "404":
                     $ref: "#/components/responses/NotFound"
 
+    /organizations/{orgId}/environments/{envId}/guardians/{guardianId}/deployments:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/guardianIdParam"
+        get:
+            tags:
+                - Guardians
+            summary: List the deployment history of the Guardian
+            description: |
+                Requires ENVIRONMENT_GUARDIAN READ. The revisions deployed to the gateways, newest
+                first. A withdrawal is not a revision and is left out. The history keeps only the
+                latest deployments the events cleanup leaves, so the oldest ones may be missing.
+            operationId: listGuardianDeployments
+            parameters:
+                - name: page
+                  in: query
+                  required: false
+                  description: 1-based page number; a value of 0 or less serves the first page.
+                  schema:
+                      type: integer
+                      default: 1
+                - name: perPage
+                  in: query
+                  required: false
+                  description: |
+                      Revisions per page. Capped at 100; a value above the cap is served as 100, and a
+                      value of 0 or less falls back to the default. The `perPage` reported in the
+                      response is always the size actually served.
+                  schema:
+                      type: integer
+                      default: 10
+            responses:
+                "200":
+                    description: A page of deployed revisions.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GuardianDeploymentsResponse"
+                "400":
+                    $ref: "#/components/responses/BadRequest"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /organizations/{orgId}/environments/{envId}/guardians/{guardianId}/deployments/{deploymentId}:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/guardianIdParam"
+            - $ref: "#/components/parameters/deploymentIdParam"
+        get:
+            tags:
+                - Guardians
+            summary: Get a deployment of the Guardian
+            description: |
+                Requires ENVIRONMENT_GUARDIAN READ. One revision with the definition it deployed. The
+                definition fields carry the names of `Guardian`, so two revisions, or a revision and
+                the current draft, compare field by field; the comparison is left to the client.
+            operationId: getGuardianDeployment
+            responses:
+                "200":
+                    description: The revision and its deployed definition.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GuardianDeploymentDetail"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+                "404":
+                    description: |
+                        No Guardian with this id in this environment, or no deployment with this id
+                        in its history: unknown, purged by the events cleanup, a withdrawal, or a
+                        deployment of another Guardian.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /organizations/{orgId}/environments/{envId}/guardians/{guardianId}/deployments/{deploymentId}/_rollback:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/guardianIdParam"
+            - $ref: "#/components/parameters/deploymentIdParam"
+        post:
+            tags:
+                - Guardians
+            summary: Roll the Guardian back to a deployment
+            description: |
+                Requires ENVIRONMENT_GUARDIAN UPDATE. Replaces the draft with the definition the
+                revision deployed, the way an API is rolled back: nothing is deployed. The Guardian
+                turns PENDING, or DEPLOYED when the revision is the one the gateways run, and
+                deploying it again records a new revision. The description is kept: it is not part
+                of a definition.
+
+                The checks of an update apply, since the revision may be out of date: a name
+                another Guardian took since answers 409, a guardrail no longer installed 400.
+            operationId: rollbackGuardian
+            responses:
+                "200":
+                    description: The Guardian with the rolled back draft.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Guardian"
+                "400":
+                    $ref: "#/components/responses/BadRequest"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+                "404":
+                    description: |
+                        No Guardian with this id in this environment, or no deployment with this id
+                        in its history.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "409":
+                    description: Another Guardian of the environment holds the name of the revision.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
 components:
     securitySchemes:
         CookieAuth:
@@ -427,6 +523,13 @@ components:
             schema:
                 type: string
                 maxLength: 64
+        deploymentIdParam:
+            name: deploymentId
+            in: path
+            required: true
+            description: Id of a revision, as the deployment history lists it.
+            schema:
+                type: string
 
     responses:
         BadRequest:
@@ -482,6 +585,11 @@ components:
                     $ref: "#/components/schemas/GuardianLifecycleState"
                 deployedAt:
                     $ref: "#/components/schemas/Timestamp"
+                deployedRevisionId:
+                    type: string
+                    description: |
+                        Id of the revision the gateways run, as the deployment history lists it; it
+                        stays while the draft is PENDING. Absent when the Guardian is not deployed.
                 createdAt:
                     $ref: "#/components/schemas/Timestamp"
                 updatedAt:
@@ -503,7 +611,7 @@ components:
                     - llm-proxy
                 policies:
                     - name: Mask credentials
-                      policy: data-logging-masking
+                      policy: guardrail-rule
                       enabled: true
                 lifecycleState: UNDEPLOYED
                 createdAt: "2026-11-07T10:00:01.119Z"
@@ -608,7 +716,7 @@ components:
                     - llm-proxy
                 policies:
                     - name: Mask credentials
-                      policy: data-logging-masking
+                      policy: guardrail-rule
                       enabled: true
 
         UpdateGuardian:
@@ -621,7 +729,7 @@ components:
                 `id` is accepted only to be ignored: the path owns the identity, so a value in the body
                 is never applied and never has to be stripped.
 
-                Rejects any key it does not declare. The five `readOnly` properties below are
+                Rejects any key it does not declare. The six `readOnly` properties below are
                 declared for exactly that reason: they are what a `GET` returns and only the store
                 writes them, so they are accepted here and ignored rather than refused, and the
                 response of a `GET` can be sent straight back.
@@ -641,6 +749,10 @@ components:
                         - $ref: "#/components/schemas/Timestamp"
                     readOnly: true
                     description: Ignored — the date of the latest deployment.
+                deployedRevisionId:
+                    type: string
+                    readOnly: true
+                    description: Ignored — the revision of the latest deployment.
                 createdAt:
                     allOf:
                         - $ref: "#/components/schemas/Timestamp"
@@ -760,12 +872,17 @@ components:
                 same shape a flow uses, carrying at least `policy`, plus `name`, `description`,
                 `configuration`, `condition` and `enabled`. Not enumerated here: the shape belongs to
                 `gravitee-apim-definition`, and restating it would let the two drift apart.
+
+                The `policy` of every enabled step must be an installed policy whose plugin declares
+                the Guardian phase in its `guardian` flow (`guardian=REQUEST,RESPONSE` in its
+                manifest); `GET /organizations/{orgId}/plugins/policies?flow=guardian&phase=` lists
+                them.
             items:
                 type: object
                 additionalProperties: true
             example:
                 - name: Mask credentials
-                  policy: data-logging-masking
+                  policy: guardrail-rule
                   enabled: true
 
         Resources:
@@ -787,22 +904,6 @@ components:
                 - REQUEST
                 - RESPONSE
 
-        Guardrail:
-            type: object
-            description: An installed policy a Guardian can run as one of its guardrails.
-            properties:
-                id:
-                    type: string
-                    description: The policy plugin id, the value a guardrail step carries in `policy`.
-                name:
-                    type: string
-                    description: The plugin name, for display. Absent when the plugin manifest declares none.
-            required:
-                - id
-            example:
-                id: data-logging-masking
-                name: Data logging masking
-
         DeployGuardian:
             type: object
             additionalProperties: false
@@ -811,6 +912,79 @@ components:
                     type: string
                     maxLength: 256
                     description: Optional label retained with this deployment in the event history.
+
+        GuardianDeploymentsResponse:
+            type: object
+            description: |
+                The `{ data, pagination }` envelope the rest of this surface uses. 1-based `page`.
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/GuardianDeployment"
+                pagination:
+                    $ref: "#/components/schemas/Pagination"
+            required:
+                - data
+                - pagination
+
+        GuardianDeployment:
+            type: object
+            description: A revision of the Guardian deployed to the gateways.
+            properties:
+                id:
+                    type: string
+                    description: Id of the revision in the deployment history.
+                label:
+                    type: string
+                    description: The `deploymentLabel` given to `_deploy`; absent when none was.
+                deployedAt:
+                    $ref: "#/components/schemas/Timestamp"
+                deployedBy:
+                    type: object
+                    description: |
+                        The user who deployed the revision. A user unknown to the platform keeps its
+                        id, without a display name.
+                    properties:
+                        id:
+                            type: string
+                        displayName:
+                            type: string
+                    required:
+                        - id
+            required:
+                - id
+                - deployedAt
+            example:
+                id: 6f3c2b1e-9d84-4a7f-b2c5-0e1d7a9f4b36
+                label: Stricter credential patterns
+                deployedAt: "2026-11-14T09:30:00.000Z"
+                deployedBy:
+                    id: 2a9e1c4d-7b35-4f08-a6d2-5c8e0b1f3a97
+                    displayName: Ada Lovelace
+
+        GuardianDeploymentDetail:
+            description: |
+                A revision with the definition it deployed. `description` is not part of the
+                definition and is not recorded.
+            allOf:
+                - $ref: "#/components/schemas/GuardianDeployment"
+                - type: object
+                  properties:
+                      name:
+                          type: string
+                          maxLength: 512
+                      phase:
+                          $ref: "#/components/schemas/GuardianPhase"
+                      apiTypes:
+                          $ref: "#/components/schemas/ApiTypes"
+                      policies:
+                          $ref: "#/components/schemas/Policies"
+                      resources:
+                          $ref: "#/components/schemas/Resources"
+                  required:
+                      - name
+                      - phase
 
         GuardianLifecycleState:
             type: string

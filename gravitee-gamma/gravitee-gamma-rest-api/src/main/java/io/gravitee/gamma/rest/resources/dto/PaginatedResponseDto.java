@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.rest.resources.tracing.dto;
+package io.gravitee.gamma.rest.resources.dto;
 
 import java.util.List;
 

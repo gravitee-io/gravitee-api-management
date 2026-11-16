@@ -184,6 +184,26 @@ class HttpSecurityPlanTest {
     }
 
     @Test
+    void should_look_up_the_subscription_of_a_product_plan_by_its_product() {
+        when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_DIAGNOSTIC)).thenReturn(securityChainDiagnostic);
+        when(policy.requireSubscription(ctx)).thenReturn(true);
+        when(policy.extractSecurityToken(ctx)).thenReturn(Maybe.just(securityToken));
+        when(plan.getId()).thenReturn(PLAN_ID);
+        lenient().when(ctx.getAttribute(ContextAttributes.ATTR_API)).thenReturn(API_ID);
+        when(subscriptionService.getByApiAndSecurityToken("product-id", securityToken, PLAN_ID)).thenReturn(Optional.empty());
+
+        final HttpSecurityPlan cut = new HttpSecurityPlan(
+            SecurityPlanContext.builder().fromV2(plan).apiProductId("product-id").build(),
+            policy
+        );
+        cut.canExecute(ctx).test().assertResult(false);
+
+        verify(subscriptionService).getByApiAndSecurityToken("product-id", securityToken, PLAN_ID);
+        verify(subscriptionService, never()).getByApiAndSecurityToken(eq(API_ID), any(), any());
+    }
+
+    @Test
     void canExecute_shouldReturnFalse_whenPolicyHasSecurityToken_butFoundSubscriptionIsNotOnSamePlan() {
         when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
         when(policy.requireSubscription(ctx)).thenReturn(true);

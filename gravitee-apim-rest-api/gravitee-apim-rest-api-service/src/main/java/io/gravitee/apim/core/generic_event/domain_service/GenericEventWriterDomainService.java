@@ -43,7 +43,8 @@ public class GenericEventWriterDomainService {
     private final EventLatestCrudService eventLatestCrudService;
     private final ObjectMapper objectMapper;
 
-    public void write(EventType type, GenericEvent genericEvent, AuditInfo auditInfo, PublicationOptions options) {
+    /** @return the event written to the history, or to the latest events only when not historized */
+    public Event write(EventType type, GenericEvent genericEvent, AuditInfo auditInfo, PublicationOptions options) {
         var properties = properties(genericEvent, auditInfo);
         if (options.deploymentLabel() != null) {
             properties.put(Event.EventProperties.DEPLOYMENT_LABEL, options.deploymentLabel());
@@ -64,6 +65,7 @@ public class GenericEventWriterDomainService {
             genericEvent.latestEventId(),
             event.toBuilder().expiresAt(expiresAt).build()
         );
+        return event;
     }
 
     private Event latestOnly(EventType type, GenericEvent genericEvent, EnumMap<Event.EventProperties, String> properties) {

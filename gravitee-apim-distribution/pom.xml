@@ -237,9 +237,9 @@
     <gravitee-resource-schema-registry-http.version>1.0.2</gravitee-resource-schema-registry-http.version>
     <gravitee-resource-storage-azure-blob.version>1.1.1</gravitee-resource-storage-azure-blob.version>
     <gravitee-reactor-message.version>11.1.2</gravitee-reactor-message.version>
-    <gravitee-reactor-native-kafka.version>9.0.0-alpha.27</gravitee-reactor-native-kafka.version>
+    <gravitee-reactor-native-kafka.version>9.0.0-alpha.30</gravitee-reactor-native-kafka.version>
     <gravitee-reactor-mcp-proxy.version>4.12.10</gravitee-reactor-mcp-proxy.version>
-    <gravitee-reactor-llm-proxy.version>6.0.0-alpha.2</gravitee-reactor-llm-proxy.version>
+    <gravitee-reactor-llm-proxy.version>6.0.0-alpha.6</gravitee-reactor-llm-proxy.version>
     <gravitee-reactor-a2a-proxy.version>2.1.5</gravitee-reactor-a2a-proxy.version>
     <gravitee-reactor-authz.version>3.0.2</gravitee-reactor-authz.version>
     <gravitee-reactor-edge.version>2.0.0-alpha.8</gravitee-reactor-edge.version>
@@ -271,14 +271,14 @@
     <gravitee-policy-oauth2-token-exchange.version>1.1.0</gravitee-policy-oauth2-token-exchange.version>
     <gravitee-policy-pii-filtering.version>3.1.0</gravitee-policy-pii-filtering.version>
     <gravitee-policy-native-ipfiltering.version>1.0.1</gravitee-policy-native-ipfiltering.version>
-    <gravitee-policy-guardrail-rule.version>1.0.0-alpha.2</gravitee-policy-guardrail-rule.version>
+    <gravitee-policy-guardrail-rule.version>1.0.0-alpha.4</gravitee-policy-guardrail-rule.version>
     <gravitee-resource-ai-model-token-classification.version>2.0.2</gravitee-resource-ai-model-token-classification.version>
 
     <!-- Gamma plugins -->
     <gravitee-gamma-module-aim.version>5.1.0-alpha.65</gravitee-gamma-module-aim.version>
-    <gravitee-gamma-module-authz.version>3.21.0</gravitee-gamma-module-authz.version>
-    <gravitee-gamma-module-edge.version>3.0.0-alpha.9</gravitee-gamma-module-edge.version>
-    <gravitee-gamma-module-esm.version>2.0.0-alpha.2</gravitee-gamma-module-esm.version>
+    <gravitee-gamma-module-authz.version>3.22.4</gravitee-gamma-module-authz.version>
+    <gravitee-gamma-module-edge.version>3.0.0-alpha.10</gravitee-gamma-module-edge.version>
+    <gravitee-gamma-module-esm.version>2.0.0-alpha.3</gravitee-gamma-module-esm.version>
 
     <!-- Authz plugins -->
     <gravitee-service-authz-pdp.version>5.0.6</gravitee-service-authz-pdp.version>
@@ -287,8 +287,8 @@
 
     <!-- Agent Provider plugins -->
     <gravitee-agent-provider-azure-foundry.version>1.0.0-alpha.4</gravitee-agent-provider-azure-foundry.version>
-    <gravitee-agent-provider-aws-bedrock-agentcore.version>1.0.0-alpha.1</gravitee-agent-provider-aws-bedrock-agentcore.version>
-    <gravitee-agent-provider-google-agent.version>1.0.0-alpha.3</gravitee-agent-provider-google-agent.version>
+    <gravitee-agent-provider-aws-bedrock-agentcore.version>1.0.0-alpha.5</gravitee-agent-provider-aws-bedrock-agentcore.version>
+    <gravitee-agent-provider-google-agent.version>1.0.0-alpha.4</gravitee-agent-provider-google-agent.version>
     </properties>
 
     <dependencyManagement>

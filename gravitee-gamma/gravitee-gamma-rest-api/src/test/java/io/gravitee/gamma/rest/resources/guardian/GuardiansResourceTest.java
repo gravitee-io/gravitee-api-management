@@ -18,16 +18,19 @@ package io.gravitee.gamma.rest.resources.guardian;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.event.query_service.EventLatestQueryService;
+import io.gravitee.apim.core.event.query_service.EventQueryService;
 import io.gravitee.apim.core.generic_event.domain_service.GenericEventPublicationDomainService;
 import io.gravitee.apim.core.generic_event.domain_service.GenericEventWriterDomainService;
 import io.gravitee.apim.core.json.JsonDeserializer;
 import io.gravitee.apim.core.json.JsonSerializer;
+import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
 import io.gravitee.common.http.HttpStatusCode;
@@ -40,6 +43,8 @@ import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.resource.AbstractResourceTest;
 import io.gravitee.gamma.rest.resources.guardian.GuardiansResourceTest.GuardiansTestConfiguration;
 import io.gravitee.gamma.rest.spring.ResourceContextConfiguration;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -119,6 +124,9 @@ class GuardiansResourceTest extends AbstractResourceTest {
     @Inject
     private GuardianAuditFixture withdrawalAudits;
 
+    @Inject
+    private LicenseManager licenseManager;
+
     @Override
     protected String contextPath() {
         return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/guardians";
@@ -130,6 +138,13 @@ class GuardiansResourceTest extends AbstractResourceTest {
         env.setId(ENVIRONMENT);
         env.setOrganizationId(ORGANIZATION);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(env);
+        givenGuardiansLicensed(true);
+    }
+
+    private void givenGuardiansLicensed(boolean licensed) {
+        License license = mock(License.class);
+        when(license.isFeatureEnabled("apim-guardians")).thenReturn(licensed);
+        when(licenseManager.getPlatformLicense()).thenReturn(license);
     }
 
     @AfterEach
@@ -151,77 +166,6 @@ class GuardiansResourceTest extends AbstractResourceTest {
 
     private Response post(Object payload) {
         return rootTarget().request().post(Entity.entity(payload, MediaType.APPLICATION_JSON_TYPE));
-    }
-
-    @Nested
-    class ListGuardrails {
-
-        @Test
-        void should_return_the_guardrails_a_guardian_of_that_api_type_and_phase_can_run() {
-            Response response = rootTarget("/_guardrails")
-                .queryParam("apiType", "llm-proxy")
-                .queryParam("phase", "REQUEST")
-                .request()
-                .get();
-
-            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
-            assertThat(response.readEntity(JsonNode.class))
-                .singleElement()
-                .satisfies(guardrail -> {
-                    assertThat(guardrail.get("id").asText()).isEqualTo("data-logging-masking");
-                    assertThat(guardrail.get("name").asText()).isEqualTo("Data logging masking");
-                });
-        }
-
-        @Test
-        void should_not_be_read_as_a_guardian_id() {
-            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
-
-            JsonNode body = rootTarget("/_guardrails")
-                .queryParam("apiType", "llm-proxy")
-                .queryParam("phase", "RESPONSE")
-                .request()
-                .get()
-                .readEntity(JsonNode.class);
-
-            assertThat(body.isArray()).as("the literal segment wins over {guardianId}").isTrue();
-        }
-
-        @Test
-        void should_return_400_on_a_missing_or_unknown_api_type_or_phase() {
-            SoftAssertions.assertSoftly(softly -> {
-                softly
-                    .assertThat(rootTarget("/_guardrails").queryParam("phase", "REQUEST").request().get().getStatus())
-                    .as("missing apiType")
-                    .isEqualTo(HttpStatusCode.BAD_REQUEST_400);
-                softly
-                    .assertThat(rootTarget("/_guardrails").queryParam("apiType", "llm-proxy").request().get().getStatus())
-                    .as("missing phase")
-                    .isEqualTo(HttpStatusCode.BAD_REQUEST_400);
-                softly
-                    .assertThat(
-                        rootTarget("/_guardrails")
-                            .queryParam("apiType", "unknown")
-                            .queryParam("phase", "REQUEST")
-                            .request()
-                            .get()
-                            .getStatus()
-                    )
-                    .as("unknown apiType")
-                    .isEqualTo(HttpStatusCode.BAD_REQUEST_400);
-                softly
-                    .assertThat(
-                        rootTarget("/_guardrails")
-                            .queryParam("apiType", "llm-proxy")
-                            .queryParam("phase", "INTERACT")
-                            .request()
-                            .get()
-                            .getStatus()
-                    )
-                    .as("unknown phase")
-                    .isEqualTo(HttpStatusCode.BAD_REQUEST_400);
-            });
-        }
     }
 
     @Nested
@@ -313,6 +257,26 @@ class GuardiansResourceTest extends AbstractResourceTest {
             Response response = rootTarget().queryParam("sortBy", "apiType").request().get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_refuse_a_non_numeric_page_with_400_naming_the_parameter() {
+            Response response = rootTarget().queryParam("page", "abc").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            JsonNode body = response.readEntity(JsonNode.class);
+            assertThat(body.get("message").asText()).isEqualTo("Query parameter page does not have a valid format");
+            assertThat(body.get("http_status").asInt()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_refuse_a_non_numeric_per_page_with_400_naming_the_parameter() {
+            Response response = rootTarget().queryParam("perPage", "abc").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            assertThat(response.readEntity(JsonNode.class).get("message").asText()).isEqualTo(
+                "Query parameter perPage does not have a valid format"
+            );
         }
 
         @Test
@@ -626,6 +590,36 @@ class GuardiansResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_report_the_revision_the_gateways_run() {
+            var neverDeployed = rootTarget("/" + GUARDIAN_ID).request().get().readEntity(JsonNode.class);
+            deploy(Map.of());
+            var deployed = deploy(Map.of()).readEntity(JsonNode.class);
+            var read = rootTarget("/" + GUARDIAN_ID).request().get().readEntity(JsonNode.class);
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(neverDeployed.has("deployedRevisionId")).as("never deployed").isFalse();
+                softly
+                    .assertThat(deployed.at("/deployedRevisionId").asText())
+                    .as("revision answered by the deployment")
+                    .isEqualTo(guardianPublications.lastPublicationId());
+                softly
+                    .assertThat(read.at("/deployedRevisionId").asText())
+                    .as("revision read back")
+                    .isEqualTo(guardianPublications.lastPublicationId());
+            });
+        }
+
+        @Test
+        void should_accept_the_get_response_of_a_deployed_guardian_as_an_update_body() {
+            deploy(Map.of());
+            var read = rootTarget("/" + GUARDIAN_ID).request().get().readEntity(JsonNode.class);
+
+            var response = rootTarget("/" + GUARDIAN_ID).request().put(Entity.entity(read, MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).as("update with the read deployed revision").isEqualTo(HttpStatusCode.OK_200);
+        }
+
+        @Test
         void should_reject_an_unknown_property_before_publication() {
             var response = deploy(Map.of("deploymentLable", "Reviewed"));
 
@@ -919,17 +913,6 @@ class GuardiansResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_return_403_on_guardrails_without_the_read_permission() {
-            Response response = rootTarget("/_guardrails")
-                .queryParam("apiType", "llm-proxy")
-                .queryParam("phase", "REQUEST")
-                .request()
-                .get();
-
-            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
-        }
-
-        @Test
         void should_return_403_on_create_without_the_create_permission() {
             assertThat(post(PAYLOAD).getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
         }
@@ -957,6 +940,66 @@ class GuardiansResourceTest extends AbstractResourceTest {
         @Test
         void should_return_403_on_delete_without_the_delete_permission() {
             assertThat(rootTarget("/" + GUARDIAN_ID).request().delete().getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
+        }
+    }
+
+    @Nested
+    class WithoutGuardiansLicense {
+
+        @BeforeEach
+        void removeTheFeatureFromTheLicense() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Created while licensed"));
+            givenGuardiansLicensed(false);
+        }
+
+        @Test
+        void should_refuse_every_guardian_endpoint_with_403() {
+            var guardian = rootTarget("/" + GUARDIAN_ID);
+            Map<String, Response> responses = Map.of(
+                "list",
+                rootTarget().request().get(),
+                "create",
+                post(PAYLOAD),
+                "get",
+                guardian.request().get(),
+                "update",
+                guardian.request().put(Entity.entity(PAYLOAD, MediaType.APPLICATION_JSON_TYPE)),
+                "deploy",
+                rootTarget("/" + GUARDIAN_ID + "/_deploy").request().post(Entity.json(Map.of())),
+                "undeploy",
+                rootTarget("/" + GUARDIAN_ID + "/_undeploy").request().post(null),
+                "list deployments",
+                rootTarget("/" + GUARDIAN_ID + "/deployments").request().get(),
+                "get deployment",
+                rootTarget("/" + GUARDIAN_ID + "/deployments/a-deployment").request().get(),
+                "rollback",
+                rootTarget("/" + GUARDIAN_ID + "/deployments/a-deployment/_rollback").request().post(Entity.json(Map.of())),
+                "delete",
+                guardian.request().delete()
+            );
+
+            SoftAssertions.assertSoftly(soft ->
+                responses.forEach((endpoint, response) -> {
+                    soft.assertThat(response.getStatus()).as(endpoint).isEqualTo(HttpStatusCode.FORBIDDEN_403);
+                    soft
+                        .assertThat(response.readEntity(JsonNode.class).path("technicalCode").asText())
+                        .as(endpoint)
+                        .isEqualTo("feature.missing");
+                })
+            );
+        }
+
+        @Test
+        void should_leave_the_stored_guardians_untouched() {
+            post(PAYLOAD);
+            rootTarget("/" + GUARDIAN_ID).request().put(Entity.entity(PAYLOAD, MediaType.APPLICATION_JSON_TYPE));
+            rootTarget("/" + GUARDIAN_ID + "/_deploy").request().post(Entity.json(Map.of()));
+            rootTarget("/" + GUARDIAN_ID).request().delete();
+
+            assertThat(guardianRepository.storedGuardians())
+                .singleElement()
+                .satisfies(stored -> assertThat(stored.getName()).isEqualTo("Created while licensed"));
+            assertThat(guardianPublications.find(ENVIRONMENT, GUARDIAN_ID)).isEmpty();
         }
     }
 
@@ -1000,6 +1043,16 @@ class GuardiansResourceTest extends AbstractResourceTest {
         @Bean
         EventLatestQueryService eventLatestQueryService(GuardianPublicationFixture publications) {
             return publications.query;
+        }
+
+        @Bean
+        EventQueryService eventQueryService(GuardianPublicationFixture publications) {
+            return publications.historyQuery;
+        }
+
+        @Bean
+        UserCrudService userCrudService(GuardianAuditFixture audits) {
+            return audits.users;
         }
 
         @Bean

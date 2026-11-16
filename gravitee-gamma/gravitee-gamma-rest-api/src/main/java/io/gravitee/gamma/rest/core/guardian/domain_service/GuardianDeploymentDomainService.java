@@ -23,6 +23,7 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.json.JsonDeserializer;
 import io.gravitee.apim.core.json.JsonProcessingException;
 import io.gravitee.apim.core.json.JsonSerializer;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianDeployment;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
@@ -42,6 +43,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class GuardianDeploymentDomainService {
 
+    /** Absent and empty mean the same: the UI saves empty lists, a revision published earlier may have none. */
+    private static final List<String> LISTS = List.of("policies", "resources");
+
     private final GuardianRepository guardianRepository;
     private final GuardianPublicationDomainService publications;
     private final JsonSerializer jsonSerializer;
@@ -52,24 +56,31 @@ public class GuardianDeploymentDomainService {
     }
 
     /**
-     * The Guardian as its latest publication shows it. The lifecycle state and the deployment date come from the
+     * The Guardian as its latest publication shows it. The lifecycle state, the deployment date and revision come from the
      * publication alone, never from the stored Guardian, which no deployment writes; the update date is advanced to
      * the publication, which is also what the store does once the deployment completes.
      */
     public Guardian state(Guardian guardian, GuardianDeployment publication) {
         return switch (publication) {
-            case null -> guardian.toBuilder().lifecycleState(GuardianLifecycleState.UNDEPLOYED).deployedAt(null).build();
+            case null -> guardian
+                .toBuilder()
+                .lifecycleState(GuardianLifecycleState.UNDEPLOYED)
+                .deployedAt(null)
+                .deployedRevisionId(null)
+                .build();
             case GuardianDeployment.Published published -> guardian
                 .toBuilder()
                 .updatedAt(advancedTo(guardian, published))
                 .lifecycleState(matches(guardian, published) ? GuardianLifecycleState.DEPLOYED : GuardianLifecycleState.PENDING)
                 .deployedAt(published.at())
+                .deployedRevisionId(published.revisionId())
                 .build();
             case GuardianDeployment.Withdrawn withdrawn -> guardian
                 .toBuilder()
                 .updatedAt(advancedTo(guardian, withdrawn))
                 .lifecycleState(GuardianLifecycleState.UNDEPLOYED)
                 .deployedAt(withdrawn.deployedAt())
+                .deployedRevisionId(null)
                 .build();
         };
     }
@@ -112,13 +123,20 @@ public class GuardianDeploymentDomainService {
     private boolean matches(Guardian guardian, GuardianDeployment.Published publication) {
         var draft = guardian.getDefinition();
         var published = publication.definition();
-        return Objects.equals(draft.getApiTypes(), published.getApiTypes()) && content(draft).equals(content(published));
+        return orEmpty(draft.getApiTypes()).equals(orEmpty(published.getApiTypes())) && content(draft).equals(content(published));
+    }
+
+    private static Set<ApiType> orEmpty(Set<ApiType> apiTypes) {
+        return Objects.requireNonNullElse(apiTypes, Set.of());
     }
 
     private JsonNode content(Object definition) {
         try {
             var tree = jsonDeserializer.deserialize(jsonSerializer.serialize(definition), ObjectNode.class);
             tree.remove("apiTypes");
+            LISTS.stream()
+                .filter(list -> !tree.hasNonNull(list))
+                .forEach(tree::putArray);
             return tree;
         } catch (JsonProcessingException e) {
             throw new TechnicalDomainException("Failed to compare Guardian definitions", e);

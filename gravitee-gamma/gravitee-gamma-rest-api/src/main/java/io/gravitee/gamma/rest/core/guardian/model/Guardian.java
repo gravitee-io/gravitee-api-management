@@ -36,9 +36,9 @@ import lombok.NoArgsConstructor;
  * class reads the rest through it rather than keeping a second copy, so the two cannot drift apart.
  *
  * <p>Four things are its own, because the gateway has no use for them: the description the console
- * shows, the lifecycle state, the deployment stamp, and the two timestamps. The lifecycle state and
- * {@code deployedAt} are derived from the latest publication of the Guardian whenever it is read; the
- * values stored with it are never relied upon.
+ * shows, the lifecycle state, the deployment stamp, and the two timestamps. The lifecycle state,
+ * {@code deployedAt} and {@code deployedRevisionId} are derived from the latest publication of the Guardian
+ * whenever it is read; the values stored with it are never relied upon.
  *
  * <p>The definition field is spelled out rather than imported: a domain class named {@code Guardian}
  * cannot import another one.
@@ -56,6 +56,7 @@ public class Guardian {
     private String description;
     private GuardianLifecycleState lifecycleState;
     private Instant deployedAt;
+    private String deployedRevisionId;
     private Instant createdAt;
     private Instant updatedAt;
 

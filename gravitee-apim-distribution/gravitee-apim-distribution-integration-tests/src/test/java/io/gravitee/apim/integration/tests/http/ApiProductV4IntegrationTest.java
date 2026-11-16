@@ -26,6 +26,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApiProducts;
@@ -52,9 +54,11 @@ import io.gravitee.policy.apikey.ApiKeyPolicy;
 import io.gravitee.policy.apikey.ApiKeyPolicyInitializer;
 import io.gravitee.policy.apikey.configuration.ApiKeyPolicyConfiguration;
 import io.gravitee.policy.jwt.JWTPolicy;
+import io.gravitee.policy.jwt.alg.Signature;
 import io.gravitee.policy.jwt.configuration.JWTPolicyConfiguration;
 import io.gravitee.policy.mtls.MtlsPolicy;
 import io.gravitee.policy.mtls.configuration.MtlsPolicyConfiguration;
+import io.gravitee.policy.v3.jwt.resolver.KeyResolver;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import java.util.Date;
@@ -338,7 +342,7 @@ class ApiProductV4IntegrationTest {
             apiProduct.setPlans(
                 List.of(
                     productPlan("plan-state-d3-apikey", "api-key", PlanStatus.PUBLISHED),
-                    productPlan("plan-state-d3-jwt", "jwt", PlanStatus.PUBLISHED),
+                    productJwtPlan("plan-state-d3-jwt"),
                     productPlan("plan-state-d3-mtls", "mtls", PlanStatus.PUBLISHED)
                 )
             );
@@ -567,6 +571,22 @@ class ApiProductV4IntegrationTest {
 
         private Plan productApiKeyPlan(String planId, PlanStatus status) {
             return productPlan(planId, "api-key", status);
+        }
+
+        Plan productJwtPlan(String planId) {
+            JWTPolicyConfiguration configuration = new JWTPolicyConfiguration();
+            configuration.setSignature(Signature.HMAC_HS256);
+            configuration.setPublicKeyResolver(KeyResolver.GIVEN_KEY);
+            configuration.setResolverParameter("a-secret-long-enough-for-hmac-sha-256-signatures");
+            Plan plan = productPlan(planId, "jwt", PlanStatus.PUBLISHED);
+            try {
+                plan.setSecurity(
+                    PlanSecurity.builder().type("jwt").configuration(new ObjectMapper().writeValueAsString(configuration)).build()
+                );
+            } catch (JsonProcessingException e) {
+                throw new IllegalStateException(e);
+            }
+            return plan;
         }
 
         Plan productPlan(String planId, String securityType, PlanStatus status) {

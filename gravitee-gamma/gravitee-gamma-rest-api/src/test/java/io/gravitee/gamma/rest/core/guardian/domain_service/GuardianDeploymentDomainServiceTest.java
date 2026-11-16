@@ -20,6 +20,7 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDIAN_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianDefinition;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aPolicy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
@@ -29,6 +30,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import inmemory.EventCrudInMemory;
 import inmemory.EventLatestCrudInMemory;
 import inmemory.EventLatestQueryServiceInMemory;
+import inmemory.EventQueryServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.event.model.Event;
@@ -40,11 +43,14 @@ import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian;
 import io.gravitee.definition.model.v4.resource.Resource;
+import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianDeployment;
+import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
 import io.gravitee.rest.api.model.EventType;
 import java.time.Clock;
 import java.time.Instant;
@@ -69,7 +75,7 @@ class GuardianDeploymentDomainServiceTest {
 
         private final InMemoryGuardianRepository guardians = new InMemoryGuardianRepository();
         private final EventCrudInMemory history = new EventCrudInMemory();
-        private final EventLatestCrudInMemory latest = new EventLatestCrudInMemory();
+        private final EventLatestCrudInMemory latest = GuardianPublicationFixture.latestEvents();
         private final EventLatestQueryServiceInMemory query = new EventLatestQueryServiceInMemory() {
             @Override
             public List<Event> findLatestByEntityIds(Set<String> ids, EventType type, Event.EventProperties key) {
@@ -94,7 +100,9 @@ class GuardianDeploymentDomainServiceTest {
                 new JacksonJsonSerializer(),
                 new JacksonJsonDeserializer(),
                 new GenericEventPublicationDomainService(writer, mapper),
-                query
+                query,
+                new EventQueryServiceInMemory(),
+                new UserCrudServiceInMemory()
             );
             service = new GuardianDeploymentDomainService(guardians, store, new JacksonJsonSerializer(), new JacksonJsonDeserializer());
         }
@@ -145,6 +153,7 @@ class GuardianDeploymentDomainServiceTest {
                     )
                     .containsEntry(Event.EventProperties.USER, "deployer")
                     .containsEntry(Event.EventProperties.DEPLOYMENT_LABEL, "Reviewed");
+                softly.assertThat(deployed.revisionId()).as("revision of the deployment").isEqualTo(history.storage().getFirst().getId());
                 softly.assertThat(reloaded).as("gateway payload round trip").isEqualTo(definition);
                 softly.assertThat(deployed.at()).isEqualTo(Instant.parse(envelope.get("updatedAt").asText()));
                 softly.assertThat(history.storage()).as("first deployment is historized").hasSize(1);
@@ -200,7 +209,7 @@ class GuardianDeploymentDomainServiceTest {
 
             var withdrawal = service.withdraw(
                 aGuardian().build(),
-                new GuardianDeployment.Published(aGuardianDefinition().build(), Instant.parse("2026-11-08T10:00:00Z")),
+                new GuardianDeployment.Published(aGuardianDefinition().build(), Instant.parse("2026-11-08T10:00:00Z"), "revision-id"),
                 actor
             );
             var recovered = service.current(guardian);
@@ -223,7 +232,7 @@ class GuardianDeploymentDomainServiceTest {
         void should_publish_only_the_deployment_date_with_a_withdrawal() throws Exception {
             service.withdraw(
                 aGuardian().build(),
-                new GuardianDeployment.Published(aGuardianDefinition().build(), Instant.parse("2026-11-08T10:00:00Z")),
+                new GuardianDeployment.Published(aGuardianDefinition().build(), Instant.parse("2026-11-08T10:00:00Z"), "revision-id"),
                 actor
             );
             var envelope = GraviteeJacksonMapper.getInstance().readTree(latest.storage().getFirst().getPayload());
@@ -240,7 +249,7 @@ class GuardianDeploymentDomainServiceTest {
             var guardian = aGuardian().build();
             service.withdraw(
                 guardian,
-                new GuardianDeployment.Published(guardian.getDefinition(), Instant.parse("2026-11-08T10:00:00Z")),
+                new GuardianDeployment.Published(guardian.getDefinition(), Instant.parse("2026-11-08T10:00:00Z"), "revision-id"),
                 actor
             );
             var event = latest.storage().getFirst();
@@ -259,7 +268,7 @@ class GuardianDeploymentDomainServiceTest {
             var guardian = aGuardian().build();
             service.withdraw(
                 guardian,
-                new GuardianDeployment.Published(guardian.getDefinition(), Instant.parse("2026-11-08T10:00:00Z")),
+                new GuardianDeployment.Published(guardian.getDefinition(), Instant.parse("2026-11-08T10:00:00Z"), "revision-id"),
                 actor
             );
             var event = latest.storage().getFirst();
@@ -280,7 +289,7 @@ class GuardianDeploymentDomainServiceTest {
             var guardian = aGuardian().build();
             service.withdraw(
                 guardian,
-                new GuardianDeployment.Published(guardian.getDefinition(), Instant.parse("2026-11-08T10:00:00Z")),
+                new GuardianDeployment.Published(guardian.getDefinition(), Instant.parse("2026-11-08T10:00:00Z"), "revision-id"),
                 actor
             );
             var event = latest.storage().getFirst();
@@ -294,6 +303,78 @@ class GuardianDeploymentDomainServiceTest {
                 .asInstanceOf(type(GuardianDeployment.Withdrawn.class))
                 .extracting(GuardianDeployment.Withdrawn::deployedAt)
                 .isNull();
+        }
+    }
+
+    @Nested
+    class LifecycleState {
+
+        private final Guardian publishedWithoutLists = aGuardianDefinition().policies(null).resources(null).apiTypes(null).build();
+        private final GuardianDeploymentDomainService service = new GuardianDeploymentDomainService(
+            new InMemoryGuardianRepository(),
+            null,
+            new JacksonJsonSerializer(),
+            new JacksonJsonDeserializer()
+        );
+
+        private GuardianLifecycleState stateOf(Guardian draft, Guardian published) {
+            return service
+                .state(
+                    aGuardian().definition(draft).build(),
+                    new GuardianDeployment.Published(published, Instant.parse("2026-11-08T10:00:00Z"), "revision-id")
+                )
+                .getLifecycleState();
+        }
+
+        @Test
+        void should_show_a_draft_saving_empty_lists_as_deployed_when_the_revision_has_none() {
+            var published = publishedWithoutLists;
+
+            assertSoftly(softly -> {
+                softly
+                    .assertThat(stateOf(published.toBuilder().policies(List.of()).build(), published))
+                    .as("empty policies against absent ones")
+                    .isEqualTo(GuardianLifecycleState.DEPLOYED);
+                softly
+                    .assertThat(stateOf(published.toBuilder().resources(List.of()).build(), published))
+                    .as("empty resources against absent ones")
+                    .isEqualTo(GuardianLifecycleState.DEPLOYED);
+                softly
+                    .assertThat(stateOf(published.toBuilder().apiTypes(Set.of()).build(), published))
+                    .as("empty API types against absent ones")
+                    .isEqualTo(GuardianLifecycleState.DEPLOYED);
+                softly
+                    .assertThat(
+                        stateOf(published, published.toBuilder().policies(List.of()).resources(List.of()).apiTypes(Set.of()).build())
+                    )
+                    .as("absent lists against empty published ones")
+                    .isEqualTo(GuardianLifecycleState.DEPLOYED);
+            });
+        }
+
+        @Test
+        void should_show_a_draft_filling_a_list_the_revision_has_not_as_pending() {
+            var published = publishedWithoutLists;
+            var resource = Resource.builder().name("cache").type("cache").configuration("{}").build();
+
+            assertSoftly(softly -> {
+                softly
+                    .assertThat(stateOf(published.toBuilder().policies(List.of(aPolicy())).build(), published))
+                    .as("policy added")
+                    .isEqualTo(GuardianLifecycleState.PENDING);
+                softly
+                    .assertThat(stateOf(published.toBuilder().resources(List.of(resource)).build(), published))
+                    .as("resource added")
+                    .isEqualTo(GuardianLifecycleState.PENDING);
+                softly
+                    .assertThat(stateOf(published.toBuilder().apiTypes(Set.of(ApiType.LLM_PROXY)).build(), published))
+                    .as("API type restricted")
+                    .isEqualTo(GuardianLifecycleState.PENDING);
+                softly
+                    .assertThat(stateOf(published.toBuilder().name("Renamed").resources(List.of()).build(), published))
+                    .as("renamed with an empty list")
+                    .isEqualTo(GuardianLifecycleState.PENDING);
+            });
         }
     }
 }

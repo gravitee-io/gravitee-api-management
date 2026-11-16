@@ -30,12 +30,14 @@ import io.gravitee.apim.gateway.tests.sdk.runner.ApiConfigurer;
 import io.gravitee.apim.gateway.tests.sdk.runner.ApiDeployer;
 import io.gravitee.apim.gateway.tests.sdk.runner.ApiProductDeployer;
 import io.gravitee.apim.gateway.tests.sdk.runner.DictionaryDeployer;
+import io.gravitee.apim.gateway.tests.sdk.runner.GenericEventDeployer;
 import io.gravitee.apim.gateway.tests.sdk.runner.GuardianDeployer;
 import io.gravitee.apim.gateway.tests.sdk.runner.OrganizationConfigurer;
 import io.gravitee.apim.gateway.tests.sdk.runner.SharedPolicyGroupDeployer;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
+import io.gravitee.gateway.api.genericevent.GenericEvent;
 import io.gravitee.gateway.dictionary.model.Dictionary;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.guardian.ReactableGuardian;
@@ -95,6 +97,7 @@ public abstract class AbstractGatewayTest
         ApplicationContextAware,
         SharedPolicyGroupDeployer,
         GuardianDeployer,
+        GenericEventDeployer,
         ApiProductDeployer {
 
     private static final ObjectMapper objectMapper = new GraviteeMapper();
@@ -127,6 +130,8 @@ public abstract class AbstractGatewayTest
     private BiConsumer<String, String> sharedPolicyGroupUndeployer;
     private Consumer<ReactableGuardian> guardianDeployer;
     private BiConsumer<String, String> guardianUndeployer;
+    private Consumer<GenericEvent> genericEventDeployer;
+    private Consumer<GenericEvent> genericEventUndeployer;
     private Consumer<ReactableApiProduct> apiProductDeployer;
     private Consumer<String> apiProductUndeployer;
     protected Vertx vertx;
@@ -387,6 +392,26 @@ public abstract class AbstractGatewayTest
     public void redeployGuardian(ReactableGuardian reactableGuardian) {
         undeployGuardian(reactableGuardian.getId(), reactableGuardian.getEnvironmentId());
         deployGuardian(reactableGuardian);
+    }
+
+    @Override
+    public void setDeployGenericEventCallback(Consumer<GenericEvent> genericEventDeployer) {
+        this.genericEventDeployer = genericEventDeployer;
+    }
+
+    @Override
+    public void setUndeployGenericEventCallback(Consumer<GenericEvent> genericEventUndeployer) {
+        this.genericEventUndeployer = genericEventUndeployer;
+    }
+
+    @Override
+    public void deployGenericEvent(GenericEvent genericEvent) {
+        genericEventDeployer.accept(genericEvent);
+    }
+
+    @Override
+    public void undeployGenericEvent(GenericEvent genericEvent) {
+        genericEventUndeployer.accept(genericEvent);
     }
 
     @Override

@@ -35,6 +35,7 @@ import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
+import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDraftDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
@@ -60,8 +61,7 @@ class GuardianDeploymentUseCasesTest {
     private final UpdateGuardianUseCase update = new UpdateGuardianUseCase(
         repository,
         aGuardianValidator(),
-        audits.service,
-        deploymentService
+        new GuardianDraftDomainService(repository, aGuardianValidator(), audits.service, deploymentService)
     );
     private final AuditInfo actor = AuditInfo.builder()
         .organizationId(ORGANIZATION_ID)
@@ -370,6 +370,47 @@ class GuardianDeploymentUseCasesTest {
                 .assertThat(deployments.published(ENVIRONMENT_ID, GUARDIAN_ID).definition())
                 .as("current draft published")
                 .isEqualTo(draft.getDefinition());
+        });
+    }
+
+    @Test
+    void should_report_the_revision_the_gateways_run() {
+        deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null));
+        var first = deployments.lastPublicationId();
+        var deployed = deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null)).guardian();
+        var second = deployments.lastPublicationId();
+
+        var read = new GetGuardianUseCase(repository, deploymentService).execute(new GetGuardianUseCase.Input(ENVIRONMENT_ID, GUARDIAN_ID));
+
+        assertSoftly(softly -> {
+            softly.assertThat(second).as("a new revision per deployment").isNotEqualTo(first);
+            softly.assertThat(deployed.getDeployedRevisionId()).as("revision answered by the deployment").isEqualTo(second);
+            softly.assertThat(read.guardian().getDeployedRevisionId()).as("revision read back").isEqualTo(second);
+        });
+    }
+
+    @Test
+    void should_keep_reporting_the_deployed_revision_of_a_changed_draft() {
+        deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null));
+
+        var result = save(aGuardianDefinition().name("Changed").build(), "description");
+
+        assertSoftly(softly -> {
+            softly.assertThat(result.getLifecycleState()).as("changed draft").isEqualTo(GuardianLifecycleState.PENDING);
+            softly.assertThat(result.getDeployedRevisionId()).as("revision still running").isEqualTo(deployments.lastPublicationId());
+        });
+    }
+
+    @Test
+    void should_report_no_deployed_revision_once_withdrawn_or_never_deployed() {
+        var neverDeployed = save(aGuardianDefinition().name("Changed").build(), "description");
+        deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null));
+
+        var withdrawn = undeploy.execute(new UndeployGuardianUseCase.Input(actor, GUARDIAN_ID)).guardian();
+
+        assertSoftly(softly -> {
+            softly.assertThat(neverDeployed.getDeployedRevisionId()).as("never deployed").isNull();
+            softly.assertThat(withdrawn.getDeployedRevisionId()).as("withdrawn").isNull();
         });
     }
 

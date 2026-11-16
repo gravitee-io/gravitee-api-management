@@ -81,6 +81,18 @@ public class EventQueryServiceImpl implements EventQueryService {
         }
     }
 
+    @Override
+    public Optional<io.gravitee.apim.core.event.model.Event> findByIdForEnvironment(String eventId, String environmentId) {
+        try {
+            return eventRepository
+                .findById(eventId)
+                .map(EventAdapter.INSTANCE::map)
+                .filter(e -> e.getEnvironments().contains(environmentId));
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurs while trying to find event by id: " + eventId, e);
+        }
+    }
+
     @SneakyThrows
     @Override
     public Optional<io.gravitee.apim.core.api.model.Api> findApiFromPublishApiEvent(String eventId) {

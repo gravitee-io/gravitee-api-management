@@ -16,22 +16,15 @@
 package io.gravitee.gamma.rest.core.guardian.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.audit.model.AuditProperties;
-import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
-import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.apim.core.validation.Validator;
-import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
+import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDraftDomainService;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
-import java.time.ZoneOffset;
 import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -51,8 +44,7 @@ public class UpdateGuardianUseCase {
 
     private final GuardianRepository guardianRepository;
     private final ValidateGuardianDomainService validateGuardian;
-    private final AuditDomainService auditDomainService;
-    private final GuardianDeploymentDomainService deployments;
+    private final GuardianDraftDomainService drafts;
 
     public Output execute(Input input) {
         // the shape first, so a malformed payload reaches neither the product rule nor the store
@@ -61,45 +53,9 @@ public class UpdateGuardianUseCase {
         var existingGuardian = guardianRepository
             .findByEnvironmentId(input.auditInfo().environmentId(), input.guardianId())
             .orElseThrow(() -> new GuardianNotFoundException(input.guardianId()));
-        var guardianToUpdate = existingGuardian.update(input.guardianToUpdate());
-        // after the merge, not before: the identity it needs comes from the path
-        validateGuardian.validateDefinition(guardianToUpdate.getDefinition());
-
-        // Only a rename is checked. An edit that leaves the name alone cannot newly break the rule, and
-        // checking it anyway would make a Guardian unsaveable whenever the store already holds a case
-        // variant of its name — "Foo" beside "foo", from data that predates the rule or from two creates
-        // that raced past it. Nothing else about that Guardian could then be edited.
-        //
-        // After validateDefinition, which is what refuses a missing name: UpdateGuardianCommand declares
-        // the definition @NotNull but not @Valid, so a body omitting the name reaches here carrying one,
-        // and asking the store about a null name answered 500 where the payload deserved a 400.
-        if (!guardianToUpdate.getName().equalsIgnoreCase(existingGuardian.getName())) {
-            validateGuardian.validateNameIsAvailable(input.auditInfo().environmentId(), guardianToUpdate.getName(), input.guardianId());
-        }
-
-        validateGuardian
-            .validateAndSanitize(new ValidateGuardianDomainService.Input(guardianToUpdate))
-            .severe()
-            .ifPresent(errors -> {
-                throw new ValidationDomainException(errors.stream().map(Validator.Error::getMessage).collect(Collectors.joining(", ")));
-            });
-
-        var publication = deployments.current(existingGuardian);
-        var updatedGuardian = deployments.state(guardianRepository.update(guardianToUpdate), publication);
-        auditDomainService.createEnvironmentAuditLog(
-            EnvironmentAuditLogEntity.builder()
-                .organizationId(input.auditInfo().organizationId())
-                .environmentId(input.auditInfo().environmentId())
-                .event(GuardianAuditEvent.GUARDIAN_UPDATED)
-                .actor(input.auditInfo().actor())
-                .oldValue(deployments.state(existingGuardian, publication))
-                .newValue(updatedGuardian)
-                .createdAt(updatedGuardian.getUpdatedAt().atZone(ZoneOffset.UTC))
-                .properties(Map.of(AuditProperties.GUARDIAN, updatedGuardian.getId()))
-                .build()
+        return new Output(
+            drafts.replace(existingGuardian, input.guardianToUpdate(), input.auditInfo(), GuardianAuditEvent.GUARDIAN_UPDATED, Map.of())
         );
-
-        return new Output(updatedGuardian);
     }
 
     @Builder

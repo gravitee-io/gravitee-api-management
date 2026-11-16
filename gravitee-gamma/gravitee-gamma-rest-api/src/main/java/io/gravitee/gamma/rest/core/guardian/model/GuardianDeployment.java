@@ -27,8 +27,13 @@ import java.time.temporal.ChronoUnit;
 public sealed interface GuardianDeployment {
     Instant at();
 
-    /** The definition the gateways run since {@code at}. */
-    record Published(io.gravitee.definition.model.v4.guardian.Guardian definition, Instant at) implements GuardianDeployment {
+    /**
+     * The definition the gateways run since {@code at}.
+     *
+     * @param revisionId the id of the publication in the deployment history
+     */
+    record Published(io.gravitee.definition.model.v4.guardian.Guardian definition, Instant at, String revisionId) implements
+        GuardianDeployment {
         public Published {
             at = at.truncatedTo(ChronoUnit.MILLIS);
         }

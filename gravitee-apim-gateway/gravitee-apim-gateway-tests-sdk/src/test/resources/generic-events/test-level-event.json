@@ -1,0 +1,8 @@
+{
+  "kind": "feature.rule",
+  "id": "test-rule",
+  "environmentId": "DEFAULT",
+  "organizationId": "DEFAULT",
+  "expiresAt": null,
+  "payload": { "enabled": false, "tags": ["a", "b"] }
+}

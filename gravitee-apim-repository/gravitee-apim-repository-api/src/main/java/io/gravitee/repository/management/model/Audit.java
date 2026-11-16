@@ -77,6 +77,8 @@ public class Audit {
         TOKEN,
         USER_FIELD,
         NOTIFICATION_TEMPLATE,
+        GUARDIAN,
+        GUARDIAN_DEPLOYMENT,
         SHARED_POLICY_GROUP,
         CLUSTER,
         API_PRODUCT,

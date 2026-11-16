@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.generic_event.model.GenericEvent;
+import io.gravitee.apim.core.generic_event.model.Publication;
 import io.gravitee.apim.core.generic_event.model.PublicationOptions;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.EventType;
@@ -46,22 +47,22 @@ public class GenericEventPublicationDomainService {
     private final GenericEventWriterDomainService genericEventWriterDomainService;
     private final ObjectMapper objectMapper;
 
-    public GenericEvent publish(GenericEvent event, PublicationOptions options, AuditInfo auditInfo) {
+    public Publication publish(GenericEvent event, PublicationOptions options, AuditInfo auditInfo) {
         var genericEvent = scoped(event, auditInfo);
         validate(genericEvent, options);
         if (genericEvent.payload() == null) {
             throw new InvalidDataException("A generic event needs a payload.");
         }
-        genericEventWriterDomainService.write(EventType.PUBLISH_GENERIC_EVENT, genericEvent, auditInfo, options);
-        return genericEvent;
+        var written = genericEventWriterDomainService.write(EventType.PUBLISH_GENERIC_EVENT, genericEvent, auditInfo, options);
+        return new Publication(genericEvent, written.getId());
     }
 
     /** Withdraws the event with the same kind and id; a payload, when given, is validated like a published one. */
-    public GenericEvent withdraw(GenericEvent event, PublicationOptions options, AuditInfo auditInfo) {
+    public Publication withdraw(GenericEvent event, PublicationOptions options, AuditInfo auditInfo) {
         var genericEvent = scoped(event, auditInfo);
         validate(genericEvent, options);
-        genericEventWriterDomainService.write(EventType.UNPUBLISH_GENERIC_EVENT, genericEvent, auditInfo, options);
-        return genericEvent;
+        var written = genericEventWriterDomainService.write(EventType.UNPUBLISH_GENERIC_EVENT, genericEvent, auditInfo, options);
+        return new Publication(genericEvent, written.getId());
     }
 
     private static GenericEvent scoped(GenericEvent event, AuditInfo auditInfo) {

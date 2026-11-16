@@ -27,13 +27,19 @@ import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.manager.ApiProductResourceManagerFactory;
 import io.gravitee.gateway.handlers.api.sharding.ApiProductShardingFilter;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
+import io.gravitee.gateway.reactive.api.ExecutionPhase;
+import io.gravitee.gateway.reactive.api.policy.http.HttpSecurityPolicy;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
+import io.gravitee.gateway.reactive.handlers.api.security.plan.HttpSecurityPlan;
+import io.gravitee.gateway.reactive.handlers.api.security.plan.SecurityPlanContext;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChain;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.pathparameters.PathParametersExtractor;
+import io.gravitee.gateway.reactive.handlers.api.v4.security.policy.SecurityPolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.v4.policy.HttpPolicyChainFactory;
+import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
@@ -49,7 +55,8 @@ import org.springframework.core.ResolvableType;
 
 /**
  * Builds the runtime of one deployed version of an API Product. A product with no saved flow mode runs its plan flows
- * in {@code DEFAULT} mode, whatever the mode of its member APIs.
+ * in {@code DEFAULT} mode, whatever the mode of its member APIs. A runtime whose security plans cannot all be built
+ * fails to start.
  */
 @RequiredArgsConstructor
 public class ApiProductRuntimeFactory {
@@ -98,8 +105,11 @@ public class ApiProductRuntimeFactory {
         String chainFactoryId = "api-product-" + product.getId();
 
         List<LifecycleComponent<?>> components = new ArrayList<>();
+        ResourceLifecycleManager resourceManager = EmptyProductResourceLifecycleManager.INSTANCE;
         if (ProductResourcesComponent.hasConfiguredResources(product)) {
-            components.add(resourcesComponent(product, previousRuntime));
+            ProductResourcesComponent resources = resourcesComponent(product, previousRuntime);
+            components.add(resources);
+            resourceManager = resources.resourceLifecycleManager();
         }
         components.add(policyManager);
 
@@ -108,7 +118,9 @@ public class ApiProductRuntimeFactory {
             productPlanFlowChain(flowExecution, flowsByPlanId, new HttpPolicyChainFactory(chainFactoryId, policyManager, false), false),
             productPlanFlowChain(flowExecution, flowsByPlanId, new HttpPolicyChainFactory(chainFactoryId, policyManager, true), true),
             pathParametersExtractor(plans),
-            List.copyOf(components)
+            List.copyOf(components),
+            resourceManager,
+            () -> securityPlans(product, plans, policyManager)
         );
     }
 
@@ -118,6 +130,34 @@ public class ApiProductRuntimeFactory {
             return new ProductResourcesComponent(previousComponent.sharedResources());
         }
         return new ProductResourcesComponent(product, resourceManagerFactory, licenseManager);
+    }
+
+    /**
+     * @throws IllegalStateException when the security of a plan cannot be built, so the product never serves without it
+     */
+    private static List<HttpSecurityPlan> securityPlans(ReactableApiProduct product, List<Plan> plans, PolicyManager policyManager) {
+        return plans
+            .stream()
+            .filter(plan -> !plan.usePushMode())
+            .map(plan -> securityPlan(product, plan, policyManager))
+            .toList();
+    }
+
+    private static HttpSecurityPlan securityPlan(ReactableApiProduct product, Plan plan, PolicyManager policyManager) {
+        HttpSecurityPolicy policy = SecurityPolicyFactory.forPlan(product.getId(), plan, policyManager, ExecutionPhase.REQUEST);
+        if (policy == null) {
+            String securityType = plan.getSecurity() == null ? null : plan.getSecurity().getType();
+            throw new IllegalStateException(
+                "Unable to build the security [" +
+                    securityType +
+                    "] of plan [" +
+                    plan.getName() +
+                    "] of API Product [" +
+                    product.getId() +
+                    "]"
+            );
+        }
+        return new HttpSecurityPlan(SecurityPlanContext.builder().fromV4(plan).apiProductId(product.getId()).build(), policy);
     }
 
     private FlowChain productPlanFlowChain(

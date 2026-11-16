@@ -18,18 +18,13 @@ package io.gravitee.gateway.reactive.handlers.api.v4;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 
 /**
- * Factory for creating ApiProductPlanPolicyManager instances.
- * Used by DefaultApiReactor to create fresh policy managers when API Products change.
+ * Kept for reactor plugins compiled against the per-API product plan policy manager, which no longer exists: product
+ * plans now run from the product runtime, and the gateway never calls this factory.
  *
- * @author GraviteeSource Team
+ * @deprecated build the reactor with the {@code ApiProductRuntimeRegistry} instead
  */
+@Deprecated(forRemoval = true)
 @FunctionalInterface
 public interface ApiProductPlanPolicyManagerFactory {
-    /**
-     * Create a new ApiProductPlanPolicyManager for the given API.
-     *
-     * @param api the API (must have getId(), getEnvironmentId())
-     * @return new PolicyManager instance, or null if not applicable
-     */
     PolicyManager create(Api api);
 }

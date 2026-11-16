@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.rest.resources.guardian.dto;
+package io.gravitee.apim.core.generic_event.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import io.gravitee.gamma.rest.core.guardian.model.Guardrail;
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public record GuardrailDto(String id, String name) {
-    public static GuardrailDto from(Guardrail guardrail) {
-        return new GuardrailDto(guardrail.id(), guardrail.name());
-    }
-}
+/**
+ * A generic event once written.
+ *
+ * @param genericEvent the event as the gateways receive it
+ * @param eventId the id of the history event written, or of the latest event when the publication is not historized
+ */
+public record Publication(GenericEvent genericEvent, String eventId) {}

@@ -20,6 +20,7 @@ import static io.vertx.core.http.HttpMethod.GET;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -139,9 +140,52 @@ class ApiProductV4RuntimeIntegrationTest {
             subscription.setStatus("ACCEPTED");
 
             when(getBean(ApiKeyService.class).getByApiAndKey(eq(API_1_ID), eq(KEY))).thenReturn(Optional.of(apiKey));
-            when(getBean(SubscriptionService.class).getByApiAndSecurityToken(eq(API_1_ID), any(), eq(PRODUCT_PLAN_ID))).thenReturn(
+            when(getBean(SubscriptionService.class).getByApiAndSecurityToken(eq(PRODUCT_ID), any(), eq(PRODUCT_PLAN_ID))).thenReturn(
                 Optional.of(subscription)
             );
+        }
+
+        void allowProductKeyOnPlan(String key, String planId) {
+            ApiKey apiKey = new ApiKey();
+            apiKey.setApi(PRODUCT_ID);
+            apiKey.setApplication("application-id");
+            apiKey.setSubscription("subscription-" + key);
+            apiKey.setPlan(planId);
+            apiKey.setKey(key);
+            apiKey.setActive(true);
+            apiKey.setExpireAt(new Date(System.currentTimeMillis() + 600_000));
+
+            Subscription subscription = new Subscription();
+            subscription.setId("subscription-" + key);
+            subscription.setApplication("application-id");
+            subscription.setApiProductId(PRODUCT_ID);
+            subscription.setPlan(planId);
+            subscription.setStatus("ACCEPTED");
+
+            when(getBean(ApiKeyService.class).getByApiAndKey(eq(API_1_ID), eq(key))).thenReturn(Optional.of(apiKey));
+            when(
+                getBean(SubscriptionService.class).getByApiAndSecurityToken(
+                    eq(PRODUCT_ID),
+                    argThat(token -> token != null && key.equals(token.getTokenValue())),
+                    eq(planId)
+                )
+            ).thenReturn(Optional.of(subscription));
+        }
+
+        void deployProductVersionWithPlans(int version, List<String> planIds) {
+            ReactableApiProduct product = product(PRODUCT_ID, Set.of(API_1_ID));
+            product.setVersion(String.valueOf(version));
+            product.setPlans(
+                planIds
+                    .stream()
+                    .map(planId -> {
+                        Plan plan = productPlan(planId, "api-key", PlanStatus.PUBLISHED);
+                        plan.setFlows(List.of(versionFlow("v" + version)));
+                        return plan;
+                    })
+                    .toList()
+            );
+            deployApiProduct(product);
         }
 
         ProductResponse call(HttpClient client) {
@@ -279,6 +323,61 @@ class ApiProductV4RuntimeIntegrationTest {
                 assertThat(response.echoedVersion()).isEqualTo(response.responseVersion());
             });
             assertThat(call(client)).isEqualTo(new ProductResponse(200, "v20", "v20"));
+        }
+    }
+
+    @Nested
+    @GatewayTest
+    @DeployApi({ "/apis/v4/http/api-product/api-1.json" })
+    class ProductSecurityFromTheRuntime extends RuntimeTestPreparer {
+
+        private static final String REMOVED_PLAN_ID = "runtime-product-removed-plan";
+        private static final String REMOVED_PLAN_KEY = "runtime-product-removed-plan-key";
+
+        @Test
+        void should_accept_the_product_key_through_20_product_updates_under_traffic(HttpClient client) throws Exception {
+            allowProductKeyOnPlan(KEY, PRODUCT_PLAN_ID);
+            deployProductVersionWithPlans(0, List.of(PRODUCT_PLAN_ID));
+            List<ProductResponse> responses = new CopyOnWriteArrayList<>();
+            AtomicBoolean updating = new AtomicBoolean(true);
+
+            var traffic = Flowable.range(0, 4)
+                .flatMap(
+                    worker ->
+                        Flowable.fromCallable(() -> call(client))
+                            .repeatUntil(() -> !updating.get())
+                            .subscribeOn(Schedulers.io()),
+                    4
+                )
+                .doOnNext(responses::add)
+                .ignoreElements()
+                .test();
+
+            awaitServedBy(responses, "v0");
+            for (int version = 1; version <= 20; version++) {
+                deployProductVersionWithPlans(version, List.of(PRODUCT_PLAN_ID));
+                awaitServedBy(responses, "v" + version);
+            }
+            updating.set(false);
+            traffic.await(30, TimeUnit.SECONDS);
+            traffic.assertNoErrors().assertComplete();
+
+            assertThat(responses)
+                .isNotEmpty()
+                .allSatisfy(response -> assertThat(response.status()).isEqualTo(200));
+        }
+
+        @Test
+        void should_reject_the_key_of_a_plan_the_product_update_removed(HttpClient client) {
+            allowProductKeyOnPlan(KEY, PRODUCT_PLAN_ID);
+            allowProductKeyOnPlan(REMOVED_PLAN_KEY, REMOVED_PLAN_ID);
+            deployProductVersionWithPlans(1, List.of(PRODUCT_PLAN_ID, REMOVED_PLAN_ID));
+            assertThat(call(client, REMOVED_PLAN_KEY).status()).isEqualTo(200);
+
+            deployProductVersionWithPlans(2, List.of(PRODUCT_PLAN_ID));
+
+            assertThat(call(client, REMOVED_PLAN_KEY).status()).isEqualTo(401);
+            assertThat(call(client, KEY)).isEqualTo(new ProductResponse(200, "v2", "v2"));
         }
     }
 

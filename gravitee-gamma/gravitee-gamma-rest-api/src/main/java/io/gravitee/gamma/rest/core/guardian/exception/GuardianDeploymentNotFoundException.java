@@ -13,7 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.rest.core.guardian.model;
+package io.gravitee.gamma.rest.core.guardian.exception;
 
-/** An installed policy a Guardian can run as one of its guardrails. */
-public record Guardrail(String id, String name) {}
+import io.gravitee.apim.core.exception.NotFoundDomainException;
+
+/**
+ * No deployment with this id in the history of this Guardian: unknown, purged by the events cleanup, a withdrawal,
+ * or a deployment of another Guardian.
+ */
+public class GuardianDeploymentNotFoundException extends NotFoundDomainException {
+
+    public GuardianDeploymentNotFoundException(String deploymentId) {
+        super("Guardian deployment '" + deploymentId + "' not found", deploymentId);
+    }
+}
