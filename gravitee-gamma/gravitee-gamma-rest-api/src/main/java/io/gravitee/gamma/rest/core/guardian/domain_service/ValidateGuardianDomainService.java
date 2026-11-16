@@ -69,9 +69,11 @@ import lombok.RequiredArgsConstructor;
  * its plugin metadata and in any explicit scope protocol: the {@code guardian} flow says where it
  * runs, its API type flows only which API types it applies to.
  *
- * <p>These rules apply to creation and to update, a {@code PUT} replacing the whole definition. A
- * deployment publishes the stored draft as is, apart from the one rule it adds on its own: the
- * sequence must hold an enabled guardrail, which {@link #validateDeployable} checks.
+ * <p>These rules apply to creation and to update, a {@code PUT} replacing the whole definition, and
+ * again to the stored draft when it is deployed: a draft may predate a rule, or have been written
+ * against policies that have changed since, and a deployment turns it into a revision the gateways
+ * must be able to start. One rule runs there only, {@link #validateDeployable} — the sequence must
+ * hold an enabled guardrail — so a draft may be saved empty and still be refused at deployment.
  *
  * <p><strong>The name is free</strong> — two Guardians of one environment may not share a name. This
  * is the check users meet, and the only one that reads the store; the unique index behind it is a
