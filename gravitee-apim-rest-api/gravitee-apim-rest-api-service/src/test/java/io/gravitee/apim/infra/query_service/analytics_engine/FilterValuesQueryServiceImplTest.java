@@ -27,6 +27,8 @@ import io.gravitee.apim.core.analytics_engine.model.FilterName;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.FilterValue;
 import io.gravitee.apim.core.analytics_engine.model.TrafficScope;
+import io.gravitee.apim.core.observability.model.FilterType;
+import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.FilterValuesQuery;
 import io.gravitee.repository.log.v4.model.analytics.FilterValuesResult;
@@ -363,13 +365,41 @@ class FilterValuesQueryServiceImplTest {
         assertThat(queryCaptor.getValue().esFieldName()).isEqualTo(expectedEsField);
     }
 
+    /**
+     * Every keyword filter the catalog declares lists its values: one with no field would answer a 500 instead. The
+     * Kafka topic and operation are read from the event-metrics documents, which hold no value pool to list.
+     */
+    @ParameterizedTest
+    @MethodSource("keywordFiltersOfTheCatalog")
+    void should_resolve_an_es_field_for_every_keyword_filter_the_catalog_declares(FilterSpec.Name filterName) {
+        when(analyticsRepository.searchFilterValues(any(), any())).thenReturn(new FilterValuesResult(List.of(), null, 0));
+
+        service.searchFilterValues(ORG_ID, ENV_ID, filterName, null, null, 1, 10, null, null, null);
+
+        verify(analyticsRepository).searchFilterValues(any(), queryCaptor.capture());
+        assertThat(queryCaptor.getValue().esFieldName()).isNotBlank();
+    }
+
+    static Stream<FilterSpec.Name> keywordFiltersOfTheCatalog() {
+        return new AnalyticsDefinitionYAMLQueryService()
+            .getAllFilters()
+            .stream()
+            .filter(filter -> filter.type() == FilterType.KEYWORD)
+            .map(FilterSpec::name)
+            .filter(name -> !Set.of(FilterSpec.Name.NATIVE_TOPIC, FilterSpec.Name.NATIVE_OPERATION).contains(name));
+    }
+
     static Stream<Arguments> filterToEsFieldMappings() {
         return Stream.of(
             Arguments.of(FilterSpec.Name.EDGE_PROVIDER, "additional-metrics.keyword_edge_provider"),
             Arguments.of(FilterSpec.Name.EDGE_PROCESS, "additional-metrics.keyword_edge_process"),
             Arguments.of(FilterSpec.Name.EDGE_CLIENT, "client-identifier"),
             Arguments.of(FilterSpec.Name.EDGE_TYPE, "additional-metrics.keyword_edge_type"),
+            Arguments.of(FilterSpec.Name.EDGE_MODEL, "additional-metrics.keyword_edge_model"),
+            Arguments.of(FilterSpec.Name.EDGE_TOOL, "additional-metrics.keyword_edge_tool"),
+            Arguments.of(FilterSpec.Name.EDGE_VERSION, "additional-metrics.keyword_edge_version"),
             Arguments.of(FilterSpec.Name.MESSAGE_CONNECTOR_TYPE, "connector-type"),
+            Arguments.of(FilterSpec.Name.MESSAGE_CONNECTOR_ID, "connector-id"),
             Arguments.of(FilterSpec.Name.ENTRYPOINT, "entrypoint-id"),
             Arguments.of(FilterSpec.Name.ERROR_KEY, "error-key"),
             Arguments.of(FilterSpec.Name.REQUEST_ID, "request-id"),

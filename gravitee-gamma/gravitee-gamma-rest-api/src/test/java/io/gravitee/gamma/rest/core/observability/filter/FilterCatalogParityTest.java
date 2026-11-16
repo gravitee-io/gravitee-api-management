@@ -19,16 +19,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
+import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import io.gravitee.gamma.rest.infra.adapter.SpiFilterRegistry;
+import io.gravitee.repository.analytics.engine.api.query.AnalyticsSearchPath;
+import io.gravitee.repository.analytics.engine.api.query.Filter;
+import io.gravitee.repository.analytics.engine.api.query.FilterOutcome;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FilterAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.HTTPFieldResolver;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.MessageFieldResolver;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Holds the observability catalog to the platform analytics catalog it delegates to. A filter Gamma
@@ -44,6 +53,37 @@ class FilterCatalogParityTest {
 
     private final FilterRegistry gamma = new SpiFilterRegistry();
     private final AnalyticsDefinitionYAMLQueryService platform = new AnalyticsDefinitionYAMLQueryService();
+
+    /**
+     * The connection document of a Message API carries these fields, and the engine's Message search applies each
+     * through the HTTP field it reads: the filter is offered on Message screens.
+     */
+    @ParameterizedTest
+    @ValueSource(
+        strings = {
+            "GATEWAY",
+            "ZONE",
+            "GEO_IP_CITY",
+            "GEO_IP_CONTINENT",
+            "GEO_IP_COUNTRY",
+            "GEO_IP_REGION",
+            "CONSUMER_IP",
+            "HTTP_USER_AGENT_DEVICE",
+            "HTTP_USER_AGENT_OS_NAME",
+        }
+    )
+    void should_offer_for_message_an_analytics_filter_the_message_search_applies(String name) {
+        var engineName = Filter.Name.valueOf(name);
+
+        assertThat(FilterAdapter.outcome(AnalyticsSearchPath.MESSAGE, engineName)).isEqualTo(FilterOutcome.APPLIED);
+        assertThat(new MessageFieldResolver().fromFilter(engineName))
+            .isNotBlank()
+            .isEqualTo(new HTTPFieldResolver().fromFilter(engineName));
+        assertThat(StaticFilters.valueOf(name).toSpec()).satisfies(spec -> {
+            assertThat(spec.signals()).containsExactly(Signal.ANALYTICS);
+            assertThat(spec.apiTypes()).contains(ApiType.MESSAGE);
+        });
+    }
 
     @Test
     void every_gamma_analytics_filter_should_be_a_platform_filter_that_applies_to_analytics() {

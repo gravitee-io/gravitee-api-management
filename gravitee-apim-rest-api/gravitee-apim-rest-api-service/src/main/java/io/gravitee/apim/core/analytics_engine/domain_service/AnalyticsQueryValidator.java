@@ -225,11 +225,9 @@ public class AnalyticsQueryValidator {
      * Whether the analytics engine can evaluate this filter, read from the catalog's signal axis rather than
      * from a list kept in step with it by hand.
      *
-     * <p>A name the catalog does not describe at all is accepted, as it was before the axis existed: the
-     * catalog omits a few names the engines still know ({@code MESSAGE_CONNECTOR_ID} and the edge dimensions, pinned by
-     * AnalyticsDefinitionYAMLQueryServiceTest for their owners to decide), and rejecting those here would be a
-     * behaviour change rather than a refactor. An additional metric field is in no catalog: its value type
-     * decides, through the operators it takes.
+     * <p>A name the catalog does not describe at all is accepted, as it was before the axis existed. The catalog
+     * describes every name but the internal ones today (pinned by AnalyticsDefinitionYAMLQueryServiceTest). An
+     * additional metric field is in no catalog: its value type decides, through the operators it takes.
      */
     private boolean supportsAnalytics(FilterName name) {
         return switch (name) {

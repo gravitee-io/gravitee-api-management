@@ -205,7 +205,11 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
             case EDGE_PROCESS -> "additional-metrics.keyword_edge_process";
             case EDGE_CLIENT -> "client-identifier";
             case EDGE_TYPE -> "additional-metrics.keyword_edge_type";
+            case EDGE_MODEL -> "additional-metrics.keyword_edge_model";
+            case EDGE_TOOL -> "additional-metrics.keyword_edge_tool";
+            case EDGE_VERSION -> "additional-metrics.keyword_edge_version";
             case MESSAGE_CONNECTOR_TYPE -> "connector-type";
+            case MESSAGE_CONNECTOR_ID -> "connector-id";
             // Composed from the shared keys rather than spelled out: a rename there would otherwise leave this
             // switch on a stale path, and the values dropdown would quietly return an empty page.
             case NATIVE_CLIENT_ID -> ADDITIONAL_METRICS_PREFIX + NativeApiMetricKeys.CLIENT_ID;

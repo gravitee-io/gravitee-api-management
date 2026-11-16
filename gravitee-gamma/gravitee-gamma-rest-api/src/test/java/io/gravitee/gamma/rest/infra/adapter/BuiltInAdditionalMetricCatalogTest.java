@@ -43,7 +43,9 @@ import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.BuiltInAdditionalMetricKeys;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -58,12 +60,6 @@ import org.junit.jupiter.api.Test;
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class BuiltInAdditionalMetricCatalogTest {
-
-    /**
-     * Edge filters missing from {@code StaticFilters} and absent from the analytics definition's metrics and facets:
-     * nothing describes them, so they are listed with a derived label and no API kind.
-     */
-    private static final Set<String> UNDESCRIBED = Set.of("EDGE_MODEL", "EDGE_TOOL", "EDGE_VERSION");
 
     private final List<AdditionalMetricCatalogEntry> builtIns = builtInEntries();
 
@@ -83,28 +79,29 @@ class BuiltInAdditionalMetricCatalogTest {
             .contains("keyword_authz_subject-id", "keyword_mcp-proxy_tools/call", "keyword_native-kafka_client-software-version");
     }
 
+    /** The Edge model, tool and version are facets of the analytics definition: they are described like any built-in. */
     @Test
-    void should_label_and_scope_every_built_in_entry_from_the_filter_catalog_or_the_analytics_definition_but_the_undescribed() {
+    void should_label_and_scope_every_built_in_entry_from_the_filter_catalog_or_the_analytics_definition() {
         var byName = builtIns.stream().collect(Collectors.toMap(AdditionalMetricCatalogEntry::name, Function.identity()));
         var filterCatalogLabels = new SpiFilterRegistry()
             .getFilters(Set.of(), Set.of())
             .stream()
             .collect(Collectors.toMap(FilterSpec::name, FilterSpec::label));
 
-        assertThat(byName.keySet()).containsAll(UNDESCRIBED);
-        assertThat(byName.get("EDGE_MODEL").label()).as("an undescribed built-in keeps its namespace in the label").isEqualTo("Edge model");
-        assertThat(byName.values())
-            .filteredOn(entry -> !UNDESCRIBED.contains(entry.name()))
-            .allSatisfy(entry -> {
-                assertThat(entry.apiTypes()).as(entry.name()).isNotEmpty();
-                // The filter catalog's label, which may read like the derived one ("Operation"); else the analytics
-                // definition's, which never does.
-                if (filterCatalogLabels.containsKey(entry.name())) {
-                    assertThat(entry.label()).as(entry.name()).isEqualTo(filterCatalogLabels.get(entry.name()));
-                } else {
-                    assertThat(entry.label()).as(entry.name()).isNotEqualTo(entry.field().derivedLabel());
-                }
-            });
+        assertThat(byName.get("EDGE_MODEL")).satisfies(edgeModel -> {
+            assertThat(edgeModel.label()).isEqualTo("Edge Model");
+            assertThat(edgeModel.apiTypes()).containsExactly(ApiType.EDGE);
+        });
+        assertThat(byName.values()).allSatisfy(entry -> {
+            assertThat(entry.apiTypes()).as(entry.name()).isNotEmpty();
+            // The filter catalog's label, which may read like the derived one ("Operation"); else the analytics
+            // definition's, which never does.
+            if (filterCatalogLabels.containsKey(entry.name())) {
+                assertThat(entry.label()).as(entry.name()).isEqualTo(filterCatalogLabels.get(entry.name()));
+            } else {
+                assertThat(entry.label()).as(entry.name()).isNotEqualTo(entry.field().derivedLabel());
+            }
+        });
         assertThat(byName.get("MCP_PROXY_TOOL").label()).isEqualTo("MCP Tool");
         assertThat(byName.get("MCP_PROXY_TOOL").type()).isNotNull();
         assertThat(byName.get("LLM_PROMPT_TOKEN_SENT").apiTypes()).isNotEmpty();
@@ -280,6 +277,76 @@ class BuiltInAdditionalMetricCatalogTest {
             .metrics();
 
         assertThat(metrics).extracting(MetricDefinition::name).containsExactly("additional-metrics.long_failover_count");
+    }
+
+    /**
+     * A field reads the same in every catalog: as a filter of the filter catalog, a dimension of the analytics
+     * definition and a row of the metric definitions. A dimension takes the label of the Gamma filter of its name.
+     */
+    @Test
+    void should_label_a_field_alike_as_a_filter_a_dimension_and_a_metric_definitions_row() {
+        var filterRegistry = new SpiFilterRegistry();
+        Map<String, String> filters = filterRegistry
+            .getFilters(Set.of(), Set.of())
+            .stream()
+            .collect(Collectors.toMap(FilterSpec::name, FilterSpec::label));
+        Map<String, String> dimensions = new HashMap<>();
+        var analytics = analyticsPort(filterRegistry);
+        ApiType.API_KINDS.forEach(kind ->
+            analytics.metricsOf(kind).forEach(metric -> metric.facets().forEach(facet -> dimensions.put(facet.name(), facet.label())))
+        );
+        Map<String, String> rows = builtIns
+            .stream()
+            .collect(Collectors.toMap(AdditionalMetricCatalogEntry::name, AdditionalMetricCatalogEntry::label));
+
+        var compared = 0;
+        for (var name : dimensions.keySet()) {
+            if (filters.containsKey(name)) {
+                assertThat(dimensions.get(name)).as("dimension " + name).isEqualTo(filters.get(name));
+                compared++;
+            }
+            if (rows.containsKey(name)) {
+                assertThat(dimensions.get(name)).as("dimension and row " + name).isEqualTo(rows.get(name));
+            }
+        }
+        for (var name : rows.keySet()) {
+            if (filters.containsKey(name)) {
+                assertThat(rows.get(name)).as("row " + name).isEqualTo(filters.get(name));
+            }
+        }
+        assertThat(compared).isGreaterThan(30);
+        assertThat(dimensions)
+            .containsEntry("AUTHZ_SUBJECT_ID", "Subject")
+            .containsEntry("AUTHZ_RESOURCE_ID", "Resource")
+            .containsEntry("AUTHZ_CALLER", "Caller kind")
+            .containsEntry("AUTHZ_STATUS", "Outcome status");
+    }
+
+    /**
+     * A built-in row of a number carries the unit the analytics definition serves for the metric reading its key; a
+     * key only a facet or a filter reads has none, nor has a keyword a metric counts.
+     */
+    @Test
+    void should_give_a_built_in_row_of_a_number_the_unit_of_the_metric_reading_its_key() {
+        var byKey = builtIns.stream().collect(Collectors.toMap(entry -> entry.field().rawKey(), Function.identity()));
+
+        assertThat(byKey.get("long_llm-proxy_tokens-sent").unit()).isEqualTo("TOKENS");
+        assertThat(byKey.get("double_llm-proxy_sent-cost").unit()).isEqualTo("CURRENCY");
+        assertThat(byKey.get("long_edge_tokens_in").unit()).isEqualTo("TOKENS");
+        assertThat(byKey.get("keyword_llm-proxy_model").unit()).as("read by a facet and a filter only").isNull();
+        assertThat(byKey.get("keyword_authz_operation").unit()).as("a keyword a metric counts").isNull();
+        assertThat(builtIns)
+            .filteredOn(entry -> entry.unit() != null)
+            .extracting(entry -> entry.field().rawKey())
+            .containsExactlyInAnyOrder(
+                "long_llm-proxy_tokens-sent",
+                "long_llm-proxy_tokens-received",
+                "double_llm-proxy_sent-cost",
+                "double_llm-proxy_received-cost",
+                "long_edge_tokens_in",
+                "long_edge_tokens_out",
+                "long_edge_count"
+            );
     }
 
     /** The key set the platform builds: the ES field resolvers and the logs-path adapters. */

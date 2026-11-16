@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.domain_service.analytics_engine.definition;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.gravitee.apim.core.analytics_engine.model.AnalyticsDefinitionSpec;
 import io.gravitee.apim.core.analytics_engine.model.ApiSpec;
 import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
@@ -185,33 +186,45 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
     class MetricDimensionParity {
 
         /**
-         * Dimensions a metric lists that the top-level catalog does not declare, so {@code getFacets} /
-         * {@code getFilters} drop them. All predate this contract, all sit on EDGE and MESSAGE metrics, and
-         * whether each is an omission or a deliberate withholding is for the teams that own them — silently
-         * cataloguing them here would surface pickers someone may have removed on purpose.
-         *
-         * <p>Pinned as an exact set rather than a floor: fixing one fails this test until it is struck off,
-         * so the list can only shrink. Nothing may be added to it.
+         * A metric lists only names the catalog declares: the loader refuses a file that does not
+         * ({@code requireListedNamesDeclared}). The Edge model, tool and version and the Message connector id
+         * were listed and never declared until OBS-193; every engine resolver maps them.
          */
-        private static final List<String> KNOWN_UNCATALOGUED_FACETS = List.of(
-            "EDGE_HEARTBEAT_COUNT -> EDGE_VERSION",
-            "EDGE_TOKENS_IN -> EDGE_MODEL",
-            "EDGE_TOKENS_IN -> EDGE_TOOL",
-            "EDGE_TOKENS_OUT -> EDGE_MODEL",
-            "EDGE_TOKENS_OUT -> EDGE_TOOL"
-        );
+        @Test
+        void should_refuse_a_definition_whose_metric_lists_a_name_it_does_not_declare() {
+            var metric = new MetricSpec(
+                MetricSpec.Name.HTTP_REQUESTS,
+                "HTTP Requests",
+                List.of(ApiSpec.Name.HTTP_PROXY),
+                null,
+                List.of(),
+                List.of(FilterSpec.Name.API, FilterSpec.Name.HTTP_METHOD),
+                List.of(FacetSpec.Name.API, FacetSpec.Name.HOST)
+            );
+            var spec = new AnalyticsDefinitionSpec(
+                List.of(),
+                List.of(metric),
+                List.of(filter(FilterSpec.Name.API)),
+                List.of(new FacetSpec(FacetSpec.Name.API, "API", "KEYWORD", null, null))
+            );
 
-        private static final List<String> KNOWN_UNCATALOGUED_FILTERS = List.of(
-            "EDGE_HEARTBEAT_COUNT -> EDGE_VERSION",
-            "EDGE_TOKENS_IN -> EDGE_MODEL",
-            "EDGE_TOKENS_IN -> EDGE_TOOL",
-            "EDGE_TOKENS_OUT -> EDGE_MODEL",
-            "EDGE_TOKENS_OUT -> EDGE_TOOL",
-            "MESSAGES -> MESSAGE_CONNECTOR_ID",
-            "MESSAGE_ERRORS -> MESSAGE_CONNECTOR_ID",
-            "MESSAGE_GATEWAY_LATENCY -> MESSAGE_CONNECTOR_ID",
-            "MESSAGE_PAYLOAD_SIZE -> MESSAGE_CONNECTOR_ID"
-        );
+            assertThatThrownBy(() -> AnalyticsDefinitionYAMLQueryService.requireListedNamesDeclared(spec))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("HTTP_REQUESTS -> facet HOST")
+                .hasMessageContaining("HTTP_REQUESTS -> filter HTTP_METHOD")
+                .hasMessageNotContaining("-> facet API");
+        }
+
+        @Test
+        void should_fail_to_load_a_definition_whose_metric_lists_a_name_it_does_not_declare() {
+            assertThatThrownBy(() -> new AnalyticsDefinitionYAMLQueryService("analytics/definition/metric-lists-undeclared-names.yaml"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("HTTP_REQUESTS -> facet HOST");
+        }
+
+        private static FilterSpec filter(FilterSpec.Name name) {
+            return new FilterSpec(name, name.name(), FilterType.KEYWORD, List.of(), null, List.of(FilterOperator.EQ), List.of(), Set.of());
+        }
 
         /**
          * getFacets intersects the metric's own list with the top-level {@code facets:} catalog, so a name
@@ -229,7 +242,7 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
                 droppedDimensions(MetricSpec::facets, (service, name) -> service.getFacets(name).stream().map(FacetSpec::name).toList())
             )
                 .as("facets listed on a metric but missing from the facets catalog are silently dropped by getFacets")
-                .containsExactlyInAnyOrderElementsOf(KNOWN_UNCATALOGUED_FACETS);
+                .isEmpty();
         }
 
         /** Same contract on the filter side, which getFilters intersects the same way. */
@@ -237,22 +250,17 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
         void should_surface_every_filter_a_metric_lists() {
             assertThat(
                 droppedDimensions(MetricSpec::filters, (service, name) -> service.getFilters(name).stream().map(FilterSpec::name).toList())
-            ).containsExactlyInAnyOrderElementsOf(KNOWN_UNCATALOGUED_FILTERS);
+            ).isEmpty();
         }
 
         /**
          * The same loss one level up: a name the engines evaluate but the catalog does not describe is advertised
          * to no signal and cannot list values, which is how the observability Entrypoint picker broke while the
-         * engine was filtering on it all along. What is left undescribed is exactly the pinned dimensions above,
-         * so this set shrinks with them and never grows.
+         * engine was filtering on it all along.
          */
         @Test
-        void should_describe_every_engine_name_outside_the_pinned_dimension_gaps() {
+        void should_describe_every_engine_name() {
             var service = new AnalyticsDefinitionYAMLQueryService();
-            var pinnedNames = KNOWN_UNCATALOGUED_FILTERS.stream()
-                .map(entry -> entry.substring(entry.indexOf("-> ") + 3))
-                .distinct()
-                .toList();
 
             var undescribed = Arrays.stream(FilterSpec.Name.values())
                 .filter(name -> !name.isInternal())
@@ -260,7 +268,7 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
                 .map(FilterSpec.Name::name)
                 .toList();
 
-            assertThat(undescribed).containsExactlyInAnyOrderElementsOf(pinnedNames);
+            assertThat(undescribed).isEmpty();
         }
 
         /** The back end builds the internal names itself: in the catalog, they would be offered to callers. */

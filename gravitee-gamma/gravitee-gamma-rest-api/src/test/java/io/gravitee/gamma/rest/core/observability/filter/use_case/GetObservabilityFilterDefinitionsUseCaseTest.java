@@ -106,11 +106,11 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
 
         List<String> names = output.filters().stream().map(FilterSpec::name).toList();
         assertThat(names).contains("MESSAGE_OPERATION_TYPE", "MESSAGE_SIZE", "API_TYPE");
-        // One exclusion per axis, so the test keeps covering both: GEO_IP_COUNTRY is HTTP/LLM/MCP/A2A
-        // only → excluded by api type; REQUEST_ID is LOGS-only → excluded by signal. HOST and
-        // HTTP_GATEWAY_LATENCY no longer serve as the api-type witness: they read connection-document
-        // fields and are now offered for MESSAGE like the rest.
-        assertThat(names).doesNotContain("GEO_IP_COUNTRY", "REQUEST_ID");
+        // One exclusion per axis, so the test keeps covering both: LLM_PROXY_MODEL is LLM only → excluded
+        // by api type; REQUEST_ID is LOGS-only → excluded by signal. HOST, HTTP_GATEWAY_LATENCY and
+        // GEO_IP_COUNTRY no longer serve as the api-type witness: they read connection-document fields and
+        // are offered for MESSAGE like the rest.
+        assertThat(names).contains("GEO_IP_COUNTRY").doesNotContain("LLM_PROXY_MODEL", "REQUEST_ID");
     }
 
     /**

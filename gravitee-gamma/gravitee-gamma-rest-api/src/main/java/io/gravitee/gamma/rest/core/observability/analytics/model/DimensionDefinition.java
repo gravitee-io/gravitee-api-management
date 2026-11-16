@@ -23,7 +23,8 @@ import java.util.Collection;
 import java.util.Set;
 
 /**
- * A facet a metric can be grouped by, with the label of the analytics catalog.
+ * A facet a metric can be grouped by: a built-in one under the label of the Gamma filter of its name when there is
+ * one, else of the analytics catalog.
  *
  * @param description the record's description on a {@code DECLARED} facet; {@code null} otherwise
  * @param namespace the namespace of an additional metric field, as the catalog serves it

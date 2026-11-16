@@ -75,9 +75,9 @@ public enum StaticFilters {
     // scoping this to HTTP left the filter unlistable there — its values endpoint answers "filter not
     // found", so the picker on an LLM dashboard came back empty.
     API_PRODUCT("API Product", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
-    GATEWAY("Gateway", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.GATEWAY_TYPES),
+    GATEWAY("Gateway", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS_EDGE),
     TENANT("Tenant", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.GATEWAY_TYPES),
-    ZONE("Zone", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.GATEWAY_TYPES),
+    ZONE("Zone", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS_EDGE),
 
     // Every API kind but not the decision scope: a decision document carries no entrypoint, so the
     // decision search cannot apply this and would refuse it. Exact on both signals: without it, each
@@ -131,13 +131,13 @@ public enum StaticFilters {
     ),
     HTTP_REQUEST_CONTENT_LENGTH("Request Size", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     HTTP_RESPONSE_CONTENT_LENGTH("Response Size", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
-    GEO_IP_COUNTRY("Country", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
-    GEO_IP_REGION("Region", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
-    GEO_IP_CITY("City", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
-    GEO_IP_CONTINENT("Continent", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
-    CONSUMER_IP("Consumer IP", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
-    HTTP_USER_AGENT_OS_NAME("User Agent OS", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
-    HTTP_USER_AGENT_DEVICE("User Agent Device", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
+    GEO_IP_COUNTRY("Country", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
+    GEO_IP_REGION("Region", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
+    GEO_IP_CITY("City", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
+    GEO_IP_CONTINENT("Continent", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
+    CONSUMER_IP("Consumer IP", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
+    HTTP_USER_AGENT_OS_NAME("User Agent OS", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
+    HTTP_USER_AGENT_DEVICE("User Agent Device", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
     // The analytics engine has no error-key dimension; the platform catalog serves it for logs only.
     ERROR_KEY("Error Key", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_CONNECTION_KINDS_NATIVE),
     REQUEST_ID("Request ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.REQUEST_BEARING_KINDS),
@@ -430,6 +430,16 @@ public enum StaticFilters {
             ApiType.NATIVE
         );
         private static final Set<ApiType> GATEWAY_TYPES = Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.A2A, ApiType.EDGE);
+
+        /** {@link #HTTP_CONNECTION_KINDS} and Edge, whose documents carry the gateway that wrote them and its zone. */
+        private static final Set<ApiType> HTTP_CONNECTION_KINDS_EDGE = Set.of(
+            ApiType.HTTP_PROXY,
+            ApiType.LLM,
+            ApiType.MCP,
+            ApiType.A2A,
+            ApiType.MESSAGE,
+            ApiType.EDGE
+        );
         private static final Set<ApiType> DECISION_RECORDS = Set.of(ApiType.AUTHZ_DECISION);
 
         /**

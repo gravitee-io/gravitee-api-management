@@ -86,13 +86,16 @@ public class AdditionalMetricCatalogDomainService {
             .stream()
             .collect(Collectors.toMap(FilterSpec::name, Function.identity(), (a, b) -> a));
         Map<String, Description> definedByName = describe(builtInMetrics);
+        Map<String, String> unitByMetric = new HashMap<>();
+        builtInMetrics
+            .stream()
+            .filter(metric -> metric.unit() != null)
+            .forEach(metric -> unitByMetric.putIfAbsent(metric.name(), metric.unit()));
 
         List<AdditionalMetricCatalogEntry> entries = new ArrayList<>();
         for (Resolved key : resolve(builtInNamesByRawKey, records, readsTraffic ? Optional.of(discovery) : Optional.empty())) {
             switch (key.origin()) {
-                case BUILT_IN -> builtInEntry(key.field(), key.builtInNames(), specsByName, definedByName, key.lastSeen()).ifPresent(
-                    entries::add
-                );
+                case BUILT_IN -> builtInEntry(key, specsByName, definedByName, unitByMetric).ifPresent(entries::add);
                 case DECLARED, DISCOVERED -> entries.add(dynamicEntry(key));
             }
         }
@@ -451,20 +454,23 @@ public class AdditionalMetricCatalogDomainService {
     }
 
     /**
-     * A key read through a constant only has no built-in name to serve it under: it is listed nowhere, but stays
-     * taken so no discovered entry duplicates it.
+     * A key read under built-in names, described as the first of them the catalogs describe. A number carries the
+     * unit the analytics definition serves for the metric reading it; a key only a facet or a filter reads has none,
+     * and so has a keyword a metric counts, whose values have no unit. A key
+     * read through a constant only has no built-in name to serve it under: it is listed nowhere, but stays taken so
+     * no discovered entry duplicates it.
      */
     private static Optional<AdditionalMetricCatalogEntry> builtInEntry(
-        AdditionalMetricField field,
-        Set<String> names,
+        Resolved key,
         Map<String, FilterSpec> specsByName,
         Map<String, Description> definedByName,
-        Instant lastSeen
+        Map<String, String> unitByMetric
     ) {
-        if (names.isEmpty()) {
+        AdditionalMetricField field = key.field();
+        if (key.builtInNames().isEmpty()) {
             return Optional.empty();
         }
-        List<String> sortedNames = names.stream().sorted().toList();
+        List<String> sortedNames = key.builtInNames().stream().sorted().toList();
         Optional<Description> description = sortedNames
             .stream()
             .map(name -> describe(name, specsByName, definedByName))
@@ -477,9 +483,11 @@ public class AdditionalMetricCatalogDomainService {
                 CatalogOrigin.BUILT_IN,
                 description.map(Description::label).orElseGet(() -> AdditionalMetricLabel.deriveFromWholeKey(field)),
                 null,
-                null,
+                field.valueType().isNumber()
+                    ? sortedNames.stream().map(unitByMetric::get).filter(Objects::nonNull).findFirst().orElse(null)
+                    : null,
                 true,
-                lastSeen,
+                key.lastSeen(),
                 description.map(Description::type).orElse(null),
                 description.map(Description::apiTypes).orElse(Set.of()),
                 null
