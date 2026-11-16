@@ -67,6 +67,7 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
 
     private static final ObjectMapper JSON = new ObjectMapper();
     private static final String FEATURE = "apim-guardian-policy-rule";
+    private static final String GUARDIANS_FEATURE = "apim-guardians";
 
     @Inject
     private ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager;
@@ -86,7 +87,15 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
         var license = mock(License.class);
         when(license.isFeatureEnabled(FEATURE)).thenReturn(true);
         when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION)).thenReturn(license);
+        givenGuardiansLicensed(true);
         when(policyPluginManager.findAll(true)).thenReturn(installedPolicies);
+    }
+
+    /** The platform license gating the endpoints, distinct from the organization license the {@code deployed} flag reads. */
+    private void givenGuardiansLicensed(boolean licensed) {
+        var platformLicense = mock(License.class);
+        when(platformLicense.isFeatureEnabled(GUARDIANS_FEATURE)).thenReturn(licensed);
+        when(licenseManager.getPlatformLicense()).thenReturn(platformLicense);
     }
 
     @AfterEach
@@ -359,6 +368,29 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
         @ValueSource(strings = { "", "guardrail-rule", "guardrail-rule/schema", "guardrail-rule/documentation" })
         void should_return_403_without_the_organization_policies_read_permission(String path) {
             when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
+
+            assertThat(rootTarget(path).request().get().getStatus()).as("GET /%s", path).isEqualTo(HttpStatusCode.FORBIDDEN_403);
+        }
+    }
+
+    /**
+     * One case per endpoint: {@code @GraviteeLicenseFeature} is declared per method, so a single case would pass while
+     * another endpoint stayed readable without the feature.
+     */
+    @Nested
+    class Licensing {
+
+        @BeforeEach
+        void given_an_installed_policy() throws IOException {
+            given_a_policy("guardrail-rule", Map.of("guardian", "REQUEST"));
+            when(policyPluginManager.getSchema("guardrail-rule", true)).thenReturn("{}");
+            when(policyPluginManager.getDocumentation("guardrail-rule", true)).thenReturn("# Guardrail rule");
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "", "guardrail-rule", "guardrail-rule/schema", "guardrail-rule/documentation" })
+        void should_return_403_without_the_guardians_license_feature(String path) {
+            givenGuardiansLicensed(false);
 
             assertThat(rootTarget(path).request().get().getStatus()).as("GET /%s", path).isEqualTo(HttpStatusCode.FORBIDDEN_403);
         }
