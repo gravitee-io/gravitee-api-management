@@ -40,7 +40,8 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -65,9 +66,11 @@ class ElasticBulkFailureIntegrationTest {
             bulkSender,
             new BulkConfiguration(2, 1L, 1, 2, 10, 30, 1_048_576L),
             reportable -> {
-                final String index = ((Metrics) reportable).getRequestId();
+                final Metrics metrics = (Metrics) reportable;
+                final String action = metrics.getTransactionId();
+                final String index = metrics.getRequestId();
                 return new TransformedReport(
-                    Buffer.buffer("{ \"index\": { \"_index\": \"" + index + "\" } }\n{ \"field\": \"value\" }\n"),
+                    Buffer.buffer("{ \"" + action + "\": { \"_index\": \"" + index + "\" } }\n{ \"field\": \"value\" }\n"),
                     Metrics.class
                 );
             },
@@ -82,10 +85,11 @@ class ElasticBulkFailureIntegrationTest {
         bulkProcessor.stop();
     }
 
-    @Test
-    void should_drop_and_count_the_report_elasticsearch_rejects_and_write_the_others_once() {
-        bulkProcessor.process(Metrics.builder().requestId(openIndex).build());
-        bulkProcessor.process(Metrics.builder().requestId(blockedIndex).build());
+    @ParameterizedTest
+    @ValueSource(strings = { "index", "create" })
+    void should_drop_and_count_the_report_elasticsearch_rejects_and_write_the_others_once(String action) {
+        bulkProcessor.process(Metrics.builder().transactionId(action).requestId(openIndex).build());
+        bulkProcessor.process(Metrics.builder().transactionId(action).requestId(blockedIndex).build());
 
         await()
             .atMost(30, TimeUnit.SECONDS)
