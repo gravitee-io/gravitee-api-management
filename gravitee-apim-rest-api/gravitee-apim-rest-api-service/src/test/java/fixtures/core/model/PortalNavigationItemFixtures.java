@@ -16,10 +16,12 @@
 package fixtures.core.model;
 
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
@@ -34,6 +36,10 @@ import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import java.util.List;
 
 public class PortalNavigationItemFixtures {
+
+    public static final NavigationItemReference PORTAL_REFERENCE = new NavigationItemReference.PortalReference(
+        PortalId.of("11111111-1111-1111-1111-111111111111")
+    );
 
     public static final String ORG_ID = "org-id";
     public static final String ENV_ID = "env-id";
@@ -85,6 +91,7 @@ public class PortalNavigationItemFixtures {
 
     public static PortalNavigationFolder aFolder(String id, String title, PortalNavigationItemId parentId) {
         return PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.of(id))
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -104,6 +111,7 @@ public class PortalNavigationItemFixtures {
 
     public static PortalNavigationFolder aFolder(String title, PortalNavigationItemId parentId) {
         return PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -119,6 +127,7 @@ public class PortalNavigationItemFixtures {
 
     public static PortalNavigationPage aPage(String id, String title, PortalNavigationItemId parentId) {
         return PortalNavigationPage.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.of(id))
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -135,6 +144,7 @@ public class PortalNavigationItemFixtures {
 
     public static PortalNavigationPage aPage(String title, PortalNavigationItemId parentId) {
         return PortalNavigationPage.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -151,6 +161,7 @@ public class PortalNavigationItemFixtures {
 
     public static PortalNavigationPage aPage(String id, String title, PortalNavigationItemId parentId, PortalPageContentId contentId) {
         return PortalNavigationPage.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.of(id))
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -200,6 +211,7 @@ public class PortalNavigationItemFixtures {
         AutomationMetadata automationMetadata
     ) {
         return PortalNavigationLink.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.of(id))
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -217,6 +229,7 @@ public class PortalNavigationItemFixtures {
 
     public static PortalNavigationLink aLink() {
         return PortalNavigationLink.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.of(LINK_ID))
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -232,6 +245,7 @@ public class PortalNavigationItemFixtures {
 
     public static PortalNavigationApi anApi(String id, String title, PortalNavigationItemId parentId, String apiId) {
         return PortalNavigationApi.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.of(id))
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -248,6 +262,7 @@ public class PortalNavigationItemFixtures {
 
     public static PortalNavigationApi anApi(String apiId, PortalVisibility visibility, List<PortalCategoryId> categoryIds) {
         return PortalNavigationApi.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -264,6 +279,7 @@ public class PortalNavigationItemFixtures {
 
     public static PortalNavigationApi anApi() {
         return PortalNavigationApi.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.of(API_ID))
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -315,6 +331,7 @@ public class PortalNavigationItemFixtures {
 
     public static PortalNavigationApiProduct anApiProduct(String id, String title, PortalNavigationItemId parentId, String apiProductId) {
         return PortalNavigationApiProduct.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.of(id))
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -331,6 +348,7 @@ public class PortalNavigationItemFixtures {
 
     public static PortalNavigationApiProduct anApiProduct() {
         return PortalNavigationApiProduct.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.of(API_PRODUCT_ID))
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)

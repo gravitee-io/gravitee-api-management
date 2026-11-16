@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.domain_service.validation;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -132,7 +133,7 @@ class SegmentConflictRuleTest {
             OTHER_ID,
             PARENT_ID,
             "docs",
-            NavigationItemReference.defaultReference(),
+            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")),
             PendingSegmentClaim.Intent.CLAIM
         );
         var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of(pendingClaim));
@@ -150,7 +151,7 @@ class SegmentConflictRuleTest {
             OTHER_ID,
             PARENT_ID,
             "docs",
-            NavigationItemReference.defaultReference(),
+            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")),
             PendingSegmentClaim.Intent.CLAIM
         );
         var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of(pendingUpdateClaim));
@@ -169,7 +170,7 @@ class SegmentConflictRuleTest {
             OTHER_ID,
             PARENT_ID,
             "docs",
-            NavigationItemReference.defaultReference(),
+            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")),
             PendingSegmentClaim.Intent.RELEASE
         );
         var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of(releaseClaim));
@@ -188,7 +189,7 @@ class SegmentConflictRuleTest {
             OTHER_ID,
             PARENT_ID,
             "docs",
-            NavigationItemReference.defaultReference(),
+            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")),
             PendingSegmentClaim.Intent.RELEASE
         );
         var ctx = new UpdateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of(releaseClaim));
@@ -258,7 +259,11 @@ class SegmentConflictRuleTest {
     void validate_accepts_a_root_create_when_the_batch_claim_on_that_segment_belongs_to_an_api_subtree() {
         var apiRoot = rootItem(OTHER_ID, "pets", new NavigationItemReference.ApiReference("api-1"));
         var ctx = batchOf(PendingSegmentClaim.forCreate(apiRoot));
-        var portalRoot = rootItem(ITEM_ID, "pets", NavigationItemReference.defaultReference());
+        var portalRoot = rootItem(
+            ITEM_ID,
+            "pets",
+            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000"))
+        );
 
         assertThatCode(() -> rule.validate(portalRoot, ENV_ID, ctx)).doesNotThrowAnyException();
     }
@@ -267,7 +272,11 @@ class SegmentConflictRuleTest {
     void validate_throws_when_a_root_create_collides_in_batch_with_a_portal_attached_root() {
         var attachedRoot = rootItem(OTHER_ID, "docs", ATTACHED_PORTAL);
         var ctx = batchOf(PendingSegmentClaim.forCreate(attachedRoot));
-        var consoleRoot = rootItem(ITEM_ID, "docs", NavigationItemReference.defaultReference());
+        var consoleRoot = rootItem(
+            ITEM_ID,
+            "docs",
+            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000"))
+        );
 
         assertThatThrownBy(() -> rule.validate(consoleRoot, ENV_ID, ctx))
             .isInstanceOf(PathConflictException.class)
@@ -289,7 +298,11 @@ class SegmentConflictRuleTest {
     void validate_throws_when_nested_items_of_different_references_claim_the_same_slot_in_batch() {
         var sibling = nestedItem(OTHER_ID, "pets", new NavigationItemReference.ApiReference("api-1"));
         var ctx = batchOf(PendingSegmentClaim.forCreate(sibling));
-        var item = nestedItem(ITEM_ID, "pets", NavigationItemReference.defaultReference());
+        var item = nestedItem(
+            ITEM_ID,
+            "pets",
+            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000"))
+        );
 
         assertThatThrownBy(() -> rule.validate(item, ENV_ID, ctx))
             .isInstanceOf(PathConflictException.class)
@@ -350,6 +363,7 @@ class SegmentConflictRuleTest {
 
     private static PortalNavigationFolder existingFolder(PortalNavigationItemId id, PortalNavigationItemId parentId, String segment) {
         return PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(id)
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)

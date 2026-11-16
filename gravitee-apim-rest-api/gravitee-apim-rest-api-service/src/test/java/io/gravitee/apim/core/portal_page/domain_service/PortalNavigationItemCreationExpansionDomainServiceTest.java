@@ -186,8 +186,8 @@ class PortalNavigationItemCreationExpansionDomainServiceTest {
         assertThat(normalizedFolder.getParentId()).isNull();
         assertThat(normalizedFolder.getRenderedParentId()).isEqualTo(api.getId());
         assertThat(normalizedFolder.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
-        assertThat(expansion.itemsToCreate().getLast().getReference()).isEqualTo(NavigationItemReference.defaultReference());
-        assertThat(requested).allSatisfy(item -> assertThat(item.getReference()).isEqualTo(NavigationItemReference.defaultReference()));
+        assertThat(expansion.itemsToCreate().getLast().getReference()).isNull();
+        assertThat(requested).allSatisfy(item -> assertThat(item.getReference()).isNull());
         assertThat(folder.getParentId()).isEqualTo(api.getId());
         assertThat(folder.getVisibility()).isNull();
         assertThat(page.getParentId()).isEqualTo(folder.getId());
@@ -209,9 +209,7 @@ class PortalNavigationItemCreationExpansionDomainServiceTest {
         assertThat(expansion.itemsToCreate())
             .extracting(CreatePortalNavigationItem::getId)
             .containsExactly(page.getId(), api.getId(), folder.getId(), product.getId());
-        assertThat(expansion.itemsToCreate()).allSatisfy(item ->
-            assertThat(item.getReference()).isEqualTo(NavigationItemReference.defaultReference())
-        );
+        assertThat(expansion.itemsToCreate()).allSatisfy(item -> assertThat(item.getReference()).isNull());
         assertThat(expansion.itemsToCreate().getFirst().getParentId()).isEqualTo(api.getId());
     }
 
@@ -283,7 +281,7 @@ class PortalNavigationItemCreationExpansionDomainServiceTest {
         assertThat(expansion.itemsToCreate())
             .singleElement()
             .satisfies(item -> {
-                assertThat(item.getReference()).isEqualTo(NavigationItemReference.defaultReference());
+                assertThat(item.getReference()).isNull();
                 assertThat(item.getParentId()).isEqualTo(api.getId());
                 assertThat(item.getRenderedParentId()).isNull();
             });

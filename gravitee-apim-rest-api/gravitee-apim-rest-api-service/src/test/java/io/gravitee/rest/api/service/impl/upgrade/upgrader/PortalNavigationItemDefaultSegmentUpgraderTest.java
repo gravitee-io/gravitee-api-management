@@ -165,6 +165,7 @@ class PortalNavigationItemDefaultSegmentUpgraderTest {
 
     private static PortalNavigationItem navItemNullSegment(String id, String title) {
         return PortalNavigationItem.builder()
+            .referenceId("00000000-0000-0000-0000-000000000000")
             .id(id)
             .organizationId("DEFAULT")
             .environmentId("DEFAULT")
@@ -181,6 +182,7 @@ class PortalNavigationItemDefaultSegmentUpgraderTest {
 
     private static PortalNavigationItem navItemWithSegment(String id, String title, String segment) {
         return PortalNavigationItem.builder()
+            .referenceId("00000000-0000-0000-0000-000000000000")
             .id(id)
             .organizationId("DEFAULT")
             .environmentId("DEFAULT")

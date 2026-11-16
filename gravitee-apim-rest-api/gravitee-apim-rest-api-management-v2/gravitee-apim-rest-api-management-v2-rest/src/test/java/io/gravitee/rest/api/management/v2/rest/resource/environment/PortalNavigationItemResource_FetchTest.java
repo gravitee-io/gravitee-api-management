@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import static assertions.MAPIAssertions.assertThat;
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
@@ -126,6 +127,7 @@ class PortalNavigationItemResource_FetchTest extends AbstractResourceTest {
 
     private PortalNavigationFolder aFolder(String title, PortalNavigationItemId parentId) {
         var folder = PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(ORGANIZATION)
             .environmentId(ENVIRONMENT)
@@ -147,6 +149,7 @@ class PortalNavigationItemResource_FetchTest extends AbstractResourceTest {
         ((PortalPageContentQueryServiceInMemory) portalPageContentQueryService).storage().add(content);
 
         var page = PortalNavigationPage.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(ORGANIZATION)
             .environmentId(ENVIRONMENT)

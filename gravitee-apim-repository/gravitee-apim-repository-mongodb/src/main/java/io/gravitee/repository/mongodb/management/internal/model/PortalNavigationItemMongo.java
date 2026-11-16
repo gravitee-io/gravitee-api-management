@@ -35,7 +35,7 @@ public class PortalNavigationItemMongo {
     private PortalNavigationReferenceType referenceType = PortalNavigationReferenceType.PORTAL;
 
     @Nonnull
-    private String referenceId = "00000000-0000-0000-0000-000000000000";
+    private String referenceId;
 
     private String title;
     private String segment;

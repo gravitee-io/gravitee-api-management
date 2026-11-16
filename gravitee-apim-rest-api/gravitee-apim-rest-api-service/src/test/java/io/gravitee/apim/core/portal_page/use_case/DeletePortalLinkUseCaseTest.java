@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.use_case;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
@@ -96,6 +97,7 @@ class DeletePortalLinkUseCaseTest {
         navCrudService.initWith(
             List.of(
                 PortalNavigationFolder.builder()
+                    .reference(PORTAL_REFERENCE)
                     .id(LINK_ID)
                     .organizationId(AUDIT_INFO.organizationId())
                     .environmentId(AUDIT_INFO.environmentId())

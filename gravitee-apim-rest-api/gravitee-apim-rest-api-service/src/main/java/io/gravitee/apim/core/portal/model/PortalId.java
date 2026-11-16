@@ -20,16 +20,12 @@ import jakarta.annotation.Nonnull;
 import java.util.UUID;
 
 public record PortalId(@Nonnull UUID id) {
-    private static final UUID ZERO_UUID = new UUID(0L, 0L);
-    public static final PortalId ZERO = new PortalId(ZERO_UUID);
-
     public static PortalId random() {
         return new PortalId(UUID.randomUUID());
     }
 
     public static PortalId of(String value) {
-        var uuid = UUID.fromString(value);
-        return ZERO_UUID.equals(uuid) ? ZERO : new PortalId(uuid);
+        return new PortalId(UUID.fromString(value));
     }
 
     @JsonValue

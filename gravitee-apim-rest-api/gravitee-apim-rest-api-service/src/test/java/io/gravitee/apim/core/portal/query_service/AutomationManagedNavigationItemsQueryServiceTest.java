@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal.query_service;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.PortalListingCrudServiceInMemory;
@@ -188,6 +189,7 @@ class AutomationManagedNavigationItemsQueryServiceTest {
 
     private static PortalNavigationLink linkRow(String title, AutomationMetadata metadata) {
         var link = PortalNavigationLink.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(AUDIT_INFO.organizationId())
             .environmentId(AUDIT_INFO.environmentId())
@@ -206,6 +208,7 @@ class AutomationManagedNavigationItemsQueryServiceTest {
 
     private static PortalNavigationPage pageRow(String title, AutomationMetadata metadata) {
         var page = PortalNavigationPage.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(AUDIT_INFO.organizationId())
             .environmentId(AUDIT_INFO.environmentId())

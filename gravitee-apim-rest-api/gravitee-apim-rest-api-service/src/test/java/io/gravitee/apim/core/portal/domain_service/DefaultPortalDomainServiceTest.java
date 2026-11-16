@@ -78,7 +78,7 @@ class DefaultPortalDomainServiceTest {
             .id(PortalNavigationItemId.random())
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
-            .reference(NavigationItemReference.defaultReference())
+            .reference(new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")))
             .title("Docs")
             .segment("docs")
             .area(PortalArea.TOP_NAVBAR)
@@ -247,7 +247,9 @@ class DefaultPortalDomainServiceTest {
 
             cut.ensureDefault(ORG_ID, ENV_ID);
 
-            assertThat(item.getReference()).isEqualTo(NavigationItemReference.defaultReference());
+            assertThat(item.getReference()).isEqualTo(
+                new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000"))
+            );
         }
 
         @Test
@@ -257,7 +259,9 @@ class DefaultPortalDomainServiceTest {
 
             cut.ensureDefault(ORG_ID, ENV_ID);
 
-            assertThat(item.getReference()).isEqualTo(NavigationItemReference.defaultReference());
+            assertThat(item.getReference()).isEqualTo(
+                new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000"))
+            );
         }
     }
 

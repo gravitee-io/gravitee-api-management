@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.crud_service.portal_page;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -82,6 +83,7 @@ class PortalNavigationItemsCrudServiceImplTest {
         void should_create_a_folder() throws TechnicalException {
             final var itemId = PortalNavigationItemId.random();
             final var item = PortalNavigationFolder.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(itemId)
                 .organizationId("organizationId")
                 .environmentId("environmentId")
@@ -113,6 +115,7 @@ class PortalNavigationItemsCrudServiceImplTest {
             final var itemId = PortalNavigationItemId.random();
             final var contentId = PortalPageContentId.random();
             final var item = PortalNavigationPage.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(itemId)
                 .organizationId("organizationId")
                 .environmentId("environmentId")
@@ -146,6 +149,7 @@ class PortalNavigationItemsCrudServiceImplTest {
             final var itemId = PortalNavigationItemId.random();
             final var url = "http://example.com";
             final var item = PortalNavigationLink.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(itemId)
                 .organizationId("organizationId")
                 .environmentId("environmentId")
@@ -179,6 +183,7 @@ class PortalNavigationItemsCrudServiceImplTest {
             final var itemId = PortalNavigationItemId.random();
             final var rootId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000099");
             final var item = PortalNavigationFolder.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(itemId)
                 .organizationId("organizationId")
                 .environmentId("environmentId")
@@ -212,6 +217,7 @@ class PortalNavigationItemsCrudServiceImplTest {
             final var itemId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000001");
             final var contentId = PortalPageContentId.random();
             final var item = PortalNavigationPage.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(itemId)
                 .organizationId("organizationId")
                 .environmentId("environmentId")
@@ -247,6 +253,7 @@ class PortalNavigationItemsCrudServiceImplTest {
         void should_update_a_folder() throws TechnicalException {
             final var itemId = PortalNavigationItemId.random();
             final var item = PortalNavigationFolder.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(itemId)
                 .organizationId("organizationId")
                 .environmentId("environmentId")
@@ -278,6 +285,7 @@ class PortalNavigationItemsCrudServiceImplTest {
             final var itemId = PortalNavigationItemId.random();
             final var contentId = PortalPageContentId.random();
             final var item = PortalNavigationPage.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(itemId)
                 .organizationId("organizationId")
                 .environmentId("environmentId")
@@ -311,6 +319,7 @@ class PortalNavigationItemsCrudServiceImplTest {
             final var itemId = PortalNavigationItemId.random();
             final var url = "http://example.com";
             final var item = PortalNavigationLink.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(itemId)
                 .organizationId("organizationId")
                 .environmentId("environmentId")
@@ -345,6 +354,7 @@ class PortalNavigationItemsCrudServiceImplTest {
             final var itemId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000001");
             final var contentId = PortalPageContentId.random();
             final var item = PortalNavigationPage.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(itemId)
                 .organizationId("organizationId")
                 .environmentId("environmentId")
@@ -529,7 +539,7 @@ class PortalNavigationItemsCrudServiceImplTest {
             );
 
             assertThat(service.findReferencedPortalIds("env")).containsExactlyInAnyOrder(
-                PortalId.ZERO,
+                PortalId.of("00000000-0000-0000-0000-000000000000"),
                 PortalId.of("11111111-1111-1111-1111-111111111111")
             );
         }
@@ -554,10 +564,16 @@ class PortalNavigationItemsCrudServiceImplTest {
         @Test
         void should_pass_the_portal_ids_as_strings_and_return_the_rows_changed() throws TechnicalException {
             when(
-                repository.updatePortalReferences("env", List.of(PortalId.ZERO.toString(), dead.toString()), target.toString())
+                repository.updatePortalReferences(
+                    "env",
+                    List.of(PortalId.of("00000000-0000-0000-0000-000000000000").toString(), dead.toString()),
+                    target.toString()
+                )
             ).thenReturn(4L);
 
-            assertThat(service.updatePortalReferences("env", List.of(PortalId.ZERO, dead), target)).isEqualTo(4L);
+            assertThat(
+                service.updatePortalReferences("env", List.of(PortalId.of("00000000-0000-0000-0000-000000000000"), dead), target)
+            ).isEqualTo(4L);
         }
 
         @Test
@@ -578,16 +594,26 @@ class PortalNavigationItemsCrudServiceImplTest {
 
         @Test
         void should_pass_the_portal_ids_as_strings_and_return_the_rows_changed() throws TechnicalException {
-            when(repository.updateAutomationPortalReferences("env", List.of(PortalId.ZERO.toString()), portal.toString())).thenReturn(3L);
+            when(
+                repository.updateAutomationPortalReferences(
+                    "env",
+                    List.of(PortalId.of("00000000-0000-0000-0000-000000000000").toString()),
+                    portal.toString()
+                )
+            ).thenReturn(3L);
 
-            assertThat(service.updateAutomationPortalReferences("env", List.of(PortalId.ZERO), portal)).isEqualTo(3L);
+            assertThat(
+                service.updateAutomationPortalReferences("env", List.of(PortalId.of("00000000-0000-0000-0000-000000000000")), portal)
+            ).isEqualTo(3L);
         }
 
         @Test
         void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
             when(repository.updateAutomationPortalReferences(any(), any(), any())).thenThrow(new TechnicalException("boom"));
 
-            assertThatThrownBy(() -> service.updateAutomationPortalReferences("env", List.of(PortalId.ZERO), portal))
+            assertThatThrownBy(() ->
+                service.updateAutomationPortalReferences("env", List.of(PortalId.of("00000000-0000-0000-0000-000000000000")), portal)
+            )
                 .isInstanceOf(TechnicalDomainException.class)
                 .hasMessage("An error occurred while moving the Automation API navigation items of environment env to portal " + portal)
                 .hasCauseInstanceOf(TechnicalException.class);

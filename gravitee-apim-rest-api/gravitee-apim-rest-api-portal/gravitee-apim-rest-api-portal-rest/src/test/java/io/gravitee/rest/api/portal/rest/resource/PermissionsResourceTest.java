@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static io.gravitee.common.http.HttpStatusCode.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -168,6 +169,7 @@ public class PermissionsResourceTest extends AbstractResourceTest {
         portalNavigationItemsQueryService.initWith(
             List.of(
                 PortalNavigationApi.builder()
+                    .reference(PORTAL_REFERENCE)
                     .id(PortalNavigationItemId.random())
                     .organizationId("DEFAULT")
                     .environmentId(ENV_ID)
@@ -197,6 +199,7 @@ public class PermissionsResourceTest extends AbstractResourceTest {
         portalNavigationItemsQueryService.initWith(
             List.of(
                 PortalNavigationApi.builder()
+                    .reference(PORTAL_REFERENCE)
                     .id(PortalNavigationItemId.random())
                     .organizationId("DEFAULT")
                     .environmentId(ENV_ID)
@@ -249,6 +252,7 @@ public class PermissionsResourceTest extends AbstractResourceTest {
         portalNavigationItemsQueryService.initWith(
             List.of(
                 PortalNavigationApi.builder()
+                    .reference(PORTAL_REFERENCE)
                     .id(PortalNavigationItemId.random())
                     .organizationId("DEFAULT")
                     .environmentId(ENV_ID)

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.SubscriptionFormFixtures;
@@ -65,6 +66,7 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
         portalNavigationItemsQueryService.initWith(
             List.of(
                 PortalNavigationApi.builder()
+                    .reference(PORTAL_REFERENCE)
                     .id(PortalNavigationItemId.random())
                     .organizationId("DEFAULT")
                     .environmentId(ENV_ID)
@@ -122,6 +124,7 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
         portalNavigationItemsQueryService.initWith(
             List.of(
                 PortalNavigationApi.builder()
+                    .reference(PORTAL_REFERENCE)
                     .id(PortalNavigationItemId.random())
                     .organizationId("DEFAULT")
                     .environmentId(ENV_ID)

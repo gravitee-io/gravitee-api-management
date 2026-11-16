@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal.use_case;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.mock;
@@ -255,6 +256,7 @@ class DeletePortalUseCaseTest {
             )
         );
         var consoleRow = PortalNavigationLink.builder()
+            .reference(new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")))
             .id(PortalNavigationItemId.random())
             .organizationId(AUDIT_INFO.organizationId())
             .environmentId(AUDIT_INFO.environmentId())
@@ -267,7 +269,11 @@ class DeletePortalUseCaseTest {
             .visibility(PortalVisibility.PUBLIC)
             .build();
         navCrudService.create(consoleRow);
-        navCrudService.updatePortalReferences(AUDIT_INFO.environmentId(), List.of(PortalId.ZERO), portal.getId());
+        navCrudService.updatePortalReferences(
+            AUDIT_INFO.environmentId(),
+            List.of(PortalId.of("00000000-0000-0000-0000-000000000000")),
+            portal.getId()
+        );
         assertThat(consoleRow.getReference()).isEqualTo(new NavigationItemReference.PortalReference(portal.getId()));
 
         useCase.execute(new DeletePortalUseCase.Input(AUDIT_INFO, portal.getId()));
@@ -394,6 +400,7 @@ class DeletePortalUseCaseTest {
             .orElseThrow();
 
         var link = PortalNavigationLink.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(AUDIT_INFO.organizationId())
             .environmentId(AUDIT_INFO.environmentId())

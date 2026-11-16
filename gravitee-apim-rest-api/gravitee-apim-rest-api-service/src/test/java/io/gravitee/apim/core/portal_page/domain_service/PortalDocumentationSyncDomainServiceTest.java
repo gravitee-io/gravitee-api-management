@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.domain_service;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -181,6 +182,7 @@ class PortalDocumentationSyncDomainServiceTest {
         navItemCrud.initWith(
             List.of(
                 PortalNavigationFolder.builder()
+                    .reference(PORTAL_REFERENCE)
                     .id(parentFolderId)
                     .organizationId(AUDIT_INFO.organizationId())
                     .environmentId(AUDIT_INFO.environmentId())
@@ -211,6 +213,7 @@ class PortalDocumentationSyncDomainServiceTest {
         navItemCrud.initWith(
             List.of(
                 PortalNavigationFolder.builder()
+                    .reference(PORTAL_REFERENCE)
                     .id(parentFolderId)
                     .organizationId(AUDIT_INFO.organizationId())
                     .environmentId(AUDIT_INFO.environmentId())
@@ -222,6 +225,7 @@ class PortalDocumentationSyncDomainServiceTest {
                     .visibility(PortalVisibility.PUBLIC)
                     .build(),
                 PortalNavigationPage.builder()
+                    .reference(PORTAL_REFERENCE)
                     .id(expectedNavItemId())
                     .organizationId(AUDIT_INFO.organizationId())
                     .environmentId(AUDIT_INFO.environmentId())
@@ -254,6 +258,7 @@ class PortalDocumentationSyncDomainServiceTest {
         navItemCrud.initWith(
             List.of(
                 PortalNavigationFolder.builder()
+                    .reference(PORTAL_REFERENCE)
                     .id(parentFolderId)
                     .organizationId(AUDIT_INFO.organizationId())
                     .environmentId(AUDIT_INFO.environmentId())
@@ -265,6 +270,7 @@ class PortalDocumentationSyncDomainServiceTest {
                     .visibility(PortalVisibility.PUBLIC)
                     .build(),
                 PortalNavigationPage.builder()
+                    .reference(PORTAL_REFERENCE)
                     .id(expectedNavItemId())
                     .organizationId(AUDIT_INFO.organizationId())
                     .environmentId(AUDIT_INFO.environmentId())
@@ -382,10 +388,15 @@ class PortalDocumentationSyncDomainServiceTest {
     }
 
     @Test
-    void materialize_replaces_unattached_sentinel_homepage() {
+    void materialize_replaces_a_console_homepage_after_its_reference_was_migrated() {
         var seeded = unattachedHomepagePage("seeded-content-id");
         navItemCrud.create(seeded);
         pageContentCrud.create(staleContent(seeded));
+        navItemCrud.updatePortalReferences(
+            AUDIT_INFO.environmentId(),
+            List.of(PortalId.of("00000000-0000-0000-0000-000000000000")),
+            PORTAL_ID
+        );
 
         syncService.materialize(AUDIT_INFO, homepageDoc("Home", "/homepage"), PortalArea.HOMEPAGE, null);
 
@@ -532,7 +543,7 @@ class PortalDocumentationSyncDomainServiceTest {
             .id(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000c0d2"))
             .organizationId(AUDIT_INFO.organizationId())
             .environmentId(AUDIT_INFO.environmentId())
-            .reference(NavigationItemReference.defaultReference())
+            .reference(new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")))
             .title("Seeded")
             .segment("seeded")
             .area(PortalArea.HOMEPAGE)

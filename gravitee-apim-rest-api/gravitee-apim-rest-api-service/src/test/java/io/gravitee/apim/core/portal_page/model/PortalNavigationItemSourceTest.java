@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.portal.model.PortalArea;
@@ -33,6 +34,7 @@ class PortalNavigationItemSourceTest {
     private PortalNavigationItem aPageWithSource(PortalNavigationItemSource source) {
         var item = PortalNavigationItem.from(
             CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.PAGE)
                 .title("My Page")
                 .segment("my-page")

@@ -53,6 +53,12 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    private static void requireReference(PortalNavigationItem item) {
+        if (item == null || item.getReferenceType() == null || item.getReferenceId() == null || item.getReferenceId().isBlank()) {
+            throw new IllegalStateException("Portal navigation item must have a reference type and id");
+        }
+    }
+
     @Override
     public Optional<PortalNavigationItem> findById(String id) throws TechnicalException {
         log.debug("Find PortalNavigationItem by id [{}]", id);
@@ -197,6 +203,7 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
 
     @Override
     public PortalNavigationItem create(PortalNavigationItem item) throws TechnicalException {
+        requireReference(item);
         log.debug("Create PortalNavigationItem [{}]", item.getId());
         PortalNavigationItemMongo created = internalRepo.insert(mapper.map(item));
         return mapper.map(created);
@@ -204,6 +211,7 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
 
     @Override
     public PortalNavigationItem update(PortalNavigationItem item) throws TechnicalException {
+        requireReference(item);
         log.debug("Update PortalNavigationItem [{}]", item.getId());
         PortalNavigationItemMongo saved = internalRepo.save(mapper.map(item));
         return mapper.map(saved);

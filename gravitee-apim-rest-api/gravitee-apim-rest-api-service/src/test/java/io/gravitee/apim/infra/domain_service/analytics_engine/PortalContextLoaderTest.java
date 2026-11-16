@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.domain_service.analytics_engine;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -116,6 +117,7 @@ class PortalContextLoaderTest {
 
     private PortalNavigationApi navApi(String apiId) {
         return PortalNavigationApi.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)

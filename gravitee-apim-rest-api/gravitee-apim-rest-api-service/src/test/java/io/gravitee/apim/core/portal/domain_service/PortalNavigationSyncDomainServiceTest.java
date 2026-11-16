@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal.domain_service;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -392,6 +393,7 @@ class PortalNavigationSyncDomainServiceTest {
     @Test
     void sync_does_not_touch_other_node_types_or_areas() {
         var pageInTopNavbar = PortalNavigationPage.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(AUDIT_INFO.organizationId())
             .environmentId(AUDIT_INFO.environmentId())
@@ -405,6 +407,7 @@ class PortalNavigationSyncDomainServiceTest {
             .build();
         pageInTopNavbar.markAsRoot();
         var folderInHomepage = PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(AUDIT_INFO.organizationId())
             .environmentId(AUDIT_INFO.environmentId())
@@ -453,6 +456,7 @@ class PortalNavigationSyncDomainServiceTest {
 
     private PortalNavigationFolder folderRow(String title, PortalNavigationItemId parentId, int order, PortalVisibility visibility) {
         return PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(AUDIT_INFO.organizationId())
             .environmentId(AUDIT_INFO.environmentId())
@@ -468,6 +472,7 @@ class PortalNavigationSyncDomainServiceTest {
 
     private PortalNavigationPage pageRow(String title, PortalNavigationItemId parentId, int order, PortalPageContentId contentId) {
         return PortalNavigationPage.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(AUDIT_INFO.organizationId())
             .environmentId(AUDIT_INFO.environmentId())
@@ -488,6 +493,7 @@ class PortalNavigationSyncDomainServiceTest {
 
     private PortalNavigationLink linkRow(String title, PortalNavigationItemId parentId, int order, AutomationMetadata automationMetadata) {
         return PortalNavigationLink.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(AUDIT_INFO.organizationId())
             .environmentId(AUDIT_INFO.environmentId())
@@ -505,6 +511,7 @@ class PortalNavigationSyncDomainServiceTest {
 
     private PortalNavigationApi apiRow(String title, PortalNavigationItemId parentId, int order) {
         return PortalNavigationApi.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(AUDIT_INFO.organizationId())
             .environmentId(AUDIT_INFO.environmentId())
@@ -621,8 +628,12 @@ class PortalNavigationSyncDomainServiceTest {
         var original = List.of(new NavigationPath("/a", "Original"), new NavigationPath("/b", null));
         var renamed = List.of(new NavigationPath("/a", "Renamed"));
         syncService.sync(AUDIT_INFO, PORTAL_ID, PortalNavigationStructure.empty(), PortalNavigationStructure.ofTopNavbar(original));
-        crud.storage().forEach(item -> item.changeOwner(NavigationItemReference.defaultReference()));
-        crud.updatePortalReferences(AUDIT_INFO.environmentId(), List.of(PortalId.ZERO), PORTAL_ID);
+        crud
+            .storage()
+            .forEach(item ->
+                item.changeOwner(new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")))
+            );
+        crud.updatePortalReferences(AUDIT_INFO.environmentId(), List.of(PortalId.of("00000000-0000-0000-0000-000000000000")), PORTAL_ID);
 
         syncService.sync(
             AUDIT_INFO,
@@ -646,7 +657,7 @@ class PortalNavigationSyncDomainServiceTest {
             .organizationId(AUDIT_INFO.organizationId())
             .environmentId(AUDIT_INFO.environmentId())
             .segment("docs")
-            .reference(NavigationItemReference.defaultReference())
+            .reference(new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")))
             .build();
         crud.initWith(List.of(consoleFolder));
 

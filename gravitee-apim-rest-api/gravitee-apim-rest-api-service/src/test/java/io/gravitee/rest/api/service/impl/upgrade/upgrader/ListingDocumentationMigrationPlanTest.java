@@ -105,6 +105,7 @@ class ListingDocumentationMigrationPlanTest {
 
     private static PortalNavigationItem item(String id, PortalNavigationItem.Type type, String parentId, int order, String segment) {
         return PortalNavigationItem.builder()
+            .referenceId("00000000-0000-0000-0000-000000000000")
             .id(id)
             .organizationId("org")
             .environmentId("env")

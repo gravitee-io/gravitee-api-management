@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.domain_service.validation;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -73,6 +74,7 @@ class UniqueItemIdRuleTest {
 
     private static CreatePortalNavigationItem pageCreateItem(PortalNavigationItemId id) {
         var builder = CreatePortalNavigationItem.builder()
+            .reference(PORTAL_REFERENCE)
             .type(PortalNavigationItemType.PAGE)
             .title("Getting Started")
             .segment("getting-started")

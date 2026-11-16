@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -762,6 +763,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         portalNavigationItemsQueryServiceInMemory.initWith(
             List.of(
                 PortalNavigationApi.builder()
+                    .reference(PORTAL_REFERENCE)
                     .id(PortalNavigationItemId.random())
                     .organizationId(orgId)
                     .environmentId(envId)

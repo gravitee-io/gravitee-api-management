@@ -52,7 +52,9 @@ class PortalContentOwnershipDomainServiceTest {
     private static final PortalId DEFAULT_PORTAL_ID = PortalId.of("11111111-1111-1111-1111-111111111111");
     private static final PortalId AUTOMATION_PORTAL_ID = PortalId.of("22222222-2222-2222-2222-222222222222");
     private static final PortalId DELETED_PORTAL_ID = PortalId.of("99999999-9999-9999-9999-999999999999");
-    private static final NavigationItemReference ON_ZERO_UUID = NavigationItemReference.defaultReference();
+    private static final NavigationItemReference ON_ZERO_UUID = new NavigationItemReference.PortalReference(
+        PortalId.of("00000000-0000-0000-0000-000000000000")
+    );
     private static final URL PORTAL_URL = url("https://portal.acme.io/next");
 
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();

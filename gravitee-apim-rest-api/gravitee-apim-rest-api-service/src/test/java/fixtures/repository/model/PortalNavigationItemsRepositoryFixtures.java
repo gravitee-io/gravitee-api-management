@@ -42,6 +42,7 @@ public class PortalNavigationItemsRepositoryFixtures {
 
     public static PortalNavigationItem aFolder(String id, String title, String parentId, String rootId) {
         return PortalNavigationItem.builder()
+            .referenceId("11111111-1111-1111-1111-111111111111")
             .id(id)
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -65,6 +66,7 @@ public class PortalNavigationItemsRepositoryFixtures {
     public static PortalNavigationItem aPage(String id, String title, String portalPageContentId, String parentId, String rootId) {
         var configuration = String.format("{\"portalPageContentId\":\"%s\"}", portalPageContentId);
         return PortalNavigationItem.builder()
+            .referenceId("11111111-1111-1111-1111-111111111111")
             .id(id)
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -88,6 +90,7 @@ public class PortalNavigationItemsRepositoryFixtures {
     public static PortalNavigationItem aLink(String id, String title, String url, String parentId, String rootId) {
         var configuration = String.format("{\"url\":\"%s\"}", url == null ? "http://example.com" : url);
         return PortalNavigationItem.builder()
+            .referenceId("11111111-1111-1111-1111-111111111111")
             .id(id)
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -111,6 +114,7 @@ public class PortalNavigationItemsRepositoryFixtures {
     public static PortalNavigationItem anApi(String id, String title, String apiId, String parentId, String rootId) {
         var configuration = "{}";
         return PortalNavigationItem.builder()
+            .referenceId("11111111-1111-1111-1111-111111111111")
             .id(id)
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -130,6 +134,7 @@ public class PortalNavigationItemsRepositoryFixtures {
 
     public static PortalNavigationItem anApiProduct(String id, String title, String apiProductId, String parentId) {
         return PortalNavigationItem.builder()
+            .referenceId("11111111-1111-1111-1111-111111111111")
             .id(id)
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -162,6 +167,7 @@ public class PortalNavigationItemsRepositoryFixtures {
         String rootId
     ) {
         return PortalNavigationItem.builder()
+            .referenceId("11111111-1111-1111-1111-111111111111")
             .id(id)
             .title(title)
             .segment(title)
@@ -191,6 +197,7 @@ public class PortalNavigationItemsRepositoryFixtures {
         String portalPageContentId
     ) {
         return PortalNavigationItem.builder()
+            .referenceId("11111111-1111-1111-1111-111111111111")
             .id(id)
             .title(title)
             .segment(title)
@@ -220,6 +227,7 @@ public class PortalNavigationItemsRepositoryFixtures {
         String url
     ) {
         return PortalNavigationItem.builder()
+            .referenceId("11111111-1111-1111-1111-111111111111")
             .id(id)
             .title(title)
             .segment(title)

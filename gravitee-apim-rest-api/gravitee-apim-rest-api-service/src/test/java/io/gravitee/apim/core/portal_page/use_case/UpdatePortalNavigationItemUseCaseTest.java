@@ -25,6 +25,7 @@ import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.LINK1_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.PAGE11_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -114,6 +115,7 @@ class UpdatePortalNavigationItemUseCaseTest {
         // validation was given and in which order masking and merging happened.
         sourceDomainService = new PortalNavigationItemSourceDomainServiceInMemory();
         navigationPortals = new NavigationPortalDomainServiceInMemory();
+        navigationPortals.givenDefaultPortalForNavigationFixtures();
 
         validatorService = new PortalNavigationItemValidatorService(
             queryService,
@@ -1317,7 +1319,7 @@ class UpdatePortalNavigationItemUseCaseTest {
 
         private static final ApiReference API_A = new ApiReference("api-a");
         private static final ApiReference API_B = new ApiReference("api-b");
-        private static final NavigationItemReference PORTAL = NavigationItemReference.defaultReference();
+        private static final NavigationItemReference PORTAL = PORTAL_REFERENCE;
 
         private PortalNavigationFolder section;
 

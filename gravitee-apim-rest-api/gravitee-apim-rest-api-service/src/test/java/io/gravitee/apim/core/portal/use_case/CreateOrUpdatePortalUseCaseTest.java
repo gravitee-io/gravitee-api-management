@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal.use_case;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
@@ -417,6 +418,7 @@ class CreateOrUpdatePortalUseCaseTest {
         var portal = PortalFixtures.aPortal();
         useCase.execute(inputFor(AUDIT_INFO, portal, PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/managed", null)))));
         var unmanaged = io.gravitee.apim.core.portal_page.model.PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.random())
             .organizationId(AUDIT_INFO.organizationId())
             .environmentId(AUDIT_INFO.environmentId())

@@ -27,19 +27,18 @@ class PortalIdTest {
     private static final String ZERO_UUID = "00000000-0000-0000-0000-000000000000";
 
     @Test
-    void of_returns_ZERO_constant_for_zero_uuid() {
-        assertThat(PortalId.of(ZERO_UUID)).isSameAs(PortalId.ZERO);
+    void should_treat_the_zero_uuid_as_an_ordinary_id() {
+        assertThat(PortalId.of(ZERO_UUID)).isEqualTo(PortalId.of(ZERO_UUID)).isNotSameAs(PortalId.of(ZERO_UUID));
     }
 
     @Test
     void of_returns_non_zero_instance_for_other_uuid() {
         var other = PortalId.of("11111111-1111-1111-1111-111111111111");
-        assertThat(other).isNotSameAs(PortalId.ZERO);
-        assertThat(other).isNotEqualTo(PortalId.ZERO);
+        assertThat(other).isNotEqualTo(PortalId.of(ZERO_UUID));
     }
 
     @Test
-    void ZERO_toString_is_the_zero_uuid() {
-        assertThat(PortalId.ZERO.toString()).isEqualTo(ZERO_UUID);
+    void should_preserve_the_zero_uuid_when_serializing() {
+        assertThat(PortalId.of(ZERO_UUID).toString()).isEqualTo(ZERO_UUID);
     }
 }

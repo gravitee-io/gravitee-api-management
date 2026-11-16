@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.use_case;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.ApiCrudServiceInMemory;
@@ -99,7 +100,7 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
             crudService,
             pageContentCrudService,
             PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
-            navigationPortals
+            navigationPortals.portalCrudService()
         );
         useCase = new AutoFetchPortalNavigationItemsUseCase(queryService, sourceDomainService, domainService, bulkImportDomainService);
     }
@@ -159,8 +160,9 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
 
     @Test
     void should_reimport_folders_bound_to_a_file_listing_source() {
-        navigationPortals.givenDefaultPortal(ORG_ID, ENV_ID);
+        var defaultPortalId = navigationPortals.givenDefaultPortal(ORG_ID, ENV_ID);
         var folder = aFolder("Imported Docs", autoFetchSource().subtreeImport(true).build());
+        folder.changeOwner(new NavigationItemReference.PortalReference(defaultPortalId));
         sourceDomainService.givenRemoteFile("/docs/guide.md", "# Guide");
 
         var output = useCase.execute();
@@ -223,9 +225,10 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
     }
 
     @Test
-    void should_import_below_a_legacy_folder_on_the_default_portal() {
+    void should_import_below_a_folder_after_its_owner_was_migrated() {
         var defaultPortalId = navigationPortals.givenDefaultPortal(ORG_ID, ENV_ID);
         var folder = aFolder("Imported Docs", autoFetchSource().subtreeImport(true).build());
+        folder.changeOwner(new NavigationItemReference.PortalReference(defaultPortalId));
         sourceDomainService.givenRemoteFile("/docs/guide.md", "# Guide");
 
         useCase.execute();
@@ -238,7 +241,7 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
     }
 
     @Test
-    void should_fail_the_whole_import_with_its_reason_when_the_portal_of_a_legacy_folder_cannot_be_resolved() {
+    void should_fail_the_whole_import_when_the_stored_owner_is_not_a_portal_of_the_environment() {
         navigationPortals.givenDefaultPortal(ORG_ID, ENV_ID);
         navigationPortals.givenAutomationPortal(ORG_ID, ENV_ID);
         var folder = aFolder("Imported Docs", autoFetchSource().subtreeImport(true).build());
@@ -250,12 +253,12 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
         assertThat(List.of(firstRun.failed(), secondRun.failed())).containsExactly(1, 1);
         assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, folder.getId())).isEmpty();
         assertThat(pageContentCrudService.storage()).isEmpty();
-        assertThat(folder.getSource().getLastFetchError()).contains("it has several portals");
+        assertThat(folder.getSource().getLastFetchError()).contains("portal does not exist");
         assertThat(folder.getSource().getLastFetchAttemptAt()).isEqualTo(NOW);
     }
 
     @Test
-    void should_never_create_a_portal_when_reimporting_a_legacy_folder() {
+    void should_never_create_a_portal_when_reimporting_an_orphan_folder() {
         var folder = aFolder("Imported Docs", autoFetchSource().subtreeImport(true).build());
         sourceDomainService.givenRemoteFile("/guide.md", "# Guide");
 
@@ -263,13 +266,14 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
 
         assertThat(output.failed()).isEqualTo(1);
         assertThat(navigationPortals.portalCrudService().storage()).isEmpty();
-        assertThat(folder.getSource().getLastFetchError()).contains("its default portal is not created yet");
+        assertThat(folder.getSource().getLastFetchError()).contains("portal does not exist");
     }
 
     @Test
     void should_leave_no_page_content_behind_when_an_imported_page_cannot_be_created() {
-        navigationPortals.givenDefaultPortal(ORG_ID, ENV_ID);
-        aFolder("Imported Docs", autoFetchSource().subtreeImport(true).build());
+        var defaultPortalId = navigationPortals.givenDefaultPortal(ORG_ID, ENV_ID);
+        var folder = aFolder("Imported Docs", autoFetchSource().subtreeImport(true).build());
+        folder.changeOwner(new NavigationItemReference.PortalReference(defaultPortalId));
         sourceDomainService.givenRemoteFile("/guide.md", "# Guide");
         crudService.failPageCreation = true;
 
@@ -299,6 +303,7 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
 
     private PortalNavigationFolder aFolder(String title, PortalNavigationItemSource source) {
         var folder = PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -319,6 +324,7 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
         pageContentCrudService.create(content);
 
         var page = PortalNavigationPage.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(ORG_ID)
             .environmentId(environmentId)

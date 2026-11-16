@@ -21,6 +21,7 @@ import static fixtures.core.model.PortalNavigationItemFixtures.API_PRODUCT_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.PAGE11_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -104,6 +105,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_when_item_with_provided_id_already_exists() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(PortalNavigationItemId.of(APIS_ID))
                 .type(PortalNavigationItemType.FOLDER)
                 .title("title")
@@ -124,6 +126,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_when_homepage_already_exists() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.FOLDER)
                 .title("title")
                 .segment("title")
@@ -146,6 +149,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
             // Given
             final var NON_EXISTENT_ID = PortalPageContentId.random();
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .portalPageContentId(NON_EXISTENT_ID)
                 .id(PortalNavigationItemId.random())
                 .type(PortalNavigationItemType.PAGE)
@@ -167,6 +171,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_if_url_is_invalid() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.LINK)
                 .title("title")
                 .area(PortalArea.TOP_NAVBAR)
@@ -187,6 +192,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_when_api_item_has_null_api_id() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.API)
                 .title("title")
                 .area(PortalArea.TOP_NAVBAR)
@@ -208,6 +214,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_when_api_item_has_empty_api_id() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.API)
                 .title("title")
                 .area(PortalArea.TOP_NAVBAR)
@@ -229,6 +236,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_when_api_item_has_null_parent_id() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.API)
                 .title("title")
                 .area(PortalArea.TOP_NAVBAR)
@@ -249,6 +257,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_when_api_item_is_not_in_top_navbar_area() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.API)
                 .title("title")
                 .area(PortalArea.HOMEPAGE)
@@ -270,6 +279,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_when_api_item_has_duplicate_api_id() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.API)
                 .title("title")
                 .area(PortalArea.TOP_NAVBAR)
@@ -291,6 +301,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_when_api_item_parent_hierarchy_contains_api() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.API)
                 .title("title")
                 .area(PortalArea.TOP_NAVBAR)
@@ -312,6 +323,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_validate_api_item_when_payload_is_valid() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.API)
                 .title("API 2")
                 .area(PortalArea.TOP_NAVBAR)
@@ -343,6 +355,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
                     )
                 );
             var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.API)
                 .title("API 1 in product")
                 .area(PortalArea.TOP_NAVBAR)
@@ -374,6 +387,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
             );
             navigationItemsQueryService.storage().addAll(List.of(apiProduct, nestedFolder));
             var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.API)
                 .title("API 1 in product folder")
                 .area(PortalArea.TOP_NAVBAR)
@@ -408,6 +422,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
                     )
                 );
             var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.API)
                 .title("Other API")
                 .area(PortalArea.TOP_NAVBAR)
@@ -427,6 +442,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_validate_all_when_payload_is_valid() {
             // Given
             final var firstCreateApiPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.API)
                 .title("API 2")
                 .area(PortalArea.TOP_NAVBAR)
@@ -437,6 +453,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
                 .build();
 
             final var createLinkPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.LINK)
                 .title("Documentation")
                 .area(PortalArea.TOP_NAVBAR)
@@ -446,6 +463,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
                 .build();
 
             final var secondCreateApiPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.API)
                 .title("API 3")
                 .area(PortalArea.TOP_NAVBAR)
@@ -468,6 +486,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_validate_all_when_api_item_has_null_parent_id() {
             // Given
             final var validCreateLinkPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.LINK)
                 .title("Documentation")
                 .area(PortalArea.TOP_NAVBAR)
@@ -477,6 +496,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
                 .build();
 
             final var invalidCreateApiPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.API)
                 .title("API 2")
                 .area(PortalArea.TOP_NAVBAR)
@@ -498,6 +518,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_validate_all_when_api_items_have_duplicate_api_id() {
             // Given
             final var firstCreateApiPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.API)
                 .title("API 2")
                 .area(PortalArea.TOP_NAVBAR)
@@ -508,6 +529,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
                 .build();
 
             final var secondCreateApiPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.API)
                 .title("API 3")
                 .area(PortalArea.TOP_NAVBAR)
@@ -606,6 +628,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
             var firstFolderId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000201");
             var secondFolderId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000202");
             var firstFolder = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(firstFolderId)
                 .type(PortalNavigationItemType.FOLDER)
                 .title("First folder")
@@ -613,6 +636,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
                 .parentId(secondFolderId)
                 .build();
             var secondFolder = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(secondFolderId)
                 .type(PortalNavigationItemType.FOLDER)
                 .title("Second folder")
@@ -632,6 +656,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
             // Given
             final String NON_EXISTENT_ID = "6c2c004d-c4f2-4a2b-b2c3-857a4dfcc842";
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(PortalNavigationItemId.random())
                 .type(PortalNavigationItemType.FOLDER)
                 .title("title")
@@ -653,6 +678,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_when_parent_is_not_folder() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(PortalNavigationItemId.random())
                 .type(PortalNavigationItemType.FOLDER)
                 .title("title")
@@ -674,6 +700,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_when_parent_is_in_different_area() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(PortalNavigationItemId.random())
                 .type(PortalNavigationItemType.FOLDER)
                 .title("title")
@@ -702,6 +729,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
             navigationItemsQueryService.storage().add(unpublishedParent);
 
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(PortalNavigationItemId.random())
                 .type(PortalNavigationItemType.FOLDER)
                 .title("Published child")
@@ -730,6 +758,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
             navigationItemsQueryService.storage().add(privateParent);
 
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(PortalNavigationItemId.random())
                 .type(PortalNavigationItemType.FOLDER)
                 .title("Public child")
@@ -764,6 +793,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
         @Test
         void should_accept_source_on_page() {
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.PAGE)
                 .title("Sourced page")
                 .area(PortalArea.TOP_NAVBAR)
@@ -795,6 +825,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
 
         private CreatePortalNavigationItem.CreatePortalNavigationItemBuilder aSourcedPageUnder(PortalNavigationItemId parentId) {
             return CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.PAGE)
                 .title("Sourced page")
                 .area(PortalArea.TOP_NAVBAR)
@@ -837,6 +868,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
         @Test
         void should_accept_source_on_folder() {
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.FOLDER)
                 .title("Sourced folder")
                 .area(PortalArea.TOP_NAVBAR)
@@ -851,6 +883,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
         @Test
         void should_reject_source_on_link() {
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.LINK)
                 .title("Sourced link")
                 .url("https://example.com")
@@ -871,6 +904,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
         @Test
         void should_reject_source_on_api() {
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.API)
                 .title("Sourced api")
                 .apiId("api-id")
@@ -905,6 +939,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
 
         private CreatePortalNavigationItem.CreatePortalNavigationItemBuilder aPageUnder(PortalNavigationItemId parentId) {
             return CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .type(PortalNavigationItemType.PAGE)
                 .title("Manual page")
                 .area(PortalArea.TOP_NAVBAR)
@@ -941,6 +976,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_reject_child_of_a_sourced_folder_declared_in_the_same_bulk_payload() {
             var folderId = PortalNavigationItemId.random();
             var sourcedFolder = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(folderId)
                 .type(PortalNavigationItemType.FOLDER)
                 .title("Sourced folder")
@@ -978,6 +1014,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
             navigationItemsQueryService.storage().add(preExistingChild);
 
             var newPrivateFolder = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(folderId)
                 .title("Private Guides")
                 .segment("private-guides")
@@ -1002,6 +1039,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
             navigationItemsQueryService.storage().add(preExistingChild);
 
             var newPrivateFolder = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(folderId)
                 .title("Private Guides")
                 .segment("private-guides")
@@ -1022,6 +1060,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
             navigationItemsQueryService.storage().add(preExistingChild);
 
             var newPublicFolder = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(folderId)
                 .title("Public Guides")
                 .segment("public-guides")
@@ -1162,6 +1201,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
                 .build();
             var pendingUpdate = new PortalNavigationValidator.PendingUpdate(relocatingUpdate, relocating);
             var newItem = CreatePortalNavigationItem.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(PortalNavigationItemId.random())
                 .title("docs")
                 .segment(relocating.getSegment())

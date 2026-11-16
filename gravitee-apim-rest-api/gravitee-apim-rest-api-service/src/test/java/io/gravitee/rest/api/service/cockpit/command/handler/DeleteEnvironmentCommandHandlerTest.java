@@ -453,6 +453,7 @@ public class DeleteEnvironmentCommandHandlerTest {
         when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ORG_ID, ENV_ID)).thenReturn(
             List.of(
                 PortalNavigationItem.builder()
+                    .referenceId("11111111-1111-1111-1111-111111111111")
                     .id("portal-nav-item-id")
                     .organizationId(ORG_ID)
                     .environmentId(ENV_ID)
@@ -717,6 +718,7 @@ public class DeleteEnvironmentCommandHandlerTest {
         when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ORG_ID, ENV_ID)).thenReturn(
             List.of(
                 PortalNavigationItem.builder()
+                    .referenceId("11111111-1111-1111-1111-111111111111")
                     .id("portal-nav-item-id")
                     .organizationId(ORG_ID)
                     .environmentId(ENV_ID)

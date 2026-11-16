@@ -43,9 +43,8 @@ public abstract sealed class PortalNavigationItem
     @Nonnull
     private String environmentId;
 
-    @Builder.Default
     @Nonnull
-    private NavigationItemReference reference = NavigationItemReference.defaultReference();
+    private NavigationItemReference reference;
 
     @Setter
     @Nonnull
@@ -215,7 +214,7 @@ public abstract sealed class PortalNavigationItem
             );
         };
         newItem.setSegment(segmentFor(item));
-        newItem.reference = Objects.requireNonNullElse(item.getReference(), NavigationItemReference.defaultReference());
+        newItem.reference = Objects.requireNonNull(item.getReference(), "Navigation item reference is required");
         newItem.source = item.getSource();
         newItem.automationMetadata = item.getAutomationMetadata();
         if (parent == null) {

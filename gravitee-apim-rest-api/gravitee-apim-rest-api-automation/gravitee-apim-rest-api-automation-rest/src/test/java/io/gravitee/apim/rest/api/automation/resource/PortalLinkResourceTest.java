@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -117,6 +118,7 @@ class PortalLinkResourceTest extends AbstractResourceTest {
 
     private static PortalNavigationLink aLink() {
         return PortalNavigationLink.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.of("11111111-1111-1111-1111-111111111111"))
             .organizationId(ORGANIZATION)
             .environmentId(ENVIRONMENT)

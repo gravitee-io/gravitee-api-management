@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal.domain_service.navigation;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.portal.model.NavigationPath;
@@ -99,6 +100,7 @@ class PortalNavigationTreeWalkerTest {
 
     private static PortalNavigationFolder folder(PortalNavigationItemId id, PortalNavigationItemId parentId, String segment, int order) {
         return PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(id)
             .organizationId("organization-id")
             .environmentId("environment-id")
@@ -119,6 +121,7 @@ class PortalNavigationTreeWalkerTest {
         int order
     ) {
         return PortalNavigationApiProduct.builder()
+            .reference(PORTAL_REFERENCE)
             .id(id)
             .organizationId("organization-id")
             .environmentId("environment-id")

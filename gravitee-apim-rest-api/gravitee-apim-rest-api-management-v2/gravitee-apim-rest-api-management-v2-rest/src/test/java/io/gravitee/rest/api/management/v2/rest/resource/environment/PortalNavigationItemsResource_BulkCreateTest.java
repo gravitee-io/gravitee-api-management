@@ -193,7 +193,7 @@ class PortalNavigationItemsResource_BulkCreateTest extends AbstractResourceTest 
             .satisfies(item -> {
                 assertThat(item.getParentId().id()).isEqualTo(page.getParentId());
                 assertThat(item.getRenderedParentId()).isNull();
-                assertThat(item.getReference()).isEqualTo(NavigationItemReference.defaultReference());
+                assertThat(item.getReference()).isNull();
             });
 
         final var body = response.readEntity(PortalNavigationItemsResponse.class);
