@@ -53,6 +53,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -219,7 +220,7 @@ class AnalyticsDefinitionPortAdapterTest extends AnalyticsDefinitionPortContract
                             f.label(),
                             null,
                             null,
-                            analyticsFilterKinds().getOrDefault(f.name().name(), Set.of()),
+                            expectedKinds(f.name().name()),
                             null,
                             CatalogOrigin.BUILT_IN
                         )
@@ -282,32 +283,73 @@ class AnalyticsDefinitionPortAdapterTest extends AnalyticsDefinitionPortContract
         );
     }
 
-    /** The catalog classifies a facet as the filter on the same field: the dimension takes that filter's kinds. */
+    /**
+     * A dimension is offered for the kinds it applies to: those of the catalog metrics grouped by it, the facets a
+     * metric accepts saying where the engine groups by it. {@code HTTP_STATUS} is not an Edge dimension though Edge
+     * additional metrics are grouped by it, and {@code GATEWAY} serves the Message and AuthZ screens.
+     */
     @Test
-    void should_tie_a_built_in_facet_to_the_kinds_of_the_analytics_filter_of_its_name() {
-        var kindsByFilter = analyticsFilterKinds();
+    void should_offer_a_built_in_dimension_for_the_kinds_of_the_catalog_metrics_grouped_by_it() {
+        var kindsByDimension = kindsByDimension(definitionOf(ApiType.API_KINDS.toArray(ApiType[]::new)));
 
-        var definition = definitionOf(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.NATIVE);
-
-        var kindsByDimension = definition
-            .dimensions()
-            .stream()
-            .collect(Collectors.toMap(DimensionDefinition::name, DimensionDefinition::apiTypes));
-        assertThat(kindsByDimension.get("LLM_PROXY_MODEL")).containsExactly(ApiType.LLM);
-        assertThat(kindsByDimension.get("MCP_PROXY_TOOL")).containsExactly(ApiType.MCP);
+        assertThat(kindsByDimension).allSatisfy((name, kinds) -> assertThat(kinds).as(name).isEqualTo(expectedKinds(name)));
+        assertThat(kindsByDimension.get("HTTP_STATUS")).containsExactlyInAnyOrderElementsOf(HTTP_KINDS);
+        assertThat(kindsByDimension.get("API")).containsExactlyInAnyOrderElementsOf(ApiType.API_KINDS);
+        assertThat(kindsByDimension.get("GATEWAY")).contains(ApiType.MESSAGE, ApiType.AUTHZ, ApiType.EDGE);
+        assertThat(kindsByDimension.get("AUTHZ_PDP")).containsExactly(ApiType.AUTHZ);
         assertThat(kindsByDimension.get("NATIVE_TOPIC")).containsExactly(ApiType.NATIVE);
-        assertThat(kindsByDimension.get("HTTP_STATUS")).containsExactlyInAnyOrder(
-            ApiType.HTTP_PROXY,
-            ApiType.LLM,
-            ApiType.MESSAGE,
-            ApiType.MCP,
-            ApiType.A2A
+        assertThat(kindsByDimension.values()).allSatisfy(kinds -> assertThat(kinds).isNotEmpty().doesNotContain(ApiType.AUTHZ_DECISION));
+    }
+
+    /**
+     * Every HTTP connection document carries the LLM and MCP proxy fields and the API product, but they describe LLM,
+     * MCP and product traffic: those dimensions are offered for the kinds their filter declares, as the filter bar
+     * offers the filters.
+     */
+    @Test
+    void should_offer_the_kind_specific_fields_for_the_kinds_their_filter_declares() {
+        var kindsByDimension = kindsByDimension(definitionOf(ApiType.API_KINDS.toArray(ApiType[]::new)));
+        var filterKinds = analyticsFilterKinds();
+
+        assertThat(kindsByDimension).containsAllEntriesOf(KIND_SPECIFIC);
+        KIND_SPECIFIC.keySet().forEach(name -> {
+            assertThat(filterKinds.get(name)).as(name).isEqualTo(KIND_SPECIFIC.get(name));
+            assertThat(kindsListingEachFacet().get(name))
+                .as("the catalog metrics grouped by " + name + ", wider than its filter")
+                .containsAll(KIND_SPECIFIC.get(name))
+                .hasSizeGreaterThan(KIND_SPECIFIC.get(name).size());
+        });
+        assertThat(kindsByDimension.get("LLM_PROXY_MODEL")).doesNotContain(ApiType.HTTP_PROXY);
+    }
+
+    /**
+     * A filter's kinds only narrow a dimension: widening a kind-specific filter must not offer the dimension for a kind
+     * no catalog metric is grouped by it for.
+     */
+    @Test
+    void should_never_offer_a_built_in_dimension_for_a_kind_no_catalog_metric_groups_by_it_for() {
+        var kindsListing = kindsListingEachFacet();
+
+        assertThat(kindsByDimension(definitionOf(ApiType.API_KINDS.toArray(ApiType[]::new)))).allSatisfy((name, kinds) ->
+            assertThat(kinds).as(name).isSubsetOf(kindsListing.get(name))
         );
-        assertThat(kindsByDimension.get("API")).containsAll(ApiType.API_KINDS);
-        assertThat(kindsByDimension)
-            .as("every dimension, the ones with no filter of their name tied to none")
-            .allSatisfy((name, kinds) -> assertThat(kinds).isEqualTo(kindsByFilter.getOrDefault(name, Set.of())));
-        assertThat(kindsByDimension.values()).as("the fallback is exercised").contains(Set.of());
+    }
+
+    /** The kinds are the dimension's own: asking for other kinds or origins never changes them. */
+    @Test
+    void should_offer_a_built_in_dimension_for_the_same_kinds_whatever_kinds_and_origins_are_asked() {
+        var everyKind = kindsByDimension(definitionOf(ApiType.API_KINDS.toArray(ApiType[]::new)));
+
+        for (var kind : ApiType.API_KINDS) {
+            for (var origins : List.of(Set.<CatalogOrigin>of(), Set.of(CatalogOrigin.BUILT_IN))) {
+                var definition = useCase
+                    .execute(new GetObservabilityAnalyticsDefinitionUseCase.Input("DEFAULT", "DEFAULT", Set.of(kind), origins))
+                    .definition();
+                assertThat(kindsByDimension(definition))
+                    .as(kind + " " + origins)
+                    .allSatisfy((name, kinds) -> assertThat(kinds).as(name).isEqualTo(everyKind.get(name)));
+            }
+        }
     }
 
     @Test
@@ -416,6 +458,59 @@ class AnalyticsDefinitionPortAdapterTest extends AnalyticsDefinitionPortContract
             .getFilters(Set.of(Signal.ANALYTICS), Set.of())
             .stream()
             .collect(Collectors.toMap(FilterSpec::name, spec -> spec.apiTypes() == null ? Set.of() : spec.apiTypes()));
+    }
+
+    /** The kinds the facets of the 7 kind-specific fields are offered for, those their filter declares. */
+    private static final Map<String, Set<ApiType>> KIND_SPECIFIC = Map.of(
+        "LLM_PROXY_MODEL",
+        Set.of(ApiType.LLM),
+        "LLM_PROXY_PROVIDER",
+        Set.of(ApiType.LLM),
+        "MCP_PROXY_METHOD",
+        Set.of(ApiType.MCP),
+        "MCP_PROXY_TOOL",
+        Set.of(ApiType.MCP),
+        "MCP_PROXY_RESOURCE",
+        Set.of(ApiType.MCP),
+        "MCP_PROXY_PROMPT",
+        Set.of(ApiType.MCP),
+        "API_PRODUCT",
+        Set.of(ApiType.A2A, ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP)
+    );
+
+    private static final List<ApiType> HTTP_KINDS = List.of(ApiType.A2A, ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.MESSAGE);
+
+    /** Read from the catalog itself: the kinds of every catalog metric grouped by each facet. */
+    private Map<String, Set<ApiType>> kindsListingEachFacet() {
+        Map<String, Set<ApiType>> kinds = new HashMap<>();
+        for (var kind : ApiSpec.Name.values()) {
+            for (var spec : catalog.getMetrics(kind)) {
+                for (var facet : catalog.getFacets(spec.name())) {
+                    kinds
+                        .computeIfAbsent(facet.name().name(), name -> new HashSet<>())
+                        .addAll(
+                            spec
+                                .apis()
+                                .stream()
+                                .map(api -> ApiType.valueOf(api.name()))
+                                .toList()
+                        );
+                }
+            }
+        }
+        return kinds;
+    }
+
+    private Set<ApiType> expectedKinds(String facet) {
+        return KIND_SPECIFIC.getOrDefault(facet, kindsListingEachFacet().get(facet));
+    }
+
+    private static Map<String, Set<ApiType>> kindsByDimension(AnalyticsDefinition definition) {
+        return definition
+            .dimensions()
+            .stream()
+            .filter(dimension -> dimension.origin() == CatalogOrigin.BUILT_IN)
+            .collect(Collectors.toMap(DimensionDefinition::name, DimensionDefinition::apiTypes));
     }
 
     private AnalyticsDefinition definitionOf(ApiType... kinds) {

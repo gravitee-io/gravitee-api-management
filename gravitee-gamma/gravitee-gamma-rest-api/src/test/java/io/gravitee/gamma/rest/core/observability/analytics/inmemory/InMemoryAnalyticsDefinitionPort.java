@@ -25,12 +25,17 @@ import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * An analytics catalog holding the metrics a test gives it, in the order it gives them, and serving the additional
- * metrics for the kinds a test gives it, the HTTP ones and Edge by default, with the engine's measures and a fixed
- * facet and filter set.
+ * metrics for the kinds a test gives it, the HTTP ones and Edge by default, with the engine's measures and the facets
+ * and filters of the {@link #DIMENSIONS_OF} metric a test gives, a fixed set otherwise. A built-in facet is offered for
+ * the kinds of every metric given that is grouped by it, as the engine catalog offers it.
  */
 public class InMemoryAnalyticsDefinitionPort implements AnalyticsDefinitionPort {
 
@@ -69,23 +74,70 @@ public class InMemoryAnalyticsDefinitionPort implements AnalyticsDefinitionPort 
 
     @Override
     public List<MetricDefinition> metricsOf(ApiType apiKind) {
+        var kindsListing = kindsListingEachFacet();
         return metrics
             .stream()
             .filter(metric -> metric.apiTypes().contains(apiKind))
+            .map(metric -> offeredForTheirKinds(metric, kindsListing))
             .toList();
     }
 
     @Override
     public AdditionalMetricSupport additionalMetricSupport() {
+        var kindsListing = kindsListingEachFacet();
+        var facets = metrics
+            .stream()
+            .filter(metric -> metric.name().equals(DIMENSIONS_OF))
+            .findFirst()
+            .map(metric -> offeredForTheirKinds(metric, kindsListing).facets())
+            .orElseGet(() ->
+                List.of(
+                    DimensionDefinition.builtIn("API", "API label", HTTP_KINDS),
+                    DimensionDefinition.builtIn("HTTP_STATUS", "HTTP_STATUS label", HTTP_KINDS)
+                )
+            );
         return new AdditionalMetricSupport(
             additionalMetricKinds,
             AdditionalMetricName.MEASURES.stream().map(Enum::name).toList(),
-            List.of(
-                new DimensionDefinition("API", "API label", CatalogOrigin.BUILT_IN),
-                new DimensionDefinition("HTTP_STATUS", "HTTP_STATUS label", CatalogOrigin.BUILT_IN)
-            ),
+            facets,
             List.of("API", "API_TYPE"),
             DIMENSIONS_OF
+        );
+    }
+
+    /** Computed on each call: a test gives its metrics after building the fixture. */
+    private Map<String, Set<ApiType>> kindsListingEachFacet() {
+        Map<String, Set<ApiType>> kinds = new HashMap<>();
+        for (var metric : metrics) {
+            for (var facet : metric.facets()) {
+                kinds.computeIfAbsent(facet.name(), name -> EnumSet.noneOf(ApiType.class)).addAll(metric.apiTypes());
+            }
+        }
+        return kinds;
+    }
+
+    private static MetricDefinition offeredForTheirKinds(MetricDefinition metric, Map<String, Set<ApiType>> kindsListing) {
+        return new MetricDefinition(
+            metric.name(),
+            metric.label(),
+            metric.description(),
+            metric.namespace(),
+            metric.unit(),
+            metric.apiTypes(),
+            metric.measures(),
+            metric
+                .facets()
+                .stream()
+                .map(facet ->
+                    facet.origin() == CatalogOrigin.BUILT_IN
+                        ? DimensionDefinition.builtIn(facet.name(), facet.label(), kindsListing.get(facet.name()))
+                        : facet
+                )
+                .toList(),
+            metric.filters(),
+            metric.origin(),
+            metric.currency(),
+            metric.lastSeen()
         );
     }
 }
