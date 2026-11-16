@@ -780,8 +780,6 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(Set.copyOf(beforeDeletion), Set.copyOf(deleted));
         assertEquals(0, nbAfterDeletion);
     }
-<<<<<<< HEAD
-=======
 
     @Test
     public void should_delete_by_application_and_keep_the_keys_of_other_applications() throws TechnicalException {
@@ -799,26 +797,4 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
         );
         assertEquals(allBefore - deleted.size(), apiKeyRepository.findAll().size());
     }
-
-    private ApiKey givenSharedKey(String id, String... subscriptions) throws TechnicalException {
-        return apiKeyRepository.create(
-            ApiKey.builder()
-                .id(id)
-                .key("shared-key-value")
-                .environmentId("DEFAULT")
-                .application("shared-app")
-                .subscriptions(new ArrayList<>(List.of(subscriptions)))
-                .createdAt(new Date(1_000_000_000_000L))
-                .updatedAt(new Date(1_000_000_000_000L))
-                .build()
-        );
-    }
-
-    private Date addSubscriptionAndGetUpdatedAt(String id, String subscriptionId) throws Exception {
-        // Leave the clock time to move so that two consecutive adds cannot share the same timestamp.
-        Thread.sleep(5);
-        apiKeyRepository.addSubscription(id, subscriptionId);
-        return apiKeyRepository.findById(id).orElseThrow().getUpdatedAt();
-    }
->>>>>>> 8b929f2 (fix(api-key): delete an application's API keys on archive (APIM-16008) (#22727))
 }
