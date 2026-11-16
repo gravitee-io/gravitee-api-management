@@ -642,6 +642,25 @@ class GuardiansResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_return_400_with_a_readable_message_when_the_sequence_has_no_enabled_guardrail() {
+            guardianRepository.reset();
+            guardianRepository.givenGuardian(
+                GuardianFixtures.aGuardian(d -> d.id(GUARDIAN_ID).environmentId(ENVIRONMENT).policies(List.of())).build()
+            );
+
+            var response = deploy(Map.of());
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(response.getStatus()).as("deployment response").isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+                softly
+                    .assertThat(response.readEntity(JsonNode.class).at("/message").asText())
+                    .as("readable message")
+                    .contains("at least one enabled guardrail");
+                softly.assertThat(guardianPublications.publications()).as("no revision is published").isZero();
+            });
+        }
+
+        @Test
         void should_return_404_for_an_unknown_guardian() {
             var response = rootTarget("/unknown/_deploy").request().post(Entity.json(Map.of()));
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);

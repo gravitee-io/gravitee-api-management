@@ -23,6 +23,7 @@ import io.gravitee.definition.model.v4.resource.Resource;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -114,5 +115,24 @@ public class Guardian {
 
     public boolean isDeployed() {
         return lifecycleState == GuardianLifecycleState.DEPLOYED;
+    }
+
+    /**
+     * Whether at least one enabled step of the sequence runs a guardrail.
+     *
+     * <p>Which policies are guardrails is the caller's to say: the installed plugins answer that, and
+     * this model knows nothing of them.
+     *
+     * @param isGuardrail whether the policy a step names is a guardrail
+     */
+    public boolean hasEnabledGuardrail(Predicate<String> isGuardrail) {
+        var policies = getPolicies();
+        if (policies == null) {
+            return false;
+        }
+        return policies
+            .stream()
+            .filter(Step::isEnabled)
+            .anyMatch(step -> isGuardrail.test(step.getPolicy()));
     }
 }

@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.core.guardian.use_case;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ENVIRONMENT_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDIAN_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION_ID;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aDeployGuardianUseCase;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianDefinition;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidator;
@@ -71,7 +72,7 @@ class RollbackGuardianUseCaseTest {
         audits.service,
         deploymentService
     );
-    private final DeployGuardianUseCase deploy = new DeployGuardianUseCase(repository, deploymentService, audits.service);
+    private final DeployGuardianUseCase deploy = aDeployGuardianUseCase(repository, deploymentService, audits.service);
     private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(repository, deploymentService, audits.service);
     private final UpdateGuardianUseCase update = new UpdateGuardianUseCase(repository, aGuardianValidator(repository), drafts);
     private final RollbackGuardianUseCase rollback = new RollbackGuardianUseCase(
