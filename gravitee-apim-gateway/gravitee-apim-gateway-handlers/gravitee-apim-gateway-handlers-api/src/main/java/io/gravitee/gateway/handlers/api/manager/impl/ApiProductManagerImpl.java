@@ -208,7 +208,7 @@ public class ApiProductManagerImpl implements ApiProductManager {
         ApiProductChange change = changeAgainst(previousProduct, apiProduct);
 
         // Started before anything is stored, so an update whose runtime cannot start leaves the deployed version serving.
-        ReactableApiProduct runtimeVersion = change.affectsMemberApis() ? startRuntime(apiProduct) : null;
+        ReactableApiProduct runtimeVersion = shouldRedeployRuntime(previousProduct, apiProduct, change) ? startRuntime(apiProduct) : null;
         apiProducts.put(apiProduct.getId(), apiProduct);
         apiProductRegistry.register(apiProduct);
 
@@ -342,6 +342,29 @@ public class ApiProductManagerImpl implements ApiProductManager {
     }
 
     /**
+     * Member APIs rebuild their security chain when plans or API membership change. The product runtime must also
+     * refresh when only index metadata changes but a new revision is published, so plan flows and product resources
+     * do not keep resolving secrets from the previous runtime.
+     */
+    private static boolean shouldRedeployRuntime(
+        ReactableApiProduct previousProduct,
+        ReactableApiProduct apiProduct,
+        ApiProductChange change
+    ) {
+        if (change.affectsMemberApis()) {
+            return true;
+        }
+        return previousProduct != null && !Objects.equals(revisionOf(previousProduct), revisionOf(apiProduct));
+    }
+
+    private static String revisionOf(ReactableApiProduct apiProduct) {
+        if (apiProduct.getDeployedAt() != null) {
+            return String.valueOf(apiProduct.getDeployedAt().getTime());
+        }
+        return apiProduct.getVersion();
+    }
+
+    /**
      * The next version is diffed against the stored one, so a version whose subscriptions failed to load must not stay
      * stored: its plans would be taken as loaded and never loaded again.
      */
@@ -356,7 +379,7 @@ public class ApiProductManagerImpl implements ApiProductManager {
     private void restoreAfterFailedUpdate(ReactableApiProduct failedProduct, ReactableApiProduct previousProduct, ApiProductChange change) {
         if (replaceIfStillStored(failedProduct, previousProduct)) {
             log.warn("Update of API Product [{}] failed, its previous version is kept as deployed", previousProduct.getId());
-            if (change.affectsMemberApis()) {
+            if (shouldRedeployRuntime(previousProduct, failedProduct, change)) {
                 putBackRuntime(previousProduct);
             }
             apiProductRegistry.register(previousProduct);

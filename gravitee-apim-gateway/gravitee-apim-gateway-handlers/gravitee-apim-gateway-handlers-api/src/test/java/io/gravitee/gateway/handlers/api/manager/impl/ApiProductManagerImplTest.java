@@ -634,15 +634,18 @@ class ApiProductManagerImplTest {
         }
 
         @Test
-        void should_keep_the_runtime_when_only_the_name_changes() {
+        void should_rebuild_the_runtime_when_only_the_name_changes() {
             ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
             ReactableApiProduct renamed = createApiProduct("product-1", "env-1", newDate);
             renamed.setName("Renamed");
             manager.register(oldProduct);
+            clearInvocations(apiProductRuntimeRegistry);
 
             manager.register(renamed);
 
-            verify(apiProductRuntimeRegistry, never()).deploy(renamed);
+            ArgumentCaptor<ReactableApiProduct> runtimeVersion = ArgumentCaptor.forClass(ReactableApiProduct.class);
+            verify(apiProductRuntimeRegistry).deploy(runtimeVersion.capture());
+            assertThat(runtimeVersion.getValue()).isNotSameAs(renamed);
         }
 
         @Test
@@ -791,7 +794,7 @@ class ApiProductManagerImplTest {
         }
 
         @Test
-        void should_not_touch_the_runtime_when_an_update_that_only_renamed_the_product_fails() {
+        void should_put_back_the_runtime_when_a_name_only_update_fails() {
             ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
             ReactableApiProduct renamed = createApiProduct("product-1", "env-1", newDate);
             renamed.setName("Renamed");
@@ -804,7 +807,7 @@ class ApiProductManagerImplTest {
                 .assertError(IllegalStateException.class);
 
             assertThat(manager.get("product-1")).isSameAs(oldProduct);
-            verifyNoInteractions(apiProductRuntimeRegistry);
+            verify(apiProductRuntimeRegistry, times(2)).deploy(any(ReactableApiProduct.class));
         }
     }
 
@@ -1126,16 +1129,19 @@ class ApiProductManagerImplTest {
         }
 
         @Test
-        void should_keep_the_secrets_of_the_runtime_version_on_an_update_that_keeps_the_runtime() {
+        void should_bind_the_new_runtime_version_and_release_the_previous_on_a_name_only_update() {
             ReactableApiProduct v1 = createApiProduct("product-1", "env-1", oldDate);
             ReactableApiProduct renamed = createApiProduct("product-1", "env-1", newDate);
             renamed.setName("Renamed");
             manager.register(v1);
+            clearInvocations(secretDiscovery, apiProductRuntimeRegistry);
 
             manager.register(renamed);
 
-            verify(secretDiscovery, never()).bind(renamed);
-            verify(secretDiscovery, never()).release(v1);
+            ArgumentCaptor<ReactableApiProduct> runtimeVersion = ArgumentCaptor.forClass(ReactableApiProduct.class);
+            verify(apiProductRuntimeRegistry).deploy(runtimeVersion.capture());
+            verify(secretDiscovery).bind(runtimeVersion.getValue());
+            verify(secretDiscovery).release(any(ReactableApiProduct.class));
         }
 
         @Test
@@ -1171,7 +1177,7 @@ class ApiProductManagerImplTest {
 
             InOrder inOrder = inOrder(apiProductRuntimeRegistry);
             inOrder.verify(apiProductRuntimeRegistry).deploy(failed);
-            inOrder.verify(apiProductRuntimeRegistry).deploy(v1);
+            inOrder.verify(apiProductRuntimeRegistry).deploy(any(ReactableApiProduct.class));
             assertThat(manager.get("product-1")).isSameAs(renamed);
         }
 
@@ -1287,13 +1293,13 @@ class ApiProductManagerImplTest {
         }
 
         @Test
-        void should_neither_reload_subscriptions_nor_rebuild_the_runtime_when_only_the_name_of_a_product_with_secrets_changes() {
+        void index_only_update_rebuilds_runtime_without_reloading_subscriptions() {
             ReactableApiProduct deployed = withSecretInPlanSecurity(createApiProduct("product-1", "env-1", oldDate));
             ReactableApiProduct renamed = withSecretInPlanSecurity(createApiProduct("product-1", "env-1", newDate));
             renamed.setName("Renamed");
             rewriteSecretsOfTheRuntimeVersion();
             manager.register(deployed);
-            clearInvocations(apiProductRuntimeRegistry);
+            clearInvocations(apiProductRuntimeRegistry, secretDiscovery);
             List<ApiProductChange> changes = new ArrayList<>();
 
             manager
@@ -1306,7 +1312,11 @@ class ApiProductManagerImplTest {
 
             assertThat(changes.getFirst().planIdsToLoadSubscriptionsFor()).isEmpty();
             assertThat(changes.getFirst().affectsMemberApis()).isFalse();
-            verify(apiProductRuntimeRegistry, never()).deploy(any());
+            ArgumentCaptor<ReactableApiProduct> runtimeVersion = ArgumentCaptor.forClass(ReactableApiProduct.class);
+            verify(apiProductRuntimeRegistry).deploy(runtimeVersion.capture());
+            verify(secretDiscovery).bind(runtimeVersion.getValue());
+            assertThat(runtimeVersion.getValue()).isNotSameAs(renamed);
+            assertThat(securityConfigurationOf(runtimeVersion.getValue())).isEqualTo(REWRITTEN);
         }
 
         private static final String SECRET_REF = "{\"resolverParameter\":\"{#secrets.get('/vault/secret/product:key')}\"}";

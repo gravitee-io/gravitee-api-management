@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.handlers.api.v4.product;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doAnswer;
@@ -90,6 +91,26 @@ class ApiProductRuntimeRegistryTest {
                 List::of
             );
         });
+        when(runtimeFactory.create(any(), any(), anyBoolean())).thenAnswer(invocation -> {
+            if (failNextBuild != null) {
+                RuntimeException failure = failNextBuild;
+                failNextBuild = null;
+                throw failure;
+            }
+            ReactableApiProduct product = invocation.getArgument(0);
+            lifecycle.add("build:" + product.getVersion());
+            RecordingComponent component = new RecordingComponent();
+            built.add(component);
+            return new ApiProductRuntime(
+                product,
+                null,
+                null,
+                null,
+                List.of(component),
+                EmptyProductResourceLifecycleManager.INSTANCE,
+                List::of
+            );
+        });
         cut = new ApiProductRuntimeRegistry(runtimeFactory, DRAIN_TIMEOUT_MS, scheduler);
     }
 
@@ -133,21 +154,24 @@ class ApiProductRuntimeRegistryTest {
 
         @BeforeEach
         void buildSpiedRuntimes() {
-            when(spyingFactory.create(any(), any())).thenAnswer(invocation -> {
-                ApiProductRuntime runtime = spy(
-                    new ApiProductRuntime(
-                        invocation.getArgument(0),
-                        null,
-                        null,
-                        null,
-                        List.of(),
-                        EmptyProductResourceLifecycleManager.INSTANCE,
-                        List::of
-                    )
-                );
-                spies.add(runtime);
-                return runtime;
-            });
+            when(spyingFactory.create(any(), any())).thenAnswer(this::spiedRuntime);
+            when(spyingFactory.create(any(), any(), anyBoolean())).thenAnswer(this::spiedRuntime);
+        }
+
+        private ApiProductRuntime spiedRuntime(org.mockito.invocation.InvocationOnMock invocation) {
+            ApiProductRuntime runtime = spy(
+                new ApiProductRuntime(
+                    invocation.getArgument(0),
+                    null,
+                    null,
+                    null,
+                    List.of(),
+                    EmptyProductResourceLifecycleManager.INSTANCE,
+                    List::of
+                )
+            );
+            spies.add(runtime);
+            return runtime;
         }
 
         @Test
@@ -317,16 +341,19 @@ class ApiProductRuntimeRegistryTest {
         );
 
         {
-            when(componentsFactory.create(any(), any())).thenAnswer(invocation ->
-                new ApiProductRuntime(
-                    invocation.getArgument(0),
-                    null,
-                    null,
-                    null,
-                    nextComponents.remove(0),
-                    EmptyProductResourceLifecycleManager.INSTANCE,
-                    List::of
-                )
+            when(componentsFactory.create(any(), any())).thenAnswer(this::runtimeWithNextComponents);
+            when(componentsFactory.create(any(), any(), anyBoolean())).thenAnswer(this::runtimeWithNextComponents);
+        }
+
+        private ApiProductRuntime runtimeWithNextComponents(org.mockito.invocation.InvocationOnMock invocation) {
+            return new ApiProductRuntime(
+                invocation.getArgument(0),
+                null,
+                null,
+                null,
+                nextComponents.remove(0),
+                EmptyProductResourceLifecycleManager.INSTANCE,
+                List::of
             );
         }
 

@@ -17,6 +17,7 @@ package io.gravitee.gateway.reactive.handlers.api.v4.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
@@ -79,20 +80,8 @@ class HttpSecurityChainTest {
 
     @BeforeEach
     void setUp() {
-        lenient()
-            .when(runtimeFactory.create(any(), any()))
-            .thenAnswer(invocation -> {
-                ReactableApiProduct product = invocation.getArgument(0);
-                return new ApiProductRuntime(
-                    product,
-                    null,
-                    null,
-                    null,
-                    List.of(componentByProduct.computeIfAbsent(product.getId(), id -> mock(LifecycleComponent.class))),
-                    mock(ResourceLifecycleManager.class),
-                    () -> securityPlansByProduct.getOrDefault(product.getId(), List.of())
-                );
-            });
+        lenient().when(runtimeFactory.create(any(), any())).thenAnswer(this::productRuntime);
+        lenient().when(runtimeFactory.create(any(), any(), anyBoolean())).thenAnswer(this::productRuntime);
         Configuration configuration = mock(Configuration.class);
         lenient().when(configuration.getProperty("api.security.verbose401", Boolean.class, false)).thenReturn(false);
         lenient().when(ctx.getComponent(Configuration.class)).thenReturn(configuration);
@@ -260,5 +249,18 @@ class HttpSecurityChainTest {
 
     private static ReactableApiProduct product(String productId) {
         return ReactableApiProduct.builder().id(productId).environmentId(ENV_ID).apiIds(Set.of(API_ID)).build();
+    }
+
+    private ApiProductRuntime productRuntime(org.mockito.invocation.InvocationOnMock invocation) {
+        ReactableApiProduct product = invocation.getArgument(0);
+        return new ApiProductRuntime(
+            product,
+            null,
+            null,
+            null,
+            List.of(componentByProduct.computeIfAbsent(product.getId(), id -> mock(LifecycleComponent.class))),
+            mock(ResourceLifecycleManager.class),
+            () -> securityPlansByProduct.getOrDefault(product.getId(), List.of())
+        );
     }
 }
