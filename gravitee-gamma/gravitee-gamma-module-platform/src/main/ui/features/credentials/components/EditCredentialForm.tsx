@@ -21,7 +21,7 @@ import { useNavigate } from 'react-router-dom';
 import { CredentialAuthenticationFields } from './CredentialAuthenticationFields';
 import { CredentialExpiryField } from './CredentialExpiryField';
 import { CredentialFormSection } from './CredentialFormSection';
-import { CredentialNameAndServiceFields } from './CredentialNameAndServiceFields';
+import { CredentialNameField } from './CredentialNameField';
 import { CredentialReadOnlyField } from './CredentialReadOnlyField';
 import { useHasEnvironmentPermission } from '../../../shared/hooks/useEnvironmentPermissions';
 import { notify } from '../../../shared/notify';
@@ -105,7 +105,7 @@ export function EditCredentialForm({ credential }: Readonly<{ credential: Creden
                             title="Credential details"
                             description="How the credential is named and what it is for."
                         >
-                            <CredentialNameAndServiceFields draft={draft} errors={errors} onChange={updateDraft} />
+                            <CredentialNameField draft={draft} errors={errors} onChange={updateDraft} />
                             <CredentialReadOnlyField
                                 label="Type"
                                 description="The type is fixed once a credential exists. Create a new credential to use a different one."

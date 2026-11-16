@@ -106,8 +106,7 @@ describe('CredentialDetailPage', () => {
         renderPage();
 
         expect(pageHeaderHarness().getTitle()).toBe('Anthropic research');
-        expect(screen.getByText('Service')).toBeInTheDocument();
-        expect(screen.getByText('anthropic')).toBeInTheDocument();
+        expect(screen.queryByText('Service')).not.toBeInTheDocument();
         expect(screen.getAllByText('API key').length).toBeGreaterThan(0);
         expect(screen.getByText('Priya Raman')).toBeInTheDocument();
         expect(screen.getByText('Stored by Gravitee')).toBeInTheDocument();

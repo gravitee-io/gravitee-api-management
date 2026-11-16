@@ -132,6 +132,12 @@ describe('NewCredentialPage', () => {
         expect(screen.queryByRole('button', { name: 'Create credential' })).not.toBeInTheDocument();
     });
 
+    it('does not ask for a service', () => {
+        renderWithGraphene(<NewCredentialPage />);
+
+        expect(screen.queryByLabelText(/Service/)).not.toBeInTheDocument();
+    });
+
     it('heads the page as adding a credential', () => {
         renderWithGraphene(<NewCredentialPage />);
 

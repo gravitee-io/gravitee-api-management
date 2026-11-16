@@ -22,7 +22,7 @@ import { useHasEnvironmentPermission } from '../../../shared/hooks/useEnvironmen
 import { notify } from '../../../shared/notify';
 import { CredentialAuthenticationFields } from '../components/CredentialAuthenticationFields';
 import { CredentialExpiryField } from '../components/CredentialExpiryField';
-import { CredentialNameAndServiceFields } from '../components/CredentialNameAndServiceFields';
+import { CredentialNameField } from '../components/CredentialNameField';
 import { CredentialStepMarker } from '../components/CredentialStepMarker';
 import { CredentialTypeField } from '../components/CredentialTypeField';
 import { useCreateCredential } from '../hooks/useCredentialMutations';
@@ -111,7 +111,7 @@ export function NewCredentialPage() {
                 <Card>
                     <CardContent className="space-y-4 pt-6">
                         {step === 'details' ? (
-                            <CredentialNameAndServiceFields draft={draft} errors={errors} onChange={updateDraft} />
+                            <CredentialNameField draft={draft} errors={errors} onChange={updateDraft} />
                         ) : (
                             <>
                                 <CredentialTypeField value={draft.strategy} onChange={changeStrategy}>

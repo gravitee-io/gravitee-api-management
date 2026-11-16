@@ -72,20 +72,19 @@ describe('CredentialsTable', () => {
         jest.mocked(useCredentialActions).mockReturnValue({ canEdit: () => false, canDelete: () => false });
     });
 
-    it('shows the name, service, type, expiry and owner of each credential', () => {
+    it('shows the name, type, expiry and owner of each credential', () => {
         renderTable();
         const table = dataTableHarness();
 
-        expect(table.getHeaders()).toEqual(expect.arrayContaining(['Name', 'Service', 'Type', 'Expires', 'Owner']));
+        expect(table.getHeaders()).toEqual(expect.arrayContaining(['Name', 'Type', 'Expires', 'Owner']));
+        expect(table.getHeaders()).not.toContain('Service');
         const openAi = table.getRow('OpenAI production');
         expect(screen.getByRole('link', { name: 'OpenAI production' })).toHaveAttribute('href', '/cred-1');
-        expect(openAi.getCellText('Service')).toBe('openai');
         expect(openAi.getCellText('Type')).toBe('Bearer token');
         expect(openAi.getCellText('Owner')).toBe('Alex Doyle');
         expect(openAi.getCellText('Expires')).not.toContain('Expired');
 
         const legacy = table.getRow('Legacy integration');
-        expect(legacy.getCellText('Service')).toBe('Not set');
         expect(legacy.getCellText('Type')).toBe('Basic auth');
         expect(legacy.getCellText('Expires')).toContain('Expired');
     });

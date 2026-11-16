@@ -98,7 +98,7 @@ describe('EditCredentialPage', () => {
 
         expect(pageHeaderHarness().getTitle()).toBe('Edit credential');
         expect(inputHarness({ name: /^Name/ }).getValue()).toBe('Anthropic research');
-        expect(screen.getByLabelText(/Service/)).toHaveValue('anthropic');
+        expect(screen.queryByLabelText(/Service/)).not.toBeInTheDocument();
         expect(screen.getByLabelText(/Header name/)).toHaveValue('x-api-key');
         expect(screen.getByLabelText(/Value/)).toHaveValue('');
         expect(screen.getByText('Priya Raman')).toBeInTheDocument();

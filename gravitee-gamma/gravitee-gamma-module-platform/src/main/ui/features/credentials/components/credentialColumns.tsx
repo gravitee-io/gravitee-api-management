@@ -44,19 +44,6 @@ export const credentialColumns: DataTableProps<Credential>['columns'] = [
         ),
     },
     {
-        id: 'service',
-        accessorKey: 'serviceId',
-        enableSorting: false,
-        meta: { label: 'Service' },
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Service" />,
-        cell: ({ row }) =>
-            row.original.serviceId ? (
-                <span className="text-sm">{row.original.serviceId}</span>
-            ) : (
-                <span className="text-sm text-muted-foreground">Not set</span>
-            ),
-    },
-    {
         id: 'type',
         accessorKey: 'strategy',
         enableSorting: false,

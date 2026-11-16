@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Field, FieldDescription, FieldError, FieldLabel, Input } from '@gravitee/graphene-core';
+import { Field, FieldError, FieldLabel, Input } from '@gravitee/graphene-core';
 
 import type { CredentialDraft, CredentialDraftErrors } from '../utils/credentialDraft';
 
 const NAME_ID = 'credential-name';
 const NAME_ERROR_ID = 'credential-name-error';
-const SERVICE_ID = 'credential-service';
-const SERVICE_DESCRIPTION_ID = 'credential-service-description';
 
-export function CredentialNameAndServiceFields({
+export function CredentialNameField({
     draft,
     errors,
     onChange,
@@ -43,19 +41,6 @@ export function CredentialNameAndServiceFields({
                     onChange={e => onChange({ ...draft, name: e.target.value })}
                 />
                 {errors.name ? <FieldError id={NAME_ERROR_ID}>{errors.name}</FieldError> : null}
-            </Field>
-            <Field orientation="vertical" className="gap-1.5">
-                <FieldLabel htmlFor={SERVICE_ID}>Service</FieldLabel>
-                <Input
-                    id={SERVICE_ID}
-                    value={draft.serviceId}
-                    placeholder="openai"
-                    aria-describedby={SERVICE_DESCRIPTION_ID}
-                    onChange={e => onChange({ ...draft, serviceId: e.target.value })}
-                />
-                <FieldDescription id={SERVICE_DESCRIPTION_ID}>
-                    The service the credential calls. Modules use it to find the credential.
-                </FieldDescription>
             </Field>
         </>
     );
