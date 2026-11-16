@@ -122,6 +122,24 @@ class RollbackGuardianUseCaseTest {
         });
     }
 
+    /**
+     * A rollback replays the revision through the update path, so the name it restores is normalised like
+     * any other write — deliberately: a revision deployed before the rule is not a licence to put a padded
+     * name back in the store. The same reasoning as the structure check this use case already runs, for a
+     * constraint that may have tightened since.
+     */
+    @Test
+    void should_restore_the_revision_name_without_the_whitespace_around_it() {
+        save("  Padded name  ", "A description");
+        var padded = deployRevision();
+        save("Another name", "A description");
+        deployRevision();
+
+        var result = rollback.execute(new RollbackGuardianUseCase.Input(actor, GUARDIAN_ID, padded)).guardian();
+
+        assertThat(result.getName()).isEqualTo("Padded name");
+    }
+
     @Test
     void should_record_a_new_revision_when_the_rolled_back_draft_is_deployed() {
         var first = deployRevision();

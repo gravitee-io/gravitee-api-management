@@ -39,7 +39,11 @@ class EnvironmentIdNameIndexUpgraderTest {
         assertThat(keys.get("name")).isEqualTo(1);
     }
 
-    /** Without this, the duplicate-key handling the repository adapter carries can never fire on Mongo. */
+    /**
+     * The definition only: that the index is declared unique, which is what the repository adapter's
+     * duplicate-key handling depends on. Whether Mongo then refuses the second write is Mongo's own
+     * contract and would take a running server to assert.
+     */
     @Test
     void should_refuse_two_guardians_of_one_environment_sharing_a_name() {
         Document options = new EnvironmentIdNameIndexUpgrader()

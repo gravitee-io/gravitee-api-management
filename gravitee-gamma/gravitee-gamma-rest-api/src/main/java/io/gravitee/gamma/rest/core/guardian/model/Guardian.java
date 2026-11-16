@@ -67,6 +67,12 @@ public class Guardian {
      * The Guardian a creation payload describes, scoped to the environment it is created in — which
      * comes from the path, never from the payload.
      */
+    /**
+     * <p>The name is stripped here as well as in {@code CreateGuardianUseCase}, and both are needed: the
+     * use case runs it before the payload's own constraints, so {@code @NotBlank} and {@code @Size} judge
+     * the stored value, while this one keeps the invariant for any other caller of the model. The
+     * operation is idempotent, so running it twice costs a comparison.
+     */
     public static Guardian from(CreateGuardian createGuardian, String environmentId) {
         return Guardian.builder()
             .definition(

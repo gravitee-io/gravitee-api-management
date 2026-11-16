@@ -61,6 +61,12 @@ public class CreateGuardian {
      */
     public static final int NAME_MAX_LENGTH = 512;
 
+    /**
+     * Said once, because both verbs answer it: the payload's own constraint on a creation, and
+     * {@code ValidateGuardianDomainService} on an update, whose name travels in the shared definition.
+     */
+    public static final String NAME_TOO_LONG = "Guardian name must be at most " + NAME_MAX_LENGTH + " characters";
+
     public static final int DESCRIPTION_MAX_LENGTH = 1024;
 
     /**
@@ -72,7 +78,7 @@ public class CreateGuardian {
     private String id;
 
     @NotBlank
-    @Size(max = NAME_MAX_LENGTH, message = "Guardian name must be at most {max} characters")
+    @Size(max = NAME_MAX_LENGTH, message = NAME_TOO_LONG)
     private String name;
 
     @Size(max = DESCRIPTION_MAX_LENGTH)

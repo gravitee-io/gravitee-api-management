@@ -143,20 +143,16 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
     }
 
     /**
-     * The definition model declares {@code @NotBlank} on the name but no maximum length, and an update
-     * carries the name in the definition rather than in a command of this module — so a {@code PUT} had
-     * no length to answer to, and a name longer than the column reached the store as a technical
-     * failure instead of a 400. Checked here, on the assembled definition, because both writes pass
-     * through: the creation payload's own {@code @Size} says the same thing one step earlier.
+     * The length the guardians table enforces, checked on the assembled definition because both writes
+     * pass through it and the creation payload's own {@code @Size} only covers one of them.
      *
-     * <p>The length is the one the guardians table enforces. Raising it belongs with the column, not
-     * here, and the definition model is shared with the gateway, which is why the rule lives in this
-     * module rather than as an annotation over there.
+     * <p>Here rather than as an annotation on the definition model: that model is shared with the
+     * gateway. Raising the limit belongs with the column.
      */
     private static void refuseAnOverlongName(io.gravitee.definition.model.v4.guardian.Guardian definition) {
         var name = definition.getName();
         if (name != null && name.length() > CreateGuardian.NAME_MAX_LENGTH) {
-            throw new ValidationDomainException("Guardian name must be at most " + CreateGuardian.NAME_MAX_LENGTH + " characters");
+            throw new ValidationDomainException(CreateGuardian.NAME_TOO_LONG);
         }
     }
 
