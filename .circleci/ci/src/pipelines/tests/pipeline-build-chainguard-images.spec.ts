@@ -41,4 +41,10 @@ describe('Build chainguard images tests', () => {
     expect(generated).toContain('resource_class: xlarge');
     expect(generated).toContain('cmd-install-yarn');
   });
+
+  it('should not deploy the distribution resources, since it de-SNAPSHOTs the version without releasing it', () => {
+    const generated = generateBuildChainguardImagesConfig(environment).stringify();
+
+    expect(generated).not.toContain('Maven deploy the distribution resources');
+  });
 });

@@ -61,6 +61,16 @@ describe('Distribution release tests', () => {
     expect(guard).toBeLessThan(stepIndex('4.12.16', job, 'Maven build APIM distribution'));
   });
 
+  it('should check the pin before the distribution resources are deployed', () => {
+    // The deploy runs beside the backend job, not after it, and the feed keeps a version for good:
+    // a refusal there would come too late.
+    const job = 'job-deploy-distribution-resources';
+    const guard = stepIndex('4.12.16', job, 'cmd-check-distribution-core-pin');
+
+    expect(guard).toBeGreaterThanOrEqual(0);
+    expect(guard).toBeLessThan(stepIndex('4.12.16', job, 'Maven deploy the distribution resources'));
+  });
+
   it('should assemble the pinned core instead of building one', () => {
     const generated = guardOf('4.12.16');
 
