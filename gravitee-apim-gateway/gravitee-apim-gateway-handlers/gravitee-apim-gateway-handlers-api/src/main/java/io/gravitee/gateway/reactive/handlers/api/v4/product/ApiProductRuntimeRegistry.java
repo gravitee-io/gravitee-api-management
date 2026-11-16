@@ -155,6 +155,18 @@ public class ApiProductRuntimeRegistry {
         }
     }
 
+    /**
+     * A private copy of the chains of a runtime a request pinned, with its own policy chain factories.
+     *
+     * @see ApiProductRuntimeFactory#copyFlowChains(ApiProductRuntime, ApiProductRuntimeFactory.PolicyChainFactoryCreator)
+     */
+    public ApiProductFlowChains copyFlowChains(
+        ApiProductRuntime runtime,
+        ApiProductRuntimeFactory.PolicyChainFactoryCreator policyChainFactoryCreator
+    ) {
+        return runtimeFactory.copyFlowChains(runtime, policyChainFactoryCreator);
+    }
+
     /** Stops every runtime right away, as the gateway shuts down. */
     public synchronized void clear() {
         Map<Key, ApiProductRuntime> stopping = snapshot.get().runtimes();

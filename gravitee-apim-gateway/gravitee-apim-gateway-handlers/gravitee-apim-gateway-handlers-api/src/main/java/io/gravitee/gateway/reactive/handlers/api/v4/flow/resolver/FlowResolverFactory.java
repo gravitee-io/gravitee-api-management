@@ -133,6 +133,18 @@ public class FlowResolverFactory {
     }
 
     /**
+     * Builds the resolver of the flows of one deployed version of a product, run for every plan of the product, with
+     * the product's flow mode.
+     */
+    public FlowResolver forApiProduct(FlowExecution flowExecution, List<Flow> flows) {
+        ApiProductFlowResolver apiProductFlowResolver = new ApiProductFlowResolver(flows, flowFilter(flowExecution));
+        if (isBestMatchFlowMode(flowExecution)) {
+            return new BestMatchFlowResolver(apiProductFlowResolver, bestMatchFlowSelector);
+        }
+        return apiProductFlowResolver;
+    }
+
+    /**
      * Builds the resolver of the internal flow. It runs on every request, whatever the flow execution mode of the
      * API: nothing is filtered, nothing is left to be deferred.
      */

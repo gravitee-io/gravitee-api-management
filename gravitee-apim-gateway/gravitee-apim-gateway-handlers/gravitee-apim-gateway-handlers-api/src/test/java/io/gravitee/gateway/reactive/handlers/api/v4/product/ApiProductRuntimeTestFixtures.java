@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4.product;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -23,6 +24,7 @@ import io.gravitee.gateway.handlers.api.manager.ApiProductResourceManagerFactory
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChain;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.license.LicenseManager;
+import io.reactivex.rxjava3.core.Completable;
 import java.util.List;
 import java.util.Set;
 
@@ -49,8 +51,8 @@ public final class ApiProductRuntimeTestFixtures {
         resources.start();
         return new ApiProductRuntime(
             product,
-            productPlanFlowChain,
-            productPlanFlowChain,
+            withoutProductFlows(productPlanFlowChain),
+            withoutProductFlows(productPlanFlowChain),
             null,
             List.of(resources),
             resourceManager,
@@ -64,12 +66,19 @@ public final class ApiProductRuntimeTestFixtures {
         when(product.getApiIds()).thenReturn(Set.of(apiId));
         return new ApiProductRuntime(
             product,
-            productPlanFlowChain,
-            productPlanFlowChain,
+            withoutProductFlows(productPlanFlowChain),
+            withoutProductFlows(productPlanFlowChain),
             null,
             List.of(),
             EmptyProductResourceLifecycleManager.INSTANCE,
             List::of
         );
+    }
+
+    /** The given product plan chain, followed by a product chain with no flow. */
+    public static ApiProductFlowChains withoutProductFlows(FlowChain productPlanFlowChain) {
+        FlowChain noProductFlow = mock(FlowChain.class);
+        when(noProductFlow.execute(any(), any())).thenReturn(Completable.complete());
+        return new ApiProductFlowChains(productPlanFlowChain, noProductFlow);
     }
 }

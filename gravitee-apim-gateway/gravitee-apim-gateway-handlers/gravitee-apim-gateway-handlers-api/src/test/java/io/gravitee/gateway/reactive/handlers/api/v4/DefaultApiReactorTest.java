@@ -90,6 +90,7 @@ import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.ConnectionHandl
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChain;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
+import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductFlowChains;
 import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntime;
 import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeRegistry;
 import io.gravitee.gateway.reactive.handlers.api.v4.security.HttpSecurityChain;
@@ -1410,6 +1411,7 @@ class DefaultApiReactorTest {
         private final ApiProductRuntimeRegistry apiProductRuntimeRegistry = mock(ApiProductRuntimeRegistry.class);
         private final ApiProductRuntime runtime = mock(ApiProductRuntime.class);
         private final FlowChain productPlanFlowChain = mock(FlowChain.class);
+        private final FlowChain productFlowChain = mock(FlowChain.class);
         private final AtomicReference<Object> pinned = new AtomicReference<>();
 
         @BeforeEach
@@ -1431,13 +1433,14 @@ class DefaultApiReactorTest {
                 })
                 .when(ctx)
                 .removeInternalAttribute(ApiProductRuntime.ATTR_INTERNAL_API_PRODUCT_RUNTIME);
-            lenient().when(runtime.productPlanFlowChain(false)).thenReturn(productPlanFlowChain);
+            lenient().when(runtime.flowChains(false)).thenReturn(new ApiProductFlowChains(productPlanFlowChain, productFlowChain));
             lenient().when(runtime.resourceManager()).thenReturn(mock(ResourceLifecycleManager.class));
             lenient().when(productPlanFlowChain.execute(any(), any())).thenReturn(Completable.complete());
+            lenient().when(productFlowChain.execute(any(), any())).thenReturn(Completable.complete());
         }
 
         @Test
-        void should_run_the_product_plan_flows_of_the_pinned_runtime_in_both_phases_and_release_it_once() {
+        void should_run_the_product_plan_then_the_product_flows_of_the_pinned_runtime_in_both_phases_and_release_it_once() {
             givenInternalSubscriptionOfProduct(PRODUCT_ID);
             when(apiProductRuntimeRegistry.acquire(PRODUCT_ID, ENVIRONMENT_ID)).thenReturn(runtime);
             when(runtime.servesApi(API_ID)).thenReturn(true);
@@ -1445,10 +1448,12 @@ class DefaultApiReactorTest {
 
             cut.handle(ctx).test().assertComplete();
 
-            InOrder inOrder = inOrder(runtime, productPlanFlowChain);
+            InOrder inOrder = inOrder(runtime, productPlanFlowChain, productFlowChain);
             inOrder.verify(runtime).extractPathParameters(ctx);
             inOrder.verify(productPlanFlowChain).execute(any(), eq(ExecutionPhase.REQUEST));
+            inOrder.verify(productFlowChain).execute(any(), eq(ExecutionPhase.REQUEST));
             inOrder.verify(productPlanFlowChain).execute(any(), eq(RESPONSE));
+            inOrder.verify(productFlowChain).execute(any(), eq(RESPONSE));
             inOrder.verify(runtime).release();
             verify(apiProductRuntimeRegistry, times(1)).acquire(PRODUCT_ID, ENVIRONMENT_ID);
         }
@@ -1478,7 +1483,7 @@ class DefaultApiReactorTest {
             cut.handle(ctx).test().assertComplete();
 
             verify(runtime, times(1)).release();
-            verify(runtime, never()).productPlanFlowChain(anyBoolean());
+            verify(runtime, never()).flowChains(anyBoolean());
             verify(runtime, never()).extractPathParameters(any());
             verify(ctx, never()).setInternalAttribute(eq(ApiProductRuntime.ATTR_INTERNAL_API_PRODUCT_RUNTIME), any());
         }
@@ -1510,6 +1515,7 @@ class DefaultApiReactorTest {
             cut.handle(ctx).test().assertComplete();
 
             verify(productPlanFlowChain, never()).execute(any(), any());
+            verify(productFlowChain, never()).execute(any(), any());
             ArgumentCaptor<ExecutionFailure> failure = ArgumentCaptor.forClass(ExecutionFailure.class);
             verify(ctx, atLeastOnce()).interruptWith(failure.capture());
             assertThat(failure.getAllValues()).anySatisfy(executionFailure -> {
@@ -1527,6 +1533,28 @@ class DefaultApiReactorTest {
             cut.handle(ctx).test().assertComplete();
 
             verify(apiProductRuntimeRegistry, never()).acquire(any(), any());
+        }
+
+        @Test
+        void should_never_ask_for_product_chains_on_a_direct_call_on_the_api_own_plan() {
+            givenInternalSubscriptionOfProduct(null);
+            DefaultApiReactor reactor = spy(buildApiReactor(apiProductRuntimeRegistry));
+
+            reactor.handle(ctx).test().assertComplete();
+
+            verify(reactor, never()).apiProductFlowChains(any());
+        }
+
+        @Test
+        void should_ask_for_the_product_chains_of_the_pinned_runtime_in_both_phases() {
+            givenInternalSubscriptionOfProduct(PRODUCT_ID);
+            when(apiProductRuntimeRegistry.acquire(PRODUCT_ID, ENVIRONMENT_ID)).thenReturn(runtime);
+            when(runtime.servesApi(API_ID)).thenReturn(true);
+            DefaultApiReactor reactor = spy(buildApiReactor(apiProductRuntimeRegistry));
+
+            reactor.handle(ctx).test().assertComplete();
+
+            verify(reactor, times(2)).apiProductFlowChains(runtime);
         }
 
         @Test

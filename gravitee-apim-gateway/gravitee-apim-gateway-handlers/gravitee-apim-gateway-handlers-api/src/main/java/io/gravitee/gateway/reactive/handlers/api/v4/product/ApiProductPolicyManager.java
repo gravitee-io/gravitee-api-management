@@ -35,12 +35,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Loads the security policies and the plan flow policies of one deployed version of an API Product, once for all its
- * member APIs.
+ * Loads the security policies, the plan flow policies and the product flow policies of one deployed version of an API
+ * Product, once for all its member APIs.
  */
 class ApiProductPolicyManager extends AbstractPolicyManager {
 
     private final List<Plan> plans;
+    private final List<Flow> productFlows;
 
     ApiProductPolicyManager(
         DefaultClassLoader classLoader,
@@ -49,7 +50,8 @@ class ApiProductPolicyManager extends AbstractPolicyManager {
         ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
         PolicyClassLoaderFactory policyClassLoaderFactory,
         ComponentProvider componentProvider,
-        List<Plan> plans
+        List<Plan> plans,
+        List<Flow> productFlows
     ) {
         super(
             classLoader,
@@ -60,6 +62,7 @@ class ApiProductPolicyManager extends AbstractPolicyManager {
             componentProvider
         );
         this.plans = plans;
+        this.productFlows = productFlows == null ? List.of() : productFlows;
     }
 
     @Override
@@ -75,11 +78,8 @@ class ApiProductPolicyManager extends AbstractPolicyManager {
     }
 
     private Stream<Policy> flowPolicies() {
-        return plans
-            .stream()
-            .map(Plan::getFlows)
-            .filter(Objects::nonNull)
-            .flatMap(List::stream)
+        Stream<Flow> planFlows = plans.stream().map(Plan::getFlows).filter(Objects::nonNull).flatMap(List::stream);
+        return Stream.concat(planFlows, productFlows.stream())
             .filter(Flow::isEnabled)
             .flatMap(flow -> Stream.of(flow.getRequest(), flow.getResponse(), flow.getSubscribe(), flow.getPublish()))
             .filter(Objects::nonNull)
