@@ -45,6 +45,39 @@ describe('PermissionService', () => {
         expect(service.hasAnyOf(['environment-api-r'])).toBe(false);
     });
 
+    it('should say whether the permissions of a scope are known, failed to load or awaited', () => {
+        expect(service.getLoadStatus('environment')).toBe('pending');
+
+        service.markLoadFailed('environment');
+        expect(service.getLoadStatus('environment')).toBe('failed');
+
+        service.load('environment', []);
+        expect(service.getLoadStatus('environment')).toBe('loaded');
+        expect(service.getLoadStatus('organization')).toBe('pending');
+    });
+
+    it.each([
+        ['clearing the scope', (s: PermissionService) => s.clear('environment')],
+        ['resetting', (s: PermissionService) => s.reset()],
+    ])('should go back to awaiting the permissions after %s', (_case, forget) => {
+        service.markLoadFailed('environment');
+        forget(service);
+        expect(service.getLoadStatus('environment')).toBe('pending');
+
+        service.load('environment', []);
+        forget(service);
+        expect(service.getLoadStatus('environment')).toBe('pending');
+    });
+
+    it('should tell its subscribers that a load failed', () => {
+        const listener = jest.fn();
+        service.subscribe(listener);
+
+        service.markLoadFailed('environment');
+
+        expect(listener).toHaveBeenCalledTimes(1);
+    });
+
     it('should reset all scopes', () => {
         service.load('organization', ['organization-user-r']);
         service.reset();

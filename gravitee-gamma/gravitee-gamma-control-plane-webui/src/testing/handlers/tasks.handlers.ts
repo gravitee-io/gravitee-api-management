@@ -15,7 +15,7 @@
  */
 import { http, HttpResponse } from 'msw';
 
-import { TEST_MANAGEMENT_BASE, TEST_MANAGEMENT_V2_ORGANIZATION_BASE } from '../factories';
+import { TEST_GAMMA_BASE, TEST_MANAGEMENT_BASE, TEST_MANAGEMENT_V2_ORGANIZATION_BASE } from '../factories';
 
 export const TEST_TASKS_RESPONSE = {
     data: [
@@ -53,7 +53,24 @@ export const TEST_TASKS_RESPONSE = {
     page: { total_elements: 3 },
 };
 
+/** One page of AIM's pending approvals, holding fewer than `totalCount`. */
+export const TEST_HUMAN_APPROVALS_RESPONSE = {
+    data: [
+        {
+            id: 'apv-1',
+            status: 'PENDING',
+            toolName: 'refund_order',
+            caller: { applicationId: 'app-7', applicationName: 'Support Agent' },
+            rule: { name: 'Refunds over 100' },
+            createdAt: '2023-11-14T22:20:00Z',
+        },
+    ],
+    pagination: { page: 1, perPage: 25, totalCount: 12 },
+};
+
 export const tasksHandlers = [
+    http.get(`${TEST_GAMMA_BASE}/environments/:envId/modules/aim/_settings`, () => HttpResponse.json({ features: ['hitl'] })),
+    http.get(`${TEST_GAMMA_BASE}/environments/:envId/modules/aim/approvals`, () => HttpResponse.json(TEST_HUMAN_APPROVALS_RESPONSE)),
     http.get(`${TEST_MANAGEMENT_BASE}/user/tasks`, () => HttpResponse.json(TEST_TASKS_RESPONSE)),
     http.get(`${TEST_MANAGEMENT_BASE}/settings`, () => HttpResponse.json({ scheduler: { tasks: 10 } })),
     http.post(`${TEST_MANAGEMENT_V2_ORGANIZATION_BASE}/promotions/:promotionId/_process`, () => new HttpResponse(null, { status: 204 })),

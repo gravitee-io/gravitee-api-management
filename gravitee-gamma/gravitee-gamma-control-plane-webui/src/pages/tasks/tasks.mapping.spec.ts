@@ -17,6 +17,8 @@ import {
     categoryOf,
     countByCategory,
     formatRelativeTime,
+    humanApprovalToTaskView,
+    humanApprovalsInboxPath,
     promotionDataOf,
     type ResolveEnvHrid,
     resolveArea,
@@ -74,6 +76,7 @@ describe('categoryOf', () => {
         expect(categoryOf('REQUEST_FOR_CHANGES')).toBe('CHANGES_REQUESTED');
         expect(categoryOf('USER_REGISTRATION_APPROVAL')).toBe('USER_REGISTRATION');
         expect(categoryOf('PROMOTION_APPROVAL')).toBe('API_PROMOTION');
+        expect(categoryOf('HUMAN_APPROVAL')).toBe('HUMAN_APPROVAL');
     });
 });
 
@@ -393,6 +396,45 @@ describe('toTaskView', () => {
         const view = toTaskView(entity, {}, resolveEnvHrid);
 
         expect(view.to).toBe('/environments/prod/apim/apis/api-9');
+    });
+});
+
+describe('humanApprovalToTaskView', () => {
+    const approval = {
+        id: 'apv-1',
+        status: 'PENDING',
+        toolName: 'refund_order',
+        caller: { applicationId: 'app-7', applicationName: 'Support Agent' },
+        rule: { name: 'Refunds over 100' },
+        createdAt: '2023-11-14T22:13:20Z',
+    };
+
+    it('names the tool, the agent and the rule, and links to the record in the aim module', () => {
+        const view = humanApprovalToTaskView(approval, 'staging');
+
+        expect(view.id).toBe('HUMAN_APPROVAL:apv-1');
+        expect(view.category).toBe('HUMAN_APPROVAL');
+        expect(view.categoryLabel).toBe('Human Approval');
+        expect(view.actionLabel).toBe('Review approval');
+        expect(view.iconKey).toBe('approval');
+        expect(view.area).toEqual({ key: 'aim', label: 'Agent Management' });
+        expect(view.title).toBe('refund_order');
+        expect(view.subtitle).toBe('Support Agent · Refunds over 100');
+        expect(view.createdAt).toBe(1_700_000_000_000);
+        expect(view.to).toBe('/environments/staging/aim/govern/hitl/apv-1');
+        expect(view.toModuleId).toBe('aim');
+    });
+
+    it('names the agent by its application id when the application has no name', () => {
+        const view = humanApprovalToTaskView({ ...approval, caller: { applicationId: 'app-7', applicationName: null } }, 'staging');
+
+        expect(view.subtitle).toBe('app-7 · Refunds over 100');
+    });
+});
+
+describe('humanApprovalsInboxPath', () => {
+    it('is the inbox route of the aim module in that environment', () => {
+        expect(humanApprovalsInboxPath('staging')).toBe('/environments/staging/aim/govern/hitl');
     });
 });
 

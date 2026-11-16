@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.util.JacksonFeature;
 import io.gravitee.gamma.rest.resources.GammaRootResource;
 import io.gravitee.gamma.rest.resources.GammaUIResource;
 import io.gravitee.gamma.rest.resources.OpenAPIResource;
+import io.gravitee.gamma.rest.resources.ParamExceptionMapper;
 import io.gravitee.gamma.rest.resources.UnknownPropertyExceptionMapper;
 import io.gravitee.gamma.rest.resources.credential.CredentialResource;
 import io.gravitee.gamma.rest.resources.credential.CredentialsResource;
@@ -98,6 +99,7 @@ public class GammaModuleApplication extends ResourceConfig {
         register(ManagementExceptionMapper.class);
         register(ConstraintValidationExceptionMapper.class);
         register(UnknownPropertyExceptionMapper.class);
+        register(ParamExceptionMapper.class);
         register(ThrowableMapper.class);
         register(NotFoundExceptionMapper.class);
         register(NotAllowedExceptionMapper.class);

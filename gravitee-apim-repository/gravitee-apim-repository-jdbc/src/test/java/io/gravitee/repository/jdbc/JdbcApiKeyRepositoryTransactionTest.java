@@ -132,6 +132,17 @@ public class JdbcApiKeyRepositoryTransactionTest extends AbstractRepositoryTest 
         }
     }
 
+    @Test
+    public void should_delete_the_links_of_the_keys_deleted_with_their_application() throws Exception {
+        apiKeyRepository.create(apiKey("key-of-archived-app", "sub-of-archived-app").toBuilder().application("archived-app").build());
+        apiKeyRepository.addSubscription("key-of-archived-app", "other-sub-of-archived-app");
+
+        assertThat(apiKeyRepository.deleteByApplication("archived-app")).containsExactly("key-of-archived-app");
+
+        assertThat(countLinks("key-of-archived-app", "sub-of-archived-app")).isZero();
+        assertThat(countLinks("key-of-archived-app", "other-sub-of-archived-app")).isZero();
+    }
+
     private int countLinks(String keyId, String subscriptionId) {
         String keySubscriptions = graviteeProperties.getProperty("management.jdbc.prefix", "") + "key_subscriptions";
         return jdbcTemplate.queryForObject(

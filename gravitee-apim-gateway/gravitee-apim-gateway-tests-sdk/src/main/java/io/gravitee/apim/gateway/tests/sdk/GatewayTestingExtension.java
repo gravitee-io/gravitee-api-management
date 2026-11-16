@@ -17,6 +17,7 @@ package io.gravitee.apim.gateway.tests.sdk;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApiProducts;
+import io.gravitee.apim.gateway.tests.sdk.annotations.DeployGenericEvents;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployGuardians;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganization;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganizations;
@@ -84,6 +85,7 @@ public class GatewayTestingExtension
             deployOrganizationForClass(context);
             deploySharedPolicyGroupsForClass(context);
             deployGuardiansForClass(context);
+            deployGenericEventsForClass(context);
             deployApiProductsForClass(context);
             deployApisForClass(context);
         } catch (Exception e) {
@@ -107,6 +109,7 @@ public class GatewayTestingExtension
         deployOrganizationForMethod(context);
         deploySharedPolicyGroupsForMethod(context);
         deployGuardiansForMethod(context);
+        deployGenericEventsForMethod(context);
         deployApiProductsForMethod(context);
         if (context.getRequiredTestMethod().isAnnotationPresent(DeployApi.class)) {
             LOGGER.debug("Deploying apis for test {}", context.getRequiredTestMethod().getName());
@@ -196,6 +199,8 @@ public class GatewayTestingExtension
             LOGGER.debug("Clear test method's guardians");
             gatewayRunner.undeployGuardianForTest();
         }
+        LOGGER.debug("Clear test method's generic events");
+        gatewayRunner.undeployGenericEventForTest();
         if (context.getRequiredTestMethod().isAnnotationPresent(DeployApiProducts.class)) {
             LOGGER.debug("Clear test method's API Products");
             gatewayRunner.undeployApiProductForTest();
@@ -223,6 +228,9 @@ public class GatewayTestingExtension
         }
         if (requiredTestClass.isAnnotationPresent(DeployGuardians.class)) {
             gatewayRunner.undeployGuardianForClass();
+        }
+        if (requiredTestClass.isAnnotationPresent(DeployGenericEvents.class)) {
+            gatewayRunner.undeployGenericEventForClass();
         }
         if (requiredTestClass.isAnnotationPresent(DeployApiProducts.class)) {
             gatewayRunner.undeployApiProductForClass();
@@ -301,6 +309,29 @@ public class GatewayTestingExtension
                 exception = e;
                 throw e;
             }
+        }
+    }
+
+    private void deployGenericEventsForClass(final ExtensionContext context) throws IOException {
+        final Class<?> requiredTestClass = context.getRequiredTestClass();
+        if (requiredTestClass.isAnnotationPresent(DeployGenericEvents.class)) {
+            gatewayRunner.deployGenericEventsForClass(requiredTestClass.getAnnotation(DeployGenericEvents.class).value());
+        }
+    }
+
+    /**
+     * A generic event can only be deployed once. If {@link DeployGenericEvents} annotation is used both at method level and class level, an event can not be in both.
+     */
+    private void deployGenericEventsForMethod(ExtensionContext context) throws Exception {
+        if (!context.getRequiredTestMethod().isAnnotationPresent(DeployGenericEvents.class)) {
+            return;
+        }
+        LOGGER.debug("Deploying generic events for test {}", context.getRequiredTestMethod().getName());
+        try {
+            gatewayRunner.deployGenericEventsForTest(context.getRequiredTestMethod().getAnnotation(DeployGenericEvents.class).value());
+        } catch (Exception e) {
+            exception = e;
+            throw e;
         }
     }
 
