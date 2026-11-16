@@ -684,6 +684,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
      */
     private Map<String, DictionaryProperty> toTypedProperties(
         String dictionaryId,
+        String dictionaryKey,
         Map<String, String> properties,
         Map<String, DictionaryPropertyOptions> options,
         Map<String, DictionaryProperty> existing,
@@ -700,7 +701,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             .stream()
             .collect(
                 Collectors.toMap(Map.Entry::getKey, entry ->
-                    toTypedProperty(dictionaryId, entry, optionsFor(options, entry.getKey()), existing, dryRun)
+                    toTypedProperty(dictionaryId, dictionaryKey, entry, optionsFor(options, entry.getKey()), existing, dryRun)
                 )
             );
     }
@@ -736,6 +737,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
     private DictionaryProperty toTypedProperty(
         String dictionaryId,
+        String dictionaryKey,
         Map.Entry<String, String> property,
         DictionaryPropertyOptions options,
         Map<String, DictionaryProperty> existing,
@@ -749,7 +751,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         boolean desiredEncrypted = desiredEncrypted(options, storedEncrypted);
         if (!desiredEncrypted) {
             if (storedEncrypted) {
-                throw new DictionaryPropertyEncryptedToPlainException(dictionaryId, property.getKey());
+                throw new DictionaryPropertyEncryptedToPlainException(dictionaryKey, property.getKey());
             }
             return new DictionaryProperty(property.getValue(), false);
         }
@@ -956,6 +958,12 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             );
     }
 
+    /** Legacy dictionaries predate the key field: their id is the key. */
+    private static String runtimeKey(Dictionary dictionary) {
+        String key = dictionary.getKey();
+        return key == null || key.isBlank() ? dictionary.getId() : key;
+    }
+
     private Dictionary convert(UpdateDictionaryEntity updateDictionaryEntity, Dictionary existing, boolean dryRun) {
         Dictionary dictionary = new Dictionary();
 
@@ -964,6 +972,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         dictionary.setProperties(
             toTypedProperties(
                 existing.getId(),
+                runtimeKey(existing),
                 updateDictionaryEntity.getProperties(),
                 updateDictionaryEntity.getPropertyOptions(),
                 existing.getProperties(),
@@ -1006,6 +1015,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             dictionary.setProperties(
                 toTypedProperties(
                     dictionary.getId(),
+                    key,
                     newDictionaryEntity.getProperties(),
                     newDictionaryEntity.getPropertyOptions(),
                     null,
