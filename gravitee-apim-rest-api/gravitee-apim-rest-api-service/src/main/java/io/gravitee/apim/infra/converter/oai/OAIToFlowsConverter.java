@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.converter.oai;
 import static io.gravitee.rest.api.service.validator.JsonHelper.clearNullValues;
 import static io.gravitee.rest.api.service.validator.JsonHelper.getScope;
 
+import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.flow.Operator;
@@ -40,7 +41,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import joptsimple.internal.Strings;
+import lombok.CustomLog;
 
+@CustomLog
 public class OAIToFlowsConverter {
 
     public static OAIToFlowsConverter INSTANCE = new OAIToFlowsConverter();
@@ -52,6 +55,10 @@ public class OAIToFlowsConverter {
             .getPaths()
             .forEach((key, pathItem) -> {
                 String path = PATH_PARAMS_PATTERN.matcher(key).replaceAll(":$1");
+                if (FlowValidationDomainService.hasInvalidWildcardPath(path)) {
+                    log.info("Skipping OpenAPI path [{}] because it is not a valid HTTP flow selector", path);
+                    return;
+                }
                 Map<PathItem.HttpMethod, Operation> operations = pathItem.readOperationsMap();
                 operations.forEach((httpMethod, operation) -> {
                     final Flow flow = mapFlow(path, Collections.singleton(HttpMethod.valueOf(httpMethod.name())));
