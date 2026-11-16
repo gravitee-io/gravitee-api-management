@@ -713,7 +713,27 @@ public class ApiKeyServiceTest {
         apiKeyService.renew(GraviteeContext.getExecutionContext(), subscription, "alreadyExistingApiKey");
     }
 
+<<<<<<< HEAD
     @Test(expected = TechnicalManagementException.class)
+=======
+    @Test
+    public void shouldDeleteTheApiKeysOfTheApplication() throws TechnicalException {
+        when(apiKeyRepository.deleteByApplication(APPLICATION_ID)).thenReturn(List.of("key-1"));
+
+        apiKeyService.deleteByApplication(APPLICATION_ID);
+
+        verify(apiKeyRepository).deleteByApplication(APPLICATION_ID);
+    }
+
+    @Test
+    public void shouldFailToDeleteTheApiKeysOfTheApplicationOnTechnicalError() throws TechnicalException {
+        when(apiKeyRepository.deleteByApplication(APPLICATION_ID)).thenThrow(new TechnicalException("boom"));
+
+        assertThrows(TechnicalManagementException.class, () -> apiKeyService.deleteByApplication(APPLICATION_ID));
+    }
+
+    @Test
+>>>>>>> 8b929f2 (fix(api-key): delete an application's API keys on archive (APIM-16008) (#22727))
     public void shouldNotRenewSubscriptionWithJwtPlan() {
         SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setPlan(PLAN_ID);
