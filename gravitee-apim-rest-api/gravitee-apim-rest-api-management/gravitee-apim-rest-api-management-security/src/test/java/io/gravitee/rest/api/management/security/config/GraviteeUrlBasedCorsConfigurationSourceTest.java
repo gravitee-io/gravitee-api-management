@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -45,6 +46,7 @@ class GraviteeUrlBasedCorsConfigurationSourceTest {
 
     @BeforeEach
     void setUp() {
+        GraviteeContext.cleanContext();
         var parameterService = mock(ParameterService.class);
         when(
             parameterService.find(
