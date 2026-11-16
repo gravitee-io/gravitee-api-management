@@ -33,6 +33,9 @@ import lombok.RequiredArgsConstructor;
 /**
  * Replaces the draft of a Guardian, whether the console sends it or a deployment it rolls back to: both go through the
  * same checks, since an old revision may carry a name another Guardian took since, or a guardrail no longer installed.
+ *
+ * <p>One thing separates them, {@link DraftOrigin}: a submitted draft is stored as its policies accept it, where a
+ * restored revision is stored as it was published.
  */
 @DomainService
 @RequiredArgsConstructor
@@ -43,10 +46,24 @@ public class GuardianDraftDomainService {
     private final AuditDomainService auditDomainService;
     private final GuardianDeploymentDomainService deployments;
 
+    /** Where a draft being stored comes from, which decides what is done with a configuration its policy would correct. */
+    public enum DraftOrigin {
+        /** Written by the caller: what is stored is the configuration each policy accepts, corrections included. */
+        SUBMITTED,
+        /**
+         * Restored from a revision the gateways ran: it is stored as it was published, so a configuration a
+         * policy would correct is refused rather than rewritten. Storing the corrected revision instead would
+         * leave a draft that no longer matches the publication, and the Guardian {@code PENDING} straight
+         * after the rollback.
+         */
+        RESTORED,
+    }
+
     /**
      * Stores the draft the command describes in place of the existing one, and audits it.
      *
      * @param auditProperties what the audit records beside the Guardian
+     * @param origin where the draft comes from, see {@link DraftOrigin}
      * @throws ValidationDomainException when the definition is invalid or names a guardrail that is not installed
      */
     public Guardian replace(
@@ -54,7 +71,8 @@ public class GuardianDraftDomainService {
         UpdateGuardianCommand command,
         AuditInfo auditInfo,
         GuardianAuditEvent event,
-        Map<AuditProperties, String> auditProperties
+        Map<AuditProperties, String> auditProperties,
+        DraftOrigin origin
     ) {
         var guardianToUpdate = existingGuardian.update(command);
         // after the merge, not before: the identity it needs comes from the path
@@ -71,7 +89,10 @@ public class GuardianDraftDomainService {
             validateGuardian.validateNameIsAvailable(auditInfo.environmentId(), guardianToUpdate.getName(), existingGuardian.getId());
         }
 
-        validateGuardian.validateAgainstInstalledPolicies(guardianToUpdate);
+        switch (origin) {
+            case SUBMITTED -> validateGuardian.validateAgainstInstalledPolicies(guardianToUpdate);
+            case RESTORED -> validateGuardian.validateStoredAgainstInstalledPolicies(guardianToUpdate);
+        }
 
         var publication = deployments.current(existingGuardian);
         var updatedGuardian = deployments.state(guardianRepository.update(guardianToUpdate), publication);

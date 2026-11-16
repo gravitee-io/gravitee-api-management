@@ -343,9 +343,11 @@ paths:
                 accepts, is refused with the same 400 rather than published into a revision no gateway can
                 start.
 
-                That pass never rewrites the draft: a deployment publishes the definition as it is stored,
-                so the step configurations it publishes are the ones a creation or an update already
-                sanitised.
+                That pass never rewrites the draft: a deployment publishes the definition as it is stored.
+                A step configuration its policy would only accept **corrected** — a required property that
+                gained a default since the draft was saved, say — is therefore refused with the same 400,
+                naming the step, rather than published as it stands. Saving the Guardian again stores the
+                configuration the policy accepts, and that one deploys.
             operationId: deployGuardian
             requestBody:
                 required: false
@@ -499,6 +501,12 @@ paths:
                 and the Guardian has to be edited rather than rolled back. Refusing is deliberate:
                 restoring a draft the gateways could not start would only move the failure to the
                 next deployment.
+
+                The revision is restored as it was published, never rewritten, so the same 400 answers a
+                step configuration its policy would only accept **corrected**. Storing the corrected
+                definition instead would store one no gateway ever ran, and leave the Guardian PENDING
+                straight after the rollback; editing the Guardian is then the way to store a configuration
+                its policy accepts.
             operationId: rollbackGuardian
             responses:
                 "200":

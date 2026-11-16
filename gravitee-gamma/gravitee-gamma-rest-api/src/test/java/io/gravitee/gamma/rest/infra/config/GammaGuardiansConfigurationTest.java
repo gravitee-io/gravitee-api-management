@@ -60,7 +60,7 @@ class GammaGuardiansConfigurationTest {
             parent.registerBean(AuditDomainService.class, () -> mock(AuditDomainService.class));
             parent.registerBean(PolicyPluginProvider.class, () -> mock(PolicyPluginProvider.class));
             // the shared service the API flows validate their own steps with, owned by the rest-api
-            // context: the Guardian validator reaches it through a port of its own
+            // context: the Guardian validator is injected with it directly
             parent.registerBean(PolicyValidationDomainService.class, () -> mock(PolicyValidationDomainService.class));
             parent.registerBean(EventLatestQueryService.class, EventLatestQueryServiceInMemory::new);
             parent.registerBean(EventQueryService.class, EventQueryServiceInMemory::new);

@@ -54,7 +54,14 @@ public class UpdateGuardianUseCase {
             .findByEnvironmentId(input.auditInfo().environmentId(), input.guardianId())
             .orElseThrow(() -> new GuardianNotFoundException(input.guardianId()));
         return new Output(
-            drafts.replace(existingGuardian, input.guardianToUpdate(), input.auditInfo(), GuardianAuditEvent.GUARDIAN_UPDATED, Map.of())
+            drafts.replace(
+                existingGuardian,
+                input.guardianToUpdate(),
+                input.auditInfo(),
+                GuardianAuditEvent.GUARDIAN_UPDATED,
+                Map.of(),
+                GuardianDraftDomainService.DraftOrigin.SUBMITTED
+            )
         );
     }
 

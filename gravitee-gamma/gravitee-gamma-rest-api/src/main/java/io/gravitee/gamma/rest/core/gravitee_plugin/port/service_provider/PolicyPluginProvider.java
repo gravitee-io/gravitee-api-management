@@ -18,7 +18,6 @@ package io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.DeclaredFlows;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PlatformPolicyPlugin;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
-import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyConfigurationCheck;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;

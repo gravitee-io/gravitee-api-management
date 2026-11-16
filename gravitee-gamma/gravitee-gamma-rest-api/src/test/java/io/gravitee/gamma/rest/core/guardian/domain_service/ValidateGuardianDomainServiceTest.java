@@ -25,11 +25,12 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aPolicyPlugi
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.flows;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
-import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyConfigurationValidator;
+import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyValidation;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.DeclaredFlows;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
@@ -51,12 +52,12 @@ class ValidateGuardianDomainServiceTest {
     );
 
     /** The schema answers, which a test installs to make a step conforming, corrected or refused. */
-    private final InMemoryPolicyConfigurationValidator configurations = new InMemoryPolicyConfigurationValidator();
+    private final InMemoryPolicyValidation policyValidation = new InMemoryPolicyValidation();
 
     private final ValidateGuardianDomainService validator = new ValidateGuardianDomainService(
         new InMemoryGuardianRepository(),
         aPolicyPluginProvider(() -> policies),
-        configurations,
+        policyValidation,
         new JacksonJsonDeserializer()
     );
 
@@ -300,7 +301,7 @@ class ValidateGuardianDomainServiceTest {
 
     @Test
     void should_refuse_a_step_whose_configuration_breaks_the_policy_schema() {
-        configurations.givenRefuses("data-logging-masking", "$.rules: is missing but it is required");
+        policyValidation.givenRefuses("data-logging-masking", "$.rules: is missing but it is required");
         var policy = aPolicy();
         policy.setConfiguration("{\"scope\":{\"protocol\":\"LLM\"}}");
         var guardian = aGuardian(definition -> definition.policies(List.of(policy))).build();
@@ -316,47 +317,131 @@ class ValidateGuardianDomainServiceTest {
                 .asString()
                 .contains("Detect credentials", "$.rules: is missing but it is required");
             softly
-                .assertThat(configurations.checks())
+                .assertThat(policyValidation.checks())
                 .as("the configuration of that very step is what was judged")
-                .containsExactly(
-                    new InMemoryPolicyConfigurationValidator.Check("data-logging-masking", "{\"scope\":{\"protocol\":\"LLM\"}}")
-                );
+                .containsExactly(new InMemoryPolicyValidation.Check("data-logging-masking", "{\"scope\":{\"protocol\":\"LLM\"}}"));
         });
     }
 
     @Test
     void should_store_the_configuration_the_policy_accepts_rather_than_the_one_submitted() {
-        configurations.givenAccepts("{\"rules\":[]}", "{\"rules\":[],\"threshold\":0.5}");
+        policyValidation.givenAccepts("{\"rules\":[]}", "{\"rules\":[],\"threshold\":0.5}");
         var policy = aPolicy();
         policy.setConfiguration("{\"rules\":[]}");
-        var guardian = aGuardian(definition -> definition.policies(List.of(policy))).build();
 
-        assertThat(validate(guardian).severe()).as("conforming once corrected").isEmpty();
+        validator.validateAgainstInstalledPolicies(aGuardianOf(policy));
+
         assertThat(policy.getConfiguration())
             .as("the corrected configuration, which is the one the gateway will build the policy from")
             .isEqualTo("{\"rules\":[],\"threshold\":0.5}");
     }
 
+    /**
+     * The reverse of the ticket's own case: a step carrying no configuration is judged as an empty object,
+     * and a schema that completes that object has its completed configuration stored. Keeping {@code null}
+     * would store a configuration the policy was never validated with.
+     */
+    @Test
+    void should_store_the_completed_configuration_of_a_step_that_carried_none() {
+        policyValidation.givenAccepts("{}", "{\"mode\":\"BLOCK\"}");
+        var policy = aPolicy();
+
+        validator.validateAgainstInstalledPolicies(aGuardianOf(policy));
+
+        assertThat(policy.getConfiguration()).isEqualTo("{\"mode\":\"BLOCK\"}");
+    }
+
+    @Test
+    void should_leave_a_step_whose_policy_accepts_an_empty_object_carrying_no_configuration() {
+        var policy = aPolicy();
+
+        validator.validateAgainstInstalledPolicies(aGuardianOf(policy));
+
+        assertThat(policy.getConfiguration()).as("nothing was corrected, so there is nothing to store").isNull();
+    }
+
+    /**
+     * The validation rebuilds the document it returns, so the same configuration can come back with its
+     * properties in another order. A path that may not rewrite what it reads must not read that as a
+     * correction, or it would refuse a draft nothing is wrong with.
+     */
+    @Test
+    void should_not_read_a_reordered_configuration_as_a_correction() {
+        policyValidation.givenAccepts("{\"rules\":[],\"mode\":\"BLOCK\"}", "{ \"mode\" : \"BLOCK\", \"rules\" : [] }");
+        var policy = aPolicy();
+        policy.setConfiguration("{\"rules\":[],\"mode\":\"BLOCK\"}");
+
+        validator.validateStoredAgainstInstalledPolicies(aGuardianOf(policy));
+
+        assertThat(policy.getConfiguration()).as("left exactly as it is stored").isEqualTo("{\"rules\":[],\"mode\":\"BLOCK\"}");
+    }
+
+    @Test
+    void should_refuse_a_stored_configuration_its_policy_would_correct_rather_than_publish_it() {
+        policyValidation.givenAccepts("{\"rules\":[]}", "{\"rules\":[],\"threshold\":0.5}");
+        var policy = aPolicy();
+        policy.setConfiguration("{\"rules\":[]}");
+        var guardian = aGuardianOf(policy);
+
+        SoftAssertions.assertSoftly(softly -> {
+            softly
+                .assertThatThrownBy(() -> validator.validateStoredAgainstInstalledPolicies(guardian))
+                .as("publishing it would publish a configuration the policy was never validated with")
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContainingAll("Detect credentials", "save the Guardian again");
+            softly.assertThat(policy.getConfiguration()).as("and the definition it read is left alone").isEqualTo("{\"rules\":[]}");
+        });
+    }
+
+    @Test
+    void should_not_rewrite_the_guardian_it_is_asked_to_validate() {
+        policyValidation.givenAccepts("{\"rules\":[]}", "{\"rules\":[],\"threshold\":0.5}");
+        var policy = aPolicy();
+        policy.setConfiguration("{\"rules\":[]}");
+
+        var result = validate(aGuardianOf(policy));
+
+        SoftAssertions.assertSoftly(softly -> {
+            softly
+                .assertThat(policy.getConfiguration())
+                .as("the Validator contract is no licence to rewrite a caller's object")
+                .isEqualTo("{\"rules\":[]}");
+            softly.assertThat(result.severe()).as("the correction it could not apply is reported instead").isPresent();
+        });
+    }
+
+    @Test
+    void should_refuse_a_step_whose_policy_the_validation_no_longer_resolves() {
+        policyValidation.givenNotInstalled("data-logging-masking");
+
+        assertThat(validate(aGuardian().build()).severe().orElseThrow())
+            .as("the registry read is a snapshot: a policy uninstalled since is a refused step, not a 404")
+            .singleElement()
+            .extracting(Validator.Error::getMessage)
+            .asString()
+            .contains("Detect credentials", "the policy is not installed");
+    }
+
     @Test
     void should_judge_a_step_carrying_no_configuration_as_one_carrying_an_empty_object() {
-        configurations.givenRefuses("data-logging-masking", "$.rules: is missing but it is required");
+        policyValidation.givenRefuses("data-logging-masking", "$.rules: is missing but it is required");
 
         SoftAssertions.assertSoftly(softly -> {
             for (String configuration : Arrays.asList(null, "", "   ")) {
-                configurations.reset();
-                configurations.givenRefuses("data-logging-masking", "$.rules: is missing but it is required");
+                policyValidation.reset();
+                policyValidation.givenRefuses("data-logging-masking", "$.rules: is missing but it is required");
                 var policy = aPolicy();
                 policy.setConfiguration(configuration);
-                var guardian = aGuardian(definition -> definition.policies(List.of(policy))).build();
+                var guardian = aGuardianOf(policy);
 
                 softly
                     .assertThat(validate(guardian).severe())
                     .as("a schema requiring a property refuses configuration [%s]", configuration)
                     .isPresent();
                 softly
-                    .assertThat(configurations.checks())
+                    .assertThat(policyValidation.checks())
                     .as("configuration [%s] is judged as an empty object", configuration)
-                    .extracting(InMemoryPolicyConfigurationValidator.Check::configuration)
+                    .extracting(InMemoryPolicyValidation.Check::configuration)
                     .containsExactly("{}");
             }
         });
@@ -365,8 +450,8 @@ class ValidateGuardianDomainServiceTest {
     @Test
     void should_report_the_schema_violation_of_every_step_at_once() {
         policies.put("other-guardrail", aGuardrail(flows(LLM_PROXY, "REQUEST", GUARDIAN, "REQUEST")));
-        configurations.givenRefuses("data-logging-masking", "$.rules: is missing but it is required");
-        configurations.givenRefuses("other-guardrail", "$.threshold: must have a maximum value of 1");
+        policyValidation.givenRefuses("data-logging-masking", "$.rules: is missing but it is required");
+        policyValidation.givenRefuses("other-guardrail", "$.threshold: must have a maximum value of 1");
         var guardian = aGuardian(definition ->
             definition.policies(List.of(aPolicy(), step("Other guardrail", "other-guardrail", true)))
         ).build();
@@ -381,19 +466,19 @@ class ValidateGuardianDomainServiceTest {
 
     @Test
     void should_not_check_the_schema_of_a_disabled_step() {
-        configurations.givenRefuses("data-logging-masking", "$.rules: is missing but it is required");
+        policyValidation.givenRefuses("data-logging-masking", "$.rules: is missing but it is required");
         var guardian = aGuardian(definition ->
             definition.policies(List.of(step("Disabled guardrail", "data-logging-masking", false)))
         ).build();
 
         assertThat(validate(guardian).severe()).isEmpty();
-        assertThat(configurations.checks()).as("a step run by nothing is judged by nothing").isEmpty();
+        assertThat(policyValidation.checks()).as("a step run by nothing is judged by nothing").isEmpty();
     }
 
     @Test
     void should_not_check_the_schema_of_a_policy_that_is_not_installed() {
         policies.clear();
-        configurations.givenRefuses("data-logging-masking", "$.rules: is missing but it is required");
+        policyValidation.givenRefuses("data-logging-masking", "$.rules: is missing but it is required");
 
         assertThat(validate(aGuardian().build()).severe().orElseThrow())
             .as("the step is refused for the policy it names, and no schema is asked of a plugin that is gone")
@@ -401,7 +486,7 @@ class ValidateGuardianDomainServiceTest {
             .extracting(Validator.Error::getMessage)
             .asString()
             .contains("not installed");
-        assertThat(configurations.checks()).isEmpty();
+        assertThat(policyValidation.checks()).isEmpty();
     }
 
     @Test
@@ -427,7 +512,7 @@ class ValidateGuardianDomainServiceTest {
     @Test
     void should_check_the_schema_of_an_enabled_step_that_is_no_guardrail() {
         policies.put("data-logging-masking", aConventionalPolicy(flows(GUARDIAN, "REQUEST")));
-        configurations.givenRefuses("data-logging-masking", "$.header: is missing but it is required");
+        policyValidation.givenRefuses("data-logging-masking", "$.header: is missing but it is required");
 
         assertThat(validate(aGuardian().build()).severe().orElseThrow())
             .as("a conventional policy the gateway could not build is refused too, not only a guardrail")
@@ -439,6 +524,10 @@ class ValidateGuardianDomainServiceTest {
 
     private Validator.Result<ValidateGuardianDomainService.Input> validate(Guardian guardian) {
         return validator.validateAndSanitize(new ValidateGuardianDomainService.Input(guardian));
+    }
+
+    private static Guardian aGuardianOf(Step step) {
+        return aGuardian(definition -> definition.policies(List.of(step))).build();
     }
 
     private static PolicyCapabilities aGuardrail(DeclaredFlows flows) {

@@ -42,7 +42,7 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.GuardianBuilder;
-import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyConfigurationValidator;
+import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyValidation;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
@@ -86,9 +86,9 @@ class GuardianDeploymentUseCasesTest {
     private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(repository, deploymentService, audits.service);
 
     /** The schema answers, which a test installs to make a stored draft non-conforming. */
-    private final InMemoryPolicyConfigurationValidator configurations = new InMemoryPolicyConfigurationValidator();
+    private final InMemoryPolicyValidation policyValidation = new InMemoryPolicyValidation();
 
-    private final DeployGuardianUseCase deploy = aDeployGuardianUseCase(repository, deploymentService, audits.service, configurations);
+    private final DeployGuardianUseCase deploy = aDeployGuardianUseCase(repository, deploymentService, audits.service, policyValidation);
     private final UpdateGuardianUseCase update = new UpdateGuardianUseCase(
         repository,
         aGuardianValidator(),
@@ -200,7 +200,7 @@ class GuardianDeploymentUseCasesTest {
 
     @Test
     void should_refuse_to_deploy_a_draft_whose_step_configuration_breaks_the_policy_schema() {
-        configurations.givenRefuses(GUARDRAIL_POLICY, "$.rules: is missing but it is required");
+        policyValidation.givenRefuses(GUARDRAIL_POLICY, "$.rules: is missing but it is required");
 
         assertSoftly(softly -> {
             softly
@@ -213,19 +213,45 @@ class GuardianDeploymentUseCasesTest {
         });
     }
 
+    /**
+     * A draft its policy would only accept corrected — stored before the check, or against a policy that
+     * has gained a default since — is refused rather than published. A deployment publishes what is
+     * stored and cannot rewrite it: sanitising here would publish a revision the draft no longer matches,
+     * and leave the Guardian PENDING from its own deployment; publishing the stored one would publish a
+     * configuration the policy was never validated with. Saving the Guardian again stores the corrected
+     * configuration, and that deploys.
+     */
     @Test
-    void should_deploy_a_draft_the_installed_policies_accept_without_rewriting_it() {
+    void should_refuse_to_deploy_a_draft_its_policy_would_only_accept_corrected() {
         repository.reset();
         var policy = aPolicy();
         policy.setConfiguration("{\"rules\":[{\"policy\":\"ban-topics\"}]}");
         repository.givenGuardian(aGuardian(definition -> definition.policies(List.of(policy))).build());
-        // the validator would correct that configuration on a write path. A deployment that rewrote it
-        // would publish a revision the stored draft no longer matches, and the Guardian would come back
-        // PENDING from its own deployment.
-        configurations.givenAccepts(
+        policyValidation.givenAccepts(
             "{\"rules\":[{\"policy\":\"ban-topics\"}]}",
             "{\"rules\":[{\"policy\":\"ban-topics\"}],\"mode\":\"BLOCK\"}"
         );
+
+        assertSoftly(softly -> {
+            softly
+                .assertThatThrownBy(() -> deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, "Reviewed")))
+                .as("refusal naming the step and what to do")
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContainingAll("Detect credentials", "save the Guardian again");
+            softly.assertThat(deployments.publications()).as("nothing published").isZero();
+            softly
+                .assertThat(policy.getConfiguration())
+                .as("the stored draft is left alone")
+                .isEqualTo("{\"rules\":[{\"policy\":\"ban-topics\"}]}");
+        });
+    }
+
+    @Test
+    void should_deploy_a_draft_the_installed_policies_accept_without_rewriting_it() {
+        repository.reset();
+        var policy = aPolicy();
+        policy.setConfiguration("{\"rules\":[{\"policy\":\"ban-topics\"}],\"mode\":\"BLOCK\"}");
+        repository.givenGuardian(aGuardian(definition -> definition.policies(List.of(policy))).build());
 
         var result = deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, "Reviewed"));
 
@@ -235,7 +261,7 @@ class GuardianDeploymentUseCasesTest {
             softly
                 .assertThat(policy.getConfiguration())
                 .as("the stored draft is published as it is stored")
-                .isEqualTo("{\"rules\":[{\"policy\":\"ban-topics\"}]}");
+                .isEqualTo("{\"rules\":[{\"policy\":\"ban-topics\"}],\"mode\":\"BLOCK\"}");
         });
     }
 
