@@ -24,7 +24,7 @@ import {
 } from '../../commands';
 import { OpenJdkNodeExecutor } from '../../executors';
 import { CircleCIEnvironment } from '../../pipelines';
-import { mavenParallelism } from '../../utils';
+import { DISTRIBUTION_DEPLOY_ARGS, mavenParallelism } from '../../utils';
 
 export class PublishJob {
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
@@ -78,6 +78,18 @@ export class PublishJob {
       new commands.Run({
         name: 'Maven deploy the Gamma modules with their UI to the Azure feed (snapshots)',
         command: `mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true -Dgamma-modules -T 1 -s ${config.maven.settingsFile} -nsu -P gio-artifactory-snapshot -DaltDeploymentRepository=azure-artifacts-gravitee-snapshots::${config.maven.azureSnapshotsFeedUrl} \\
+  -DaltSnapshotDeploymentRepository=azure-artifacts-gravitee-snapshots::${config.maven.azureSnapshotsFeedUrl}`,
+        environment: {
+          MAVEN_OPTS: '-Xmx2048m',
+        },
+      }),
+      // The distribution is a reactor of its own: the steps above never reach it. When it pins a
+      // SNAPSHOT core, that core comes from the local repository the first step installed into,
+      // hence -nsu; a released pin resolves from the feed.
+      new commands.Run({
+        name: 'Maven deploy the distribution resources to the Azure feed (snapshots)',
+        command: `mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true -s ${config.maven.settingsFile} -nsu -P gio-artifactory-snapshot ${DISTRIBUTION_DEPLOY_ARGS} \\
+  -DaltDeploymentRepository=azure-artifacts-gravitee-snapshots::${config.maven.azureSnapshotsFeedUrl} \\
   -DaltSnapshotDeploymentRepository=azure-artifacts-gravitee-snapshots::${config.maven.azureSnapshotsFeedUrl}`,
         environment: {
           MAVEN_OPTS: '-Xmx2048m',
