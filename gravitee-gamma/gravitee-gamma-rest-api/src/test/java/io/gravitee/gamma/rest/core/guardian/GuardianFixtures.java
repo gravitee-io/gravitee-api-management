@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.core.guardian;
 
+import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
@@ -23,6 +24,7 @@ import io.gravitee.gamma.rest.core.gravitee_plugin.model.DeclaredFlows;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
+import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.CreateGuardian;
@@ -30,6 +32,7 @@ import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
+import io.gravitee.gamma.rest.core.guardian.use_case.DeployGuardianUseCase;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -57,6 +60,9 @@ public final class GuardianFixtures {
     /** A UUID, because that is what the creation endpoint accepts as a caller-supplied id. */
     public static final String GUARDIAN_ID = "3f1b0f2a-6c14-4b0e-9a3f-7d2c8e5a1b40";
 
+    /** The installed guardrail the fixtures build their sequences from. */
+    public static final String GUARDRAIL_POLICY = "data-logging-masking";
+
     private GuardianFixtures() {}
 
     public static PolicyPluginProvider aPolicyPluginProvider() {
@@ -68,7 +74,7 @@ public final class GuardianFixtures {
     public static Map<String, PolicyCapabilities> theInstalledPolicies() {
         return new HashMap<>(
             Map.of(
-                "data-logging-masking",
+                GUARDRAIL_POLICY,
                 new PolicyCapabilities(
                     true,
                     flows(PolicyFlowType.LLM_PROXY, "REQUEST,RESPONSE", PolicyFlowType.GUARDIAN, "REQUEST,RESPONSE")
@@ -102,7 +108,19 @@ public final class GuardianFixtures {
     public static PolicyPluginProvider aPolicyPluginProvider(Supplier<Map<String, PolicyCapabilities>> policies) {
         var provider = Mockito.mock(PolicyPluginProvider.class);
         Mockito.when(provider.findAllCapabilities()).thenAnswer(call -> policies.get());
+        // a mock answers null to a default method unless told otherwise, and installedGuardrails() is
+        // derived from findAllCapabilities(): stubbing it apart would let the two disagree
+        Mockito.when(provider.installedGuardrails()).thenCallRealMethod();
         return provider;
+    }
+
+    /** The deployment use case under the registry the tests install by default. */
+    public static DeployGuardianUseCase aDeployGuardianUseCase(
+        GuardianRepository repository,
+        GuardianDeploymentDomainService deployments,
+        AuditDomainService audits
+    ) {
+        return new DeployGuardianUseCase(repository, deployments, audits, aPolicyPluginProvider());
     }
 
     public static ValidateGuardianDomainService aGuardianValidator() {
@@ -114,7 +132,12 @@ public final class GuardianFixtures {
     }
 
     public static Step aPolicy() {
-        return Step.builder().name("Detect credentials").policy("data-logging-masking").enabled(true).build();
+        return Step.builder().name("Detect credentials").policy(GUARDRAIL_POLICY).enabled(true).build();
+    }
+
+    /** The same guardrail, switched off: part of the stored sequence, run by nothing. */
+    public static Step aDisabledPolicy() {
+        return Step.builder().name("Detect credentials").policy(GUARDRAIL_POLICY).enabled(false).build();
     }
 
     /** A stored definition: identified, scoped to its environment and carrying one guardrail. */

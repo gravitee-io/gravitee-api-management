@@ -308,9 +308,17 @@ paths:
                 Requires ENVIRONMENT_GUARDIAN UPDATE. Publishes a new revision, including when the
                 definition is unchanged, and records an audit entry. The returned state compares the
                 current draft with the latest publication; it is not an acknowledgement from each gateway.
-                The stored draft is published as is: it was validated when created or updated, so a policy
-                that has become incompatible since, uninstalled or downgraded, is only refused when the
-                gateways start the Guardian.
+
+                **A Guardian needs at least one enabled guardrail to be deployed**, and that is the one
+                thing a deployment checks against the installed plugins: a sequence that is empty, holds
+                only disabled steps, or names only policies that are not guardrails or are no longer
+                installed is refused with a 400, publishing nothing. A Guardian already deployed keeps the
+                revision the gateways run. A draft may still be saved empty while its sequence is being
+                designed.
+
+                The rest of the stored draft is published as is: it was validated when created or updated,
+                so a guardrail that has become incompatible since, downgraded or scoped to another
+                protocol, is only refused when the gateways start the Guardian.
             operationId: deployGuardian
             requestBody:
                 required: false

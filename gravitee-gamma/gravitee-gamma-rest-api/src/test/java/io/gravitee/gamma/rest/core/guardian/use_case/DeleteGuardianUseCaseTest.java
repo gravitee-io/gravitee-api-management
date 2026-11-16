@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.core.guardian.use_case;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ENVIRONMENT_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDIAN_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION_ID;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aDeployGuardianUseCase;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianDefinition;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,7 +50,7 @@ class DeleteGuardianUseCaseTest {
     private final GuardianPublicationFixture publications = new GuardianPublicationFixture();
     private final GuardianAuditFixture audits = new GuardianAuditFixture();
     private final GuardianDeploymentDomainService deploymentService = publications.service(guardianRepository);
-    private final DeployGuardianUseCase deploy = new DeployGuardianUseCase(guardianRepository, deploymentService, audits.service);
+    private final DeployGuardianUseCase deploy = aDeployGuardianUseCase(guardianRepository, deploymentService, audits.service);
     private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(guardianRepository, deploymentService, audits.service);
     private final DeleteGuardianUseCase useCase = new DeleteGuardianUseCase(guardianRepository, audits.service, deploymentService);
     private final AuditInfo actor = auditInfo(ENVIRONMENT_ID);
@@ -102,7 +103,7 @@ class DeleteGuardianUseCaseTest {
         };
         failingRepository.givenGuardian(aGuardian().build());
         var service = publications.service(failingRepository);
-        var failingDeploy = new DeployGuardianUseCase(failingRepository, service, audits.service);
+        var failingDeploy = aDeployGuardianUseCase(failingRepository, service, audits.service);
         assertThatThrownBy(() -> failingDeploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null))).isInstanceOf(
             TechnicalDomainException.class
         );
