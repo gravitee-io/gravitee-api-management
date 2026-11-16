@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 export * from './cmd-azure-artifacts-token';
+export * from './cmd-check-distribution-core-pin';
 export * from './cmd-create-docker-context';
 export * from './cmd-docker-login';
 export * from './cmd-docker-logout';
