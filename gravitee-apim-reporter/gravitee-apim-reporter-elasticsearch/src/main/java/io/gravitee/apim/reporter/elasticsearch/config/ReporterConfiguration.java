@@ -45,6 +45,7 @@ public class ReporterConfiguration {
     public static final boolean DEFAULT_PER_TYPE_INDEX = false;
     public static final String DEFAULT_INDEX_MODE = "daily";
     public static final String DATA_STREAM_INDEX_MODE = "data_stream";
+    public static final String INDEX_MODE_SETTING = "reporters.elasticsearch.index_mode";
     public static final int DEFAULT_BULK_ACTIONS = 1000;
     public static final long DEFAULT_BULK_FLUSH_INTERVAL = 5L;
     public static final long DEFAULT_REQUEST_TIMEOUT = 30000L;
@@ -274,24 +275,24 @@ public class ReporterConfiguration {
     private String extendedSettingsTemplate;
 
     /**
-     * Data stream retention per type, written as the data stream lifecycle {@code data_retention} where the cluster has one.
+     * Data stream retention per type, next to its lifecycle policy: written as the data stream lifecycle {@code data_retention}.
      */
-    @Value("${reporters.elasticsearch.retention.request:#{null}}")
+    @Value("${reporters.elasticsearch.lifecycle.retention.request:#{null}}")
     private String dataRetentionRequest;
 
-    @Value("${reporters.elasticsearch.retention.monitor:#{null}}")
+    @Value("${reporters.elasticsearch.lifecycle.retention.monitor:#{null}}")
     private String dataRetentionMonitor;
 
-    @Value("${reporters.elasticsearch.retention.health:#{null}}")
+    @Value("${reporters.elasticsearch.lifecycle.retention.health:#{null}}")
     private String dataRetentionHealth;
 
-    @Value("${reporters.elasticsearch.retention.log:#{null}}")
+    @Value("${reporters.elasticsearch.lifecycle.retention.log:#{null}}")
     private String dataRetentionLog;
 
-    @Value("${reporters.elasticsearch.retention.event_metrics:#{null}}")
+    @Value("${reporters.elasticsearch.lifecycle.retention.event_metrics:#{null}}")
     private String dataRetentionEventMetrics;
 
-    @Value("${reporters.elasticsearch.retention.decisions:#{null}}")
+    @Value("${reporters.elasticsearch.lifecycle.retention.decisions:#{null}}")
     private String dataRetentionDecisions;
 
     public List<Endpoint> getEndpoints() {
@@ -645,15 +646,22 @@ public class ReporterConfiguration {
     }
 
     public boolean isDataStreamIndex() {
-        return DATA_STREAM_INDEX_MODE.equalsIgnoreCase(indexMode);
+        return getConfiguredIndexMode().filter(DATA_STREAM_INDEX_MODE::equalsIgnoreCase).isPresent();
     }
 
     /**
      * @return the lifecycle policy attached to the indices of the type, or empty when none is configured
      */
     public Optional<String> lifecyclePolicy(Type type) {
+        return lifecyclePolicy(LifecycleGroup.of(type));
+    }
+
+    /**
+     * @return the lifecycle policy attached to the indices of the group, or empty when none is configured
+     */
+    public Optional<String> lifecyclePolicy(LifecycleGroup group) {
         return Optional.ofNullable(
-            switch (LifecycleGroup.of(type)) {
+            switch (group) {
                 case REQUEST -> indexLifecyclePolicyRequest;
                 case LOG -> indexLifecyclePolicyLog;
                 case MONITOR -> indexLifecyclePolicyMonitor;
@@ -668,8 +676,15 @@ public class ReporterConfiguration {
      * @return the data stream retention of the type, or empty when none is configured
      */
     public Optional<String> dataRetention(Type type) {
+        return dataRetention(LifecycleGroup.of(type));
+    }
+
+    /**
+     * @return the data stream retention of the group, or empty when none is configured
+     */
+    public Optional<String> dataRetention(LifecycleGroup group) {
         return Optional.ofNullable(
-            switch (LifecycleGroup.of(type)) {
+            switch (group) {
                 case REQUEST -> dataRetentionRequest;
                 case LOG -> dataRetentionLog;
                 case MONITOR -> dataRetentionMonitor;

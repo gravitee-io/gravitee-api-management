@@ -229,15 +229,13 @@ class BeanFactoryBuilderFlavorTest {
         @ParameterizedTest(name = "flavor {0}")
         @NullSource
         @ValueSource(strings = { "classic" })
-        void should_refuse_the_data_stream_index_mode_on_classic(String flavor) {
+        void should_accept_the_data_stream_index_mode_on_classic(String flavor) {
             configuration.setFlavor(flavor);
             configuration.setIndexMode("data_stream");
             givenCluster("default");
 
-            assertThat(BeanFactoryBuilder.buildFactory(client, configuration)).isNull();
-            assertThat(messages(Level.ERROR))
-                .singleElement()
-                .satisfies(message -> assertThat(message).contains("'reporters.elasticsearch.index_mode'").contains("data_stream"));
+            assertThat(BeanFactoryBuilder.buildFactory(client, configuration)).isInstanceOf(DataStreamBeanFactory.class);
+            assertThat(messages(Level.ERROR)).isEmpty();
         }
 
         @Test

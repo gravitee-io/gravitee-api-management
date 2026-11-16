@@ -115,6 +115,23 @@
                     </includes>
                 </configuration>
             </plugin>
+            <!-- The reportables of the formatter tests, read back by the integration tests of the reporters -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                        <configuration>
+                            <includes>
+                                <include>io/gravitee/reporter/common/formatter/given/**</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>

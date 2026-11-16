@@ -101,6 +101,17 @@ class DataStreamIndexTemplateTest {
             assertThat(settings.path("index.number_of_replicas").asInt()).isEqualTo(2);
             assertThat(settings.path("index.refresh_interval").asText()).isEqualTo("10s");
         }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("io.gravitee.apim.reporter.elasticsearch.mapping.DataStreamIndexTemplateTest#types")
+        void should_add_the_extended_settings_except_to_event_metrics_and_decisions(Type type) {
+            var configuration = new ReporterConfiguration();
+            configuration.setExtendedSettingsTemplate("extended-settings-test.ftl");
+
+            JsonNode settings = settings(template(type, configuration, ELASTICSEARCH_WITH_RETENTION));
+
+            assertThat(settings.has("index.mapping.total_fields.limit")).isEqualTo(type != Type.EVENT_METRICS && type != Type.DECISIONS);
+        }
     }
 
     @Nested
@@ -160,20 +171,14 @@ class DataStreamIndexTemplateTest {
             );
         }
 
-        @Test
-        void should_attach_the_ism_policy_of_each_type_on_opensearch() {
-            assertThat(policies(withEveryPolicy(), OPENSEARCH, "index.plugins.index_state_management.policy_id")).containsExactly(
-                "policy-request",
-                "policy-monitor",
-                "policy-health",
-                "policy-log",
-                "policy-log",
-                "policy-request",
-                "policy-log",
-                "policy-request",
-                "policy-event-metrics",
-                "policy-decisions"
-            );
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("io.gravitee.apim.reporter.elasticsearch.mapping.DataStreamIndexTemplateTest#types")
+        void should_attach_no_policy_on_opensearch(Type type) {
+            // ISM ignores the policy_id index setting: an ISM policy reaches a data stream through its own ism_template.
+            JsonNode settings = template(type, withEveryPolicy(), OPENSEARCH).path("template").path("settings");
+
+            assertThat(settings.has("index.plugins.index_state_management.policy_id")).isFalse();
+            assertThat(settings.has("index.lifecycle.name")).isFalse();
         }
 
         @ParameterizedTest(name = "{0}")
@@ -182,15 +187,6 @@ class DataStreamIndexTemplateTest {
             JsonNode template = template(type, withEveryRetention(), ELASTICSEARCH_WITH_RETENTION);
 
             assertThat(template.path("template").path("lifecycle").path("data_retention").asText()).isEqualTo(expectedRetention(type));
-        }
-
-        @ParameterizedTest(name = "{0}")
-        @MethodSource("io.gravitee.apim.reporter.elasticsearch.mapping.DataStreamIndexTemplateTest#types")
-        void should_leave_the_retention_to_the_policy_when_both_are_set(Type type) {
-            var configuration = withEveryPolicy();
-            copyRetentions(withEveryRetention(), configuration);
-
-            assertThat(template(type, configuration, ELASTICSEARCH_WITH_RETENTION).path("template").has("lifecycle")).isFalse();
         }
 
         @ParameterizedTest(name = "{0}")
@@ -244,15 +240,6 @@ class DataStreamIndexTemplateTest {
         configuration.setDataRetentionEventMetrics("90d");
         configuration.setDataRetentionDecisions("60d");
         return configuration;
-    }
-
-    private static void copyRetentions(ReporterConfiguration from, ReporterConfiguration to) {
-        to.setDataRetentionRequest(from.getDataRetentionRequest());
-        to.setDataRetentionHealth(from.getDataRetentionHealth());
-        to.setDataRetentionMonitor(from.getDataRetentionMonitor());
-        to.setDataRetentionLog(from.getDataRetentionLog());
-        to.setDataRetentionEventMetrics(from.getDataRetentionEventMetrics());
-        to.setDataRetentionDecisions(from.getDataRetentionDecisions());
     }
 
     private static JsonNode settings(JsonNode template) {
