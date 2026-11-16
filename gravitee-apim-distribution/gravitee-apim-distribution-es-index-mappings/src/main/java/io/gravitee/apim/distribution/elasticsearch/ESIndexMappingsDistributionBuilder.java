@@ -21,6 +21,8 @@ import io.gravitee.apim.reporter.elasticsearch.ElasticsearchReporter;
 import io.gravitee.apim.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.mapping.AbstractIndexPreparer;
+import io.gravitee.apim.reporter.elasticsearch.mapping.datastream.DataStreamIndexPreparer;
+import io.gravitee.apim.reporter.elasticsearch.mapping.datastream.DataStreamLifecycle;
 import io.gravitee.common.templating.FreeMarkerComponent;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.utils.Type;
@@ -97,6 +99,16 @@ public class ESIndexMappingsDistributionBuilder {
         PipelineConfiguration pipelineConfiguration,
         FreeMarkerComponent freeMarkerComponent
     ) throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
+        if (clazz == DataStreamIndexPreparer.class) {
+            // The default configuration sets no lifecycle policy nor retention, so the templates carry no lifecycle.
+            return new DataStreamIndexPreparer(
+                configuration,
+                pipelineConfiguration,
+                freeMarkerComponent,
+                null,
+                DataStreamLifecycle.elasticsearch(configuration.getIndexLifecyclePolicyPropertyName(), false)
+            );
+        }
         Constructor<? extends AbstractIndexPreparer> constructor = clazz.getConstructor(
             ReporterConfiguration.class,
             PipelineConfiguration.class,
