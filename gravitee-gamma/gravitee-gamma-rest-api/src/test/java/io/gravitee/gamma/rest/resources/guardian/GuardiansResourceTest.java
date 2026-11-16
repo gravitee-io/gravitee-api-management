@@ -682,6 +682,22 @@ class GuardiansResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_return_400_naming_the_step_and_the_schema_error_when_the_stored_draft_no_longer_conforms() {
+            policyConfigurations.givenRefuses(GuardianFixtures.GUARDRAIL_POLICY, "$.rules: is missing but it is required");
+
+            var response = deploy(Map.of());
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(response.getStatus()).as("deployment response").isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+                softly
+                    .assertThat(response.readEntity(JsonNode.class).at("/message").asText())
+                    .as("the step and the schema error, readable")
+                    .contains("Detect credentials", "$.rules: is missing but it is required");
+                softly.assertThat(guardianPublications.publications()).as("no revision is published").isZero();
+            });
+        }
+
+        @Test
         void should_return_404_for_an_unknown_guardian() {
             var response = rootTarget("/unknown/_deploy").request().post(Entity.json(Map.of()));
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);

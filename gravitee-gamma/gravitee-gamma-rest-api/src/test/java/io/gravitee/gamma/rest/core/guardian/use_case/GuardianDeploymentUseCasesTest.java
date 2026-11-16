@@ -37,10 +37,12 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.GuardianBuilder;
+import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyConfigurationValidator;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
@@ -82,7 +84,11 @@ class GuardianDeploymentUseCasesTest {
     private final GuardianAuditFixture audits = new GuardianAuditFixture();
     private final GuardianDeploymentDomainService deploymentService = deployments.service(repository);
     private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(repository, deploymentService, audits.service);
-    private final DeployGuardianUseCase deploy = aDeployGuardianUseCase(repository, deploymentService, audits.service);
+
+    /** The schema answers, which a test installs to make a stored draft non-conforming. */
+    private final InMemoryPolicyConfigurationValidator configurations = new InMemoryPolicyConfigurationValidator();
+
+    private final DeployGuardianUseCase deploy = aDeployGuardianUseCase(repository, deploymentService, audits.service, configurations);
     private final UpdateGuardianUseCase update = new UpdateGuardianUseCase(
         repository,
         aGuardianValidator(),
@@ -164,7 +170,7 @@ class GuardianDeploymentUseCasesTest {
     }
 
     @Test
-    void should_publish_a_persisted_draft_without_revalidating_its_configuration() {
+    void should_refuse_to_deploy_a_persisted_draft_the_installed_policies_no_longer_accept() {
         repository.reset();
         repository.givenGuardian(
             aGuardian(definition ->
@@ -181,11 +187,55 @@ class GuardianDeploymentUseCasesTest {
             ).build()
         );
 
+        assertSoftly(softly -> {
+            softly
+                .assertThatThrownBy(() -> deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, "Reviewed")))
+                .as("a draft stored before the check, or saved against policies that have changed since")
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContainingAll("MCP guardrail", "MCP", "llm-proxy");
+            softly.assertThat(deployments.publications()).as("nothing published").isZero();
+            softly.assertThat(audits.storage()).as("no deployment audit").isEmpty();
+        });
+    }
+
+    @Test
+    void should_refuse_to_deploy_a_draft_whose_step_configuration_breaks_the_policy_schema() {
+        configurations.givenRefuses(GUARDRAIL_POLICY, "$.rules: is missing but it is required");
+
+        assertSoftly(softly -> {
+            softly
+                .assertThatThrownBy(() -> deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, "Reviewed")))
+                .as("the revision the gateways would refuse to start is refused here instead")
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContainingAll("Detect credentials", "$.rules: is missing but it is required");
+            softly.assertThat(deployments.publications()).as("nothing published").isZero();
+            softly.assertThat(audits.storage()).as("no deployment audit").isEmpty();
+        });
+    }
+
+    @Test
+    void should_deploy_a_draft_the_installed_policies_accept_without_rewriting_it() {
+        repository.reset();
+        var policy = aPolicy();
+        policy.setConfiguration("{\"rules\":[{\"policy\":\"ban-topics\"}]}");
+        repository.givenGuardian(aGuardian(definition -> definition.policies(List.of(policy))).build());
+        // the validator would correct that configuration on a write path. A deployment that rewrote it
+        // would publish a revision the stored draft no longer matches, and the Guardian would come back
+        // PENDING from its own deployment.
+        configurations.givenAccepts(
+            "{\"rules\":[{\"policy\":\"ban-topics\"}]}",
+            "{\"rules\":[{\"policy\":\"ban-topics\"}],\"mode\":\"BLOCK\"}"
+        );
+
         var result = deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, "Reviewed"));
 
         assertSoftly(softly -> {
             softly.assertThat(deployments.publications()).as("persisted draft is published").isEqualTo(1);
             softly.assertThat(result.guardian().getLifecycleState()).as("published draft state").isEqualTo(GuardianLifecycleState.DEPLOYED);
+            softly
+                .assertThat(policy.getConfiguration())
+                .as("the stored draft is published as it is stored")
+                .isEqualTo("{\"rules\":[{\"policy\":\"ban-topics\"}]}");
         });
     }
 
@@ -286,27 +336,47 @@ class GuardianDeploymentUseCasesTest {
                 sequence("a disabled step beside an enabled guardrail", definition ->
                     definition.policies(List.of(aDisabledPolicy(), aPolicy()))
                 )
-            ),
-            arguments(
-                sequence("a null step beside an enabled guardrail", definition -> definition.policies(Arrays.asList(null, aPolicy())))
             )
         );
     }
 
     /**
-     * The documented limit of the check: it asks whether a policy is a guardrail, nothing else. A guardrail whose
-     * plugin no longer declares the Guardian phase still deploys, and is only refused when the gateways start it.
+     * The guardrail rule reads past a hole in the sequence — a null step is nothing the gateways would
+     * run — but the revalidation of the draft does not: a definition carrying one is not a definition a
+     * gateway can read, and publishing it is the failure AIAM-1750 is about.
      */
     @Test
-    void should_deploy_a_guardian_whose_guardrail_no_longer_declares_the_guardian_phase() {
+    void should_refuse_to_deploy_a_draft_whose_sequence_carries_a_null_step() {
+        repository.reset();
+        repository.givenGuardian(aGuardian(definition -> definition.policies(Arrays.asList(null, aPolicy()))).build());
+
+        assertSoftly(softly -> {
+            softly
+                .assertThatThrownBy(() -> deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, "Reviewed")))
+                .as("refusal")
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("must not contain null steps");
+            softly.assertThat(deployments.publications()).as("nothing published").isZero();
+            softly.assertThat(audits.storage()).as("no deployment audit").isEmpty();
+        });
+    }
+
+    /**
+     * A deployment validates the draft again, so the state of the plugins at that moment decides: a guardrail whose
+     * plugin no longer declares the Guardian phase is refused here, where the gateways would refuse to start it.
+     */
+    @Test
+    void should_refuse_to_deploy_a_guardian_whose_guardrail_no_longer_declares_the_guardian_phase() {
         var downgraded = aGuardianValidatorAgainst(Map.of(GUARDRAIL_POLICY, new PolicyCapabilities(true, flows())));
         var deployAgainstRegistry = new DeployGuardianUseCase(repository, deploymentService, audits.service, downgraded);
 
-        var result = deployAgainstRegistry.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null));
-
         assertSoftly(softly -> {
-            softly.assertThat(result.guardian().getLifecycleState()).as("published draft").isEqualTo(GuardianLifecycleState.DEPLOYED);
-            softly.assertThat(deployments.publications()).as("published").isEqualTo(1);
+            softly
+                .assertThatThrownBy(() -> deployAgainstRegistry.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null)))
+                .as("refusal")
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("does not support Guardians");
+            softly.assertThat(deployments.publications()).as("nothing published").isZero();
         });
     }
 

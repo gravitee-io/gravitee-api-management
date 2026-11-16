@@ -329,16 +329,23 @@ paths:
                 definition is unchanged, and records an audit entry. The returned state compares the
                 current draft with the latest publication; it is not an acknowledgement from each gateway.
 
-                **A Guardian needs at least one enabled guardrail to be deployed**, and that is the one
-                thing a deployment checks against the installed plugins: a sequence that is empty, holds
-                only disabled steps, or names only policies that are not guardrails or are no longer
-                installed is refused with a 400, publishing nothing. A Guardian already deployed keeps the
-                revision the gateways run. A draft may still be saved empty while its sequence is being
-                designed.
+                **A Guardian needs at least one enabled guardrail to be deployed**: a sequence that is
+                empty, holds only disabled steps, or names only policies that are not guardrails or are no
+                longer installed is refused with a 400, publishing nothing. A Guardian already deployed
+                keeps the revision the gateways run. A draft may still be saved empty while its sequence is
+                being designed.
 
-                The rest of the stored draft is published as is: it was validated when created or updated,
-                so a guardrail that has become incompatible since, downgraded or scoped to another
-                protocol, is only refused when the gateways start the Guardian.
+                The stored draft is then validated again against the policies installed at that moment —
+                the checks a creation or an update runs **against the installed policies**, not the
+                payload-shape ones nor the name uniqueness, which a stored draft already satisfied. A
+                draft saved before one of those checks, or written against a policy uninstalled,
+                downgraded or re-scoped since, or carrying a configuration its policy's schema no longer
+                accepts, is refused with the same 400 rather than published into a revision no gateway can
+                start.
+
+                That pass never rewrites the draft: a deployment publishes the definition as it is stored,
+                so the step configurations it publishes are the ones a creation or an update already
+                sanitised.
             operationId: deployGuardian
             requestBody:
                 required: false

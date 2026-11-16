@@ -114,13 +114,28 @@ public final class GuardianFixtures {
         return provider;
     }
 
-    /** The deployment use case under the registry the tests install by default. */
+    /** The deployment use case under the registry and the schema answers the tests install by default. */
     public static DeployGuardianUseCase aDeployGuardianUseCase(
         GuardianRepository repository,
         GuardianDeploymentDomainService deployments,
         AuditDomainService audits
     ) {
         return new DeployGuardianUseCase(repository, deployments, audits, aGuardianValidator(repository));
+    }
+
+    /** The deployment use case under the registry the tests install by default, and these schema answers. */
+    public static DeployGuardianUseCase aDeployGuardianUseCase(
+        GuardianRepository repository,
+        GuardianDeploymentDomainService deployments,
+        AuditDomainService audits,
+        PolicyConfigurationValidator configurations
+    ) {
+        return new DeployGuardianUseCase(
+            repository,
+            deployments,
+            audits,
+            aGuardianValidator(repository, aPolicyPluginProvider(), configurations)
+        );
     }
 
     public static ValidateGuardianDomainService aGuardianValidator() {
