@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Copy of src/scripts/promote-to-view.sh from gravitee-io/gravitee-circleci-orb 6.13.0: APIM does not run the
+# Copy of src/scripts/promote-to-view.sh from gravitee-io/gravitee-circleci-orb 6.13.2: APIM does not run the
 # orb's publish job. Keep both in step.
 #
 # Promotes the release just deployed to a view of the Azure Artifacts feed. Customers are given read access to that
@@ -41,7 +41,7 @@ MAVEN_PROFILES="${MAVEN_PROFILES:-gio-artifactory-release,gio-release}"
 OUT="${OUT:-/tmp/promote-to-view}"
 FEED_MAVEN="${FEED_MAVEN:-https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee}"
 FEED_API="${FEED_API:-https://pkgs.dev.azure.com/graviteeio/packages/_apis/packaging/feeds/gravitee/maven}"
-EXEC_PLUGIN="org.codehaus.mojo:exec-maven-plugin:3.5.0"
+HELP_PLUGIN="org.apache.maven.plugins:maven-help-plugin:3.5.1"
 VERIFY_TIMEOUT="${VERIFY_TIMEOUT:-120}"
 BATCH_SIZE=100
 
@@ -52,6 +52,17 @@ maven_path() { # <groupId:artifactId:version> <extension>
   local g a v
   IFS=: read -r g a v <<< "$1"
   echo "${g//.//}/$a/$v/$a-$v.$2"
+}
+
+# Coordinates of every project of an effective POM, one reactor or a single module: each <project> has a
+# <modelVersion>, its <parent> does not.
+effective_pom_modules() { # <effective POM file>
+  yq -p xml -oy '.. | select(tag == "!!map" and has("modelVersion")) | .groupId + ":" + .artifactId + ":" + .version' "$1"
+}
+
+# The lines of stdin that are not groupId:artifactId:version.
+invalid_coordinates() {
+  grep -v -E '^[A-Za-z0-9_.-]+:[A-Za-z0-9_.-]+:[A-Za-z0-9_.+-]+$' || true
 }
 
 # Whether a repository may have its releases promoted, from its GitHub visibility. Prints the reason when it may not.
@@ -105,11 +116,14 @@ repository_visibility() {
     | jq -r '.visibility'
 }
 
-# Every module of the reactor, as groupId:artifactId:version, with the profiles the deploy used.
+# Every module of the reactor, as groupId:artifactId:version, with the profiles the deploy used. Read from the
+# effective POM, not from a goal run in each module: a module that configures that goal at plugin level would change
+# or silence its own line.
 reactor_modules() {
-  # shellcheck disable=SC2016 # the expressions are for Maven to interpolate, in each module
-  mvn -q -B -s "$SETTINGS" -P "$MAVEN_PROFILES" "$EXEC_PLUGIN:exec" \
-    -Dexec.executable=echo -Dexec.args='${project.groupId}:${project.artifactId}:${project.version}'
+  local pom
+  pom=$(mktemp)
+  mvn -q -B -s "$SETTINGS" -P "$MAVEN_PROFILES" "$HELP_PLUGIN:effective-pom" -Doutput="$pom" >&2
+  effective_pom_modules "$pom"
 }
 
 promote() { # <groupId:artifactId:version>...
@@ -158,6 +172,12 @@ main() {
   local modules
   modules=$(reactor_modules | sort -u)
   [ -n "$modules" ] || { echo "Maven listed no module." >&2; exit 1; }
+  local invalid
+  invalid=$(invalid_coordinates <<< "$modules")
+  if [ -n "$invalid" ]; then
+    printf 'Not groupId:artifactId:version, nothing promoted:\n%s\n' "$invalid" >&2
+    exit 1
+  fi
 
   local gav version pom zip decision
   local -a selected=()
