@@ -16,6 +16,8 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
+
 import { useCredentialsPaged } from './useCredentials';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../../shared/utils/paginationConstants';
 import type { CredentialsPagedResponse } from '../types/credential';
@@ -50,13 +52,15 @@ function withChanges(current: URLSearchParams, changes: Partial<Record<ListParam
 export function useCredentialList() {
     const [searchParams, setSearchParams] = useSearchParams();
     const state = readListState(searchParams);
+    const envId = useEnvironment()?.id;
     const query = useCredentialsPaged({ query: state.q.trim(), page: state.page, perPage: state.size });
 
     // Keeps the last page on screen under the error, and the toolbar with it, while a search or a retry fails.
-    const [lastLoaded, setLastLoaded] = useState<CredentialsPagedResponse>();
+    // Only for the environment it came from: another environment's rows would carry actions on the wrong one.
+    const [lastLoaded, setLastLoaded] = useState<{ envId?: string; page: CredentialsPagedResponse }>();
     const [lastError, setLastError] = useState<Error | null>(null);
     const answered = query.isSuccess && !query.isPlaceholderData;
-    if (answered && query.data !== lastLoaded) setLastLoaded(query.data);
+    if (answered && query.data !== lastLoaded?.page) setLastLoaded({ envId, page: query.data });
     if (answered && lastError) setLastError(null);
     if (query.error && query.error !== lastError) setLastError(query.error);
 
@@ -78,7 +82,7 @@ export function useCredentialList() {
         pageSizeOptions: PAGE_SIZE_OPTIONS,
         hasCriteria: state.q.trim() !== '',
         settled: answered && !pastTheEnd,
-        result: query.data ?? lastLoaded,
+        result: query.data ?? (lastLoaded?.envId === envId ? lastLoaded?.page : undefined),
         error: query.error ?? (query.isFetching ? lastError : null),
         isFetching: query.isFetching || pastTheEnd,
         refetch: query.refetch,
