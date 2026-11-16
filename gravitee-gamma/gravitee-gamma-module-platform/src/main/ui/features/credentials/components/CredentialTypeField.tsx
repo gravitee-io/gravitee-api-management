@@ -19,7 +19,6 @@ import type { ReactNode } from 'react';
 import { CREDENTIAL_STRATEGIES, type CredentialStrategy } from '../types/credential';
 import { credentialStrategyLabel, isKnownCredentialStrategy } from '../utils/credentialStrategies';
 
-/** The type as tabs; `children` are the fields of the selected type. */
 export function CredentialTypeField({
     value,
     onChange,

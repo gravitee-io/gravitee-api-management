@@ -15,11 +15,7 @@
  */
 import { ApimApiError } from '../../../shared/api/apimClient';
 
-/**
- * Only a refusal the server explains in its JSON body is shown. A server fault carries operator detail, such as a
- * configuration key, and a proxy page or a network error carries text the user cannot act on.
- */
-export function credentialFailureMessage(error: unknown, fallback: string): string {
+export function userSafeFailureMessage(error: unknown, fallback: string): string {
     if (error instanceof ApimApiError && error.status < 500 && serverMessage(error.body)) {
         return error.message;
     }

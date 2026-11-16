@@ -23,6 +23,8 @@ import { credentialKeys } from '../utils/queryKeys';
 
 type Refresh<TData> = (queryClient: QueryClient, envId: string, data: TData) => Promise<void>;
 
+const NON_IDEMPOTENT_WRITE = { retry: false } as const;
+
 const refreshAll: Refresh<unknown> = queryClient => queryClient.invalidateQueries({ queryKey: credentialKeys.all });
 
 function useCredentialMutation<TData, TResult>(
@@ -39,8 +41,7 @@ function useCredentialMutation<TData, TResult>(
             }
             return mutationFn(env.id, data);
         },
-        // A 5xx can come after the write landed: a repeat would create a duplicate or rotate twice.
-        retry: false,
+        ...NON_IDEMPOTENT_WRITE,
         onSuccess: (_result, data) => refreshAfterSuccess(queryClient, env?.id ?? '', data),
         onError: () => refreshAll(queryClient, env?.id ?? '', undefined),
     });
@@ -63,7 +64,6 @@ export function useRotateCredential() {
 }
 
 export function useDeleteCredential() {
-    // Reloading the deleted credential would only fetch a 404 while the page navigates away.
     return useCredentialMutation<string, void>(deleteCredential, (queryClient, envId, id) => {
         queryClient.removeQueries({ queryKey: credentialKeys.detail(envId, id) });
         queryClient.removeQueries({ queryKey: credentialKeys.consumers(envId, id) });

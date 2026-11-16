@@ -22,7 +22,6 @@ import type {
     UpdateCredentialPayload,
 } from '../types/credential';
 
-/** `value`: Gravitee stores what the user types. `reference`: the credential points at secrets that already exist. */
 export type CredentialSecretMode = 'value' | 'reference';
 
 export function isCredentialSecretMode(value: string): value is CredentialSecretMode {
@@ -33,18 +32,15 @@ export interface CredentialDraft {
     readonly name: string;
     readonly serviceId: string;
     readonly strategy: CredentialStrategy;
-    /** `YYYY-MM-DD`, or empty for no expiry. */
     readonly expiresAt: string;
     readonly mode: CredentialSecretMode;
     readonly settings: Readonly<Record<string, string>>;
-    /** A value or a reference per secret field, depending on `mode`. */
     readonly secrets: Readonly<Record<string, string>>;
 }
 
 export type CredentialDraftErrors = Partial<Record<string, string>>;
 
 const MAX_NAME_LENGTH = 256;
-// The backend `CredentialStrategy` limits, so a bad setting fails before the request.
 const MAX_SETTING_LENGTH = 2048;
 const MAX_SCOPES = 50;
 const HEADER_NAME = /^[!#$%&'*+.^_`|~0-9A-Za-z-]{1,256}$/;
@@ -135,7 +131,6 @@ export function validateCredentialDraft(
     return errors;
 }
 
-/** Drops the error of each field the edit changed, so a fixed field stops showing its error before the next submit. */
 export function withoutEditedFieldErrors(
     errors: CredentialDraftErrors,
     previous: CredentialDraft,
@@ -155,42 +150,38 @@ export function withoutEditedFieldErrors(
 }
 
 export function toCreateCredentialPayload(draft: CredentialDraft): CreateCredentialPayload {
-    const secrets = filledSecrets(draft, draft.mode === 'reference');
     return {
         name: draft.name.trim(),
         strategy: draft.strategy,
         ...optionalText('serviceId', draft.serviceId),
-        ...(draft.expiresAt ? { expiresAt: fromDateInput(draft.expiresAt) } : {}),
+        ...(draft.expiresAt ? { expiresAt: endOfDayIso(draft.expiresAt) } : {}),
         configuration: toConfiguration(draft),
-        ...(draft.mode === 'reference' ? { references: secrets } : { values: secrets }),
+        ...(draft.mode === 'reference' ? { references: filledReferences(draft) } : { values: filledValues(draft) }),
     };
 }
 
-/** The PUT body. A managed credential leaves its references out to keep them; its values change through rotation only. */
 export function toUpdateCredentialPayload(draft: CredentialDraft, credential: Credential): UpdateCredentialPayload {
     return {
         name: draft.name.trim(),
         ...optionalText('serviceId', draft.serviceId),
         ...updatedExpiry(draft, credential),
         configuration: toConfiguration(draft),
-        ...(draft.mode === 'reference' ? { references: filledSecrets(draft, true) } : {}),
+        ...(draft.mode === 'reference' ? { references: filledReferences(draft) } : {}),
     };
 }
 
-/** Keeps the stored instant when the day is unchanged, so a save does not move an expiry set elsewhere. */
 function updatedExpiry(draft: CredentialDraft, credential: Credential): { expiresAt?: string } {
     if (draft.expiresAt === isoToDateInput(credential.expiresAt)) {
         return optionalText('expiresAt', credential.expiresAt ?? '');
     }
-    return draft.expiresAt ? { expiresAt: fromDateInput(draft.expiresAt) } : {};
+    return draft.expiresAt ? { expiresAt: endOfDayIso(draft.expiresAt) } : {};
 }
 
-/** The values typed into a managed credential, or `undefined` when there is nothing to rotate. */
 export function rotationValues(draft: CredentialDraft): Record<string, string> | undefined {
     if (draft.mode !== 'value') {
         return undefined;
     }
-    const values = filledSecrets(draft, false);
+    const values = filledValues(draft);
     return Object.keys(values).length > 0 ? values : undefined;
 }
 
@@ -206,17 +197,26 @@ function toConfiguration(draft: CredentialDraft): CredentialSettings {
     return configuration;
 }
 
-function filledSecrets(draft: CredentialDraft, trim: boolean): Record<string, string> {
-    const secrets: Record<string, string> = {};
+function filledReferences(draft: CredentialDraft): Record<string, string> {
+    const references: Record<string, string> = {};
     for (const field of CREDENTIAL_STRATEGY_DEFINITIONS[draft.strategy].secrets) {
-        const raw = draft.secrets[field.key] ?? '';
-        // A typed value is sent as is: leading or trailing spaces can be part of a secret.
-        const value = trim ? raw.trim() : raw;
-        if (value.trim()) {
-            secrets[field.key] = value;
+        const reference = (draft.secrets[field.key] ?? '').trim();
+        if (reference) {
+            references[field.key] = reference;
         }
     }
-    return secrets;
+    return references;
+}
+
+function filledValues(draft: CredentialDraft): Record<string, string> {
+    const values: Record<string, string> = {};
+    for (const field of CREDENTIAL_STRATEGY_DEFINITIONS[draft.strategy].secrets) {
+        const valueWithItsSpaces = draft.secrets[field.key] ?? '';
+        if (valueWithItsSpaces.trim()) {
+            values[field.key] = valueWithItsSpaces;
+        }
+    }
+    return values;
 }
 
 function optionalText<K extends string>(key: K, value: string): Partial<Record<K, string>> {
@@ -235,7 +235,6 @@ function listItems(value: string): string[] {
         .filter(Boolean);
 }
 
-// The gateway sends the client secret to the token URL, so the server takes https only.
 function tokenUrlProblem(value: string): string | undefined {
     let url: URL;
     try {
@@ -252,7 +251,6 @@ function tokenUrlProblem(value: string): string | undefined {
     return undefined;
 }
 
-/** The local `YYYY-MM-DD` of a date, as the draft holds it. */
 export function toDateInput(date: Date): string {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -263,7 +261,6 @@ function isoToDateInput(isoDate: string | undefined): string {
     return isoDate ? toDateInput(new Date(isoDate)) : '';
 }
 
-// The credential stays valid through the chosen day; the backend refuses an expiry that is not in the future.
-function fromDateInput(date: string): string {
+function endOfDayIso(date: string): string {
     return new Date(`${date}T23:59:59.999`).toISOString();
 }

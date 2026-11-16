@@ -48,21 +48,23 @@ function withChanges(current: URLSearchParams, changes: Partial<Record<ListParam
     return next;
 }
 
-/** The credentials list, with its search and paging kept in the URL so that a reload or a shared link restores them. */
-export function useCredentialList() {
-    const [searchParams, setSearchParams] = useSearchParams();
-    const state = readListState(searchParams);
-    const envId = useEnvironment()?.id;
-    const query = useCredentialsPaged({ query: state.q.trim(), page: state.page, perPage: state.size });
-
-    // Keeps the last page on screen under the error, and the toolbar with it, while a search or a retry fails.
-    // Only for the environment it came from: another environment's rows would carry actions on the wrong one.
+function useLastAnswer(query: ReturnType<typeof useCredentialsPaged>, envId: string | undefined) {
     const [lastLoaded, setLastLoaded] = useState<{ envId?: string; page: CredentialsPagedResponse }>();
     const [lastError, setLastError] = useState<Error | null>(null);
     const answered = query.isSuccess && !query.isPlaceholderData;
     if (answered && query.data !== lastLoaded?.page) setLastLoaded({ envId, page: query.data });
     if (answered && lastError) setLastError(null);
     if (query.error && query.error !== lastError) setLastError(query.error);
+    return { answered, pageOfThisEnvironment: lastLoaded?.envId === envId ? lastLoaded?.page : undefined, lastError };
+}
+
+export function useCredentialList() {
+    const [searchParams, setSearchParams] = useSearchParams();
+    const state = readListState(searchParams);
+    const envId = useEnvironment()?.id;
+    const query = useCredentialsPaged({ query: state.q.trim(), page: state.page, perPage: state.size });
+
+    const { answered, pageOfThisEnvironment, lastError } = useLastAnswer(query, envId);
 
     const lastPage = Math.max(1, Math.ceil((query.data?.pagination.totalCount ?? 0) / state.size));
     const pastTheEnd = answered && state.page > lastPage;
@@ -82,7 +84,7 @@ export function useCredentialList() {
         pageSizeOptions: PAGE_SIZE_OPTIONS,
         hasCriteria: state.q.trim() !== '',
         settled: answered && !pastTheEnd,
-        result: query.data ?? (lastLoaded?.envId === envId ? lastLoaded?.page : undefined),
+        result: query.data ?? pageOfThisEnvironment,
         error: query.error ?? (query.isFetching ? lastError : null),
         isFetching: query.isFetching || pastTheEnd,
         refetch: query.refetch,

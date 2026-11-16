@@ -35,7 +35,7 @@ import {
     type CredentialDraft,
     type CredentialDraftErrors,
 } from '../utils/credentialDraft';
-import { credentialFailureMessage } from '../utils/credentialErrors';
+import { userSafeFailureMessage } from '../utils/credentialErrors';
 import { ENVIRONMENT_SECRET_CREATE_PERMISSION } from '../utils/credentialPermissions';
 
 type Step = 'details' | 'authentication';
@@ -82,7 +82,7 @@ export function NewCredentialPage() {
             notify.success('Credential created');
             navigate(`../${created.id}`);
         } catch (error) {
-            notify.error(credentialFailureMessage(error, 'The credential could not be created.'));
+            notify.error(userSafeFailureMessage(error, 'The credential could not be created.'));
         }
     }
 

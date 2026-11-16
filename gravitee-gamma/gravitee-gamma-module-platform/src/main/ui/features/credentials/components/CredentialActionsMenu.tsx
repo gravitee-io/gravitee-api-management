@@ -29,7 +29,6 @@ import { DeleteCredentialDialog } from './DeleteCredentialDialog';
 import { useCredentialActions } from '../hooks/useCredentialActions';
 import type { Credential } from '../types/credential';
 
-/** Called once a row's credential is deleted, to move the focus off the row that goes with it. */
 export const CredentialDeletedContext = createContext<() => void>(() => {});
 
 export function CredentialActionsMenu({ credential }: Readonly<{ credential: Credential }>) {

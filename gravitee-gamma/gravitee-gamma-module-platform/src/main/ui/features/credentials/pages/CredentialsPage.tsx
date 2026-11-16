@@ -33,6 +33,19 @@ function resultsAnnouncement(count: number): string {
     return `${count} ${count === 1 ? 'result' : 'results'}`;
 }
 
+function useFocusWhenItReplacesTheFocusedTable(shown: boolean) {
+    const ref = useRef<HTMLDivElement>(null);
+    const wasShown = useRef(shown);
+    useEffect(() => {
+        const focusLostWithTheTable = document.activeElement === document.body;
+        if (shown && !wasShown.current && focusLostWithTheTable) {
+            ref.current?.focus();
+        }
+        wasShown.current = shown;
+    }, [shown]);
+    return ref;
+}
+
 export function CredentialsPage() {
     const canCreate = useHasEnvironmentPermission([ENVIRONMENT_CREDENTIAL_CREATE_PERMISSION]);
     const list = useCredentialList();
@@ -52,15 +65,7 @@ export function CredentialsPage() {
     const announcement = settled && !isFirstUse ? resultsAnnouncement(totalCount) : '';
     const focusSearch = () => searchRef.current?.focus();
 
-    // Deleting the last credential swaps the table, and the search field that held the focus, for the empty state.
-    const emptyStateRef = useRef<HTMLDivElement>(null);
-    const wasFirstUse = useRef(isFirstUse);
-    useEffect(() => {
-        if (isFirstUse && !wasFirstUse.current && document.activeElement === document.body) {
-            emptyStateRef.current?.focus();
-        }
-        wasFirstUse.current = isFirstUse;
-    }, [isFirstUse]);
+    const emptyStateRef = useFocusWhenItReplacesTheFocusedTable(isFirstUse);
 
     if (isForbidden) {
         return null;

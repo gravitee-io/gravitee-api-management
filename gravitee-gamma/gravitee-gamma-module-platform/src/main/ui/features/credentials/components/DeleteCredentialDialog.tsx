@@ -20,7 +20,7 @@ import { notify } from '../../../shared/notify';
 import { useDeleteCredential } from '../hooks/useCredentialMutations';
 import { useCredentialConsumers } from '../hooks/useCredentials';
 import type { Credential } from '../types/credential';
-import { credentialFailureMessage } from '../utils/credentialErrors';
+import { userSafeFailureMessage } from '../utils/credentialErrors';
 
 interface DeleteCredentialDialogProps {
     readonly credential: Pick<Credential, 'id' | 'name'>;
@@ -34,6 +34,7 @@ export function DeleteCredentialDialog({ credential, open, onOpenChange, onDelet
     const { data: consumers, isError: consumersFailed, refetch } = useCredentialConsumers(credential.id, open);
     const deleteMutation = useDeleteCredential();
     const inUse = (consumers?.length ?? 0) > 0;
+    const consumersLoading = consumers === undefined && !consumersFailed;
 
     async function handleConfirm() {
         try {
@@ -44,7 +45,7 @@ export function DeleteCredentialDialog({ credential, open, onOpenChange, onDelet
             if (error instanceof ApimApiError && error.status === 409) {
                 void refetch();
             }
-            notify.error(credentialFailureMessage(error, 'The credential could not be deleted.'));
+            notify.error(userSafeFailureMessage(error, 'The credential could not be deleted.'));
         }
     }
 
@@ -62,8 +63,7 @@ export function DeleteCredentialDialog({ credential, open, onOpenChange, onDelet
             pendingLabel="Deleting…"
             destructive
             isPending={deleteMutation.isPending}
-            // When the consumers cannot load, the delete stays possible: the server refuses it while something uses the credential.
-            confirmDisabled={(consumers === undefined && !consumersFailed) || inUse}
+            confirmDisabled={consumersLoading || inUse}
             onConfirm={() => void handleConfirm()}
             onCloseAutoFocus={onCloseAutoFocus}
         >

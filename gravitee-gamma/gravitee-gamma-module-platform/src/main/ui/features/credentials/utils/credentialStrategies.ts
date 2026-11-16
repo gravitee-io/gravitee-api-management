@@ -20,7 +20,6 @@ export interface CredentialField {
     readonly label: string;
     readonly placeholder?: string;
     readonly optional?: boolean;
-    /** Typed as comma-separated text, sent as a list. */
     readonly list?: boolean;
 }
 
@@ -30,7 +29,6 @@ export interface CredentialStrategyDefinition {
     readonly secrets: readonly CredentialField[];
 }
 
-/** Mirrors the backend `CredentialStrategy`: its secret fields and the plain settings it accepts. */
 export const CREDENTIAL_STRATEGY_DEFINITIONS: Readonly<Record<CredentialStrategy, CredentialStrategyDefinition>> = {
     BEARER: {
         label: 'Bearer token',
@@ -69,7 +67,6 @@ export const CREDENTIAL_STRATEGY_DEFINITIONS: Readonly<Record<CredentialStrategy
     },
 };
 
-// The server can return a strategy this console was built before.
 export function isKnownCredentialStrategy(strategy: string): strategy is CredentialStrategy {
     return Object.hasOwn(CREDENTIAL_STRATEGY_DEFINITIONS, strategy);
 }

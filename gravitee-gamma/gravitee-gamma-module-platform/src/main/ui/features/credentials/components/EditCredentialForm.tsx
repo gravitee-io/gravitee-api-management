@@ -36,7 +36,7 @@ import {
     type CredentialDraft,
     type CredentialDraftErrors,
 } from '../utils/credentialDraft';
-import { credentialFailureMessage } from '../utils/credentialErrors';
+import { userSafeFailureMessage } from '../utils/credentialErrors';
 import { credentialOwnerLabel } from '../utils/credentialOwner';
 import { ENVIRONMENT_SECRET_UPDATE_PERMISSION } from '../utils/credentialPermissions';
 import { CREDENTIAL_ROTATION_WINDOW_NOTE } from '../utils/credentialRotation';
@@ -71,7 +71,7 @@ export function EditCredentialForm({ credential }: Readonly<{ credential: Creden
         try {
             await updateMutation.mutateAsync({ id: credential.id, payload: toUpdateCredentialPayload(draft, credential) });
         } catch (error) {
-            notify.error(credentialFailureMessage(error, 'The credential could not be updated.'));
+            notify.error(userSafeFailureMessage(error, 'The credential could not be updated.'));
             return;
         }
         const values = canUpdateSecrets ? rotationValues(draft) : undefined;
@@ -79,7 +79,7 @@ export function EditCredentialForm({ credential }: Readonly<{ credential: Creden
             try {
                 await rotateMutation.mutateAsync({ id: credential.id, payload: { values } });
             } catch (error) {
-                notify.error(credentialFailureMessage(error, 'The details were saved, but the secret could not be replaced.'));
+                notify.error(userSafeFailureMessage(error, 'The details were saved, but the secret could not be replaced.'));
                 return;
             }
         }

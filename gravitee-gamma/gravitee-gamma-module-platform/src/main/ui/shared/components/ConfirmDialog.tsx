@@ -51,7 +51,6 @@ export interface ConfirmDialogProps {
     contentClassName?: string;
     children?: ReactNode;
     onConfirm: () => void;
-    /** Where the focus goes once the dialog closes. Defaults to the element that opened it. */
     onCloseAutoFocus?: (event: Event) => void;
 }
 

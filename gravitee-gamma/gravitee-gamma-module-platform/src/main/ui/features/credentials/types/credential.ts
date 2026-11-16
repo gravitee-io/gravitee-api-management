@@ -20,18 +20,15 @@ export type CredentialSettings = Record<string, string | string[]>;
 
 export interface CredentialSecretReference {
     reference: string;
-    /** Gravitee stores the value behind the reference. */
     managed: boolean;
 }
 
-/** Gamma `Credential`. No response carries a secret value. */
 export interface Credential {
     id: string;
     name: string;
     strategy: CredentialStrategy;
     serviceId?: string;
     ownerId?: string;
-    /** On reads only, while the owner is still a user. */
     ownerName?: string;
     expiresAt?: string;
     configuration?: CredentialSettings;
@@ -40,7 +37,6 @@ export interface Credential {
     createdAt?: string;
     updatedAt?: string;
     rotatedAt?: string;
-    /** Whether the caller may change or delete it: its owner, or an admin of the organization or this environment. */
     manageable?: boolean;
 }
 

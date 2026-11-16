@@ -15,11 +15,9 @@
  */
 import type { Credential } from '../types/credential';
 
-/** @returns undefined for a credential without an owner */
 export function credentialOwnerLabel(credential: Pick<Credential, 'ownerId' | 'ownerName'>): string | undefined {
     if (!credential.ownerId) {
         return undefined;
     }
-    // The server leaves the name out once the owner is no longer a user; the id means nothing to a reader.
     return credential.ownerName ?? 'Unknown user';
 }

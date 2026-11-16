@@ -16,7 +16,6 @@
 import { Alert, AlertAction, AlertDescription, AlertTitle, Button } from '@gravitee/graphene-core';
 import { CircleXIcon } from '@gravitee/graphene-core/icons';
 
-/** The alert of a credential page whose credential failed to load. */
 export function CredentialLoadError({
     error,
     retrying,

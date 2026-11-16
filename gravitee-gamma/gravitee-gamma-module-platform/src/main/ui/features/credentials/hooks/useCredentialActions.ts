@@ -24,10 +24,6 @@ import { isKnownCredentialStrategy } from '../utils/credentialStrategies';
 
 type CredentialCheck = (credential: Pick<Credential, 'strategy' | 'manageable' | 'managed'>) => boolean;
 
-/**
- * The server says whether the caller may manage a credential, because only it knows whether they administer this
- * environment. Deleting one Gravitee stores also deletes its secrets.
- */
 export function useCredentialActions(): { canEdit: CredentialCheck; canDelete: CredentialCheck } {
     const canUpdateCredentials = useHasEnvironmentPermission([ENVIRONMENT_CREDENTIAL_UPDATE_PERMISSION]);
     const canDeleteCredentials = useHasEnvironmentPermission([ENVIRONMENT_CREDENTIAL_DELETE_PERMISSION]);

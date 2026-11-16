@@ -38,12 +38,9 @@ interface CredentialAuthenticationFieldsProps {
     readonly draft: CredentialDraft;
     readonly errors: CredentialDraftErrors;
     readonly onChange: (draft: CredentialDraft) => void;
-    /** Shows the choice between a stored value and a reference. Only a new credential can choose. */
     readonly showModeChoice?: boolean;
     readonly canStoreValues?: boolean;
-    /** A managed credential being edited: blank values keep the stored ones. */
     readonly valuesOptional?: boolean;
-    /** Why the secret inputs are read only, when they are. */
     readonly secretsDisabledReason?: string;
 }
 

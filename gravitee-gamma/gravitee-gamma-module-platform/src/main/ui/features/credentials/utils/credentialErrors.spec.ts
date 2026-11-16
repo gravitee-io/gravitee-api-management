@@ -13,33 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { credentialFailureMessage } from './credentialErrors';
+import { userSafeFailureMessage } from './credentialErrors';
 import { ApimApiError } from '../../../shared/api/apimClient';
 
-describe('credentialFailureMessage', () => {
+describe('userSafeFailureMessage', () => {
     it('shows the reason the server gives for a refused request', () => {
         const error = new ApimApiError(400, 'Name is already used.', { message: 'Name is already used.' });
 
-        expect(credentialFailureMessage(error, 'Could not save.')).toBe('Name is already used.');
+        expect(userSafeFailureMessage(error, 'Could not save.')).toBe('Name is already used.');
     });
 
     it('hides a refusal whose body is not the JSON the server sends', () => {
         const error = new ApimApiError(403, '<html><body>Forbidden by proxy</body></html>');
 
-        expect(credentialFailureMessage(error, 'Could not save.')).toBe('Could not save.');
+        expect(userSafeFailureMessage(error, 'Could not save.')).toBe('Could not save.');
     });
 
     it('hides the detail of a failure that never reached the server', () => {
-        expect(credentialFailureMessage(new TypeError('Failed to fetch'), 'Could not save.')).toBe('Could not save.');
+        expect(userSafeFailureMessage(new TypeError('Failed to fetch'), 'Could not save.')).toBe('Could not save.');
     });
 
     it.each([500, 503])('hides the server detail of a %s behind the fallback', status => {
         const error = new ApimApiError(status, 'Secret values cannot be stored or read: api.secrets.encryption.key is not set.');
 
-        expect(credentialFailureMessage(error, 'Could not save.')).toBe('Could not save.');
+        expect(userSafeFailureMessage(error, 'Could not save.')).toBe('Could not save.');
     });
 
     it('falls back when the failure has no message', () => {
-        expect(credentialFailureMessage(undefined, 'Could not save.')).toBe('Could not save.');
+        expect(userSafeFailureMessage(undefined, 'Could not save.')).toBe('Could not save.');
     });
 });

@@ -21,8 +21,6 @@ const TYPE_LABELS: Readonly<Record<string, string>> = {
     AI_WORKSPACE: 'AI workspace',
 };
 
-// Console paths of the consumer pages in other modules, keyed by `<module>:<type>`. A consumer
-// without an entry shows as plain text.
 const CONSUMER_PATHS: Readonly<Record<string, (id: string) => string>> = {
     'aim:LLM_PROXY': id => `aim/llm-proxy/${id}`,
     'aim:AI_WORKSPACE': id => `aim/ai-workspaces/${id}`,
