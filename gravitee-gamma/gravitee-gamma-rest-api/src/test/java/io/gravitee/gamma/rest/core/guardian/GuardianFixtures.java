@@ -20,9 +20,11 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
+import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyConfigurationValidator;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.DeclaredFlows;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType;
+import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyConfigurationValidator;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
@@ -39,6 +41,7 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -125,16 +128,25 @@ public final class GuardianFixtures {
     }
 
     public static ValidateGuardianDomainService aGuardianValidator(GuardianRepository repository) {
-        return new ValidateGuardianDomainService(repository, aPolicyPluginProvider(), new JacksonJsonDeserializer());
+        return aGuardianValidator(repository, aPolicyPluginProvider());
+    }
+
+    public static ValidateGuardianDomainService aGuardianValidator(GuardianRepository repository, PolicyPluginProvider policies) {
+        return aGuardianValidator(repository, policies, new InMemoryPolicyConfigurationValidator());
+    }
+
+    /** Validates against the registry and the schema answers a test installed itself. */
+    public static ValidateGuardianDomainService aGuardianValidator(
+        GuardianRepository repository,
+        PolicyPluginProvider policies,
+        PolicyConfigurationValidator configurations
+    ) {
+        return new ValidateGuardianDomainService(repository, policies, configurations, new JacksonJsonDeserializer());
     }
 
     /** A validator that sees exactly these installed policies. */
     public static ValidateGuardianDomainService aGuardianValidatorAgainst(Map<String, PolicyCapabilities> installed) {
-        return new ValidateGuardianDomainService(
-            new InMemoryGuardianRepository(),
-            aPolicyPluginProvider(() -> installed),
-            new JacksonJsonDeserializer()
-        );
+        return aGuardianValidator(new InMemoryGuardianRepository(), aPolicyPluginProvider(() -> installed));
     }
 
     public static Step aPolicy() {

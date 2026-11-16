@@ -35,6 +35,7 @@ import io.gravitee.apim.core.generic_event.domain_service.GenericEventPublicatio
 import io.gravitee.apim.core.generic_event.domain_service.GenericEventWriterDomainService;
 import io.gravitee.apim.core.json.JsonDeserializer;
 import io.gravitee.apim.core.json.JsonSerializer;
+import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
@@ -58,6 +59,9 @@ class GammaGuardiansConfigurationTest {
             parent.registerBean(GenericEventWriterDomainService.class, () -> writer);
             parent.registerBean(AuditDomainService.class, () -> mock(AuditDomainService.class));
             parent.registerBean(PolicyPluginProvider.class, () -> mock(PolicyPluginProvider.class));
+            // the shared service the API flows validate their own steps with, owned by the rest-api
+            // context: the Guardian validator reaches it through a port of its own
+            parent.registerBean(PolicyValidationDomainService.class, () -> mock(PolicyValidationDomainService.class));
             parent.registerBean(EventLatestQueryService.class, EventLatestQueryServiceInMemory::new);
             parent.registerBean(EventQueryService.class, EventQueryServiceInMemory::new);
             parent.registerBean(UserCrudService.class, UserCrudServiceInMemory::new);

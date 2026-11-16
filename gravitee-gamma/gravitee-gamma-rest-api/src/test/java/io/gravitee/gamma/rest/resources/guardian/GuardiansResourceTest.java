@@ -34,6 +34,7 @@ import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyConfigurationValidator;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
 import io.gravitee.gamma.rest.core.guardian.GuardianFixtures;
@@ -125,6 +126,9 @@ class GuardiansResourceTest extends AbstractResourceTest {
     private GuardianAuditFixture withdrawalAudits;
 
     @Inject
+    private InMemoryPolicyConfigurationValidator policyConfigurations;
+
+    @Inject
     private LicenseManager licenseManager;
 
     @Override
@@ -139,6 +143,8 @@ class GuardiansResourceTest extends AbstractResourceTest {
         env.setOrganizationId(ORGANIZATION);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(env);
         givenGuardiansLicensed(true);
+        // a bean of the context, so a schema answer installed by one test would otherwise reach the next
+        policyConfigurations.reset();
     }
 
     private void givenGuardiansLicensed(boolean licensed) {
@@ -363,6 +369,21 @@ class GuardiansResourceTest extends AbstractResourceTest {
         @Test
         void should_refuse_an_api_type_other_than_llm_proxy_with_400() {
             assertThat(post(payloadWith("apiTypes", List.of("mcp-proxy"))).getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_refuse_a_step_configuration_the_policy_schema_rejects_with_400_naming_the_step() {
+            policyConfigurations.givenRefuses(GuardianFixtures.GUARDRAIL_POLICY, "$.rules: is missing but it is required");
+
+            var response = post(PAYLOAD);
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(response.getStatus()).as("creation response").isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+                softly
+                    .assertThat(response.readEntity(JsonNode.class).at("/message").asText())
+                    .as("the step and the schema error, readable")
+                    .contains("Detect credentials", "$.rules: is missing but it is required");
+            });
         }
 
         @Test
@@ -1077,6 +1098,11 @@ class GuardiansResourceTest extends AbstractResourceTest {
         @Bean
         PolicyPluginProvider policyPluginProvider() {
             return GuardianFixtures.aPolicyPluginProvider();
+        }
+
+        @Bean
+        InMemoryPolicyConfigurationValidator policyConfigurationValidator() {
+            return new InMemoryPolicyConfigurationValidator();
         }
 
         @Bean

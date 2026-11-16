@@ -25,7 +25,9 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyConfigurationCheck;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType;
+import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyConfigurationValidator;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianWithoutEnabledGuardrailException;
@@ -38,7 +40,9 @@ import jakarta.validation.Validation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -60,9 +64,10 @@ import lombok.RequiredArgsConstructor;
  * needs a phase.
  *
  * <p><strong>The steps</strong> — every enabled step, guardrail or not, must reference an installed
- * policy whose plugin declares the Guardian phase in its {@code guardian} flow. A guardrail must also
- * support the Guardian API types, in its plugin metadata and in any explicit scope protocol: the
- * {@code guardian} flow says where it runs, its API type flows only which API types it applies to.
+ * policy whose plugin declares the Guardian phase in its {@code guardian} flow, and carry a
+ * configuration that policy's schema accepts. A guardrail must also support the Guardian API types, in
+ * its plugin metadata and in any explicit scope protocol: the {@code guardian} flow says where it
+ * runs, its API type flows only which API types it applies to.
  *
  * <p>These rules apply to creation and to update, a {@code PUT} replacing the whole definition. A
  * deployment publishes the stored draft as is, apart from the one rule it adds on its own: the
@@ -82,8 +87,15 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
     private static final jakarta.validation.Validator BEAN_VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
     private static final ApiType SUPPORTED_API_TYPE = ApiType.LLM_PROXY;
 
+    /** What a step carrying no configuration is judged as, so a schema requiring a property refuses it. */
+    private static final String EMPTY_CONFIGURATION = "{}";
+
+    /** The deployment path: it reads the stored draft and publishes it, so it writes nothing back. */
+    private static final BiConsumer<Step, String> KEEP_STORED_CONFIGURATION = (step, accepted) -> {};
+
     private final GuardianRepository guardianRepository;
     private final PolicyPluginProvider policyPluginProvider;
+    private final PolicyConfigurationValidator policyConfigurationValidator;
     private final JsonDeserializer jsonDeserializer;
 
     public record Input(Guardian guardian) implements Validator.Input {}
@@ -163,23 +175,50 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
         );
     }
 
-    /** Refuses a Guardian the gateway could not run with the policies installed now. */
+    /**
+     * Refuses a Guardian the gateway could not run with the policies installed now, and rewrites the
+     * configuration of each enabled step as its policy accepts it.
+     *
+     * <p>For the write paths — creation, update, rollback — where what is stored has to be what was
+     * validated.
+     */
     public void validateAgainstInstalledPolicies(Guardian guardian) {
-        validateAndSanitize(new Input(guardian))
-            .severe()
-            .ifPresent(errors -> {
-                throw new ValidationDomainException(errors.stream().map(Error::getMessage).collect(Collectors.joining(", ")));
-            });
+        refuse(validate(guardian, Step::setConfiguration));
+    }
+
+    /**
+     * Refuses a Guardian the gateway could not run, leaving the definition exactly as it is stored.
+     *
+     * <p>For a deployment, which publishes the stored draft. Rewriting the configurations here would
+     * publish a revision the stored draft no longer matches, and the Guardian would turn
+     * {@code PENDING} the moment it was deployed; a draft is sanitised when it is written instead.
+     */
+    public void validateStoredAgainstInstalledPolicies(Guardian guardian) {
+        refuse(validate(guardian, KEEP_STORED_CONFIGURATION));
     }
 
     @Override
     public Result<Input> validateAndSanitize(Input input) {
-        var apiTypes = input.guardian().getApiTypes();
-        if (apiTypes == null || apiTypes.isEmpty()) {
-            return Result.ofBoth(input, List.of(Error.severe("At least one API type is required.")));
+        return Result.ofBoth(input, validate(input.guardian(), Step::setConfiguration));
+    }
+
+    private static void refuse(List<Error> errors) {
+        if (!errors.isEmpty()) {
+            throw new ValidationDomainException(errors.stream().map(Error::getMessage).collect(Collectors.joining(", ")));
         }
-        if (input.guardian().getPhase() == null) {
-            return Result.ofBoth(input, List.of(Error.severe("A Guardian phase is required.")));
+    }
+
+    /**
+     * @param acceptConfiguration what to do with the configuration a policy accepts: store it on the
+     *     step, or leave the step alone on a path that must not rewrite what it reads
+     */
+    private List<Error> validate(Guardian guardian, BiConsumer<Step, String> acceptConfiguration) {
+        var apiTypes = guardian.getApiTypes();
+        if (apiTypes == null || apiTypes.isEmpty()) {
+            return List.of(Error.severe("At least one API type is required."));
+        }
+        if (guardian.getPhase() == null) {
+            return List.of(Error.severe("A Guardian phase is required."));
         }
         var unsupported = apiTypes
             .stream()
@@ -188,17 +227,14 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
             .sorted()
             .toList();
         if (!unsupported.isEmpty()) {
-            return Result.ofBoth(
-                input,
-                List.of(
-                    Error.severe("Only %s guardians are supported, not %s.", SUPPORTED_API_TYPE.getLabel(), String.join(", ", unsupported))
-                )
+            return List.of(
+                Error.severe("Only %s guardians are supported, not %s.", SUPPORTED_API_TYPE.getLabel(), String.join(", ", unsupported))
             );
         }
-        return Result.ofBoth(input, validateSteps(input.guardian().getPolicies(), apiTypes, input.guardian().getPhase()));
+        return validateSteps(guardian.getPolicies(), apiTypes, guardian.getPhase(), acceptConfiguration);
     }
 
-    private List<Error> validateSteps(List<Step> steps, Set<ApiType> apiTypes, Phase phase) {
+    private List<Error> validateSteps(List<Step> steps, Set<ApiType> apiTypes, Phase phase, BiConsumer<Step, String> acceptConfiguration) {
         if (steps != null && steps.stream().anyMatch(Objects::isNull)) {
             return List.of(Error.severe("Guardian policies must not contain null steps."));
         }
@@ -226,47 +262,96 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
                     validateScopeProtocol(step, apiTypes, errors);
                 }
             }
+            validateConfigurationSchema(step, errors, acceptConfiguration);
         }
         return errors;
     }
 
+    /**
+     * Refuses a configuration the schema of the policy does not accept, naming the step and the schema
+     * error as an API flow does, and hands the accepted one to {@code acceptConfiguration}.
+     *
+     * <p>The gateway builds the policy from the stored configuration when it starts the Guardian: one
+     * the policy cannot be created from leaves a revision the API answers {@code DEPLOYED} and the
+     * console shows "Deployed", that no gateway ever runs (AIAM-1750). What the policy accepts is not
+     * always what was submitted — the validator drops null entries, injects the default of a missing
+     * required property, prunes what a closed schema forbids — so storing the submitted configuration
+     * instead would store one the policy was never validated with, which is the same bug by another
+     * route.
+     *
+     * <p>A step carrying no configuration is judged as one carrying an empty object — what the gateway
+     * would build the policy from anyway. A schema requiring a property therefore refuses it, where
+     * skipping the check would accept exactly the Guardian this is about.
+     */
+    private void validateConfigurationSchema(Step step, List<Error> errors, BiConsumer<Step, String> acceptConfiguration) {
+        switch (policyConfigurationValidator.check(step.getPolicy(), configurationOrEmpty(step))) {
+            case PolicyConfigurationCheck.Conforming(var accepted) -> {
+                // a step that carried no configuration keeps carrying none. It was judged as an empty
+                // object, but writing that object back would change the stored definition for nothing,
+                // and a deployment compares the draft with the revision the gateways run.
+                if (carriesAConfiguration(step)) {
+                    acceptConfiguration.accept(step, accepted);
+                }
+            }
+            case PolicyConfigurationCheck.Violation(var message) -> errors.add(
+                Error.severe("Step [%s] has an invalid configuration: %s", step.getName(), message)
+            );
+        }
+    }
+
+    private static boolean carriesAConfiguration(Step step) {
+        return step.getConfiguration() != null && !step.getConfiguration().isBlank();
+    }
+
+    private static String configurationOrEmpty(Step step) {
+        return carriesAConfiguration(step) ? step.getConfiguration() : EMPTY_CONFIGURATION;
+    }
+
+    /** The configuration of the step as a JSON object, or nothing when it is not one. */
+    private Optional<JsonNode> configurationAsObject(Step step) {
+        try {
+            JsonNode configuration = jsonDeserializer.deserialize(configurationOrEmpty(step), JsonNode.class);
+            return configuration != null && configuration.isObject() ? Optional.of(configuration) : Optional.empty();
+        } catch (JsonProcessingException e) {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Refuses a guardrail whose {@code scope.protocol} designates another API type than the Guardian's.
+     *
+     * <p>A configuration that is no JSON object is left alone here: the schema check refuses it on its
+     * own, naming one cause rather than two, and there is nothing to read in it anyway.
+     */
     private void validateScopeProtocol(Step step, Set<ApiType> apiTypes, List<Error> errors) {
-        if (step.getConfiguration() == null || step.getConfiguration().isBlank()) {
+        var configuration = configurationAsObject(step);
+        if (configuration.isEmpty()) {
             return;
         }
-        try {
-            JsonNode configuration = jsonDeserializer.deserialize(step.getConfiguration(), JsonNode.class);
-            if (configuration == null || !configuration.isObject()) {
-                errors.add(Error.severe("Guardrail step [%s] has an invalid configuration.", step.getName()));
-                return;
-            }
-            var scope = configuration.get("scope");
-            if (scope == null || scope.isNull()) {
-                return;
-            }
-            if (!scope.isObject()) {
-                errors.add(Error.severe("Guardrail step [%s] has an invalid scope configuration.", step.getName()));
-                return;
-            }
-            var protocol = scope.get("protocol");
-            if (protocol == null) {
-                return;
-            }
-            ApiType scopeApiType = protocol.isTextual() ? scopeApiType(protocol.textValue()) : null;
-            if (scopeApiType == null) {
-                errors.add(Error.severe("Guardrail step [%s] has an invalid scope protocol.", step.getName()));
-            } else if (apiTypes.stream().anyMatch(apiType -> apiType != scopeApiType)) {
-                errors.add(
-                    Error.severe(
-                        "Guardrail step [%s] declares scope protocol [%s], incompatible with Guardian API types [%s].",
-                        step.getName(),
-                        protocol.textValue(),
-                        labels(apiTypes)
-                    )
-                );
-            }
-        } catch (JsonProcessingException e) {
-            errors.add(Error.severe("Guardrail step [%s] has an invalid configuration.", step.getName()));
+        var scope = configuration.get().get("scope");
+        if (scope == null || scope.isNull()) {
+            return;
+        }
+        if (!scope.isObject()) {
+            errors.add(Error.severe("Guardrail step [%s] has an invalid scope configuration.", step.getName()));
+            return;
+        }
+        var protocol = scope.get("protocol");
+        if (protocol == null) {
+            return;
+        }
+        ApiType scopeApiType = protocol.isTextual() ? scopeApiType(protocol.textValue()) : null;
+        if (scopeApiType == null) {
+            errors.add(Error.severe("Guardrail step [%s] has an invalid scope protocol.", step.getName()));
+        } else if (apiTypes.stream().anyMatch(apiType -> apiType != scopeApiType)) {
+            errors.add(
+                Error.severe(
+                    "Guardrail step [%s] declares scope protocol [%s], incompatible with Guardian API types [%s].",
+                    step.getName(),
+                    protocol.textValue(),
+                    labels(apiTypes)
+                )
+            );
         }
     }
 

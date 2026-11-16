@@ -17,11 +17,13 @@ package io.gravitee.gamma.rest.core.guardian.use_case;
 
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ENVIRONMENT_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDIAN_ID;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDRAIL_POLICY;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aDeployGuardianUseCase;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianDefinition;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidator;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aPolicyPluginProvider;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
@@ -33,10 +35,12 @@ import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyConfigurationValidator;
 import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDraftDomainService;
+import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianDeploymentNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
@@ -66,21 +70,20 @@ class RollbackGuardianUseCaseTest {
     private final GuardianPublicationFixture publications = new GuardianPublicationFixture();
     private final GuardianAuditFixture audits = new GuardianAuditFixture();
     private final GuardianDeploymentDomainService deploymentService = publications.service(repository);
+    /** The schema answers, which a test installs to make a stored revision non-conforming. */
+    private final InMemoryPolicyConfigurationValidator configurations = new InMemoryPolicyConfigurationValidator();
+
+    private final ValidateGuardianDomainService validator = aGuardianValidator(repository, aPolicyPluginProvider(), configurations);
     private final GuardianDraftDomainService drafts = new GuardianDraftDomainService(
         repository,
-        aGuardianValidator(repository),
+        validator,
         audits.service,
         deploymentService
     );
     private final DeployGuardianUseCase deploy = aDeployGuardianUseCase(repository, deploymentService, audits.service);
     private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(repository, deploymentService, audits.service);
-    private final UpdateGuardianUseCase update = new UpdateGuardianUseCase(repository, aGuardianValidator(repository), drafts);
-    private final RollbackGuardianUseCase rollback = new RollbackGuardianUseCase(
-        repository,
-        aGuardianValidator(repository),
-        publications.store(),
-        drafts
-    );
+    private final UpdateGuardianUseCase update = new UpdateGuardianUseCase(repository, validator, drafts);
+    private final RollbackGuardianUseCase rollback = new RollbackGuardianUseCase(repository, validator, publications.store(), drafts);
     private final AuditInfo actor = AuditInfo.builder()
         .organizationId(ORGANIZATION_ID)
         .environmentId(ENVIRONMENT_ID)
@@ -217,6 +220,28 @@ class RollbackGuardianUseCaseTest {
         assertThatThrownBy(() -> rollback.execute(new RollbackGuardianUseCase.Input(actor, GUARDIAN_ID, revision))).isInstanceOf(
             ValidationDomainException.class
         );
+    }
+
+    @Test
+    void should_refuse_a_revision_whose_step_configuration_the_policy_schema_no_longer_accepts() {
+        var revision = deployRevision();
+        save("Second name", "description");
+        configurations.givenRefuses(GUARDRAIL_POLICY, "$.rules: is missing but it is required");
+
+        assertSoftly(softly -> {
+            softly
+                .assertThatThrownBy(() -> rollback.execute(new RollbackGuardianUseCase.Input(actor, GUARDIAN_ID, revision)))
+                .as(
+                    "a policy upgraded to a stricter schema closes the way back, on purpose: restoring a draft the gateways " +
+                        "could not start would only move the failure to the next deployment"
+                )
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContainingAll("Detect credentials", "$.rules");
+            softly
+                .assertThat(repository.findByEnvironmentId(ENVIRONMENT_ID, GUARDIAN_ID))
+                .as("draft unchanged")
+                .hasValueSatisfying(stored -> assertThat(stored.getName()).isEqualTo("Second name"));
+        });
     }
 
     @Test

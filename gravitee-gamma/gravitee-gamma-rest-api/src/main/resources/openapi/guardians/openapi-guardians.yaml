@@ -163,10 +163,20 @@ paths:
                         the schema does not declare.
 
                         A step is refused too: an enabled step whose policy is not installed, or
-                        whose plugin does not declare the Guardian phase in its `guardian` flow; and
+                        whose plugin does not declare the Guardian phase in its `guardian` flow; one
+                        whose configuration is not a JSON object, or does not match the schema that
+                        policy declares — a step carrying no configuration at all being judged
+                        against an empty object, so a schema that requires a property refuses it; and
                         for a guardrail, one whose plugin does not declare the Guardian API types,
                         whatever phases it lists for them, or that declares an incompatible
-                        `scope.protocol`. Every refused step is named in the message.
+                        `scope.protocol`. Every refused step is named in the message, with the schema
+                        error when there is one.
+
+                        A stored step configuration is the one its policy accepts, which is not
+                        always the one submitted: the schema validation drops null entries, injects
+                        the default of a missing required property and prunes properties a closed
+                        schema forbids, exactly as it does for an API flow. Read the created or
+                        updated Guardian back to see what was stored.
 
                         The body of a refusal carries `message` and `http_status`, except for the
                         schema constraints — name, description, phase, `apiTypes`, `id` shape — which
@@ -248,10 +258,20 @@ paths:
                         The payload is not acceptable, for the same reasons as a creation.
 
                         A step is refused too: an enabled step whose policy is not installed, or
-                        whose plugin does not declare the Guardian phase in its `guardian` flow; and
+                        whose plugin does not declare the Guardian phase in its `guardian` flow; one
+                        whose configuration is not a JSON object, or does not match the schema that
+                        policy declares — a step carrying no configuration at all being judged
+                        against an empty object, so a schema that requires a property refuses it; and
                         for a guardrail, one whose plugin does not declare the Guardian API types,
                         whatever phases it lists for them, or that declares an incompatible
-                        `scope.protocol`. Every refused step is named in the message.
+                        `scope.protocol`. Every refused step is named in the message, with the schema
+                        error when there is one.
+
+                        A stored step configuration is the one its policy accepts, which is not
+                        always the one submitted: the schema validation drops null entries, injects
+                        the default of a missing required property and prunes properties a closed
+                        schema forbids, exactly as it does for an API flow. Read the created or
+                        updated Guardian back to see what was stored.
                     content:
                         application/json:
                             schema:
@@ -466,7 +486,12 @@ paths:
                 of a definition.
 
                 The checks of an update apply, since the revision may be out of date: a name
-                another Guardian took since answers 409, a guardrail no longer installed 400.
+                another Guardian took since answers 409, a guardrail no longer installed 400, and so
+                does a step configuration the schema of its policy no longer accepts — a policy
+                upgraded to a stricter schema since that revision was deployed closes this way back,
+                and the Guardian has to be edited rather than rolled back. Refusing is deliberate:
+                restoring a draft the gateways could not start would only move the failure to the
+                next deployment.
             operationId: rollbackGuardian
             responses:
                 "200":
