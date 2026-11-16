@@ -17,7 +17,7 @@ package io.gravitee.apim.reporter.elasticsearch.mapping;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.gravitee.apim.reporter.elasticsearch.UnitTestConfiguration;
+import io.gravitee.apim.reporter.elasticsearch.OpenSearchIntegrationTestConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.mapping.es7.ES7IndexPreparer;
@@ -25,13 +25,11 @@ import io.gravitee.apim.reporter.elasticsearch.mapping.es8.ES8IndexPreparer;
 import io.gravitee.apim.reporter.elasticsearch.mapping.es9.ES9IndexPreparer;
 import io.gravitee.common.templating.FreeMarkerComponent;
 import io.gravitee.elasticsearch.client.Client;
-import io.gravitee.elasticsearch.config.Endpoint;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -40,15 +38,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.utility.DockerImageName;
 
 /**
  * Drives {@link AbstractIndexPreparer#prepare()} against a real OpenSearch container through each
@@ -67,7 +58,7 @@ import org.testcontainers.utility.DockerImageName;
  * lifecycle block is absent — so the stored template is read back. What the templates render for every
  * tree and type is asserted by {@link IndexTemplateTest}, which needs no container.
  */
-@SpringJUnitConfig(IndexPreparerIntegrationTest.OpenSearchTestConfig.class)
+@SpringJUnitConfig(OpenSearchIntegrationTestConfiguration.class)
 @TestPropertySource(
     properties = {
         "reporters.elasticsearch.index=gravitee-ism-override",
@@ -172,43 +163,5 @@ class IndexPreparerIntegrationTest {
             case "es9x" -> new ES9IndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, client);
             default -> throw new IllegalArgumentException("Unknown es dir: " + esDir);
         };
-    }
-
-    @Configuration
-    @Import(UnitTestConfiguration.class)
-    static class OpenSearchTestConfig {
-
-        public static final String OPENSEARCH_DEFAULT_VERSION = "2.13.0";
-
-        @Value("${opensearch.version:" + OPENSEARCH_DEFAULT_VERSION + "}")
-        private String opensearchVersion;
-
-        @Bean
-        public ReporterConfiguration configuration(GenericContainer<?> openSearchContainer) {
-            ReporterConfiguration configuration = new ReporterConfiguration();
-            configuration.setEndpoints(
-                Collections.singletonList(
-                    new Endpoint("http://" + openSearchContainer.getHost() + ":" + openSearchContainer.getMappedPort(9200))
-                )
-            );
-            return configuration;
-        }
-
-        @Bean(destroyMethod = "stop")
-        public GenericContainer<?> openSearchContainer() {
-            final GenericContainer<?> container = new GenericContainer<>(
-                DockerImageName.parse("opensearchproject/opensearch:" + opensearchVersion)
-            )
-                .withExposedPorts(9200)
-                .withEnv("discovery.type", "single-node")
-                .withEnv("DISABLE_SECURITY_PLUGIN", "true")
-                .withEnv("DISABLE_INSTALL_DEMO_CONFIG", "true")
-                // Left alone, the node sizes its heap at half the memory it can see, and it shares the CI
-                // machine with the Elasticsearch node the other integration tests keep running.
-                .withEnv("OPENSEARCH_JAVA_OPTS", "-Xms512m -Xmx512m")
-                .waitingFor(Wait.forHttp("/").forStatusCode(200));
-            container.start();
-            return container;
-        }
     }
 }
