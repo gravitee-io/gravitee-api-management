@@ -22,8 +22,10 @@ import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.definition.model.v4.resource.Resource;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -118,6 +120,14 @@ public class Guardian {
     }
 
     /**
+     * The steps of the sequence the gateways would run: enabled, and present — a sequence may be
+     * absent, and a caller building a definition by hand may leave a hole in it.
+     */
+    public Stream<Step> enabledPolicies() {
+        return Objects.requireNonNullElse(getPolicies(), List.<Step>of()).stream().filter(Objects::nonNull).filter(Step::isEnabled);
+    }
+
+    /**
      * Whether at least one enabled step of the sequence runs a guardrail.
      *
      * <p>Which policies are guardrails is the caller's to say: the installed plugins answer that, and
@@ -126,13 +136,6 @@ public class Guardian {
      * @param isGuardrail whether the policy a step names is a guardrail
      */
     public boolean hasEnabledGuardrail(Predicate<String> isGuardrail) {
-        var policies = getPolicies();
-        if (policies == null) {
-            return false;
-        }
-        return policies
-            .stream()
-            .filter(Step::isEnabled)
-            .anyMatch(step -> isGuardrail.test(step.getPolicy()));
+        return enabledPolicies().anyMatch(step -> isGuardrail.test(step.getPolicy()));
     }
 }

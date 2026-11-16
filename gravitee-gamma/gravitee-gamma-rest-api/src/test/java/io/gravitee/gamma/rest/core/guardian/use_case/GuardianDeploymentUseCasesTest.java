@@ -24,8 +24,8 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aDisabledPol
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianDefinition;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidator;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidatorAgainst;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aPolicy;
-import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aPolicyPluginProvider;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.flows;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.theInstalledPolicies;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,8 +56,11 @@ import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
@@ -79,12 +82,7 @@ class GuardianDeploymentUseCasesTest {
     private final GuardianAuditFixture audits = new GuardianAuditFixture();
     private final GuardianDeploymentDomainService deploymentService = deployments.service(repository);
     private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(repository, deploymentService, audits.service);
-    private final DeployGuardianUseCase deploy = new DeployGuardianUseCase(
-        repository,
-        deploymentService,
-        audits.service,
-        aPolicyPluginProvider()
-    );
+    private final DeployGuardianUseCase deploy = aDeployGuardianUseCase(repository, deploymentService, audits.service);
     private final UpdateGuardianUseCase update = new UpdateGuardianUseCase(
         repository,
         aGuardianValidator(),
@@ -148,7 +146,7 @@ class GuardianDeploymentUseCasesTest {
             }
         };
         failing.givenGuardian(aGuardian().build());
-        var failingDeploy = new DeployGuardianUseCase(failing, deployments.service(failing), audits.service, aPolicyPluginProvider());
+        var failingDeploy = aDeployGuardianUseCase(failing, deployments.service(failing), audits.service);
 
         assertThatThrownBy(() -> failingDeploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null))).isInstanceOf(
             TechnicalDomainException.class
@@ -197,14 +195,15 @@ class GuardianDeploymentUseCasesTest {
         repository.reset();
         repository.givenGuardian(aGuardian(definition).build());
 
-        assertRefused(() -> deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, "Reviewed")));
+        assertRefused(() -> deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, "Reviewed")), aGuardrailRefusal());
     }
 
     static Stream<Arguments> should_refuse_to_deploy_a_guardian_without_an_enabled_guardrail() {
         return Stream.of(
             arguments(sequence("no policies", definition -> definition.policies(null))),
             arguments(sequence("an empty sequence", definition -> definition.policies(List.of()))),
-            arguments(sequence("only a disabled guardrail", definition -> definition.policies(List.of(aDisabledPolicy()))))
+            arguments(sequence("only a disabled guardrail", definition -> definition.policies(List.of(aDisabledPolicy())))),
+            arguments(sequence("only a null step", definition -> definition.policies(Collections.singletonList(null))))
         );
     }
 
@@ -215,10 +214,13 @@ class GuardianDeploymentUseCasesTest {
             repository,
             deploymentService,
             audits.service,
-            aPolicyPluginProvider(() -> installed)
+            aGuardianValidatorAgainst(installed)
         );
 
-        assertRefused(() -> deployAgainstRegistry.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null)));
+        assertRefused(
+            () -> deployAgainstRegistry.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null)),
+            aRefusalNaming("Detect credentials", GUARDRAIL_POLICY)
+        );
     }
 
     static Stream<Arguments> should_refuse_to_deploy_a_guardian_whose_enabled_step_is_no_guardrail() {
@@ -284,6 +286,9 @@ class GuardianDeploymentUseCasesTest {
                 sequence("a disabled step beside an enabled guardrail", definition ->
                     definition.policies(List.of(aDisabledPolicy(), aPolicy()))
                 )
+            ),
+            arguments(
+                sequence("a null step beside an enabled guardrail", definition -> definition.policies(Arrays.asList(null, aPolicy())))
             )
         );
     }
@@ -294,7 +299,7 @@ class GuardianDeploymentUseCasesTest {
      */
     @Test
     void should_deploy_a_guardian_whose_guardrail_no_longer_declares_the_guardian_phase() {
-        var downgraded = aPolicyPluginProvider(() -> Map.of(GUARDRAIL_POLICY, new PolicyCapabilities(true, flows())));
+        var downgraded = aGuardianValidatorAgainst(Map.of(GUARDRAIL_POLICY, new PolicyCapabilities(true, flows())));
         var deployAgainstRegistry = new DeployGuardianUseCase(repository, deploymentService, audits.service, downgraded);
 
         var result = deployAgainstRegistry.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null));
@@ -598,20 +603,34 @@ class GuardianDeploymentUseCasesTest {
         return new PolicyCapabilities(false, theInstalledPolicies().get(GUARDRAIL_POLICY).flows());
     }
 
-    private void assertRefused(ThrowingCallable deployment) {
+    private void assertRefused(ThrowingCallable deployment, Condition<Throwable> refusal) {
         assertSoftly(softly -> {
-            softly.assertThatThrownBy(deployment).as("refusal").is(aGuardrailRefusal());
+            softly.assertThatThrownBy(deployment).as("refusal").is(refusal);
             softly.assertThat(deployments.publications()).as("nothing published").isZero();
             softly.assertThat(audits.storage()).as("nothing audited").isEmpty();
         });
     }
 
-    /** The refusal a Guardian the gateways would run empty answers, whatever left its sequence without a guardrail. */
+    /** The refusal a sequence with nothing enabled answers: there is no step to point at. */
     private static Condition<Throwable> aGuardrailRefusal() {
+        return refusal("a refusal asking for an enabled guardrail", "at least one enabled guardrail");
+    }
+
+    /** The refusal an enabled step that is no installed guardrail answers: it says which step to fix. */
+    private static Condition<Throwable> aRefusalNaming(String step, String policy) {
+        return refusal(
+            "a refusal naming step [%s] and policy [%s]".formatted(step, policy),
+            "step [%s]".formatted(step),
+            "policy [%s]".formatted(policy)
+        );
+    }
+
+    private static Condition<Throwable> refusal(String description, String... expectedInMessage) {
         return VerboseCondition.verboseCondition(
             error ->
-                error instanceof GuardianWithoutEnabledGuardrailException && error.getMessage().contains("at least one enabled guardrail"),
-            "a refusal naming the missing guardrail",
+                error instanceof GuardianWithoutEnabledGuardrailException &&
+                Stream.of(expectedInMessage).allMatch(error.getMessage()::contains),
+            description,
             // soft assertions carry on with a null throwable when nothing was thrown, and that case is
             // exactly the regression this condition guards: it has to read as a message, not as an NPE
             error ->
@@ -629,6 +648,7 @@ class GuardianDeploymentUseCasesTest {
                 definition
                     .getPolicies()
                     .stream()
+                    .filter(Objects::nonNull)
                     .filter(Step::isEnabled)
                     .anyMatch(step -> GUARDRAIL_POLICY.equals(step.getPolicy())),
             "enforcing an enabled guardrail"

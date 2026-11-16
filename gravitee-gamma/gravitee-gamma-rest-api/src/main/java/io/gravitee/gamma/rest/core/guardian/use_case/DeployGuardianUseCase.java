@@ -20,10 +20,9 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
-import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
+import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
-import io.gravitee.gamma.rest.core.guardian.exception.GuardianWithoutEnabledGuardrailException;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
@@ -39,10 +38,10 @@ import lombok.RequiredArgsConstructor;
  * APIs using it are protected. Publishing one would also undo the protection of a Guardian already
  * deployed, since the empty revision replaces the one the gateways run.
  *
- * <p>This is the only check a deployment makes against the installed plugins, and it asks them one
- * thing: whether a policy is a guardrail. The rest of the draft was validated when it was written and
- * is published as is, so a guardrail that has become incompatible since is still only refused when
- * the gateways start the Guardian.
+ * <p>That rule is the only check a deployment makes against the installed plugins, and it asks them
+ * one thing: whether a policy is a guardrail. The rest of the draft was validated when it was written
+ * and is published as is, so a guardrail that has become incompatible since is still only refused
+ * when the gateways start the Guardian.
  */
 @UseCase
 @RequiredArgsConstructor
@@ -51,11 +50,11 @@ public class DeployGuardianUseCase {
     private final GuardianRepository guardianRepository;
     private final GuardianDeploymentDomainService deployments;
     private final AuditDomainService auditDomainService;
-    private final PolicyPluginProvider policyPluginProvider;
+    private final ValidateGuardianDomainService validateGuardian;
 
     public Output execute(Input input) {
         var guardian = find(input);
-        ensureEnforcesAGuardrail(guardian);
+        validateGuardian.validateDeployable(guardian);
         var publication = deployments.publish(guardian, input.deploymentLabel(), input.auditInfo());
         auditDomainService.createEnvironmentAuditLog(
             EnvironmentAuditLogEntity.builder()
@@ -71,12 +70,6 @@ public class DeployGuardianUseCase {
         );
         deployments.complete(guardian, publication);
         return new Output(deployments.state(find(input), publication));
-    }
-
-    private void ensureEnforcesAGuardrail(Guardian guardian) {
-        if (!guardian.hasEnabledGuardrail(policyPluginProvider.installedGuardrails())) {
-            throw new GuardianWithoutEnabledGuardrailException(guardian.getId());
-        }
     }
 
     private Guardian find(Input input) {
