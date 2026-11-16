@@ -40,7 +40,8 @@ class DefaultEnvironmentUserRoleDocumentationTest {
             EnvironmentPermission.GROUP.getName(),
             EnvironmentPermission.INTEGRATION.getName(),
             EnvironmentPermission.API_PRODUCT.getName(),
-            EnvironmentPermission.SHARED_POLICY_GROUP.getName()
+            EnvironmentPermission.SHARED_POLICY_GROUP.getName(),
+            EnvironmentPermission.HITL_DECISIONS.getName()
         );
         assertThat(permissions.get(EnvironmentPermission.API.getName())).containsExactly(READ.getId());
     }
