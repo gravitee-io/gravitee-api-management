@@ -41,17 +41,17 @@ class CredentialDtoTest {
 
     @Test
     void should_be_manageable_by_the_owner() {
-        assertThat(CredentialDto.from(CREDENTIAL, actor("owner", false)).manageable()).isTrue();
+        assertThat(CredentialDto.withoutOwnerName(CREDENTIAL, actor("owner", false)).manageable()).isTrue();
     }
 
     @Test
     void should_not_be_manageable_by_another_user_who_is_not_an_admin() {
-        assertThat(CredentialDto.from(CREDENTIAL, actor("someone-else", false)).manageable()).isFalse();
+        assertThat(CredentialDto.withoutOwnerName(CREDENTIAL, actor("someone-else", false)).manageable()).isFalse();
     }
 
     @Test
     void should_be_manageable_by_an_admin() {
-        assertThat(CredentialDto.from(CREDENTIAL, actor("someone-else", true)).manageable()).isTrue();
+        assertThat(CredentialDto.withoutOwnerName(CREDENTIAL, actor("someone-else", true)).manageable()).isTrue();
     }
 
     @Test
@@ -61,7 +61,7 @@ class CredentialDtoTest {
 
     @Test
     void should_leave_the_owner_name_out_of_a_write_response() {
-        assertThat(CredentialDto.from(CREDENTIAL, actor("owner", false)).ownerName()).isNull();
+        assertThat(CredentialDto.withoutOwnerName(CREDENTIAL, actor("owner", false)).ownerName()).isNull();
     }
 
     private static CredentialActor actor(String userId, boolean admin) {

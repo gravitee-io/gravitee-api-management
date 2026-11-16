@@ -92,7 +92,7 @@ public class CredentialResource {
     public CredentialDto updateCredential(@PathParam("credentialId") String credentialId, @NotNull UpdateCredentialRequestDto request) {
         var actor = actor();
         var output = updateCredentialUseCase.execute(new UpdateCredentialUseCase.Input(actor, credentialId, request.toCommand()));
-        return CredentialDto.from(output.credential(), actor);
+        return CredentialDto.withoutOwnerName(output.credential(), actor);
     }
 
     @POST
@@ -105,7 +105,7 @@ public class CredentialResource {
     ) {
         var actor = actor();
         var output = rotateCredentialUseCase.execute(new RotateCredentialUseCase.Input(actor, credentialId, request.values()));
-        return CredentialDto.from(output.credential(), actor);
+        return CredentialDto.withoutOwnerName(output.credential(), actor);
     }
 
     @DELETE

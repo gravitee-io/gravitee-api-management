@@ -52,8 +52,7 @@ public record CredentialDto(
     /** @param managed whether Gravitee stores the value behind the reference */
     public record SecretReferenceDto(String reference, boolean managed) {}
 
-    /** Without the owner name, which only the reads look up. */
-    public static CredentialDto from(Credential credential, CredentialActor caller) {
+    public static CredentialDto withoutOwnerName(Credential credential, CredentialActor caller) {
         return from(credential, caller, null);
     }
 

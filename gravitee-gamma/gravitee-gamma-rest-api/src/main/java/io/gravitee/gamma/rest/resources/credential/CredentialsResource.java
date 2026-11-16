@@ -93,7 +93,7 @@ public class CredentialsResource {
             .execute(new CreateCredentialUseCase.Input(UuidString.generateRandom(), actor, request.toCommand()))
             .credential();
         return Response.created(uriInfo.getAbsolutePathBuilder().path(credential.id()).build())
-            .entity(CredentialDto.from(credential, actor))
+            .entity(CredentialDto.withoutOwnerName(credential, actor))
             .build();
     }
 
