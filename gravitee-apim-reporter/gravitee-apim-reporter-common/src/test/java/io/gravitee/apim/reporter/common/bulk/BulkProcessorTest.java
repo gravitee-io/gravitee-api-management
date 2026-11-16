@@ -304,6 +304,30 @@ public class BulkProcessorTest {
     }
 
     @Test
+    void should_log_each_rejection_reason_once_and_at_most_ten_of_them() throws Exception {
+        // Given twelve rejected reports: eleven distinct reasons, one of them twice
+        initBulkProcessor(12);
+        final List<ItemFailure> failures = new ArrayList<>();
+        failures.add(new ItemFailure(0, false, "reason-0"));
+        for (int position = 1; position < 12; position++) {
+            failures.add(new ItemFailure(position, false, "reason-" + (position - 1)));
+        }
+        when(bulkSender.send(any())).thenReturn(Completable.error(itemsFailure(failures.toArray(ItemFailure[]::new))));
+
+        // When
+        final List<TransformedReport> reports = processReports(12);
+
+        // Then
+        final List<String> expectedReasons = new ArrayList<>();
+        for (int reason = 0; reason < 10; reason++) {
+            expectedReasons.add("reason-" + reason);
+        }
+        await()
+            .atMost(10, TimeUnit.SECONDS)
+            .untilAsserted(() -> verify(bulkDropper).drop(reports, expectedReasons));
+    }
+
+    @Test
     void should_send_again_only_the_reports_the_target_could_not_write_for_now() throws Exception {
         initBulkProcessor(3);
         when(bulkSender.send(any())).thenReturn(
