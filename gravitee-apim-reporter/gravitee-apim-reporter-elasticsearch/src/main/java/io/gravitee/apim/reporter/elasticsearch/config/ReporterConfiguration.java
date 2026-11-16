@@ -20,6 +20,7 @@ import static java.lang.String.format;
 import io.gravitee.apim.reporter.common.bulk.BulkConfiguration;
 import io.gravitee.common.util.EnvironmentUtils;
 import io.gravitee.elasticsearch.config.Endpoint;
+import io.gravitee.elasticsearch.utils.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -43,6 +44,7 @@ public class ReporterConfiguration {
     public static final String DEFAULT_INDEX_NAME = "gravitee";
     public static final boolean DEFAULT_PER_TYPE_INDEX = false;
     public static final String DEFAULT_INDEX_MODE = "daily";
+    public static final String DATA_STREAM_INDEX_MODE = "data_stream";
     public static final int DEFAULT_BULK_ACTIONS = 1000;
     public static final long DEFAULT_BULK_FLUSH_INTERVAL = 5L;
     public static final long DEFAULT_REQUEST_TIMEOUT = 30000L;
@@ -270,6 +272,27 @@ public class ReporterConfiguration {
      */
     @Value("${reporters.elasticsearch.template_mapping.extended_settings:#{null}}")
     private String extendedSettingsTemplate;
+
+    /**
+     * Data stream retention per type, written as the data stream lifecycle {@code data_retention} where the cluster has one.
+     */
+    @Value("${reporters.elasticsearch.retention.request:#{null}}")
+    private String dataRetentionRequest;
+
+    @Value("${reporters.elasticsearch.retention.monitor:#{null}}")
+    private String dataRetentionMonitor;
+
+    @Value("${reporters.elasticsearch.retention.health:#{null}}")
+    private String dataRetentionHealth;
+
+    @Value("${reporters.elasticsearch.retention.log:#{null}}")
+    private String dataRetentionLog;
+
+    @Value("${reporters.elasticsearch.retention.event_metrics:#{null}}")
+    private String dataRetentionEventMetrics;
+
+    @Value("${reporters.elasticsearch.retention.decisions:#{null}}")
+    private String dataRetentionDecisions;
 
     public List<Endpoint> getEndpoints() {
         if (endpoints == null) {
@@ -619,6 +642,92 @@ public class ReporterConfiguration {
 
     public boolean isIlmManagedIndex() {
         return "ilm".equalsIgnoreCase(indexMode);
+    }
+
+    public boolean isDataStreamIndex() {
+        return DATA_STREAM_INDEX_MODE.equalsIgnoreCase(indexMode);
+    }
+
+    /**
+     * @return the lifecycle policy attached to the indices of the type, or empty when none is configured
+     */
+    public Optional<String> lifecyclePolicy(Type type) {
+        return Optional.ofNullable(
+            switch (LifecycleGroup.of(type)) {
+                case REQUEST -> indexLifecyclePolicyRequest;
+                case LOG -> indexLifecyclePolicyLog;
+                case MONITOR -> indexLifecyclePolicyMonitor;
+                case HEALTH -> indexLifecyclePolicyHealth;
+                case EVENT_METRICS -> indexLifecyclePolicyEventMetrics;
+                case DECISIONS -> indexLifecyclePolicyDecisions;
+            }
+        ).filter(StringUtils::hasText);
+    }
+
+    /**
+     * @return the data stream retention of the type, or empty when none is configured
+     */
+    public Optional<String> dataRetention(Type type) {
+        return Optional.ofNullable(
+            switch (LifecycleGroup.of(type)) {
+                case REQUEST -> dataRetentionRequest;
+                case LOG -> dataRetentionLog;
+                case MONITOR -> dataRetentionMonitor;
+                case HEALTH -> dataRetentionHealth;
+                case EVENT_METRICS -> dataRetentionEventMetrics;
+                case DECISIONS -> dataRetentionDecisions;
+            }
+        )
+            .map(String::strip)
+            .filter(StringUtils::hasText);
+    }
+
+    public String getDataRetentionRequest() {
+        return dataRetentionRequest;
+    }
+
+    public void setDataRetentionRequest(String dataRetentionRequest) {
+        this.dataRetentionRequest = dataRetentionRequest;
+    }
+
+    public String getDataRetentionMonitor() {
+        return dataRetentionMonitor;
+    }
+
+    public void setDataRetentionMonitor(String dataRetentionMonitor) {
+        this.dataRetentionMonitor = dataRetentionMonitor;
+    }
+
+    public String getDataRetentionHealth() {
+        return dataRetentionHealth;
+    }
+
+    public void setDataRetentionHealth(String dataRetentionHealth) {
+        this.dataRetentionHealth = dataRetentionHealth;
+    }
+
+    public String getDataRetentionLog() {
+        return dataRetentionLog;
+    }
+
+    public void setDataRetentionLog(String dataRetentionLog) {
+        this.dataRetentionLog = dataRetentionLog;
+    }
+
+    public String getDataRetentionEventMetrics() {
+        return dataRetentionEventMetrics;
+    }
+
+    public void setDataRetentionEventMetrics(String dataRetentionEventMetrics) {
+        this.dataRetentionEventMetrics = dataRetentionEventMetrics;
+    }
+
+    public String getDataRetentionDecisions() {
+        return dataRetentionDecisions;
+    }
+
+    public void setDataRetentionDecisions(String dataRetentionDecisions) {
+        this.dataRetentionDecisions = dataRetentionDecisions;
     }
 
     public String getFlavor() {
