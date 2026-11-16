@@ -70,13 +70,14 @@ public class CreateGuardianUseCase {
                     .filter(id -> !id.isBlank())
                     .orElseGet(() -> UUID.randomUUID().toString())
             )
+            // before the structure check, so @NotBlank and @Size judge the name that will be stored: a
+            // name of only whitespace is a 400 whatever whitespace it is made of
+            .name(Guardian.withoutOuterWhitespace(input.guardianToCreate().getName()))
             .build();
 
         // after the id is resolved, not before: a blank id counts as none, so it becomes a generated
         // UUID that satisfies the pattern, while anything else the caller sent is still refused
         validateGuardian.validateStructure(payload);
-
-        validateGuardian.validateNameIsAvailable(input.auditInfo().environmentId(), payload.getName(), payload.getId());
 
         var guardianToCreate = Guardian.from(payload, input.auditInfo().environmentId())
             .toBuilder()
@@ -84,6 +85,9 @@ public class CreateGuardianUseCase {
             .createdAt(now)
             .updatedAt(now)
             .build();
+
+        // on the assembled Guardian, not the payload: what is compared has to be what will be stored
+        validateGuardian.validateNameIsAvailable(input.auditInfo().environmentId(), guardianToCreate.getName(), guardianToCreate.getId());
 
         validateGuardian.validateDefinition(guardianToCreate.getDefinition());
 

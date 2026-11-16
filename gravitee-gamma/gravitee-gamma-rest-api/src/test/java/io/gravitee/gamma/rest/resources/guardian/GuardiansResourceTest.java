@@ -65,6 +65,8 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -684,6 +686,70 @@ class GuardiansResourceTest extends AbstractResourceTest {
             // two-argument ConflictDomainException would add a parameters.id holding the name
             assertThat(body.has("parameters")).isFalse();
             assertThat(body.get("http_status").asInt()).isEqualTo(HttpStatusCode.CONFLICT_409);
+        }
+
+        /**
+         * The name is compared, and kept, without the whitespace around it. Without that, every padded
+         * variant was a new name: one environment ended up with Guardians that read identically in the
+         * console and in the decision logs (AIAM-1747).
+         */
+        @ParameterizedTest(name = "[{0}] is the same name")
+        @ValueSource(
+            strings = {
+                "Credential leakage ",
+                " Credential leakage",
+                "  Credential leakage  ",
+                "Credential leakage\t",
+                "Credential leakage\u00A0",
+                "\u00A0Credential leakage",
+                "Credential leakage\u3000",
+            }
+        )
+        void should_refuse_a_creation_whose_name_is_taken_but_for_the_whitespace_around_it(String padded) {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+
+            assertThat(post(payloadWith("name", padded)).getStatus()).isEqualTo(HttpStatusCode.CONFLICT_409);
+        }
+
+        /** Padding is not kept either, so the stored name is the one the caller meant. */
+        @Test
+        void should_store_a_created_name_without_the_whitespace_around_it() {
+            Response response = post(payloadWith("name", "  Credential leakage  "));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
+            assertThat(response.readEntity(JsonNode.class).get("name").asText()).isEqualTo("Credential leakage");
+        }
+
+        @Test
+        void should_refuse_a_rename_onto_a_taken_name_but_for_the_whitespace_around_it() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+            guardianRepository.givenGuardian(guardian("second-id", ENVIRONMENT, "Prompt injection"));
+
+            Response response = rootTarget("/second-id")
+                .request()
+                .put(Entity.entity(payloadWith("name", " Credential leakage "), MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CONFLICT_409);
+        }
+
+        /** Its own name, padded, is still its own name — not a clash with itself, and stored trimmed. */
+        @Test
+        void should_let_a_guardian_keep_its_own_padded_name_on_update() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+
+            Response response = rootTarget("/" + GUARDIAN_ID)
+                .request()
+                .put(Entity.entity(payloadWith("name", "  Credential leakage  "), MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            assertThat(response.readEntity(JsonNode.class).get("name").asText()).isEqualTo("Credential leakage");
+        }
+
+        /** Blank once trimmed is no name at all, and that is a 400, not a 409. */
+        @ParameterizedTest(name = "[{0}] is no name")
+        @ValueSource(strings = { " ", "   ", "\t", "\u00A0", "\u3000", "\u00A0 \u00A0" })
+        void should_refuse_a_name_that_is_only_whitespace_with_400(String blank) {
+            assertThat(post(payloadWith("name", blank)).getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
         }
 
         /** The rule ignores case: a difference of case is not a different name in a list. */
