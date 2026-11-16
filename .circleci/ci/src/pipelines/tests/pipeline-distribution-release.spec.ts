@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as fs from 'fs';
+import { parse } from 'yaml';
 import { generateDistributionReleaseConfig } from '../pipeline-distribution-release';
 
 describe('Distribution release tests', () => {
@@ -42,14 +43,22 @@ describe('Distribution release tests', () => {
     expect(guardOf('4.12.16')).toContain('"${PIN_BASE%.*}" != "4.12"');
   });
 
+  /** Where a step sits in a job of the generated config: a reused command by name, a run by its name. */
+  const stepIndex = (version: string, jobName: string, step: string): number => {
+    const steps: unknown[] = parse(guardOf(version)).jobs[jobName].steps;
+    return steps.findIndex(
+      (s) => s === step || (typeof s === 'object' && s !== null && (s as { run?: { name?: string } }).run?.name?.startsWith(step)),
+    );
+  };
+
   it('should check the pin before anything is built', () => {
     // Behind the core build it fired roughly half an hour into the release, and a mispinned
     // release is the expected first outcome after a code freeze.
-    const generated = guardOf('4.12.16');
+    const job = 'job-backend-build-and-publish-on-download-website';
+    const guard = stepIndex('4.12.16', job, 'cmd-check-distribution-core-pin');
 
-    expect(generated.indexOf('Refuse a core pin this release cannot assemble')).toBeLessThan(
-      generated.indexOf('Maven build APIM distribution'),
-    );
+    expect(guard).toBeGreaterThanOrEqual(0);
+    expect(guard).toBeLessThan(stepIndex('4.12.16', job, 'Maven build APIM distribution'));
   });
 
   it('should assemble the pinned core instead of building one', () => {
