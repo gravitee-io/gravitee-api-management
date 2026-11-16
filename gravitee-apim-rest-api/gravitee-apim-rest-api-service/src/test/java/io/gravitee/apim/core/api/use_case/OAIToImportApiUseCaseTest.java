@@ -31,6 +31,7 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.PolicyPluginCrudServiceInMemory;
 import inmemory.TagQueryServiceInMemory;
 import io.gravitee.apim.core.api.exception.InvalidImportWithOASValidationPolicyException;
+import io.gravitee.apim.core.api.model.HttpListenerPathMappings;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
@@ -42,6 +43,7 @@ import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
@@ -197,6 +199,45 @@ class OAIToImportApiUseCaseTest {
             .hasSize(1)
             .extracting(EndpointGroup::getSharedConfiguration)
             .containsExactly(SHARED_CONFIGURATION);
+    }
+
+    @Test
+    @SneakyThrows
+    void should_skip_a_wildcard_path_and_import_the_other_paths() {
+        var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
+        importSwaggerDescriptor.setPayload(
+            """
+            openapi: 3.0.0
+            info:
+              title: Wildcard paths
+              version: '1.0'
+            paths:
+              /pets:
+                get:
+                  responses:
+                    '200':
+                      description: OK
+              /a/**:
+                get:
+                  responses:
+                    '200':
+                      description: OK
+            """
+        );
+        importSwaggerDescriptor.setWithPathMapping(true);
+
+        var output = useCase.execute(new OAIToImportApiUseCase.Input(importSwaggerDescriptor, AUDIT_INFO));
+
+        var definition = output.apiWithFlows().getApiDefinitionHttpV4();
+        assertThat(definition.getFlows())
+            .map(flow ->
+                flow
+                    .selectorByType(SelectorType.HTTP)
+                    .map(selector -> ((HttpSelector) selector).getPath())
+                    .orElse(null)
+            )
+            .containsExactly("/pets");
+        assertThat(HttpListenerPathMappings.firstHttpListenerMappings(definition.getListeners())).contains(Set.of("/pets"));
     }
 
     @Test
