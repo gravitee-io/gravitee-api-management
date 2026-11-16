@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.notNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -28,7 +29,6 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
-import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.service.ApiKeyService;
@@ -41,9 +41,16 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import java.util.Collections;
 import java.util.Optional;
+<<<<<<< HEAD
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+=======
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
+>>>>>>> 8b929f2 (fix(api-key): delete an application's API keys on archive (APIM-16008) (#22727))
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -83,9 +90,6 @@ public class ApplicationService_ArchiveTest {
     private ApiKeyService apiKeyService;
 
     @Mock
-    private ApiKeyEntity apiKeyEntity;
-
-    @Mock
     private AuditService auditService;
 
     @Mock
@@ -107,14 +111,9 @@ public class ApplicationService_ArchiveTest {
             Collections.singleton(subscription)
         );
         when(subscription.getId()).thenReturn("sub");
-        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), "sub")).thenReturn(
-            Collections.singletonList(apiKeyEntity)
-        );
-        when(apiKeyEntity.getKey()).thenReturn("key");
 
         applicationService.archive(GraviteeContext.getExecutionContext(), APPLICATION_ID);
 
-        verify(apiKeyService, times(1)).delete("key");
         verify(membershipService, times(1)).deleteReference(
             GraviteeContext.getExecutionContext(),
             MembershipReferenceType.APPLICATION,
@@ -126,7 +125,26 @@ public class ApplicationService_ArchiveTest {
         verify(applicationAlertService, times(1)).deleteAll(APPLICATION_ID);
     }
 
+<<<<<<< HEAD
     @Test(expected = ApplicationNotFoundException.class)
+=======
+    @Test
+    public void shouldReleaseApiKeysOnceSubscriptionsAreClosed() throws TechnicalException {
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
+        when(subscriptionService.findByApplicationAndPlan(GraviteeContext.getExecutionContext(), APPLICATION_ID, null)).thenReturn(
+            Collections.singleton(subscription)
+        );
+        when(subscription.getId()).thenReturn("sub");
+
+        applicationService.archive(GraviteeContext.getExecutionContext(), APPLICATION_ID);
+
+        InOrder inOrder = inOrder(closeSubscriptionDomainService, apiKeyService);
+        inOrder.verify(closeSubscriptionDomainService).closeSubscription(eq("sub"), notNull(AuditInfo.class));
+        inOrder.verify(apiKeyService).deleteByApplication(APPLICATION_ID);
+    }
+
+    @Test
+>>>>>>> 8b929f2 (fix(api-key): delete an application's API keys on archive (APIM-16008) (#22727))
     public void shouldNotArchiveUnknownApp() throws Exception {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());
         applicationService.archive(GraviteeContext.getExecutionContext(), APPLICATION_ID);
