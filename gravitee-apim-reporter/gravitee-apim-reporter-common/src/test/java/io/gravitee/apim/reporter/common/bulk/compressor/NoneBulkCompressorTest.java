@@ -61,4 +61,14 @@ class NoneBulkCompressorTest {
         assertThat(expectedBody.countPerType()).extracting(metricsType.type()).isEqualTo(1);
         assertThat(expectedBody.countPerType()).extracting(messageMetricsType.type()).isEqualTo(1);
     }
+
+    @Test
+    void should_give_back_each_report_of_the_bulk_in_order() throws IOException {
+        TransformedReport first = new TransformedReport(Buffer.buffer("first\n"), Metrics.class);
+        TransformedReport second = new TransformedReport(Buffer.buffer("second\n"), MessageMetrics.class);
+
+        final CompressedBulk bulk = cut.compress(List.of(first, second));
+
+        assertThat(bulk.reports()).containsExactly(first, second);
+    }
 }
