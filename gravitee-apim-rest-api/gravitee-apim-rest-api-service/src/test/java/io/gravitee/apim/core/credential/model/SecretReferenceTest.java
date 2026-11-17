@@ -80,6 +80,56 @@ class SecretReferenceTest {
     @ParameterizedTest
     @ValueSource(
         strings = {
+            "/",
+            "/gravitee",
+            "/gravitee/",
+            "/gravitee:value",
+            "/gravitee/:value",
+            "/gravitee?renewable=true",
+            "/vault//",
+            "/vault/?renewable=true",
+        }
+    )
+    void should_reject_a_reference_without_a_path_after_the_provider(String reference) {
+        assertThatThrownBy(() -> SecretReference.external("token", reference))
+            .isInstanceOf(InvalidCredentialException.class)
+            .hasMessage(
+                "The reference of token must name a provider and then a path with no empty segment, such as /vault/secret/name:key."
+            );
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = {
+            "/gravitee//credential.other.password:value",
+            "/gravitee/a//b:value",
+            "/vault//secret:token",
+            "//gravitee/my-secret:value",
+            "/gravitee//my-secret",
+            "/vault//secret?renewable=true",
+        }
+    )
+    void should_reject_a_reference_with_an_empty_path_segment(String reference) {
+        assertThatThrownBy(() -> SecretReference.external("token", reference))
+            .isInstanceOf(InvalidCredentialException.class)
+            .hasMessage(
+                "The reference of token must name a provider and then a path with no empty segment, such as /vault/secret/name:key."
+            );
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = {
+            "/vault/secret/openai/:token", "/gravitee/my-secret//:value", "/vault/secret/openai/", "/vault/secret/openai/?renewable=true",
+        }
+    )
+    void should_accept_a_reference_with_a_trailing_slash_as_the_gateway_trims_it(String reference) {
+        assertThat(SecretReference.external("token", reference).reference()).isEqualTo(reference);
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = {
             "/gravitee/credential.other.token:value",
             "/GRAVITEE/credential.other.token:value?renewable=true",
             "/gravitee/credential.other.token",
@@ -123,7 +173,6 @@ class SecretReferenceTest {
             "/Gravitee/my-secret:value,true",
             "/graviteeio/my-secret:value,false",
             "/vault/gravitee/x:y,false",
-            "/gravitee,false",
         }
     )
     void should_tell_whether_a_reference_names_the_gravitee_secret_store(String reference, boolean inGraviteeStore) {
