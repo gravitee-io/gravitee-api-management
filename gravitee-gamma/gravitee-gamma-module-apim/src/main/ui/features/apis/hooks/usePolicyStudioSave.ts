@@ -18,7 +18,6 @@ import type { Plan, SaveOutput } from '@gravitee/graphene-policy-studio';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 
-import { policyStudioKeys } from './usePolicyStudioData';
 import { getAndUpdatePlanFlows, getFullApiDetail, updateApi } from '../services/policyStudioService';
 import { apiDetailKeys } from '../utils/queryKeys';
 
@@ -28,11 +27,9 @@ import { apiDetailKeys } from '../utils/queryKeys';
  * Follows the GET-then-PUT pattern used throughout the module:
  * - If commonFlows or flowExecution changed → GET api, merge, PUT api
  * - If plansToUpdate present → for each plan, GET plan, merge flows, PUT plan
- * - Invalidates the api and plans queries in parallel after success: the studio receives
- *   them as two updates, and until the second one arrives, the flows it carries still
- *   show their previous version
- * - Also invalidates the API detail query, which carries the deployment state behind the
- *   "Deploy" banner
+ * - Invalidates the API detail query after success. The studio's api and plans queries sit
+ *   under its key, so they are refetched together, along with the deployment state behind
+ *   the "Deploy" banner
  */
 export function usePolicyStudioSave(apiId: string | undefined) {
     const env = useEnvironment();
@@ -58,11 +55,7 @@ export function usePolicyStudioSave(apiId: string | undefined) {
                     await Promise.all(plansToUpdate.map((plan: Plan) => getAndUpdatePlanFlows(envId, apiId, plan.id, [...plan.flows])));
                 }
 
-                await Promise.all([
-                    queryClient.invalidateQueries({ queryKey: policyStudioKeys.api(envId, apiId) }),
-                    queryClient.invalidateQueries({ queryKey: policyStudioKeys.plans(envId, apiId) }),
-                    queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(envId, apiId) }),
-                ]);
+                await queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(envId, apiId) });
             } catch (error) {
                 console.error('[PolicyStudio] Save failed:', error);
                 throw error;
