@@ -18,6 +18,7 @@ package io.gravitee.apim.core.credential.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.credential.crud_service.CredentialCrudService;
 import io.gravitee.apim.core.credential.domain_service.CredentialAuditDomainService;
+import io.gravitee.apim.core.credential.domain_service.CredentialExpressionDomainService;
 import io.gravitee.apim.core.credential.domain_service.CredentialOwnerDomainService;
 import io.gravitee.apim.core.credential.domain_service.CredentialSecretsDomainService;
 import io.gravitee.apim.core.credential.model.Credential;
@@ -36,6 +37,7 @@ public class CreateCredentialUseCase {
     private final CredentialSecretsDomainService credentialSecretsDomainService;
     private final CredentialOwnerDomainService credentialOwnerDomainService;
     private final CredentialAuditDomainService credentialAuditDomainService;
+    private final CredentialExpressionDomainService credentialExpressionDomainService;
 
     public record Input(String credentialId, CredentialActor actor, NewCredentialCommand command) {}
 
@@ -46,6 +48,7 @@ public class CreateCredentialUseCase {
         var command = input.command();
         var owner = credentialOwnerDomainService.ownerFor(actor, command.ownerId());
         var credential = Credential.create(input.credentialId(), actor, command, owner, TimeProvider.instantNow());
+        credentialExpressionDomainService.requireValidExpressions(credential);
         credential.requireReferencesUsableBy(actor);
 
         if (command.isManaged()) {

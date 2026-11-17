@@ -31,12 +31,17 @@ public record SecretReference(String reference, String secretId) {
     static final String MANAGED_FLAGS = "?renewable=true&reloadOnChange=true";
 
     private static final String GRAVITEE_PROVIDER = "gravitee";
+    private static final String EXPRESSION_PREFIX = "{#";
     private static final int MAX_LENGTH = 2048;
     // The gateway's SecretURL trims every character up to U+0020, so a control character could hide a credential key from the check below.
     private static final Pattern WHITESPACE = Pattern.compile("[\\s\\p{Cc}\\p{Z}]");
     private static final Pattern TRAILING_SLASHES = Pattern.compile("/+$");
 
     public static SecretReference external(String field, String reference) {
+        if (reference != null && reference.startsWith(EXPRESSION_PREFIX)) {
+            // CredentialExpressionDomainService checks it as a whole, as only a parser can.
+            return new SecretReference(reference, null);
+        }
         if (
             reference == null ||
             !reference.startsWith("/") ||
@@ -98,8 +103,16 @@ public record SecretReference(String reference, String secretId) {
 
     /** Whether the reference names Gravitee's own secret store, the provider the gateway reads from its first path segment. */
     public boolean isInGraviteeStore() {
+        if (isExpression()) {
+            return false;
+        }
         var providerEnd = reference.indexOf('/', 1);
         return providerEnd > 0 && reference.substring(1, providerEnd).equalsIgnoreCase(GRAVITEE_PROVIDER);
+    }
+
+    /** Whether the gateway works out the secret path from the request, so saving the credential cannot check where it lands. */
+    public boolean isExpression() {
+        return reference.startsWith(EXPRESSION_PREFIX);
     }
 
     public static SecretReference managed(String path, String secretId) {
