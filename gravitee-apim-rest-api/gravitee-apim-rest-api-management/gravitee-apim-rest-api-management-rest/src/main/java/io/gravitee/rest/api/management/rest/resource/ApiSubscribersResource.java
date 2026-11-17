@@ -107,6 +107,7 @@ public class ApiSubscribersResource extends AbstractResource {
         ) {
             throw new ForbiddenAccessException();
         }
+        requireCanManageApi(api);
 
         SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
         subscriptionQuery.setApi(api);
@@ -169,6 +170,7 @@ public class ApiSubscribersResource extends AbstractResource {
         ) {
             throw new ForbiddenAccessException();
         }
+        requireCanManageApi(api);
 
         SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
         subscriptionQuery.setApi(api);
