@@ -1320,6 +1320,7 @@ gateway:
   name: gateway
 
   # Distributed sync configuration (requires replicaCount > 1 and a dedicated Hazelcast cluster per Helm release).
+  # Not available with gateway.type DaemonSet, which cannot add gateway pods one at a time.
   # Deploy one gateway Helm release per sharding tag set (e.g. external, internal, aog). All releases may share
   # the same Redis, but each must have a distinct Hazelcast cluster-name (clusterId) so distributed-event keys
   # are isolated. By default cluster-name is "<release-name>-<sharding-tags>"; override with

@@ -84,6 +84,23 @@ tests:
       - failedTemplate:
           errorMessage: "gateway.cluster.type must be set to hazelcast when gateway.distributedSync is enabled (cluster-scoped Redis requires a dedicated Hazelcast cluster per gateway Helm release)"
 
+  - it: deployment fails when distributedSync is enabled with a DaemonSet gateway
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        type: DaemonSet
+        cluster:
+          type: hazelcast
+        distributedSync:
+          enabled: true
+          type: redis
+          redis:
+            host: redis
+            port: 6379
+    asserts:
+      - failedTemplate:
+          errorMessage: "gateway.distributedSync cannot be enabled when gateway.type is DaemonSet (gateway pods must join the Hazelcast cluster one at a time, and a DaemonSet starts one on every node at once)"
+
   - it: configmap enables sync repository and distributed when distributedSync is set
     template: gateway/gateway-configmap.yaml
     set:

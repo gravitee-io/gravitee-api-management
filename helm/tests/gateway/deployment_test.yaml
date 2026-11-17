@@ -458,3 +458,12 @@ tests:
           path: spec.updateStrategy
           value:
             type: OnDelete
+
+  - it: Check an unknown gateway type fails
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        type: daemonSet
+    asserts:
+      - failedTemplate:
+          errorMessage: 'gateway.type must be Deployment, StatefulSet or DaemonSet, got "daemonSet"'
