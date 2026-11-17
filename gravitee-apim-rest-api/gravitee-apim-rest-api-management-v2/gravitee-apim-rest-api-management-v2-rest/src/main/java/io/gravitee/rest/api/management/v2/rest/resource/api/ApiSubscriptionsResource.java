@@ -165,6 +165,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         @QueryParam("expands") Set<String> expands,
         @BeanParam @Valid PaginationParam paginationParam
     ) {
+        requireCanManageApi(apiId);
         final Page<SubscriptionEntity> subscriptionPage = getSubscriptionEntityPage(
             applicationIds,
             planIds,
@@ -196,6 +197,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         @QueryParam("apiKey") String apiKey,
         @BeanParam @Valid PaginationParam paginationParam
     ) {
+        requireCanManageApi(apiId);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final Page<SubscriptionEntity> subscriptionPage = getSubscriptionEntityPage(
             applicationIds,
@@ -353,6 +355,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { RolePermissionAction.READ }) })
     public Response getApiSubscription(@PathParam("subscriptionId") String subscriptionId, @QueryParam("expands") Set<String> expands) {
+        requireCanManageApi(apiId);
         final SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
 
         if (!apiId.equals(subscriptionEntity.getReferenceId())) {
@@ -615,6 +618,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         @PathParam("subscriptionId") String subscriptionId,
         @BeanParam @Valid PaginationParam paginationParam
     ) {
+        requireCanManageApi(apiId);
         final SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
 
         if (!apiId.equals(subscriptionEntity.getReferenceId())) {
