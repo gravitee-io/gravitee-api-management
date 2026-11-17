@@ -698,17 +698,20 @@ reporters:
 #        log: my_policy # ILM policy for the gravitee-log-* indexes
 #        event_metrics: my_policy # ILM policy for the gravitee-event-metrics-* data streams
 #        decisions: my_policy # ILM policy for the gravitee-decisions-* data streams
+#      retention:              # data_stream mode on Elasticsearch 8.14+: data stream lifecycle, instead of a policy for the type
+#        monitor: 7d
+#        request: 30d
+#        health: 3d
+#        log: 7d
+#        event_metrics: 30d
+#        decisions: 30d
 #    index: gravitee
 #    index_per_type: true
 #    index_mode: daily         # "daily" indexes, suffixed with date. Or "ilm" managed indexes, without date. Or "data_stream"
-                                # data streams named <index>-<type>, on Elasticsearch 7.9+ or OpenSearch
-#    retention:                # data_stream mode on Elasticsearch 8.14+: data stream lifecycle of the types without a policy
-#      monitor: 7d
-#      request: 30d
-#      health: 3d
-#      log: 7d
-#      event_metrics: 30d
-#      decisions: 30d
+#                              # data streams named <index>-<type>, on Elasticsearch 7.9+ or OpenSearch
+#                              # OpenSearch in "data_stream" mode: leave lifecycle.policies and lifecycle.retention unset
+#                              # (the reporter refuses to start otherwise) and give the ISM policy an 'ism_template'
+#                              # matching the data streams
 #    flavor: auto              # "auto" detects Elastic Cloud Serverless from the cluster. Or "classic", or "serverless"
 #    bulk:
 #      actions: 1000           # Number of requests action before flush
