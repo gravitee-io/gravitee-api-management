@@ -45,6 +45,11 @@ describe('GioChartPieComponent background color', () => {
 
     const pieChart = await loader.getHarness(GioChartPieHarness);
     expect(await pieChart.displaysChart()).toBe(true);
-    expect(await pieChart.getChartColorScheme()).toBe('light');
+
+    // Highcharts 13 resolves its default colors (background, borders, labels) from light-dark() CSS variables: unless
+    // the chart's own container pins the light scheme, they follow the browser or OS dark appearance.
+    const container: HTMLElement | null = fixture.nativeElement.querySelector('.highcharts-container');
+    expect(container).not.toBeNull();
+    expect(container.style.getPropertyValue('color-scheme')).toBe('light');
   });
 });
