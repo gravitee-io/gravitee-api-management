@@ -50,8 +50,11 @@ spec:
   strategy: {{ toYaml .Values.gateway.deployment.strategy | nindent 4 }}
   {{- end }}
   {{- if eq .Values.gateway.type "DaemonSet" }}
-  updateStrategy:
-    type: RollingUpdate
+  {{- $updateStrategy := .Values.gateway.deployment.daemonSetUpdateStrategy }}
+  {{- if ne $updateStrategy.type "RollingUpdate" }}
+  {{- $updateStrategy = omit $updateStrategy "rollingUpdate" }}
+  {{- end }}
+  updateStrategy: {{ toYaml $updateStrategy | nindent 4 }}
   {{- end }}
   {{- if .Values.gateway.deployment.revisionHistoryLimit }}
   revisionHistoryLimit: {{ .Values.gateway.deployment.revisionHistoryLimit }}

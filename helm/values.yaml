@@ -1913,6 +1913,14 @@ gateway:
         # When gateway.distributedSync is enabled, set maxUnavailable: 0 and maxSurge: 1 (see distributed
         # sync comments at the top of the gateway section).
         maxUnavailable: 1
+    # Update strategy of the gateway when gateway.type is DaemonSet (deployment.strategy is then ignored).
+    # To keep a gateway on each node during a rollout, set rollingUpdate to maxSurge: 1 and maxUnavailable: 0
+    # (Kubernetes 1.22 or later).
+    # rollingUpdate is only rendered when type is RollingUpdate.
+    daemonSetUpdateStrategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxUnavailable: 1
     topologySpreadConstraints: []
     # revisionHistoryLimit: 10
 

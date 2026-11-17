@@ -413,11 +413,48 @@ tests:
       - isAPIVersion:
           of: apps/v1
       - equal:
-          path: spec.updateStrategy.type
-          value: RollingUpdate
+          path: spec.updateStrategy
+          value:
+            type: RollingUpdate
+            rollingUpdate:
+              maxUnavailable: 1
       - notExists:
           path: spec.replicas
       - notExists:
           path: spec.strategy
       - notExists:
           path: spec.serviceName
+
+  - it: Check DaemonSet update strategy can be overridden
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        type: DaemonSet
+        deployment:
+          daemonSetUpdateStrategy:
+            type: RollingUpdate
+            rollingUpdate:
+              maxSurge: 1
+              maxUnavailable: 0
+    asserts:
+      - equal:
+          path: spec.updateStrategy
+          value:
+            type: RollingUpdate
+            rollingUpdate:
+              maxSurge: 1
+              maxUnavailable: 0
+
+  - it: Check DaemonSet OnDelete update strategy drops the default rollingUpdate
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        type: DaemonSet
+        deployment:
+          daemonSetUpdateStrategy:
+            type: OnDelete
+    asserts:
+      - equal:
+          path: spec.updateStrategy
+          value:
+            type: OnDelete
