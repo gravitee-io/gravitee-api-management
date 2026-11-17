@@ -59,6 +59,8 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
     private static final String OTHER_ENV_ID = "other-env-id";
     private static final String DEFAULT_CONTENT = "# Default content";
     private static final Instant NOW = Instant.parse("2026-08-05T12:34:56Z");
+    private static final String ORPHAN_FOLDER_ERROR =
+        "This folder is not attached to a portal of its environment, so its files cannot be imported. An administrator needs to fix it.";
 
     private PageCreationFailingCrudService crudService;
     private PortalNavigationItemsQueryServiceInMemory queryService;
@@ -253,7 +255,7 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
         assertThat(List.of(firstRun.failed(), secondRun.failed())).containsExactly(1, 1);
         assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, folder.getId())).isEmpty();
         assertThat(pageContentCrudService.storage()).isEmpty();
-        assertThat(folder.getSource().getLastFetchError()).contains("portal does not exist");
+        assertThat(folder.getSource().getLastFetchError()).isEqualTo(ORPHAN_FOLDER_ERROR);
         assertThat(folder.getSource().getLastFetchAttemptAt()).isEqualTo(NOW);
     }
 
@@ -266,7 +268,7 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
 
         assertThat(output.failed()).isEqualTo(1);
         assertThat(navigationPortals.portalCrudService().storage()).isEmpty();
-        assertThat(folder.getSource().getLastFetchError()).contains("portal does not exist");
+        assertThat(folder.getSource().getLastFetchError()).isEqualTo(ORPHAN_FOLDER_ERROR);
     }
 
     @Test
