@@ -24,7 +24,6 @@ import { useCredential, useCredentialConsumers } from '../hooks/useCredentials';
 import { stubLayoutApis } from '../testing/stubLayoutApis';
 import type { Credential, CredentialConsumer } from '../types/credential';
 
-jest.mock('@gravitee/gamma-modules-sdk', () => ({ useEnvironment: () => ({ id: 'env-1' }) }));
 jest.mock('react-router-dom', () => ({ ...jest.requireActual('react-router-dom'), useNavigate: jest.fn(), useParams: jest.fn() }));
 jest.mock('../hooks/useCredentialActions');
 jest.mock('../hooks/useCredentials');
@@ -76,7 +75,7 @@ function givenActions({ canEdit = false, canDelete = false }: { canEdit?: boolea
 
 function renderPage() {
     renderWithGraphene(
-        <MemoryRouter>
+        <MemoryRouter initialEntries={['/environments/env-1/platform/credentials/cred-1']}>
             <CredentialDetailPage />
         </MemoryRouter>,
     );

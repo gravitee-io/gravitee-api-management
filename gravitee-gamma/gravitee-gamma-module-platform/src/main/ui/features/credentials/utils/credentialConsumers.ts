@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { primaryEnvironmentSegment } from '../../users/utils/crossModuleResourcePath';
+import { buildModuleNavPath } from '@gravitee/gamma-modules-sdk/routing';
+
 import type { CredentialConsumer } from '../types/credential';
 
 const TYPE_LABELS: Readonly<Record<string, string>> = {
@@ -21,18 +22,14 @@ const TYPE_LABELS: Readonly<Record<string, string>> = {
     AI_WORKSPACE: 'AI workspace',
 };
 
-const CONSUMER_PATHS: Readonly<Record<string, (id: string) => string>> = {
-    'aim:LLM_PROXY': id => `aim/llm-proxy/${id}`,
-    'aim:AI_WORKSPACE': id => `aim/ai-workspaces/${id}`,
+const CONSUMER_ROUTES: Readonly<Record<string, (id: string) => string>> = {
+    'aim:LLM_PROXY': id => `llm-proxy/${id}`,
+    'aim:AI_WORKSPACE': id => `ai-workspaces/${id}`,
 };
 
-export function credentialConsumerHref(
-    environment: { id: string; hrids?: readonly string[] },
-    consumer: CredentialConsumer,
-): string | undefined {
-    const path = CONSUMER_PATHS[`${consumer.module}:${consumer.type}`];
-    const segment = encodeURIComponent(primaryEnvironmentSegment(environment));
-    return path ? `/environments/${segment}/${path(encodeURIComponent(consumer.id))}` : undefined;
+export function credentialConsumerHref(consumer: CredentialConsumer, currentPathname: string): string | undefined {
+    const route = CONSUMER_ROUTES[`${consumer.module}:${consumer.type}`];
+    return route ? buildModuleNavPath(consumer.module, route(encodeURIComponent(consumer.id)), currentPathname) : undefined;
 }
 
 export function credentialConsumerTypeLabel(type: string): string {

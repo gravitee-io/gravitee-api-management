@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 import { Badge } from '@gravitee/graphene-core';
-import { Link } from 'react-router-dom';
-
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
+import { Link, useLocation } from 'react-router-dom';
 
 import type { CredentialConsumer } from '../types/credential';
 import { credentialConsumerHref, credentialConsumerTypeLabel } from '../utils/credentialConsumers';
 
 export function CredentialConsumerList({ consumers }: Readonly<{ consumers: readonly CredentialConsumer[] }>) {
-    const env = useEnvironment();
+    const { pathname } = useLocation();
 
     return (
         <ul className="space-y-2">
             {consumers.map(consumer => {
-                const href = env ? credentialConsumerHref(env, consumer) : undefined;
+                const href = credentialConsumerHref(consumer, pathname);
                 return (
                     <li key={`${consumer.module}:${consumer.type}:${consumer.id}`} className="flex items-center gap-2 text-sm">
                         {href ? (

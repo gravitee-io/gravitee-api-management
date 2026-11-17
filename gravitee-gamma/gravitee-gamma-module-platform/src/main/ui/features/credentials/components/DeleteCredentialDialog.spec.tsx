@@ -24,7 +24,6 @@ import { useDeleteCredential } from '../hooks/useCredentialMutations';
 import { useCredentialConsumers } from '../hooks/useCredentials';
 import { stubLayoutApis } from '../testing/stubLayoutApis';
 
-jest.mock('@gravitee/gamma-modules-sdk', () => ({ useEnvironment: () => ({ id: 'env-1' }) }));
 jest.mock('../hooks/useCredentials');
 jest.mock('../hooks/useCredentialMutations');
 jest.mock('../../../shared/notify', () => ({ notify: { success: jest.fn(), error: jest.fn() } }));
@@ -47,7 +46,7 @@ function deleteMutation(mutateAsync: jest.Mock) {
 
 function renderDialog(onDeleted = jest.fn()) {
     renderWithGraphene(
-        <MemoryRouter>
+        <MemoryRouter initialEntries={['/environments/env-1/platform/credentials/cred-1']}>
             <DeleteCredentialDialog credential={CREDENTIAL} open onOpenChange={jest.fn()} onDeleted={onDeleted} />
         </MemoryRouter>,
     );
