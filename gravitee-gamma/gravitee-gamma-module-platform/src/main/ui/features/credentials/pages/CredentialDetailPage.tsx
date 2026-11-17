@@ -13,29 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    Button,
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-    PageHeader,
-    Skeleton,
-} from '@gravitee/graphene-core';
-import { ArrowLeftIcon, MoreVerticalIcon, PencilIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
-import { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Button, Card, CardContent, CardHeader, CardTitle, PageHeader, Skeleton } from '@gravitee/graphene-core';
+import { ArrowLeftIcon } from '@gravitee/graphene-core/icons';
+import { useNavigate, useParams } from 'react-router-dom';
 
+import { CredentialActionsMenu } from '../components/CredentialActionsMenu';
 import { CredentialConsumerList } from '../components/CredentialConsumerList';
 import { CredentialDetailsCard } from '../components/CredentialDetailsCard';
 import { CredentialLoadError } from '../components/CredentialLoadError';
-import { DeleteCredentialDialog } from '../components/DeleteCredentialDialog';
-import { useCredentialActions } from '../hooks/useCredentialActions';
 import { useCredential, useCredentialConsumers } from '../hooks/useCredentials';
 import { CREDENTIAL_ROTATION_WINDOW_NOTE } from '../utils/credentialRotation';
 import { credentialStrategyLabel } from '../utils/credentialStrategies';
@@ -45,8 +30,6 @@ export function CredentialDetailPage() {
     const { credentialId } = useParams<{ credentialId: string }>();
     const { data: credential, isLoading, error, isFetching, refetch } = useCredential(credentialId);
     const { data: consumers, isError: consumersFailed } = useCredentialConsumers(credentialId);
-    const actions = useCredentialActions();
-    const [deleting, setDeleting] = useState(false);
 
     const backButton = (
         <div>
@@ -70,43 +53,13 @@ export function CredentialDetailPage() {
         );
     }
 
-    const canEdit = actions.canEdit(credential);
-    const canDelete = actions.canDelete(credential);
-
     return (
         <div className="flex flex-col gap-6">
             {backButton}
             <PageHeader
                 title={credential.name}
                 description={credentialStrategyLabel(credential.strategy)}
-                actions={
-                    (canEdit || canDelete) && (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" aria-label={`Actions for ${credential.name}`}>
-                                    <MoreVerticalIcon aria-hidden />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                {canEdit && (
-                                    <DropdownMenuItem asChild>
-                                        <Link to="edit">
-                                            <PencilIcon aria-hidden />
-                                            Edit
-                                        </Link>
-                                    </DropdownMenuItem>
-                                )}
-                                {canEdit && canDelete && <DropdownMenuSeparator />}
-                                {canDelete && (
-                                    <DropdownMenuItem variant="destructive" onSelect={() => setDeleting(true)}>
-                                        <Trash2Icon aria-hidden />
-                                        Delete
-                                    </DropdownMenuItem>
-                                )}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    )
-                }
+                actions={<CredentialActionsMenu credential={credential} editTo="edit" size="icon" onDeleted={() => navigate('..')} />}
             />
 
             <CredentialDetailsCard credential={credential} />
@@ -130,8 +83,6 @@ export function CredentialDetailPage() {
                     )}
                 </CardContent>
             </Card>
-
-            <DeleteCredentialDialog credential={credential} open={deleting} onOpenChange={setDeleting} onDeleted={() => navigate('..')} />
         </div>
     );
 }

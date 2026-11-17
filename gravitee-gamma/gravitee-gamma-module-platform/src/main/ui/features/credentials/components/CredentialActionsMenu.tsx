@@ -31,8 +31,21 @@ import type { Credential } from '../types/credential';
 
 export const CredentialDeletedContext = createContext<() => void>(() => {});
 
-export function CredentialActionsMenu({ credential }: Readonly<{ credential: Credential }>) {
-    const onDeleted = use(CredentialDeletedContext);
+interface CredentialActionsMenuProps {
+    readonly credential: Credential;
+    /** Relative to the route that renders the menu. */
+    readonly editTo?: string;
+    readonly onDeleted?: () => void;
+    readonly size?: 'icon' | 'icon-xs';
+}
+
+export function CredentialActionsMenu({
+    credential,
+    editTo = `${credential.id}/edit`,
+    onDeleted,
+    size = 'icon-xs',
+}: CredentialActionsMenuProps) {
+    const onDeletedInTheList = use(CredentialDeletedContext);
     const { canEdit, canDelete } = useCredentialActions();
     const [confirmingDelete, setConfirmingDelete] = useState(false);
     const triggerRef = useRef<HTMLButtonElement>(null);
@@ -48,14 +61,14 @@ export function CredentialActionsMenu({ credential }: Readonly<{ credential: Cre
         <div className="flex justify-end">
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button ref={triggerRef} variant="ghost" size="icon-xs" aria-label={`Actions for ${credential.name}`}>
+                    <Button ref={triggerRef} variant="ghost" size={size} aria-label={`Actions for ${credential.name}`}>
                         <MoreVerticalIcon aria-hidden />
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     {editable && (
                         <DropdownMenuItem asChild>
-                            <Link to={`${credential.id}/edit`}>
+                            <Link to={editTo}>
                                 <PencilIcon aria-hidden />
                                 Edit
                             </Link>
@@ -81,7 +94,7 @@ export function CredentialActionsMenu({ credential }: Readonly<{ credential: Cre
                     }}
                     onCloseAutoFocus={event => {
                         event.preventDefault();
-                        if (deleted.current) onDeleted();
+                        if (deleted.current) (onDeleted ?? onDeletedInTheList)();
                         else triggerRef.current?.focus();
                     }}
                 />

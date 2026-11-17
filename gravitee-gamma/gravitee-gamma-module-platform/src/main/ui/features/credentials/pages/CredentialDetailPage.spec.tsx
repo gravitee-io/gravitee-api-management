@@ -28,9 +28,23 @@ jest.mock('react-router-dom', () => ({ ...jest.requireActual('react-router-dom')
 jest.mock('../hooks/useCredentialActions');
 jest.mock('../hooks/useCredentials');
 jest.mock('../components/DeleteCredentialDialog', () => ({
-    DeleteCredentialDialog: ({ open, onDeleted }: { open: boolean; onDeleted: () => void }) =>
+    DeleteCredentialDialog: ({
+        open,
+        onDeleted,
+        onCloseAutoFocus,
+    }: {
+        open: boolean;
+        onDeleted: () => void;
+        onCloseAutoFocus: (event: Pick<Event, 'preventDefault'>) => void;
+    }) =>
         open ? (
-            <button type="button" onClick={onDeleted}>
+            <button
+                type="button"
+                onClick={() => {
+                    onDeleted();
+                    onCloseAutoFocus({ preventDefault: () => {} });
+                }}
+            >
                 Confirm delete
             </button>
         ) : null,
