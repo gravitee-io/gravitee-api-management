@@ -80,6 +80,7 @@ export function PolicyStudioPage() {
             entrypointsInfo={studioData.entrypointsInfo}
             endpointsInfo={studioData.endpointsInfo}
             flowExecution={studioData.flowExecution}
+            resources={studioData.resources}
             readOnly={studioData.isV2}
             onSave={onSave}
             onFetchPolicySchema={onFetchPolicySchema}
