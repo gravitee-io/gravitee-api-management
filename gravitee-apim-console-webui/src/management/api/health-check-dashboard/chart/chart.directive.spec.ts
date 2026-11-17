@@ -13,7 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as fs from 'fs';
+import * as path from 'path';
+
 import angular from 'angular';
+import * as Highcharts from 'highcharts';
 
 import ChartDirective from './chart.directive';
 
@@ -33,6 +37,25 @@ describe('ChartDirective', () => {
   let chartHost: HTMLElement;
   let widgetCard: HTMLElement;
   let displayOptions: (options: unknown) => void;
+  const documentRootClasses = document.documentElement.className;
+
+  const linkChart = (type: string) => {
+    const scope: ChartScope = {
+      type,
+      height: 180,
+      width: 600,
+      $watch: (_expression, listener) => (displayOptions = listener),
+      $on: () => {},
+    };
+
+    const directive = new ChartDirective() as unknown as LinkableDirective;
+    directive.link(scope, angular.element(chartHost), {}, { $window: window });
+  };
+
+  const applyApplicationShellRootClasses = () => {
+    const shell = new DOMParser().parseFromString(fs.readFileSync(path.resolve(__dirname, '../../../../index.html'), 'utf8'), 'text/html');
+    document.documentElement.className = shell.documentElement.className;
+  };
 
   beforeEach(() => {
     jest.useFakeTimers();
@@ -43,30 +66,44 @@ describe('ChartDirective', () => {
     chartWrapper.appendChild(chartHost);
     widgetCard.appendChild(chartWrapper);
     document.body.appendChild(widgetCard);
-
-    const scope: ChartScope = {
-      type: 'areaspline',
-      height: 180,
-      width: 600,
-      $watch: (_expression, listener) => (displayOptions = listener),
-      $on: () => {},
-    };
-
-    const directive = new ChartDirective() as unknown as LinkableDirective;
-    directive.link(scope, angular.element(chartHost), {}, { $window: window });
   });
 
   afterEach(() => {
+    Highcharts.charts.filter(chart => chart && widgetCard.contains(chart.container)).forEach(chart => chart.destroy());
     widgetCard.remove();
+    document.documentElement.className = documentRootClasses;
     jest.useRealTimers();
   });
 
   it('should render chart with the light color scheme, not the one of the browser or OS', () => {
+    linkChart('areaspline');
+
     displayOptions({ series: [{ name: 'Availability', data: [100, 80, 100] }] });
     jest.runOnlyPendingTimers();
 
     const renderedChart = chartHost.querySelector<HTMLElement>('.highcharts-container');
     expect(renderedChart).not.toBeNull();
     expect(renderedChart.style.getPropertyValue('color-scheme')).toBe('light');
+  });
+
+  it('should render the sparkline tooltip, which Highcharts appends to the body, inside the light color scheme root', () => {
+    applyApplicationShellRootClasses();
+    linkChart('sparkline');
+
+    displayOptions({ series: [{ name: 'Hits', data: [10, 40, 20, 70] }] });
+    jest.runOnlyPendingTimers();
+
+    const chart = Highcharts.charts.find(candidate => candidate && chartHost.contains(candidate.container));
+    // jsdom lays nothing out, so a pointer event cannot open the tooltip; asking for its label is
+    // what creates the container Highcharts appends to the body.
+    chart.tooltip.getLabel();
+
+    const tooltipContainer = document.body.querySelector<HTMLElement>('.highcharts-tooltip-container');
+    expect(tooltipContainer).not.toBeNull();
+    // The palette pins the color scheme on the chart container only, and this container is a
+    // sibling of it under the body. Highcharts' own stylesheet gives it `color-scheme: light dark`
+    // and overrides that with `light` under a `.highcharts-light` ancestor; jsdom computes no
+    // `color-scheme`, so the test asserts the ancestor that rule needs.
+    expect(tooltipContainer.closest('.highcharts-light')).toBe(document.documentElement);
   });
 });
