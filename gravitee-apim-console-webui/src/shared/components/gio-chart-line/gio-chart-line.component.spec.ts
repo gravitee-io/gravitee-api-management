@@ -17,10 +17,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
-import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 import { GioChartLineModule } from './gio-chart-line.module';
 import { GioChartLineComponent } from './gio-chart-line.component';
+import { GioChartLineHarness } from './gio-chart-line.harness';
 
 import { provideHighchartsTesting } from '../../testing';
 
@@ -42,9 +42,8 @@ describe('GioChartLineComponent', () => {
     fixture.componentInstance.options = { pointStart: 1728992010000, pointInterval: 30000 };
     fixture.detectChanges();
 
-    await loader.getHarness(DivHarness.with({ selector: '.gio-chart-line' }));
-
-    const chartContainer: HTMLElement = fixture.nativeElement.querySelector('.highcharts-container');
-    expect(chartContainer.style.getPropertyValue('color-scheme')).toBe('light');
+    const lineChart = await loader.getHarness(GioChartLineHarness);
+    expect(await lineChart.displaysChart()).toBeTruthy();
+    expect(await lineChart.getChartColorScheme()).toBe('light');
   });
 });
