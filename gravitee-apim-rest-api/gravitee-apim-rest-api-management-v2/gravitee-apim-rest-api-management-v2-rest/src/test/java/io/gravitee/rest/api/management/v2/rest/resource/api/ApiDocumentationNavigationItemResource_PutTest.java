@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -71,6 +72,7 @@ class ApiDocumentationNavigationItemResource_PutTest extends AbstractResourceTes
 
     @BeforeEach
     public void init() {
+        apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("API").environmentId(ENVIRONMENT).build()));
         EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
@@ -81,6 +83,7 @@ class ApiDocumentationNavigationItemResource_PutTest extends AbstractResourceTes
 
     @AfterEach
     public void cleanUp() {
+        apiCrudService.reset();
         GraviteeContext.cleanContext();
         portalNavigationItemCrudService.reset();
     }
@@ -275,6 +278,7 @@ class ApiDocumentationNavigationItemResource_PutTest extends AbstractResourceTes
     private static PortalNavigationPage aPageOwnedBy(String apiId, String title, int order) {
         var page = PortalNavigationItemFixtures.aPage(title, null)
             .toBuilder()
+            .organizationId(ORGANIZATION)
             .reference(new NavigationItemReference.ApiReference(apiId))
             .order(order)
             .published(false)
@@ -287,6 +291,7 @@ class ApiDocumentationNavigationItemResource_PutTest extends AbstractResourceTes
     private static PortalNavigationFolder aFolderOwnedBy(String apiId) {
         var folder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemId.random().json(), "Guides")
             .toBuilder()
+            .organizationId(ORGANIZATION)
             .reference(new NavigationItemReference.ApiReference(apiId))
             .order(0)
             .published(false)

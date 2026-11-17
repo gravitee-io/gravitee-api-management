@@ -129,13 +129,7 @@ class SegmentConflictRuleTest {
 
     @Test
     void validate_throws_when_another_item_in_the_pending_batch_claims_same_parent_and_segment() {
-        var pendingClaim = new PendingSegmentClaim(
-            OTHER_ID,
-            PARENT_ID,
-            "docs",
-            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")),
-            PendingSegmentClaim.Intent.CLAIM
-        );
+        var pendingClaim = new PendingSegmentClaim(OTHER_ID, PARENT_ID, "docs", PORTAL_REFERENCE, PendingSegmentClaim.Intent.CLAIM);
         var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of(pendingClaim));
         var item = item(ITEM_ID, "docs", PortalNavigationItemType.FOLDER, folderLocation("/docs"));
 
@@ -147,13 +141,7 @@ class SegmentConflictRuleTest {
     @Test
     void validate_throws_when_a_pending_update_in_the_same_batch_targets_the_same_parent_and_segment() {
         // A create at (PARENT_ID, "docs") collides with a pending update moving another item to the same slot.
-        var pendingUpdateClaim = new PendingSegmentClaim(
-            OTHER_ID,
-            PARENT_ID,
-            "docs",
-            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")),
-            PendingSegmentClaim.Intent.CLAIM
-        );
+        var pendingUpdateClaim = new PendingSegmentClaim(OTHER_ID, PARENT_ID, "docs", PORTAL_REFERENCE, PendingSegmentClaim.Intent.CLAIM);
         var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of(pendingUpdateClaim));
         var newItem = item(ITEM_ID, "docs", PortalNavigationItemType.FOLDER, folderLocation("/docs"));
 
@@ -166,13 +154,7 @@ class SegmentConflictRuleTest {
     void validate_accepts_create_when_persisted_sibling_is_being_vacated_by_a_pending_update_in_the_same_batch() {
         // A same-batch RELEASE claim frees the persisted sibling's slot for a new create.
         navigationItemsQueryService.storage().add(existingFolder(OTHER_ID, PARENT_ID, "docs"));
-        var releaseClaim = new PendingSegmentClaim(
-            OTHER_ID,
-            PARENT_ID,
-            "docs",
-            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")),
-            PendingSegmentClaim.Intent.RELEASE
-        );
+        var releaseClaim = new PendingSegmentClaim(OTHER_ID, PARENT_ID, "docs", PORTAL_REFERENCE, PendingSegmentClaim.Intent.RELEASE);
         var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of(releaseClaim));
         var newItem = item(ITEM_ID, "docs", PortalNavigationItemType.FOLDER, folderLocation("/docs"));
 
@@ -185,13 +167,7 @@ class SegmentConflictRuleTest {
         // and the RELEASE claim excuses the collision the incoming update would otherwise hit.
         navigationItemsQueryService.storage().add(existingFolder(OTHER_ID, PARENT_ID, "docs"));
         var incomingExisting = existingFolder(ITEM_ID, PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), "docs");
-        var releaseClaim = new PendingSegmentClaim(
-            OTHER_ID,
-            PARENT_ID,
-            "docs",
-            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")),
-            PendingSegmentClaim.Intent.RELEASE
-        );
+        var releaseClaim = new PendingSegmentClaim(OTHER_ID, PARENT_ID, "docs", PORTAL_REFERENCE, PendingSegmentClaim.Intent.RELEASE);
         var ctx = new UpdateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of(releaseClaim));
         var toUpdate = UpdatePortalNavigationItem.builder()
             .type(PortalNavigationItemType.FOLDER)
@@ -269,16 +245,21 @@ class SegmentConflictRuleTest {
     }
 
     @Test
-    void validate_throws_when_a_root_create_collides_in_batch_with_a_portal_attached_root() {
+    void validate_accepts_a_root_create_when_the_batch_claim_belongs_to_another_portal() {
         var attachedRoot = rootItem(OTHER_ID, "docs", ATTACHED_PORTAL);
         var ctx = batchOf(PendingSegmentClaim.forCreate(attachedRoot));
-        var consoleRoot = rootItem(
-            ITEM_ID,
-            "docs",
-            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000"))
-        );
+        var consoleRoot = rootItem(ITEM_ID, "docs", PORTAL_REFERENCE);
 
-        assertThatThrownBy(() -> rule.validate(consoleRoot, ENV_ID, ctx))
+        assertThatCode(() -> rule.validate(consoleRoot, ENV_ID, ctx)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void validate_throws_when_two_roots_of_the_same_portal_claim_the_same_segment_in_batch() {
+        var sibling = rootItem(OTHER_ID, "docs", PORTAL_REFERENCE);
+        var ctx = batchOf(PendingSegmentClaim.forCreate(sibling));
+        var item = rootItem(ITEM_ID, "docs", PORTAL_REFERENCE);
+
+        assertThatThrownBy(() -> rule.validate(item, ENV_ID, ctx))
             .isInstanceOf(PathConflictException.class)
             .hasMessageContaining("docs");
     }
@@ -355,6 +336,7 @@ class SegmentConflictRuleTest {
             .area(PortalArea.TOP_NAVBAR)
             .order(0)
             .parentId(PARENT_ID)
+            .reference(PORTAL_REFERENCE)
             .visibility(PortalVisibility.PUBLIC)
             .published(true)
             .automationMetadata(meta)

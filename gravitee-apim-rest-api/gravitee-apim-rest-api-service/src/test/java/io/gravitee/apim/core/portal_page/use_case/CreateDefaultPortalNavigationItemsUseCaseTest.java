@@ -429,6 +429,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
 
     @Test
     void should_add_only_the_apis_section_at_the_end_of_a_menu_that_already_exists() {
+        navigationPortals.givenDefaultPortalForNavigationFixtures();
         var products = PortalNavigationItemFixtures.aFolder("Products");
         products.setOrder(0);
         var support = PortalNavigationItemFixtures.aPage("Support", null);

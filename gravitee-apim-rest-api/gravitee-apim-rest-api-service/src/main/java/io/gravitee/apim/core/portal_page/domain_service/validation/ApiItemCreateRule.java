@@ -20,6 +20,7 @@ import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -61,7 +62,7 @@ public class ApiItemCreateRule implements CreatePortalNavigationItemValidationRu
             throw InvalidPortalNavigationItemDataException.fieldIsEmpty("apiId");
         }
         var targetApiProductId = ApiProductAncestorValidation.findApiProductId(parentId, ctx);
-        if (isApiIdAlreadyUsed(apiId, targetApiProductId.orElse(null), navigationItems, itemsById)) {
+        if (isApiIdAlreadyUsed(apiId, targetApiProductId.orElse(null), item.getReference(), navigationItems, itemsById)) {
             throw InvalidPortalNavigationItemDataException.apiIdAlreadyExists(apiId);
         }
         ApiAncestorValidation.ensureNoApiInAncestors(parentId, ctx);
@@ -71,6 +72,7 @@ public class ApiItemCreateRule implements CreatePortalNavigationItemValidationRu
     private static boolean isApiIdAlreadyUsed(
         @NonNull String apiId,
         String targetApiProductId,
+        NavigationItemReference reference,
         List<PortalNavigationItem> navigationItems,
         Map<PortalNavigationItemId, PortalNavigationItem> itemsById
     ) {
@@ -79,6 +81,7 @@ public class ApiItemCreateRule implements CreatePortalNavigationItemValidationRu
             .filter(PortalNavigationApi.class::isInstance)
             .map(PortalNavigationApi.class::cast)
             .filter(apiItem -> apiId.equals(apiItem.getApiId()))
+            .filter(apiItem -> Objects.equals(reference, apiItem.getReference()))
             .anyMatch(apiItem ->
                 Objects.equals(
                     targetApiProductId,

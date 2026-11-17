@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidUrlFormatException;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.OpenApiConfiguration;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.RedocConfiguration;
@@ -127,7 +128,7 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
                 navigationItemId,
                 toUpdate,
                 propagatePublishToChildren,
-                true
+                new NavigationItemReference.ApiReference(apiId)
             )
         );
         return mapper.map(output.updatedItem());
@@ -141,7 +142,12 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
         apiOwnedNavigationDomainService.requireOwnedItem(environmentId, apiId, itemId);
 
         deletePortalNavigationItemUseCase.execute(
-            new DeletePortalNavigationItemUseCase.Input(GraviteeContext.getCurrentOrganization(), environmentId, itemId)
+            new DeletePortalNavigationItemUseCase.Input(
+                GraviteeContext.getCurrentOrganization(),
+                environmentId,
+                itemId,
+                new NavigationItemReference.ApiReference(apiId)
+            )
         );
         return Response.noContent().build();
     }
@@ -157,7 +163,14 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
         var environmentId = GraviteeContext.getCurrentEnvironment();
         apiOwnedNavigationDomainService.requireOwnedItem(environmentId, apiId, PortalNavigationItemId.of(navigationItemId));
 
-        var output = fetchPortalNavigationItemUseCase.execute(new FetchPortalNavigationItemUseCase.Input(environmentId, navigationItemId));
+        var output = fetchPortalNavigationItemUseCase.execute(
+            new FetchPortalNavigationItemUseCase.Input(
+                GraviteeContext.getCurrentOrganization(),
+                environmentId,
+                navigationItemId,
+                new NavigationItemReference.ApiReference(apiId)
+            )
+        );
         return mapper.map(output);
     }
 
@@ -180,7 +193,8 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
             new GetPortalPageContentUseCase.Input(
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
-                page.getPortalPageContentId()
+                page.getPortalPageContentId(),
+                new NavigationItemReference.ApiReference(apiId)
             )
         );
         return PortalPageContentMapper.INSTANCE.map(output.content());
@@ -208,7 +222,8 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
                 GraviteeContext.getCurrentOrganization(),
                 environmentId,
                 page.getPortalPageContentId().json(),
-                update
+                update,
+                new NavigationItemReference.ApiReference(apiId)
             )
         );
         return PortalPageContentMapper.INSTANCE.map(output.portalPageContent());
@@ -234,7 +249,8 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
                 GraviteeContext.getCurrentOrganization(),
                 environmentId,
                 page.getPortalPageContentId().json(),
-                viewerSettings
+                viewerSettings,
+                new NavigationItemReference.ApiReference(apiId)
             )
         );
         return PortalPageContentMapper.INSTANCE.map(output.portalPageContent());

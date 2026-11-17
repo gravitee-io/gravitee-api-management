@@ -15,16 +15,23 @@
  */
 package io.gravitee.apim.core.portal_page.use_case;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static fixtures.core.model.PortalPageContentFixtures.ENVIRONMENT_ID;
 import static fixtures.core.model.PortalPageContentFixtures.ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.core.model.PortalPageContentFixtures;
+import inmemory.ApiCrudServiceInMemory;
+import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -36,18 +43,58 @@ class GetPortalPageContentUseCaseTest {
     private static final PortalPageContentId CONTENT_ID = PortalPageContentId.of("00000000-0000-0000-0000-000000000001");
 
     private GetPortalPageContentUseCase useCase;
+    private PortalPageContentQueryServiceInMemory queryService;
+    private PortalNavigationItemsQueryServiceInMemory navigation;
 
     @BeforeEach
     void setUp() {
-        PortalPageContentQueryServiceInMemory queryService = new PortalPageContentQueryServiceInMemory();
-        useCase = new GetPortalPageContentUseCase(queryService);
+        queryService = new PortalPageContentQueryServiceInMemory();
+        navigation = new PortalNavigationItemsQueryServiceInMemory();
+        var page = PortalNavigationItemFixtures.aPage("Welcome", null)
+            .toBuilder()
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .portalPageContentId(CONTENT_ID)
+            .build();
+        page.markAsRoot();
+        navigation.initWith(List.of(page));
+        useCase = new GetPortalPageContentUseCase(
+            PortalNavigationUseCaseTestFixtures.access(
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                navigation,
+                queryService,
+                new ApiCrudServiceInMemory()
+            )
+        );
 
         queryService.initWith(PortalPageContentFixtures.samplePortalPageContents());
     }
 
     @Test
+    void should_reject_missing_content_even_when_the_navigation_association_is_accessible() {
+        queryService.reset();
+
+        assertThatThrownBy(() ->
+            useCase.execute(new GetPortalPageContentUseCase.Input(ORGANIZATION_ID, ENVIRONMENT_ID, CONTENT_ID, PORTAL_REFERENCE))
+        ).isInstanceOf(PageContentNotFoundException.class);
+    }
+
+    @Test
+    void should_not_return_existing_content_associated_with_another_portal_in_the_same_environment() {
+        navigation
+            .storage()
+            .getFirst()
+            .changeOwner(new NavigationItemReference.PortalReference(PortalId.of("22222222-2222-2222-2222-222222222222")));
+
+        assertThatThrownBy(() ->
+            useCase.execute(new GetPortalPageContentUseCase.Input(ORGANIZATION_ID, ENVIRONMENT_ID, CONTENT_ID, PORTAL_REFERENCE))
+        ).isInstanceOf(PageContentNotFoundException.class);
+    }
+
+    @Test
     void should_return_portal_page_content_when_found() {
-        var result = useCase.execute(new GetPortalPageContentUseCase.Input(ORGANIZATION_ID, ENVIRONMENT_ID, CONTENT_ID));
+        var result = useCase.execute(new GetPortalPageContentUseCase.Input(ORGANIZATION_ID, ENVIRONMENT_ID, CONTENT_ID, PORTAL_REFERENCE));
 
         assertThat(result.content()).isInstanceOf(GraviteeMarkdownPageContent.class);
         assertThat(result.content().getId()).isEqualTo(CONTENT_ID);
@@ -60,7 +107,9 @@ class GetPortalPageContentUseCaseTest {
     void should_throw_when_content_not_found() {
         var unknownId = PortalPageContentId.of("00000000-0000-0000-0000-000000000002");
 
-        assertThatThrownBy(() -> useCase.execute(new GetPortalPageContentUseCase.Input(ORGANIZATION_ID, ENVIRONMENT_ID, unknownId)))
+        assertThatThrownBy(() ->
+            useCase.execute(new GetPortalPageContentUseCase.Input(ORGANIZATION_ID, ENVIRONMENT_ID, unknownId, PORTAL_REFERENCE))
+        )
             .isInstanceOf(PageContentNotFoundException.class)
             .hasMessage("Page content not found")
             .extracting(ex -> ((PageContentNotFoundException) ex).getId())
@@ -69,7 +118,20 @@ class GetPortalPageContentUseCaseTest {
 
     @Test
     void should_throw_when_content_belongs_to_another_environment() {
-        assertThatThrownBy(() -> useCase.execute(new GetPortalPageContentUseCase.Input(ORGANIZATION_ID, "other-env", CONTENT_ID)))
+        queryService.initWith(
+            List.of(
+                PortalPageContentFixtures.aGraviteeMarkdownPageContent(
+                    CONTENT_ID,
+                    ORGANIZATION_ID,
+                    "other-env",
+                    PortalPageContentFixtures.CONTENT
+                )
+            )
+        );
+
+        assertThatThrownBy(() ->
+            useCase.execute(new GetPortalPageContentUseCase.Input(ORGANIZATION_ID, ENVIRONMENT_ID, CONTENT_ID, PORTAL_REFERENCE))
+        )
             .isInstanceOf(PageContentNotFoundException.class)
             .hasMessage("Page content not found")
             .extracting(ex -> ((PageContentNotFoundException) ex).getId())
@@ -78,7 +140,20 @@ class GetPortalPageContentUseCaseTest {
 
     @Test
     void should_throw_when_content_belongs_to_another_organization() {
-        assertThatThrownBy(() -> useCase.execute(new GetPortalPageContentUseCase.Input("other-org", ENVIRONMENT_ID, CONTENT_ID)))
+        queryService.initWith(
+            List.of(
+                PortalPageContentFixtures.aGraviteeMarkdownPageContent(
+                    CONTENT_ID,
+                    "other-org",
+                    ENVIRONMENT_ID,
+                    PortalPageContentFixtures.CONTENT
+                )
+            )
+        );
+
+        assertThatThrownBy(() ->
+            useCase.execute(new GetPortalPageContentUseCase.Input(ORGANIZATION_ID, ENVIRONMENT_ID, CONTENT_ID, PORTAL_REFERENCE))
+        )
             .isInstanceOf(PageContentNotFoundException.class)
             .hasMessage("Page content not found")
             .extracting(ex -> ((PageContentNotFoundException) ex).getId())

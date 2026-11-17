@@ -99,6 +99,8 @@ public class PortalNavigationItemsQueryServiceInMemory
             .filter(
                 item ->
                     (criteria.getEnvironmentId() == null || criteria.getEnvironmentId().equals(item.getEnvironmentId())) &&
+                    (criteria.getIds() == null || criteria.getIds().contains(item.getId())) &&
+                    (criteria.getReference() == null || criteria.getReference().equals(item.getReference())) &&
                     (criteria.getArea() == null || criteria.getArea().equals(item.getArea())) &&
                     (PARENT_ID_FILTER.test(item)) &&
                     (criteria.getPublished() == null || criteria.getPublished().equals(item.getPublished())) &&

@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.domain_service.validation;
 
 import io.gravitee.apim.core.portal_page.exception.ApiProductNavigationItemAlreadyExistsException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import java.util.HashSet;
 import java.util.List;
@@ -25,16 +26,17 @@ public class DuplicateApiProductIdsInPayloadRule implements BulkCreatePortalNavi
 
     @Override
     public void validate(List<CreatePortalNavigationItem> items, String environmentId, CreateValidationContext ctx) {
-        var seenApiProductIds = new HashSet<String>();
+        var seenApiProductIds = new HashSet<ProductReference>();
         items
             .stream()
             .filter(item -> item.getType() == PortalNavigationItemType.API_PRODUCT)
-            .map(CreatePortalNavigationItem::getApiProductId)
-            .filter(apiProductId -> apiProductId != null && !apiProductId.isBlank())
-            .forEach(apiProductId -> {
-                if (!seenApiProductIds.add(apiProductId)) {
-                    throw new ApiProductNavigationItemAlreadyExistsException(apiProductId);
+            .filter(item -> item.getApiProductId() != null && !item.getApiProductId().isBlank())
+            .forEach(item -> {
+                if (!seenApiProductIds.add(new ProductReference(item.getApiProductId(), item.getReference()))) {
+                    throw new ApiProductNavigationItemAlreadyExistsException(item.getApiProductId());
                 }
             });
     }
+
+    private record ProductReference(String apiProductId, NavigationItemReference reference) {}
 }

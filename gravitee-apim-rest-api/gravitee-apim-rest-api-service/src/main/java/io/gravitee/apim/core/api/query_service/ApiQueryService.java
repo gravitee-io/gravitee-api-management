@@ -22,6 +22,7 @@ import io.gravitee.apim.core.api.model.Sortable;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public interface ApiQueryService {
@@ -31,4 +32,6 @@ public interface ApiQueryService {
     Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId);
 
     Page<Api> findByIntegrationId(String integrationId, Pageable pageable);
+
+    Set<String> findExistingIds(Set<String> ids, String environmentId);
 }

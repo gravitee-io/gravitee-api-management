@@ -19,6 +19,7 @@ import static fixtures.core.model.PortalNavigationItemFixtures.API1_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -45,6 +46,7 @@ import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationDefaultPageDomainService;
@@ -78,6 +80,8 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class BulkCreatePortalNavigationItemsUseCaseTest {
+
+    private static final PortalId PORTAL_ID = ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId();
 
     private BulkCreatePortalNavigationItemUseCase useCase;
     private PortalNavigationItemsCrudServiceInMemory crudService;
@@ -135,6 +139,13 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             new ApiOwnedNavigationDomainService(queryService, crudService)
         );
         useCase = new BulkCreatePortalNavigationItemUseCase(
+            PortalNavigationUseCaseTestFixtures.access(
+                ORG_ID,
+                ENV_ID,
+                queryService,
+                PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
+                apiCrudService
+            ),
             domainService,
             validatorService,
             creationExpansionDomainService,
@@ -163,7 +174,9 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         var firstProduct = productItem("product-1", "First product", 0);
         var secondProduct = productItem("product-2", "Second product", 1);
 
-        var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(firstProduct, secondProduct)));
+        var output = useCase.execute(
+            new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(firstProduct, secondProduct), PORTAL_ID)
+        );
 
         assertThat(output.items())
             .extracting(item -> ((io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct) item).getApiProductId())
@@ -183,7 +196,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         apiProductQueryService.initWith(List.of(ApiProduct.builder().id("product-1").environmentId(ENV_ID).apiIds(Set.of()).build()));
         var product = productItem("product-1", "Product without APIs", 0);
 
-        var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(product)));
+        var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(product), PORTAL_ID));
 
         assertThat(output.items()).singleElement();
         assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, output.items().getFirst().getId()))
@@ -213,7 +226,9 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         var page = documentation(PortalNavigationItemType.PAGE, "Overview", folder.getId());
         var link = documentation(PortalNavigationItemType.LINK, "Reference", api.getId()).toBuilder().order(1).build();
 
-        var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(api, folder, page, link)));
+        var output = useCase.execute(
+            new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(api, folder, page, link), PORTAL_ID)
+        );
 
         assertThat(output.items())
             .extracting(PortalNavigationItem::getId)
@@ -264,7 +279,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             .when(crudService)
             .create(any());
 
-        var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(page, folder)));
+        var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(page, folder), PORTAL_ID));
 
         assertThat(output.items()).extracting(PortalNavigationItem::getId).containsExactly(page.getId(), folder.getId());
         assertThat(output.items()).allSatisfy(item -> {
@@ -293,6 +308,13 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             .when(validator)
             .validateAll(anyList(), eq(ENV_ID));
         var useCaseWithConcurrentDelete = new BulkCreatePortalNavigationItemUseCase(
+            PortalNavigationUseCaseTestFixtures.access(
+                ORG_ID,
+                ENV_ID,
+                queryService,
+                PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
+                apiCrudService
+            ),
             domainService,
             validator,
             creationExpansionDomainService,
@@ -302,7 +324,9 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         );
 
         assertThrows(ParentNotFoundException.class, () ->
-            useCaseWithConcurrentDelete.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(page, folder)))
+            useCaseWithConcurrentDelete.execute(
+                new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(page, folder), PORTAL_ID)
+            )
         );
 
         assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, page.getId())).isNull();
@@ -318,7 +342,9 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         var folder = documentation(PortalNavigationItemType.FOLDER, "Guides", api.getId()).toBuilder().order(1).build();
         var link = documentation(PortalNavigationItemType.LINK, "Reference", api.getId()).toBuilder().order(2).build();
 
-        var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(page, folder, link)));
+        var output = useCase.execute(
+            new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(page, folder, link), PORTAL_ID)
+        );
 
         assertThat(output.items()).extracting(PortalNavigationItem::getId).containsExactly(page.getId(), folder.getId(), link.getId());
         assertThat(output.items()).allSatisfy(item -> {
@@ -335,23 +361,31 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
     }
 
     @Test
-    void should_keep_api_scoped_bulk_response_canonical_without_rendered_parent() {
+    void should_keep_nested_api_documentation_canonical_when_bulk_created_through_its_portal_listing() {
         apiCrudService.initWith(List.of(Api.builder().id("api-1").name("API 1").environmentId(ENV_ID).build()));
         var reference = new NavigationItemReference.ApiReference("api-1");
-        var folder = documentation(PortalNavigationItemType.FOLDER, "Guides", null).toBuilder().reference(reference).build();
-        var page = documentation(PortalNavigationItemType.PAGE, "Overview", folder.getId()).toBuilder().reference(reference).build();
+        var listing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID));
+        var folder = documentation(PortalNavigationItemType.FOLDER, "Guides", listing.getId());
+        var page = documentation(PortalNavigationItemType.PAGE, "Overview", folder.getId());
 
-        var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(folder, page)));
+        var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(folder, page), PORTAL_ID));
 
         assertThat(output.items()).extracting(PortalNavigationItem::getId).containsExactly(folder.getId(), page.getId());
-        assertThat(output.items().getFirst().getParentId()).isNull();
-        assertThat(output.items().getFirst().getRootId()).isEqualTo(folder.getId());
+        assertThat(output.items().getFirst().getParentId()).isEqualTo(listing.getId());
+        assertThat(output.items().getFirst().getRootId()).isEqualTo(listing.getRootId());
         assertThat(output.items().getLast().getParentId()).isEqualTo(folder.getId());
         assertThat(output.items().getLast().getRootId()).isEqualTo(folder.getId());
         assertThat(output.items()).allSatisfy(item -> {
             assertThat(item.getReference()).isEqualTo(reference);
-            assertThat(item).usingRecursiveComparison().isEqualTo(queryService.findByIdAndEnvironmentId(ENV_ID, item.getId()));
+            var stored = queryService.findByIdAndEnvironmentId(ENV_ID, item.getId());
+            assertThat(item).usingRecursiveComparison().ignoringFields("parentId", "rootId").isEqualTo(stored);
         });
+        var storedFolder = queryService.findByIdAndEnvironmentId(ENV_ID, folder.getId());
+        assertThat(storedFolder.getParentId()).isNull();
+        assertThat(storedFolder.getRootId()).isEqualTo(folder.getId());
+        var storedPage = queryService.findByIdAndEnvironmentId(ENV_ID, page.getId());
+        assertThat(storedPage.getParentId()).isEqualTo(folder.getId());
+        assertThat(storedPage.getRootId()).isEqualTo(folder.getId());
     }
 
     @Test
@@ -365,7 +399,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         var page = documentation(PortalNavigationItemType.PAGE, "Sourced overview", api.getId()).toBuilder().source(source).build();
         var folder = documentation(PortalNavigationItemType.FOLDER, "Guides", api.getId()).toBuilder().order(1).build();
 
-        var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(page, folder)));
+        var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(page, folder), PORTAL_ID));
 
         assertThat(output.items()).extracting(PortalNavigationItem::getId).containsExactly(page.getId(), folder.getId());
         assertThat(output.items()).allSatisfy(item -> {
@@ -407,7 +441,9 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         var standalonePage = documentation(PortalNavigationItemType.PAGE, "Standalone overview", standaloneApi.getId());
         var productPage = documentation(PortalNavigationItemType.PAGE, "Product overview", productApi.getId());
 
-        var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(standalonePage, productPage)));
+        var output = useCase.execute(
+            new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(standalonePage, productPage), PORTAL_ID)
+        );
 
         assertThat(output.items()).extracting(PortalNavigationItem::getId).containsExactly(standalonePage.getId(), productPage.getId());
         assertThat(output.items().getFirst().getReference()).isEqualTo(new NavigationItemReference.ApiReference("api-1"));
@@ -446,7 +482,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         var existingItems = List.copyOf(queryService.storage());
 
         var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
-            useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(api, folder, nestedItem)))
+            useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(api, folder, nestedItem), PORTAL_ID))
         );
 
         assertThat(exception.getMessage()).isEqualTo(InvalidPortalNavigationItemDataException.parentHierarchyContainsApi().getMessage());
@@ -467,7 +503,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         var existingItems = List.copyOf(queryService.storage());
 
         var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
-            useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(folder, api)))
+            useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(folder, api), PORTAL_ID))
         );
 
         assertThat(exception.getMessage()).isEqualTo(InvalidPortalNavigationItemDataException.cyclicParentHierarchy().getMessage());
@@ -482,7 +518,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         var existingItems = List.copyOf(queryService.storage());
 
         assertThrows(ItemAlreadyExistsException.class, () ->
-            useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(first, duplicate)))
+            useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(first, duplicate), PORTAL_ID))
         );
 
         assertThat(queryService.storage()).containsExactlyElementsOf(existingItems);
@@ -511,7 +547,9 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         secondItem.setParentId(PortalNavigationItemId.of(APIS_ID));
 
         // When
-        final var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(firstItem, secondItem)));
+        final var output = useCase.execute(
+            new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(firstItem, secondItem), PORTAL_ID)
+        );
 
         // Then
         assertThat(output.items()).hasSize(2);
@@ -549,6 +587,13 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         // Given
         final var domainService = mock(PortalNavigationItemDomainService.class);
         final var useCase = new BulkCreatePortalNavigationItemUseCase(
+            PortalNavigationUseCaseTestFixtures.access(
+                ORG_ID,
+                ENV_ID,
+                queryService,
+                PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
+                apiCrudService
+            ),
             domainService,
             validatorService,
             creationExpansionDomainService,
@@ -577,7 +622,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
 
         // When
         final var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
-            useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(validItem, invalidApiItem)))
+            useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(validItem, invalidApiItem), PORTAL_ID))
         );
 
         // Then
@@ -592,7 +637,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         var creationExpansionDomainService = mock(PortalNavigationItemCreationExpansionDomainService.class);
         var defaultPageDomainService = mock(PortalNavigationDefaultPageDomainService.class);
         var rootId = PortalNavigationItemId.random();
-        var root = productItem("product-1", "Product", 0).toBuilder().id(rootId).build();
+        var root = productItem("product-1", "Product", 0).toBuilder().id(rootId).reference(PORTAL_REFERENCE).build();
         var firstChild = CreatePortalNavigationItem.builder()
             .id(PortalNavigationItemId.random())
             .type(PortalNavigationItemType.API)
@@ -609,6 +654,13 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             new IllegalStateException("persistence failure")
         );
         var useCase = new BulkCreatePortalNavigationItemUseCase(
+            PortalNavigationUseCaseTestFixtures.access(
+                ORG_ID,
+                ENV_ID,
+                queryService,
+                PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
+                apiCrudService
+            ),
             domainService,
             validatorService,
             creationExpansionDomainService,
@@ -618,7 +670,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         );
 
         assertThrows(IllegalStateException.class, () ->
-            useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(root)))
+            useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(root), PORTAL_ID))
         );
 
         verifyNoInteractions(defaultPageDomainService);

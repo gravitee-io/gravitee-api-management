@@ -23,13 +23,13 @@ import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static jakarta.ws.rs.client.Entity.json;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForPortalNavigationItemsUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.SeedDefaultPagesRequest;
-import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -48,7 +48,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class PortalNavigationItemsResource_SeedDefaultPagesTest extends AbstractResourceTest {
+class PortalNavigationItemsResource_SeedDefaultPagesTest extends AbstractPortalNavigationResourceTest {
 
     private static final String ENVIRONMENT = "environment-id";
 
@@ -119,7 +119,9 @@ class PortalNavigationItemsResource_SeedDefaultPagesTest extends AbstractResourc
         Response response = target.request().post(json(request));
 
         assertThat(response).hasStatus(NO_CONTENT_204);
-        verify(seedDefaultPagesForPortalNavigationItemsUseCase).execute(any());
+        verify(seedDefaultPagesForPortalNavigationItemsUseCase).execute(
+            argThat(input -> input.portalId().toString().equals(NAVIGATION_PORTAL_ID))
+        );
     }
 
     @Test

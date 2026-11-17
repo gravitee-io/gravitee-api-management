@@ -1281,6 +1281,7 @@ paths:
         - Portal Pages
       summary: Get portal page content
       description: |-
+        This compatibility endpoint operates on the environment\'s default portal.
         Get portal page content belonging to the current organization and environment.
         User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
       operationId: getPortalPageContent
@@ -1306,7 +1307,7 @@ paths:
       tags:
         - Portal Pages
       summary: Update portal page content
-      description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+      description: This compatibility endpoint operates on the environment's default portal. User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
       operationId: updatePortalPageContent
       parameters:
         - name: portalPageContentId
@@ -1331,7 +1332,7 @@ paths:
       tags:
         - Portal Pages
       summary: Update portal page content OpenAPI viewer configuration
-      description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+      description: This compatibility endpoint operates on the environment's default portal. User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
       operationId: updatePortalPageContentConfiguration
       parameters:
         - name: portalPageContentId
@@ -1358,6 +1359,7 @@ paths:
         - Portal Navigation Items
       summary: Get portal navigation items
       description: |
+        This compatibility endpoint operates on the environment\'s default portal.
         User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
         Returns the rendered navigation hierarchy. API-owned documentation roots may be displayed under an API navigation item with rendered parentId and rootId values, while retaining their navigation item and page content IDs.
       operationId: getPortalNavigationItems
@@ -1396,6 +1398,7 @@ paths:
         - Portal Navigation Items
       summary: Create a portal navigation item
       description: |
+        This compatibility endpoint operates on the environment\'s default portal.
         User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
         PAGE, FOLDER, and LINK items created under a standalone API navigation item or an API-owned documentation folder inherit the API documentation owner.
         An API navigation item is standalone only when it has no API Product ancestor, including through intermediate folders.
@@ -1441,6 +1444,7 @@ paths:
         - Portal Navigation Items
       summary: Create portal navigation items in bulk
       description: |
+        This compatibility endpoint operates on the environment\'s default portal.
         User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
         PAGE, FOLDER, and LINK items inherit API documentation ownership from a standalone API navigation item or an API-owned documentation folder, including a parent created in the same request. Parents must precede their children in the request.
         An API navigation item is standalone only when it has no API Product ancestor, including through intermediate folders.
@@ -1482,6 +1486,7 @@ paths:
         - Portal Navigation Items
       summary: Import a documentation tree from a remote repository
       description: |
+        This compatibility endpoint operates on the environment\'s default portal.
         User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
         Creates a FOLDER bound to a file-listing source (e.g. a git repository), lists the remote files
         and builds the FOLDER/PAGE hierarchy below it. When a `.gravitee.json` manifest is present in the
@@ -1519,6 +1524,7 @@ paths:
         - Portal Navigation Items
       summary: Seed default pages for portal navigation items
       description: |
+        This compatibility endpoint operates on the environment\'s default portal.
         Seeds a default Overview page for API and API Product navigation items.
         User must have the ENVIRONMENT_DOCUMENTATION[create] permission.
       operationId: seedDefaultPages
@@ -1540,6 +1546,7 @@ paths:
         - Portal Navigation Items
       summary: Update a portal navigation item
       description: |
+        This compatibility endpoint operates on the environment\'s default portal.
         User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
         ParentId is the unique identifier of the parent item.
         * Optional parent ID. If provided, the item is set to that parent.
@@ -1612,7 +1619,7 @@ paths:
       tags:
         - Portal Navigation Items
       summary: Delete a portal navigation item
-      description: User must have the ENVIRONMENT_DOCUMENTATION[delete] permission.
+      description: This compatibility endpoint operates on the environment's default portal. User must have the ENVIRONMENT_DOCUMENTATION[delete] permission.
       operationId: deletePortalNavigationItem
       parameters:
         - name: navId
@@ -1634,6 +1641,7 @@ paths:
         - Portal Navigation Items
       summary: Fetch the content of a portal navigation item from its external source
       description: |
+        This compatibility endpoint operates on the environment\'s default portal.
         User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
         On a PAGE carrying an external source, fetches the page content and returns the updated item.
         On a FOLDER bound to a file-listing source (created by `_import`), re-runs the import and returns a per-file summary.
@@ -1662,6 +1670,454 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Navigation item does not exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
+  # Portal-scoped navigation and page content
+  /portals/{portalId}/page-contents/{portalPageContentId}:
+    parameters:
+      - $ref: "#/components/parameters/portalId"
+    get:
+      tags:
+        - Portal Pages
+      summary: Get portal page content
+      description: |-
+        Get portal page content belonging to the current organization and environment.
+        User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
+      operationId: getPortalPageContentForPortal
+      parameters:
+        - name: portalPageContentId
+          in: path
+          description: The unique ID of the portal page content
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/PortalPageContentResponse"
+        "404":
+          description: The portal or requested resource does not exist in the selected environment and portal scope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+    put:
+      tags:
+        - Portal Pages
+      summary: Update portal page content
+      description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+      operationId: updatePortalPageContentForPortal
+      parameters:
+        - name: portalPageContentId
+          in: path
+          description: The unique ID of the portal page content
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePortalPageContent"
+      responses:
+        "200":
+          $ref: "#/components/responses/PortalPageContentResponse"
+        "404":
+          description: The portal or requested resource does not exist in the selected environment and portal scope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /portals/{portalId}/page-contents/{portalPageContentId}/configuration:
+    parameters:
+      - $ref: "#/components/parameters/portalId"
+    patch:
+      tags:
+        - Portal Pages
+      summary: Update portal page content OpenAPI viewer configuration
+      description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+      operationId: updatePortalPageContentConfigurationForPortal
+      parameters:
+        - name: portalPageContentId
+          in: path
+          description: The unique ID of the portal page content
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PortalPageOpenApiConfiguration"
+      responses:
+        "200":
+          $ref: "#/components/responses/PortalPageContentResponse"
+        "404":
+          description: The portal or requested resource does not exist in the selected environment and portal scope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /portals/{portalId}/navigation-items:
+    parameters:
+      - $ref: "#/components/parameters/portalId"
+    get:
+      tags:
+        - Portal Navigation Items
+      summary: Get portal navigation items
+      description: |
+        User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
+        Returns the rendered navigation hierarchy. API-owned documentation roots may be displayed under an API navigation item with rendered parentId and rootId values, while retaining their navigation item and page content IDs.
+      operationId: getPortalNavigationItemsForPortal
+      parameters:
+        - $ref: '#/components/parameters/portalArea'
+        - name: parentId
+          in: query
+          description: The parent ID to filter navigation items
+          required: false
+          schema:
+            type: string
+        - name: loadChildren
+          in: query
+          description: Whether to load children items
+          required: false
+          schema:
+            type: boolean
+            default: true
+        - name: includes
+          in: query
+          description: Additional data to include in the response, returned as a separate `metadata` map rather than inlined onto each item.
+          required: false
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [ apis ]
+      responses:
+        "200":
+          $ref: "#/components/responses/PortalNavigationItemsResponse"
+        "404":
+          description: The portal or requested resource does not exist in the selected environment and portal scope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+    post:
+      tags:
+        - Portal Navigation Items
+      summary: Create a portal navigation item
+      description: |
+        User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+        PAGE, FOLDER, and LINK items created under a standalone API navigation item or an API-owned documentation folder inherit the API documentation owner.
+        An API navigation item is standalone only when it has no API Product ancestor, including through intermediate folders.
+        An API-owned documentation root created under a standalone API navigation item is returned with the same rendered parentId and rootId values as GET for that selected navigation item. Its navigation item and page content IDs are unchanged. The stored root remains API-owned with no parentId and its own ID as rootId; items created under an API-owned documentation folder retain that folder as their parent.
+      operationId: createPortalNavigationItemForPortal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePortalNavigationItem"
+        required: true
+      responses:
+        "201":
+          description: Portal navigation item created in the selected navigation context. Newly created items are unpublished by default.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalNavigationItem"
+        "400":
+          description: Missing API Product reference, invalid parent, invalid TOP_NAVBAR root placement, or malformed request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: The portal or requested resource does not exist in the selected environment and portal scope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: The API Product is already represented in the selected portal navigation tree
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /portals/{portalId}/navigation-items/_bulk:
+    parameters:
+      - $ref: "#/components/parameters/portalId"
+    post:
+      tags:
+        - Portal Navigation Items
+      summary: Create portal navigation items in bulk
+      description: |
+        User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+        PAGE, FOLDER, and LINK items inherit API documentation ownership from a standalone API navigation item or an API-owned documentation folder, including a parent created in the same request. Parents must precede their children in the request.
+        An API navigation item is standalone only when it has no API Product ancestor, including through intermediate folders.
+        An API-owned documentation root created under a standalone API navigation item is returned with the same rendered parentId and rootId values as GET for that selected navigation item, including when the parent is created in the same request. Its navigation item and page content IDs are unchanged. The stored root remains API-owned with no parentId and its own ID as rootId; items created under an API-owned documentation folder retain that folder as their parent.
+      operationId: createPortalNavigationItemsInBulkForPortal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePortalNavigationItems"
+        required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/PortalNavigationItemsResponse"
+        "400":
+          description: Invalid navigation item payload or hierarchy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: The portal or requested resource does not exist in the selected environment and portal scope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: An API Product is already represented in the selected portal navigation tree
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /portals/{portalId}/navigation-items/_import:
+    parameters:
+      - $ref: "#/components/parameters/portalId"
+    post:
+      tags:
+        - Portal Navigation Items
+      summary: Import a documentation tree from a remote repository
+      description: |
+        User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+        Creates a FOLDER bound to a file-listing source (e.g. a git repository), lists the remote files
+        and builds the FOLDER/PAGE hierarchy below it. When a `.gravitee.json` manifest is present in the
+        repository the hierarchy follows it, otherwise the remote tree is mirrored. The source is carried
+        by the root folder only: its subtree is read-only, and re-fetching the folder re-runs the import.
+        Unlike `_bulk`, which creates items from an explicit list, `_import` builds that list from the repository.
+        The fetcher configuration must point at the directory to walk (e.g. `/` for the repository root):
+        a configuration without a path lists nothing and the import fails.
+      operationId: importPortalNavigationForPortal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportPortalNavigationRequest"
+        required: true
+      responses:
+        "200":
+          description: Import result. A file failing to import does not abort the others; per-file failures are reported in the summary.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportPortalNavigationResponse"
+        "400":
+          description: Invalid target, source configuration, or a source that cannot list files
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: The portal or requested resource does not exist in the selected environment and portal scope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /portals/{portalId}/navigation-items/_default-pages:
+    parameters:
+      - $ref: "#/components/parameters/portalId"
+    post:
+      tags:
+        - Portal Navigation Items
+      summary: Seed default pages for portal navigation items
+      description: |
+        Seeds a default Overview page for API and API Product navigation items.
+        User must have the ENVIRONMENT_DOCUMENTATION[create] permission.
+      operationId: seedDefaultPagesForPortal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SeedDefaultPagesRequest"
+        required: true
+      responses:
+        "204":
+          description: Default pages seeded for supported navigation items
+        "404":
+          description: The portal or requested resource does not exist in the selected environment and portal scope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /portals/{portalId}/navigation-items/{navId}:
+    parameters:
+      - $ref: "#/components/parameters/portalId"
+    put:
+      tags:
+        - Portal Navigation Items
+      summary: Update a portal navigation item
+      description: |
+        User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+        ParentId is the unique identifier of the parent item.
+        * Optional parent ID. If provided, the item is set to that parent.
+        * If omitted, the item is moved to the root level.
+
+        Publication propagation applies only when the `published` value changes on a container navigation item (`FOLDER`, `API`, or `API_PRODUCT`).
+        When publishing a container, descendants are published only if `propagatePublishToChildren=true`.
+        If `propagatePublishToChildren` is omitted or false, only the selected item is published.
+        When unpublishing a container, descendants are always unpublished according to the business rule; `propagatePublishToChildren` is ignored and may be omitted.
+        Descendants include physically nested navigation items and, for APIs outside an API Product, API-owned documentation and its nested items.
+        APIs inside an API Product propagate publication only through their physically nested documentation; matching an API ID does not propagate publication between standalone and product contexts.
+        Traversal continues through intermediate containers that already have the target publication status.
+        Publication propagation does not change documentation ownership, hierarchy, ordering, or visibility.
+      operationId: updatePortalNavigationItemForPortal
+      parameters:
+        - name: navId
+          in: path
+          description: The unique ID of the navigation item
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: propagatePublishToChildren
+          in: query
+          description: >
+            Controls whether publishing a container navigation item (`FOLDER`, `API`, or `API_PRODUCT`) is propagated to descendants.
+            Only evaluated when `published` changes to true on a container item.
+            If omitted or false, publishing affects only the selected item.
+            If true, publishing also affects descendants.
+            Ignored for unpublish; container descendants are always unpublished according to the business rule.
+            For APIs outside an API Product, descendants also include API-owned documentation. APIs inside an API Product retain their independent documentation publication lifecycle.
+          required: false
+          schema:
+            type: boolean
+            default: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePortalNavigationItem"
+      responses:
+        "200":
+          description: Updated portal navigation item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalNavigationItem"
+        "400":
+          description: Invalid navigation item move, parent, visibility, or malformed request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: The portal or requested resource does not exist in the selected environment and portal scope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: The update would violate navigation hierarchy or API Product uniqueness constraints
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      tags:
+        - Portal Navigation Items
+      summary: Delete a portal navigation item
+      description: User must have the ENVIRONMENT_DOCUMENTATION[delete] permission.
+      operationId: deletePortalNavigationItemForPortal
+      parameters:
+        - name: navId
+          in: path
+          description: The unique ID of the navigation item
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Portal navigation item deleted
+        "404":
+          description: The portal or requested resource does not exist in the selected environment and portal scope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /portals/{portalId}/navigation-items/{navId}/_fetch:
+    parameters:
+      - $ref: "#/components/parameters/portalId"
+    post:
+      tags:
+        - Portal Navigation Items
+      summary: Fetch the content of a portal navigation item from its external source
+      description: |
+        User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+        On a PAGE carrying an external source, fetches the page content and returns the updated item.
+        On a FOLDER bound to a file-listing source (created by `_import`), re-runs the import and returns a per-file summary.
+        On any other container item, fetches every PAGE descendant carrying an external source and returns a success/failure summary.
+      operationId: fetchPortalNavigationItemForPortal
+      parameters:
+        - name: navId
+          in: path
+          description: The unique ID of the navigation item
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Fetch result. `item` is set when the target is a sourced PAGE, `summary` when the fetch walked a subtree.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FetchPortalNavigationItemResponse"
+        "400":
+          description: The target is a PAGE without a source, or no page below it carries one
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: The portal or requested resource does not exist in the selected environment and portal scope
           content:
             application/json:
               schema:

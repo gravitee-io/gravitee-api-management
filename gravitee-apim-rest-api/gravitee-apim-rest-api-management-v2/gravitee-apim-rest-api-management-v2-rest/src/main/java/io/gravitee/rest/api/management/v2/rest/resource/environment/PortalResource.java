@@ -32,9 +32,24 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 
 public class PortalResource extends AbstractResource {
+
+    @Context
+    private ResourceContext resourceContext;
+
+    @Path("navigation-items")
+    public PortalNavigationItemsResource getNavigationItemsResource() {
+        return resourceContext.getResource(PortalNavigationItemsResource.class);
+    }
+
+    @Path("page-contents")
+    public PortalPageContentsResource getPageContentsResource() {
+        return resourceContext.getResource(PortalPageContentsResource.class);
+    }
 
     @Inject
     private GetPortalSummaryUseCase getPortalSummaryUseCase;

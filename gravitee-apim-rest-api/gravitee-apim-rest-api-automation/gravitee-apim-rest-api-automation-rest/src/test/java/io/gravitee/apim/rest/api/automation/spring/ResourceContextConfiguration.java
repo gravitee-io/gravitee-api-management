@@ -1228,17 +1228,8 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public UpdatePortalNavigationItemUseCase updatePortalNavigationItemUseCase(
-        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
-        PortalNavigationItemValidatorService validatorService,
-        PortalNavigationItemDomainService domainService
-    ) {
-        return new UpdatePortalNavigationItemUseCase(
-            portalNavigationItemsQueryService,
-            validatorService,
-            domainService,
-            new PortalNavigationItemSourceDomainServiceInMemory()
-        );
+    public UpdatePortalNavigationItemUseCase updatePortalNavigationItemUseCase() {
+        return mock(UpdatePortalNavigationItemUseCase.class);
     }
 
     @Bean

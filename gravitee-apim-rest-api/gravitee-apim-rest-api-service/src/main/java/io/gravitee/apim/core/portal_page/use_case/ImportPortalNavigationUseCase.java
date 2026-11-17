@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationBulkImportDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
@@ -35,6 +36,7 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import jakarta.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -47,6 +49,8 @@ import lombok.RequiredArgsConstructor;
 @UseCase
 public class ImportPortalNavigationUseCase {
 
+    private final PortalNavigationAccessDomainService accessService;
+
     private final PortalNavigationItemValidatorService validatorService;
     private final PortalNavigationItemDomainService domainService;
     private final PortalNavigationItemSourceDomainService sourceDomainService;
@@ -56,6 +60,13 @@ public class ImportPortalNavigationUseCase {
     private final PortalNavigationItemRenderingDomainService renderingDomainService;
 
     public Output execute(Input input) {
+        var scope = input.scope();
+        accessService.requireScope(input.organizationId(), input.environmentId(), scope);
+        accessService.requireParent(input.organizationId(), input.environmentId(), scope, input.parentId());
+        return importNavigation(input);
+    }
+
+    private Output importNavigation(Input input) {
         // The caller never picks an area: under a parent it can only be the parent's, and the
         // area validators would otherwise reject a mismatch the caller has no way to understand.
         // An unknown parent falls back to the default so that it is reported as missing, instead of an NPE here.
@@ -66,7 +77,7 @@ public class ImportPortalNavigationUseCase {
             .type(PortalNavigationItemType.FOLDER)
             .area(area)
             .parentId(input.parentId())
-            .reference(input.reference())
+            .reference(input.scope())
             .visibility(input.visibility() == null ? PortalVisibility.PRIVATE : input.visibility())
             .published(false)
             .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
@@ -101,7 +112,7 @@ public class ImportPortalNavigationUseCase {
     }
 
     /**
-     * @param reference who owns the imported subtree; the portal when null
+     * @param scope the portal or API whose navigation is being edited
      */
     @Builder(toBuilder = true)
     public record Input(
@@ -111,8 +122,12 @@ public class ImportPortalNavigationUseCase {
         @Nullable PortalNavigationItemId parentId,
         @Nullable PortalVisibility visibility,
         PortalNavigationItemSource source,
-        @Nullable NavigationItemReference reference
-    ) {}
+        NavigationItemReference scope
+    ) {
+        public Input {
+            Objects.requireNonNull(scope, "scope");
+        }
+    }
 
     public record Output(PortalNavigationFolder rootFolder, PortalNavigationBulkImportDomainService.BulkImportResult result) {}
 }

@@ -408,6 +408,7 @@ class PortalLinkSyncDomainServiceTest {
     void materialize_for_api_rejects_a_segment_already_taken_by_a_foreign_item() {
         var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/guides");
         var squatter = linkRow("external-docs", folderId, 0);
+        squatter.changeOwner(new NavigationItemReference.ApiReference(API_ID));
         navItemCrud.create(squatter);
 
         var throwable = catchThrowable(() ->

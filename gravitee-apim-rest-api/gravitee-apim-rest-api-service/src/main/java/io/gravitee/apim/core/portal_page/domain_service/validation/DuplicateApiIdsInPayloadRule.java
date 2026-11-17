@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.domain_service.validation;
 
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import java.util.HashSet;
 import java.util.List;
@@ -39,13 +40,13 @@ public class DuplicateApiIdsInPayloadRule implements BulkCreatePortalNavigationI
                 continue;
             }
             var apiProductId = ApiProductAncestorValidation.findApiProductId(item.getParentId(), ctx).orElse(null);
-            if (!seenApiReferences.add(new ApiReference(apiId, apiProductId))) {
+            if (!seenApiReferences.add(new ApiReference(apiId, apiProductId, item.getReference()))) {
                 throw InvalidPortalNavigationItemDataException.apiIdAlreadyExists(apiId);
             }
         }
     }
 
-    private record ApiReference(String apiId, String apiProductId) {
+    private record ApiReference(String apiId, String apiProductId, NavigationItemReference reference) {
         private ApiReference {
             Objects.requireNonNull(apiId);
         }

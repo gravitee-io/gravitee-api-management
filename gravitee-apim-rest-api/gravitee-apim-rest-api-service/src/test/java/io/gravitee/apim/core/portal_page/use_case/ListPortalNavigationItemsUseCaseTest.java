@@ -19,6 +19,7 @@ import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -39,8 +40,10 @@ import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemReadDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemRenderingDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
@@ -103,12 +106,15 @@ class ListPortalNavigationItemsUseCaseTest {
             apiProductAccessibleIdsDomainService
         );
         return new ListPortalNavigationItemsUseCase(
-            queryService,
-            List.of(apiVisibilityDomainService, apiProductVisibilityDomainService),
-            new PortalNavigationItemSourceDomainServiceInMemory(),
-            apiPortalSearchQueryService,
-            new ApiOwnedNavigationDomainService(queryService, new PortalNavigationItemsCrudServiceInMemory()),
-            new PortalNavigationItemRenderingDomainService(queryService)
+            new PortalNavigationItemReadDomainService(
+                queryService,
+                List.of(apiVisibilityDomainService, apiProductVisibilityDomainService),
+                new PortalNavigationItemSourceDomainServiceInMemory(),
+                apiPortalSearchQueryService,
+                new ApiOwnedNavigationDomainService(queryService, new PortalNavigationItemsCrudServiceInMemory()),
+                new PortalNavigationItemRenderingDomainService(queryService),
+                mock(PortalNavigationAccessDomainService.class)
+            )
         );
     }
 

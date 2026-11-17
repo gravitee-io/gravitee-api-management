@@ -417,6 +417,14 @@ public interface PortalNavigationItemAdapter {
     );
 
     @Mapping(source = "area", target = "portalArea")
+    @Mapping(
+        target = "referenceType",
+        expression = "java(criteria.getReference() == null ? null : referenceTypeToRepository(criteria.getReference()))"
+    )
+    @Mapping(
+        target = "referenceId",
+        expression = "java(criteria.getReference() == null ? null : referenceIdToRepository(criteria.getReference()))"
+    )
     io.gravitee.repository.management.api.search.PortalNavigationItemCriteria map(PortalNavigationItemQueryCriteria criteria);
 
     default String mapPortalNavigationItemId(PortalNavigationItemId id) {

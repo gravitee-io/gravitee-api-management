@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import static assertions.MAPIAssertions.assertThat;
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
@@ -38,7 +39,6 @@ import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
 import io.gravitee.rest.api.management.v2.rest.model.PortalVisibility;
-import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -62,7 +62,7 @@ import org.mockito.Mockito;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
+class PortalNavigationItemsResource_CreateTest extends AbstractPortalNavigationResourceTest {
 
     private static final String ENVIRONMENT = "environment-id";
 
@@ -138,6 +138,7 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
         assertThat(response).hasStatus(CREATED_201);
         var captor = ArgumentCaptor.forClass(CreatePortalNavigationItemUseCase.Input.class);
         Mockito.verify(createPortalNavigationItemUseCase).execute(captor.capture());
+        assertThat(captor.getValue().scope()).isEqualTo(PORTAL_REFERENCE);
         assertThat(captor.getValue().item().getPortalPageContentId()).isNull();
     }
 
@@ -192,6 +193,7 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
         assertThat(response).hasStatus(CREATED_201);
         var captor = ArgumentCaptor.forClass(CreatePortalNavigationItemUseCase.Input.class);
         Mockito.verify(createPortalNavigationItemUseCase).execute(captor.capture());
+        assertThat(captor.getValue().scope()).isEqualTo(PORTAL_REFERENCE);
         assertThat(captor.getValue().item().getParentId().id()).isEqualTo(page.getParentId());
         assertThat(captor.getValue().item().getRenderedParentId()).isNull();
         assertThat(captor.getValue().item().getReference()).isNull();
@@ -242,6 +244,7 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
 
         var captor = ArgumentCaptor.forClass(CreatePortalNavigationItemUseCase.Input.class);
         Mockito.verify(createPortalNavigationItemUseCase).execute(captor.capture());
+        assertThat(captor.getValue().scope()).isEqualTo(PORTAL_REFERENCE);
         var mappedSource = captor.getValue().item().getSource();
         assertThat(mappedSource).isNotNull();
         assertThat(mappedSource.getSourceType()).isEqualTo("github-fetcher");

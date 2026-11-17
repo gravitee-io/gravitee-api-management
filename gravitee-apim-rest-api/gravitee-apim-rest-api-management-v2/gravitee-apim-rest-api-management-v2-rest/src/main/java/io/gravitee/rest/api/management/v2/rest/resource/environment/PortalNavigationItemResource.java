@@ -15,11 +15,15 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
+import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
+import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.use_case.DeletePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.FetchPortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.v2.rest.mapper.PortalMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
@@ -47,6 +51,16 @@ import lombok.CustomLog;
 public class PortalNavigationItemResource extends AbstractResource {
 
     @Inject
+    private DefaultPortalDomainService defaultPortalDomainService;
+
+    private PortalId resolvePortalId() {
+        var portalId = uriInfo.getPathParameters().getFirst("portalId");
+        return portalId == null
+            ? defaultPortalDomainService.getDefault(GraviteeContext.getCurrentEnvironment()).getId()
+            : PortalMapper.INSTANCE.toPortalId(portalId);
+    }
+
+    @Inject
     private UpdatePortalNavigationItemUseCase updatePortalNavigationItemUseCase;
 
     @Inject
@@ -72,7 +86,7 @@ public class PortalNavigationItemResource extends AbstractResource {
             navigationItemId,
             mapper.map(updatePortalNavigationItem),
             propagatePublishToChildren,
-            false
+            new NavigationItemReference.PortalReference(resolvePortalId())
         );
 
         var output = updatePortalNavigationItemUseCase.execute(input);
@@ -85,7 +99,12 @@ public class PortalNavigationItemResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
     public Response fetchPortalNavigationItem(@PathParam("navId") String navigationItemId) {
-        var input = new FetchPortalNavigationItemUseCase.Input(GraviteeContext.getCurrentEnvironment(), navigationItemId);
+        var input = new FetchPortalNavigationItemUseCase.Input(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            navigationItemId,
+            new NavigationItemReference.PortalReference(resolvePortalId())
+        );
 
         var output = fetchPortalNavigationItemUseCase.execute(input);
 
@@ -100,7 +119,8 @@ public class PortalNavigationItemResource extends AbstractResource {
         var input = new DeletePortalNavigationItemUseCase.Input(
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
-            navId
+            navId,
+            new NavigationItemReference.PortalReference(resolvePortalId())
         );
 
         deletePortalNavigationItemUseCase.execute(input);

@@ -49,7 +49,7 @@ public interface PortalNavigationItemsQueryService {
         return findByParentIdAndEnvironmentId(environmentId, parentId)
             .stream()
             .filter(it -> segment.equals(it.getSegment()))
-            .filter(it -> parentId != null || reference.sharesRootNamespaceWith(it.getReference()))
+            .filter(it -> reference.sharesRootNamespaceWith(it.getReference()))
             .findFirst();
     }
 
@@ -75,6 +75,10 @@ public interface PortalNavigationItemsQueryService {
     }
 
     default Optional<PortalNavigationPage> findNavigationPageByPortalPageContentId(String environmentId, PortalPageContentId contentId) {
+        return findNavigationPagesByPortalPageContentId(environmentId, contentId).stream().findFirst();
+    }
+
+    default List<PortalNavigationPage> findNavigationPagesByPortalPageContentId(String environmentId, PortalPageContentId contentId) {
         final var criteria = PortalNavigationItemQueryCriteria.builder()
             .environmentId(environmentId)
             .type(PortalNavigationItemType.PAGE)
@@ -84,6 +88,6 @@ public interface PortalNavigationItemsQueryService {
             .filter(PortalNavigationPage.class::isInstance)
             .map(PortalNavigationPage.class::cast)
             .filter(page -> page.getPortalPageContentId().equals(contentId))
-            .findFirst();
+            .toList();
     }
 }

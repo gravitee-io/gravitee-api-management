@@ -16,15 +16,15 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
-import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
-import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import java.util.Objects;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -32,20 +32,32 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UpdatePortalNavigationItemUseCase {
 
-    private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
+    private final PortalNavigationAccessDomainService accessService;
+
     private final PortalNavigationItemValidatorService validatorService;
     private final PortalNavigationItemDomainService domainService;
     private final PortalNavigationItemSourceDomainService sourceDomainService;
 
     public Output execute(Input input) {
-        PortalNavigationItem existing = portalNavigationItemsQueryService.findByIdAndEnvironmentId(
+        var scope = input.scope();
+        var existing = accessService.requireItem(
+            input.organizationId(),
             input.environmentId(),
-            PortalNavigationItemId.of(input.navigationItemId)
+            scope,
+            PortalNavigationItemId.of(input.navigationItemId())
         );
-        if (existing == null) {
-            throw new PortalNavigationItemNotFoundException(input.navigationItemId);
-        }
-        var toUpdate = domainService.resolveDestination(input.updatePortalNavigationItem(), existing, input.ownerFixed());
+        accessService.requireParent(input.organizationId(), input.environmentId(), scope, input.updatePortalNavigationItem().getParentId());
+        accessService.requireSubtree(input.organizationId(), input.environmentId(), scope, existing, true);
+        return updateItem(input, existing, scope instanceof NavigationItemReference.PortalReference portal ? portal : null);
+    }
+
+    private Output updateItem(Input input, PortalNavigationItem existing, NavigationItemReference.PortalReference portal) {
+        var toUpdate = domainService.resolveDestination(
+            input.updatePortalNavigationItem(),
+            existing,
+            input.scope() instanceof NavigationItemReference.ApiReference,
+            portal
+        );
         // Restore the masked secrets before validation: the plugin must validate the configuration it will be given
         if (existing.getSource() != null && toUpdate.getSource() != null) {
             sourceDomainService.mergeSensitiveData(existing.getSource(), toUpdate.getSource());
@@ -62,9 +74,6 @@ public class UpdatePortalNavigationItemUseCase {
         return new Output(updatedItem);
     }
 
-    /**
-     * @param ownerFixed see {@link PortalNavigationItemDomainService#resolveDestination}
-     */
     @Builder
     public record Input(
         String organizationId,
@@ -72,8 +81,12 @@ public class UpdatePortalNavigationItemUseCase {
         String navigationItemId,
         UpdatePortalNavigationItem updatePortalNavigationItem,
         boolean propagatePublishToChildren,
-        boolean ownerFixed
-    ) {}
+        NavigationItemReference scope
+    ) {
+        public Input {
+            Objects.requireNonNull(scope, "scope");
+        }
+    }
 
     public record Output(PortalNavigationItem updatedItem) {}
 }

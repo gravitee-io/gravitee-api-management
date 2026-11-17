@@ -17,17 +17,22 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import static io.gravitee.rest.api.service.common.GraviteeContext.getExecutionContext;
 
+import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
+import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageContentConfigurationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageContentUseCase;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.v2.rest.mapper.PortalMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalPageContentMapper;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.BadRequestException;
@@ -43,6 +48,16 @@ import jakarta.ws.rs.Produces;
  * @author GraviteeSource Team
  */
 public class PortalPageContentsResource extends AbstractResource {
+
+    @Inject
+    private DefaultPortalDomainService defaultPortalDomainService;
+
+    private PortalId resolvePortalId() {
+        var portalId = uriInfo.getPathParameters().getFirst("portalId");
+        return portalId == null
+            ? defaultPortalDomainService.getDefault(GraviteeContext.getCurrentEnvironment()).getId()
+            : PortalMapper.INSTANCE.toPortalId(portalId);
+    }
 
     @Inject
     private GetPortalPageContentUseCase getPortalPageContentUseCase;
@@ -66,7 +81,8 @@ public class PortalPageContentsResource extends AbstractResource {
                 new GetPortalPageContentUseCase.Input(
                     executionContext.getOrganizationId(),
                     executionContext.getEnvironmentId(),
-                    PortalPageContentId.of(portalPageContentId)
+                    PortalPageContentId.of(portalPageContentId),
+                    new NavigationItemReference.PortalReference(resolvePortalId())
                 )
             );
 
@@ -91,7 +107,8 @@ public class PortalPageContentsResource extends AbstractResource {
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
                 portalPageContentId,
-                PortalPageContentMapper.INSTANCE.map(updatePortalPageContent)
+                PortalPageContentMapper.INSTANCE.map(updatePortalPageContent),
+                new NavigationItemReference.PortalReference(resolvePortalId())
             )
         );
 
@@ -113,7 +130,8 @@ public class PortalPageContentsResource extends AbstractResource {
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
                 portalPageContentId,
-                PortalPageContentMapper.INSTANCE.mapToConfiguration(configuration)
+                PortalPageContentMapper.INSTANCE.mapToConfiguration(configuration),
+                new NavigationItemReference.PortalReference(resolvePortalId())
             )
         );
 

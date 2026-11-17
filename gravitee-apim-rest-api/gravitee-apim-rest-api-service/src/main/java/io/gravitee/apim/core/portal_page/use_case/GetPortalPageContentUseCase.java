@@ -16,31 +16,35 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
-import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
 @RequiredArgsConstructor
 public class GetPortalPageContentUseCase {
 
-    private final PortalPageContentQueryService queryService;
+    private final PortalNavigationAccessDomainService accessService;
 
     public Output execute(Input input) {
-        var content = queryService
-            .findById(input.portalPageContentId())
-            .orElseThrow(() -> new PageContentNotFoundException(input.portalPageContentId().json()));
-
-        if (!content.getOrganizationId().equals(input.organizationId()) || !content.getEnvironmentId().equals(input.environmentId())) {
-            throw new PageContentNotFoundException(input.portalPageContentId().json());
-        }
-
-        return new Output(content);
+        return new Output(
+            accessService.requireContent(input.organizationId(), input.environmentId(), input.scope(), input.portalPageContentId())
+        );
     }
 
     public record Output(PortalPageContent<?> content) {}
 
-    public record Input(String organizationId, String environmentId, PortalPageContentId portalPageContentId) {}
+    public record Input(
+        String organizationId,
+        String environmentId,
+        PortalPageContentId portalPageContentId,
+        NavigationItemReference scope
+    ) {
+        public Input {
+            Objects.requireNonNull(scope, "scope");
+        }
+    }
 }

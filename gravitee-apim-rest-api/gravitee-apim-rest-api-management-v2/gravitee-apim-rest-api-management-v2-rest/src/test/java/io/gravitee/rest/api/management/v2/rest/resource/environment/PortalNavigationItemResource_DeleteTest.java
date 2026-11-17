@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import static assertions.MAPIAssertions.assertThat;
 import static fixtures.core.model.PortalNavigationItemFixtures.PAGE11_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static org.mockito.ArgumentMatchers.any;
@@ -26,7 +27,6 @@ import static org.mockito.Mockito.when;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.use_case.DeletePortalNavigationItemUseCase;
-import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -43,7 +43,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class PortalNavigationItemResource_DeleteTest extends AbstractResourceTest {
+class PortalNavigationItemResource_DeleteTest extends AbstractPortalNavigationResourceTest {
 
     private static final String ENVIRONMENT = "environment-id";
 
@@ -106,7 +106,8 @@ class PortalNavigationItemResource_DeleteTest extends AbstractResourceTest {
                     input != null &&
                     input.environmentId().equals(ENVIRONMENT) &&
                     input.navigationItemId() != null &&
-                    input.navigationItemId().toString().equals(navId)
+                    input.navigationItemId().toString().equals(navId) &&
+                    input.scope().equals(PORTAL_REFERENCE)
             )
         );
     }
@@ -127,7 +128,8 @@ class PortalNavigationItemResource_DeleteTest extends AbstractResourceTest {
                     input != null &&
                     input.environmentId().equals(ENVIRONMENT) &&
                     input.navigationItemId() != null &&
-                    input.navigationItemId().toString().equals(unknownId)
+                    input.navigationItemId().toString().equals(unknownId) &&
+                    input.scope().equals(PORTAL_REFERENCE)
             )
         );
     }

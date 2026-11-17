@@ -21,7 +21,9 @@ import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.API_PRODUCT_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
@@ -41,6 +43,7 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationDefaultP
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
@@ -87,7 +90,10 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
 
         apiCrudService = new ApiCrudServiceInMemory();
         apiCrudService.initWith(
-            List.of(Api.builder().id("api-1").environmentId(ENV_ID).name("API 1").version("1.0.0").type(ApiType.PROXY).build())
+            List.of(
+                Api.builder().id("api-1").environmentId(ENV_ID).name("API 1").version("1.0.0").type(ApiType.PROXY).build(),
+                Api.builder().id("api-2").environmentId(ENV_ID).name("API 2").version("1.0.0").type(ApiType.PROXY).build()
+            )
         );
 
         portalNavigationItemsQueryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
@@ -100,6 +106,13 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
         );
 
         useCase = new SeedDefaultPagesForPortalNavigationItemsUseCase(
+            PortalNavigationUseCaseTestFixtures.access(
+                ORG_ID,
+                ENV_ID,
+                portalNavigationItemsQueryService,
+                pageContentQueryService,
+                apiCrudService
+            ),
             new PortalNavigationDefaultPageDomainService(
                 portalNavigationItemsQueryService,
                 new PortalNavigationItemDomainService(
@@ -134,7 +147,12 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
     @Test
     void should_seed_default_overview_page_for_api() {
         var output = useCase.execute(
-            new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(ORG_ID, ENV_ID, List.of(PortalNavigationItemId.of(API1_ID)))
+            new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(
+                ORG_ID,
+                ENV_ID,
+                List.of(PortalNavigationItemId.of(API1_ID)),
+                ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId()
+            )
         );
 
         assertThat(output.seededNavigationItemIds()).containsExactly(PortalNavigationItemId.of(API1_ID));
@@ -217,11 +235,10 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
     @CsvSource({ "PAGE, false", "LINK, false", "PAGE, true", "LINK, true" })
     void should_skip_seeding_when_another_standalone_listing_has_legacy_documentation(PortalNavigationItemType type, boolean nested) {
         var listing = createApiListing(null);
-        listing.changeOwner(new NavigationItemReference.PortalReference(PortalId.random()));
-        var parent = nested
-            ? createFolder(listing, new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")))
-            : listing;
-        createDocument(type, parent, new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")));
+        var otherPortal = new NavigationItemReference.PortalReference(PortalId.random());
+        listing.changeOwner(otherPortal);
+        var parent = nested ? createFolder(listing, otherPortal) : listing;
+        createDocument(type, parent, otherPortal);
 
         var output = seed(PortalNavigationItemId.of(API1_ID));
 
@@ -243,18 +260,18 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
 
     @ParameterizedTest
     @ValueSource(booleans = { false, true })
-    void should_not_follow_foreign_owned_folders_when_looking_for_documentation(boolean apiOwned) {
-        var owner = apiOwned
-            ? new NavigationItemReference.ApiReference("api-1")
-            : new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000"));
+    void should_reject_a_subtree_with_foreign_owned_folders_before_seeding(boolean apiOwned) {
+        var owner = apiOwned ? new NavigationItemReference.ApiReference("api-1") : PORTAL_REFERENCE;
         var parent = apiOwned ? createFolder(null, owner) : apiListing();
         var foreignFolder = createFolder(parent, new NavigationItemReference.ApiReference("api-2"));
         createDocument(PortalNavigationItemType.PAGE, foreignFolder, owner);
+        var previousItems = List.copyOf(portalNavigationItemsCrudService.storage());
 
-        var output = seed(PortalNavigationItemId.of(API1_ID));
+        assertThatThrownBy(() -> seed(PortalNavigationItemId.of(API1_ID))).isInstanceOf(PortalNavigationItemNotFoundException.class);
 
-        assertThat(output.seededNavigationItemIds()).containsExactly(PortalNavigationItemId.of(API1_ID));
-        assertThat(portalPageContentCrudService.storage()).hasSize(1);
+        assertThat(portalNavigationItemsCrudService.storage()).containsExactlyElementsOf(previousItems);
+        assertThat(foreignFolder.getReference()).isEqualTo(new NavigationItemReference.ApiReference("api-2"));
+        assertThat(portalPageContentCrudService.storage()).isEmpty();
     }
 
     @Test
@@ -292,9 +309,7 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
     void should_seed_product_local_api_overview_independently_of_standalone_documentation(boolean nested) {
         createDocument(PortalNavigationItemType.PAGE, null, new NavigationItemReference.ApiReference("api-1"));
         var product = createProduct(null);
-        var parent = nested
-            ? createFolder(product, new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")))
-            : product;
+        var parent = nested ? createFolder(product, PORTAL_REFERENCE) : product;
         var listing = createApiListing(parent);
 
         var output = seed(listing.getId());
@@ -317,11 +332,8 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
     void should_skip_seeding_when_api_in_product_has_nested_local_documentation(PortalNavigationItemType type) {
         var product = createProduct(null);
         var listing = createApiListing(product);
-        var folder = createFolder(
-            listing,
-            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000"))
-        );
-        createDocument(type, folder, new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")));
+        var folder = createFolder(listing, PORTAL_REFERENCE);
+        createDocument(type, folder, PORTAL_REFERENCE);
 
         var output = seed(listing.getId());
 
@@ -333,11 +345,7 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
     void should_not_use_product_local_documentation_for_a_standalone_listing_or_another_product() {
         var firstProduct = createProduct(null);
         var firstListing = createApiListing(firstProduct);
-        createDocument(
-            PortalNavigationItemType.PAGE,
-            firstListing,
-            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000"))
-        );
+        createDocument(PortalNavigationItemType.PAGE, firstListing, PORTAL_REFERENCE);
         var secondProduct = createProduct(null);
         var secondListing = createApiListing(secondProduct);
 
@@ -354,16 +362,9 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
     @EnumSource(value = PortalNavigationItemType.class, names = { "API", "API_PRODUCT" })
     void should_not_treat_nested_api_or_product_documentation_as_its_ancestors_documentation(PortalNavigationItemType type) {
         var product = createProduct(null);
-        var folder = createFolder(
-            product,
-            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000"))
-        );
+        var folder = createFolder(product, PORTAL_REFERENCE);
         var nestedContainer = type == PortalNavigationItemType.API ? createApiListing(folder) : createProduct(folder);
-        createDocument(
-            PortalNavigationItemType.PAGE,
-            nestedContainer,
-            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000"))
-        );
+        createDocument(PortalNavigationItemType.PAGE, nestedContainer, PORTAL_REFERENCE);
 
         var output = seed(product.getId());
 
@@ -421,7 +422,12 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
         portalNavigationItemsCrudService.create(generatedApi);
 
         var output = useCase.execute(
-            new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(ORG_ID, ENV_ID, List.of(apiProduct.getId()))
+            new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(
+                ORG_ID,
+                ENV_ID,
+                List.of(apiProduct.getId()),
+                ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId()
+            )
         );
 
         assertThat(output.seededNavigationItemIds()).containsExactly(apiProduct.getId());
@@ -465,7 +471,12 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
         portalNavigationItemsCrudService.create(existingPage);
 
         var output = useCase.execute(
-            new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(ORG_ID, ENV_ID, List.of(PortalNavigationItemId.of(API1_ID)))
+            new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(
+                ORG_ID,
+                ENV_ID,
+                List.of(PortalNavigationItemId.of(API1_ID)),
+                ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId()
+            )
         );
 
         assertThat(output.seededNavigationItemIds()).isEmpty();
@@ -496,7 +507,12 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
         portalNavigationItemsCrudService.create(existingPage);
 
         var output = useCase.execute(
-            new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(ORG_ID, ENV_ID, List.of(apiProduct.getId()))
+            new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(
+                ORG_ID,
+                ENV_ID,
+                List.of(apiProduct.getId()),
+                ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId()
+            )
         );
 
         assertThat(output.seededNavigationItemIds()).isEmpty();
@@ -513,7 +529,12 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
         );
 
         var output = useCase.execute(
-            new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(ORG_ID, ENV_ID, List.of(PortalNavigationItemId.of(API1_ID)))
+            new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(
+                ORG_ID,
+                ENV_ID,
+                List.of(PortalNavigationItemId.of(API1_ID)),
+                ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId()
+            )
         );
 
         assertThat(output.seededNavigationItemIds()).containsExactly(PortalNavigationItemId.of(API1_ID));
@@ -530,7 +551,8 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
             new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(
                 ORG_ID,
                 ENV_ID,
-                List.of(PortalNavigationItemId.of(APIS_ID), PortalNavigationItemId.of(API1_ID))
+                List.of(PortalNavigationItemId.of(APIS_ID), PortalNavigationItemId.of(API1_ID)),
+                ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId()
             )
         );
 
@@ -550,7 +572,12 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
         try {
             // When
             var output = useCase.execute(
-                new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(ORG_ID, ENV_ID, List.of(PortalNavigationItemId.of(API1_ID)))
+                new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(
+                    ORG_ID,
+                    ENV_ID,
+                    List.of(PortalNavigationItemId.of(API1_ID)),
+                    ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId()
+                )
             );
 
             // Then
@@ -562,7 +589,14 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
     }
 
     private SeedDefaultPagesForPortalNavigationItemsUseCase.Output seed(PortalNavigationItemId... ids) {
-        return useCase.execute(new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(ORG_ID, ENV_ID, List.of(ids)));
+        return useCase.execute(
+            new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(
+                ORG_ID,
+                ENV_ID,
+                List.of(ids),
+                ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId()
+            )
+        );
     }
 
     private PortalNavigationApi apiListing() {
@@ -615,7 +649,7 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
         }
     }
 
-    /** The portal a console write stores an item on, created by the first such write. */
+    /** The existing portal selected by a console write. */
     private NavigationItemReference consolePortal() {
         return new NavigationItemReference.PortalReference(navigationPortals.defaultPortalIdOf(ENV_ID));
     }

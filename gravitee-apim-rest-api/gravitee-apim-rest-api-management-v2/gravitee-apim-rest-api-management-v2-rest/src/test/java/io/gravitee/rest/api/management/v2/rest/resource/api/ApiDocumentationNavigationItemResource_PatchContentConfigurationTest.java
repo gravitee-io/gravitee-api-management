@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.core.model.PortalPageContentFixtures;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.OpenApiConfiguration;
@@ -50,6 +51,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -99,6 +101,7 @@ class ApiDocumentationNavigationItemResource_PatchContentConfigurationTest exten
 
     @BeforeEach
     public void init() {
+        apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("API").environmentId(ENVIRONMENT).build()));
         EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
@@ -109,6 +112,7 @@ class ApiDocumentationNavigationItemResource_PatchContentConfigurationTest exten
 
     @AfterEach
     public void cleanUp() {
+        apiCrudService.reset();
         GraviteeContext.cleanContext();
         portalNavigationItemCrudService.reset();
         portalPageContentCrudService.reset();
@@ -348,6 +352,7 @@ class ApiDocumentationNavigationItemResource_PatchContentConfigurationTest exten
     private PortalNavigationFolder aFolderOwnedByTheApi() {
         var folder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemId.random().json(), "Guides")
             .toBuilder()
+            .organizationId(ORGANIZATION)
             .environmentId(ENVIRONMENT)
             .reference(new NavigationItemReference.ApiReference(API_ID))
             .build();

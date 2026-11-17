@@ -28,11 +28,11 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.core.model.PortalPageContentFixtures;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.RedocConfiguration;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
-import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -55,11 +55,14 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class PortalPageContentsResourceTest extends AbstractResourceTest {
+class PortalPageContentsResourceTest extends AbstractPortalNavigationResourceTest {
 
     private static final String ENVIRONMENT = "environment-id";
     private static final String ENVIRONMENT_HRID = "environment-hrid";
     private static final String FOREIGN_CONTENT = "Content from another tenant";
+
+    @Inject
+    private PortalNavigationAccessDomainService accessService;
 
     @Inject
     private GetPortalPageContentUseCase getPortalPageContentUseCase;
@@ -89,10 +92,21 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
+        var page = PortalNavigationItemFixtures.aPage(
+            PortalNavigationItemFixtures.PAGE_ID,
+            "Page",
+            null,
+            PortalPageContentId.of(CONTENT_ID)
+        )
+            .toBuilder()
+            .organizationId(ORGANIZATION)
+            .environmentId(ENVIRONMENT)
+            .build();
+        portalNavigationItemsQueryService.initWith(List.of(page));
         portalPageContentQueryService.initWith(PortalPageContentFixtures.samplePortalPageContents());
         portalPageContentCrudService.initWith(PortalPageContentFixtures.samplePortalPageContents());
         reset(getPortalPageContentUseCase);
-        var useCase = new GetPortalPageContentUseCase(portalPageContentQueryService);
+        var useCase = new GetPortalPageContentUseCase(accessService);
         when(getPortalPageContentUseCase.execute(any())).thenAnswer(invocation -> useCase.execute(invocation.getArgument(0)));
     }
 

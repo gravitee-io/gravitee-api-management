@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
@@ -71,6 +72,7 @@ class ApiDocumentationNavigationItemResource_DeleteTest extends AbstractResource
 
     @BeforeEach
     public void init() {
+        apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("API").environmentId(ENVIRONMENT).build()));
         EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
@@ -81,6 +83,7 @@ class ApiDocumentationNavigationItemResource_DeleteTest extends AbstractResource
 
     @AfterEach
     public void cleanUp() {
+        apiCrudService.reset();
         GraviteeContext.cleanContext();
         portalNavigationItemCrudService.reset();
         Mockito.reset(deletePortalNavigationItemUseCase);
@@ -95,7 +98,12 @@ class ApiDocumentationNavigationItemResource_DeleteTest extends AbstractResource
 
         assertThat(response).hasStatus(NO_CONTENT_204);
         verify(deletePortalNavigationItemUseCase).execute(
-            new DeletePortalNavigationItemUseCase.Input(ORGANIZATION, ENVIRONMENT, page.getId())
+            new DeletePortalNavigationItemUseCase.Input(
+                ORGANIZATION,
+                ENVIRONMENT,
+                page.getId(),
+                new NavigationItemReference.ApiReference(API_ID)
+            )
         );
     }
 

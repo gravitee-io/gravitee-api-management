@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.api.search;
 
+import io.gravitee.repository.management.model.PortalNavigationReferenceType;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,6 +29,9 @@ import lombok.Getter;
 public class PortalNavigationItemCriteria {
 
     private String environmentId;
+    private Set<String> ids;
+    private PortalNavigationReferenceType referenceType;
+    private String referenceId;
     private String parentId;
     private String portalArea;
     private Boolean published;

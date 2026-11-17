@@ -31,6 +31,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlternative<Api> {
@@ -156,6 +158,20 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
             : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
 
         return new Page<>(page, pageNumber, page.size(), matches.size());
+    }
+
+    @Override
+    public Set<String> findExistingIds(Set<String> ids, String environmentId) {
+        if (ids.isEmpty()) {
+            return Set.of();
+        }
+        Objects.requireNonNull(environmentId, "environmentId");
+        return storage
+            .stream()
+            .filter(api -> environmentId.equals(api.getEnvironmentId()))
+            .map(Api::getId)
+            .filter(ids::contains)
+            .collect(Collectors.toUnmodifiableSet());
     }
 
     @Override

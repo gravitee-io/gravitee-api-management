@@ -23,6 +23,7 @@ import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDa
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -58,6 +59,7 @@ public class ApiProductItemCreateRule implements CreatePortalNavigationItemValid
             .stream()
             .filter(PortalNavigationApiProduct.class::isInstance)
             .map(PortalNavigationApiProduct.class::cast)
+            .filter(apiProductItem -> Objects.equals(item.getReference(), apiProductItem.getReference()))
             .anyMatch(apiProductItem -> apiProductId.equals(apiProductItem.getApiProductId()));
         if (alreadyExists) {
             throw new ApiProductNavigationItemAlreadyExistsException(apiProductId);

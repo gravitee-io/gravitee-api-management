@@ -39,7 +39,6 @@ import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQuerySer
 import io.gravitee.rest.api.management.v2.rest.model.ImportPortalNavigationRequest;
 import io.gravitee.rest.api.management.v2.rest.model.ImportPortalNavigationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource;
-import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -58,7 +57,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class PortalNavigationItemsResource_ImportTest extends AbstractResourceTest {
+class PortalNavigationItemsResource_ImportTest extends AbstractPortalNavigationResourceTest {
 
     private static final String ENVIRONMENT = "environment-id";
 
@@ -162,9 +161,11 @@ class PortalNavigationItemsResource_ImportTest extends AbstractResourceTest {
         apiCrudService.initWith(List.of(Api.builder().id("api-id").name("My API").environmentId(ENVIRONMENT).build()));
         var section = PortalNavigationItemFixtures.aFolder("Section");
         section.setEnvironmentId(ENVIRONMENT);
+        section.setOrganizationId(ORGANIZATION);
         section.markAsRoot();
         var listing = PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().json(), "My API", section.getId(), "api-id");
         listing.setEnvironmentId(ENVIRONMENT);
+        listing.setOrganizationId(ORGANIZATION);
         listing.updateParent(section);
         ((PortalNavigationItemsCrudServiceInMemory) portalNavigationItemCrudService).initWith(List.of(section, listing));
         ((PortalNavigationItemSourceDomainServiceInMemory) portalNavigationItemSourceDomainService).givenRemoteFile(

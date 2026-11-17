@@ -131,6 +131,16 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
             if (hasText(criteria.getEnvironmentId())) {
                 query.addCriteria(where("environmentId").is(criteria.getEnvironmentId()));
             }
+            if (criteria.getIds() != null) {
+                query.addCriteria(IdCriteria.matching("id", criteria.getIds()));
+            }
+
+            if (criteria.getReferenceType() != null) {
+                query.addCriteria(where("referenceType").is(criteria.getReferenceType()));
+            }
+            if (criteria.getReferenceId() != null) {
+                query.addCriteria(where("referenceId").is(criteria.getReferenceId()));
+            }
 
             if (hasText(criteria.getParentId())) {
                 query.addCriteria(where("parentId").is(criteria.getParentId()));

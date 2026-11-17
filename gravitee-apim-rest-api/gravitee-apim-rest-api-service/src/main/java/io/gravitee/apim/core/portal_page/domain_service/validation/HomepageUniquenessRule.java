@@ -19,6 +19,7 @@ import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -37,6 +38,20 @@ public class HomepageUniquenessRule implements CreatePortalNavigationItemValidat
 
     @Override
     public void validate(CreatePortalNavigationItem item, String environmentId, CreateValidationContext ctx) {
+        boolean pendingHomepage = ctx
+            .pendingItemsById()
+            .values()
+            .stream()
+            .anyMatch(
+                pending ->
+                    pending.getArea() == PortalArea.HOMEPAGE &&
+                    pending.getParentId() == null &&
+                    !Objects.equals(pending.getId(), item.getId()) &&
+                    Objects.equals(pending.getReference(), item.getReference())
+            );
+        if (pendingHomepage) {
+            throw new HomepageAlreadyExistsException();
+        }
         var existingHomepage = navigationItemsQueryService
             .findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(environmentId, PortalArea.HOMEPAGE, item.getReference())
             .stream()

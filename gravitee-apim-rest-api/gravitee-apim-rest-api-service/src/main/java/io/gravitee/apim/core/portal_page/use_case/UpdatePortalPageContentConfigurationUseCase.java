@@ -17,12 +17,14 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.OpenApiConfiguration;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
-import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
+import java.util.Objects;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -30,19 +32,23 @@ import lombok.RequiredArgsConstructor;
 @UseCase
 public class UpdatePortalPageContentConfigurationUseCase {
 
-    private final PortalPageContentQueryService portalPageContentQueryService;
+    private final PortalNavigationAccessDomainService accessService;
+
     private final PortalPageContentCrudService portalPageContentCrudService;
 
     public Output execute(Input input) {
-        PortalPageContent<?> existingContent = portalPageContentQueryService
-            .findById(PortalPageContentId.of(input.portalPageContentId()))
-            .orElseThrow(() -> new PageContentNotFoundException(input.portalPageContentId()));
+        var scope = input.scope();
+        var existingContent = accessService.requireContent(
+            input.organizationId(),
+            input.environmentId(),
+            scope,
+            PortalPageContentId.of(input.portalPageContentId())
+        );
+        return updateConfiguration(input, existingContent);
+    }
 
-        if (
-            !existingContent.getOrganizationId().equals(input.organizationId()) ||
-            !existingContent.getEnvironmentId().equals(input.environmentId()) ||
-            !(existingContent instanceof OpenApiPageContent)
-        ) {
+    private Output updateConfiguration(Input input, PortalPageContent<?> existingContent) {
+        if (!(existingContent instanceof OpenApiPageContent)) {
             throw new PageContentNotFoundException(input.portalPageContentId());
         }
 
@@ -54,7 +60,17 @@ public class UpdatePortalPageContentConfigurationUseCase {
     }
 
     @Builder
-    public record Input(String organizationId, String environmentId, String portalPageContentId, OpenApiConfiguration configuration) {}
+    public record Input(
+        String organizationId,
+        String environmentId,
+        String portalPageContentId,
+        OpenApiConfiguration configuration,
+        NavigationItemReference scope
+    ) {
+        public Input {
+            Objects.requireNonNull(scope, "scope");
+        }
+    }
 
     public record Output(OpenApiPageContent portalPageContent) {}
 }

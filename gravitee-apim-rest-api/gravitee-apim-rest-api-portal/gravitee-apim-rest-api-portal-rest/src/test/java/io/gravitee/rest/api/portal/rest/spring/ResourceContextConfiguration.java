@@ -159,9 +159,11 @@ import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomain
 import io.gravitee.apim.core.portal_page.domain_service.CheckTypoToleranceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.OpenApiContentTransformer;
 import io.gravitee.apim.core.portal_page.domain_service.PortalCatalogNavigationVisibilityDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemReadDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemRenderingDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
@@ -308,6 +310,7 @@ import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.vertx.rxjava3.core.Vertx;
 import java.util.List;
+import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -1315,17 +1318,8 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public UpdatePortalNavigationItemUseCase updatePortalNavigationItemUseCase(
-        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
-        PortalNavigationItemValidatorService validatorService,
-        PortalNavigationItemDomainService domainService
-    ) {
-        return new UpdatePortalNavigationItemUseCase(
-            portalNavigationItemsQueryService,
-            validatorService,
-            domainService,
-            new PortalNavigationItemSourceDomainServiceInMemory()
-        );
+    public UpdatePortalNavigationItemUseCase updatePortalNavigationItemUseCase() {
+        return mock(UpdatePortalNavigationItemUseCase.class);
     }
 
     @Bean
@@ -1347,12 +1341,15 @@ public class ResourceContextConfiguration {
         PortalNavigationItemCrudService portalNavigationItemCrudService
     ) {
         return new ListPortalNavigationItemsUseCase(
-            portalNavigationItemsQueryService,
-            List.of(portalNavigationApiVisibilityDomainService, portalNavigationApiProductVisibilityDomainService),
-            new PortalNavigationItemSourceDomainServiceInMemory(),
-            apiPortalSearchQueryService,
-            new ApiOwnedNavigationDomainService(portalNavigationItemsQueryService, portalNavigationItemCrudService),
-            new PortalNavigationItemRenderingDomainService(portalNavigationItemsQueryService)
+            new PortalNavigationItemReadDomainService(
+                portalNavigationItemsQueryService,
+                List.of(portalNavigationApiVisibilityDomainService, portalNavigationApiProductVisibilityDomainService),
+                new PortalNavigationItemSourceDomainServiceInMemory(),
+                apiPortalSearchQueryService,
+                new ApiOwnedNavigationDomainService(portalNavigationItemsQueryService, portalNavigationItemCrudService),
+                new PortalNavigationItemRenderingDomainService(portalNavigationItemsQueryService),
+                mock(PortalNavigationAccessDomainService.class)
+            )
         );
     }
 

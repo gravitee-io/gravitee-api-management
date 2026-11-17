@@ -15,15 +15,18 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
+import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.use_case.BulkCreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ImportPortalNavigationUseCase;
-import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
+import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsForPortalUseCase;
 import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForPortalNavigationItemsUseCase;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.v2.rest.mapper.PortalMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItems;
@@ -63,6 +66,16 @@ import lombok.CustomLog;
 @CustomLog
 public class PortalNavigationItemsResource extends AbstractResource {
 
+    @Inject
+    private DefaultPortalDomainService defaultPortalDomainService;
+
+    private PortalId resolvePortalId() {
+        var portalId = uriInfo.getPathParameters().getFirst("portalId");
+        return portalId == null
+            ? defaultPortalDomainService.getDefault(GraviteeContext.getCurrentEnvironment()).getId()
+            : PortalMapper.INSTANCE.toPortalId(portalId);
+    }
+
     @Context
     private ResourceContext resourceContext;
 
@@ -73,7 +86,7 @@ public class PortalNavigationItemsResource extends AbstractResource {
     private BulkCreatePortalNavigationItemUseCase bulkCreatePortalNavigationItemUseCase;
 
     @Inject
-    private ListPortalNavigationItemsUseCase listPortalNavigationItemsUseCase;
+    private ListPortalNavigationItemsForPortalUseCase listPortalNavigationItemsForPortalUseCase;
 
     @Inject
     private SeedDefaultPagesForPortalNavigationItemsUseCase seedDefaultPagesForPortalNavigationItemsUseCase;
@@ -101,14 +114,14 @@ public class PortalNavigationItemsResource extends AbstractResource {
 
         boolean includeApis = includes != null && includes.contains("apis");
 
-        var result = listPortalNavigationItemsUseCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
-                GraviteeContext.getCurrentEnvironment(),
+        var result = listPortalNavigationItemsForPortalUseCase.execute(
+            new ListPortalNavigationItemsForPortalUseCase.Input(
                 GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                resolvePortalId(),
                 portalArea,
                 Optional.ofNullable(parentId).map(PortalNavigationItemId::of),
                 loadChildren,
-                PortalNavigationItemViewerContext.forConsole(),
                 includeApis
             )
         );
@@ -134,7 +147,8 @@ public class PortalNavigationItemsResource extends AbstractResource {
             new CreatePortalNavigationItemUseCase.Input(
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
-                mapper.map(createPortalNavigationItem)
+                mapper.map(createPortalNavigationItem),
+                new NavigationItemReference.PortalReference(resolvePortalId())
             )
         );
 
@@ -155,7 +169,8 @@ public class PortalNavigationItemsResource extends AbstractResource {
             new BulkCreatePortalNavigationItemUseCase.Input(
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
-                mapper.mapCreatePortalNavigationItems(createPortalNavigationItemsRequest.getItems())
+                mapper.mapCreatePortalNavigationItems(createPortalNavigationItemsRequest.getItems()),
+                resolvePortalId()
             )
         );
 
@@ -171,7 +186,12 @@ public class PortalNavigationItemsResource extends AbstractResource {
         final var executionContext = GraviteeContext.getExecutionContext();
 
         final var output = importPortalNavigationUseCase.execute(
-            mapper.map(executionContext.getOrganizationId(), executionContext.getEnvironmentId(), importPortalNavigationRequest)
+            mapper.map(
+                executionContext.getOrganizationId(),
+                executionContext.getEnvironmentId(),
+                importPortalNavigationRequest,
+                new NavigationItemReference.PortalReference(resolvePortalId())
+            )
         );
 
         return Response.ok(mapper.map(output)).build();
@@ -188,7 +208,8 @@ public class PortalNavigationItemsResource extends AbstractResource {
             mapper.mapSeedDefaultPagesInput(
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
-                seedDefaultPagesRequest
+                seedDefaultPagesRequest,
+                resolvePortalId()
             )
         );
 
