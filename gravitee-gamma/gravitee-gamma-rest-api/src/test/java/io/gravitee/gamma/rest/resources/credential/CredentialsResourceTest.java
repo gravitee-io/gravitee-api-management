@@ -91,6 +91,34 @@ class CredentialsResourceTest extends AbstractCredentialResourceTest {
         }
 
         @Test
+        void should_create_a_credential_whose_secret_is_an_expression() {
+            var expression = "{#secrets.get(#context.attributes['openai-key-uri'])}";
+
+            var response = create(Map.of("name", "OpenAI per tenant", "strategy", "BEARER", "references", Map.of("token", expression)));
+
+            assertThat(response.getStatus()).isEqualTo(CREATED_201);
+            assertThat(response.readEntity(CredentialDto.class).secretReferences().get("token").reference()).isEqualTo(expression);
+        }
+
+        @Test
+        void should_refuse_an_expression_reading_the_request_and_name_the_field() {
+            var response = create(
+                Map.of(
+                    "name",
+                    "OpenAI",
+                    "strategy",
+                    "BEARER",
+                    "references",
+                    Map.of("token", "{#secrets.get(#request.headers['X-Uri'][0])}")
+                )
+            );
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+            assertThat(response.readEntity(String.class)).contains("token");
+            assertThat(credentialCrudService.storage()).isEmpty();
+        }
+
+        @Test
         void should_refuse_a_missing_strategy() {
             var response = create(Map.of("name", "OpenAI", "references", Map.of("token", "/vault/secret/openai:token")));
 
