@@ -32,6 +32,7 @@ import io.gravitee.rest.api.model.common.PageableImpl;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -51,15 +52,14 @@ class ReadCredentialUseCasesTest extends AbstractUseCaseTest {
     }
 
     private void givenTheOwnerIsNamed(String firstname, String lastname) {
+        givenTheOwner(owner -> owner.firstname(firstname).lastname(lastname));
+    }
+
+    private void givenTheOwner(UnaryOperator<BaseUserEntity.BaseUserEntityBuilder> customizer) {
         fixture.userCrudService.reset();
         fixture.userCrudService.initWith(
             List.of(
-                BaseUserEntity.builder()
-                    .id(CredentialFixture.OWNER_ID)
-                    .organizationId(CredentialFixture.ORG_ID)
-                    .firstname(firstname)
-                    .lastname(lastname)
-                    .build()
+                customizer.apply(BaseUserEntity.builder().id(CredentialFixture.OWNER_ID).organizationId(CredentialFixture.ORG_ID)).build()
             )
         );
     }
@@ -81,6 +81,26 @@ class ReadCredentialUseCasesTest extends AbstractUseCaseTest {
         void should_return_no_owner_name_when_the_owner_no_longer_exists() {
             var credential = fixture.givenACredential();
             fixture.userCrudService.reset();
+
+            var found = fixture.getCredentialUseCase.execute(new GetCredentialUseCase.Input(fixture.otherUser(), credential.id()));
+
+            assertThat(found.ownerName()).isNull();
+        }
+
+        @Test
+        void should_return_no_owner_name_when_the_owner_was_deleted() {
+            var credential = fixture.givenACredential();
+            givenTheOwner(owner -> owner.firstname("Ada").lastname("Lovelace").status("ARCHIVED"));
+
+            var found = fixture.getCredentialUseCase.execute(new GetCredentialUseCase.Input(fixture.otherUser(), credential.id()));
+
+            assertThat(found.ownerName()).isNull();
+        }
+
+        @Test
+        void should_not_return_the_email_of_an_owner_without_a_name() {
+            var credential = fixture.givenACredential();
+            givenTheOwner(owner -> owner.email("ada@example.com").sourceId("ada"));
 
             var found = fixture.getCredentialUseCase.execute(new GetCredentialUseCase.Input(fixture.otherUser(), credential.id()));
 
