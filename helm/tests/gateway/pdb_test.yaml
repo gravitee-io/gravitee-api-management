@@ -45,3 +45,14 @@ tests:
           value: 50%
       - notExists:
           path: spec.minAvailable
+
+  - it: should generate nothing for a DaemonSet gateway even when PDB is enabled
+    template: gateway/gateway-pdb.yaml
+    set:
+      gateway:
+        type: DaemonSet
+        pdb:
+          enabled: true
+    asserts:
+      - hasDocuments:
+          count: 0

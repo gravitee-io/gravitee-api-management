@@ -1,4 +1,4 @@
-{{- if and (.Values.gateway.enabled) (.Values.gateway.pdb.enabled) -}}
+{{- if and (.Values.gateway.enabled) (.Values.gateway.pdb.enabled) (ne .Values.gateway.type "DaemonSet") -}}
 apiVersion: {{ include "common.capabilities.policy.apiVersion" . }}
 kind: PodDisruptionBudget
 metadata:
