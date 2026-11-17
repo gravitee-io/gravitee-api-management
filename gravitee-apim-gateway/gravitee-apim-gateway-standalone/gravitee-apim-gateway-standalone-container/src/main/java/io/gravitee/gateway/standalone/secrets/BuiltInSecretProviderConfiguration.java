@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.standalone.secrets;
 
+import static io.gravitee.apim.common.secret.StaticKeyEncryptionKeyProvider.KEY_PROPERTY;
+
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.OrganizationKeyRepository;
 import io.gravitee.repository.management.api.SecretRepository;
@@ -33,7 +35,7 @@ public class BuiltInSecretProviderConfiguration {
     @Bean
     @Lazy
     public EnvironmentAwareSecretProvider builtInSecretProvider(
-        @Value("${" + BuiltInSecretProvider.KEY_PROPERTY + ":#{null}}") String base64Kek,
+        @Value("${" + KEY_PROPERTY + ":#{null}}") String base64Kek,
         ObjectProvider<SecretRepository> secretRepository,
         ObjectProvider<OrganizationKeyRepository> organizationKeyRepository,
         ObjectProvider<EnvironmentRepository> environmentRepository
@@ -42,6 +44,10 @@ public class BuiltInSecretProviderConfiguration {
         OrganizationKeyRepository organizationKeys = organizationKeyRepository.getIfAvailable();
         if (secrets == null || organizationKeys == null) {
             log.info("Built-in secret provider [{}]: SKIPPED, the management repository does not store secrets", BuiltInSecretProvider.ID);
+            return null;
+        }
+        if (base64Kek == null || base64Kek.isBlank()) {
+            log.info("Built-in secret provider [{}]: SKIPPED, {} is not set", BuiltInSecretProvider.ID, KEY_PROPERTY);
             return null;
         }
         return new BuiltInSecretProvider(base64Kek, secrets, organizationKeys, environmentRepository.getObject());
