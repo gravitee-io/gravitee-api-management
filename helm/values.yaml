@@ -370,7 +370,8 @@ es:
   # elastic search cluster
   # https://documentation.gravitee.io/apim/getting-started/configuration/configure-repositories/elasticsearch#apim-api-configuration
   # Index mode: daily (one index per day), ilm (rollover alias managed by ILM) or data_stream (one data stream per type,
-  # Elasticsearch 7.9+ or OpenSearch)
+  # Elasticsearch 7.9+ or OpenSearch). On OpenSearch in data_stream mode, leave lifecycle.policies (enabled false) and
+  # lifecycle.retention unset, as the reporter refuses to start otherwise, and give the ISM policy an 'ism_template'.
   index_mode: daily
   settings:
     number_of_shards: 1
@@ -395,6 +396,18 @@ es:
       log: my_policy ## ILM policy for the gravitee-log-* indexes
       eventMetrics: "" ## ILM policy for the gravitee-event-metrics-* data streams (unset by default)
       decisions: "" ## ILM policy for the gravitee-decisions-* data streams (unset by default)
+    # Data stream lifecycle of the gateway reporter, in index_mode data_stream on Elasticsearch 8.14 or later only: an
+    # Elasticsearch time value such as 7d. Rendered whatever the value of enabled, and only for the keys set. A type
+    # takes either a policy or a retention: the reporter refuses to start when a type has both, so with enabled true,
+    # set the policies of these types to "" (monitor, request, health and log default to my_policy). The reporter
+    # ignores it in the other index modes, and refuses it on OpenSearch.
+    retention: {}
+      # monitor: 7d ## gravitee-monitor data stream
+      # request: 30d ## gravitee-request, gravitee-v4-metrics and gravitee-v4-message-metrics data streams
+      # health: 3d ## gravitee-health data stream
+      # log: 7d ## gravitee-log, gravitee-v4-log and gravitee-v4-message-log data streams
+      # eventMetrics: 30d ## gravitee-event-metrics data stream
+      # decisions: 30d ## gravitee-decisions data stream
     # http:
       # timeout: 10000
   ssl:

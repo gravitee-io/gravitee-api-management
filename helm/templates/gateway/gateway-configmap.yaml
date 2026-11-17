@@ -756,8 +756,11 @@ data:
         pipeline:
           plugins:
             ingest: {{ .Values.es.pipeline.plugins.ingest }}
-        {{- if (eq .Values.es.lifecycle.enabled true) }}
+        {{- $retention := .Values.es.lifecycle.retention | default dict }}
+        {{- $withRetention := or $retention.monitor $retention.request $retention.health $retention.log $retention.eventMetrics $retention.decisions }}
+        {{- if or (eq .Values.es.lifecycle.enabled true) $withRetention }}
         lifecycle:
+          {{- if (eq .Values.es.lifecycle.enabled true) }}
           policy_property_name: {{ .Values.es.lifecycle.policyPropertyName }}
           rollover_alias_property_name: {{ .Values.es.lifecycle.rolloverAliasPropertyName }}
           policies:
@@ -767,6 +770,28 @@ data:
             log: {{ .Values.es.lifecycle.policies.log }}
             event_metrics: {{ .Values.es.lifecycle.policies.eventMetrics }}
             decisions: {{ .Values.es.lifecycle.policies.decisions }}
+          {{- end }}
+          {{- if $withRetention }}
+          retention:
+            {{- with $retention.monitor }}
+            monitor: {{ . }}
+            {{- end }}
+            {{- with $retention.request }}
+            request: {{ . }}
+            {{- end }}
+            {{- with $retention.health }}
+            health: {{ . }}
+            {{- end }}
+            {{- with $retention.log }}
+            log: {{ . }}
+            {{- end }}
+            {{- with $retention.eventMetrics }}
+            event_metrics: {{ . }}
+            {{- end }}
+            {{- with $retention.decisions }}
+            decisions: {{ . }}
+            {{- end }}
+          {{- end }}
         {{- end }}
         {{- if .Values.es.security.apiKey }}
         security:

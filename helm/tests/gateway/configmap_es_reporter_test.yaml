@@ -75,6 +75,46 @@ tests:
                 index_mode: data_stream
                 pipeline:
 
+  - it: Render only the data stream retentions that are set, without the lifecycle policies
+    template: gateway/gateway-configmap.yaml
+    set:
+      es:
+        index_mode: data_stream
+        lifecycle:
+          retention:
+            monitor: 7d
+            eventMetrics: 30d
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "\\n    lifecycle:\\n      retention:\\n        monitor: 7d\\n        event_metrics: 30d\\n"
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "policies:|my_policy|\\n\\s+(request|health|log|decisions): *\\n"
+
+  - it: Render the data stream retentions next to the lifecycle policies
+    template: gateway/gateway-configmap.yaml
+    set:
+      es:
+        index_mode: data_stream
+        lifecycle:
+          enabled: true
+          policies:
+            monitor: ""
+          retention:
+            monitor: 7d
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "\\n        decisions: *\\n      retention:\\n        monitor: 7d\\n"
+
+  - it: Render no data stream retention by default
+    template: gateway/gateway-configmap.yaml
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "\\n\\s+retention:\\n\\s+(monitor|request|health|log|event_metrics|decisions):"
+
   - it: Check override es settings
     template: gateway/gateway-configmap.yaml
     set:
