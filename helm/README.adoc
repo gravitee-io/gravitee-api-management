@@ -1021,10 +1021,25 @@ configuration |`+TimeBasedRollingPolicy+` for 30 days
 
 |`+gateway.node.logging.pattern.file+` |File log pattern when overrideLogbackXml is enabled |`+%d %-5p [%t] %c [%mdcList] : %m%n+`
 
-|`+gateway.type+` |Gateway deployment type: `+deployment+` or
-`+statefulSet+` or `+DaemonSet+` |`+deployment+`
+|`+gateway.type+` |Gateway workload type: `+Deployment+`, `+StatefulSet+`
+or `+DaemonSet+`. With `+DaemonSet+`, `+replicaCount+`, `+autoscaling+`,
+`+pdb+` and `+deployment.strategy+` are ignored, and the chart sets neither
+`+hostNetwork+` nor `+hostPort+`: to keep external traffic on the node that
+receives it, use a `+NodePort+` or `+LoadBalancer+` service with
+`+gateway.service.externalTrafficPolicy: Local+`, and for in-cluster callers a
+Service of your own with `+internalTrafficPolicy: Local+`, which the chart does
+not render. Changing `+gateway.type+`
+on an existing release replaces the workload: Helm creates the new one and
+deletes the old one in the same upgrade, without waiting for the new pods
+unless `+--wait+` is used |`+Deployment+`
 
 |`+gateway.replicaCount+` |How many replicas of the Gateway pod |`+2+`
+
+|`+gateway.deployment.daemonSetUpdateStrategy+` |Update strategy when
+`+gateway.type+` is `+DaemonSet+`. Set `+rollingUpdate+` to `+maxSurge: 1+`
+and `+maxUnavailable: 0+` to keep a gateway on each node during a rollout
+(Kubernetes 1.22 or later)
+|`+type: RollingUpdate+`, `+rollingUpdate.maxUnavailable: 1+`
 
 |`+gateway.image.repository+` |Gravitee Gateway image repository
 |`+graviteeio/gateway+`
