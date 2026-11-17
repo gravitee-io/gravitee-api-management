@@ -768,6 +768,7 @@ public class ApiResource extends AbstractResource {
         @QueryParam("name") String name,
         @BeanParam @Valid PaginationParam paginationParam
     ) {
+        requireCanManageApi(apiId);
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         Set<String> applicationIds = subscriptionService
             .findByApi(executionContext, apiId)
@@ -964,11 +965,7 @@ public class ApiResource extends AbstractResource {
         boolean withApiCategories
     ) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, apiId, withApiFlow, withPlans, withApiCategories);
-
-        if (!canManageApi(apiEntity)) {
-            throw new ForbiddenAccessException();
-        }
+        GenericApiEntity apiEntity = findManageableApi(apiId, withApiFlow, withPlans, withApiCategories);
 
         if (prepareData) {
             prepareDataForResponse(apiId, executionContext, apiEntity);

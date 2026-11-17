@@ -153,6 +153,20 @@ public abstract class AbstractResource {
         return isAdmin() || isDirectMember(api.getId()) || isMemberThroughGroup(api.getGroups());
     }
 
+    /**
+     * Refuses a caller who cannot manage the API, the rule reading the API itself applies: a member whose role only reads the API,
+     * such as the default USER role, is refused even when the role grants the permission the endpoint checks.
+     */
+    protected void requireCanManageApi(final String apiId) {
+        if (isAdmin()) {
+            return;
+        }
+        GenericApiEntity api = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), apiId, false, false, false);
+        if (!canManageApi(api)) {
+            throw new ForbiddenAccessException();
+        }
+    }
+
     private boolean isDirectMember(String apiId) {
         return membershipService
             .getMembershipsByMemberAndReference(USER, getAuthenticatedUser(), API)
