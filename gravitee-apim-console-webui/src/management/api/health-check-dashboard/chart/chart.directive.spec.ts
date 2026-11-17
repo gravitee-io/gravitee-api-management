@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as fs from 'fs';
-import * as path from 'path';
-
 import angular from 'angular';
 import * as Highcharts from 'highcharts';
+
+import * as fs from 'fs';
+import * as path from 'path';
 
 import ChartDirective from './chart.directive';
 
