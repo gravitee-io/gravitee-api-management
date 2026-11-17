@@ -38,6 +38,9 @@ public class GetCredentialUseCase {
     public Output execute(Input input) {
         var actor = input.actor();
         var credential = credentialCrudService.get(actor.organizationId(), actor.environmentId(), input.credentialId());
+        if (credential.ownerId() == null) {
+            return new Output(credential, null);
+        }
         var ownerNames = credentialOwnerDomainService.namesOf(actor, List.of(credential.ownerId()));
         return new Output(credential, ownerNames.get(credential.ownerId()));
     }

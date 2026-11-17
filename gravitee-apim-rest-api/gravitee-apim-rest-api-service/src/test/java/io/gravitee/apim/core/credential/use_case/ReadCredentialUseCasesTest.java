@@ -88,6 +88,20 @@ class ReadCredentialUseCasesTest extends AbstractUseCaseTest {
         }
 
         @Test
+        void should_return_a_credential_without_an_owner() {
+            var credential = fixture.credentialCrudService.update(fixture.givenACredential().toBuilder().ownerId(null).build());
+
+            var found = fixture.getCredentialUseCase.execute(
+                new GetCredentialUseCase.Input(
+                    CredentialFixture.adminIn(CredentialFixture.ORG_ID, CredentialFixture.ENV_ID),
+                    credential.id()
+                )
+            );
+
+            assertThat(found.ownerName()).isNull();
+        }
+
+        @Test
         void should_return_a_credential_to_any_reader() {
             var credential = fixture.givenACredential();
 

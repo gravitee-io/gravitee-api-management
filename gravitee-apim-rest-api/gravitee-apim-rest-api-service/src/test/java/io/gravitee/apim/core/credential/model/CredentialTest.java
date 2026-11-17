@@ -47,6 +47,13 @@ class CredentialTest {
         assertThat(credential.isManageableBy(actor(OTHER_USER_ID, false, Set.of()))).isFalse();
     }
 
+    @Test
+    void should_not_be_manageable_by_another_user_when_it_has_no_owner() {
+        var withoutOwner = credential.toBuilder().ownerId(null).build();
+
+        assertThat(withoutOwner.isManageableBy(actor(OTHER_USER_ID, false, Set.of()))).isFalse();
+    }
+
     private static CredentialActor actor(String userId, boolean admin, Set<CredentialActor.SecretAccess> secretAccess) {
         var auditInfo = AuditInfo.builder().actor(AuditActor.builder().userId(userId).build()).build();
         return new CredentialActor(auditInfo, admin, secretAccess);

@@ -115,7 +115,7 @@ public record Credential(
     }
 
     public boolean isManageableBy(CredentialActor actor) {
-        return actor.admin() || ownerId.equals(actor.userId());
+        return actor.admin() || (ownerId != null && ownerId.equals(actor.userId()));
     }
 
     public void requireManageableBy(CredentialActor actor) {
