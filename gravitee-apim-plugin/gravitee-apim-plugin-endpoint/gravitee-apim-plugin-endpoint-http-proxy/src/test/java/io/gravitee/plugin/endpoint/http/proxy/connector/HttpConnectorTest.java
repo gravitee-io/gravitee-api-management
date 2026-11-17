@@ -90,8 +90,10 @@ import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.core.Context;
 import io.vertx.core.http.HttpClosedException;
+import io.vertx.core.http.HttpConnection;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.core.internal.VertxInternal;
+import io.vertx.core.net.impl.ConnectionBase;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import java.io.IOException;
@@ -1649,6 +1651,46 @@ class HttpConnectorTest {
 
         second.assertComplete();
         wiremock.verify(1, getRequestedFor(urlPathEqualTo("/team")));
+    }
+
+    @Test
+    void should_report_the_failure_of_an_unwritable_request_head_on_the_context_of_the_caller() throws InterruptedException {
+        when(request.method()).thenReturn(HttpMethod.GET);
+        wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
+        cut = connectorWhoseFirstRequestHeadCannotBeWritten(new UnwritableHeaderValue());
+
+        // The connection is closed on its own event loop before the failure is reported; the report must then go back
+        // to the caller instead of the rest of the chain running on that event loop.
+        final AtomicReference<Boolean> reportedOnAnEventLoop = new AtomicReference<>();
+        final TestObserver<Void> first = connectFromWorkerContext(
+            cut.connect(ctx).doOnError(failure -> reportedOnAnEventLoop.set(Context.isOnEventLoopThread()))
+        );
+
+        assertNoTimeout(first);
+        first.assertNotComplete();
+        assertThat(reportedOnAnEventLoop.get()).as("Failure should be reported on the worker context of the caller").isFalse();
+    }
+
+    @Test
+    void should_expose_the_upstream_connection_as_a_vertx_connection_base() throws InterruptedException {
+        when(request.method()).thenReturn(HttpMethod.GET);
+        wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
+        final AtomicReference<HttpConnection> upstreamConnection = new AtomicReference<>();
+        cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory()) {
+            @Override
+            protected HttpClientRequest customizeHttpClientRequest(final HttpClientRequest httpClientRequest) {
+                upstreamConnection.set(httpClientRequest.getDelegate().connection());
+                return httpClientRequest;
+            }
+        };
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+
+        assertNoTimeout(obs);
+        obs.assertComplete();
+        // Evicting a failed connection casts it to this Vert.x implementation type; fail here, not silently there, if a
+        // Vert.x upgrade stops it from being one.
+        assertThat(upstreamConnection.get()).isInstanceOf(ConnectionBase.class);
     }
 
     @Test
