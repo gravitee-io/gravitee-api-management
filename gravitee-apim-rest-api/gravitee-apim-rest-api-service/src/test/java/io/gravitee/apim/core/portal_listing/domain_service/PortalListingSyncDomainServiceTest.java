@@ -734,6 +734,7 @@ class PortalListingSyncDomainServiceTest {
         private final String apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
         private final NavigationItemReference api = new NavigationItemReference.ApiReference(apiId);
         private PortalNavigationItemDomainService itemDomainService;
+        private final NavigationPortalDomainServiceInMemory navigationPortals = new NavigationPortalDomainServiceInMemory();
 
         @BeforeEach
         void setUp() {
@@ -745,7 +746,7 @@ class PortalListingSyncDomainServiceTest {
                 apiCrud,
                 new PortalNavigationItemSourceDomainServiceInMemory(),
                 new ApiOwnedNavigationDomainService(navItemQuery, navItemCrud),
-                new NavigationPortalDomainServiceInMemory()
+                navigationPortals
             );
             declare(GUIDES);
         }
@@ -846,6 +847,11 @@ class PortalListingSyncDomainServiceTest {
         @Test
         void should_not_see_a_portal_owned_folder_with_the_same_name() {
             var section = portalRootFolder("APIs", "apis");
+            section.changeOwner(
+                new NavigationItemReference.PortalReference(
+                    navigationPortals.givenDefaultPortal(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId())
+                )
+            );
             navItemCrud.create(section);
             var listing = (PortalNavigationApi) itemDomainService.create(
                 AUDIT_INFO.organizationId(),
@@ -854,7 +860,6 @@ class PortalListingSyncDomainServiceTest {
                     .type(PortalNavigationItemType.API)
                     .apiId(apiId)
                     .area(PortalArea.TOP_NAVBAR)
-                    .reference(section.getReference())
                     .parentId(section.getId())
                     .published(true)
                     .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
@@ -863,7 +868,7 @@ class PortalListingSyncDomainServiceTest {
             var portalOwned = itemDomainService.create(
                 AUDIT_INFO.organizationId(),
                 AUDIT_INFO.environmentId(),
-                aFolderToCreate("Guides", listing.getId()).reference(section.getReference()).build()
+                aFolderToCreate("Guides", listing.getId()).build()
             );
 
             syncService.syncApiFolders(AUDIT_INFO, apiId, List.of());
