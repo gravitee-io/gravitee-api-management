@@ -110,16 +110,17 @@ class BuiltInSecretsV4IntegrationTest extends AbstractGatewayTest {
         }
     }
 
-    // The environment repository is a mock of the gateway context, which the boot context does not see. Each test resets
-    // that mock, so the APIs deploy once for the class, while this stub holds.
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) {
         super.setApplicationContext(applicationContext);
+        stubEnvironmentsOnceForTheClass(applicationContext.getBean(EnvironmentRepository.class));
+    }
+
+    private static void stubEnvironmentsOnceForTheClass(EnvironmentRepository gatewayContextMock) {
         try {
-            var environments = applicationContext.getBean(EnvironmentRepository.class);
             for (String environmentId : Set.of(ENVIRONMENT, OTHER_ENVIRONMENT)) {
                 lenient()
-                    .when(environments.findById(environmentId))
+                    .when(gatewayContextMock.findById(environmentId))
                     .thenReturn(Optional.of(Environment.builder().id(environmentId).organizationId(ORGANIZATION).build()));
             }
         } catch (TechnicalException e) {
