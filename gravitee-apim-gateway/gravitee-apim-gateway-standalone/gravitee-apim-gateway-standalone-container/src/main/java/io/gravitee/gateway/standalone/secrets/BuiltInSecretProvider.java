@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.standalone.secrets;
 
+import static io.gravitee.apim.common.secret.StaticKeyEncryptionKeyProvider.KEY_PROPERTY;
+
 import io.gravitee.apim.common.secret.DataKeyResolver;
 import io.gravitee.apim.common.secret.InvalidKeyEncryptionKeyException;
 import io.gravitee.apim.common.secret.KeyEncryptionKeyProvider;
@@ -38,11 +40,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.CustomLog;
 
+@CustomLog
 public class BuiltInSecretProvider implements EnvironmentAwareSecretProvider {
 
     public static final String ID = "gravitee";
-    public static final String KEY_PROPERTY = "api.secrets.encryption.key";
     private static final String VALUE_KEY = "value";
 
     private final String base64Kek;
@@ -85,6 +88,12 @@ public class BuiltInSecretProvider implements EnvironmentAwareSecretProvider {
         }
         if (!storedKekIds.isEmpty() && storedKekIds.stream().noneMatch(kek::canUnwrap)) {
             throw new SecretManagerException(KEY_PROPERTY + " does not match the key that encrypted the stored secrets");
+        }
+        if (!storedKekIds.stream().allMatch(kek::canUnwrap)) {
+            log.warn(
+                "{} did not wrap the data key of every organization: the organizations it did not wrap cannot read their secrets",
+                KEY_PROPERTY
+            );
         }
         dataKeys = new DataKeyResolver(kek, this::findStoredDataKey);
         return this;

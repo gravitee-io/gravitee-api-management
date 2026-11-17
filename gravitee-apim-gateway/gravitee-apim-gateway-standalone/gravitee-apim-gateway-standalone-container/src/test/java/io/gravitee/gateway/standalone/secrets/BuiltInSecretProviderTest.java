@@ -22,8 +22,13 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import io.gravitee.apim.common.secret.DataKey;
 import io.gravitee.apim.common.secret.SecretEnvelope;
 import io.gravitee.apim.common.secret.SecretScope;
@@ -41,9 +46,11 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
 class BuiltInSecretProviderTest {
 
@@ -120,6 +127,7 @@ class BuiltInSecretProviderTest {
             started().resolve(ENV, LLM_KEY).test().assertNoValues();
 
             verify(secretRepository).findByKey(ORG, ENV, "llm-key");
+            verifyNoMoreInteractions(secretRepository);
         }
 
         @Test
@@ -153,10 +161,64 @@ class BuiltInSecretProviderTest {
                 .test()
                 .assertError(err -> err instanceof SecretManagerException && !err.getMessage().contains("AAAA"));
         }
+
+        @Test
+        void should_fail_when_the_organization_has_no_data_key() throws TechnicalException {
+            givenSecret(ENV, "llm-key", "sk-live-123");
+            when(organizationKeyRepository.findByOrganizationId(ORG)).thenReturn(Optional.empty());
+
+            started()
+                .resolve(ENV, LLM_KEY)
+                .test()
+                .assertError(err -> err instanceof SecretManagerException && err.getMessage().contains("has no data key"));
+        }
+
+        @Test
+        void should_fail_when_the_data_key_of_the_organization_cannot_be_read() throws TechnicalException {
+            givenSecret(ENV, "llm-key", "sk-live-123");
+            when(organizationKeyRepository.findByOrganizationId(ORG)).thenThrow(new TechnicalException("down"));
+
+            started().resolve(ENV, LLM_KEY).test().assertError(SecretManagerException.class);
+        }
+
+        @Test
+        void should_fail_when_another_key_encryption_key_wrapped_the_data_key_of_the_organization() throws TechnicalException {
+            givenSecret(ENV, "llm-key", "sk-live-123");
+            var otherKek = StaticKeyEncryptionKeyProvider.fromBase64(randomKek());
+            when(organizationKeyRepository.findByOrganizationId(ORG)).thenReturn(
+                Optional.of(
+                    OrganizationKey.builder()
+                        .id(dataKey.id())
+                        .organizationId(ORG)
+                        .kekId(otherKek.id())
+                        .wrappedKey(Base64.getEncoder().encodeToString(otherKek.wrap(ORG, dataKey.material())))
+                        .build()
+                )
+            );
+            when(organizationKeyRepository.findKekIds()).thenReturn(Set.of(kek.id(), otherKek.id()));
+
+            started()
+                .resolve(ENV, LLM_KEY)
+                .test()
+                .assertError(err -> err instanceof SecretManagerException && !err.getMessage().contains("sk-live-123"));
+        }
     }
 
     @Nested
     class Start {
+
+        private final Logger logger = (Logger) LoggerFactory.getLogger(BuiltInSecretProvider.class);
+        private final ListAppender<ILoggingEvent> logs = new ListAppender<>();
+
+        Start() {
+            logs.start();
+            logger.addAppender(logs);
+        }
+
+        @AfterEach
+        void detachAppender() {
+            logger.detachAppender(logs);
+        }
 
         @Test
         void should_fail_with_the_property_and_the_reason_when_no_key_encryption_key_is_set() {
@@ -190,6 +252,29 @@ class BuiltInSecretProviderTest {
             when(organizationKeyRepository.findKekIds()).thenReturn(Set.of());
 
             assertThat(provider(base64Kek).start()).isNotNull();
+        }
+
+        @Test
+        void should_start_without_warning_when_the_key_encryption_key_wrapped_every_stored_data_key() {
+            provider(base64Kek).start();
+
+            assertThat(logs.list).isEmpty();
+        }
+
+        @Test
+        void should_start_with_a_warning_when_the_key_encryption_key_wrapped_only_some_stored_data_keys() throws TechnicalException {
+            when(organizationKeyRepository.findKekIds()).thenReturn(Set.of(kek.id(), "another-kek"));
+
+            assertThat(provider(base64Kek).start()).isNotNull();
+
+            assertThat(logs.list)
+                .singleElement()
+                .satisfies(event -> {
+                    assertThat(event.getLevel()).isEqualTo(Level.WARN);
+                    assertThat(event.getFormattedMessage())
+                        .contains(StaticKeyEncryptionKeyProvider.KEY_PROPERTY, "did not wrap")
+                        .doesNotContain(base64Kek);
+                });
         }
     }
 
