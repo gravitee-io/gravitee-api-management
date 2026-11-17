@@ -211,8 +211,8 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
      * not rewrite what they read: a deployment that sanitised the draft would publish a revision the
      * stored draft no longer matches, and the Guardian would turn {@code PENDING} the moment it was
      * deployed. A configuration its policy only accepts corrected is therefore refused here rather than
-     * ignored, since publishing it would publish one the policy was never validated with; the user saves
-     * the Guardian again, which stores what the policy accepts, and deploys that.
+     * ignored, since publishing it would publish one the policy was never validated with; editing and
+     * saving the Guardian stores what the policy accepts, and that one deploys.
      */
     public void validateStoredAgainstInstalledPolicies(Guardian guardian) {
         refuse(validate(guardian, Correction.REFUSE));
@@ -346,7 +346,7 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
             case STORE -> step.setConfiguration(accepted);
             case REFUSE -> errors.add(
                 Error.severe(
-                    "Step [%s] has a configuration its policy only accepts corrected: save the Guardian again to store the configuration the policy accepts.",
+                    "Step [%s] has a configuration its policy only accepts corrected: edit and save the Guardian to store the configuration the policy accepts.",
                     step.getName()
                 )
             );

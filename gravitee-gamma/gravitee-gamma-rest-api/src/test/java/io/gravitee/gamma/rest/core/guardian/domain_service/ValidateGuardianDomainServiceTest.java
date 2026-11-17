@@ -388,7 +388,7 @@ class ValidateGuardianDomainServiceTest {
                 .assertThatThrownBy(() -> validator.validateStoredAgainstInstalledPolicies(guardian))
                 .as("publishing it would publish a configuration the policy was never validated with")
                 .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContainingAll("Detect credentials", "save the Guardian again");
+                .hasMessageContainingAll("Detect credentials", "edit and save the Guardian");
             softly.assertThat(policy.getConfiguration()).as("and the definition it read is left alone").isEqualTo("{\"rules\":[]}");
         });
     }

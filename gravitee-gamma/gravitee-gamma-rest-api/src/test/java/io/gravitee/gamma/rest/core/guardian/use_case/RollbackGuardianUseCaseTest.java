@@ -259,7 +259,7 @@ class RollbackGuardianUseCaseTest {
                         "ever ran, and leave the Guardian PENDING straight after the rollback"
                 )
                 .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContainingAll("Detect credentials", "save the Guardian again");
+                .hasMessageContainingAll("Detect credentials", "edit and save the Guardian");
             softly
                 .assertThat(repository.findByEnvironmentId(ENVIRONMENT_ID, GUARDIAN_ID))
                 .as("draft unchanged")
