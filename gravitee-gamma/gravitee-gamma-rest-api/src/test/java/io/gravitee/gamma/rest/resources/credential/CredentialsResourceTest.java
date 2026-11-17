@@ -147,6 +147,25 @@ class CredentialsResourceTest extends AbstractCredentialResourceTest {
         }
 
         @Test
+        void should_tell_whether_the_caller_can_manage_each_credential() {
+            given(bearer("Cohere"));
+
+            var body = rootTarget().request().get().readEntity(JsonNode.class);
+
+            assertThat(body.get("data").get(0).get("manageable").asBoolean()).isTrue();
+        }
+
+        @Test
+        void should_return_the_display_name_of_each_owner() {
+            given(bearer("Cohere"));
+            givenTheCallerIsNamed("Ada", "Lovelace");
+
+            var body = rootTarget().request().get().readEntity(JsonNode.class);
+
+            assertThat(body.get("data").get(0).get("ownerName").asText()).isEqualTo("Ada Lovelace");
+        }
+
+        @Test
         void should_filter_on_the_name_the_strategies_and_the_service() {
             given(bearer("OpenAI production"));
             given(

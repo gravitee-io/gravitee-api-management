@@ -21,11 +21,21 @@ import io.gravitee.apim.core.credential.model.CredentialActor;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
 @RequiredArgsConstructor
 public class CredentialOwnerDomainService {
+
+    // Deleting a user archives it and keeps its name.
+    private static final String ARCHIVED = "ARCHIVED";
 
     private final UserCrudService userCrudService;
     private final MembershipQueryService membershipQueryService;
@@ -50,6 +60,31 @@ public class CredentialOwnerDomainService {
             throw notAMember(requestedOwnerId);
         }
         return requestedOwnerId;
+    }
+
+    /**
+     * @return the first and last name of each owner that is still a user of the actor's organization, by user id. Not
+     * {@link BaseUserEntity#displayName()}: it falls back to the email, which credential readers must not see.
+     */
+    public Map<String, String> namesOf(CredentialActor actor, Collection<String> ownerIds) {
+        var ids = ownerIds.stream().filter(Objects::nonNull).distinct().toList();
+        return userCrudService
+            .findBaseUsersByIds(ids)
+            .stream()
+            .filter(user -> actor.organizationId().equals(user.getOrganizationId()) && !ARCHIVED.equals(user.getStatus()))
+            .flatMap(user ->
+                nameOf(user)
+                    .map(name -> Map.entry(user.getId(), name))
+                    .stream()
+            )
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    private static Optional<String> nameOf(BaseUserEntity user) {
+        var name = Stream.of(user.getFirstname(), user.getLastname())
+            .filter(part -> part != null && !part.isBlank())
+            .collect(Collectors.joining(" "));
+        return name.isEmpty() ? Optional.empty() : Optional.of(name);
     }
 
     // One reason for every refusal, so the answer does not tell a caller which user ids exist.

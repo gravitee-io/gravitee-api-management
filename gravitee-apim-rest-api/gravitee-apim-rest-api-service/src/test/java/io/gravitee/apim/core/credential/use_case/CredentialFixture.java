@@ -98,8 +98,8 @@ public class CredentialFixture {
         );
         var owners = new CredentialOwnerDomainService(userCrudService, membershipQueryService);
         createCredentialUseCase = new CreateCredentialUseCase(credentialCrudService, secrets, owners, audit);
-        getCredentialUseCase = new GetCredentialUseCase(credentialCrudService);
-        searchCredentialsUseCase = new SearchCredentialsUseCase(credentialQueryService);
+        getCredentialUseCase = new GetCredentialUseCase(credentialCrudService, owners);
+        searchCredentialsUseCase = new SearchCredentialsUseCase(credentialQueryService, owners);
         updateCredentialUseCase = new UpdateCredentialUseCase(credentialCrudService, owners, audit);
         rotateCredentialUseCase = new RotateCredentialUseCase(credentialCrudService, secrets, audit);
         deleteCredentialUseCase = new DeleteCredentialUseCase(credentialCrudService, secrets, consumers, audit);

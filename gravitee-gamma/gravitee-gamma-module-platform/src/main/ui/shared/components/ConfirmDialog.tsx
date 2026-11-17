@@ -51,6 +51,7 @@ export interface ConfirmDialogProps {
     contentClassName?: string;
     children?: ReactNode;
     onConfirm: () => void;
+    onCloseAutoFocus?: (event: Event) => void;
 }
 
 /**
@@ -80,6 +81,7 @@ function ConfirmDialogContent({
     contentClassName,
     children,
     onConfirm,
+    onCloseAutoFocus,
 }: Readonly<ConfirmDialogProps>) {
     const inputId = useId();
     const [typed, setTyped] = useState('');
@@ -97,7 +99,7 @@ function ConfirmDialogContent({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent showCloseButton={false} className={contentClassName}>
+            <DialogContent showCloseButton={false} className={contentClassName} onCloseAutoFocus={onCloseAutoFocus}>
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
                     {description ? <DialogDescription>{description}</DialogDescription> : null}

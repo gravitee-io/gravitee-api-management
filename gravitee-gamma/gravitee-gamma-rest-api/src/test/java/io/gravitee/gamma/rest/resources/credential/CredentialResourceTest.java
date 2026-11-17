@@ -57,6 +57,16 @@ class CredentialResourceTest extends AbstractCredentialResourceTest {
         }
 
         @Test
+        void should_return_the_display_name_of_the_owner() {
+            var credential = givenACredential();
+            givenTheCallerIsNamed("Ada", "Lovelace");
+
+            var response = rootTarget(credential.id()).request().get();
+
+            assertThat(response.readEntity(CredentialDto.class).ownerName()).isEqualTo("Ada Lovelace");
+        }
+
+        @Test
         void should_never_return_the_value_of_a_managed_credential() {
             var credential = givenAManagedCredential();
 
@@ -64,6 +74,15 @@ class CredentialResourceTest extends AbstractCredentialResourceTest {
 
             assertThat(response.getStatus()).isEqualTo(OK_200);
             assertThat(response.readEntity(String.class)).doesNotContain("sk-ant-123");
+        }
+
+        @Test
+        void should_tell_whether_the_caller_can_manage_the_credential() {
+            var credential = givenACredential();
+
+            var response = rootTarget(credential.id()).request().get();
+
+            assertThat(response.readEntity(JsonNode.class).get("manageable").asBoolean()).isTrue();
         }
 
         @Test
