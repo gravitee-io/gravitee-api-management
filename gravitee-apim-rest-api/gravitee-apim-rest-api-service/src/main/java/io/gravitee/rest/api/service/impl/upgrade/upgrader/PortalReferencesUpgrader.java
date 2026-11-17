@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
  * portal. The console items of an environment without a usable target are skipped; its Automation API items
  * still move onto the portal they were synced for. Without a portal, its content moves when its first portal
  * is created. With several portals and none default, its console content stays where it is: nothing moves it
- * later, so it needs a manual fix before PORTAL-345 removes the zero UUID reference.
+ * later, and a subtree import refuses a folder left there, so it needs a manual fix.
  */
 @Component
 @CustomLog

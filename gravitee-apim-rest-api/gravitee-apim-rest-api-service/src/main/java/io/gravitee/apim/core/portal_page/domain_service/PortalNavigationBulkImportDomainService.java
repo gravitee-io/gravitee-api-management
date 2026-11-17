@@ -79,7 +79,10 @@ public class PortalNavigationBulkImportDomainService {
             owner instanceof NavigationItemReference.PortalReference portal &&
             portalCrudService.findByIdAndEnvironmentId(portal.portalId(), rootFolder.getEnvironmentId()).isEmpty()
         ) {
-            return failListing(rootFolder, "The folder's portal does not exist in its environment: repair its owner before importing.");
+            return failListing(
+                rootFolder,
+                "This folder is not attached to a portal of its environment, so its files cannot be imported. An administrator needs to fix it."
+            );
         }
 
         final List<String> files;
