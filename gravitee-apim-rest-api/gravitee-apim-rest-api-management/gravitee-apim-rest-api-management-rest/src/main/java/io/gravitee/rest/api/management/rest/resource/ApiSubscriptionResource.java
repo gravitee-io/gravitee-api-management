@@ -122,6 +122,7 @@ public class ApiSubscriptionResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ) })
     public Subscription getApiSubscription(@PathParam("subscription") String subscription) {
+        requireCanManageApi(api);
         return convert(GraviteeContext.getExecutionContext(), checkSubscription(subscription));
     }
 
