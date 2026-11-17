@@ -25,16 +25,14 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.gamma.rest.infra.config.GammaPluginsConfiguration;
 import io.gravitee.gamma.rest.resource.AbstractResourceTest;
-import io.gravitee.gamma.rest.resources.gravitee_plugin.PolicyPluginResourceTest.PolicyPluginTestConfiguration;
 import io.gravitee.gamma.rest.spring.ResourceContextConfiguration;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
-import io.gravitee.plugin.agentprovider.AgentProviderPlugin;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.WebTarget;
@@ -57,12 +55,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 
-@ContextConfiguration(classes = { ResourceContextConfiguration.class, PolicyPluginTestConfiguration.class })
+@ContextConfiguration(classes = { ResourceContextConfiguration.class, GammaPluginManagersTestConfiguration.class })
 class PolicyPluginResourceTest extends AbstractResourceTest {
 
     private static final ObjectMapper JSON = new ObjectMapper();
@@ -446,20 +441,5 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
         return StreamSupport.stream(policies.spliterator(), false)
             .map(policy -> policy.get("id").asText())
             .toList();
-    }
-
-    @Configuration
-    @Import(GammaPluginsConfiguration.class)
-    static class PolicyPluginTestConfiguration {
-
-        @Bean
-        ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager() {
-            return mock(ConfigurablePluginManager.class);
-        }
-
-        @Bean
-        ConfigurablePluginManager<AgentProviderPlugin> agentProviderPluginManager() {
-            return mock(ConfigurablePluginManager.class);
-        }
     }
 }

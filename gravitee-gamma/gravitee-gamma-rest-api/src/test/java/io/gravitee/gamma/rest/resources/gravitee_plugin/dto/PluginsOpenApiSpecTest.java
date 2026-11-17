@@ -54,6 +54,14 @@ class PluginsOpenApiSpecTest {
         });
     }
 
+    /** The resources catalog answers the same shape minus the flows, and the spec has to say so. */
+    @Test
+    void should_document_the_resource_plugin_as_serialized() {
+        assertThat(propertiesOf("ResourcePlugin"))
+            .as("documented ResourcePlugin properties")
+            .containsExactlyElementsOf(Arrays.stream(PlatformPluginDto.class.getRecordComponents()).map(RecordComponent::getName).toList());
+    }
+
     private static List<String> propertiesOf(String schema) {
         Iterable<String> names = () -> SPEC.at("/components/schemas/" + schema + "/properties").fieldNames();
         return StreamSupport.stream(names.spliterator(), false).toList();

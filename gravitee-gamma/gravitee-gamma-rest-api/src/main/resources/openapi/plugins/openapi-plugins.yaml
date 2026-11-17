@@ -1,10 +1,10 @@
 openapi: 3.0.3
 info:
-    title: Gravitee.io Gamma - Policy plugins
+    title: Gravitee.io Gamma - Policy and resource plugins
     description: |
-        The policy plugins installed on the platform, as an organization sees them, under
-        `/organizations/{orgId}/plugins/policies`. The other plugin types served under
-        `/organizations/{orgId}/plugins` are not documented here.
+        The policy and resource plugins installed on the platform, as an organization sees them,
+        under `/organizations/{orgId}/plugins/policies` and `/organizations/{orgId}/plugins/resources`.
+        The other plugin types served under `/organizations/{orgId}/plugins` are not documented here.
 
         **Nothing here is generated.** The gamma rest-api has no OpenAPI generator wired, so the
         response bodies are hand-written Java records and this file is documentation kept in step
@@ -27,6 +27,12 @@ tags:
           The installed policy plugins and the flows they can run in. Every operation requires the
           `ORGANIZATION_POLICIES` permission with the `READ` action on the organization of the path,
           and the `apim-guardians` license feature.
+    - name: Resources
+      description: |
+          The installed resource plugins. Every one listed as `deployed` is a type a Guardian resource
+          may be of: the catalog is not narrowed to the types a guardrail is known to use. Every operation
+          requires the `ORGANIZATION_POLICIES` permission with the `READ` action on the organization
+          of the path, and the `apim-guardians` license feature.
 
 paths:
     /organizations/{orgId}/plugins/policies:
@@ -37,8 +43,9 @@ paths:
                 - Policies
             summary: List the installed policies
             description: |
-                The installed policies, sorted by name, optionally only those that can run in some
-                flows and phase. Without filter, every installed policy is listed.
+                The installed policies, sorted by name whatever its case, then by id, optionally only
+                those that can run in some flows and phase. Without filter, every installed policy is
+                listed.
             operationId: listPolicies
             parameters:
                 - name: flow
@@ -152,6 +159,109 @@ paths:
                 "403":
                     $ref: "#/components/responses/Forbidden"
 
+    /organizations/{orgId}/plugins/resources:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+        get:
+            tags:
+                - Resources
+            summary: List the installed resource types
+            description: |
+                Every resource plugin the node installed, sorted by name whatever its case, then by id —
+                all of them, whether or not a guardrail uses that kind of resource. A plugin the node
+                did not deploy, or that the license of the organization does not cover, is listed with
+                `deployed: false` rather than left out. A resource
+                declares no flow and no phase — it is a connection or a model a guardrail uses, not a
+                step that runs — so there is nothing to filter on.
+            operationId: listResources
+            responses:
+                "200":
+                    description: The resource types, possibly none.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/ResourcePlugin"
+                "401":
+                    $ref: "#/components/responses/Unauthorized"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+
+    /organizations/{orgId}/plugins/resources/{resourceId}:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/resourceIdParam"
+        get:
+            tags:
+                - Resources
+            summary: Get one resource type
+            operationId: getResource
+            responses:
+                "200":
+                    description: The resource type.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ResourcePlugin"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+                "401":
+                    $ref: "#/components/responses/Unauthorized"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+
+    /organizations/{orgId}/plugins/resources/{resourceId}/schema:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/resourceIdParam"
+        get:
+            tags:
+                - Resources
+            summary: Get the configuration schema of a resource type
+            description: The JSON schema the resource form is generated from.
+            operationId: getResourceSchema
+            responses:
+                "200":
+                    description: The JSON schema of the resource configuration.
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                "204":
+                    description: The resource declares no configuration schema.
+                "404":
+                    $ref: "#/components/responses/NotFound"
+                "401":
+                    $ref: "#/components/responses/Unauthorized"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+
+    /organizations/{orgId}/plugins/resources/{resourceId}/documentation:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/resourceIdParam"
+        get:
+            tags:
+                - Resources
+            summary: Get the documentation of a resource type
+            operationId: getResourceDocumentation
+            responses:
+                "200":
+                    description: The documentation of the resource, in Markdown.
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                "204":
+                    description: The resource ships no documentation.
+                "404":
+                    $ref: "#/components/responses/NotFound"
+                "401":
+                    $ref: "#/components/responses/Unauthorized"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+
 components:
     securitySchemes:
         CookieAuth:
@@ -178,6 +288,13 @@ components:
             description: Id of a policy plugin.
             schema:
                 type: string
+        resourceIdParam:
+            name: resourceId
+            in: path
+            required: true
+            description: Id of a resource plugin, as its manifest declares it.
+            schema:
+                type: string
 
     responses:
         Unauthorized:
@@ -201,7 +318,7 @@ components:
                     schema:
                         $ref: "#/components/schemas/Error"
         NotFound:
-            description: No installed policy with this id.
+            description: No installed plugin with this id.
             content:
                 application/json:
                     schema:
@@ -219,6 +336,45 @@ components:
                 - llm-proxy
                 - a2a-proxy
                 - guardian
+
+        ResourcePlugin:
+            type: object
+            description: |
+                An installed resource plugin. The same shape as a policy minus the flows: a resource runs in
+                no phase.
+            properties:
+                id:
+                    type: string
+                    description: The id its manifest declares, and the value a Guardian resource stores as its type.
+                name:
+                    type: string
+                description:
+                    type: string
+                category:
+                    type: string
+                version:
+                    type: string
+                icon:
+                    type: string
+                    description: A data URI, when the plugin ships one.
+                feature:
+                    type: string
+                    description: The license feature the plugin declares.
+                deployed:
+                    type: boolean
+                    description: |
+                        Deployed on the node *and* enabled by the organization's license. A type the license
+                        does not cover is still listed, so a screen can say why it cannot be picked; a
+                        Guardian holding an enabled resource of such a type is refused.
+            required:
+                - id
+                - deployed
+            example:
+                id: ai-model-token-classification
+                name: AI Model Token Classification
+                category: ai
+                version: 1.0.0
+                deployed: true
 
         PolicyPlugin:
             type: object

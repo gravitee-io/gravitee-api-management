@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.core.gravitee_plugin.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.PlatformPlugin;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PlatformPolicyPlugin;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
@@ -29,9 +30,9 @@ import lombok.RequiredArgsConstructor;
 public class ListPolicyPluginsUseCase {
 
     private static final Comparator<PlatformPolicyPlugin> BY_NAME_THEN_ID = Comparator.comparing(
-        (PlatformPolicyPlugin policy) -> policy.plugin().name(),
-        Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)
-    ).thenComparing(policy -> policy.plugin().id());
+        PlatformPolicyPlugin::plugin,
+        PlatformPlugin.BY_NAME_THEN_ID
+    );
 
     private final PolicyPluginProvider policyPluginProvider;
 

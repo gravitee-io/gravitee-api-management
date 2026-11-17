@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.core.gravitee_plugin.model;
 
+import java.util.Comparator;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -25,6 +26,16 @@ import lombok.ToString;
 @Builder
 @AllArgsConstructor
 public class PlatformPlugin {
+
+    /**
+     * The order every catalog lists its plugins in: by name whatever its case, then by id. The catalogs
+     * are rendered side by side, and "Zebra" before "alpha" in one of them would be a difference the user
+     * sees with nothing to explain it.
+     */
+    public static final Comparator<PlatformPlugin> BY_NAME_THEN_ID = Comparator.comparing(
+        PlatformPlugin::name,
+        Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)
+    ).thenComparing(PlatformPlugin::id);
 
     private final String id;
     private final String name;
