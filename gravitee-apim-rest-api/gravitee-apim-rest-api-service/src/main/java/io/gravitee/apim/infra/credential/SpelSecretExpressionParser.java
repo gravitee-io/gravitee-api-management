@@ -17,15 +17,14 @@ package io.gravitee.apim.infra.credential;
 
 import io.gravitee.apim.core.credential.exception.InvalidCredentialException;
 import io.gravitee.apim.core.credential.service_provider.SecretExpressionParser;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.IntStream;
 import org.springframework.expression.ParseException;
 import org.springframework.expression.spel.SpelNode;
 import org.springframework.expression.spel.ast.CompoundExpression;
 import org.springframework.expression.spel.ast.Indexer;
-import org.springframework.expression.spel.ast.IntLiteral;
 import org.springframework.expression.spel.ast.MethodReference;
 import org.springframework.expression.spel.ast.OpPlus;
 import org.springframework.expression.spel.ast.PropertyOrFieldReference;
@@ -42,25 +41,45 @@ import org.springframework.stereotype.Service;
 @Service
 public class SpelSecretExpressionParser implements SecretExpressionParser {
 
-    private static final String PREFIX = "{";
-    private static final String SUFFIX = "}";
     private static final int MAX_LENGTH = 2048;
+    private static final String PLACEHOLDER_KEY = "key";
 
-    /** The request data an argument may read, by variable: each one only through a map, never through getters. */
-    private static final Map<String, Set<String>> READABLE = Map.of(
-        "#context",
-        Set.of("attributes"),
-        "#request",
-        Set.of("headers", "params", "pathParams"),
-        "#api",
-        Set.of("properties")
-    );
+    /**
+     * The context data an argument may read, by variable. Never {@code #request}: a caller would then pick which secret
+     * of the environment is sent upstream.
+     */
+    private static final Map<String, String> READABLE = Map.of("#context", "attributes", "#api", "properties");
 
     private final SpelExpressionParser parser = new SpelExpressionParser();
 
     @Override
-    public Optional<String> staticPath(String field, String expression) {
-        if (expression == null || expression.length() > MAX_LENGTH || !expression.startsWith(PREFIX) || !expression.endsWith(SUFFIX)) {
+    public Optional<String> literalPath(String field, String expression) {
+        var arguments = argumentsOfSecretsGet(field, expression);
+        if (!arguments.stream().allMatch(SpelSecretExpressionParser::isAllowedArgument)) {
+            throw invalid(field);
+        }
+        var path = arguments.getFirst();
+        var key = arguments.size() == 2 ? arguments.get(1) : null;
+        if (!(path instanceof StringLiteral)) {
+            // The gateway refuses a reference whose path and key both come from an expression.
+            if (key != null && !(key instanceof StringLiteral)) {
+                throw invalid(field);
+            }
+            return Optional.empty();
+        }
+        var literalPath = literal(path);
+        if (key == null) {
+            // A path the gateway resolves needs a key; text without one would name a SecretSpec, which APIM never has.
+            if (literalPath.lastIndexOf(':') <= literalPath.lastIndexOf('/')) {
+                throw invalid(field);
+            }
+            return Optional.of(literalPath);
+        }
+        return Optional.of(literalPath + ":" + (key instanceof StringLiteral ? literal(key) : PLACEHOLDER_KEY));
+    }
+
+    private List<SpelNode> argumentsOfSecretsGet(String field, String expression) {
+        if (expression == null || expression.length() > MAX_LENGTH || !expression.startsWith("{") || !expression.endsWith("}")) {
             throw invalid(field);
         }
         SpelNode root;
@@ -79,43 +98,28 @@ public class SpelSecretExpressionParser implements SecretExpressionParser {
         ) {
             throw invalid(field);
         }
-        var arguments = IntStream.range(0, get.getChildCount()).mapToObj(get::getChild).toList();
-        if (!arguments.stream().allMatch(SpelSecretExpressionParser::isAllowedArgument)) {
-            throw invalid(field);
-        }
-        if (!arguments.stream().allMatch(StringLiteral.class::isInstance)) {
-            return Optional.empty();
-        }
-        var path = literal(arguments.getFirst());
-        return Optional.of(arguments.size() == 2 ? path + ":" + literal(arguments.get(1)) : path);
+        return IntStream.range(0, get.getChildCount()).mapToObj(get::getChild).toList();
     }
 
     private static boolean isAllowedArgument(SpelNode node) {
         return switch (node) {
             case StringLiteral ignored -> true;
             case OpPlus plus -> plus.getChildCount() == 2 && isAllowedArgument(plus.getChild(0)) && isAllowedArgument(plus.getChild(1));
-            case CompoundExpression compound -> isRequestData(compound);
+            case CompoundExpression compound -> isContextData(compound);
             default -> false;
         };
     }
 
-    /** {@code #variable.map[key]}, optionally indexed again, e.g. {@code #request.headers['X-Tenant'][0]}. */
-    private static boolean isRequestData(CompoundExpression compound) {
-        if (compound.getChildCount() < 3 || !(compound.getChild(0) instanceof VariableReference variable)) {
-            return false;
-        }
-        var maps = READABLE.get(variable.toStringAST());
-        if (maps == null || !(compound.getChild(1) instanceof PropertyOrFieldReference map) || !maps.contains(map.getName())) {
-            return false;
-        }
-        return IntStream.range(2, compound.getChildCount()).mapToObj(compound::getChild).allMatch(SpelSecretExpressionParser::isKey);
-    }
-
-    private static boolean isKey(SpelNode node) {
+    /** {@code #context.attributes['name']} or {@code #api.properties['name']}, and nothing more. */
+    private static boolean isContextData(CompoundExpression compound) {
         return (
-            node instanceof Indexer indexer &&
+            compound.getChildCount() == 3 &&
+            compound.getChild(0) instanceof VariableReference variable &&
+            compound.getChild(1) instanceof PropertyOrFieldReference map &&
+            map.getName().equals(READABLE.get(variable.toStringAST())) &&
+            compound.getChild(2) instanceof Indexer indexer &&
             indexer.getChildCount() == 1 &&
-            (indexer.getChild(0) instanceof StringLiteral || indexer.getChild(0) instanceof IntLiteral)
+            indexer.getChild(0) instanceof StringLiteral
         );
     }
 
@@ -127,7 +131,7 @@ public class SpelSecretExpressionParser implements SecretExpressionParser {
         return new InvalidCredentialException(
             "The expression of " +
                 field +
-                " must be a single {#secrets.get(...)} whose arguments are text or request data such as #context.attributes['name']."
+                " must be a single {#secrets.get(...)} whose arguments are text, #context.attributes['name'] or #api.properties['name']."
         );
     }
 }

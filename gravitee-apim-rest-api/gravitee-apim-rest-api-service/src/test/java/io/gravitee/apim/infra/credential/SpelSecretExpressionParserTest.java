@@ -34,19 +34,26 @@ class SpelSecretExpressionParserTest {
     @ValueSource(
         strings = {
             "{#secrets.get(#context.attributes['key-uri'])}",
-            "{#secrets.get('/vault/secret/' + #request.headers['X-Tenant'][0], 'token')}",
+            "{#secrets.get('/vault/secret/' + #context.attributes['tenant'] + ':token')}",
             "{#secrets.get(#api.properties['openai-uri'])}",
-            "{#secrets.get('/vault/secret/openai', #context.attributes['key'])}",
+            "{#secrets.get(#context.attributes['uri'], 'token')}",
         }
     )
-    void should_leave_a_path_worked_out_per_request_to_the_gateway(String expression) {
-        assertThat(parser.staticPath("token", expression)).isEmpty();
+    void should_leave_a_path_read_from_context_data_to_the_gateway(String expression) {
+        assertThat(parser.literalPath("token", expression)).isEmpty();
     }
 
     @Test
-    void should_read_the_path_of_an_expression_made_of_literals() {
-        assertThat(parser.staticPath("token", "{#secrets.get('/vault/secret/openai', 'token')}")).contains("/vault/secret/openai:token");
-        assertThat(parser.staticPath("token", "{#secrets.get('/vault/secret/openai:token')}")).contains("/vault/secret/openai:token");
+    void should_read_the_path_of_an_expression_made_of_text() {
+        assertThat(parser.literalPath("token", "{#secrets.get('/vault/secret/openai', 'token')}")).contains("/vault/secret/openai:token");
+        assertThat(parser.literalPath("token", "{#secrets.get('/vault/secret/openai:token')}")).contains("/vault/secret/openai:token");
+    }
+
+    @Test
+    void should_read_the_path_named_in_text_when_only_the_key_comes_from_context_data() {
+        assertThat(
+            parser.literalPath("token", "{#secrets.get('/gravitee/credential.other.token', #context.attributes['key'])}")
+        ).hasValueSatisfying(path -> assertThat(path).startsWith("/gravitee/credential.other.token:"));
     }
 
     @ParameterizedTest
@@ -65,14 +72,22 @@ class SpelSecretExpressionParserTest {
             "{#secrets.get(#context.attributes['uri'].toString())}",
             "{#secrets.get(#context.class.classLoader)}",
             "{#secrets.get(#context.attributes)}",
+            "{#secrets.get(#context.attributes['a']['b'])}",
+            "{#secrets.get(#context.attributes[0])}",
             "{#secrets.get(#environment['x'])}",
             "{#secrets.get(#context.attributes['a'] = 'b')}",
             "{#secrets.get(#context.attributes.?[true])}",
             "{#secrets.get('unclosed)}",
+            "{#secrets.get(#request.headers['X-Tenant'][0])}",
+            "{#secrets.get(#request.params['tenant'])}",
+            "{#secrets.get('/vault/secret/' + #request.pathParams['tenant'] + ':token')}",
+            "{#secrets.get(#context.attributes['uri'], #context.attributes['key'])}",
+            "{#secrets.get('/vault/secret/openai')}",
+            "{#secrets.get('openai-secret')}",
         }
     )
-    void should_reject_anything_but_a_secret_lookup_from_request_data(String expression) {
-        assertThatThrownBy(() -> parser.staticPath("token", expression))
+    void should_reject_anything_but_a_secret_lookup_from_text_or_context_data(String expression) {
+        assertThatThrownBy(() -> parser.literalPath("token", expression))
             .isInstanceOf(InvalidCredentialException.class)
             .hasMessageContaining("token");
     }

@@ -37,7 +37,7 @@ public class CredentialExpressionDomainService {
             .forEach((field, reference) -> {
                 if (reference.isExpression()) {
                     secretExpressionParser
-                        .staticPath(field, reference.reference())
+                        .literalPath(field, reference.reference())
                         .ifPresent(path -> SecretReference.external(field, path));
                 }
             });

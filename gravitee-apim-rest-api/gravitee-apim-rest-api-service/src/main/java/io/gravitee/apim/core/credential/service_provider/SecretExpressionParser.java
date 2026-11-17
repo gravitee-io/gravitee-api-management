@@ -19,9 +19,10 @@ import java.util.Optional;
 
 public interface SecretExpressionParser {
     /**
-     * @param expression a {@code {#secrets.get(...)}} lookup whose arguments are literals or request data
-     * @return the secret path when the arguments are all literals, empty when the gateway works it out per request
+     * @param expression a {@code {#secrets.get(...)}} lookup whose arguments are text or context data
+     * @return the secret path when text names it, with a placeholder key when only the key comes from context data;
+     * empty when the gateway works the path out per request
      * @throws io.gravitee.apim.core.credential.exception.InvalidCredentialException for anything else
      */
-    Optional<String> staticPath(String field, String expression);
+    Optional<String> literalPath(String field, String expression);
 }

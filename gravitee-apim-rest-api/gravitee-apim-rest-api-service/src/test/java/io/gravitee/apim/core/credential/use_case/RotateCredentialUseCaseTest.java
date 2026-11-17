@@ -161,6 +161,17 @@ class RotateCredentialUseCaseTest extends AbstractUseCaseTest {
     }
 
     @Test
+    void should_not_rotate_a_credential_whose_secret_is_an_expression() {
+        var credential = fixture.givenACredential(c ->
+            c.references(Map.of("token", "{#secrets.get(#context.attributes['openai-key-uri'])}"))
+        );
+
+        assertThatThrownBy(() -> rotate(fixture.owner(), credential, Map.of("token", "x")))
+            .isInstanceOf(InvalidCredentialException.class)
+            .hasMessageContaining("references");
+    }
+
+    @Test
     void should_require_the_secret_update_permission() {
         var credential = givenABasicCredential();
 
