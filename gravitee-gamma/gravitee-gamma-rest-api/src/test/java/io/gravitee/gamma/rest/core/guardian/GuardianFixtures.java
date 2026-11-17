@@ -15,19 +15,27 @@
  */
 package io.gravitee.gamma.rest.core.guardian;
 
+import inmemory.EnvironmentCrudServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
+import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
+import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyValidation;
+import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryResourceValidation;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.DeclaredFlows;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.PlatformPlugin;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
+import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.ResourcePluginProvider;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
+import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianResourcesDomainService;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.CreateGuardian;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
@@ -44,6 +52,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 import org.mockito.Mockito;
 
 /**
@@ -65,7 +74,44 @@ public final class GuardianFixtures {
     /** The installed guardrail the fixtures build their sequences from. */
     public static final String GUARDRAIL_POLICY = "data-logging-masking";
 
+    /** The resource type the fixtures install, so a resource can name one the node has. */
+    public static final String INSTALLED_RESOURCE_TYPE = "ai-model-token-classification";
+
     private GuardianFixtures() {}
+
+    public static ResourcePluginProvider aResourcePluginProvider() {
+        return aResourcePluginProvider(() -> Set.of(INSTALLED_RESOURCE_TYPE));
+    }
+
+    /** A catalog holding these types, each deployed by the node and enabled by the license. */
+    public static ResourcePluginProvider aResourcePluginProvider(Supplier<Set<String>> types) {
+        return aResourceCatalog(() ->
+            types
+                .get()
+                .stream()
+                .map(type -> aResourceType(type, true))
+                .collect(Collectors.toSet())
+        );
+    }
+
+    /** A catalog holding exactly these types, as the organization of the fixtures reads it. */
+    public static ResourcePluginProvider aResourceCatalog(Supplier<Set<PlatformPlugin>> types) {
+        var provider = Mockito.mock(ResourcePluginProvider.class);
+        Mockito.when(provider.findAll(ORGANIZATION_ID)).thenAnswer(call -> types.get());
+        return provider;
+    }
+
+    /** A resource type of the node; {@code deployed} is false when the node or the license holds it back. */
+    public static PlatformPlugin aResourceType(String id, boolean deployed) {
+        return PlatformPlugin.builder().id(id).name(id).deployed(deployed).build();
+    }
+
+    /** Resolves the environment of the fixtures to their organization, whose license decides what is enabled. */
+    public static EnvironmentCrudService theEnvironments() {
+        var environments = new EnvironmentCrudServiceInMemory();
+        environments.initWith(List.of(Environment.builder().id(ENVIRONMENT_ID).organizationId(ORGANIZATION_ID).build()));
+        return environments;
+    }
 
     public static PolicyPluginProvider aPolicyPluginProvider() {
         var installed = theInstalledPolicies();
@@ -155,7 +201,31 @@ public final class GuardianFixtures {
         PolicyPluginProvider policies,
         PolicyValidationDomainService policyValidation
     ) {
-        return new ValidateGuardianDomainService(repository, policies, policyValidation, new JacksonJsonDeserializer());
+        return aGuardianValidator(repository, policies, policyValidation, new InMemoryResourceValidation());
+    }
+
+    /** The same, with the answers of the resource plugins a test installed too. */
+    public static ValidateGuardianDomainService aGuardianValidator(
+        GuardianRepository repository,
+        PolicyPluginProvider policies,
+        PolicyValidationDomainService policyValidation,
+        ValidateResourceDomainService resourceValidation
+    ) {
+        return new ValidateGuardianDomainService(
+            repository,
+            policies,
+            policyValidation,
+            aResourceValidator(aResourcePluginProvider(), resourceValidation),
+            new JacksonJsonDeserializer()
+        );
+    }
+
+    /** Judges resources against these installed types and the schema answers a test installed. */
+    public static ValidateGuardianResourcesDomainService aResourceValidator(
+        ResourcePluginProvider installed,
+        ValidateResourceDomainService resourceValidation
+    ) {
+        return new ValidateGuardianResourcesDomainService(installed, theEnvironments(), resourceValidation, new JacksonJsonDeserializer());
     }
 
     /** A validator that sees exactly these installed policies. */

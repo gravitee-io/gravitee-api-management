@@ -32,4 +32,9 @@ public class ValidateResourceDomainServiceInMemory implements ValidateResourceDo
     public Result<Input> validateAndSanitize(Input input) {
         return Result.ofValue(input);
     }
+
+    @Override
+    public String validateAndSanitizeConfiguration(String resourceType, String configuration) {
+        return configuration;
+    }
 }

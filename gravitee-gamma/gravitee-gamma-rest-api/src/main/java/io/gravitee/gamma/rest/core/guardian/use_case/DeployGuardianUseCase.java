@@ -38,15 +38,15 @@ import lombok.RequiredArgsConstructor;
  * APIs using it are protected. Publishing one would also undo the protection of a Guardian already
  * deployed, since the empty revision replaces the one the gateways run.
  *
- * <p>The stored draft is then validated again against the policies installed <em>now</em>, rather than
+ * <p>The stored draft is then validated again against the plugins installed <em>now</em>, rather than
  * against the ones it was written under. A deployment is the moment a stored definition becomes a
  * revision the gateways must run, and nothing guarantees it still can: the draft may predate a check,
- * name a policy uninstalled since, or carry a configuration the schema of an upgraded policy no longer
- * accepts. Publishing it anyway is what AIAM-1750 reports — the API answers {@code DEPLOYED} and the
+ * name a policy or a resource type uninstalled since, or carry a configuration the schema of an upgraded
+ * plugin no longer accepts. Publishing it anyway is what AIAM-1750 reports — the API answers {@code DEPLOYED} and the
  * console shows "Deployed" for a revision no gateway ever starts, with nothing to tell the user.
  *
  * <p>That pass reads the draft without rewriting it: a deployment publishes what is stored, and
- * sanitising the step configurations here would publish a revision the stored draft no longer matches,
+ * sanitizing the configurations here would publish a revision the stored draft no longer matches,
  * leaving the Guardian {@code PENDING} the moment it was deployed.
  */
 @UseCase
@@ -63,7 +63,7 @@ public class DeployGuardianUseCase {
         // the guardrail rule first: it names what the user has to do, where a validation error names
         // what is wrong with a sequence they may not have written in this session
         validateGuardian.validateDeployable(guardian);
-        validateGuardian.validateStoredAgainstInstalledPolicies(guardian);
+        validateGuardian.validateStoredAgainstInstalledPlugins(guardian);
         var publication = deployments.publish(guardian, input.deploymentLabel(), input.auditInfo());
         auditDomainService.createEnvironmentAuditLog(
             EnvironmentAuditLogEntity.builder()

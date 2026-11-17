@@ -20,11 +20,11 @@ import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.G
 import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.HTTP_PROXY;
 import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.LLM_PROXY;
 import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.MCP_PROXY;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidator;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
@@ -177,12 +177,9 @@ class DefaultPolicyPluginProviderTest {
             )
         ).build();
 
-        var result = new ValidateGuardianDomainService(
-            new InMemoryGuardianRepository(),
-            provider,
-            new InMemoryPolicyValidation(),
-            new JacksonJsonDeserializer()
-        ).validateAndSanitize(new ValidateGuardianDomainService.Input(guardian));
+        var result = aGuardianValidator(new InMemoryGuardianRepository(), provider, new InMemoryPolicyValidation()).validateAndSanitize(
+            new ValidateGuardianDomainService.Input(guardian)
+        );
 
         assertThat(result.severe()).as("every runtime guardrail is validated, including alternate or absent categories").isPresent();
         assertThat(result.severe().orElseThrow())
@@ -207,12 +204,9 @@ class DefaultPolicyPluginProviderTest {
             definition.policies(List.of(Step.builder().name("Removed step").policy("removed-policy").build()))
         ).build();
 
-        var result = new ValidateGuardianDomainService(
-            new InMemoryGuardianRepository(),
-            provider,
-            new InMemoryPolicyValidation(),
-            new JacksonJsonDeserializer()
-        ).validateAndSanitize(new ValidateGuardianDomainService.Input(guardian));
+        var result = aGuardianValidator(new InMemoryGuardianRepository(), provider, new InMemoryPolicyValidation()).validateAndSanitize(
+            new ValidateGuardianDomainService.Input(guardian)
+        );
 
         assertThat(result.severe().orElseThrow())
             .singleElement()

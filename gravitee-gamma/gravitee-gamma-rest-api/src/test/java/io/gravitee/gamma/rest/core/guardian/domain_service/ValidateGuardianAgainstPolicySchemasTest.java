@@ -238,7 +238,7 @@ class ValidateGuardianAgainstPolicySchemasTest {
     /** The configuration stored on the step once its policy has judged the one given here. */
     private String stored(String configuration) {
         var step = aStep(configuration);
-        validator.validateAgainstInstalledPolicies(aGuardianOf(step));
+        validator.validateAgainstInstalledPlugins(aGuardianOf(step));
         return step.getConfiguration();
     }
 
@@ -248,9 +248,9 @@ class ValidateGuardianAgainstPolicySchemasTest {
      */
     private String refusalOnStoredOf(String configuration) {
         var guardian = aGuardianOf(aStep(configuration));
-        validator.validateAgainstInstalledPolicies(guardian);
+        validator.validateAgainstInstalledPlugins(guardian);
         try {
-            validator.validateStoredAgainstInstalledPolicies(guardian);
+            validator.validateStoredAgainstInstalledPlugins(guardian);
             return null;
         } catch (ValidationDomainException e) {
             return e.getMessage();
@@ -260,7 +260,7 @@ class ValidateGuardianAgainstPolicySchemasTest {
     /** The refusal of a configuration no write path would store, or {@code null} when it is accepted. */
     private String refusal(String configuration) {
         try {
-            validator.validateAgainstInstalledPolicies(aGuardianOf(aStep(configuration)));
+            validator.validateAgainstInstalledPlugins(aGuardianOf(aStep(configuration)));
             return null;
         } catch (ValidationDomainException e) {
             return e.getMessage();

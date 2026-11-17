@@ -19,7 +19,9 @@ import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.A
 import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.GUARDIAN;
 import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.LLM_PROXY;
 import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.MCP_PROXY;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDRAIL_POLICY;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidator;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aPolicy;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aPolicyPluginProvider;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.flows;
@@ -28,9 +30,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.validation.Validator;
-import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyValidation;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.DeclaredFlows;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
@@ -55,11 +57,10 @@ class ValidateGuardianDomainServiceTest {
     /** The schema answers, which a test installs to make a step conforming, corrected or refused. */
     private final InMemoryPolicyValidation policyValidation = new InMemoryPolicyValidation();
 
-    private final ValidateGuardianDomainService validator = new ValidateGuardianDomainService(
+    private final ValidateGuardianDomainService validator = aGuardianValidator(
         new InMemoryGuardianRepository(),
         aPolicyPluginProvider(() -> policies),
-        policyValidation,
-        new JacksonJsonDeserializer()
+        policyValidation
     );
 
     @Test
@@ -330,7 +331,7 @@ class ValidateGuardianDomainServiceTest {
         var policy = aPolicy();
         policy.setConfiguration("{\"rules\":[]}");
 
-        validator.validateAgainstInstalledPolicies(aGuardianOf(policy));
+        validator.validateAgainstInstalledPlugins(aGuardianOf(policy));
 
         assertThat(policy.getConfiguration())
             .as("the corrected configuration, which is the one the gateway will build the policy from")
@@ -347,7 +348,7 @@ class ValidateGuardianDomainServiceTest {
         policyValidation.givenAccepts("{}", "{\"mode\":\"BLOCK\"}");
         var policy = aPolicy();
 
-        validator.validateAgainstInstalledPolicies(aGuardianOf(policy));
+        validator.validateAgainstInstalledPlugins(aGuardianOf(policy));
 
         assertThat(policy.getConfiguration()).isEqualTo("{\"mode\":\"BLOCK\"}");
     }
@@ -356,7 +357,7 @@ class ValidateGuardianDomainServiceTest {
     void should_leave_a_step_whose_policy_accepts_an_empty_object_carrying_no_configuration() {
         var policy = aPolicy();
 
-        validator.validateAgainstInstalledPolicies(aGuardianOf(policy));
+        validator.validateAgainstInstalledPlugins(aGuardianOf(policy));
 
         assertThat(policy.getConfiguration()).as("nothing was corrected, so there is nothing to store").isNull();
     }
@@ -372,7 +373,7 @@ class ValidateGuardianDomainServiceTest {
         var policy = aPolicy();
         policy.setConfiguration("{\"rules\":[],\"mode\":\"BLOCK\"}");
 
-        validator.validateStoredAgainstInstalledPolicies(aGuardianOf(policy));
+        validator.validateStoredAgainstInstalledPlugins(aGuardianOf(policy));
 
         assertThat(policy.getConfiguration()).as("left exactly as it is stored").isEqualTo("{\"rules\":[],\"mode\":\"BLOCK\"}");
     }
@@ -386,7 +387,7 @@ class ValidateGuardianDomainServiceTest {
 
         SoftAssertions.assertSoftly(softly -> {
             softly
-                .assertThatThrownBy(() -> validator.validateStoredAgainstInstalledPolicies(guardian))
+                .assertThatThrownBy(() -> validator.validateStoredAgainstInstalledPlugins(guardian))
                 .as("publishing it would publish a configuration the policy was never validated with")
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessageContainingAll("Detect credentials", "edit and save the Guardian");
@@ -475,7 +476,7 @@ class ValidateGuardianDomainServiceTest {
             definition.policies(List.of(policy, step("Other guardrail", "other-guardrail", true)))
         ).build();
 
-        assertThatThrownBy(() -> validator.validateAgainstInstalledPolicies(guardian))
+        assertThatThrownBy(() -> validator.validateAgainstInstalledPlugins(guardian))
             .isInstanceOf(ValidationDomainException.class)
             .hasMessage(
                 "Guardrail step [Detect credentials] declares scope protocol [MCP], incompatible with Guardian API types [llm-proxy]. " +
@@ -567,6 +568,22 @@ class ValidateGuardianDomainServiceTest {
             .extracting(Validator.Error::getMessage)
             .asString()
             .contains("Detect credentials", "$.header");
+    }
+
+    /** The resources are judged by their own service; what is this class's is reporting them beside the steps. */
+    @Test
+    void should_report_a_refused_resource_beside_a_refused_step() {
+        policyValidation.givenRefuses(GUARDRAIL_POLICY, "$.rules: is missing but it is required");
+        var guardian = aGuardian(definition ->
+            definition.resources(List.of(new Resource("classifier", "absent-from-the-node", "{}", true)))
+        ).build();
+
+        assertThat(validate(guardian).severe().orElseThrow())
+            .extracting(Validator.Error::getMessage)
+            .containsExactly(
+                "Step [Detect credentials] has an invalid configuration: $.rules: is missing but it is required.",
+                "Resource [classifier] references resource type [absent-from-the-node], which is not installed."
+            );
     }
 
     private Validator.Result<ValidateGuardianDomainService.Input> validate(Guardian guardian) {

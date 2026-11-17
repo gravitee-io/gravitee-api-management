@@ -35,6 +35,7 @@ import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyValidation;
 import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
@@ -238,6 +239,26 @@ class RollbackGuardianUseCaseTest {
         assertThatThrownBy(() -> rollback.execute(new RollbackGuardianUseCase.Input(actor, GUARDIAN_ID, revision))).isInstanceOf(
             ValidationDomainException.class
         );
+    }
+
+    /** A revision deployed before resources were judged, or whose resource type was uninstalled since. */
+    @Test
+    void should_refuse_a_revision_holding_a_resource_the_node_cannot_run_and_leave_the_draft_unchanged() {
+        publications.givenPublication(
+            aGuardianDefinition()
+                .name("First name")
+                .resources(List.of(new Resource("classifier", "absent-from-the-node", "{}", true)))
+                .build(),
+            Instant.parse("2026-11-08T10:00:00Z")
+        );
+        var revision = publications.history.storage().getLast().getId();
+        var draft = repository.storedGuardians();
+
+        assertThatThrownBy(() -> rollback.execute(new RollbackGuardianUseCase.Input(actor, GUARDIAN_ID, revision)))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessage("Resource [classifier] references resource type [absent-from-the-node], which is not installed.");
+
+        assertThat(repository.storedGuardians()).isEqualTo(draft);
     }
 
     @Test
