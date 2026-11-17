@@ -66,24 +66,61 @@ On Elasticsearch 7.9 or later, and on OpenSearch, the reporter can write each ty
       policies:
         request: hot_delete_request # ILM policy for the gravitee-request, gravitee-v4-metrics and gravitee-v4-message-metrics data streams
         log: hot_delete_log         # ILM policy for the gravitee-log, gravitee-v4-log and gravitee-v4-message-log data streams
-    retention:                      # Elasticsearch 8.14 or later: data stream lifecycle, used for the types without a policy
-      monitor: 7d
-      health: 3d
-      event_metrics: 30d
-      decisions: 30d
+      retention:                    # Elasticsearch 8.14 or later: data stream lifecycle
+        monitor: 7d
+        health: 3d
+        event_metrics: 30d
+        decisions: 30d
 ```
 
-* The reporter refuses to start on an Elasticsearch older than 7.9, and when `retention` is set on an Elasticsearch
-  older than 8.14.
-* A type with both a policy and a retention keeps the policy: Elasticsearch ignores the retention.
-* A type with neither keeps its documents forever: the reporter warns about it at startup.
-* Switch every gateway writing to the cluster at once: a data stream and a daily or ILM index cannot share a name.
+`lifecycle.policies` and `lifecycle.retention` take the same keys, each covering the data streams below (with the
+default `index: gravitee`). A type takes either an ILM policy or a retention. A `retention` value is an
+Elasticsearch time value, such as `7d` or `12h`, written as is to the `data_retention` of the index template. No key
+has a default.
+
+|===
+|Key |Data streams
+
+|`request` |`gravitee-request`, `gravitee-v4-metrics`, `gravitee-v4-message-metrics`
+|`log` |`gravitee-log`, `gravitee-v4-log`, `gravitee-v4-message-log`
+|`monitor` |`gravitee-monitor`
+|`health` |`gravitee-health`
+|`event_metrics` |`gravitee-event-metrics`
+|`decisions` |`gravitee-decisions`
+|===
+
+* The reporter refuses to start on an Elasticsearch older than 7.9, when `lifecycle.retention` is set on an
+  Elasticsearch older than 8.14, and when a type has both a policy and a retention.
+* `lifecycle.retention` is read in `data_stream` mode only: in `daily` or `ilm` mode the reporter ignores it, without a
+  warning.
+* A type with neither keeps its documents forever: the reporter warns about it at startup, naming the data streams.
+* A bulk sent again, after a timeout or a partial failure, creates each document with an `_id` once: Elasticsearch
+  answers `409` for the documents already there, which the reporter counts as written. This holds while the bulk
+  reaches the same backing index, not across a rollover. Monitor, event metrics and decision documents have no `_id`:
+  a bulk sent again creates them again.
+
+==== Moving an installation to data streams
+
+* Switch every gateway writing to the cluster at once, the Management API included. The `daily` and `ilm` templates
+  have the names of the data stream templates, `<index>-<type>`, and each reporter puts its own at startup:
+** a gateway still in `daily` mode when the data stream templates replace its own creates its next dated index, for
+   example after midnight UTC, with no Gravitee mapping;
+** once a data stream exists, Elasticsearch refuses a template of the same name without a data stream: a gateway that
+   restarts in `daily` or `ilm` mode afterwards keeps its reporter inactive, and the data streams are unaffected.
+* The `ilm` mode leaves an alias named `<index>-<type>` for each type, which would take the documents instead of the
+  data stream: the reporter refuses to start while such an alias exists. Once no gateway writes in `ilm` mode, set
+  `index.lifecycle.indexing_complete` to `true` on the write index of each alias, then remove the alias: without the
+  setting, ILM stops in error on the rollover of that index and never deletes it. The indices stay readable under
+  their own names. Alternatively, set `index` to another prefix.
+* There is no way back to `daily` or `ilm` with the same `index` prefix while the data streams exist: Elasticsearch
+  refuses both the templates of these modes and an alias named like a data stream. Go back with another prefix, or
+  delete the data streams and their documents first.
 
 ==== OpenSearch
 
 ISM ignores the `index.plugins.index_state_management.policy_id` index setting, so the reporter cannot attach an ISM
 policy to a data stream, and OpenSearch has no data stream retention: it refuses to start when `lifecycle.policies` or
-`retention` is set. Give the ISM policy an `ism_template` matching the data streams instead, before they are created:
+`lifecycle.retention` is set. Give the ISM policy an `ism_template` matching the data streams instead, before they are created:
 
 ```json
 PUT _plugins/_ism/policies/hot_delete_request
