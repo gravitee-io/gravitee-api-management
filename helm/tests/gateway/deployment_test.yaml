@@ -467,3 +467,26 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: 'gateway.type must be Deployment, StatefulSet or DaemonSet, got "daemonSet"'
+
+  - it: Check StatefulSet workload type
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        type: StatefulSet
+        replicaCount: 3
+        autoscaling:
+          enabled: false
+    asserts:
+      - isKind:
+          of: StatefulSet
+      - equal:
+          path: spec.replicas
+          value: 3
+      - equal:
+          path: spec.serviceName
+          value: RELEASE-NAME-apim-gateway
+      - equal:
+          path: spec.updateStrategy.type
+          value: RollingUpdate
+      - notExists:
+          path: spec.strategy
