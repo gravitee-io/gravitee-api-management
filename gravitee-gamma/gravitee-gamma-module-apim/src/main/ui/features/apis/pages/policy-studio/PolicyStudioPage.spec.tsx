@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { PolicyStudioProps } from '@gravitee/graphene-policy-studio';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
@@ -21,8 +22,10 @@ import { usePolicyStudioData } from '../../hooks/usePolicyStudioData';
 import type { PolicyStudioData } from '../../hooks/usePolicyStudioData';
 import type { PolicyStudioApiDetail } from '../../types/policyStudio';
 
+const mockPolicyStudio = jest.fn((_props: PolicyStudioProps) => <div data-testid="policy-studio-editor" />);
+
 jest.mock('@gravitee/graphene-core', () => ({ useLayoutConfig: jest.fn() }));
-jest.mock('@gravitee/graphene-policy-studio', () => ({ PolicyStudio: () => <div data-testid="policy-studio-editor" /> }), {
+jest.mock('@gravitee/graphene-policy-studio', () => ({ PolicyStudio: (props: PolicyStudioProps) => mockPolicyStudio(props) }), {
     virtual: true,
 });
 jest.mock('../../hooks/usePolicyStudioData');
@@ -40,6 +43,7 @@ function baseData(overrides: Partial<PolicyStudioData> = {}): PolicyStudioData {
         entrypointsInfo: [],
         endpointsInfo: [],
         flowExecution: { mode: 'DEFAULT', matchRequired: false },
+        resources: [],
         isLoading: false,
         isError: false,
         apiDetail: undefined,
@@ -85,5 +89,15 @@ describe('PolicyStudioPage', () => {
         mockUsePolicyStudioData.mockReturnValue(baseData({ isLoading: true, apiDetail: undefined }));
         renderPage();
         expect(screen.getByTestId('policy-studio-editor')).toBeInTheDocument();
+    });
+
+    it("gives the API's resources to the policy editor", () => {
+        const resources = [{ name: 'My Cache Resource', type: 'cache' }];
+        mockUsePolicyStudioData.mockReturnValue(baseData({ resources }));
+
+        renderPage();
+
+        expect(screen.getByTestId('policy-studio-editor')).toBeInTheDocument();
+        expect(mockPolicyStudio).toHaveBeenCalledWith(expect.objectContaining({ resources }));
     });
 });
