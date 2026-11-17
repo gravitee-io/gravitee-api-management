@@ -58,4 +58,13 @@ public class ValidateResourceDomainServiceLegacyWrapper implements ValidateResou
 
         return Result.ofBoth(input.sanitized(input.resources()), errors);
     }
+
+    @Override
+    public String validateAndSanitizeConfiguration(String resourceType, String configuration) {
+        // the legacy service judges a resource and writes what it accepts back onto it, so it is handed
+        // one built for the purpose, enabled since it skips the others
+        var resource = new Resource(resourceType, resourceType, configuration, true);
+        resourcesValidationService.validateAndSanitize(List.of(resource));
+        return resource.getConfiguration();
+    }
 }

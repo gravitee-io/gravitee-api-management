@@ -33,4 +33,22 @@ public interface ValidateResourceDomainService extends Validator<ValidateResourc
     }
 
     Result<Input> validateAndSanitize(Input input);
+
+    /**
+     * Validates one resource configuration against the schema of its plugin, as
+     * {@code PolicyValidationDomainService#validateAndSanitizeConfiguration} does for a policy.
+     *
+     * <p>For a caller that judges resources one at a time and needs the reason of a refusal:
+     * {@link #validateAndSanitize(Input)} reports a refused resource by its name only.
+     *
+     * @param resourceType the id of the resource plugin
+     * @param configuration the configuration to validate, as a JSON document
+     * @return the configuration the plugin accepts, which is not always the one given: the schema
+     *     validation drops null entries, injects the defaults of missing properties and prunes what a
+     *     closed schema forbids. A plugin that is not installed, or declares no schema, accepts the
+     *     document as it is.
+     * @throws io.gravitee.rest.api.service.exceptions.InvalidDataException when the schema refuses the
+     *     configuration, carrying the schema error
+     */
+    String validateAndSanitizeConfiguration(String resourceType, String configuration);
 }

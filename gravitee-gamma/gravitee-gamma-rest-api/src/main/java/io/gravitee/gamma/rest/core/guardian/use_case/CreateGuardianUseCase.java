@@ -91,7 +91,7 @@ public class CreateGuardianUseCase {
 
         validateGuardian.validateDefinition(guardianToCreate.getDefinition());
 
-        validateGuardian.validateAgainstInstalledPolicies(guardianToCreate);
+        validateGuardian.validateAgainstInstalledPlugins(guardianToCreate);
 
         var createdGuardian = guardianRepository.create(guardianToCreate);
         auditDomainService.createEnvironmentAuditLog(

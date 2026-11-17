@@ -36,6 +36,7 @@ import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDraftDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
@@ -108,6 +109,21 @@ class UpdateGuardianUseCaseTest {
         assertThatThrownBy(() ->
             update(ENVIRONMENT_ID, anUpdateGuardianCommand().definition(aDefinitionToSubmit().name(" Taken ").build()).build())
         ).isInstanceOf(GuardianNameAlreadyExistsException.class);
+    }
+
+    /** An update replaces the resources with the rest of the definition, and judges them the same way. */
+    @Test
+    void should_refuse_an_update_holding_a_resource_the_node_cannot_run_and_leave_the_draft_unchanged() {
+        var command = anUpdateGuardianCommand()
+            .definition(aDefinitionToSubmit().resources(List.of(new Resource("classifier", "absent-from-the-node", "{}", true))).build())
+            .build();
+
+        assertThatThrownBy(() -> update(ENVIRONMENT_ID, command))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessage("Resource [classifier] references resource type [absent-from-the-node], which is not installed.");
+
+        assertThat(guardianRepository.storedGuardians()).singleElement().extracting(Guardian::getResources).isEqualTo(List.of());
+        verifyNoInteractions(auditDomainService);
     }
 
     @Test

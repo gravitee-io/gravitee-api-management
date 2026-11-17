@@ -32,9 +32,10 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Replaces the draft of a Guardian, whether the console sends it or a deployment it rolls back to: both go through the
- * same checks, since an old revision may carry a name another Guardian took since, or a guardrail no longer installed.
+ * same checks, since an old revision may carry a name another Guardian took since, or a guardrail or a resource type no
+ * longer installed.
  *
- * <p>One thing separates them, {@link DraftOrigin}: a submitted draft is stored as its policies accept it, where a
+ * <p>One thing separates them, {@link DraftOrigin}: a submitted draft is stored as its plugins accept it, where a
  * restored revision is stored as it was published.
  */
 @DomainService
@@ -46,13 +47,13 @@ public class GuardianDraftDomainService {
     private final AuditDomainService auditDomainService;
     private final GuardianDeploymentDomainService deployments;
 
-    /** Where a draft being stored comes from, which decides what is done with a configuration its policy would correct. */
+    /** Where a draft being stored comes from, which decides what is done with a configuration its plugin would correct. */
     public enum DraftOrigin {
-        /** Written by the caller: what is stored is the configuration each policy accepts, corrections included. */
+        /** Written by the caller: what is stored is the configuration each plugin accepts, corrections included. */
         SUBMITTED,
         /**
          * Restored from a revision the gateways ran: it is stored as it was published, so a configuration a
-         * policy would correct is refused rather than rewritten. Storing the corrected revision instead would
+         * plugin would correct is refused rather than rewritten. Storing the corrected revision instead would
          * leave a draft that no longer matches the publication, and the Guardian {@code PENDING} straight
          * after the rollback.
          */
@@ -64,7 +65,7 @@ public class GuardianDraftDomainService {
      *
      * @param auditProperties what the audit records beside the Guardian
      * @param origin where the draft comes from, see {@link DraftOrigin}
-     * @throws ValidationDomainException when the definition is invalid or names a guardrail that is not installed
+     * @throws ValidationDomainException when the definition is invalid or names a policy or a resource type that is not installed
      */
     public Guardian replace(
         Guardian existingGuardian,
@@ -90,8 +91,8 @@ public class GuardianDraftDomainService {
         }
 
         switch (origin) {
-            case SUBMITTED -> validateGuardian.validateAgainstInstalledPolicies(guardianToUpdate);
-            case RESTORED -> validateGuardian.validateStoredAgainstInstalledPolicies(guardianToUpdate);
+            case SUBMITTED -> validateGuardian.validateAgainstInstalledPlugins(guardianToUpdate);
+            case RESTORED -> validateGuardian.validateStoredAgainstInstalledPlugins(guardianToUpdate);
         }
 
         var publication = deployments.current(existingGuardian);

@@ -34,6 +34,7 @@ import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.CreateGuardian;
@@ -67,6 +68,18 @@ class CreateGuardianUseCaseTest {
         return useCase.execute(
             CreateGuardianUseCase.Input.builder().auditInfo(auditInfo(ENVIRONMENT_ID)).guardianToCreate(command).build()
         );
+    }
+
+    /** The resources a Guardian holds are judged before it is stored, as its steps are. */
+    @Test
+    void should_refuse_a_guardian_holding_a_resource_the_node_cannot_run_and_store_nothing() {
+        var command = aCreateGuardian().resources(List.of(new Resource("classifier", "absent-from-the-node", "{}", true))).build();
+
+        assertThatThrownBy(() -> create(command))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessage("Resource [classifier] references resource type [absent-from-the-node], which is not installed.");
+
+        assertThat(guardianRepository.storedGuardians()).isEmpty();
     }
 
     @Test

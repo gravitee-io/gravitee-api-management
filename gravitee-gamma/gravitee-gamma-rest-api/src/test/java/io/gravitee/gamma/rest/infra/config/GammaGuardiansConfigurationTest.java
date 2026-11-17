@@ -29,6 +29,7 @@ import inmemory.EventQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.event.query_service.EventLatestQueryService;
 import io.gravitee.apim.core.event.query_service.EventQueryService;
 import io.gravitee.apim.core.generic_event.domain_service.GenericEventPublicationDomainService;
@@ -36,11 +37,13 @@ import io.gravitee.apim.core.generic_event.domain_service.GenericEventWriterDoma
 import io.gravitee.apim.core.json.JsonDeserializer;
 import io.gravitee.apim.core.json.JsonSerializer;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
+import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.ResourcePluginProvider;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.use_case.DeployGuardianUseCase;
 import io.gravitee.repository.management.api.GuardianRepository;
@@ -62,6 +65,9 @@ class GammaGuardiansConfigurationTest {
             // the shared service the API flows validate their own steps with, owned by the rest-api
             // context: the Guardian validator is injected with it directly
             parent.registerBean(PolicyValidationDomainService.class, () -> mock(PolicyValidationDomainService.class));
+            parent.registerBean(ValidateResourceDomainService.class, () -> mock(ValidateResourceDomainService.class));
+            parent.registerBean(ResourcePluginProvider.class, () -> mock(ResourcePluginProvider.class));
+            parent.registerBean(EnvironmentCrudService.class, () -> mock(EnvironmentCrudService.class));
             parent.registerBean(EventLatestQueryService.class, EventLatestQueryServiceInMemory::new);
             parent.registerBean(EventQueryService.class, EventQueryServiceInMemory::new);
             parent.registerBean(UserCrudService.class, UserCrudServiceInMemory::new);

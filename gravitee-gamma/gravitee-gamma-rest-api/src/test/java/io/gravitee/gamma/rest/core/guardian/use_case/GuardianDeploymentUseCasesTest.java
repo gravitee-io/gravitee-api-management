@@ -42,6 +42,7 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.GuardianBuilder;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyValidation;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
@@ -194,6 +195,29 @@ class GuardianDeploymentUseCasesTest {
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessageContainingAll("MCP guardrail", "MCP", "llm-proxy");
             softly.assertThat(deployments.publications()).as("nothing published").isZero();
+            softly.assertThat(audits.storage()).as("no deployment audit").isEmpty();
+        });
+    }
+
+    /**
+     * A draft stored before its resources were judged at all reaches the gateways through here: the deployment
+     * is what refuses it, publishing nothing and leaving the draft as it is stored.
+     */
+    @Test
+    void should_refuse_to_deploy_a_stored_draft_holding_a_resource_the_node_cannot_run() {
+        repository.reset();
+        var stored = aGuardian(definition ->
+            definition.resources(List.of(new Resource("classifier", "absent-from-the-node", "{}", true)))
+        ).build();
+        repository.givenGuardian(stored);
+
+        assertSoftly(softly -> {
+            softly
+                .assertThatThrownBy(() -> deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, "Reviewed")))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Resource [classifier] references resource type [absent-from-the-node], which is not installed.");
+            softly.assertThat(deployments.publications()).as("nothing published").isZero();
+            softly.assertThat(repository.storedGuardians()).as("the draft, untouched").containsExactly(stored);
             softly.assertThat(audits.storage()).as("no deployment audit").isEmpty();
         });
     }

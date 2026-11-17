@@ -172,8 +172,16 @@ paths:
                         `scope.protocol`. Every refused step is named in the message, with the schema
                         error when there is one.
 
-                        A stored step configuration is the one its policy accepts, which is not
-                        always the one submitted: the schema validation drops null entries, injects
+                        A resource is refused too: an enabled resource that carries no type, or whose
+                        type the catalog does not list as `deployed` — not installed, not deployed by
+                        the node, or not enabled by the license of the organization —, whose configuration is not a JSON object or does not match
+                        the schema that plugin declares — one carrying no configuration at all being
+                        judged against an empty object — or whose name another enabled resource of the
+                        Guardian carries. A disabled resource is not read. Every refused resource is
+                        named in the message, with the schema error when there is one.
+
+                        A stored step or resource configuration is the one its plugin accepts, which
+                        is not always the one submitted: the schema validation drops null entries, injects
                         the default of a missing required property and prunes properties a closed
                         schema forbids, exactly as it does for an API flow. Read the created or
                         updated Guardian back to see what was stored.
@@ -268,8 +276,16 @@ paths:
                         `scope.protocol`. Every refused step is named in the message, with the schema
                         error when there is one.
 
-                        A stored step configuration is the one its policy accepts, which is not
-                        always the one submitted: the schema validation drops null entries, injects
+                        A resource is refused too: an enabled resource that carries no type, or whose
+                        type the catalog does not list as `deployed` — not installed, not deployed by
+                        the node, or not enabled by the license of the organization —, whose configuration is not a JSON object or does not match
+                        the schema that plugin declares — one carrying no configuration at all being
+                        judged against an empty object — or whose name another enabled resource of the
+                        Guardian carries. A disabled resource is not read. Every refused resource is
+                        named in the message, with the schema error when there is one.
+
+                        A stored step or resource configuration is the one its plugin accepts, which
+                        is not always the one submitted: the schema validation drops null entries, injects
                         the default of a missing required property and prunes properties a closed
                         schema forbids, exactly as it does for an API flow. Read the created or
                         updated Guardian back to see what was stored.
@@ -337,19 +353,20 @@ paths:
                 keeps the revision the gateways run. A draft may still be saved empty while its sequence is
                 being designed.
 
-                The stored draft is then validated again against the policies installed at that moment —
-                the checks a creation or an update runs **against the installed policies**, not the
-                payload-shape ones nor the name uniqueness, which a stored draft already satisfied. A
-                draft saved before one of those checks, or written against a policy uninstalled,
-                downgraded or re-scoped since, or carrying a configuration its policy's schema no longer
-                accepts, is refused with the same 400 rather than published into a revision no gateway can
-                start.
+                The stored draft is then validated again against the plugins installed at that moment —
+                the checks a creation or an update runs **against the installed policies and resource
+                plugins**, not the payload-shape ones nor the Guardian name uniqueness, which a stored
+                draft already satisfied. The resource names are checked again: a draft stored before that
+                rule, holding two enabled resources of the same name, is refused. A draft saved before one of those checks, or written against a policy or a
+                resource type uninstalled, downgraded or re-scoped since, or carrying a configuration its
+                plugin's schema no longer accepts, is refused with the same 400 rather than published into
+                a revision no gateway can start.
 
                 That pass never rewrites the draft: a deployment publishes the definition as it is stored.
-                A step configuration its policy would only accept **corrected** — a required property that
-                gained a default since the draft was saved, say — is therefore refused with the same 400,
-                naming the step, rather than published as it stands. Saving the Guardian again stores the
-                configuration the policy accepts, and that one deploys.
+                A step or a resource configuration its plugin would only accept **corrected** — a required
+                property that gained a default since the draft was saved, say — is therefore refused with
+                the same 400, naming the step or the resource, rather than published as it stands. Saving
+                the Guardian again stores the configuration the plugin accepts, and that one deploys.
             operationId: deployGuardian
             requestBody:
                 required: false
@@ -497,18 +514,18 @@ paths:
                 of a definition.
 
                 The checks of an update apply, since the revision may be out of date: a name
-                another Guardian took since answers 409, a guardrail no longer installed 400, and so
-                does a step configuration the schema of its policy no longer accepts — a policy
-                upgraded to a stricter schema since that revision was deployed closes this way back,
-                and the Guardian has to be edited rather than rolled back. Refusing is deliberate:
+                another Guardian took since answers 409, a guardrail or a resource type no longer
+                installed 400, and so does a step or a resource configuration the schema of its plugin no
+                longer accepts — a plugin upgraded to a stricter schema since that revision was deployed
+                closes this way back, and the Guardian has to be edited rather than rolled back. Refusing is deliberate:
                 restoring a draft the gateways could not start would only move the failure to the
                 next deployment.
 
                 The revision is restored as it was published, never rewritten, so the same 400 answers a
-                step configuration its policy would only accept **corrected**. Storing the corrected
-                definition instead would store one no gateway ever ran, and leave the Guardian PENDING
-                straight after the rollback; editing the Guardian is then the way to store a configuration
-                its policy accepts.
+                step or a resource configuration its plugin would only accept **corrected**. Storing the
+                corrected definition instead would store one no gateway ever ran, and leave the Guardian
+                PENDING straight after the rollback; editing the Guardian is then the way to store a
+                configuration its plugin accepts.
             operationId: rollbackGuardian
             responses:
                 "200":
@@ -943,6 +960,22 @@ components:
             description: |
                 The resources the guardrails need, as v4 definition-model `Resource` entries. Same
                 reasoning as `policies`: the shape lives in the definition model.
+
+                The `type` of every enabled resource must be a resource plugin the catalog lists as
+                `deployed` — installed, deployed by the node and enabled by the license of the
+                organization —, and its `configuration` must match the schema that plugin declares;
+                `GET /organizations/{orgId}/plugins/resources` lists the types. A type listed with
+                `deployed: false` is refused. A guardrail refers to a resource by its name, so no two enabled resources may
+                share one. Nothing checks that a name a guardrail refers to is held by the Guardian, nor
+                follows a rename: which property of a step configuration holds a resource name is the
+                policy's own business, as it is for an API.
+
+                **Secrets.** A `configuration` is stored and returned as it was sent, to any caller
+                allowed to read the Guardian: nothing in it is masked. A secret therefore has to be given
+                as a reference — `{#secrets.get('/vault/secret/models:api-key')}` — which is stored and
+                returned as that expression and resolved by the gateway when the Guardian is deployed. A
+                secret typed in clear is stored and returned in clear, as it is in the resource of an
+                API.
             items:
                 type: object
                 additionalProperties: true

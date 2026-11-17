@@ -22,8 +22,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import inmemory.EnvironmentCrudServiceInMemory;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
+import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
+import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.core.event.query_service.EventLatestQueryService;
 import io.gravitee.apim.core.event.query_service.EventQueryService;
 import io.gravitee.apim.core.generic_event.domain_service.GenericEventPublicationDomainService;
@@ -35,7 +38,9 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyValidation;
+import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryResourceValidation;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
+import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.ResourcePluginProvider;
 import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
 import io.gravitee.gamma.rest.core.guardian.GuardianFixtures;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
@@ -59,6 +64,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -131,6 +137,9 @@ class GuardiansResourceTest extends AbstractResourceTest {
     private InMemoryPolicyValidation policyConfigurations;
 
     @Inject
+    private InMemoryResourceValidation resourceConfigurations;
+
+    @Inject
     private LicenseManager licenseManager;
 
     @Override
@@ -147,6 +156,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
         givenGuardiansLicensed(true);
         // a bean of the context, so a schema answer installed by one test would otherwise reach the next
         policyConfigurations.reset();
+        resourceConfigurations.reset();
     }
 
     private void givenGuardiansLicensed(boolean licensed) {
@@ -374,6 +384,68 @@ class GuardiansResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_store_the_resources_the_payload_carries() {
+            var resource = Map.of("name", "classifier", "type", GuardianFixtures.INSTALLED_RESOURCE_TYPE, "configuration", Map.of());
+
+            var response = post(payloadWith("resources", List.of(resource)));
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(response.getStatus()).as("creation response").isEqualTo(HttpStatusCode.CREATED_201);
+                JsonNode resources = response.readEntity(JsonNode.class).get("resources");
+                softly.assertThat(resources).as("stored resources").hasSize(1);
+                softly.assertThat(resources.at("/0/name").asText()).as("name").isEqualTo("classifier");
+                softly.assertThat(resources.at("/0/type").asText()).as("type").isEqualTo(GuardianFixtures.INSTALLED_RESOURCE_TYPE);
+            });
+        }
+
+        @Test
+        void should_refuse_a_resource_of_a_type_the_node_does_not_have_with_400_naming_it() {
+            var resource = Map.of("name", "classifier", "type", "absent-from-the-node", "configuration", Map.of());
+
+            var response = post(payloadWith("resources", List.of(resource)));
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(response.getStatus()).as("creation response").isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+                softly
+                    .assertThat(response.readEntity(JsonNode.class).at("/message").asText())
+                    .as("the resource and its type, readable")
+                    .contains("classifier", "absent-from-the-node", "not installed");
+            });
+        }
+
+        /** The gateway keeps resources by name, so the second would silently replace the first. */
+        @Test
+        void should_refuse_two_enabled_resources_sharing_a_name_with_400() {
+            var resource = Map.of("name", "classifier", "type", GuardianFixtures.INSTALLED_RESOURCE_TYPE, "configuration", Map.of());
+
+            var response = post(payloadWith("resources", List.of(resource, resource)));
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(response.getStatus()).as("creation response").isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+                softly
+                    .assertThat(response.readEntity(JsonNode.class).at("/message").asText())
+                    .as("the shared name")
+                    .isEqualTo("Resource name [classifier] is used by more than one enabled resource.");
+            });
+        }
+
+        @Test
+        void should_refuse_a_resource_configuration_the_plugin_schema_rejects_with_400_naming_the_resource() {
+            resourceConfigurations.givenRefuses(GuardianFixtures.INSTALLED_RESOURCE_TYPE, "$.model: is missing but it is required");
+            var resource = Map.of("name", "classifier", "type", GuardianFixtures.INSTALLED_RESOURCE_TYPE, "configuration", Map.of());
+
+            var response = post(payloadWith("resources", List.of(resource)));
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(response.getStatus()).as("creation response").isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+                softly
+                    .assertThat(response.readEntity(JsonNode.class).at("/message").asText())
+                    .as("the refused resource, named")
+                    .contains("Resource [classifier] has an invalid configuration: $.model: is missing but it is required.");
+            });
+        }
+
+        @Test
         void should_refuse_a_step_configuration_the_policy_schema_rejects_with_400_naming_the_step() {
             policyConfigurations.givenRefuses(GuardianFixtures.GUARDRAIL_POLICY, "$.rules: is missing but it is required");
 
@@ -469,6 +541,23 @@ class GuardiansResourceTest extends AbstractResourceTest {
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             assertThat(response.readEntity(JsonNode.class).get("id").asText()).isEqualTo(GUARDIAN_ID);
+        }
+
+        /** What is stored has to be what the plugin validated, so an update answers the corrected configuration. */
+        @Test
+        void should_store_the_resource_configuration_its_plugin_accepts_on_put() {
+            resourceConfigurations.givenRewrites(GuardianFixtures.INSTALLED_RESOURCE_TYPE, "{\"threshold\":0.5}");
+            var resource = Map.of("name", "classifier", "type", GuardianFixtures.INSTALLED_RESOURCE_TYPE, "configuration", Map.of());
+
+            var response = put(payloadWith("resources", List.of(resource)));
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(response.getStatus()).as("update response").isEqualTo(HttpStatusCode.OK_200);
+                softly
+                    .assertThat(response.readEntity(JsonNode.class).at("/resources/0/configuration/threshold").asDouble())
+                    .as("the configuration the plugin accepts")
+                    .isEqualTo(0.5);
+            });
         }
 
         @Test
@@ -1243,6 +1332,30 @@ class GuardiansResourceTest extends AbstractResourceTest {
         @Bean
         PolicyPluginProvider policyPluginProvider() {
             return GuardianFixtures.aPolicyPluginProvider();
+        }
+
+        /** The Guardian checks each resource type against what the catalog of its organization offers. */
+        @Bean
+        ResourcePluginProvider resourcePluginProvider() {
+            var provider = mock(ResourcePluginProvider.class);
+            when(provider.findAll(ORGANIZATION)).thenReturn(
+                Set.of(GuardianFixtures.aResourceType(GuardianFixtures.INSTALLED_RESOURCE_TYPE, true))
+            );
+            return provider;
+        }
+
+        /** The organization whose license decides which resource types are enabled is read from the environment. */
+        @Bean
+        EnvironmentCrudService environmentCrudService() {
+            var environments = new EnvironmentCrudServiceInMemory();
+            environments.initWith(List.of(Environment.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build()));
+            return environments;
+        }
+
+        /** The Guardian validates its resources as an API does, so the context needs that validator too. */
+        @Bean
+        InMemoryResourceValidation validateResourceDomainService() {
+            return new InMemoryResourceValidation();
         }
 
         @Bean
