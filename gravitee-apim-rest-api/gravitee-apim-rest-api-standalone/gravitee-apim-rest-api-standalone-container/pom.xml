@@ -341,6 +341,11 @@
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
         </dependency>
+        <!-- jose4j: gamma-module-esm Kafka Explorer (the SASL/OAUTHBEARER login of kafka-clients loads it, kafka-clients does not declare it) -->
+        <dependency>
+            <groupId>org.bitbucket.b_c</groupId>
+            <artifactId>jose4j</artifactId>
+        </dependency>
         <!-- transform-protobuf-json -->
         <dependency>
             <groupId>com.google.protobuf</groupId>
