@@ -79,12 +79,23 @@ class SecretReferenceTest {
 
     @ParameterizedTest
     @ValueSource(
-        strings = { "/", "/gravitee", "/gravitee/", "/gravitee:value", "/gravitee/:value", "/gravitee?renewable=true", "/vault//" }
+        strings = {
+            "/",
+            "/gravitee",
+            "/gravitee/",
+            "/gravitee:value",
+            "/gravitee/:value",
+            "/gravitee?renewable=true",
+            "/vault//",
+            "/vault/?renewable=true",
+        }
     )
     void should_reject_a_reference_without_a_path_after_the_provider(String reference) {
         assertThatThrownBy(() -> SecretReference.external("token", reference))
             .isInstanceOf(InvalidCredentialException.class)
-            .hasMessage("The reference of token must be a secret path such as /vault/secret/name:key, with no spaces or expressions.");
+            .hasMessage(
+                "The reference of token must name a provider and then a path with no empty segment, such as /vault/secret/name:key."
+            );
     }
 
     @ParameterizedTest
@@ -95,16 +106,23 @@ class SecretReferenceTest {
             "/vault//secret:token",
             "//gravitee/my-secret:value",
             "/gravitee//my-secret",
+            "/vault//secret?renewable=true",
         }
     )
     void should_reject_a_reference_with_an_empty_path_segment(String reference) {
         assertThatThrownBy(() -> SecretReference.external("token", reference))
             .isInstanceOf(InvalidCredentialException.class)
-            .hasMessage("The reference of token must be a secret path such as /vault/secret/name:key, with no spaces or expressions.");
+            .hasMessage(
+                "The reference of token must name a provider and then a path with no empty segment, such as /vault/secret/name:key."
+            );
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "/vault/secret/openai/:token", "/gravitee/my-secret//:value", "/vault/secret/openai/" })
+    @ValueSource(
+        strings = {
+            "/vault/secret/openai/:token", "/gravitee/my-secret//:value", "/vault/secret/openai/", "/vault/secret/openai/?renewable=true",
+        }
+    )
     void should_accept_a_reference_with_a_trailing_slash_as_the_gateway_trims_it(String reference) {
         assertThat(SecretReference.external("token", reference).reference()).isEqualTo(reference);
     }

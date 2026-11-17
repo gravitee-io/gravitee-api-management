@@ -34,6 +34,7 @@ public record SecretReference(String reference, String secretId) {
     private static final int MAX_LENGTH = 2048;
     // The gateway's SecretURL trims every character up to U+0020, so a control character could hide a credential key from the check below.
     private static final Pattern WHITESPACE = Pattern.compile("[\\s\\p{Cc}\\p{Z}]");
+    private static final Pattern TRAILING_SLASHES = Pattern.compile("/+$");
 
     public static SecretReference external(String field, String reference) {
         if (
@@ -41,10 +42,14 @@ public record SecretReference(String reference, String secretId) {
             !reference.startsWith("/") ||
             reference.length() > MAX_LENGTH ||
             WHITESPACE.matcher(reference).find() ||
-            reference.contains("{#") ||
-            !isProviderAndPath(reference)
+            reference.contains("{#")
         ) {
             throw invalidPath(field);
+        }
+        if (!isProviderAndPath(reference)) {
+            throw new InvalidCredentialException(
+                "The reference of " + field + " must name a provider and then a path with no empty segment, such as /vault/secret/name:key."
+            );
         }
         var external = new SecretReference(reference, null);
         if (external.isInGraviteeStore() && !isPlainKey(external.graviteeKey())) {
@@ -78,7 +83,7 @@ public record SecretReference(String reference, String secretId) {
 
     // Mirrors the gateway's SecretURL.from (gravitee-secret-api 4.0.0): it trims trailing slashes, then needs a provider and a path with no empty segment.
     private static boolean isProviderAndPath(String reference) {
-        var segments = withoutQueryAndKey(reference.substring(1)).replaceAll("/+$", "").split("/", -1);
+        var segments = TRAILING_SLASHES.matcher(withoutQueryAndKey(reference.substring(1))).replaceAll("").split("/", -1);
         return segments.length >= 2 && !Arrays.asList(segments).contains("");
     }
 

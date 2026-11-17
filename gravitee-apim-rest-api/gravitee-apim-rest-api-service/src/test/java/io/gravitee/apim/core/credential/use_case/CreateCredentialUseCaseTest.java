@@ -193,7 +193,7 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
                 fixture.givenACredential(c -> c.references(Map.of("token", "/gravitee//credential.other.password:value")))
             )
                 .isInstanceOf(InvalidCredentialException.class)
-                .hasMessageContaining("token");
+                .hasMessageContaining("no empty segment");
             assertThat(fixture.credentialCrudService.storage()).isEmpty();
         }
 
