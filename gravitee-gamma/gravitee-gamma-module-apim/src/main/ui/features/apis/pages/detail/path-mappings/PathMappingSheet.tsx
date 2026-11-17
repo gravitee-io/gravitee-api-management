@@ -333,7 +333,7 @@ function SwaggerDocumentPicker({
     if (pages.length === 0) {
         return (
             <p className="text-sm text-muted-foreground" data-testid="swagger-pages-status">
-                No OpenAPI document in the next-gen Developer Portal.
+                No swagger documentation in the next-gen Developer Portal.
             </p>
         );
     }

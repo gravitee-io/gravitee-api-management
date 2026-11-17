@@ -57,7 +57,7 @@
         } @else if (swaggerPagesStatus() === 'loading') {
           <p data-testid="swagger-pages-status">Loading Swagger pages...</p>
         } @else if (swaggerPages().length === 0) {
-          <p data-testid="swagger-pages-status">No OpenAPI document in the Developer Portal.</p>
+          <p data-testid="swagger-pages-status">No swagger documentation in the Developer Portal.</p>
         }
         <mat-checkbox formControlName="overwrite" data-testid="replace-existing-path-mappings">
           Replace existing path mappings

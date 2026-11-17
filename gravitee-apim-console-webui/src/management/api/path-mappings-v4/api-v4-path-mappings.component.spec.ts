@@ -474,10 +474,10 @@ describe('ApiV4PathMappingsComponent', () => {
     const dialog = await rootLoader.getHarness(MatDialogHarness);
     await (await dialog.getAllHarnesses(MatTabHarness))[1].select();
     expect(await dialog.getText()).toContain('Loading Swagger pages...');
-    expect(await dialog.getText()).not.toContain('No OpenAPI document in the Developer Portal.');
+    expect(await dialog.getText()).not.toContain('No swagger documentation in the Developer Portal.');
 
     flushPages([]);
-    expect(await dialog.getText()).toContain('No OpenAPI document in the Developer Portal.');
+    expect(await dialog.getText()).toContain('No swagger documentation in the Developer Portal.');
     expect(await dialog.getText()).not.toContain('Loading Swagger pages...');
     await (await dialog.getHarness(MatButtonHarness.with({ text: /Cancel/ }))).click();
   });

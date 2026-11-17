@@ -130,7 +130,7 @@ it('shows empty swagger status when the API has no SWAGGER pages', async () => {
 
     await user.click(screen.getByRole('radio', { name: 'Import from Swagger' }));
     await waitFor(() =>
-        expect(screen.getByTestId('swagger-pages-status')).toHaveTextContent(/No OpenAPI document in the next-gen Developer Portal/i),
+        expect(screen.getByTestId('swagger-pages-status')).toHaveTextContent(/No swagger documentation in the next-gen Developer Portal/i),
     );
     expect(screen.getByTestId('path-mapping-submit')).toBeDisabled();
 });
