@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference.ApiReference;
@@ -48,7 +49,6 @@ import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApiPr
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationPage;
-import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -72,7 +72,7 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
+class PortalNavigationItemResource_PutTest extends AbstractPortalNavigationResourceTest {
 
     private static final String ENVIRONMENT = "environment-id";
 
@@ -114,13 +114,7 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         ).thenReturn(true);
 
         // Seed storage with sample items and adjust env/org to current test values
-        var items = PortalNavigationItemFixtures.sampleNavigationItems();
-        items.forEach(i -> {
-            i.setEnvironmentId(ENVIRONMENT);
-            i.setOrganizationId(ORGANIZATION);
-        });
-        ((PortalNavigationItemsQueryServiceInMemory) portalNavigationItemsQueryService).initWith(items);
-        ((PortalNavigationItemsCrudServiceInMemory) portalNavigationItemCrudService).initWith(items);
+        initStorageWith(PortalNavigationItemFixtures.sampleNavigationItems());
     }
 
     @AfterEach
@@ -944,6 +938,16 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         });
         ((PortalNavigationItemsQueryServiceInMemory) portalNavigationItemsQueryService).initWith(items);
         ((PortalNavigationItemsCrudServiceInMemory) portalNavigationItemCrudService).initWith(items);
+        apiCrudService.initWith(
+            items
+                .stream()
+                .filter(PortalNavigationApi.class::isInstance)
+                .map(PortalNavigationApi.class::cast)
+                .map(PortalNavigationApi::getApiId)
+                .distinct()
+                .<Api>map(apiId -> Api.builder().id(apiId).name(apiId).environmentId(ENVIRONMENT).build())
+                .toList()
+        );
     }
 
     private BaseUpdatePortalNavigationItem updateFolderPublished(

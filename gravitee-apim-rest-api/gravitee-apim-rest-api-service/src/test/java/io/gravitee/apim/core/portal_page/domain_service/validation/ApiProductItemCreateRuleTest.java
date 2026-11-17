@@ -134,6 +134,7 @@ class ApiProductItemCreateRuleTest {
     private static CreatePortalNavigationItem apiProductItem() {
         return CreatePortalNavigationItem.builder()
             .id(PortalNavigationItemId.random())
+            .reference(PortalNavigationItemFixtures.PORTAL_REFERENCE)
             .title("Product")
             .area(PortalArea.TOP_NAVBAR)
             .order(0)

@@ -16,8 +16,10 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationBulkImportDomainService;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.use_case.FetchPortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ImportPortalNavigationUseCase;
@@ -173,12 +175,14 @@ public interface PortalNavigationItemsMapper {
     default SeedDefaultPagesForPortalNavigationItemsUseCase.Input mapSeedDefaultPagesInput(
         String organizationId,
         String environmentId,
-        SeedDefaultPagesRequest request
+        SeedDefaultPagesRequest request,
+        PortalId portalId
     ) {
         return new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(
             organizationId,
             environmentId,
-            request.getIds().stream().map(this::map).toList()
+            request.getIds().stream().map(this::map).toList(),
+            portalId
         );
     }
 
@@ -225,8 +229,14 @@ public interface PortalNavigationItemsMapper {
             .summary(new PortalNavigationItemsFetchSummary().succeeded(succeeded).failed(results.size() - succeeded).results(results));
     }
 
-    default ImportPortalNavigationUseCase.Input map(String organizationId, String environmentId, ImportPortalNavigationRequest request) {
+    default ImportPortalNavigationUseCase.Input map(
+        String organizationId,
+        String environmentId,
+        ImportPortalNavigationRequest request,
+        NavigationItemReference scope
+    ) {
         return ImportPortalNavigationUseCase.Input.builder()
+            .scope(scope)
             .organizationId(organizationId)
             .environmentId(environmentId)
             .title(request.getTitle())

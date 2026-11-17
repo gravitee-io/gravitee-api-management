@@ -28,6 +28,7 @@ import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
@@ -47,6 +48,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -80,6 +82,7 @@ class ApiDocumentationNavigationItemResource_FetchTest extends AbstractResourceT
 
     @BeforeEach
     public void init() {
+        apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("API").environmentId(ENVIRONMENT).build()));
         EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
@@ -90,6 +93,7 @@ class ApiDocumentationNavigationItemResource_FetchTest extends AbstractResourceT
 
     @AfterEach
     public void cleanUp() {
+        apiCrudService.reset();
         GraviteeContext.cleanContext();
         portalNavigationItemCrudService.reset();
         portalPageContentCrudService.reset();

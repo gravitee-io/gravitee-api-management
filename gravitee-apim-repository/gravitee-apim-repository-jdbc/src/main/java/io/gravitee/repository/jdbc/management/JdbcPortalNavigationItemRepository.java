@@ -52,6 +52,7 @@ public class JdbcPortalNavigationItemRepository
     implements PortalNavigationItemRepository {
 
     private static final String DELETE_FROM = "delete from ";
+    private static final int CATEGORY_IDS_BATCH_SIZE = 500;
     private static final ObjectMapper JSON = new ObjectMapper();
 
     private final String PORTAL_NAVIGATION_ITEM_CATEGORIES;
@@ -448,6 +449,16 @@ public class JdbcPortalNavigationItemRepository
                 clauses.add("environment_id = ?");
                 params.add(criteria.getEnvironmentId());
             }
+            addIdsInClause(criteria.getIds(), "id", ids -> String.join(",", Collections.nCopies(ids.size(), "?")), clauses, params);
+
+            if (criteria.getReferenceType() != null) {
+                clauses.add("reference_type = ?");
+                params.add(criteria.getReferenceType().name());
+            }
+            if (criteria.getReferenceId() != null) {
+                clauses.add("reference_id = ?");
+                params.add(criteria.getReferenceId());
+            }
 
             if (hasText(criteria.getParentId())) {
                 clauses.add("parent_id = ?");
@@ -559,20 +570,23 @@ public class JdbcPortalNavigationItemRepository
         }
         List<String> ids = items.stream().map(PortalNavigationItem::getId).toList();
         Map<String, List<String>> categoryIdsByItemId = new HashMap<>();
-        jdbcTemplate.query(
-            "select nav_item_id, category_id from " +
-                PORTAL_NAVIGATION_ITEM_CATEGORIES +
-                " where nav_item_id in (" +
-                getOrm().buildInClause(ids) +
-                ")",
-            rs -> {
-                String navItemId = rs.getString("nav_item_id");
-                String categoryId = rs.getString("category_id");
-                List<String> categoryList = categoryIdsByItemId.computeIfAbsent(navItemId, k -> new ArrayList<>());
-                categoryList.add(categoryId);
-            },
-            ids.toArray()
-        );
+        for (int start = 0; start < ids.size(); start += CATEGORY_IDS_BATCH_SIZE) {
+            var batchIds = ids.subList(start, Math.min(start + CATEGORY_IDS_BATCH_SIZE, ids.size()));
+            jdbcTemplate.query(
+                "select nav_item_id, category_id from " +
+                    PORTAL_NAVIGATION_ITEM_CATEGORIES +
+                    " where nav_item_id in (" +
+                    getOrm().buildInClause(batchIds) +
+                    ")",
+                rs -> {
+                    String navItemId = rs.getString("nav_item_id");
+                    String categoryId = rs.getString("category_id");
+                    List<String> categoryList = categoryIdsByItemId.computeIfAbsent(navItemId, k -> new ArrayList<>());
+                    categoryList.add(categoryId);
+                },
+                batchIds.toArray()
+            );
+        }
         items.forEach(item -> item.setCategoryIds(categoryIdsByItemId.getOrDefault(item.getId(), List.of())));
     }
 }

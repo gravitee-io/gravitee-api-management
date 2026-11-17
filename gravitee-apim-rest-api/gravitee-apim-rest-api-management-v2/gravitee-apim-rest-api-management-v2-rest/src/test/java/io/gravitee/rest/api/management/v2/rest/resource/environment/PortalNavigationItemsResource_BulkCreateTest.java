@@ -38,7 +38,6 @@ import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage;
-import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -60,7 +59,7 @@ import org.mockito.Mockito;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class PortalNavigationItemsResource_BulkCreateTest extends AbstractResourceTest {
+class PortalNavigationItemsResource_BulkCreateTest extends AbstractPortalNavigationResourceTest {
 
     private static final String ENVIRONMENT = "environment-id";
 
@@ -188,6 +187,7 @@ class PortalNavigationItemsResource_BulkCreateTest extends AbstractResourceTest 
         assertThat(response).hasStatus(OK_200);
         var captor = ArgumentCaptor.forClass(BulkCreatePortalNavigationItemUseCase.Input.class);
         verify(bulkCreatePortalNavigationItemUseCase).execute(captor.capture());
+        assertThat(captor.getValue().portalId().toString()).isEqualTo(NAVIGATION_PORTAL_ID);
         assertThat(captor.getValue().items())
             .singleElement()
             .satisfies(item -> {

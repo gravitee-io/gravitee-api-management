@@ -22,12 +22,14 @@ import static fixtures.core.model.PortalPageContentFixtures.ORGANIZATION_ID;
 import static fixtures.core.model.SwaggerUiConfigurationFixtures.aSwaggerUiConfiguration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.core.model.PortalPageContentFixtures;
-import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
@@ -35,22 +37,29 @@ import io.gravitee.apim.core.api.service_provider.ApiTemplateModelProvider;
 import io.gravitee.apim.core.environment.service_provider.EnvironmentTemplateModelProvider;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
 import io.gravitee.apim.core.gravitee_markdown.exception.GraviteeMarkdownContentEmptyException;
+import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.GraviteePortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationEnclosingApiDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidatorService;
+import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalPageContentTooLargeException;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.SwaggerUiConfiguration;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
-import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -66,25 +75,32 @@ class UpdatePortalPageContentUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        queryService = new PortalPageContentQueryServiceInMemory();
+        queryService = spy(new PortalPageContentQueryServiceInMemory());
         crudService = new PortalPageContentCrudServiceInMemory();
-        navigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory(new java.util.ArrayList<>());
+        navigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory();
+        navigationItemsQueryService.initWith(List.of(pageForContent(CONTENT_ID), pageForContent("00000000-0000-0000-0000-000000000003")));
 
         GraviteeMarkdownValidator gmdValidator = new GraviteeMarkdownValidator();
-        PortalNavigationItemsQueryService portalNavigationItemsQueryService = mock(PortalNavigationItemsQueryService.class);
-        when(portalNavigationItemsQueryService.search(any())).thenReturn(java.util.List.of());
+        var environmentTemplateModelProvider = mock(EnvironmentTemplateModelProvider.class);
+        when(environmentTemplateModelProvider.getEnvironmentMetadata(ENVIRONMENT_ID)).thenReturn(Map.of());
         GraviteePortalPageContentValidatorService gmdContentValidator = new GraviteePortalPageContentValidatorService(
             gmdValidator,
-            portalNavigationItemsQueryService,
-            mock(PortalNavigationEnclosingApiDomainService.class),
+            navigationItemsQueryService,
+            new PortalNavigationEnclosingApiDomainService(navigationItemsQueryService),
             mock(PortalNavigationTemplatingService.class),
             mock(ApiTemplateModelProvider.class),
-            mock(EnvironmentTemplateModelProvider.class)
+            environmentTemplateModelProvider
         );
-        PortalPageContentValidatorService validatorService = new PortalPageContentValidatorService(java.util.List.of(gmdContentValidator));
+        PortalPageContentValidatorService validatorService = new PortalPageContentValidatorService(List.of(gmdContentValidator));
 
         useCase = new UpdatePortalPageContentUseCase(
-            queryService,
+            PortalNavigationUseCaseTestFixtures.access(
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                navigationItemsQueryService,
+                queryService,
+                new ApiCrudServiceInMemory()
+            ),
             crudService,
             validatorService,
             navigationItemsQueryService,
@@ -97,27 +113,22 @@ class UpdatePortalPageContentUseCaseTest {
 
     @Test
     void should_reject_content_edit_when_page_is_managed_by_a_source() {
-        var sourcedPage = io.gravitee.apim.core.portal_page.model.PortalNavigationPage.builder()
+        var sourcedPage = PortalNavigationPage.builder()
             .reference(PORTAL_REFERENCE)
-            .id(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.of("00000000-0000-0000-0000-00000000ff01"))
+            .id(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000ff01"))
             .organizationId(ORGANIZATION_ID)
             .environmentId(ENVIRONMENT_ID)
             .title("Sourced Page")
             .segment("sourced-page")
-            .area(io.gravitee.apim.core.portal.model.PortalArea.TOP_NAVBAR)
+            .area(PortalArea.TOP_NAVBAR)
             .order(0)
             .portalPageContentId(PortalPageContentId.of(CONTENT_ID))
             .published(true)
-            .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
-            .source(
-                io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource.builder()
-                    .sourceType("http-fetcher")
-                    .sourceConfiguration("{}")
-                    .build()
-            )
+            .visibility(PortalVisibility.PUBLIC)
+            .source(PortalNavigationItemSource.builder().sourceType("http-fetcher").sourceConfiguration("{}").build())
             .build();
         sourcedPage.markAsRoot();
-        navigationItemsQueryService.storage().add(sourcedPage);
+        navigationItemsQueryService.initWith(List.of(sourcedPage));
 
         final var updateContent = UpdatePortalPageContent.builder().content("Updated content").build();
         final var input = UpdatePortalPageContentUseCase.Input.builder()
@@ -125,11 +136,37 @@ class UpdatePortalPageContentUseCaseTest {
             .environmentId(ENVIRONMENT_ID)
             .portalPageContentId(CONTENT_ID)
             .updatePortalPageContent(updateContent)
+            .scope(PORTAL_REFERENCE)
             .build();
 
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException.class)
+            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
             .hasMessageContaining("cannot be edited");
+    }
+
+    @Test
+    void should_refuse_content_owned_by_another_portal_in_the_same_environment_without_writing() {
+        var page = pageForContent(CONTENT_ID);
+        page.changeOwner(new NavigationItemReference.PortalReference(PortalId.of("22222222-2222-2222-2222-222222222222")));
+        navigationItemsQueryService.initWith(List.of(page));
+        var previousContents = crudService
+            .storage()
+            .stream()
+            .map(content -> content.getContent().toString())
+            .toList();
+        var input = UpdatePortalPageContentUseCase.Input.builder()
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .portalPageContentId(CONTENT_ID)
+            .updatePortalPageContent(UpdatePortalPageContent.builder().content("Updated content").build())
+            .scope(PORTAL_REFERENCE)
+            .build();
+
+        assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(PageContentNotFoundException.class);
+
+        assertThat(crudService.storage())
+            .extracting(content -> content.getContent().toString())
+            .containsExactlyElementsOf(previousContents);
     }
 
     @Test
@@ -141,6 +178,7 @@ class UpdatePortalPageContentUseCaseTest {
             .environmentId(ENVIRONMENT_ID)
             .portalPageContentId(CONTENT_ID)
             .updatePortalPageContent(updateContent)
+            .scope(PORTAL_REFERENCE)
             .build();
 
         // When
@@ -151,6 +189,7 @@ class UpdatePortalPageContentUseCaseTest {
         final var updatedContent = (GraviteeMarkdownPageContent) output.portalPageContent();
         assertThat(updatedContent.getContent().value()).isEqualTo("Updated content");
         assertThat(updatedContent.getId()).isEqualTo(PortalPageContentId.of(CONTENT_ID));
+        verify(queryService).findById(PortalPageContentId.of(CONTENT_ID));
     }
 
     @Test
@@ -162,6 +201,7 @@ class UpdatePortalPageContentUseCaseTest {
             .environmentId(ENVIRONMENT_ID)
             .portalPageContentId(CONTENT_ID)
             .updatePortalPageContent(updateContent)
+            .scope(PORTAL_REFERENCE)
             .build();
 
         // When & Then
@@ -188,6 +228,7 @@ class UpdatePortalPageContentUseCaseTest {
             .environmentId(ENVIRONMENT_ID)
             .portalPageContentId(contentId.toString())
             .updatePortalPageContent(updateContent)
+            .scope(PORTAL_REFERENCE)
             .build();
 
         // When
@@ -209,6 +250,7 @@ class UpdatePortalPageContentUseCaseTest {
             .environmentId(ENVIRONMENT_ID)
             .portalPageContentId("00000000-0000-0000-0000-000000000002")
             .updatePortalPageContent(updateContent)
+            .scope(PORTAL_REFERENCE)
             .build();
 
         // When & Then
@@ -219,36 +261,42 @@ class UpdatePortalPageContentUseCaseTest {
 
     @Test
     void should_throw_when_organization_id_mismatch() {
-        // Given
-        final var updateContent = UpdatePortalPageContent.builder().content("Updated content").build();
-        final var input = UpdatePortalPageContentUseCase.Input.builder()
-            .organizationId("different-org")
-            .environmentId(ENVIRONMENT_ID)
-            .portalPageContentId(CONTENT_ID)
-            .updatePortalPageContent(updateContent)
-            .build();
-
-        // When & Then
-        assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(PageContentNotFoundException.class)
-            .hasMessage("Page content not found");
-    }
-
-    @Test
-    void should_throw_when_environment_id_mismatch() {
+        initializeContentOwnership("different-org", ENVIRONMENT_ID);
         // Given
         final var updateContent = UpdatePortalPageContent.builder().content("Updated content").build();
         final var input = UpdatePortalPageContentUseCase.Input.builder()
             .organizationId(ORGANIZATION_ID)
-            .environmentId("different-env")
+            .environmentId(ENVIRONMENT_ID)
             .portalPageContentId(CONTENT_ID)
             .updatePortalPageContent(updateContent)
+            .scope(PORTAL_REFERENCE)
             .build();
 
         // When & Then
         assertThatThrownBy(() -> useCase.execute(input))
             .isInstanceOf(PageContentNotFoundException.class)
             .hasMessage("Page content not found");
+        assertStoredContentUnchanged();
+    }
+
+    @Test
+    void should_throw_when_environment_id_mismatch() {
+        initializeContentOwnership(ORGANIZATION_ID, "different-env");
+        // Given
+        final var updateContent = UpdatePortalPageContent.builder().content("Updated content").build();
+        final var input = UpdatePortalPageContentUseCase.Input.builder()
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .portalPageContentId(CONTENT_ID)
+            .updatePortalPageContent(updateContent)
+            .scope(PORTAL_REFERENCE)
+            .build();
+
+        // When & Then
+        assertThatThrownBy(() -> useCase.execute(input))
+            .isInstanceOf(PageContentNotFoundException.class)
+            .hasMessage("Page content not found");
+        assertStoredContentUnchanged();
     }
 
     @Test
@@ -263,6 +311,7 @@ class UpdatePortalPageContentUseCaseTest {
             .environmentId(ENVIRONMENT_ID)
             .portalPageContentId(CONTENT_ID)
             .updatePortalPageContent(updateContent)
+            .scope(PORTAL_REFERENCE)
             .build();
 
         // When
@@ -287,6 +336,7 @@ class UpdatePortalPageContentUseCaseTest {
             .environmentId(ENVIRONMENT_ID)
             .portalPageContentId(CONTENT_ID)
             .updatePortalPageContent(updateContent)
+            .scope(PORTAL_REFERENCE)
             .build();
 
         // When
@@ -317,6 +367,7 @@ class UpdatePortalPageContentUseCaseTest {
             .environmentId(ENVIRONMENT_ID)
             .portalPageContentId(contentId.toString())
             .updatePortalPageContent(updateContent)
+            .scope(PORTAL_REFERENCE)
             .build();
 
         // When & Then
@@ -334,11 +385,39 @@ class UpdatePortalPageContentUseCaseTest {
             .environmentId(ENVIRONMENT_ID)
             .portalPageContentId(CONTENT_ID)
             .updatePortalPageContent(updateContent)
+            .scope(PORTAL_REFERENCE)
             .build();
 
         // When & Then
         assertThatThrownBy(() -> useCase.execute(input))
             .isInstanceOf(GraviteeMarkdownContentEmptyException.class)
             .hasMessage("Content must not be null or empty");
+    }
+
+    private PortalNavigationPage pageForContent(String contentId) {
+        var page = PortalNavigationItemFixtures.aPage("Content page", null)
+            .toBuilder()
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .portalPageContentId(PortalPageContentId.of(contentId))
+            .build();
+        page.markAsRoot();
+        return page;
+    }
+
+    private void initializeContentOwnership(String organizationId, String environmentId) {
+        var content = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
+            PortalPageContentId.of(CONTENT_ID),
+            organizationId,
+            environmentId,
+            PortalPageContentFixtures.CONTENT
+        );
+        queryService.initWith(List.of(content));
+        crudService.initWith(List.of(content));
+    }
+
+    private void assertStoredContentUnchanged() {
+        var storedContent = (GraviteeMarkdownPageContent) crudService.storage().getFirst();
+        assertThat(storedContent.getContent().value()).isEqualTo(PortalPageContentFixtures.CONTENT);
     }
 }

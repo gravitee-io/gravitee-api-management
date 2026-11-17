@@ -566,6 +566,144 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
     //////////////////////////////////////
 
     @Test
+    void should_search_by_navigation_ids_and_environment() throws Exception {
+        var firstId = "2d7b9f6c-1a2b-4c3d-8e9f-0a1b2c3d4e5f";
+        var secondId = "7c2d3e4f-5f6a-7b8c-9d0e-1f2a3b4c5d6e";
+        var criteria = PortalNavigationItemCriteria.builder()
+            .environmentId("env-1")
+            .ids(Set.of(firstId, secondId, "orphan-other-environment", "unknown-navigation-item"))
+            .build();
+
+        assertThat(portalNavigationItemRepository.searchByCriteria(criteria))
+            .extracting(PortalNavigationItem::getId)
+            .containsExactlyInAnyOrder(firstId, secondId);
+    }
+
+    @Test
+    void should_intersect_navigation_ids_with_other_search_criteria() throws Exception {
+        var pageId = "6b1c2d3e-4e5f-6a7b-8c9d-0e1f2a3b4c5d";
+        var rootId = "5a0b1c2d-3d4e-5f6a-7b8c-9d0e1f2a3b4c";
+        var criteria = PortalNavigationItemCriteria.builder()
+            .environmentId("env-1")
+            .ids(Set.of(pageId, rootId))
+            .referenceType(PortalNavigationReferenceType.PORTAL)
+            .referenceId("portal-1")
+            .parentId(rootId)
+            .type(PortalNavigationItem.Type.PAGE.name())
+            .build();
+
+        assertThat(portalNavigationItemRepository.searchByCriteria(criteria))
+            .extracting(PortalNavigationItem::getId)
+            .containsExactly(pageId);
+    }
+
+    @Test
+    void should_return_no_items_when_navigation_ids_are_empty() throws Exception {
+        var criteria = PortalNavigationItemCriteria.builder().environmentId("env-1").ids(Set.of()).build();
+
+        assertThat(portalNavigationItemRepository.searchByCriteria(criteria)).isEmpty();
+    }
+
+    @Test
+    void should_not_filter_by_navigation_ids_when_null() throws Exception {
+        var criteria = PortalNavigationItemCriteria.builder().environmentId("env-1").ids(null).build();
+
+        assertThat(portalNavigationItemRepository.searchByCriteria(criteria))
+            .hasSize(8)
+            .extracting(PortalNavigationItem::getEnvironmentId)
+            .containsOnly("env-1");
+    }
+
+    @Test
+    void should_search_by_exact_reference_and_environment() throws Exception {
+        var firstPortal = PortalNavigationItemFixtures.aPage("reference-portal-a", "content-a")
+            .environmentId("reference-search-env")
+            .referenceId("owner-a")
+            .build();
+        var secondPortal = PortalNavigationItemFixtures.aPage("reference-portal-b", "content-b")
+            .environmentId("reference-search-env")
+            .referenceId("owner-b")
+            .build();
+        var api = PortalNavigationItemFixtures.aPage("reference-api", "content-api")
+            .environmentId("reference-search-env")
+            .referenceType(PortalNavigationReferenceType.API)
+            .referenceId("owner-a")
+            .build();
+        var otherEnvironment = PortalNavigationItemFixtures.aPage("reference-other-env", "content-other")
+            .environmentId("reference-other-env")
+            .referenceId("owner-a")
+            .build();
+        var created = List.of(firstPortal, secondPortal, api, otherEnvironment);
+        for (var item : created) {
+            portalNavigationItemRepository.create(item);
+        }
+        try {
+            var portalCriteria = PortalNavigationItemCriteria.builder()
+                .environmentId("reference-search-env")
+                .referenceType(PortalNavigationReferenceType.PORTAL)
+                .referenceId("owner-a")
+                .build();
+            assertThat(portalNavigationItemRepository.searchByCriteria(portalCriteria))
+                .extracting(PortalNavigationItem::getId)
+                .containsExactly(firstPortal.getId());
+
+            var apiCriteria = PortalNavigationItemCriteria.builder()
+                .environmentId("reference-search-env")
+                .referenceType(PortalNavigationReferenceType.API)
+                .referenceId("owner-a")
+                .build();
+            assertThat(portalNavigationItemRepository.searchByCriteria(apiCriteria))
+                .extracting(PortalNavigationItem::getId)
+                .containsExactly(api.getId());
+
+            var missingOwner = PortalNavigationItemCriteria.builder()
+                .environmentId("reference-search-env")
+                .referenceType(PortalNavigationReferenceType.PORTAL)
+                .referenceId("unknown-owner")
+                .build();
+            assertThat(portalNavigationItemRepository.searchByCriteria(missingOwner)).isEmpty();
+        } finally {
+            for (var item : created) {
+                portalNavigationItemRepository.delete(item.getId());
+            }
+        }
+    }
+
+    @Test
+    void should_combine_reference_filter_with_other_search_criteria() throws Exception {
+        var root = PortalNavigationItemFixtures.aPage("reference-filter-root", "content-root")
+            .environmentId("reference-filter-env")
+            .referenceId("selected-portal")
+            .published(true)
+            .build();
+        var child = PortalNavigationItemFixtures.aPage("reference-filter-child", "content-child")
+            .environmentId("reference-filter-env")
+            .referenceId("selected-portal")
+            .parentId(root.getId())
+            .published(false)
+            .build();
+        portalNavigationItemRepository.create(root);
+        portalNavigationItemRepository.create(child);
+        try {
+            var criteria = PortalNavigationItemCriteria.builder()
+                .environmentId("reference-filter-env")
+                .referenceType(PortalNavigationReferenceType.PORTAL)
+                .referenceId("selected-portal")
+                .root(true)
+                .published(true)
+                .portalArea(PortalNavigationItem.Area.TOP_NAVBAR.name())
+                .type(PortalNavigationItem.Type.PAGE.name())
+                .build();
+            assertThat(portalNavigationItemRepository.searchByCriteria(criteria))
+                .extracting(PortalNavigationItem::getId)
+                .containsExactly(root.getId());
+        } finally {
+            portalNavigationItemRepository.delete(child.getId());
+            portalNavigationItemRepository.delete(root.getId());
+        }
+    }
+
+    @Test
     public void should_search_by_environment_id() throws Exception {
         PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder().environmentId("env-1").build();
 

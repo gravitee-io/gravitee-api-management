@@ -16,6 +16,8 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationDefaultPageDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
@@ -23,6 +25,7 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemRend
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import java.util.List;
@@ -34,6 +37,8 @@ import lombok.RequiredArgsConstructor;
 @UseCase
 public class BulkCreatePortalNavigationItemUseCase {
 
+    private final PortalNavigationAccessDomainService accessService;
+
     private final PortalNavigationItemDomainService domainService;
     private final PortalNavigationItemValidatorService validatorService;
     private final PortalNavigationItemCreationExpansionDomainService creationExpansionDomainService;
@@ -42,6 +47,18 @@ public class BulkCreatePortalNavigationItemUseCase {
     private final PortalNavigationItemRenderingDomainService renderingDomainService;
 
     public Output execute(Input input) {
+        var scope = new NavigationItemReference.PortalReference(input.portalId());
+        accessService.requireScope(input.organizationId(), input.environmentId(), scope);
+        accessService.requireCreateParents(input.organizationId(), input.environmentId(), scope, input.items());
+        var items = input
+            .items()
+            .stream()
+            .map(item -> item.toBuilder().reference(scope).build())
+            .toList();
+        return createItems(new Input(input.organizationId(), input.environmentId(), items, input.portalId()));
+    }
+
+    private Output createItems(Input input) {
         final var organizationId = input.organizationId();
         final var environmentId = input.environmentId();
         final var expansion = creationExpansionDomainService.expand(input.items(), environmentId);
@@ -69,7 +86,11 @@ public class BulkCreatePortalNavigationItemUseCase {
         return new BulkCreatePortalNavigationItemUseCase.Output(createdItems);
     }
 
-    public record Input(String organizationId, String environmentId, List<CreatePortalNavigationItem> items) {}
+    public record Input(String organizationId, String environmentId, List<CreatePortalNavigationItem> items, PortalId portalId) {
+        public Input {
+            Objects.requireNonNull(portalId, "portalId");
+        }
+    }
 
     public record Output(List<PortalNavigationItem> items) {}
 }

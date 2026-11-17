@@ -174,6 +174,8 @@ public class PortalNavigationItemDomainService {
             recordFetchState(page, new FetchState(attemptedAt, null, source.getLastFetchError()));
             throw new PageContentNotFoundException(page.getPortalPageContentId().toString());
         }
+        final var ownerAtFetch = page.getReference();
+        final var parentAtFetch = page.getParentId();
         FetchState outcome;
         try {
             final var fetchedContent = sourceDomainService.fetchContent(source);
@@ -182,6 +184,14 @@ public class PortalNavigationItemDomainService {
             if (current == null) {
                 log.debug("Portal navigation page [id={}] was deleted while its content was being fetched", page.getId().json());
                 return page;
+            }
+            if (
+                !Objects.equals(ownerAtFetch, current.getReference()) ||
+                !Objects.equals(parentAtFetch, current.getParentId()) ||
+                !(current instanceof PortalNavigationPage currentPage) ||
+                !pageContent.getId().equals(currentPage.getPortalPageContentId())
+            ) {
+                return current;
             }
             if (current.getSource() == null || !current.getSource().sameOriginAs(source)) {
                 log.debug("Source of portal navigation page [id={}] changed while its content was being fetched", page.getId().json());
@@ -252,11 +262,7 @@ public class PortalNavigationItemDomainService {
         );
     }
 
-    /**
-     * At root level the sibling set must match what the navigation actually renders side by side, which
-     * is every root in the area except the API subtrees spliced in elsewhere — not the rows sharing an
-     * identical reference, since all portal roots still share the environment's root namespace.
-     */
+    /** Sibling order and generated segments belong to the same portal or API documentation namespace. */
     private List<PortalNavigationItem> retrieveSiblingItems(
         PortalNavigationItemId parentId,
         String environmentId,
@@ -264,7 +270,11 @@ public class PortalNavigationItemDomainService {
         NavigationItemReference reference
     ) {
         if (parentId != null) {
-            return queryService.findByParentIdAndEnvironmentId(environmentId, parentId);
+            return queryService
+                .findByParentIdAndEnvironmentId(environmentId, parentId)
+                .stream()
+                .filter(item -> reference.equals(item.getReference()))
+                .toList();
         }
         return queryService
             .findTopLevelItemsByEnvironmentIdAndPortalArea(environmentId, area)
@@ -370,6 +380,15 @@ public class PortalNavigationItemDomainService {
         PortalNavigationItem existing,
         boolean ownerFixed
     ) {
+        return resolveDestination(requested, existing, ownerFixed, null);
+    }
+
+    public UpdatePortalNavigationItem resolveDestination(
+        UpdatePortalNavigationItem requested,
+        PortalNavigationItem existing,
+        boolean ownerFixed,
+        @Nullable NavigationItemReference.PortalReference portal
+    ) {
         var resolved = requested.toBuilder().renderedParentId(null).reference(null).build();
         refuseMoveToAnotherPortal(requested, existing);
         if (!apiOwnedNavigationDomainService.isDocumentation(existing)) {
@@ -380,7 +399,7 @@ public class PortalNavigationItemDomainService {
         }
         if (requested.getParentId() == null) {
             if (!ownerFixed) {
-                resolved.setReference(newOwnerAt(DocumentationDestination.under(null), null, existing));
+                resolved.setReference(newOwnerAt(DocumentationDestination.under(null), null, existing, portal));
             }
             return resolved;
         }
@@ -389,7 +408,7 @@ public class PortalNavigationItemDomainService {
             return resolved;
         }
         var destination = apiOwnedNavigationDomainService.destinationUnder(existing.getEnvironmentId(), parent);
-        var newOwner = newOwnerAt(destination, parent, existing);
+        var newOwner = newOwnerAt(destination, parent, existing, portal);
         if (newOwner != null && ownerFixed) {
             return resolved;
         }
@@ -429,7 +448,8 @@ public class PortalNavigationItemDomainService {
     private NavigationItemReference newOwnerAt(
         DocumentationDestination destination,
         @Nullable PortalNavigationItem parent,
-        PortalNavigationItem existing
+        PortalNavigationItem existing,
+        @Nullable NavigationItemReference.PortalReference portal
     ) {
         if (destination.apiOwner() != null) {
             return destination.apiOwner().equals(existing.getReference()) ? null : destination.apiOwner();
@@ -437,7 +457,9 @@ public class PortalNavigationItemDomainService {
         if (!(existing.getReference() instanceof NavigationItemReference.ApiReference)) {
             return null;
         }
-        var defaultPortal = navigationPortalDomainService.resolveReference(existing.getOrganizationId(), existing.getEnvironmentId());
+        var defaultPortal = portal != null
+            ? portal
+            : navigationPortalDomainService.resolveReference(existing.getOrganizationId(), existing.getEnvironmentId());
         if (belongsToAnotherPortal(parent, defaultPortal)) {
             throw NavigationPortalNotResolvedException.foreignDestination(existing.getEnvironmentId());
         }

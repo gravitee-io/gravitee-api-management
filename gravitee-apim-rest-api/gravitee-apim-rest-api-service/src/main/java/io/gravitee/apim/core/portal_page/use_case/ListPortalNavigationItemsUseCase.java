@@ -17,267 +17,34 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.query_service.ApiPortalSearchQueryService;
 import io.gravitee.apim.core.portal.model.PortalArea;
-import io.gravitee.apim.core.portal.model.PortalVisibility;
-import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
-import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemRenderingDomainService;
-import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
-import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityEvaluator;
-import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityService;
-import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemReadDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemComparator;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
-import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
 @RequiredArgsConstructor
 public class ListPortalNavigationItemsUseCase {
 
-    private final PortalNavigationItemsQueryService queryService;
-    private final List<PortalNavigationItemVisibilityService> visibilityServices;
-    private final PortalNavigationItemSourceDomainService sourceDomainService;
-    private final ApiPortalSearchQueryService apiPortalSearchQueryService;
-    private final ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
-    private final PortalNavigationItemRenderingDomainService renderingDomainService;
-    private static final Predicate<PortalNavigationItem> IS_CONTAINER_PREDICATE = i -> i instanceof PortalNavigationItemContainer;
+    private final PortalNavigationItemReadDomainService reader;
 
     public Output execute(Input input) {
-        Map<PortalNavigationItemId, Boolean> productContextById = new HashMap<>();
-        var visibilityEvaluator = new PortalNavigationItemVisibilityEvaluator(
-            input.environmentId(),
-            input.viewerContext(),
-            queryService,
-            visibilityServices
-        );
-
-        List<PortalNavigationItem> rootItems;
-        if (input.parentId().isPresent()) {
-            var parentItem = findAndValidateParent(input, visibilityEvaluator);
-            if (parentItem == null) {
-                return new Output(List.of(), Map.of());
-            }
-            rootItems = childrenOf(parentItem, input, visibilityEvaluator, productContextById);
-        } else {
-            rootItems = searchItems(input, null, true, visibilityEvaluator);
-        }
-
-        List<PortalNavigationItem> allItems = new ArrayList<>(rootItems);
-
-        if (input.loadChildren()) {
-            List<PortalNavigationItem> descendants = loadDescendants(rootItems, input, visibilityEvaluator, productContextById);
-            allItems.addAll(descendants);
-        }
-
-        allItems.stream().map(PortalNavigationItem::getSource).filter(Objects::nonNull).forEach(sourceDomainService::removeSensitiveData);
-
-        return new Output(sortItems(allItems), resolveApis(input, allItems));
-    }
-
-    private Map<PortalNavigationItemId, Api> resolveApis(Input input, List<PortalNavigationItem> allItems) {
-        if (!input.includeApis()) {
-            return Map.of();
-        }
-
-        List<PortalNavigationApi> apiItems = allItems
-            .stream()
-            .filter(PortalNavigationApi.class::isInstance)
-            .map(PortalNavigationApi.class::cast)
-            .toList();
-
-        if (apiItems.isEmpty()) {
-            return Map.of();
-        }
-
-        Set<String> apiIds = apiItems.stream().map(PortalNavigationApi::getApiId).collect(Collectors.toSet());
-        Map<String, Api> apisByApiId = apiPortalSearchQueryService
-            .search(input.environmentId(), input.organizationId(), apiIds)
-            .stream()
-            .collect(Collectors.toMap(Api::getId, api -> api));
-
-        Map<PortalNavigationItemId, Api> apisByNavigationItemId = new HashMap<>();
-        for (PortalNavigationApi navItem : apiItems) {
-            Api api = apisByApiId.get(navItem.getApiId());
-            if (api != null) {
-                apisByNavigationItemId.put(navItem.getId(), api);
-            }
-        }
-        return apisByNavigationItemId;
-    }
-
-    private PortalNavigationItem findAndValidateParent(Input input, PortalNavigationItemVisibilityEvaluator visibilityEvaluator) {
-        var parent = queryService.findByIdAndEnvironmentId(input.environmentId(), input.parentId().get());
-
-        if (parent == null) {
-            return null;
-        }
-
-        if (input.viewerContext().shouldNotShow(parent)) {
-            return null;
-        }
-
-        if (!visibilityEvaluator.isVisible(parent) || visibilityEvaluator.hasHiddenAncestor(parent)) {
-            return null;
-        }
-
-        return parent;
-    }
-
-    /**
-     * Loads children recursively.
-     * Prunes children by discarding if a child is found but deemed "not visible".
-     */
-    private List<PortalNavigationItem> loadDescendants(
-        List<PortalNavigationItem> initialItems,
-        Input input,
-        PortalNavigationItemVisibilityEvaluator visibilityEvaluator,
-        Map<PortalNavigationItemId, Boolean> productContextById
-    ) {
-        List<PortalNavigationItem> childrenAccumulator = new ArrayList<>();
-        LinkedList<PortalNavigationItem> queue = new LinkedList<>();
-
-        initialItems.stream().filter(IS_CONTAINER_PREDICATE).forEach(queue::add);
-
-        while (!queue.isEmpty()) {
-            var currentFolder = queue.removeFirst();
-
-            var foundChildren = childrenOf(currentFolder, input, visibilityEvaluator, productContextById);
-
-            if (!foundChildren.isEmpty()) {
-                childrenAccumulator.addAll(foundChildren);
-
-                foundChildren.stream().filter(IS_CONTAINER_PREDICATE).forEach(queue::add);
-            }
-        }
-        return childrenAccumulator;
-    }
-
-    private List<PortalNavigationItem> searchItems(
-        Input input,
-        PortalNavigationItemId parentId,
-        boolean isRootSearch,
-        PortalNavigationItemVisibilityEvaluator visibilityEvaluator
-    ) {
-        var builder = PortalNavigationItemQueryCriteria.builder()
+        var criteria = PortalNavigationItemQueryCriteria.builder()
             .environmentId(input.environmentId())
             .area(input.portalArea())
-            .parentId(parentId)
-            .root(isRootSearch);
-
-        if (input.viewerContext().isPortalMode()) {
-            builder.published(true);
-
-            if (!input.viewerContext().isAuthenticated()) {
-                builder.visibility(PortalVisibility.PUBLIC);
-            }
-        }
-
-        List<PortalNavigationItem> items = queryService.search(builder.build());
-        if (isRootSearch) {
-            // An API's subtree is materialized once, as a root, and spliced in under every portal's
-            // standalone nav-api row by childrenOf(...) — it must never also surface at the portal's own top level.
-            items = items
-                .stream()
-                .filter(item -> !(item.getReference() instanceof NavigationItemReference.ApiReference))
-                .toList();
-        }
-        return filterHiddenItems(items, input.viewerContext(), visibilityEvaluator);
-    }
-
-    /**
-     * A standalone {@link PortalNavigationApi} row combines its physical children with the API-owned
-     * subtree, materialized once and reached by reference. API rows beneath an API product keep only
-     * their physical children because product documentation has an independent lifecycle.
-     */
-    private List<PortalNavigationItem> childrenOf(
-        PortalNavigationItem parent,
-        Input input,
-        PortalNavigationItemVisibilityEvaluator visibilityEvaluator,
-        Map<PortalNavigationItemId, Boolean> productContextById
-    ) {
-        if (parent instanceof PortalNavigationApi navApi) {
-            var physicalChildren = searchItems(input, navApi.getId(), false, visibilityEvaluator);
-            if (apiOwnedNavigationDomainService.isInApiProductContext(input.environmentId(), navApi, productContextById)) {
-                return physicalChildren;
-            }
-            var splicedRoots = queryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
-                input.environmentId(),
-                input.portalArea(),
-                new NavigationItemReference.ApiReference(navApi.getApiId())
-            );
-            var combined = new ArrayList<>(physicalChildren);
-            combined.addAll(
-                filterForViewer(splicedRoots, input, visibilityEvaluator)
-                    .stream()
-                    .map(root -> renderingDomainService.renderUnder(root, navApi))
-                    .toList()
-            );
-            return combined;
-        }
-        return searchItems(input, parent.getId(), false, visibilityEvaluator);
-    }
-
-    /**
-     * {@code findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference} has no published/visibility
-     * criteria of its own — unlike {@code searchItems}'s query builder — so portal-mode narrowing is
-     * applied here in Java before the shared {@link #filterHiddenItems} pass.
-     */
-    private List<PortalNavigationItem> filterForViewer(
-        List<PortalNavigationItem> items,
-        Input input,
-        PortalNavigationItemVisibilityEvaluator visibilityEvaluator
-    ) {
-        var viewerContext = input.viewerContext();
-        var narrowed = items;
-        if (viewerContext.isPortalMode()) {
-            narrowed = narrowed
-                .stream()
-                .filter(item -> Boolean.TRUE.equals(item.getPublished()))
-                .toList();
-            if (!viewerContext.isAuthenticated()) {
-                narrowed = narrowed
-                    .stream()
-                    .filter(item -> item.getVisibility() == PortalVisibility.PUBLIC)
-                    .toList();
-            }
-        }
-        return filterHiddenItems(narrowed, viewerContext, visibilityEvaluator);
-    }
-
-    /**
-     * Drops API and API product navigation items the viewer must not see. When a container is
-     * dropped here it is also not enqueued by the BFS in {@link #loadDescendants}, so its
-     * descendants are naturally excluded from the result.
-     */
-    private List<PortalNavigationItem> filterHiddenItems(
-        List<PortalNavigationItem> items,
-        PortalNavigationItemViewerContext viewerContext,
-        PortalNavigationItemVisibilityEvaluator visibilityEvaluator
-    ) {
-        if (!viewerContext.isPortalMode()) {
-            return items;
-        }
-        return items.stream().filter(visibilityEvaluator::isVisible).toList();
-    }
-
-    private List<PortalNavigationItem> sortItems(List<PortalNavigationItem> items) {
-        return items.stream().sorted(PortalNavigationItemComparator.byNullableParentIdThenNullableOrder()).toList();
+            .parentId(input.parentId().orElse(null))
+            .build();
+        var items = reader.read(criteria, input.viewerContext(), input.loadChildren());
+        var apis = input.includeApis()
+            ? reader.resolveApis(input.organizationId(), input.environmentId(), items)
+            : Map.<PortalNavigationItemId, Api>of();
+        return new Output(items, apis);
     }
 
     public record Output(List<PortalNavigationItem> items, Map<PortalNavigationItemId, Api> apis) {}

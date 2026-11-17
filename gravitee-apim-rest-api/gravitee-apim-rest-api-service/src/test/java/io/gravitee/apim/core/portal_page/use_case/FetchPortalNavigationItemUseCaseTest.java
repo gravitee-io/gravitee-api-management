@@ -28,14 +28,19 @@ import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalNavigationManifestParserInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationBulkImportDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
+import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
@@ -44,7 +49,9 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -63,22 +70,39 @@ class FetchPortalNavigationItemUseCaseTest {
     private PortalNavigationItemSourceDomainServiceInMemory sourceDomainService;
     private NavigationPortalDomainServiceInMemory navigationPortals;
     private FetchPortalNavigationItemUseCase useCase;
+    private ApiCrudServiceInMemory apiCrudService;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         var storage = new ArrayList<PortalNavigationItem>();
         crudService = new PortalNavigationItemsCrudServiceInMemory(storage);
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
         pageContentCrudService = new PortalPageContentCrudServiceInMemory();
         sourceDomainService = new PortalNavigationItemSourceDomainServiceInMemory();
+        apiCrudService = new ApiCrudServiceInMemory();
+        apiCrudService.initWith(List.of(Api.builder().id("api-id").environmentId(ENV_ID).build()));
         navigationPortals = new NavigationPortalDomainServiceInMemory();
+        navigationPortals
+            .portalCrudService()
+            .create(
+                Portal.of(
+                    ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId(),
+                    ENV_ID,
+                    ORG_ID,
+                    "Developer Portal",
+                    PortalNavigationStructure.empty(),
+                    null,
+                    true,
+                    URI.create(NavigationPortalDomainServiceInMemory.PORTAL_URL).toURL()
+                )
+            );
 
         var domainService = new PortalNavigationItemDomainService(
             crudService,
             queryService,
             pageContentCrudService,
             PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
-            new ApiCrudServiceInMemory(),
+            apiCrudService,
             sourceDomainService,
             new ApiOwnedNavigationDomainService(queryService, crudService),
             navigationPortals
@@ -94,7 +118,13 @@ class FetchPortalNavigationItemUseCaseTest {
             navigationPortals.portalCrudService()
         );
         useCase = new FetchPortalNavigationItemUseCase(
-            queryService,
+            PortalNavigationUseCaseTestFixtures.access(
+                ORG_ID,
+                ENV_ID,
+                queryService,
+                PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
+                apiCrudService
+            ),
             new PortalNavigationSourcedItemsDomainService(queryService),
             domainService,
             sourceDomainService,
@@ -103,9 +133,84 @@ class FetchPortalNavigationItemUseCaseTest {
     }
 
     @Test
+    void should_reject_foreign_associations_before_stamping_an_attempt_even_if_content_is_missing() {
+        var own = aPage("Own", null, aSource().build());
+        var foreign = aPage("Foreign", null, null)
+            .toBuilder()
+            .reference(new NavigationItemReference.PortalReference(PortalId.of("22222222-2222-2222-2222-222222222222")))
+            .portalPageContentId(own.getPortalPageContentId())
+            .build();
+        crudService.update(foreign);
+        pageContentCrudService.reset();
+
+        assertThatThrownBy(() -> execute(own)).isInstanceOf(PageContentNotFoundException.class);
+
+        assertThat(own.getSource().getLastFetchAttemptAt()).isNull();
+        assertThat(crudService.storage()).containsExactly(own, foreign);
+        assertThat(pageContentCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_stamp_an_attempt_before_reporting_missing_page_content() {
+        var page = aPage("Broken page", null, aSource().lastFetchError("Previous failure").build());
+        pageContentCrudService.delete(page.getPortalPageContentId());
+
+        assertThatThrownBy(() -> execute(page)).isInstanceOf(PageContentNotFoundException.class);
+
+        assertThat(page.getSource().getLastFetchAttemptAt()).isNotNull();
+        assertThat(page.getSource().getLastFetchedAt()).isNull();
+        assertThat(page.getSource().getLastFetchError()).isEqualTo("Previous failure");
+        assertThat(pageContentCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_preserve_folder_abort_on_missing_content_after_recording_the_attempt() {
+        var folder = aFolder("Broken folder", null);
+        var missing = aPage("Missing", folder.getId(), aSource().build());
+        var later = aPage("Later", folder.getId(), aSource().build());
+        pageContentCrudService.delete(missing.getPortalPageContentId());
+
+        assertThatThrownBy(() -> execute(folder)).isInstanceOf(PageContentNotFoundException.class);
+
+        assertThat(missing.getSource().getLastFetchAttemptAt()).isNotNull();
+        assertThat(later.getSource().getLastFetchAttemptAt()).isNull();
+        assertThat(fetchedContentOf(later)).isEqualTo("# Default content");
+    }
+
+    @Test
+    void should_reimport_and_remove_an_orphan_whose_content_is_missing() {
+        var folder = aFolder("Imported", null, aSource().subtreeImport(true).build());
+        var orphan = aPage("Removed file", folder.getId(), null);
+        pageContentCrudService.delete(orphan.getPortalPageContentId());
+        sourceDomainService.givenRemoteFile("/current.md", "# Current");
+
+        var result = execute(folder).summary();
+
+        assertThat(result.succeeded()).isEqualTo(1);
+        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, orphan.getId())).isNull();
+        assertThat(folder.getSource().getLastFetchAttemptAt()).isNotNull();
+        assertThat(pageContentCrudService.storage()).hasSize(1);
+    }
+
+    @Test
+    void should_not_fetch_an_existing_item_through_another_scope() {
+        var page = aPage("API guide", null, aSource().build());
+        page.changeOwner(new NavigationItemReference.ApiReference("api-id"));
+
+        assertThatThrownBy(() ->
+            useCase.execute(new FetchPortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, page.getId().json(), PORTAL_REFERENCE))
+        ).isInstanceOf(PortalNavigationItemNotFoundException.class);
+
+        assertThat(page.getSource().getLastFetchAttemptAt()).isNull();
+        assertThat(fetchedContentOf(page)).isEqualTo("# Default content");
+    }
+
+    @Test
     void should_throw_when_item_not_found() {
         assertThatThrownBy(() ->
-            useCase.execute(new FetchPortalNavigationItemUseCase.Input(ENV_ID, "00000000-0000-0000-0000-000000000099"))
+            useCase.execute(
+                new FetchPortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, "00000000-0000-0000-0000-000000000099", PORTAL_REFERENCE)
+            )
         ).isInstanceOf(PortalNavigationItemNotFoundException.class);
     }
 
@@ -130,9 +235,10 @@ class FetchPortalNavigationItemUseCaseTest {
         void should_refresh_a_page_owned_by_an_api_without_changing_its_owner_or_publishing_it() {
             var apiReference = new NavigationItemReference.ApiReference("api-id");
             var page = aPage("Sourced Page", null, aSource().build());
-            crudService.update(page.toBuilder().reference(apiReference).published(false).build());
+            var apiPage = page.toBuilder().reference(apiReference).published(false).build();
+            crudService.update(apiPage);
 
-            execute(page);
+            execute(apiPage);
 
             var stored = queryService.findByIdAndEnvironmentId(ENV_ID, page.getId());
             assertThat(stored.getReference()).isEqualTo(apiReference);
@@ -247,9 +353,7 @@ class FetchPortalNavigationItemUseCaseTest {
 
         @Test
         void should_reimport_the_subtree_of_an_import_managed_folder() {
-            var portalId = navigationPortals.givenDefaultPortal(ORG_ID, ENV_ID);
             var folder = aFolder("Imported Docs", null, aSource().subtreeImport(true).build());
-            folder.changeOwner(new NavigationItemReference.PortalReference(portalId));
             sourceDomainService.givenRemoteFile("/docs/guide.md", "# Guide");
 
             var summary = execute(folder).summary();
@@ -288,7 +392,7 @@ class FetchPortalNavigationItemUseCaseTest {
     }
 
     private FetchPortalNavigationItemUseCase.Output execute(PortalNavigationItem item) {
-        return useCase.execute(new FetchPortalNavigationItemUseCase.Input(ENV_ID, item.getId().toString()));
+        return useCase.execute(new FetchPortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, item.getId().toString(), item.getReference()));
     }
 
     private PortalNavigationFolder aFolder(String title, PortalNavigationItemId parentId) {

@@ -91,6 +91,7 @@ public class PortalNavigationDefaultPageDomainService {
             .type(PortalNavigationItemType.PAGE)
             .area(navigationItem.getArea())
             .parentId(navigationItemId)
+            .reference(navigationItem.getReference())
             .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
             .order(0)
             .published(false)

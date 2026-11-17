@@ -232,6 +232,7 @@ class ApiDocumentationNavigationResource_CreateTest extends AbstractResourceTest
     private io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem capturedItem() {
         var captor = ArgumentCaptor.forClass(CreatePortalNavigationItemUseCase.Input.class);
         verify(createPortalNavigationItemUseCase).execute(captor.capture());
+        assertThat(captor.getValue().scope()).isEqualTo(new NavigationItemReference.ApiReference(API_ID));
         return captor.getValue().item();
     }
 

@@ -16,19 +16,20 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationBulkImportDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
-import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
-import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import jakarta.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
@@ -42,25 +43,39 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class FetchPortalNavigationItemUseCase {
 
-    private final PortalNavigationItemsQueryService queryService;
+    private final PortalNavigationAccessDomainService accessService;
+
     private final PortalNavigationSourcedItemsDomainService sourcedItemsDomainService;
     private final PortalNavigationItemDomainService domainService;
     private final PortalNavigationItemSourceDomainService sourceDomainService;
     private final PortalNavigationBulkImportDomainService bulkImportDomainService;
 
     public Output execute(Input input) {
-        var item = queryService.findByIdAndEnvironmentId(input.environmentId(), PortalNavigationItemId.of(input.navigationItemId()));
-        if (item == null) {
-            throw new PortalNavigationItemNotFoundException(input.navigationItemId());
-        }
+        var scope = input.scope();
+        var id = PortalNavigationItemId.of(input.navigationItemId());
+        var existing = accessService.requireItem(input.organizationId(), input.environmentId(), scope, id);
+        boolean reimportsFolder =
+            existing instanceof PortalNavigationFolder && existing.getSource() != null && existing.getSource().isSubtreeImport();
+        accessService
+            .requireSubtree(input.organizationId(), input.environmentId(), scope, existing, false)
+            .stream()
+            .filter(PortalNavigationPage.class::isInstance)
+            .map(PortalNavigationPage.class::cast)
+            .filter(page -> reimportsFolder || page.getSource() != null)
+            .forEach(page ->
+                accessService.checkContentAccess(input.organizationId(), input.environmentId(), scope, page.getPortalPageContentId())
+            );
+        return fetchItem(existing);
+    }
 
+    private Output fetchItem(PortalNavigationItem item) {
         if (item instanceof PortalNavigationPage page && page.getSource() != null) {
             return Output.ofItem(fetchSingle(page));
         }
         if (item instanceof PortalNavigationFolder folder && folder.getSource() != null && folder.getSource().isSubtreeImport()) {
             return Output.ofSummary(reimportSubtree(folder));
         }
-        return Output.ofSummary(fetchDescendants(input.environmentId(), item));
+        return Output.ofSummary(fetchDescendants(item.getEnvironmentId(), item));
     }
 
     private List<PageFetchResult> reimportSubtree(PortalNavigationFolder folder) {
@@ -98,7 +113,11 @@ public class FetchPortalNavigationItemUseCase {
     }
 
     @Builder
-    public record Input(String environmentId, String navigationItemId) {}
+    public record Input(String organizationId, String environmentId, String navigationItemId, NavigationItemReference scope) {
+        public Input {
+            Objects.requireNonNull(scope, "scope");
+        }
+    }
 
     /** Exactly one of the two is set: the single fetched item, or the summary of a subtree fetch. */
     public record Output(@Nullable PortalNavigationItem item, @Nullable FetchSummary summary) {

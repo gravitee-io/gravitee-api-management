@@ -22,13 +22,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.repository.model.PortalNavigationItemsRepositoryFixtures;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.model.*;
 import io.gravitee.repository.management.model.PortalNavigationItem;
+import io.gravitee.repository.management.model.PortalNavigationReferenceType;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
@@ -38,6 +41,65 @@ import org.junit.jupiter.api.Test;
 class PortalNavigationItemAdapterTest {
 
     private final PortalNavigationItemAdapter adapter = PortalNavigationItemAdapter.INSTANCE;
+
+    @Test
+    void should_map_navigation_ids_search_filter() {
+        var firstId = PortalNavigationItemId.of("11111111-1111-1111-1111-111111111111");
+        var secondId = PortalNavigationItemId.of("22222222-2222-2222-2222-222222222222");
+        var criteria = PortalNavigationItemQueryCriteria.builder().environmentId("env-id").ids(Set.of(firstId, secondId)).build();
+
+        var mapped = adapter.map(criteria);
+
+        assertThat(mapped.getEnvironmentId()).isEqualTo("env-id");
+        assertThat(mapped.getIds()).containsExactlyInAnyOrder(firstId.json(), secondId.json());
+    }
+
+    @Test
+    void should_keep_empty_navigation_ids_search_filter() {
+        var mapped = adapter.map(PortalNavigationItemQueryCriteria.builder().ids(Set.of()).build());
+
+        assertThat(mapped.getIds()).isEmpty();
+    }
+
+    @Test
+    void should_keep_navigation_ids_search_unfiltered_when_null() {
+        var mapped = adapter.map(PortalNavigationItemQueryCriteria.builder().ids(null).build());
+
+        assertThat(mapped.getIds()).isNull();
+    }
+
+    @Test
+    void should_map_portal_reference_search_scope() {
+        var portalId = PortalId.of("11111111-1111-1111-1111-111111111111");
+        var criteria = PortalNavigationItemQueryCriteria.builder()
+            .environmentId("env-id")
+            .reference(new NavigationItemReference.PortalReference(portalId))
+            .build();
+
+        var mapped = adapter.map(criteria);
+
+        assertThat(mapped.getEnvironmentId()).isEqualTo("env-id");
+        assertThat(mapped.getReferenceType()).isEqualTo(PortalNavigationReferenceType.PORTAL);
+        assertThat(mapped.getReferenceId()).isEqualTo(portalId.toString());
+    }
+
+    @Test
+    void should_map_api_reference_search_scope() {
+        var mapped = adapter.map(
+            PortalNavigationItemQueryCriteria.builder().reference(new NavigationItemReference.ApiReference("api-id")).build()
+        );
+
+        assertThat(mapped.getReferenceType()).isEqualTo(PortalNavigationReferenceType.API);
+        assertThat(mapped.getReferenceId()).isEqualTo("api-id");
+    }
+
+    @Test
+    void should_keep_search_unfiltered_when_no_reference_is_requested() {
+        var mapped = adapter.map(PortalNavigationItemQueryCriteria.builder().environmentId("env-id").build());
+
+        assertThat(mapped.getReferenceType()).isNull();
+        assertThat(mapped.getReferenceId()).isNull();
+    }
 
     @Nested
     class ToEntity {

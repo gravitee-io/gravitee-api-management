@@ -27,6 +27,8 @@ import lombok.Data;
 public class PortalNavigationItemQueryCriteria {
 
     private String environmentId;
+    private Set<PortalNavigationItemId> ids;
+    private NavigationItemReference reference;
     private Boolean root;
     private PortalNavigationItemId parentId;
     private PortalArea area;

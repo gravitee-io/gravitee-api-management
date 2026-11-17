@@ -17,16 +17,17 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
-import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
-import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
+import java.util.Objects;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -34,26 +35,25 @@ import lombok.RequiredArgsConstructor;
 @UseCase
 public class UpdatePortalPageContentUseCase {
 
-    private final PortalPageContentQueryService portalPageContentQueryService;
+    private final PortalNavigationAccessDomainService accessService;
+
     private final PortalPageContentCrudService portalPageContentCrudService;
     private final PortalPageContentValidatorService validatorService;
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
     private final PortalNavigationSourcedItemsDomainService sourcedItemsDomainService;
 
     public Output execute(Input input) {
-        // Check if portal page content is existing
-        PortalPageContent<?> existingContent = portalPageContentQueryService
-            .findById(PortalPageContentId.of(input.portalPageContentId()))
-            .orElseThrow(() -> new PageContentNotFoundException(input.portalPageContentId()));
+        var scope = input.scope();
+        var existingContent = accessService.requireContent(
+            input.organizationId(),
+            input.environmentId(),
+            scope,
+            PortalPageContentId.of(input.portalPageContentId())
+        );
+        return updateContent(input, existingContent);
+    }
 
-        // Check if org id and env id are appropriate
-        if (
-            !existingContent.getOrganizationId().equals(input.organizationId()) ||
-            !existingContent.getEnvironmentId().equals(input.environmentId())
-        ) {
-            throw new PageContentNotFoundException(input.portalPageContentId());
-        }
-
+    private Output updateContent(Input input, PortalPageContent<?> existingContent) {
         boolean managedByFetcher = portalNavigationItemsQueryService
             .findNavigationPageByPortalPageContentId(input.environmentId(), existingContent.getId())
             .filter(page -> isSourced(page, input.environmentId()))
@@ -97,8 +97,13 @@ public class UpdatePortalPageContentUseCase {
         String organizationId,
         String environmentId,
         String portalPageContentId,
-        UpdatePortalPageContent updatePortalPageContent
-    ) {}
+        UpdatePortalPageContent updatePortalPageContent,
+        NavigationItemReference scope
+    ) {
+        public Input {
+            Objects.requireNonNull(scope, "scope");
+        }
+    }
 
     public record Output(PortalPageContent<?> portalPageContent) {}
 }

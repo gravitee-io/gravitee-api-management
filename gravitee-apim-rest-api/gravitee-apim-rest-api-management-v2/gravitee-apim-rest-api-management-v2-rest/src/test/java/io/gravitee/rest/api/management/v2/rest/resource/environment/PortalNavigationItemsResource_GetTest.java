@@ -25,7 +25,6 @@ import inmemory.ApiPortalSearchQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemsResponse;
-import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -47,7 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
+class PortalNavigationItemsResource_GetTest extends AbstractPortalNavigationResourceTest {
 
     private static final String ENVIRONMENT = "environment-id";
 
@@ -90,7 +89,10 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
     void should_return_portal_navigation_items() {
         // Given
         var items = PortalNavigationItemFixtures.sampleNavigationItems();
-        items.forEach(item -> item.setEnvironmentId(ENVIRONMENT));
+        items.forEach(item -> {
+            item.setEnvironmentId(ENVIRONMENT);
+            item.setOrganizationId(ORGANIZATION);
+        });
         portalNavigationItemsQueryService.initWith(items);
 
         when(
@@ -124,7 +126,9 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
         );
         apiChild.updateParent(apiProduct);
         apiProduct.setEnvironmentId(ENVIRONMENT);
+        apiProduct.setOrganizationId(ORGANIZATION);
         apiChild.setEnvironmentId(ENVIRONMENT);
+        apiChild.setOrganizationId(ORGANIZATION);
         portalNavigationItemsQueryService.initWith(java.util.List.of(apiProduct, apiChild));
         when(
             permissionService.hasPermission(
@@ -147,7 +151,10 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
     void should_return_portal_navigation_items_with_parent_id() {
         // Given
         var allItems = PortalNavigationItemFixtures.sampleNavigationItems();
-        allItems.forEach(item -> item.setEnvironmentId(ENVIRONMENT));
+        allItems.forEach(item -> {
+            item.setEnvironmentId(ENVIRONMENT);
+            item.setOrganizationId(ORGANIZATION);
+        });
         portalNavigationItemsQueryService.initWith(allItems);
 
         when(
@@ -178,7 +185,10 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
     void should_return_portal_navigation_items_without_loading_children() {
         // Given
         var items = PortalNavigationItemFixtures.sampleNavigationItems();
-        items.forEach(item -> item.setEnvironmentId(ENVIRONMENT));
+        items.forEach(item -> {
+            item.setEnvironmentId(ENVIRONMENT);
+            item.setOrganizationId(ORGANIZATION);
+        });
         portalNavigationItemsQueryService.initWith(items);
 
         when(
@@ -211,7 +221,10 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
     void should_return_portal_navigation_items_with_parent_id_and_loading_children() {
         // Given
         var items = PortalNavigationItemFixtures.sampleNavigationItems();
-        items.forEach(item -> item.setEnvironmentId(ENVIRONMENT));
+        items.forEach(item -> {
+            item.setEnvironmentId(ENVIRONMENT);
+            item.setOrganizationId(ORGANIZATION);
+        });
         portalNavigationItemsQueryService.initWith(items);
 
         when(
@@ -261,7 +274,10 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
     void should_use_TOP_NAVBAR_when_area_is_not_provided() {
         // Given
         var items = PortalNavigationItemFixtures.sampleNavigationItems();
-        items.forEach(item -> item.setEnvironmentId(ENVIRONMENT));
+        items.forEach(item -> {
+            item.setEnvironmentId(ENVIRONMENT);
+            item.setOrganizationId(ORGANIZATION);
+        });
         portalNavigationItemsQueryService.initWith(items);
 
         when(
@@ -287,7 +303,10 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
     void should_return_200_when_valid_area_is_provided() {
         // Given
         var items = PortalNavigationItemFixtures.sampleNavigationItems();
-        items.forEach(item -> item.setEnvironmentId(ENVIRONMENT));
+        items.forEach(item -> {
+            item.setEnvironmentId(ENVIRONMENT);
+            item.setOrganizationId(ORGANIZATION);
+        });
         portalNavigationItemsQueryService.initWith(items);
 
         when(
@@ -343,6 +362,7 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
         // Given
         var apiNavItem = PortalNavigationItemFixtures.anApi("00000000-0000-0000-0000-000000000030", "API 1", null, "api-1");
         apiNavItem.setEnvironmentId(ENVIRONMENT);
+        apiNavItem.setOrganizationId(ORGANIZATION);
         portalNavigationItemsQueryService.initWith(java.util.List.of(apiNavItem));
 
         when(
@@ -370,6 +390,7 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
         var api = fixtures.core.model.ApiFixtures.aProxyApiV4().toBuilder().environmentId(ENVIRONMENT).build();
         var apiNavItem = PortalNavigationItemFixtures.anApi("00000000-0000-0000-0000-000000000030", "API 1", null, api.getId());
         apiNavItem.setEnvironmentId(ENVIRONMENT);
+        apiNavItem.setOrganizationId(ORGANIZATION);
         portalNavigationItemsQueryService.initWith(java.util.List.of(apiNavItem));
         apiPortalSearchQueryService.initWith(java.util.List.of(api));
 

@@ -47,7 +47,7 @@ import io.gravitee.apim.core.portal_page.domain_service.validation.ValidationDep
 import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemSourceException;
-import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
+import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.AsyncApiPageContent;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
@@ -125,6 +125,13 @@ class ImportPortalNavigationUseCaseTest {
             navigationPortals.portalCrudService()
         );
         useCase = new ImportPortalNavigationUseCase(
+            PortalNavigationUseCaseTestFixtures.access(
+                ORG_ID,
+                ENV_ID,
+                queryService,
+                PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
+                apiCrudService
+            ),
             validatorService,
             domainService,
             sourceDomainService,
@@ -148,6 +155,7 @@ class ImportPortalNavigationUseCaseTest {
                 .parentId(parentId)
                 .visibility(PortalVisibility.PRIVATE)
                 .source(aSource())
+                .scope(PORTAL_REFERENCE)
                 .build()
         );
     }
@@ -702,7 +710,9 @@ class ImportPortalNavigationUseCaseTest {
             // still surface as the validation error, not as an NPE
             sourceDomainService.givenRemoteFile("/docs/ok.md", "# Ok");
 
-            assertThatThrownBy(() -> execute("Imported Docs", PortalNavigationItemId.random())).isInstanceOf(ParentNotFoundException.class);
+            assertThatThrownBy(() -> execute("Imported Docs", PortalNavigationItemId.random())).isInstanceOf(
+                PortalNavigationItemNotFoundException.class
+            );
             assertThat(queryService.storage()).isEmpty();
         }
 
@@ -744,7 +754,7 @@ class ImportPortalNavigationUseCaseTest {
                     .parentId(parentId)
                     .visibility(PortalVisibility.PRIVATE)
                     .source(aSource())
-                    .reference(API_REFERENCE)
+                    .scope(API_REFERENCE)
                     .build()
             );
         }
@@ -991,7 +1001,7 @@ class ImportPortalNavigationUseCaseTest {
                         .title("Imported Docs")
                         .visibility(PortalVisibility.PRIVATE)
                         .source(aSource())
-                        .reference(apiReference)
+                        .scope(apiReference)
                         .build()
                 )
                 .rootFolder();

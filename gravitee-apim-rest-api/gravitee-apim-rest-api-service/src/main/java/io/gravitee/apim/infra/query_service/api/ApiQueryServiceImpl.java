@@ -28,10 +28,15 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
@@ -40,6 +45,8 @@ import org.springframework.stereotype.Service;
 @CustomLog
 @Service
 public class ApiQueryServiceImpl extends AbstractService implements ApiQueryService {
+
+    private static final int IDS_QUERY_BATCH_SIZE = 500;
 
     private final ApiRepository apiRepository;
 
@@ -89,5 +96,25 @@ public class ApiQueryServiceImpl extends AbstractService implements ApiQueryServ
             .build();
 
         return apiRepository.search(searchCriteria, sortable, convert(pageable), fieldFilter).map(ApiAdapter.INSTANCE::toCoreModel);
+    }
+
+    @Override
+    public Set<String> findExistingIds(Set<String> ids, String environmentId) {
+        if (ids.isEmpty()) {
+            return Set.of();
+        }
+        Objects.requireNonNull(environmentId, "environmentId");
+        var apiIds = List.copyOf(ids);
+        var existingIds = new HashSet<String>();
+        for (int from = 0; from < apiIds.size(); from += IDS_QUERY_BATCH_SIZE) {
+            var batchIds = apiIds.subList(from, Math.min(from + IDS_QUERY_BATCH_SIZE, apiIds.size()));
+            var criteria = new ApiCriteria.Builder().environmentId(environmentId).ids(batchIds).build();
+            existingIds.addAll(
+                apiRepository
+                    .searchIds(List.of(criteria), new PageableBuilder().pageNumber(0).pageSize(batchIds.size()).build(), null)
+                    .getContent()
+            );
+        }
+        return Set.copyOf(existingIds);
     }
 }

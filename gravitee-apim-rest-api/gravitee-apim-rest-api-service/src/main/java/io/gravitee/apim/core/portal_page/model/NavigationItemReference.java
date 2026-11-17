@@ -21,9 +21,7 @@ public sealed interface NavigationItemReference {
     default boolean sharesRootNamespaceWith(NavigationItemReference other) {
         return switch (this) {
             case ApiReference api -> other instanceof ApiReference otherApi && api.apiId().equals(otherApi.apiId());
-            // All portals share one root namespace: multiple portals per environment is opt-in
-            // configuration, and their roots are not told apart here.
-            case PortalReference ignored -> !(other instanceof ApiReference);
+            case PortalReference portal -> other instanceof PortalReference otherPortal && portal.portalId().equals(otherPortal.portalId());
         };
     }
 

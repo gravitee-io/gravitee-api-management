@@ -52,7 +52,7 @@ class NavigationItemReferenceTest {
             Arguments.of(api, otherApi, "references to different APIs do not", false),
             Arguments.of(api, consolePortal, "an API subtree never shares with the portal's own roots", false),
             Arguments.of(consolePortal, consolePortal, "the default portal reference shares with itself", true),
-            Arguments.of(consolePortal, attachedPortal, "a console root and a portal-attached root share a namespace", true)
+            Arguments.of(consolePortal, attachedPortal, "different portals have independent root namespaces", false)
         );
     }
 }

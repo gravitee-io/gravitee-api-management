@@ -107,6 +107,55 @@ public class PortalNavigationItemDomainServiceTest {
         );
     }
 
+    @Test
+    void creating_a_nested_item_does_not_reorder_a_foreign_owned_sibling() {
+        var parent = PortalNavigationItemFixtures.aFolder("Parent");
+        var sibling = PortalNavigationItemFixtures.aFolder("Foreign sibling", parent.getId())
+            .toBuilder()
+            .reference(A_PORTAL)
+            .order(1)
+            .build();
+        portalNavigationItemsCrudService.initWith(List.of(parent, sibling));
+        portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
+        var candidate = CreatePortalNavigationItem.builder()
+            .type(PortalNavigationItemType.FOLDER)
+            .title("New folder")
+            .area(PortalArea.TOP_NAVBAR)
+            .parentId(parent.getId())
+            .reference(PORTAL_REFERENCE)
+            .order(0)
+            .build();
+
+        domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, candidate);
+
+        assertThat(portalNavigationItemsCrudService.storage())
+            .filteredOn(item -> item.getId().equals(sibling.getId()))
+            .singleElement()
+            .extracting(PortalNavigationItem::getOrder)
+            .isEqualTo(1);
+    }
+
+    @Test
+    void deleting_a_nested_item_does_not_reorder_a_foreign_owned_sibling() {
+        var parent = PortalNavigationItemFixtures.aFolder("Parent");
+        var selected = PortalNavigationItemFixtures.aFolder("Selected", parent.getId()).toBuilder().order(0).build();
+        var sibling = PortalNavigationItemFixtures.aFolder("Foreign sibling", parent.getId())
+            .toBuilder()
+            .reference(A_PORTAL)
+            .order(1)
+            .build();
+        portalNavigationItemsCrudService.initWith(List.of(parent, selected, sibling));
+        portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
+
+        domainService.delete(selected);
+
+        assertThat(portalNavigationItemsCrudService.storage())
+            .filteredOn(item -> item.getId().equals(sibling.getId()))
+            .singleElement()
+            .extracting(PortalNavigationItem::getOrder)
+            .isEqualTo(1);
+    }
+
     @Nested
     class CreateWithSource {
 
@@ -309,6 +358,33 @@ public class PortalNavigationItemDomainServiceTest {
             assertThat(stored().getPublished()).isFalse();
             assertThat(stored().getSource().getLastFetchedAt()).isEqualTo(NOW);
             assertThat(storedContent()).isEqualTo(PortalNavigationItemSourceDomainServiceInMemory.MARKDOWN);
+        }
+
+        @Test
+        void should_not_write_fetched_content_after_the_page_changes_portal() {
+            var otherOwner = new NavigationItemReference.PortalReference(PortalId.random());
+            sourceDomainService.duringNextFetch(() ->
+                portalNavigationItemsCrudService.update(page.toBuilder().reference(otherOwner).build())
+            );
+
+            domainService.fetchPageContent(page);
+
+            assertThat(storedContent()).isEqualTo(ORIGINAL_CONTENT);
+            assertThat(stored().getReference()).isEqualTo(otherOwner);
+            assertThat(stored().getSource().getLastFetchedAt()).isEqualTo(EARLIER);
+        }
+
+        @Test
+        void should_not_write_fetched_content_after_the_page_moves() {
+            var otherParent = PortalNavigationItemId.random();
+            sourceDomainService.duringNextFetch(() ->
+                portalNavigationItemsCrudService.update(page.toBuilder().parentId(otherParent).build())
+            );
+
+            domainService.fetchPageContent(page);
+
+            assertThat(storedContent()).isEqualTo(ORIGINAL_CONTENT);
+            assertThat(stored().getParentId()).isEqualTo(otherParent);
         }
 
         @Test
@@ -566,7 +642,7 @@ public class PortalNavigationItemDomainServiceTest {
         }
 
         @Test
-        void should_append_suffix_when_a_portal_attached_root_link_already_holds_the_slug() {
+        void should_reuse_slug_held_by_a_root_link_of_another_portal() {
             var link = aRootLink("00000000-0000-0000-0000-0000000000c1", "Q&A", 0);
             portalNavigationItemsCrudService.initWith(List.of(link));
             portalNavigationItemsQueryService.initWith(List.of(link));
@@ -580,11 +656,11 @@ public class PortalNavigationItemDomainServiceTest {
 
             var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
 
-            assertThat(created.getSegment()).isEqualTo("q-a-2");
+            assertThat(created.getSegment()).isEqualTo("q-a");
         }
 
         @Test
-        void should_place_a_new_root_after_portal_attached_root_links_when_no_order_is_given() {
+        void should_start_root_order_at_zero_when_only_another_portal_has_roots() {
             var first = aRootLink("00000000-0000-0000-0000-0000000000c2", "Docs", 0);
             var second = aRootLink("00000000-0000-0000-0000-0000000000c3", "Status", 1);
             portalNavigationItemsCrudService.initWith(List.of(first, second));
@@ -598,7 +674,7 @@ public class PortalNavigationItemDomainServiceTest {
 
             var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
 
-            assertThat(created.getOrder()).isEqualTo(2);
+            assertThat(created.getOrder()).isEqualTo(0);
         }
     }
 
@@ -1110,7 +1186,7 @@ public class PortalNavigationItemDomainServiceTest {
         }
 
         @Test
-        void deleting_a_console_root_reorders_portal_attached_root_links() {
+        void deleting_a_root_does_not_reorder_links_of_another_portal() {
             var consoleRoot = PortalNavigationItemFixtures.aFolder("00000000-0000-0000-0000-0000000000d1", "Console Root", null);
             var link = aRootLink("00000000-0000-0000-0000-0000000000d2", "Docs", 1);
 
@@ -1123,7 +1199,7 @@ public class PortalNavigationItemDomainServiceTest {
                 .storage()
                 .stream()
                 .collect(Collectors.toMap(PortalNavigationItem::getId, item -> item));
-            assertThat(reloaded.get(link.getId()).getOrder()).isEqualTo(0);
+            assertThat(reloaded.get(link.getId()).getOrder()).isEqualTo(1);
         }
 
         @Test
@@ -1489,10 +1565,7 @@ public class PortalNavigationItemDomainServiceTest {
         }
 
         @Test
-        void moving_a_console_root_reorders_portal_attached_root_links() {
-            // Completes the trio around create and delete: reordering an existing root has to see the
-            // whole rendered root list, which mixes a console root's PortalId.of("00000000-0000-0000-0000-000000000000") with a portal-attached
-            // link's own portal id.
+        void moving_a_root_does_not_reorder_links_of_another_portal() {
             var consoleRoot = PortalNavigationItemFixtures.aFolder("00000000-0000-0000-0000-0000000000e1", "Console Root", null);
             var first = aRootLink("00000000-0000-0000-0000-0000000000e2", "Docs", 1);
             var second = aRootLink("00000000-0000-0000-0000-0000000000e3", "Status", 2);
@@ -1510,12 +1583,12 @@ public class PortalNavigationItemDomainServiceTest {
 
             var result = domainService.update(toUpdate, consoleRoot);
 
-            assertThat(result.getOrder()).isEqualTo(2);
+            assertThat(result.getOrder()).isZero();
             var orders = portalNavigationItemsCrudService
                 .storage()
                 .stream()
                 .collect(Collectors.toMap(PortalNavigationItem::getId, PortalNavigationItem::getOrder));
-            assertThat(orders).containsEntry(first.getId(), 0).containsEntry(second.getId(), 1).containsEntry(consoleRoot.getId(), 2);
+            assertThat(orders).containsEntry(first.getId(), 1).containsEntry(second.getId(), 2).containsEntry(consoleRoot.getId(), 0);
         }
 
         @Test

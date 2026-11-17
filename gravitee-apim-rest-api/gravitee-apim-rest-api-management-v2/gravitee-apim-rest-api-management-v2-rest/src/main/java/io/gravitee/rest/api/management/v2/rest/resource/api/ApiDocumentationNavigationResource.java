@@ -131,7 +131,8 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
             new CreatePortalNavigationItemUseCase.Input(
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
-                itemToCreate
+                itemToCreate,
+                new NavigationItemReference.ApiReference(apiId)
             )
         );
 
@@ -195,14 +196,17 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
     ) {
         requireApi(apiId);
         var executionContext = GraviteeContext.getExecutionContext();
-        var input = mapper.map(executionContext.getOrganizationId(), executionContext.getEnvironmentId(), importPortalNavigationRequest);
+        var input = mapper.map(
+            executionContext.getOrganizationId(),
+            executionContext.getEnvironmentId(),
+            importPortalNavigationRequest,
+            new NavigationItemReference.ApiReference(apiId)
+        );
         if (input.parentId() != null) {
             apiOwnedNavigationDomainService.requireOwnedItem(executionContext.getEnvironmentId(), apiId, input.parentId());
         }
 
-        var output = importPortalNavigationUseCase.execute(
-            input.toBuilder().reference(new NavigationItemReference.ApiReference(apiId)).build()
-        );
+        var output = importPortalNavigationUseCase.execute(input);
 
         return Response.ok(mapper.map(output)).build();
     }

@@ -28,7 +28,9 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.core.model.PortalPageContentFixtures;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -70,6 +72,9 @@ class ApiDocumentationNavigationItemResource_GetContentTest extends AbstractReso
     private PortalNavigationItemsCrudServiceInMemory portalNavigationItemCrudService;
 
     @Inject
+    private PortalNavigationAccessDomainService accessService;
+
+    @Inject
     private GetPortalPageContentUseCase getPortalPageContentUseCase;
 
     @Override
@@ -79,6 +84,7 @@ class ApiDocumentationNavigationItemResource_GetContentTest extends AbstractReso
 
     @BeforeEach
     public void init() {
+        apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("API").environmentId(ENVIRONMENT).build()));
         EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
@@ -89,12 +95,13 @@ class ApiDocumentationNavigationItemResource_GetContentTest extends AbstractReso
 
         // The mock is shared with the other test classes of the Spring context, which do not all reset it
         Mockito.reset(getPortalPageContentUseCase);
-        var useCase = new GetPortalPageContentUseCase(portalPageContentQueryService);
+        var useCase = new GetPortalPageContentUseCase(accessService);
         when(getPortalPageContentUseCase.execute(any())).thenAnswer(invocation -> useCase.execute(invocation.getArgument(0)));
     }
 
     @AfterEach
     public void cleanUp() {
+        apiCrudService.reset();
         GraviteeContext.cleanContext();
         portalNavigationItemCrudService.reset();
         portalPageContentCrudService.reset();
@@ -261,6 +268,7 @@ class ApiDocumentationNavigationItemResource_GetContentTest extends AbstractReso
     private PortalNavigationFolder aFolderOwnedByTheApi() {
         var folder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemId.random().json(), "Guides")
             .toBuilder()
+            .organizationId(ORGANIZATION)
             .environmentId(ENVIRONMENT)
             .reference(new NavigationItemReference.ApiReference(API_ID))
             .build();

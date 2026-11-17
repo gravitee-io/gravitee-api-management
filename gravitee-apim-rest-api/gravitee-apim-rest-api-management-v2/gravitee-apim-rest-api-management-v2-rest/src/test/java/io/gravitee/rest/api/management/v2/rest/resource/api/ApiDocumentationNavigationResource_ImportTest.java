@@ -203,6 +203,7 @@ class ApiDocumentationNavigationResource_ImportTest extends AbstractResourceTest
     private static PortalNavigationFolder aFolderOwnedBy(String apiId) {
         var folder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemId.random().json(), "Guides")
             .toBuilder()
+            .organizationId(ORGANIZATION)
             .reference(new NavigationItemReference.ApiReference(apiId))
             .published(false)
             .build();
