@@ -126,10 +126,10 @@ class RollbackGuardianUseCaseTest {
      */
     @Test
     void should_restore_the_revision_name_without_the_whitespace_around_it() {
-        save("  Padded name  ", "A description");
-        var padded = deployRevision();
-        save("Another name", "A description");
-        deployRevision();
+        // written straight to the history rather than through the update path, which strips: a revision
+        // published before the rule is the only thing this can restore, and the only thing worth pinning
+        publications.givenPublication(aGuardianDefinition().name("  Padded name  ").build(), Instant.parse("2026-11-08T10:00:00Z"));
+        var padded = publications.history.storage().getLast().getId();
 
         var result = rollback.execute(new RollbackGuardianUseCase.Input(actor, GUARDIAN_ID, padded)).guardian();
 
