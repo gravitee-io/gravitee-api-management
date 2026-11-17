@@ -50,11 +50,16 @@ import io.gravitee.plugin.endpoint.http.proxy.client.UriHelper;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.failure.ConnectionFailureClassifier;
+import io.netty.channel.EventLoop;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.CompletableEmitter;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.Context;
 import io.vertx.core.MultiMap;
+import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpConnection;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpVersion;
@@ -62,6 +67,7 @@ import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.StreamResetException;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.core.internal.buffer.BufferInternal;
+import io.vertx.core.net.impl.ConnectionBase;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import io.vertx.rxjava3.core.http.HttpClientResponse;
 import java.net.URL;
@@ -189,7 +195,11 @@ public class HttpConnector implements ProxyConnector {
                     observableHttpClientRequest.httpClientRequest(httpClientRequest.getDelegate());
                     return sendEndpointRequestChunks(httpClientRequest, request);
                 })
-                .doOnError(throwable -> closeFailedUpstreamConnection(ctx, pendingUpstreamRequest, absoluteUri));
+                .onErrorResumeNext(throwable ->
+                    closeFailedUpstreamConnection(ctx, pendingUpstreamRequest, absoluteUri).andThen(
+                        Single.<HttpClientResponse>error(throwable)
+                    )
+                );
 
             return retryOnceOnConnectionClosedByPeer(ctx, absoluteUri, request, endpointExchange, cancelled)
                 .doOnSuccess(endpointResponse -> {
@@ -355,29 +365,74 @@ public class HttpConnector implements ProxyConnector {
         }
     }
 
-    private void closeFailedUpstreamConnection(
+    /**
+     * An HTTP/1.x connection whose request head was never written, or failed to be, is not closed by a reset: Vert.x
+     * keeps it in the pool although its outbound queue no longer drains, and the next request on it fails. Closing it
+     * makes the pool evict it. An HTTP/2 connection is shared with other streams and is left alone.
+     * <p>
+     * The pool only evicts the connection once the close runs on the connection's own event loop. Called from another
+     * thread, the close is merely queued, and the failure reaching the caller first lets its next request take the
+     * connection back from the pool. The close is therefore run on that event loop, and the error is only propagated
+     * once it has been, back on the context of the caller so the rest of the chain does not run on that event loop.
+     * Should the event loop not be reachable, the connection is closed from the current thread.
+     */
+    private Completable closeFailedUpstreamConnection(
         final HttpExecutionContext ctx,
         final AtomicReference<HttpClientRequest> pendingUpstreamRequest,
         final String absoluteUri
     ) {
         final HttpClientRequest upstreamRequest = pendingUpstreamRequest.getAndSet(null);
-        if (upstreamRequest != null) {
+        if (upstreamRequest == null || isHttp2(upstreamRequest)) {
+            return Completable.complete();
+        }
+        return Completable.create(emitter -> {
+            final Context callerContext = Vertx.currentContext();
+            HttpConnection connection = null;
             try {
-                closeConnectionUnlessHttp2(upstreamRequest);
+                connection = upstreamRequest.getDelegate().connection();
+                final HttpConnection upstreamConnection = connection;
+                final EventLoop eventLoop = ((ConnectionBase) upstreamConnection).context().nettyEventLoop();
+                if (eventLoop.inEventLoop()) {
+                    closeQuietly(ctx, upstreamConnection, absoluteUri);
+                    emitter.onComplete();
+                } else {
+                    eventLoop.execute(() -> {
+                        try {
+                            closeQuietly(ctx, upstreamConnection, absoluteUri);
+                        } finally {
+                            completeOn(callerContext, emitter);
+                        }
+                    });
+                }
             } catch (Exception e) {
-                ctx.withLogger(log).debug("Can't properly close the connection to backend [{}] after a failed request", absoluteUri, e);
+                ctx
+                    .withLogger(log)
+                    .warn(
+                        "Can't evict the connection to backend [{}] on its event loop, closing it from the current thread",
+                        absoluteUri,
+                        e
+                    );
+                if (connection != null) {
+                    closeQuietly(ctx, connection, absoluteUri);
+                }
+                emitter.onComplete();
             }
+        });
+    }
+
+    private void closeQuietly(final HttpExecutionContext ctx, final HttpConnection connection, final String absoluteUri) {
+        try {
+            connection.close();
+        } catch (Exception e) {
+            ctx.withLogger(log).debug("Can't properly close the connection to backend [{}] after a failed request", absoluteUri, e);
         }
     }
 
-    /**
-     * An HTTP/1.x connection whose request head was never written, or failed to be, is not closed by a reset: Vert.x
-     * keeps it in the pool although its outbound queue no longer drains, and the next request on it fails. Closing it
-     * makes the pool evict it. An HTTP/2 connection is shared with other streams and is left alone.
-     */
-    private static void closeConnectionUnlessHttp2(final HttpClientRequest upstreamRequest) {
-        if (!isHttp2(upstreamRequest)) {
-            upstreamRequest.getDelegate().connection().close();
+    private static void completeOn(final Context callerContext, final CompletableEmitter emitter) {
+        if (callerContext == null) {
+            emitter.onComplete();
+        } else {
+            callerContext.runOnContext(v -> emitter.onComplete());
         }
     }
 
