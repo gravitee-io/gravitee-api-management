@@ -958,7 +958,10 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             );
     }
 
-    /** Legacy dictionaries predate the key field: their id is the key. */
+    /**
+     * A null key means the id is the key: {@link #convert(NewDictionaryEntity, String, boolean, boolean)} gives the id
+     * a random UUID only when it also sets the key.
+     */
     private static String runtimeKey(Dictionary dictionary) {
         String key = dictionary.getKey();
         return key == null || key.isBlank() ? dictionary.getId() : key;
