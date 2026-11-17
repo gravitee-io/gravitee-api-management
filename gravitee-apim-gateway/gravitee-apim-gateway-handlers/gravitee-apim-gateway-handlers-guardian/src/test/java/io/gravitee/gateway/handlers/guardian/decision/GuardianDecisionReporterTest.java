@@ -260,12 +260,15 @@ class GuardianDecisionReporterTest {
     @Nested
     class Denied {
 
-        private final ExecutionFailure failure = new ExecutionFailure(403).key("RULE_MATCHED").message("Blocked");
+        private final ExecutionFailure failure = new ExecutionFailure(403)
+            .key("RULE_MATCHED")
+            .message("{\"error\":{\"message\":\"Blocked\",\"type\":\"invalid_request_error\",\"code\":\"rule_matched\"}}")
+            .contentType("application/json");
 
         @Test
         void should_report_a_deny_when_a_guardrail_blocked() {
             verdicts.record("before", GuardrailVerdict.allow("CONTINUE", List.of("did not match"), List.of()));
-            verdicts.record("blocking", GuardrailVerdict.deny("BLOCK", List.of("matched"), List.of(FINDING)));
+            verdicts.record("blocking", GuardrailVerdict.deny("BLOCK", List.of("Blocked", "matched"), List.of(FINDING)));
 
             cut.denied(ctx, STEP, guardian(), Guardian.Phase.REQUEST, verdicts, failure, 42L);
 
@@ -274,31 +277,10 @@ class GuardianDecisionReporterTest {
             assertThat(decision.getEnforced()).isEqualTo(Enforced.DENY);
             assertThat(decision.getStatus()).isEqualTo(Status.SUCCESS);
             assertThat(decision.getVerdict()).isEqualTo("RULE_MATCHED");
-            assertThat(decision.getReasons()).containsExactly("Blocked", "before: CONTINUE — did not match", "blocking: BLOCK — matched");
+            assertThat(decision.getReasons()).containsExactly("before: CONTINUE — did not match", "blocking: BLOCK — Blocked; matched");
             assertThat(decision.getMatchedRules()).containsExactly(
                 new MatchedRule("aws-key", "aws-key", null, "DENY", Map.of("guardrail", "blocking", "location", "messages[1].user"))
             );
-        }
-
-        @Test
-        void should_keep_the_failure_message_out_when_the_last_verdict_is_not_a_deny() {
-            verdicts.record("blocking", GuardrailVerdict.deny("BLOCK", List.of("matched"), List.of()));
-            verdicts.record("after", GuardrailVerdict.allow("CONTINUE", List.of("did not match"), List.of()));
-
-            cut.denied(ctx, STEP, guardian(), Guardian.Phase.REQUEST, verdicts, failure, 42L);
-
-            assertThat(reported().getReasons()).containsExactly("blocking: BLOCK — matched", "after: CONTINUE — did not match");
-        }
-
-        @Test
-        void should_report_a_deny_without_failure_message() {
-            verdicts.record("blocking", GuardrailVerdict.deny("BLOCK", List.of("matched"), List.of()));
-
-            cut.denied(ctx, STEP, guardian(), Guardian.Phase.REQUEST, verdicts, new ExecutionFailure(403).key("RULE_MATCHED"), 42L);
-
-            DecisionReport decision = reported();
-            assertThat(decision.getOutcome()).isEqualTo(Outcome.DENY);
-            assertThat(decision.getReasons()).containsExactly("blocking: BLOCK — matched");
         }
 
         @Test

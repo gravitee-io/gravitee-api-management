@@ -40,7 +40,6 @@ import io.gravitee.reporter.api.v4.report.DecisionReport.Outcome;
 import io.gravitee.reporter.api.v4.report.DecisionReport.Phase;
 import io.gravitee.reporter.api.v4.report.DecisionReport.Status;
 import io.gravitee.reporter.api.v4.report.DecisionReport.TransformationType;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -164,12 +163,7 @@ public class GuardianDecisionReporter {
             } else if (GuardianPolicy.GUARDRAIL_UNSUPPORTED_API_TYPE_KEY.equals(failure.key())) {
                 undecided(decision, IndeterminateCause.ERROR, failure.key());
             } else {
-                decision
-                    .outcome(Outcome.DENY)
-                    .enforced(Enforced.DENY)
-                    .status(Status.SUCCESS)
-                    .verdict(failure.key())
-                    .reasons(denialReasons(verdicts, failure));
+                decision.outcome(Outcome.DENY).enforced(Enforced.DENY).status(Status.SUCCESS).verdict(failure.key());
             }
             return decision.build();
         });
@@ -341,22 +335,6 @@ public class GuardianDecisionReporter {
             .map(ApiType::getLabel)
             .map(label -> checkpoint + "." + label)
             .orElse(checkpoint);
-    }
-
-    /**
-     * The message of a failure is only reported when a guardrail denied: the one of a plain policy may be built from
-     * the request.
-     */
-    private static List<String> denialReasons(GuardianVerdicts verdicts, ExecutionFailure failure) {
-        List<Entry> entries = verdicts.entries();
-        boolean deniedByGuardrail =
-            !entries.isEmpty() && entries.get(entries.size() - 1).verdict().outcome() == GuardrailVerdict.Outcome.DENY;
-        List<String> reasons = new ArrayList<>();
-        if (deniedByGuardrail && failure.message() != null) {
-            reasons.add(failure.message());
-        }
-        reasons.addAll(reasons(verdicts));
-        return reasons;
     }
 
     private static List<String> reasons(GuardianVerdicts verdicts) {
