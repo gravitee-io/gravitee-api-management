@@ -237,7 +237,7 @@ class GuardianDeploymentUseCasesTest {
                 .assertThatThrownBy(() -> deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, "Reviewed")))
                 .as("refusal naming the step and what to do")
                 .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContainingAll("Detect credentials", "save the Guardian again");
+                .hasMessageContainingAll("Detect credentials", "edit and save the Guardian");
             softly.assertThat(deployments.publications()).as("nothing published").isZero();
             softly
                 .assertThat(policy.getConfiguration())

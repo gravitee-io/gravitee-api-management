@@ -160,6 +160,41 @@ class ValidateGuardianAgainstPolicySchemasTest {
             .isEqualTo("{\"mode\":\"BLOCK\"}");
     }
 
+    /**
+     * A draft the write path has just stored deploys. The read-only pass compares the configuration the
+     * validation answers with the stored one, so it only tells a correction from an identical answer if the
+     * validation accepts its own answer unchanged — numbers included, since the comparison is on parsed
+     * JSON and a threshold coming back as another node type would be read as a correction. Were either to
+     * break, every freshly saved draft would be refused on deployment.
+     */
+    @Test
+    void should_accept_on_a_read_only_pass_every_configuration_a_write_path_stored() {
+        given_a_policy_declaring_the_guardrail_schema();
+
+        assertSoftly(softly -> {
+            softly
+                .assertThat(refusalOnStoredOf("{\"mode\":\"REPORT\",\"rules\":[{\"policy\":\"ban-topics\",\"threshold\":0.5}]}"))
+                .as("accepted as it is, carrying a decimal")
+                .isNull();
+            softly
+                .assertThat(refusalOnStoredOf("{\"mode\":\"REPORT\",\"rules\":[{\"policy\":\"ban-topics\",\"threshold\":1}]}"))
+                .as("a threshold written as an integer where the schema declares a number")
+                .isNull();
+            softly
+                .assertThat(refusalOnStoredOf("{\"rules\":[{\"policy\":\"ban-topics\"}]}"))
+                .as("the default of the missing required property, injected then accepted as stored")
+                .isNull();
+            softly
+                .assertThat(refusalOnStoredOf("{\"mode\":\"BLOCK\",\"comment\":null,\"rules\":[{\"policy\":\"p\"}]}"))
+                .as("the null entry dropped, then accepted as stored")
+                .isNull();
+            softly
+                .assertThat(refusalOnStoredOf("{\"mode\":\"BLOCK\",\"unknown\":1,\"rules\":[{\"policy\":\"p\"}]}"))
+                .as("the property the closed schema forbids pruned, then accepted as stored")
+                .isNull();
+        });
+    }
+
     @Test
     void should_refuse_a_step_the_policy_schema_refuses_and_say_what_is_wrong() {
         given_a_policy_declaring_the_guardrail_schema();
@@ -205,6 +240,21 @@ class ValidateGuardianAgainstPolicySchemasTest {
         var step = aStep(configuration);
         validator.validateAgainstInstalledPolicies(aGuardianOf(step));
         return step.getConfiguration();
+    }
+
+    /**
+     * The refusal a deployment of the configuration a write path stored would answer, or {@code null} when
+     * it deploys: the write path first, then the pass that reads a stored definition without rewriting it.
+     */
+    private String refusalOnStoredOf(String configuration) {
+        var guardian = aGuardianOf(aStep(configuration));
+        validator.validateAgainstInstalledPolicies(guardian);
+        try {
+            validator.validateStoredAgainstInstalledPolicies(guardian);
+            return null;
+        } catch (ValidationDomainException e) {
+            return e.getMessage();
+        }
     }
 
     /** The refusal of a configuration no write path would store, or {@code null} when it is accepted. */
