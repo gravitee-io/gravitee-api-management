@@ -15,8 +15,8 @@
  */
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { forkJoin, Observable, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import {
@@ -31,6 +31,26 @@ import {
 export interface ApiDocumentationPageResult {
   pages: Page[];
   breadcrumb: Breadcrumb[];
+}
+
+export interface PortalOpenApiPage {
+  id: string;
+  name: string;
+}
+
+interface PortalNavigationItem {
+  id?: string;
+  type?: string;
+  title?: string;
+  published?: boolean;
+}
+
+interface PortalNavigationItemsResponse {
+  items?: PortalNavigationItem[];
+}
+
+interface PortalPageContentResponse {
+  type?: string;
 }
 @Injectable({
   providedIn: 'root',
@@ -68,6 +88,27 @@ export class ApiDocumentationV2Service {
 
   getApiPage(apiId: string, pageId: string): Observable<Page> {
     return this.http.get<Page>(`${this.constants.env.v2BaseURL}/apis/${apiId}/pages/${pageId}`);
+  }
+
+  listNextGenOpenApiPages(apiId: string): Observable<PortalOpenApiPage[]> {
+    const navigationItemsUrl = `${this.constants.env.v2BaseURL}/apis/${encodeURIComponent(apiId)}/portal-navigation-items`;
+    return this.http.get<PortalNavigationItemsResponse>(navigationItemsUrl).pipe(
+      switchMap(result => {
+        const pages = (result.items ?? []).filter(
+          (item): item is PortalNavigationItem & { id: string } => item.type === 'PAGE' && item.published === true && !!item.id,
+        );
+        if (pages.length === 0) {
+          return of<PortalOpenApiPage[]>([]);
+        }
+        return forkJoin(
+          pages.map(item =>
+            this.http
+              .get<PortalPageContentResponse>(`${navigationItemsUrl}/${encodeURIComponent(item.id)}/content`)
+              .pipe(map(content => (content.type === 'OPENAPI' ? { id: item.id, name: item.title || item.id } : null))),
+          ),
+        ).pipe(map(documents => documents.filter((page): page is PortalOpenApiPage => page !== null)));
+      }),
+    );
   }
 
   updateDocumentationPage(apiId: string, pageId: string, editPage: EditDocumentation): Observable<Page> {

@@ -17,6 +17,9 @@ package io.gravitee.apim.infra.converter.oai;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -25,6 +28,7 @@ import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.Paths;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
 class OAIToFlowsConverterTest {
 
@@ -49,6 +53,31 @@ class OAIToFlowsConverterTest {
         var flows = OAIToFlowsConverter.INSTANCE.convert(spec, List.of());
 
         assertThat(flows).isEmpty();
+    }
+
+    @Test
+    void should_log_a_skipped_wildcard_path_without_line_breaks() {
+        var events = captureInfoLogs(() -> OAIToFlowsConverter.INSTANCE.convert(specWithOperations("/a/**\r\nINJECTED"), List.of()));
+
+        assertThat(events).anySatisfy(event -> {
+            assertThat(event.getFormattedMessage()).isEqualTo(
+                "Skipping OpenAPI path [/a/**INJECTED] because it is not a valid HTTP flow selector"
+            );
+            assertThat(event.getFormattedMessage()).doesNotContain("\r", "\n");
+        });
+    }
+
+    private static List<ILoggingEvent> captureInfoLogs(Runnable action) {
+        var logger = (Logger) LoggerFactory.getLogger(OAIToFlowsConverter.class);
+        var appender = new ListAppender<ILoggingEvent>();
+        appender.start();
+        logger.addAppender(appender);
+        try {
+            action.run();
+        } finally {
+            logger.detachAppender(appender);
+        }
+        return appender.list;
     }
 
     private static OpenAPI specWithOperations(String... paths) {

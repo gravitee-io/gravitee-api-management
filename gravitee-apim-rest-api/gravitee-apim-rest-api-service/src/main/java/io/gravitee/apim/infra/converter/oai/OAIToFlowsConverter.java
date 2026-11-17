@@ -56,7 +56,10 @@ public class OAIToFlowsConverter {
             .forEach((key, pathItem) -> {
                 String path = PATH_PARAMS_PATTERN.matcher(key).replaceAll(":$1");
                 if (FlowValidationDomainService.hasInvalidWildcardPath(path)) {
-                    log.info("Skipping OpenAPI path [{}] because it is not a valid HTTP flow selector", path);
+                    log.info(
+                        "Skipping OpenAPI path [{}] because it is not a valid HTTP flow selector",
+                        path.replace("\r", "").replace("\n", "")
+                    );
                     return;
                 }
                 Map<PathItem.HttpMethod, Operation> operations = pathItem.readOperationsMap();

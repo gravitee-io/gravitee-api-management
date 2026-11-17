@@ -25,12 +25,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatTabsModule } from '@angular/material/tabs';
 import { of } from 'rxjs';
-import { catchError, map, startWith, tap } from 'rxjs/operators';
+import { catchError, map, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { pathMappingValidators } from './path-mapping.validators';
 
-import { Page } from '../../../entities/management-api-v2';
-import { ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';
+import { PageType } from '../../../entities/page';
+import { ApiDocumentationV2Service, PortalOpenApiPage } from '../../../services-ngx/api-documentation-v2.service';
+import { DocumentationService } from '../../../services-ngx/documentation.service';
 
 export interface ApiV4PathMappingsAddDialogData {
   apiId: string;
@@ -58,6 +59,7 @@ export class ApiV4PathMappingsAddDialogComponent {
   private readonly dialogData = inject<ApiV4PathMappingsAddDialogData>(MAT_DIALOG_DATA);
   private readonly dialogRef = inject(MatDialogRef<ApiV4PathMappingsAddDialogComponent, ApiV4PathMappingsAddDialogResult>);
   private readonly apiDocumentationV2Service = inject(ApiDocumentationV2Service);
+  private readonly documentationService = inject(DocumentationService);
 
   protected readonly tabLabels = {
     path: 'Path',
@@ -84,15 +86,21 @@ export class ApiV4PathMappingsAddDialogComponent {
   protected readonly swaggerPagesStatus = signal<'loading' | 'ready' | 'failed'>('loading');
 
   protected readonly swaggerPages = toSignal(
-    this.apiDocumentationV2Service.getApiPages(this.dialogData.apiId).pipe(
-      map(result => result.pages.filter(page => page.type === 'SWAGGER')),
+    this.apiDocumentationV2Service.listNextGenOpenApiPages(this.dialogData.apiId).pipe(
+      switchMap(nextGenPages =>
+        nextGenPages.length > 0
+          ? of(nextGenPages)
+          : this.documentationService
+              .listPortalPages(PageType.SWAGGER, true)
+              .pipe(map(pages => pages.map(page => ({ id: page.id, name: page.name || page.id })))),
+      ),
       tap(() => this.swaggerPagesStatus.set('ready')),
       catchError(() => {
         this.swaggerPagesStatus.set('failed');
-        return of([] as Page[]);
+        return of<PortalOpenApiPage[]>([]);
       }),
     ),
-    { initialValue: [] as Page[] },
+    { initialValue: [] as PortalOpenApiPage[] },
   );
 
   private readonly pathStatus = toSignal(this.pathForm.statusChanges.pipe(startWith(this.pathForm.status)), {

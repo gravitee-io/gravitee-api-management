@@ -4969,7 +4969,7 @@ components:
             properties:
                 pageId:
                     type: string
-                    description: Identifier of a SWAGGER documentation page belonging to this API.
+                    description: Identifier of a Swagger page. A V4 import accepts a next-gen Developer Portal OpenAPI page of this API, a classic Developer Portal Swagger page of this environment, or a Swagger page that belongs to this API.
                 overwrite:
                     type: boolean
                     default: false

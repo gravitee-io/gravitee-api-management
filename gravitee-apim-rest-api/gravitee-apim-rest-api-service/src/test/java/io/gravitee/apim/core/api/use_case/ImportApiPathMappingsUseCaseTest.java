@@ -22,6 +22,8 @@ import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
+import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiPathMappingsDomainService;
 import io.gravitee.apim.core.api.domain_service.OpenApiPathMappingsExtractor;
@@ -32,6 +34,14 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.open_api.OpenApi;
+import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
+import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -61,6 +71,9 @@ class ImportApiPathMappingsUseCaseTest {
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
 
+    private final PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory();
+    private final PortalPageContentQueryServiceInMemory portalPageContentQueryService = new PortalPageContentQueryServiceInMemory();
+
     private ImportApiPathMappingsUseCase useCase;
 
     @BeforeAll
@@ -78,7 +91,13 @@ class ImportApiPathMappingsUseCaseTest {
         var auditDomainService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         var domainService = new ApiPathMappingsDomainService(apiCrudService, auditDomainService);
         OpenApiPathMappingsExtractor extractor = content -> List.of("/pets/:petId", "/pets");
-        useCase = new ImportApiPathMappingsUseCase(domainService, pageCrudService, extractor);
+        useCase = new ImportApiPathMappingsUseCase(
+            domainService,
+            pageCrudService,
+            extractor,
+            navigationItemsQueryService,
+            portalPageContentQueryService
+        );
 
         var api = withMappings(ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).environmentId(ENV_ID).build(), Set.of("/existing"));
         apiCrudService.initWith(List.of(api));
@@ -179,6 +198,76 @@ class ImportApiPathMappingsUseCaseTest {
         );
         apiCrudService.initWith(List.of(api));
         assertThatThrownBy(() -> useCase.execute(input(false))).isInstanceOf(ValidationDomainException.class);
+    }
+
+    @Test
+    void should_import_a_classic_portal_swagger_page() {
+        pageCrudService.reset();
+        pageCrudService.initWith(
+            List.of(
+                Page.builder()
+                    .id(PAGE_ID)
+                    .referenceType(Page.ReferenceType.ENVIRONMENT)
+                    .referenceId(ENV_ID)
+                    .type(Page.Type.SWAGGER)
+                    .content("openapi: 3.0.0")
+                    .build()
+            )
+        );
+
+        var output = useCase.execute(input(true));
+
+        assertThat(output.pathMappings()).containsExactly("/pets/:petId", "/pets");
+    }
+
+    @Test
+    void should_import_a_next_gen_openapi_page_of_this_api() {
+        pageCrudService.reset();
+        var contentId = PortalPageContentId.random();
+        var navId = PortalNavigationItemId.random();
+        portalPageContentQueryService.initWith(
+            List.of(
+                new OpenApiPageContent(
+                    contentId,
+                    "org-1",
+                    ENV_ID,
+                    OpenApi.of("openapi: 3.0.0"),
+                    new io.gravitee.apim.core.portal_page.model.RedocConfiguration("https://try.example")
+                )
+            )
+        );
+        navigationItemsQueryService.initWith(
+            List.of(
+                PortalNavigationPage.builder()
+                    .id(navId)
+                    .organizationId("org-1")
+                    .environmentId(ENV_ID)
+                    .reference(new NavigationItemReference.ApiReference(API_ID))
+                    .title("Petstore")
+                    .segment("petstore")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .portalPageContentId(contentId)
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .build()
+            )
+        );
+
+        var output = useCase.execute(
+            new ImportApiPathMappingsUseCase.Input(
+                API_ID,
+                navId.json(),
+                true,
+                AuditInfo.builder()
+                    .organizationId("org-1")
+                    .environmentId(ENV_ID)
+                    .actor(AuditActor.builder().userId("user-1").build())
+                    .build()
+            )
+        );
+
+        assertThat(output.pathMappings()).containsExactly("/pets/:petId", "/pets");
     }
 
     @Test
