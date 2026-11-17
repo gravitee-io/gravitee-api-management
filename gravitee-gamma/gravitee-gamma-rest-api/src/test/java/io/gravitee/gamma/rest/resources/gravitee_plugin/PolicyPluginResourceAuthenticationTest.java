@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gamma.rest.resource.AbstractResourceTest;
-import io.gravitee.gamma.rest.resources.gravitee_plugin.PolicyPluginResourceTest.PolicyPluginTestConfiguration;
 import io.gravitee.gamma.rest.spring.ResourceContextConfiguration;
 import jakarta.annotation.Priority;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -31,7 +30,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 
 /** Without the authenticating filter of the other resource tests: every request is anonymous. */
-@ContextConfiguration(classes = { ResourceContextConfiguration.class, PolicyPluginTestConfiguration.class })
+@ContextConfiguration(classes = { ResourceContextConfiguration.class, GammaPluginManagersTestConfiguration.class })
 class PolicyPluginResourceAuthenticationTest extends AbstractResourceTest {
 
     @Override

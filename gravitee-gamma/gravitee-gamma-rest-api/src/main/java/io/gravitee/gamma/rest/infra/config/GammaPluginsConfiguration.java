@@ -18,12 +18,15 @@ package io.gravitee.gamma.rest.infra.config;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.AgentProviderPluginProvider;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
+import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.ResourcePluginProvider;
 import io.gravitee.gamma.rest.infra.service_provider.gravitee_plugin.DefaultAgentProviderPluginProvider;
 import io.gravitee.gamma.rest.infra.service_provider.gravitee_plugin.DefaultPolicyPluginProvider;
+import io.gravitee.gamma.rest.infra.service_provider.gravitee_plugin.DefaultResourcePluginProvider;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.plugin.agentprovider.AgentProviderPlugin;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import io.gravitee.plugin.resource.ResourcePlugin;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -50,5 +53,13 @@ public class GammaPluginsConfiguration {
         LicenseManager licenseManager
     ) {
         return new DefaultPolicyPluginProvider(policyPluginManager, licenseManager);
+    }
+
+    @Bean
+    public ResourcePluginProvider gammaResourcePluginProvider(
+        ConfigurablePluginManager<ResourcePlugin<?>> resourcePluginManager,
+        LicenseManager licenseManager
+    ) {
+        return new DefaultResourcePluginProvider(resourcePluginManager, licenseManager);
     }
 }

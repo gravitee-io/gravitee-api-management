@@ -33,4 +33,9 @@ public class PluginResource {
     public PolicyPluginResource getPolicyPluginResource() {
         return resourceContext.getResource(PolicyPluginResource.class);
     }
+
+    @Path("/resources")
+    public ResourcePluginResource getResourcePluginResource() {
+        return resourceContext.getResource(ResourcePluginResource.class);
+    }
 }
