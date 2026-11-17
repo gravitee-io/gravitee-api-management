@@ -188,6 +188,16 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
         }
 
         @Test
+        void should_reject_a_reference_with_an_empty_path_segment() {
+            assertThatThrownBy(() ->
+                fixture.givenACredential(c -> c.references(Map.of("token", "/gravitee//credential.other.password:value")))
+            )
+                .isInstanceOf(InvalidCredentialException.class)
+                .hasMessageContaining("token");
+            assertThat(fixture.credentialCrudService.storage()).isEmpty();
+        }
+
+        @Test
         void should_reject_a_reference_that_holds_an_expression() {
             assertThatThrownBy(() ->
                 fixture.givenACredential(c -> c.references(Map.of("token", "/vault/{#context.attributes['x']}")))

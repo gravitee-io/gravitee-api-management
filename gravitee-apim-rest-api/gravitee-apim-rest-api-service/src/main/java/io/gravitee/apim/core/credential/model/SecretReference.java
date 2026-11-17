@@ -41,7 +41,8 @@ public record SecretReference(String reference, String secretId) {
             !reference.startsWith("/") ||
             reference.length() > MAX_LENGTH ||
             WHITESPACE.matcher(reference).find() ||
-            reference.contains("{#")
+            reference.contains("{#") ||
+            !isProviderAndPath(reference)
         ) {
             throw invalidPath(field);
         }
@@ -72,7 +73,16 @@ public record SecretReference(String reference, String secretId) {
 
     /** The secret key, read the way the gateway reads it: the path after the provider, before any query or {@code :key}. */
     private String graviteeKey() {
-        var path = reference.substring(reference.indexOf('/', 1) + 1);
+        return withoutQueryAndKey(reference.substring(reference.indexOf('/', 1) + 1));
+    }
+
+    // Mirrors the gateway's SecretURL.from (gravitee-secret-api 4.0.0): it trims trailing slashes, then needs a provider and a path with no empty segment.
+    private static boolean isProviderAndPath(String reference) {
+        var segments = withoutQueryAndKey(reference.substring(1)).replaceAll("/+$", "").split("/", -1);
+        return segments.length >= 2 && !Arrays.asList(segments).contains("");
+    }
+
+    private static String withoutQueryAndKey(String path) {
         var query = path.indexOf('?');
         if (query >= 0) {
             path = path.substring(0, query);
