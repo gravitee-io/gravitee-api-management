@@ -299,8 +299,13 @@ public class GuardianDecisionReporter {
             .caller(caller)
             .requestId(ctx.request().id());
         subject(decision, ctx.getAttribute(ContextAttributes.ATTR_USER), applicationId);
+        // With tracing off the context falls back to a NoOpTracer whose trace id is empty: an empty string indexed as
+        // a correlation key correlates nothing.
         if (ctx.getTracer() != null) {
-            decision.traceId(ctx.getTracer().traceId());
+            String traceId = ctx.getTracer().traceId();
+            if (traceId != null && !traceId.isEmpty()) {
+                decision.traceId(traceId);
+            }
         }
         return decision;
     }

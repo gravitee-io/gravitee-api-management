@@ -411,6 +411,17 @@ class GuardianDecisionReporterTest {
         }
 
         @Test
+        void should_have_no_trace_id_when_tracing_is_off() {
+            Tracer tracer = mock(Tracer.class);
+            when(tracer.traceId()).thenReturn("");
+            when(ctx.getTracer()).thenReturn(tracer);
+
+            cut.decided(ctx, STEP, guardian(), Guardian.Phase.REQUEST, verdicts, 42L);
+
+            assertThat(reported().getTraceId()).isNull();
+        }
+
+        @Test
         void should_read_the_decision_point_version_from_the_revision() {
             cut.decided(ctx, STEP, guardian(), Guardian.Phase.REQUEST, verdicts, 42L);
 
