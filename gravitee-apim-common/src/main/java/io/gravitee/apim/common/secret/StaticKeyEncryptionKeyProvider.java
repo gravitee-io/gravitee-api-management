@@ -28,6 +28,8 @@ import javax.crypto.spec.SecretKeySpec;
  */
 public final class StaticKeyEncryptionKeyProvider implements KeyEncryptionKeyProvider {
 
+    public static final String KEY_PROPERTY = "api.secrets.encryption.key";
+
     private static final byte[] ID_LABEL = "gravitee-secrets-kek-id".getBytes(StandardCharsets.UTF_8);
     private static final String WRAP_AAD_PREFIX = "gravitee-secrets-dek\0";
     private static final int ID_BYTES = 8;
