@@ -23,6 +23,7 @@ import { TABLE_PAGE_SIZE_OPTIONS } from '../../../shared/utils/paginationConstan
 import type { CredentialsPagedResponse } from '../types/credential';
 
 const DEFAULT_PAGE_SIZE = 10;
+const SEARCH_DEBOUNCE_MS = 300;
 const PAGE_SIZE_OPTIONS: readonly number[] = TABLE_PAGE_SIZE_OPTIONS;
 
 type ListParamKey = 'q' | 'page' | 'size';
@@ -62,7 +63,13 @@ export function useCredentialList() {
     const [searchParams, setSearchParams] = useSearchParams();
     const state = readListState(searchParams);
     const envId = useEnvironment()?.id;
-    const query = useCredentialsPaged({ query: state.q.trim(), page: state.page, perPage: state.size });
+    const term = state.q.trim();
+    const [searchedTerm, setSearchedTerm] = useState(term);
+    useEffect(() => {
+        const timer = setTimeout(() => setSearchedTerm(term), SEARCH_DEBOUNCE_MS);
+        return () => clearTimeout(timer);
+    }, [term]);
+    const query = useCredentialsPaged({ query: searchedTerm, page: state.page, perPage: state.size });
 
     const { answered, pageOfThisEnvironment, lastError } = useLastAnswer(query, envId);
 

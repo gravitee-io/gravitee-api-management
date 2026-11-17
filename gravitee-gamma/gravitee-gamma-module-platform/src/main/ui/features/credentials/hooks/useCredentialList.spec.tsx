@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -49,6 +49,8 @@ function givenListAnswer(state: { data?: CredentialsPagedResponse; error?: Error
 const wrapper = ({ children }: { children: ReactNode }) => <MemoryRouter>{children}</MemoryRouter>;
 
 describe('useCredentialList', () => {
+    afterEach(() => jest.useRealTimers());
+
     it('keeps the last page on screen when a later load of the same environment fails', () => {
         givenEnvironment('env-a');
         givenListAnswer({ data: ENV_A_PAGE });
@@ -71,5 +73,24 @@ describe('useCredentialList', () => {
 
         expect(result.current.result).toBeUndefined();
         expect(result.current.error?.message).toBe('Gateway timeout');
+    });
+
+    it('waits for typing to pause before searching', () => {
+        jest.useFakeTimers();
+        givenEnvironment('env-a');
+        givenListAnswer({ data: ENV_A_PAGE });
+        const { result } = renderHook(() => useCredentialList(), { wrapper });
+
+        act(() => result.current.setQuery('o'));
+        act(() => result.current.setQuery('op'));
+        act(() => result.current.setQuery('ope'));
+
+        expect(result.current.q).toBe('ope');
+        expect(jest.mocked(useCredentialsPaged)).toHaveBeenLastCalledWith(expect.objectContaining({ query: '' }));
+
+        act(() => jest.advanceTimersByTime(300));
+
+        expect(jest.mocked(useCredentialsPaged)).toHaveBeenLastCalledWith(expect.objectContaining({ query: 'ope' }));
+        expect(jest.mocked(useCredentialsPaged).mock.calls.map(([params]) => params.query)).not.toContain('op');
     });
 });

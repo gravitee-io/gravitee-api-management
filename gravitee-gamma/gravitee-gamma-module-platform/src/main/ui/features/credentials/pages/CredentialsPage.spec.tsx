@@ -170,7 +170,7 @@ describe('CredentialsPage', () => {
         await searchFieldHarness({ name: 'Search credentials' }).type('vault');
 
         await waitFor(() => expect(location()).toBe('/credentials?q=vault'));
-        expect(lastListRequest()).toEqual({ query: 'vault', page: 1, perPage: 10 });
+        await waitFor(() => expect(lastListRequest()).toEqual({ query: 'vault', page: 1, perPage: 10 }));
     });
 
     it('resets the search and gives the focus back to the search field', async () => {
