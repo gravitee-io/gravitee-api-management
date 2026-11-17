@@ -39,10 +39,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Resolves {@code /gravitee/<key>:value} from the secrets that the Management API stores for an environment, through the
- * management repository of the gateway. It opens no connection of its own.
- */
 public class BuiltInSecretProvider implements EnvironmentAwareSecretProvider {
 
     public static final String ID = "gravitee";
@@ -53,7 +49,6 @@ public class BuiltInSecretProvider implements EnvironmentAwareSecretProvider {
     private final SecretRepository secretRepository;
     private final OrganizationKeyRepository organizationKeyRepository;
     private final EnvironmentRepository environmentRepository;
-    // An environment never moves to another organization, so the lookup is cached for the life of the gateway.
     private final Map<String, String> organizationOfEnvironment = new ConcurrentHashMap<>();
     private DataKeyResolver dataKeys;
 

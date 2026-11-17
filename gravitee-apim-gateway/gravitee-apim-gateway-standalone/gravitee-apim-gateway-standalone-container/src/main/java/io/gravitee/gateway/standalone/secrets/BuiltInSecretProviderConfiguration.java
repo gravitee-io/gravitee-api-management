@@ -30,10 +30,6 @@ import org.springframework.context.annotation.Lazy;
 @Configuration
 public class BuiltInSecretProviderConfiguration {
 
-    /**
-     * Lazy, because the repository plugins register their beans after this context starts. The secrets service creates it
-     * when it starts, once they are there. A null bean is skipped by that lookup.
-     */
     @Bean
     @Lazy
     public EnvironmentAwareSecretProvider builtInSecretProvider(
