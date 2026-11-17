@@ -199,11 +199,23 @@ Redis distributed-event keys are scoped by runtime clusterId derived from this n
 {{- end -}}
 
 {{/*
+Fail when gateway.type is not a workload kind the chart renders (Kubernetes kinds are case-sensitive).
+*/}}
+{{- define "gateway.type.validate" -}}
+{{- if not (has .Values.gateway.type (list "Deployment" "StatefulSet" "DaemonSet")) -}}
+{{- fail (printf "gateway.type must be Deployment, StatefulSet or DaemonSet, got %q" (toString .Values.gateway.type)) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Fail when distributed sync is enabled without gateway Hazelcast clustering.
 Included from always-rendered templates (e.g. deployment) so external-config installs are covered.
 */}}
 {{- define "gateway.distributedSync.validate" -}}
 {{- if include "gateway.distributedSync.enabled" . -}}
+{{- if eq .Values.gateway.type "DaemonSet" -}}
+{{- fail "gateway.distributedSync cannot be enabled when gateway.type is DaemonSet (gateway pods must join the Hazelcast cluster one at a time, and a DaemonSet starts one on every node at once)" -}}
+{{- end -}}
 {{- if ne (dig "cluster" "type" "" .Values.gateway) "hazelcast" -}}
 {{- fail "gateway.cluster.type must be set to hazelcast when gateway.distributedSync is enabled (cluster-scoped Redis requires a dedicated Hazelcast cluster per gateway Helm release)" -}}
 {{- end -}}
