@@ -14,7 +14,15 @@
  * limitations under the License.
  */
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
-import type { ApiType as PSApiType, ConnectorInfo, Flow, Plan, Policy, SharedPolicyGroupPolicy } from '@gravitee/graphene-policy-studio';
+import type {
+    ApiType as PSApiType,
+    ConnectorInfo,
+    Flow,
+    Plan,
+    Policy,
+    ResourceRef,
+    SharedPolicyGroupPolicy,
+} from '@gravitee/graphene-policy-studio';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
@@ -27,12 +35,14 @@ import {
     listSharedPolicyGroupPlugins,
 } from '../services/policyStudioService';
 import type { FlowExecution, FlowV2, PolicyStudioApiDetail } from '../types/policyStudio';
+import { apiDetailKeys } from '../utils/queryKeys';
 import { mapFlowModeToExecution, mapFlowsV2ToV4, V2_DEFAULT_ENDPOINTS_INFO, V2_DEFAULT_ENTRYPOINTS_INFO } from '../utils/v2FlowAdapter';
 
 const policyStudioKeys = {
     all: ['policy-studio'] as const,
-    api: (envId: string, apiId: string) => [...policyStudioKeys.all, 'api', envId, apiId] as const,
-    plans: (envId: string, apiId: string) => [...policyStudioKeys.all, 'plans', envId, apiId] as const,
+    // Kept under the API detail key: whatever refreshes the API detail also refreshes the studio's copy of the API and its plans.
+    api: (envId: string, apiId: string) => [...apiDetailKeys.detail(envId, apiId), ...policyStudioKeys.all, 'api'] as const,
+    plans: (envId: string, apiId: string) => [...apiDetailKeys.detail(envId, apiId), ...policyStudioKeys.all, 'plans'] as const,
     policies: () => [...policyStudioKeys.all, 'policies'] as const,
     entrypoints: () => [...policyStudioKeys.all, 'entrypoints'] as const,
     endpoints: () => [...policyStudioKeys.all, 'endpoints'] as const,
@@ -86,6 +96,8 @@ export interface PolicyStudioData {
     entrypointsInfo: readonly ConnectorInfo[];
     endpointsInfo: readonly ConnectorInfo[];
     flowExecution: FlowExecution;
+    /** Resources configured on the API, listed by the policy fields that pick one (e.g. the cache name). */
+    resources: readonly ResourceRef[];
     isLoading: boolean;
     isError: boolean;
     /** Full API detail for save mutations. */
@@ -201,6 +213,11 @@ export function usePolicyStudioData(apiId: string | undefined): PolicyStudioData
         return api?.flowExecution ?? { mode: 'DEFAULT' };
     }, [api?.flowExecution, api?.flowMode, isV2]);
 
+    const resources: readonly ResourceRef[] = useMemo(
+        () => (api?.resources ?? []).map(resource => ({ name: resource.name, type: resource.type })),
+        [api?.resources],
+    );
+
     const apiType: PSApiType = isV2 ? 'PROXY' : ((api?.type as PSApiType) ?? 'PROXY');
 
     const isLoading =
@@ -228,6 +245,7 @@ export function usePolicyStudioData(apiId: string | undefined): PolicyStudioData
         entrypointsInfo,
         endpointsInfo,
         flowExecution,
+        resources,
         isLoading,
         isError,
         apiDetail: api,
