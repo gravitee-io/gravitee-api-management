@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.use_case;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.ApiCrudServiceInMemory;
@@ -29,6 +30,7 @@ import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.PortalLinkSyncDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.validation.Validator;
@@ -37,6 +39,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class CreateOrUpdateApiLinkUseCaseTest {
@@ -73,6 +77,7 @@ class CreateOrUpdateApiLinkUseCaseTest {
 
         assertThat(output.errors()).isEmpty();
         assertThat(output.link().getId()).isEqualTo(PortalNavigationItemId.forApiLink(AUDIT_INFO, API_ID, "external-docs"));
+        assertThat(output.link().getReference()).isEqualTo(new NavigationItemReference.ApiReference(API_ID));
         assertThat(navItemCrud.storage()).hasSize(1);
     }
 
@@ -92,6 +97,7 @@ class CreateOrUpdateApiLinkUseCaseTest {
         navItemCrud.initWith(
             List.of(
                 PortalNavigationFolder.builder()
+                    .reference(PORTAL_REFERENCE)
                     .id(parentFolderId)
                     .organizationId(AUDIT_INFO.organizationId())
                     .environmentId(AUDIT_INFO.environmentId())
@@ -138,6 +144,35 @@ class CreateOrUpdateApiLinkUseCaseTest {
 
         assertThat(output.errors()).isEmpty();
         assertThat(output.link()).isNull();
+        assertThat(navItemCrud.storage()).isEmpty();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "", "not-a-url" })
+    void should_reject_the_same_invalid_link_on_dry_run_and_apply(String href) {
+        var request = new CreateOrUpdateApiLinkUseCase.Input(
+            AUDIT_INFO,
+            API_ID,
+            "external-docs",
+            "External Docs",
+            href,
+            "/guides",
+            0,
+            PortalVisibility.PUBLIC
+        );
+        var dryRun = new ValidateApiLinkUseCase(
+            navItemQuery,
+            navigationItemValidatorService(),
+            new PortalLinkSyncDomainService(navItemCrud, navItemQuery)
+        ).execute(request);
+        assertThat(navItemCrud.storage()).isEmpty();
+
+        var applied = useCase.execute(request);
+
+        assertThat(dryRun.errors())
+            .isNotEmpty()
+            .extracting(Validator.Error::getMessage)
+            .containsExactlyElementsOf(applied.errors().stream().map(Validator.Error::getMessage).toList());
         assertThat(navItemCrud.storage()).isEmpty();
     }
 

@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference.ApiReference;
@@ -89,7 +90,7 @@ class OwnerChangeRuleTest {
             .type(page.getType())
             .title(page.getTitle())
             .parentId(section.getId())
-            .reference(NavigationItemReference.defaultReference())
+            .reference(new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")))
             .build();
     }
 

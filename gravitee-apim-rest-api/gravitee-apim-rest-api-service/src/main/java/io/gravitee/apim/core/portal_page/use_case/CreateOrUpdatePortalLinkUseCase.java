@@ -27,6 +27,7 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalLinkSyncDomainServ
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
@@ -98,6 +99,7 @@ public class CreateOrUpdatePortalLinkUseCase {
                     .title(sanitizedName)
                     .url(sanitizedHref)
                     .area(PortalArea.TOP_NAVBAR)
+                    .reference(new NavigationItemReference.PortalReference(input.portalId()))
                     .parentId(parentId)
                     .visibility(input.visibility())
                     .published(true)

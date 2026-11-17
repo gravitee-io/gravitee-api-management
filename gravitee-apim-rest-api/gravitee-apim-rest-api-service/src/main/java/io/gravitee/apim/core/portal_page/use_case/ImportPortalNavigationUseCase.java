@@ -66,7 +66,7 @@ public class ImportPortalNavigationUseCase {
             .type(PortalNavigationItemType.FOLDER)
             .area(area)
             .parentId(input.parentId())
-            .reference(input.reference() == null ? NavigationItemReference.defaultReference() : input.reference())
+            .reference(input.reference())
             .visibility(input.visibility() == null ? PortalVisibility.PRIVATE : input.visibility())
             .published(false)
             .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
@@ -76,6 +76,7 @@ public class ImportPortalNavigationUseCase {
         // by hand does: the same step decides, unless the caller named the owner.
         var itemToCreate = creationExpansionDomainService.expand(List.of(requestedRoot), input.environmentId()).itemsToCreate().getFirst();
 
+        domainService.resolveOwners(input.organizationId(), input.environmentId(), List.of(itemToCreate));
         validatorService.validateAll(List.of(itemToCreate), input.environmentId());
         if (!sourceDomainService.supportsFileListing(input.source())) {
             throw InvalidPortalNavigationItemSourceException.sourceCannotListFiles(input.source().getSourceType());

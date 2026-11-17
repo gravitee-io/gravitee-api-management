@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
@@ -32,6 +33,7 @@ class PortalNavigationItemTest {
     @Test
     void should_create_unpublished_api_product_container() {
         var create = CreatePortalNavigationItem.builder()
+            .reference(PORTAL_REFERENCE)
             .title("Product documentation")
             .segment("product-documentation")
             .area(PortalArea.TOP_NAVBAR)
@@ -56,6 +58,7 @@ class PortalNavigationItemTest {
     void should_create_api_product_with_category_ids() {
         var categoryIds = List.of(PortalCategoryId.random(), PortalCategoryId.random());
         var create = CreatePortalNavigationItem.builder()
+            .reference(PORTAL_REFERENCE)
             .title("Product documentation")
             .segment("product-documentation")
             .area(PortalArea.TOP_NAVBAR)
@@ -137,6 +140,7 @@ class PortalNavigationItemTest {
     @Test
     void should_default_api_category_ids_to_empty_list_when_not_provided() {
         var create = PortalNavigationItemFixtures.aCreatePortalNavigationApi("api-id", null);
+        create.setReference(PORTAL_REFERENCE);
 
         var item = PortalNavigationItem.from(create, "organization-id", "environment-id", null);
 
@@ -148,6 +152,7 @@ class PortalNavigationItemTest {
     void should_create_api_with_category_ids() {
         var categoryIds = List.of(PortalCategoryId.random(), PortalCategoryId.random());
         var create = PortalNavigationItemFixtures.aCreatePortalNavigationApi("api-id", null, categoryIds);
+        create.setReference(PORTAL_REFERENCE);
 
         var item = PortalNavigationItem.from(create, "organization-id", "environment-id", null);
 

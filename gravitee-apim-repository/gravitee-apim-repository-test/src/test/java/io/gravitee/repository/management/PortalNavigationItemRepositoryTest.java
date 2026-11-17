@@ -16,6 +16,7 @@
 package io.gravitee.repository.management;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.repository.management.api.search.PortalNavigationItemCriteria;
 import io.gravitee.repository.management.model.AutomationMetadata;
@@ -27,9 +28,73 @@ import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class PortalNavigationItemRepositoryTest extends AbstractManagementRepositoryTest {
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = { " " })
+    void should_reject_creating_an_item_without_a_reference(String referenceId) throws Exception {
+        var item = PortalNavigationItemFixtures.aSourcedPage("missing-owner", "content-id").referenceId("portal-before").build();
+        ReflectionTestUtils.setField(item, "referenceId", referenceId);
+
+        assertThatThrownBy(() -> portalNavigationItemRepository.create(item))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("reference");
+        assertThat(portalNavigationItemRepository.findById(item.getId())).isEmpty();
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = { " " })
+    void should_reject_updating_an_item_without_a_reference_and_preserve_its_owner(String referenceId) throws Exception {
+        var item = PortalNavigationItemFixtures.aSourcedPage("missing-update-owner", "content-id").referenceId("portal-before").build();
+        portalNavigationItemRepository.create(item);
+        try {
+            ReflectionTestUtils.setField(item, "referenceId", referenceId);
+            assertThatThrownBy(() -> portalNavigationItemRepository.update(item))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("reference");
+            assertThat(portalNavigationItemRepository.findById(item.getId()).orElseThrow().getReferenceId()).isEqualTo("portal-before");
+        } finally {
+            portalNavigationItemRepository.delete(item.getId());
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    void should_reject_a_missing_reference_type_before_create_or_update(boolean update) throws Exception {
+        var item = PortalNavigationItemFixtures.aSourcedPage("missing-reference-type", "content-id").referenceId("portal-before").build();
+        if (update) {
+            portalNavigationItemRepository.create(item);
+        }
+        ReflectionTestUtils.setField(item, "referenceType", null);
+        try {
+            assertThatThrownBy(() -> {
+                if (update) {
+                    portalNavigationItemRepository.update(item);
+                } else {
+                    portalNavigationItemRepository.create(item);
+                }
+            })
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("reference");
+            var stored = portalNavigationItemRepository.findById(item.getId());
+            if (update) {
+                assertThat(stored.orElseThrow().getReferenceType()).isEqualTo(PortalNavigationReferenceType.PORTAL);
+            } else {
+                assertThat(stored).isEmpty();
+            }
+        } finally {
+            portalNavigationItemRepository.delete(item.getId());
+        }
+    }
 
     @Override
     protected String getTestCasesPath() {
@@ -97,6 +162,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
     @Test
     public void should_create_and_delete_navigation_item() throws Exception {
         PortalNavigationItem item = PortalNavigationItem.builder()
+            .referenceId("portal-1")
             .id("new-nav-item")
             .organizationId("org-1")
             .environmentId("env-1")
@@ -124,6 +190,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
     @Test
     public void should_create_and_delete_api_navigation_item() throws Exception {
         PortalNavigationItem item = PortalNavigationItem.builder()
+            .referenceId("portal-1")
             .id("new-nav-item")
             .organizationId("org-1")
             .environmentId("env-1")
@@ -152,6 +219,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
     @Test
     public void should_create_update_and_delete_api_product_navigation_item() throws Exception {
         PortalNavigationItem item = PortalNavigationItem.builder()
+            .referenceId("portal-1")
             .id("new-api-product-nav-item")
             .organizationId("org-1")
             .environmentId("env-1")
@@ -267,13 +335,15 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         assertThat(found.get().getConfiguration()).doesNotContain("source");
     }
 
-    @Test
-    public void should_create_read_update_and_delete_navigation_item_with_reference() throws Exception {
+    @ParameterizedTest
+    @EnumSource(PortalNavigationReferenceType.class)
+    public void should_create_read_update_and_delete_navigation_item_with_reference(PortalNavigationReferenceType referenceType)
+        throws Exception {
         PortalNavigationItem item = PortalNavigationItem.builder()
             .id("portal-attached-nav-item")
             .organizationId("org-1")
             .environmentId("env-1")
-            .referenceType(PortalNavigationReferenceType.PORTAL)
+            .referenceType(referenceType)
             .referenceId("portal-42")
             .title("Home")
             .segment("home")
@@ -288,7 +358,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
 
         try {
             PortalNavigationItem created = portalNavigationItemRepository.create(item);
-            assertThat(created.getReferenceType()).isEqualTo(PortalNavigationReferenceType.PORTAL);
+            assertThat(created.getReferenceType()).isEqualTo(referenceType);
             assertThat(created.getReferenceId()).isEqualTo("portal-42");
 
             var found = portalNavigationItemRepository.findById(item.getId());
@@ -304,12 +374,12 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
     }
 
     @Test
-    public void should_default_reference_to_unattached_sentinel_when_missing_from_seed_data() throws Exception {
+    public void should_read_an_explicit_reference_from_seed_data() throws Exception {
         var found = portalNavigationItemRepository.findById("2d7b9f6c-1a2b-4c3d-8e9f-0a1b2c3d4e5f");
 
         assertThat(found).isPresent();
         assertThat(found.get().getReferenceType()).isEqualTo(PortalNavigationReferenceType.PORTAL);
-        assertThat(found.get().getReferenceId()).isEqualTo("00000000-0000-0000-0000-000000000000");
+        assertThat(found.get().getReferenceId()).isEqualTo("portal-1");
     }
 
     @Test
@@ -331,6 +401,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .rootId("homepage-portal-a")
             .build();
         var seededHomepage = PortalNavigationItem.builder()
+            .referenceId("00000000-0000-0000-0000-000000000000")
             .id("homepage-seeded")
             .organizationId("org-1")
             .environmentId("env-portal-scoped-homepage")
@@ -441,6 +512,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
     @Test
     public void should_update_navigation_item() throws Exception {
         PortalNavigationItem item = PortalNavigationItem.builder()
+            .referenceId("portal-1")
             .id("update-nav-item")
             .organizationId("org-1")
             .environmentId("env-1")
@@ -461,6 +533,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         assertThat(created.getRootId()).isEqualTo("update-nav-item");
 
         PortalNavigationItem updatedItem = PortalNavigationItem.builder()
+            .referenceId("portal-1")
             .id("update-nav-item")
             .organizationId("org-1")
             .environmentId("env-1")
@@ -614,6 +687,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
     public void should_search_by_environment_id_and_published_false() throws Exception {
         // Create an unpublished item for testing
         PortalNavigationItem unpublishedItem = PortalNavigationItem.builder()
+            .referenceId("portal-1")
             .id("unpublished-item")
             .organizationId("org-1")
             .environmentId("env-1")
@@ -672,6 +746,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
     public void should_search_without_published_filter_when_published_is_null() throws Exception {
         // Create both published and unpublished items
         PortalNavigationItem unpublishedItem = PortalNavigationItem.builder()
+            .referenceId("portal-1")
             .id("unpublished-item-2")
             .organizationId("org-1")
             .environmentId("env-1")
@@ -757,6 +832,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
     @Test
     public void should_search_by_type_api() throws Exception {
         PortalNavigationItem apiItem = PortalNavigationItem.builder()
+            .referenceId("portal-1")
             .id("type-api-item")
             .organizationId("org-1")
             .environmentId("env-type-api-test")
@@ -807,6 +883,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
     public void should_search_public_items() throws Exception {
         // Create a private item for testing
         PortalNavigationItem privateItem = PortalNavigationItem.builder()
+            .referenceId("portal-1")
             .id("private-item")
             .organizationId("org-1")
             .environmentId("public-private-env")
@@ -822,6 +899,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .build();
 
         PortalNavigationItem publicItem = PortalNavigationItem.builder()
+            .referenceId("portal-1")
             .id("public-item")
             .organizationId("org-1")
             .environmentId("public-private-env")
@@ -927,6 +1005,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
     @Test
     public void should_search_by_type_and_api_product_ids() throws Exception {
         PortalNavigationItem first = PortalNavigationItem.builder()
+            .referenceId("portal-1")
             .id("api-product-search-1")
             .organizationId("org-1")
             .environmentId("env-api-product-search")
@@ -942,6 +1021,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .rootId("api-product-search-1")
             .build();
         PortalNavigationItem second = PortalNavigationItem.builder()
+            .referenceId("portal-1")
             .id("api-product-search-2")
             .organizationId("org-1")
             .environmentId("env-api-product-search")
@@ -985,6 +1065,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         String sharedTitle = "Shared Page Title";
 
         PortalNavigationItem firstPage = PortalNavigationItem.builder()
+            .referenceId("portal-1")
             .id("duplicate-title-page-1")
             .organizationId("org-1")
             .environmentId("env-duplicate-title")
@@ -1000,6 +1081,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .build();
 
         PortalNavigationItem secondPage = PortalNavigationItem.builder()
+            .referenceId("portal-1")
             .id("duplicate-title-page-2")
             .organizationId("org-1")
             .environmentId("env-duplicate-title")
@@ -1036,6 +1118,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         String sharedTitle = "Shared API Name";
 
         PortalNavigationItem firstApi = PortalNavigationItem.builder()
+            .referenceId("portal-1")
             .id("duplicate-title-api-1")
             .organizationId("org-1")
             .environmentId("env-duplicate-api-title")
@@ -1052,6 +1135,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .build();
 
         PortalNavigationItem secondApi = PortalNavigationItem.builder()
+            .referenceId("portal-1")
             .id("duplicate-title-api-2")
             .organizationId("org-1")
             .environmentId("env-duplicate-api-title")
@@ -1171,6 +1255,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
     @Test
     public void should_search_by_category_id() throws Exception {
         PortalNavigationItem itemInCategory = PortalNavigationItem.builder()
+            .referenceId("portal-1")
             .id("category-search-1")
             .organizationId("org-1")
             .environmentId("env-category-search")
@@ -1186,6 +1271,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .categoryIds(List.of("category-1", "category-2"))
             .build();
         PortalNavigationItem itemOutsideCategory = PortalNavigationItem.builder()
+            .referenceId("portal-1")
             .id("category-search-2")
             .organizationId("org-1")
             .environmentId("env-category-search")
@@ -1258,6 +1344,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .build();
 
         PortalNavigationItem item = PortalNavigationItem.builder()
+            .referenceId("portal-1")
             .id("automation-metadata-item")
             .organizationId("org-1")
             .environmentId("env-automation-metadata")
@@ -1293,6 +1380,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         String environmentId = "env-automation-reference";
 
         PortalNavigationItem matching = PortalNavigationItem.builder()
+            .referenceId("portal-1")
             .id("automation-reference-matching")
             .organizationId("org-1")
             .environmentId(environmentId)
@@ -1311,6 +1399,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .build();
 
         PortalNavigationItem differentReference = PortalNavigationItem.builder()
+            .referenceId("portal-1")
             .id("automation-reference-different")
             .organizationId("org-1")
             .environmentId(environmentId)
@@ -1329,6 +1418,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .build();
 
         PortalNavigationItem noAutomationMetadata = PortalNavigationItem.builder()
+            .referenceId("portal-1")
             .id("automation-reference-none")
             .organizationId("org-1")
             .environmentId(environmentId)

@@ -79,6 +79,7 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
 
     @BeforeEach
     void setUp() {
+        navigationPortals.givenDefaultPortalForNavigationFixtures();
         var storage = new ArrayList<PortalNavigationItem>();
         portalNavigationItemsCrudService = new PortalNavigationItemsCrudServiceInMemory(storage);
         portalNavigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory(storage);
@@ -217,8 +218,10 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
     void should_skip_seeding_when_another_standalone_listing_has_legacy_documentation(PortalNavigationItemType type, boolean nested) {
         var listing = createApiListing(null);
         listing.changeOwner(new NavigationItemReference.PortalReference(PortalId.random()));
-        var parent = nested ? createFolder(listing, NavigationItemReference.defaultReference()) : listing;
-        createDocument(type, parent, NavigationItemReference.defaultReference());
+        var parent = nested
+            ? createFolder(listing, new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")))
+            : listing;
+        createDocument(type, parent, new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")));
 
         var output = seed(PortalNavigationItemId.of(API1_ID));
 
@@ -241,7 +244,9 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
     @ParameterizedTest
     @ValueSource(booleans = { false, true })
     void should_not_follow_foreign_owned_folders_when_looking_for_documentation(boolean apiOwned) {
-        var owner = apiOwned ? new NavigationItemReference.ApiReference("api-1") : NavigationItemReference.defaultReference();
+        var owner = apiOwned
+            ? new NavigationItemReference.ApiReference("api-1")
+            : new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000"));
         var parent = apiOwned ? createFolder(null, owner) : apiListing();
         var foreignFolder = createFolder(parent, new NavigationItemReference.ApiReference("api-2"));
         createDocument(PortalNavigationItemType.PAGE, foreignFolder, owner);
@@ -287,7 +292,9 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
     void should_seed_product_local_api_overview_independently_of_standalone_documentation(boolean nested) {
         createDocument(PortalNavigationItemType.PAGE, null, new NavigationItemReference.ApiReference("api-1"));
         var product = createProduct(null);
-        var parent = nested ? createFolder(product, NavigationItemReference.defaultReference()) : product;
+        var parent = nested
+            ? createFolder(product, new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")))
+            : product;
         var listing = createApiListing(parent);
 
         var output = seed(listing.getId());
@@ -310,8 +317,11 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
     void should_skip_seeding_when_api_in_product_has_nested_local_documentation(PortalNavigationItemType type) {
         var product = createProduct(null);
         var listing = createApiListing(product);
-        var folder = createFolder(listing, NavigationItemReference.defaultReference());
-        createDocument(type, folder, NavigationItemReference.defaultReference());
+        var folder = createFolder(
+            listing,
+            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000"))
+        );
+        createDocument(type, folder, new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")));
 
         var output = seed(listing.getId());
 
@@ -323,7 +333,11 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
     void should_not_use_product_local_documentation_for_a_standalone_listing_or_another_product() {
         var firstProduct = createProduct(null);
         var firstListing = createApiListing(firstProduct);
-        createDocument(PortalNavigationItemType.PAGE, firstListing, NavigationItemReference.defaultReference());
+        createDocument(
+            PortalNavigationItemType.PAGE,
+            firstListing,
+            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000"))
+        );
         var secondProduct = createProduct(null);
         var secondListing = createApiListing(secondProduct);
 
@@ -340,9 +354,16 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
     @EnumSource(value = PortalNavigationItemType.class, names = { "API", "API_PRODUCT" })
     void should_not_treat_nested_api_or_product_documentation_as_its_ancestors_documentation(PortalNavigationItemType type) {
         var product = createProduct(null);
-        var folder = createFolder(product, NavigationItemReference.defaultReference());
+        var folder = createFolder(
+            product,
+            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000"))
+        );
         var nestedContainer = type == PortalNavigationItemType.API ? createApiListing(folder) : createProduct(folder);
-        createDocument(PortalNavigationItemType.PAGE, nestedContainer, NavigationItemReference.defaultReference());
+        createDocument(
+            PortalNavigationItemType.PAGE,
+            nestedContainer,
+            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000"))
+        );
 
         var output = seed(product.getId());
 

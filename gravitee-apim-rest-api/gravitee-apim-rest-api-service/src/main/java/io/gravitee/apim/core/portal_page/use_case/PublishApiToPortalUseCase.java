@@ -70,6 +70,7 @@ public class PublishApiToPortalUseCase {
             .published(true)
             .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
             .build();
+        domainService.resolveOwners(input.organizationId(), input.environmentId(), List.of(listingToCreate));
         validatorService.validateAll(List.of(listingToCreate), input.environmentId());
 
         publishOwnedItems(input);

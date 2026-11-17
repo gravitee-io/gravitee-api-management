@@ -170,7 +170,7 @@ class ListApiDocumentationUseCaseTest {
                 assertThat(publication.listing()).isEqualTo(listing);
                 assertThat(publication.listing().getPublished()).isTrue();
                 assertThat(publication.section()).isEqualTo(section);
-                assertThat(publication.portalId()).isEqualTo(PortalId.ZERO);
+                assertThat(publication.portalId()).isEqualTo(PortalId.of("11111111-1111-1111-1111-111111111111"));
             });
     }
 

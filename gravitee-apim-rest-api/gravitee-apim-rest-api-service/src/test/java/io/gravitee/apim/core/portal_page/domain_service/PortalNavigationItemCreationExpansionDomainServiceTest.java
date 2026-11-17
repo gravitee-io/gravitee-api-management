@@ -114,6 +114,21 @@ class PortalNavigationItemCreationExpansionDomainServiceTest {
     }
 
     @Test
+    void should_give_api_children_the_reference_of_their_product() {
+        apiProductQueryService.initWith(
+            List.of(ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENVIRONMENT_ID).apiIds(Set.of("api-1", "api-2")).build())
+        );
+        apiCrudService.initWith(List.of(api("api-1", "First", ENVIRONMENT_ID), api("api-2", "Second", ENVIRONMENT_ID)));
+        var root = apiProductItem().toBuilder().reference(PortalNavigationItemFixtures.PORTAL_REFERENCE).build();
+
+        var expansion = service.expand(List.of(root), ENVIRONMENT_ID);
+
+        assertThat(expansion.itemsToCreate())
+            .hasSize(3)
+            .allSatisfy(item -> assertThat(item.getReference()).isEqualTo(PortalNavigationItemFixtures.PORTAL_REFERENCE));
+    }
+
+    @Test
     void should_not_consider_requested_api_items_as_generated() {
         var apiItem = CreatePortalNavigationItem.builder()
             .id(PortalNavigationItemId.random())
@@ -186,8 +201,8 @@ class PortalNavigationItemCreationExpansionDomainServiceTest {
         assertThat(normalizedFolder.getParentId()).isNull();
         assertThat(normalizedFolder.getRenderedParentId()).isEqualTo(api.getId());
         assertThat(normalizedFolder.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
-        assertThat(expansion.itemsToCreate().getLast().getReference()).isEqualTo(NavigationItemReference.defaultReference());
-        assertThat(requested).allSatisfy(item -> assertThat(item.getReference()).isEqualTo(NavigationItemReference.defaultReference()));
+        assertThat(expansion.itemsToCreate().getLast().getReference()).isNull();
+        assertThat(requested).allSatisfy(item -> assertThat(item.getReference()).isNull());
         assertThat(folder.getParentId()).isEqualTo(api.getId());
         assertThat(folder.getVisibility()).isNull();
         assertThat(page.getParentId()).isEqualTo(folder.getId());
@@ -209,9 +224,7 @@ class PortalNavigationItemCreationExpansionDomainServiceTest {
         assertThat(expansion.itemsToCreate())
             .extracting(CreatePortalNavigationItem::getId)
             .containsExactly(page.getId(), api.getId(), folder.getId(), product.getId());
-        assertThat(expansion.itemsToCreate()).allSatisfy(item ->
-            assertThat(item.getReference()).isEqualTo(NavigationItemReference.defaultReference())
-        );
+        assertThat(expansion.itemsToCreate()).allSatisfy(item -> assertThat(item.getReference()).isNull());
         assertThat(expansion.itemsToCreate().getFirst().getParentId()).isEqualTo(api.getId());
     }
 
@@ -283,7 +296,7 @@ class PortalNavigationItemCreationExpansionDomainServiceTest {
         assertThat(expansion.itemsToCreate())
             .singleElement()
             .satisfies(item -> {
-                assertThat(item.getReference()).isEqualTo(NavigationItemReference.defaultReference());
+                assertThat(item.getReference()).isNull();
                 assertThat(item.getParentId()).isEqualTo(api.getId());
                 assertThat(item.getRenderedParentId()).isNull();
             });

@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.portal.rest.fixture;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
+
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
@@ -48,6 +50,7 @@ public final class PortalNavigationFixtures {
 
     public static PortalNavigationFolder folder(PortalNavigationItemId id, String title, PortalArea area) {
         return PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(id)
             .organizationId("org")
             .environmentId("env")
@@ -62,6 +65,7 @@ public final class PortalNavigationFixtures {
 
     public static PortalNavigationLink link(PortalNavigationItemId id, String title, PortalArea area, String url) {
         return PortalNavigationLink.builder()
+            .reference(PORTAL_REFERENCE)
             .id(id)
             .organizationId("org")
             .environmentId("env")
@@ -77,6 +81,7 @@ public final class PortalNavigationFixtures {
 
     public static PortalNavigationPage page(PortalNavigationItemId id, String title, PortalArea area, PortalPageContentId pageId) {
         return PortalNavigationPage.builder()
+            .reference(PORTAL_REFERENCE)
             .id(id)
             .organizationId("org")
             .environmentId("env")
@@ -92,6 +97,7 @@ public final class PortalNavigationFixtures {
 
     public static PortalNavigationApiProduct apiProduct(PortalNavigationItemId id, String title, PortalArea area, UUID apiProductId) {
         return PortalNavigationApiProduct.builder()
+            .reference(PORTAL_REFERENCE)
             .id(id)
             .organizationId("org")
             .environmentId("env")

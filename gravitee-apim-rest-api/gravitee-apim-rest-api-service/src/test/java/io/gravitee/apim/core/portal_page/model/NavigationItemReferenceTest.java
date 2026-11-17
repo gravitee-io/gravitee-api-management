@@ -21,23 +21,12 @@ import io.gravitee.apim.core.portal.model.PortalId;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class NavigationItemReferenceTest {
-
-    @Test
-    void default_reference_is_a_portal_reference_wrapping_portal_id_zero() {
-        assertThat(NavigationItemReference.defaultReference()).isEqualTo(new NavigationItemReference.PortalReference(PortalId.ZERO));
-    }
-
-    @Test
-    void default_reference_returns_the_same_instance_as_portal_reference_default() {
-        assertThat(NavigationItemReference.defaultReference()).isSameAs(NavigationItemReference.PortalReference.DEFAULT);
-    }
 
     @ParameterizedTest(name = "{2}")
     @MethodSource("rootNamespacePairs")
@@ -55,7 +44,7 @@ class NavigationItemReferenceTest {
         var api = new NavigationItemReference.ApiReference("api-1");
         var sameApi = new NavigationItemReference.ApiReference("api-1");
         var otherApi = new NavigationItemReference.ApiReference("api-2");
-        var consolePortal = NavigationItemReference.defaultReference();
+        var consolePortal = new NavigationItemReference.PortalReference(PortalId.of("11111111-1111-1111-1111-111111111111"));
         var attachedPortal = new NavigationItemReference.PortalReference(PortalId.of("44444444-4444-4444-4444-4444444444a4"));
 
         return Stream.of(

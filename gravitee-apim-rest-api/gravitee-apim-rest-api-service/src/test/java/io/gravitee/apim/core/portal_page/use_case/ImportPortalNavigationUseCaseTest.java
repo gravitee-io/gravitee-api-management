@@ -15,10 +15,12 @@
  */
 package io.gravitee.apim.core.portal_page.use_case;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.groups.Tuple.tuple;
 
+import fixtures.core.model.PortalFixtures;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
@@ -32,6 +34,7 @@ import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationBulkImportDomainService;
@@ -56,6 +59,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationManifestParser;
 import java.util.ArrayList;
 import java.util.List;
@@ -90,6 +94,7 @@ class ImportPortalNavigationUseCaseTest {
         sourceDomainService = new PortalNavigationItemSourceDomainServiceInMemory();
         manifestParser = new PortalNavigationManifestParserInMemory();
         navigationPortals = new NavigationPortalDomainServiceInMemory();
+        navigationPortals.givenDefaultPortalForNavigationFixtures();
 
         var pageContentQueryService = PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage());
         var domainService = new PortalNavigationItemDomainService(
@@ -117,7 +122,7 @@ class ImportPortalNavigationUseCaseTest {
             crudService,
             pageContentCrudService,
             pageContentQueryService,
-            navigationPortals
+            navigationPortals.portalCrudService()
         );
         useCase = new ImportPortalNavigationUseCase(
             validatorService,
@@ -165,7 +170,7 @@ class ImportPortalNavigationUseCaseTest {
             crudService,
             pageContentCrudService,
             PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
-            navigationPortals
+            navigationPortals.portalCrudService()
         );
         return bulkImportDomainService.importSubtree((PortalNavigationFolder) queryService.findByIdAndEnvironmentId(ENV_ID, rootId));
     }
@@ -190,7 +195,65 @@ class ImportPortalNavigationUseCaseTest {
         assertThat(List.of(root.getId(), docsFolder.getId(), page.getId()))
             .map(id -> queryService.findByIdAndEnvironmentId(ENV_ID, id).getReference())
             .containsOnly(consolePortal())
-            .doesNotContain(NavigationItemReference.defaultReference());
+            .doesNotContain(new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")));
+    }
+
+    @Test
+    void should_reimport_when_the_zero_uuid_names_an_existing_portal() {
+        sourceDomainService.givenRemoteFile("/original.md", "# Original");
+        var root = execute("Imported Docs").rootFolder();
+        var originalPortal = ((NavigationItemReference.PortalReference) root.getReference()).portalId();
+        var zeroPortal = PortalId.of("00000000-0000-0000-0000-000000000000");
+        navigationPortals.portalCrudService().create(PortalFixtures.aPortal(zeroPortal, ENV_ID, ORG_ID, "Explicit zero portal"));
+        crudService.updatePortalReferences(ENV_ID, List.of(originalPortal), zeroPortal);
+        sourceDomainService.givenRemoteFile("/new.md", "# New");
+
+        var result = reimportSubtree(root.getId());
+
+        assertThat(result.files())
+            .isNotEmpty()
+            .allSatisfy(file -> assertThat(file.success()).isTrue());
+        assertThat(crudService.storage())
+            .extracting(PortalNavigationItem::getReference)
+            .containsOnly(new NavigationItemReference.PortalReference(zeroPortal));
+    }
+
+    @Test
+    void should_refuse_reimporting_when_the_owner_only_exists_in_another_environment() {
+        sourceDomainService.givenRemoteFile("/original.md", "# Original");
+        var root = execute("Imported Docs").rootFolder();
+        var foreignPortal = PortalId.random();
+        navigationPortals.portalCrudService().create(PortalFixtures.aPortal(foreignPortal, "other-environment", ORG_ID, "Foreign"));
+        root.changeOwner(new NavigationItemReference.PortalReference(foreignPortal));
+        crudService.update(root);
+        var before = crudService.storage().stream().map(PortalNavigationItem::getId).toList();
+        sourceDomainService.givenRemoteFile("/new.md", "# New");
+
+        var result = reimportSubtree(root.getId());
+
+        assertThat(result.files())
+            .singleElement()
+            .satisfies(file -> assertThat(file.success()).isFalse());
+        assertThat(crudService.storage()).extracting(PortalNavigationItem::getId).containsExactlyElementsOf(before);
+    }
+
+    @Test
+    void should_refuse_reimporting_a_folder_whose_portal_no_longer_exists() {
+        sourceDomainService.givenRemoteFile("/original.md", "# Original");
+        var root = execute("Imported Docs").rootFolder();
+        root.changeOwner(new NavigationItemReference.PortalReference(PortalId.random()));
+        crudService.update(root);
+        var itemIdsBefore = crudService.storage().stream().map(PortalNavigationItem::getId).toList();
+        var contentIdsBefore = pageContentCrudService.storage().stream().map(PortalPageContent::getId).toList();
+        sourceDomainService.givenRemoteFile("/new.md", "# New");
+
+        var result = reimportSubtree(root.getId());
+
+        assertThat(result.files())
+            .singleElement()
+            .satisfies(file -> assertThat(file.success()).isFalse());
+        assertThat(crudService.storage()).extracting(PortalNavigationItem::getId).containsExactlyElementsOf(itemIdsBefore);
+        assertThat(pageContentCrudService.storage()).extracting(PortalPageContent::getId).containsExactlyElementsOf(contentIdsBefore);
     }
 
     @Nested
@@ -615,6 +678,7 @@ class ImportPortalNavigationUseCaseTest {
             // area-mismatch error about a choice the caller never made
             sourceDomainService.givenRemoteFile("/docs/ok.md", "# Ok");
             var parent = PortalNavigationFolder.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(PortalNavigationItemId.random())
                 .organizationId(ORG_ID)
                 .environmentId(ENV_ID)
@@ -646,6 +710,7 @@ class ImportPortalNavigationUseCaseTest {
         void should_reject_an_import_below_a_sourced_folder() {
             sourceDomainService.givenRemoteFile("/docs/ok.md", "# Ok");
             var sourcedFolder = PortalNavigationFolder.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(PortalNavigationItemId.random())
                 .organizationId(ORG_ID)
                 .environmentId(ENV_ID)

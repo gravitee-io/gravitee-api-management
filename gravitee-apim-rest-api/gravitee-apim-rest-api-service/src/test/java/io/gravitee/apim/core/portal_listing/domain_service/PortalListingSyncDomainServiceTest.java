@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_listing.domain_service;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -377,6 +378,7 @@ class PortalListingSyncDomainServiceTest {
 
         var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, apiId, "/guides");
         var link = PortalNavigationLink.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.forApiLink(AUDIT_INFO, apiId, "external-docs"))
             .organizationId(AUDIT_INFO.organizationId())
             .environmentId(AUDIT_INFO.environmentId())
@@ -402,6 +404,7 @@ class PortalListingSyncDomainServiceTest {
 
     private static PortalNavigationFolder portalRootFolder(String title, String segment) {
         return PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(AUDIT_INFO.organizationId())
             .environmentId(AUDIT_INFO.environmentId())
@@ -659,6 +662,7 @@ class PortalListingSyncDomainServiceTest {
             var parentP = PortalNavigationItemId.forPortalFolder(AUDIT_INFO, PORTAL_ID.toString(), "/projects/alpha");
 
             var existingA = PortalNavigationApi.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(PortalNavigationItemId.forListingApi(AUDIT_INFO, PORTAL_ID.toString(), apiIdA))
                 .organizationId(AUDIT_INFO.organizationId())
                 .environmentId(AUDIT_INFO.environmentId())
@@ -730,6 +734,7 @@ class PortalListingSyncDomainServiceTest {
         private final String apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
         private final NavigationItemReference api = new NavigationItemReference.ApiReference(apiId);
         private PortalNavigationItemDomainService itemDomainService;
+        private final NavigationPortalDomainServiceInMemory navigationPortals = new NavigationPortalDomainServiceInMemory();
 
         @BeforeEach
         void setUp() {
@@ -741,7 +746,7 @@ class PortalListingSyncDomainServiceTest {
                 apiCrud,
                 new PortalNavigationItemSourceDomainServiceInMemory(),
                 new ApiOwnedNavigationDomainService(navItemQuery, navItemCrud),
-                new NavigationPortalDomainServiceInMemory()
+                navigationPortals
             );
             declare(GUIDES);
         }
@@ -842,6 +847,11 @@ class PortalListingSyncDomainServiceTest {
         @Test
         void should_not_see_a_portal_owned_folder_with_the_same_name() {
             var section = portalRootFolder("APIs", "apis");
+            section.changeOwner(
+                new NavigationItemReference.PortalReference(
+                    navigationPortals.givenDefaultPortal(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId())
+                )
+            );
             navItemCrud.create(section);
             var listing = (PortalNavigationApi) itemDomainService.create(
                 AUDIT_INFO.organizationId(),

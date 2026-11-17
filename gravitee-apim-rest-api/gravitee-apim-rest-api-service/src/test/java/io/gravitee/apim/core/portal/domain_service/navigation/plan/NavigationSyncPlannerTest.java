@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal.domain_service.navigation.plan;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -78,6 +79,7 @@ class NavigationSyncPlannerTest {
 
     private static PortalNavigationItem folder(String id, String segment, String parentId) {
         return PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.of(id))
             .organizationId("organization-id")
             .environmentId("environment-id")

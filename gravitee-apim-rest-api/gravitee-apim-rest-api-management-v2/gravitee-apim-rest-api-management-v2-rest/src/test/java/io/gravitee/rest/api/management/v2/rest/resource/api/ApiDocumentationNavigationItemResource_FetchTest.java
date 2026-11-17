@@ -29,6 +29,7 @@ import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
@@ -140,7 +141,7 @@ class ApiDocumentationNavigationItemResource_FetchTest extends AbstractResourceT
 
     @Test
     void should_reject_a_portal_owned_item() {
-        var portalPage = aPage(NavigationItemReference.defaultReference(), aSource());
+        var portalPage = aPage(new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")), aSource());
 
         Response response = fetch(portalPage.getId());
 

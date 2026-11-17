@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.domain_service;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -300,6 +301,7 @@ class ApiDocumentationSyncDomainServiceTest {
         var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
         navItemCrud.create(
             PortalNavigationPage.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(pageId)
                 .organizationId(AUDIT_INFO.organizationId())
                 .environmentId(AUDIT_INFO.environmentId())
@@ -343,6 +345,7 @@ class ApiDocumentationSyncDomainServiceTest {
         var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/docs");
         navItemCrud.create(
             PortalNavigationFolder.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(folderId)
                 .organizationId(AUDIT_INFO.organizationId())
                 .environmentId(AUDIT_INFO.environmentId())
@@ -357,6 +360,7 @@ class ApiDocumentationSyncDomainServiceTest {
         var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
         navItemCrud.create(
             PortalNavigationPage.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(pageId)
                 .organizationId(AUDIT_INFO.organizationId())
                 .environmentId(AUDIT_INFO.environmentId())
@@ -402,6 +406,7 @@ class ApiDocumentationSyncDomainServiceTest {
         var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
         navItemCrud.create(
             PortalNavigationPage.builder()
+                .reference(PORTAL_REFERENCE)
                 .id(pageId)
                 .organizationId(AUDIT_INFO.organizationId())
                 .environmentId(AUDIT_INFO.environmentId())
@@ -451,6 +456,7 @@ class ApiDocumentationSyncDomainServiceTest {
 
     private PortalNavigationApi seedNavApi(PortalNavigationItemId id, String apiId, PortalVisibility visibility) {
         var create = CreatePortalNavigationItem.builder()
+            .reference(PORTAL_REFERENCE)
             .id(id)
             .title("api")
             .segment("api")

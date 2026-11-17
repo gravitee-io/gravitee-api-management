@@ -233,6 +233,7 @@ public class PortalNavigationItemCreationExpansionDomainService {
                     .order(order)
                     .type(PortalNavigationItemType.API)
                     .parentId(root.getId())
+                    .reference(root.getReference())
                     .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
                     .apiId(api.getId())
                     .visibility(visibility)

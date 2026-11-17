@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.never;
@@ -1072,6 +1073,7 @@ class ListPortalNavigationItemsUseCaseTest {
     void a_hidden_portal_folder_hides_the_api_subtree_spliced_under_its_nav_api_row() {
         var apiId = "hidden-folder-api-id";
         var hiddenFolder = PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)

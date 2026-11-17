@@ -217,6 +217,7 @@ import io.gravitee.apim.core.plan.use_case.UpdatePlanUseCase;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
@@ -1668,7 +1669,7 @@ public class ResourceContextConfiguration {
         PortalNavigationItemCrudService portalNavigationItemCrudService,
         PortalPageContentCrudService portalPageContentCrudService,
         PortalPageContentQueryService portalPageContentQueryService,
-        NavigationPortalDomainService navigationPortalDomainService
+        PortalCrudService portalCrudService
     ) {
         return new PortalNavigationBulkImportDomainService(
             portalNavigationItemSourceDomainService,
@@ -1678,7 +1679,7 @@ public class ResourceContextConfiguration {
             portalNavigationItemCrudService,
             portalPageContentCrudService,
             portalPageContentQueryService,
-            navigationPortalDomainService
+            portalCrudService
         );
     }
 

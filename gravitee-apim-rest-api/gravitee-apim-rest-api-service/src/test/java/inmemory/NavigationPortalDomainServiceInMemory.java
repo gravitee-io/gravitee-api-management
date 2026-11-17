@@ -15,12 +15,15 @@
  */
 package inmemory;
 
+import fixtures.core.model.PortalNavigationItemFixtures;
 import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
 import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalContentOwnershipDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import java.net.URI;
 import java.net.URL;
 import lombok.SneakyThrows;
@@ -54,6 +57,22 @@ public class NavigationPortalDomainServiceInMemory extends NavigationPortalDomai
 
     public PortalCrudServiceInMemory portalCrudService() {
         return portalCrudService;
+    }
+
+    public void givenDefaultPortalForNavigationFixtures() {
+        var owner = (NavigationItemReference.PortalReference) PortalNavigationItemFixtures.PORTAL_REFERENCE;
+        portalCrudService.create(
+            Portal.of(
+                owner.portalId(),
+                PortalNavigationItemFixtures.ENV_ID,
+                PortalNavigationItemFixtures.ORG_ID,
+                "Developer Portal",
+                PortalNavigationStructure.empty(),
+                null,
+                true,
+                portalUrl()
+            )
+        );
     }
 
     @Override

@@ -83,7 +83,10 @@ class PortalSummaryDomainServiceTest {
         @Test
         void should_ignore_items_of_another_portal_or_of_the_placeholder_portal() {
             navigationItems.addAll(
-                List.of(api(OTHER_PORTAL_ID, ENV_ID, "api-1", null, true), api(PortalId.ZERO, ENV_ID, "api-2", null, true))
+                List.of(
+                    api(OTHER_PORTAL_ID, ENV_ID, "api-1", null, true),
+                    api(PortalId.of("00000000-0000-0000-0000-000000000000"), ENV_ID, "api-2", null, true)
+                )
             );
 
             assertThat(summaryOf(portal(PORTAL_ID, true)).publishedApisCount()).isZero();

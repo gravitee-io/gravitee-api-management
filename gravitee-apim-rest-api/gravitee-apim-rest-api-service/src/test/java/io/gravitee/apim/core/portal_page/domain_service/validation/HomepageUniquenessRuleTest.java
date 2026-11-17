@@ -68,7 +68,7 @@ class HomepageUniquenessRuleTest {
     }
 
     @Test
-    void two_console_owned_homepages_conflict() {
+    void two_homepages_for_the_zero_uuid_portal_conflict() {
         navigationItemsQueryService.storage().add(PortalNavigationItem.from(homepageCreateItem(null), ORG_ID, ENV_ID, null));
 
         assertThatThrownBy(() -> rule.validate(homepageCreateItem(null), ENV_ID, CreateValidationContext.empty())).isInstanceOf(
@@ -99,30 +99,19 @@ class HomepageUniquenessRuleTest {
     }
 
     @Test
-    void should_reject_a_homepage_for_the_default_portal_when_one_is_stored_on_the_zero_uuid() {
+    void should_keep_zero_uuid_and_default_portal_homepages_in_distinct_owner_scopes() {
         navigationItemsQueryService.storage().add(PortalNavigationItem.from(homepageCreateItem(null), ORG_ID, ENV_ID, null));
 
-        assertThatThrownBy(() ->
+        assertThatCode(() ->
             rule.validate(homepageCreateItem(DEFAULT_PORTAL_ID), ENV_ID, CreateValidationContext.empty())
-        ).isInstanceOf(HomepageAlreadyExistsException.class);
+        ).doesNotThrowAnyException();
     }
 
     @Test
-    void should_reject_a_homepage_on_the_zero_uuid_when_one_is_stored_for_the_default_portal() {
+    void should_keep_default_and_zero_uuid_portal_homepages_in_distinct_owner_scopes() {
         navigationItemsQueryService.storage().add(PortalNavigationItem.from(homepageCreateItem(DEFAULT_PORTAL_ID), ORG_ID, ENV_ID, null));
 
-        assertThatThrownBy(() -> rule.validate(homepageCreateItem(null), ENV_ID, CreateValidationContext.empty())).isInstanceOf(
-            HomepageAlreadyExistsException.class
-        );
-    }
-
-    @Test
-    void should_ignore_a_zero_uuid_homepage_declared_ignorable_for_a_portal_homepage() {
-        var staleHomepage = PortalNavigationItem.from(homepageCreateItem(null), ORG_ID, ENV_ID, null);
-        navigationItemsQueryService.storage().add(staleHomepage);
-        var ctx = CreateValidationContext.replacing(Set.of(staleHomepage.getId()));
-
-        assertThatCode(() -> rule.validate(homepageCreateItem(DEFAULT_PORTAL_ID), ENV_ID, ctx)).doesNotThrowAnyException();
+        assertThatCode(() -> rule.validate(homepageCreateItem(null), ENV_ID, CreateValidationContext.empty())).doesNotThrowAnyException();
     }
 
     @Test
@@ -133,12 +122,15 @@ class HomepageUniquenessRuleTest {
     }
 
     @Test
-    void an_existing_homepage_declared_ignorable_does_not_conflict() {
-        var staleHomepage = PortalNavigationItem.from(homepageCreateItem(null), ORG_ID, ENV_ID, null);
+    void should_ignore_a_homepage_being_replaced_within_the_same_portal() {
+        var staleHomepage = PortalNavigationItem.from(homepageCreateItem(DEFAULT_PORTAL_ID), ORG_ID, ENV_ID, null);
         navigationItemsQueryService.storage().add(staleHomepage);
         var ctx = CreateValidationContext.replacing(Set.of(staleHomepage.getId()));
 
-        assertThatCode(() -> rule.validate(homepageCreateItem(null), ENV_ID, ctx)).doesNotThrowAnyException();
+        assertThatThrownBy(() ->
+            rule.validate(homepageCreateItem(DEFAULT_PORTAL_ID), ENV_ID, CreateValidationContext.empty())
+        ).isInstanceOf(HomepageAlreadyExistsException.class);
+        assertThatCode(() -> rule.validate(homepageCreateItem(DEFAULT_PORTAL_ID), ENV_ID, ctx)).doesNotThrowAnyException();
     }
 
     private static CreatePortalNavigationItem homepageCreateItem(String referenceId) {
@@ -149,9 +141,11 @@ class HomepageUniquenessRuleTest {
             .area(PortalArea.HOMEPAGE)
             .order(0)
             .contentType(PortalPageContentType.GRAVITEE_MARKDOWN);
-        if (referenceId != null) {
-            builder.reference(new NavigationItemReference.PortalReference(PortalId.of(referenceId)));
-        }
+        builder.reference(
+            new NavigationItemReference.PortalReference(
+                PortalId.of(referenceId == null ? "00000000-0000-0000-0000-000000000000" : referenceId)
+            )
+        );
         return builder.build();
     }
 }

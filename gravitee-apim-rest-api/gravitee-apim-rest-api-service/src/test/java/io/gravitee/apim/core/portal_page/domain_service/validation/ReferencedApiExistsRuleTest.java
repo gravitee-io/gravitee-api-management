@@ -23,6 +23,7 @@ import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
@@ -59,7 +60,14 @@ class ReferencedApiExistsRuleTest {
 
     @Test
     void does_not_apply_to_an_item_owned_by_the_portal() {
-        assertThat(rule.appliesTo(anItem(PortalNavigationItemType.PAGE, NavigationItemReference.defaultReference()))).isFalse();
+        assertThat(
+            rule.appliesTo(
+                anItem(
+                    PortalNavigationItemType.PAGE,
+                    new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000"))
+                )
+            )
+        ).isFalse();
     }
 
     @Test

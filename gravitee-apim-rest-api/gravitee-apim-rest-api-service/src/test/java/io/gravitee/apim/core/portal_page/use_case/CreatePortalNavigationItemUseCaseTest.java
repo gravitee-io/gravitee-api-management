@@ -105,6 +105,7 @@ class CreatePortalNavigationItemUseCaseTest {
     void setUp() {
         final var storage = new ArrayList<PortalNavigationItem>();
         navigationPortals = new NavigationPortalDomainServiceInMemory();
+        navigationPortals.givenDefaultPortalForNavigationFixtures();
 
         crudService = spy(new PortalNavigationItemsCrudServiceInMemory(storage));
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
@@ -169,7 +170,7 @@ class CreatePortalNavigationItemUseCaseTest {
                 .id(PortalNavigationItemId.random())
                 .organizationId(ORG_ID)
                 .environmentId(ENV_ID)
-                .reference(NavigationItemReference.defaultReference())
+                .reference(new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")))
                 .title("Home")
                 .segment("home")
                 .area(PortalArea.HOMEPAGE)
@@ -178,7 +179,7 @@ class CreatePortalNavigationItemUseCaseTest {
                 .visibility(PortalVisibility.PUBLIC)
                 .build()
         );
-        crudService.updatePortalReferences(ENV_ID, List.of(PortalId.ZERO), portalId);
+        crudService.updatePortalReferences(ENV_ID, List.of(PortalId.of("00000000-0000-0000-0000-000000000000")), portalId);
 
         var secondHomepage = CreatePortalNavigationItem.builder()
             .type(PortalNavigationItemType.FOLDER)
@@ -226,7 +227,7 @@ class CreatePortalNavigationItemUseCaseTest {
         assertThat(List.of(folder.getId(), page.getId()))
             .map(id -> queryService.findByIdAndEnvironmentId(ENV_ID, id).getReference())
             .containsOnly(defaultPortal)
-            .doesNotContain(NavigationItemReference.defaultReference());
+            .doesNotContain(new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")));
     }
 
     @Test

@@ -24,9 +24,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.exception.PortalLinkNotFoundException;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.use_case.CreateOrUpdateApiLinkUseCase;
@@ -37,6 +39,7 @@ import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.rest.api.automation.model.PortalLinkSpec;
 import io.gravitee.apim.rest.api.automation.model.PortalLinkState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
@@ -53,6 +56,7 @@ class ApiLinkResourceTest extends AbstractResourceTest {
 
     private static final String API_HRID = "my-api";
     private static final String LINK_HRID = "external-docs";
+    private static final AuditInfo AUDIT_INFO = AuditInfo.builder().organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build();
 
     @Inject
     private CreateOrUpdateApiLinkUseCase createOrUpdateApiLinkUseCase;
@@ -274,6 +278,7 @@ class ApiLinkResourceTest extends AbstractResourceTest {
 
     private static PortalNavigationLink aPersistedLink(String name) {
         return PortalNavigationLink.builder()
+            .reference(new NavigationItemReference.ApiReference(HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id()))
             .id(PortalNavigationItemId.random())
             .organizationId(ORGANIZATION)
             .environmentId(ENVIRONMENT)

@@ -26,6 +26,7 @@ public final class PortalNavigationItemFixtures {
 
     public static PortalNavigationItem.PortalNavigationItemBuilder anItem(String id, PortalNavigationItem.Type type) {
         return PortalNavigationItem.builder()
+            .referenceId("portal-1")
             .id(id)
             .organizationId(ORGANIZATION_ID)
             .environmentId(ENVIRONMENT_ID)

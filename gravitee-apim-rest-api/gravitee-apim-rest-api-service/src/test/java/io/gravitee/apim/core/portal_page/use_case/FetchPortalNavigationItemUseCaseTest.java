@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.use_case;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.groups.Tuple.tuple;
@@ -90,7 +91,7 @@ class FetchPortalNavigationItemUseCaseTest {
             crudService,
             pageContentCrudService,
             PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
-            navigationPortals
+            navigationPortals.portalCrudService()
         );
         useCase = new FetchPortalNavigationItemUseCase(
             queryService,
@@ -246,8 +247,9 @@ class FetchPortalNavigationItemUseCaseTest {
 
         @Test
         void should_reimport_the_subtree_of_an_import_managed_folder() {
-            navigationPortals.givenDefaultPortal(ORG_ID, ENV_ID);
+            var portalId = navigationPortals.givenDefaultPortal(ORG_ID, ENV_ID);
             var folder = aFolder("Imported Docs", null, aSource().subtreeImport(true).build());
+            folder.changeOwner(new NavigationItemReference.PortalReference(portalId));
             sourceDomainService.givenRemoteFile("/docs/guide.md", "# Guide");
 
             var summary = execute(folder).summary();
@@ -295,6 +297,7 @@ class FetchPortalNavigationItemUseCaseTest {
 
     private PortalNavigationFolder aFolder(String title, PortalNavigationItemId parentId, PortalNavigationItemSource source) {
         var folder = PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -316,6 +319,7 @@ class FetchPortalNavigationItemUseCaseTest {
         pageContentCrudService.create(content);
 
         var page = PortalNavigationPage.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.random())
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)

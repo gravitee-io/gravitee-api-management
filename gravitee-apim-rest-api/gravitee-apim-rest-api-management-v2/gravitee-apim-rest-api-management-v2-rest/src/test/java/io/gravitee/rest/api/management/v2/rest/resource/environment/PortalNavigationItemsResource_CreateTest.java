@@ -194,7 +194,7 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
         Mockito.verify(createPortalNavigationItemUseCase).execute(captor.capture());
         assertThat(captor.getValue().item().getParentId().id()).isEqualTo(page.getParentId());
         assertThat(captor.getValue().item().getRenderedParentId()).isNull();
-        assertThat(captor.getValue().item().getReference()).isEqualTo(NavigationItemReference.defaultReference());
+        assertThat(captor.getValue().item().getReference()).isNull();
 
         final var item = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage.class);
         assertThat(item.getId()).isEqualTo(output.getId().id());

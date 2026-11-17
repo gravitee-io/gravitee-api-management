@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
  * into the now-{@code @Nonnull} fields.
  *
  * Items carrying the UNATTACHED sentinel are reassigned to the portal of their environment by
- * {@code PortalReferencesUpgrader}.
+ * PORTAL-344's {@code PortalReferencesUpgrader}.
  */
 @Component
 public class PortalNavigationItemDefaultReferenceMongoUpgrader extends MongoUpgrader {

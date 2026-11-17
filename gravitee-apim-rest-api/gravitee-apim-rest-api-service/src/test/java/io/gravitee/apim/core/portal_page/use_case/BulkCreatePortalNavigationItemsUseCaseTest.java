@@ -93,6 +93,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
 
     @BeforeEach
     void setUp() {
+        navigationPortals.givenDefaultPortalForNavigationFixtures();
         final var storage = new ArrayList<PortalNavigationItem>();
 
         crudService = spy(new PortalNavigationItemsCrudServiceInMemory(storage));

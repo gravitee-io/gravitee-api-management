@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.use_case;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.PortalFixtures;
@@ -164,6 +165,7 @@ class CreateOrUpdatePortalLinkUseCaseTest {
     @Test
     void should_report_segment_conflict_as_severe_error_and_materialize_nothing() {
         var squatter = PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.of("22222222-2222-2222-2222-222222222222"))
             .organizationId(AUDIT_INFO.organizationId())
             .environmentId(AUDIT_INFO.environmentId())
@@ -192,6 +194,7 @@ class CreateOrUpdatePortalLinkUseCaseTest {
         useCase.execute(input("External Docs", "https://docs.example.com", "/projects/alpha", 1));
 
         var squatter = PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(PortalNavigationItemId.of("33333333-3333-3333-3333-333333333333"))
             .organizationId(AUDIT_INFO.organizationId())
             .environmentId(AUDIT_INFO.environmentId())
@@ -237,6 +240,7 @@ class CreateOrUpdatePortalLinkUseCaseTest {
         navCrudService.initWith(
             List.of(
                 PortalNavigationFolder.builder()
+                    .reference(PORTAL_REFERENCE)
                     .id(parentFolderId)
                     .organizationId(AUDIT_INFO.organizationId())
                     .environmentId(AUDIT_INFO.environmentId())

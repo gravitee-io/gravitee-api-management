@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.domain_service;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.ApiProductQueryServiceInMemory;
@@ -175,6 +176,7 @@ class PortalCatalogNavigationVisibilityDomainServiceTest {
 
     private PortalNavigationFolder folder(PortalNavigationItemId id, PortalNavigationItemId parentId) {
         return PortalNavigationFolder.builder()
+            .reference(PORTAL_REFERENCE)
             .id(id)
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -190,6 +192,7 @@ class PortalCatalogNavigationVisibilityDomainServiceTest {
 
     private PortalNavigationApi api(String id, PortalNavigationItemId parentId, PortalVisibility visibility) {
         return PortalNavigationApi.builder()
+            .reference(PORTAL_REFERENCE)
             .id(navigationItemId(id))
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
@@ -206,6 +209,7 @@ class PortalCatalogNavigationVisibilityDomainServiceTest {
 
     private PortalNavigationApiProduct apiProduct(String id, PortalNavigationItemId parentId, PortalVisibility visibility) {
         return PortalNavigationApiProduct.builder()
+            .reference(PORTAL_REFERENCE)
             .id(navigationItemId(id))
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)

@@ -93,15 +93,21 @@ class HomepageReconcilerTest {
     }
 
     @Test
-    void drops_unattached_sentinel_homepage_and_its_content() {
+    void should_leave_a_homepage_with_another_reference_even_when_it_is_zero() {
         var seededContentId = PortalPageContentId.of("00000000-0000-0000-0000-0000000000c3");
-        navItemCrud.create(homepage(UNATTACHED_ID, NavigationItemReference.defaultReference(), seededContentId));
+        navItemCrud.create(
+            homepage(
+                UNATTACHED_ID,
+                new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")),
+                seededContentId
+            )
+        );
         pageContentCrud.create(content(seededContentId));
 
         reconciler.dropStaleHomepages(ENV_ID, PORTAL_ID, ACTIVE_ID);
 
-        assertThat(navItemCrud.storage()).isEmpty();
-        assertThat(pageContentCrud.storage()).isEmpty();
+        assertThat(navItemCrud.storage()).hasSize(1);
+        assertThat(pageContentCrud.storage()).hasSize(1);
     }
 
     @Test
@@ -121,10 +127,14 @@ class HomepageReconcilerTest {
     @Test
     void should_find_a_homepage_moved_off_the_zero_uuid_as_a_homepage_of_its_portal() {
         var contentId = PortalPageContentId.of("00000000-0000-0000-0000-0000000000c6");
-        var moved = homepage(UNATTACHED_ID, NavigationItemReference.defaultReference(), contentId);
+        var moved = homepage(
+            UNATTACHED_ID,
+            new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-000000000000")),
+            contentId
+        );
         navItemCrud.create(moved);
         var portalId = PortalId.of(PORTAL_ID);
-        navItemCrud.updatePortalReferences(ENV_ID, List.of(PortalId.ZERO), portalId);
+        navItemCrud.updatePortalReferences(ENV_ID, List.of(PortalId.of("00000000-0000-0000-0000-000000000000")), portalId);
 
         assertThat(reconciler.findStaleHomepages(ENV_ID, PORTAL_ID, ACTIVE_ID)).containsExactly(moved);
     }

@@ -135,44 +135,4 @@ class NavigationPortalDomainServiceTest {
             .hasMessageContaining("[" + ENV_ID + "]")
             .hasMessageContaining("it has several portals");
     }
-
-    @Test
-    void should_find_the_reference_of_the_default_portal() {
-        portalCrudService.initWith(List.of(aPortal(DEFAULT_PORTAL_ID, "Developer Portal", true)));
-
-        var reference = cut.findReference(ENV_ID);
-
-        assertThat(reference.portalId()).isEqualTo(DEFAULT_PORTAL_ID);
-    }
-
-    @Test
-    void should_never_create_the_default_portal_when_finding_a_reference() {
-        installationAccessQueryService.withPortalUrl(ENV_ID, "https://portal.acme.io");
-
-        assertThatThrownBy(() -> cut.findReference(ENV_ID))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("[" + ENV_ID + "]")
-            .hasMessageContaining("its default portal is not created yet: save the portal settings to create it");
-        assertThat(portalCrudService.storage()).isEmpty();
-    }
-
-    @Test
-    void should_refuse_finding_a_reference_when_the_only_portal_comes_from_the_automation_api() {
-        portalCrudService.initWith(List.of(aPortal(AUTOMATION_PORTAL_ID, "Automation Portal", false)));
-
-        assertThatThrownBy(() -> cut.findReference(ENV_ID))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("its portal is managed through the Automation API");
-    }
-
-    @Test
-    void should_refuse_finding_a_reference_when_the_environment_has_several_portals() {
-        portalCrudService.initWith(
-            List.of(aPortal(DEFAULT_PORTAL_ID, "Developer Portal", true), aPortal(AUTOMATION_PORTAL_ID, "Automation Portal", false))
-        );
-
-        assertThatThrownBy(() -> cut.findReference(ENV_ID))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("it has several portals");
-    }
 }

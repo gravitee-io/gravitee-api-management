@@ -16,8 +16,7 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
-import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
-import io.gravitee.apim.core.portal.exception.NavigationPortalNotResolvedException;
+import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ValidationDepth;
@@ -69,18 +68,21 @@ public class PortalNavigationBulkImportDomainService {
     private final PortalNavigationItemCrudService crudService;
     private final PortalPageContentCrudService pageContentCrudService;
     private final PortalPageContentQueryService pageContentQueryService;
-    private final NavigationPortalDomainService navigationPortalDomainService;
+    private final PortalCrudService portalCrudService;
 
     public BulkImportResult importSubtree(PortalNavigationFolder rootFolder) {
         var source = importManagedSourceOf(rootFolder);
         source.registerFetchAttempt();
 
-        final NavigationItemReference owner;
-        try {
-            owner = ownerOfImportedItems(rootFolder);
-        } catch (NavigationPortalNotResolvedException e) {
-            log.warn("Cannot import below portal navigation folder [id={}]: {}", rootFolder.getId().json(), e.getMessage());
-            return failListing(rootFolder, e.getMessage());
+        final var owner = rootFolder.getReference();
+        if (
+            owner instanceof NavigationItemReference.PortalReference portal &&
+            portalCrudService.findByIdAndEnvironmentId(portal.portalId(), rootFolder.getEnvironmentId()).isEmpty()
+        ) {
+            return failListing(
+                rootFolder,
+                "This folder is not attached to a portal of its environment, so its files cannot be imported. An administrator needs to fix it."
+            );
         }
 
         final List<String> files;
@@ -177,18 +179,6 @@ public class PortalNavigationBulkImportDomainService {
         crudService.update(rootFolder);
 
         return new BulkImportResult(List.copyOf(results));
-    }
-
-    /**
-     * A folder imported before PORTAL-342 is still on the zero UUID: its new children are stored on the
-     * environment's default portal, resolved once so that a refusal fails the whole run before anything is
-     * written. PORTAL-345 removes the zero UUID and this fallback with it.
-     */
-    private NavigationItemReference ownerOfImportedItems(PortalNavigationFolder rootFolder) {
-        if (NavigationItemReference.PortalReference.DEFAULT.equals(rootFolder.getReference())) {
-            return navigationPortalDomainService.findReference(rootFolder.getEnvironmentId());
-        }
-        return rootFolder.getReference();
     }
 
     private PortalNavigationItemSource importManagedSourceOf(PortalNavigationFolder rootFolder) {

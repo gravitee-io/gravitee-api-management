@@ -59,13 +59,14 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
     void re_parents_a_legacy_api_link_without_changing_its_id() throws UpgraderException {
         var linkId = HRIDToUUID.apiLink().context(AUDIT_INFO).api(API_ID).hrid("external-docs").id();
         var link = PortalNavigationItem.builder()
+            .referenceId("00000000-0000-0000-0000-000000000000")
             .id(linkId)
             .organizationId(ORG)
             .environmentId(ENV)
             .type(PortalNavigationItem.Type.LINK)
             .parentId("stale-parent-id")
             .rootId("stale-parent-id")
-            // referenceType/referenceId left at their PORTAL/ZERO builder defaults, as a legacy row would have them.
+            // Explicitly retain the historical PORTAL/zero owner of this legacy row.
             .automationMetadata(AutomationMetadata.builder().referenceType(AutomationTargetReferenceType.API).referenceId(API_ID).build())
             .build();
         repository.initWith(List.of(link));
@@ -85,6 +86,7 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
         var navApiRowId = "nav-api-row-1";
         var apiRow = apiRow(navApiRowId, API_ID);
         var handCreated = PortalNavigationItem.builder()
+            .referenceId("00000000-0000-0000-0000-000000000000")
             .id("hand-created-folder")
             .organizationId(ORG)
             .environmentId(ENV)
@@ -301,6 +303,7 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
      */
     private static PortalNavigationItem legacyApiOwnedFolder(String path, String parentId, String navApiRowId) {
         return PortalNavigationItem.builder()
+            .referenceId("00000000-0000-0000-0000-000000000000")
             .id(newFolderId(API_ID, path))
             .organizationId(ORG)
             .environmentId(ENV)
@@ -314,6 +317,7 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
     /** As {@link #legacyApiOwnedFolder}, for a doc page: {@code forApiDocumentation} was API-keyed too. */
     private static PortalNavigationItem legacyApiOwnedDocPage(String contentId, String location, String parentId, String navApiRowId) {
         return PortalNavigationItem.builder()
+            .referenceId("00000000-0000-0000-0000-000000000000")
             .id(docPageId(contentId))
             .organizationId(ORG)
             .environmentId(ENV)
@@ -333,6 +337,7 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
 
     private static PortalNavigationItem apiRow(String id, String apiId) {
         return PortalNavigationItem.builder()
+            .referenceId("00000000-0000-0000-0000-000000000000")
             .id(id)
             .organizationId(ORG)
             .environmentId(ENV)
