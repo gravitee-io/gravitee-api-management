@@ -1949,6 +1949,7 @@ gateway:
     #  failureThreshold: 3
 
   pdb:
+    # Not rendered when gateway.type is DaemonSet: it has no scale subresource and its rollouts do not evict pods.
     enabled: false
     minAvailable: ""
     maxUnavailable: "50%"
