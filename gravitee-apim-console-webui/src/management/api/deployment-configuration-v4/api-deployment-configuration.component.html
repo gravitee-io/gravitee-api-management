@@ -33,7 +33,11 @@
           <mat-form-field class="deployment-configuration__form-field">
             <mat-label>Sharding tags</mat-label>
             <mat-select formControlName="tags" multiple>
-              <mat-option *ngFor="let tag of shardingTags" [value]="tag.id"
+              <mat-option
+                *ngFor="let tag of shardingTags"
+                [value]="tag.id"
+                [disabled]="!userTags.includes(tag.id)"
+                [attr.data-testid]="'sharding-tag-option-' + tag.id"
                 >{{ tag.name }}<span *ngIf="tag.description"> - {{ tag.description }}</span></mat-option
               >
             </mat-select>
