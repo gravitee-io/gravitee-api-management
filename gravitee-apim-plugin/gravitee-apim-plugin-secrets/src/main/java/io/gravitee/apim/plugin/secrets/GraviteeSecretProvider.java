@@ -61,7 +61,7 @@ public class GraviteeSecretProvider implements SecretProvider {
     private final OrganizationKeyRepository organizationKeyRepository;
     private final EnvironmentRepository environmentRepository;
     private final Map<String, String> organizationOfEnvironment = new ConcurrentHashMap<>();
-    private DataKeyResolver dataKeys;
+    private volatile DataKeyResolver dataKeys;
     private volatile String refusal;
 
     public GraviteeSecretProvider(
@@ -92,7 +92,7 @@ public class GraviteeSecretProvider implements SecretProvider {
     }
 
     private KeyEncryptionKeyProvider verifiedKeyEncryptionKey() {
-        if (secretRepository == null || organizationKeyRepository == null) {
+        if (secretRepository == null || organizationKeyRepository == null || environmentRepository == null) {
             throw new SecretManagerException(
                 "Secret provider [" + ID + "] cannot read secrets: the management repository does not store secrets"
             );
@@ -106,7 +106,7 @@ public class GraviteeSecretProvider implements SecretProvider {
         Set<String> storedKekIds;
         try {
             storedKekIds = organizationKeyRepository.findKekIds();
-        } catch (TechnicalException e) {
+        } catch (TechnicalException | RuntimeException e) {
             throw new SecretManagerException("Secret provider [" + ID + "] failed to read the stored data keys", e);
         }
         if (!storedKekIds.isEmpty() && storedKekIds.stream().noneMatch(kek::canUnwrap)) {

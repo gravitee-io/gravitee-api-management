@@ -17,7 +17,13 @@ package io.gravitee.apim.plugin.secrets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -253,6 +259,20 @@ class GraviteeSecretProviderTest {
             when(organizationKeyRepository.findKekIds()).thenThrow(new TechnicalException("down"));
 
             assertRefusesEverySecret(provider(base64Kek).start(), "failed to read the stored data keys");
+        }
+
+        @Test
+        void should_refuse_every_secret_when_the_repository_fails_unexpectedly_while_starting() throws TechnicalException {
+            when(organizationKeyRepository.findKekIds()).thenThrow(new IllegalStateException("connection refused"));
+
+            assertRefusesEverySecret(provider(base64Kek).start(), "failed to read the stored data keys");
+        }
+
+        @Test
+        void should_refuse_every_secret_when_the_management_repository_has_no_environments() {
+            var provider = new GraviteeSecretProvider(base64Kek, secretRepository, organizationKeyRepository, null).start();
+
+            assertRefusesEverySecret(provider, "does not store secrets");
         }
 
         @Test
