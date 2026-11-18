@@ -154,21 +154,32 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
 
     private boolean validateSubscription(BaseExecutionContext ctx, SecurityToken securityToken) {
         SecurityChainDiagnostic securityChainDiagnostic = ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_DIAGNOSTIC);
-        Boolean validateSubscriptionEnabled = ctx.getInternalAttribute(ATTR_INTERNAL_VALIDATE_SUBSCRIPTION);
+        boolean skipValidation = Boolean.FALSE.equals(ctx.getInternalAttribute(ATTR_INTERNAL_VALIDATE_SUBSCRIPTION));
+        // Product plans come first in the chain: only the key's subscription tells which product, if any, serves the request.
+        // With validation skipped, the subscription only picks the product: its dates are not checked.
+        boolean productPlan = planContext.apiProductId() != null;
 
-        // Skip validating the subscription
-        if (validateSubscriptionEnabled != null && !validateSubscriptionEnabled) {
+        if (!productPlan && skipValidation) {
             return true;
         }
 
         if (!policy.requireSubscription(ctx)) {
+            if (productPlan) {
+                // A keyless product plan has no subscription to tell which product serves the request.
+                securityChainDiagnostic.markPlanHasNoSubscription(
+                    planContext.planName(),
+                    securityToken.getTokenType(),
+                    securityToken.getTokenValue()
+                );
+                return false;
+            }
             return true;
         }
 
         try {
             SubscriptionService subscriptionService = ctx.getComponent(SubscriptionService.class);
             // A product subscription is cached under its product: looking it up by product needs no product registry.
-            String scope = planContext.apiProductId() != null ? planContext.apiProductId() : ctx.getAttribute(ATTR_API);
+            String scope = productPlan ? planContext.apiProductId() : ctx.getAttribute(ATTR_API);
 
             Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndSecurityToken(
                 scope,
@@ -179,7 +190,7 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
             if (subscriptionOpt.isPresent()) {
                 Subscription subscription = subscriptionOpt.get();
 
-                if (planContext.planId().equals(subscription.getPlan()) && subscription.isTimeValid(ctx.timestamp())) {
+                if (planContext.planId().equals(subscription.getPlan()) && (skipValidation || subscription.isTimeValid(ctx.timestamp()))) {
                     ctx.setAttribute(ATTR_APPLICATION, subscription.getApplication());
                     ctx.setAttribute(ATTR_SUBSCRIPTION_ID, subscription.getId());
                     ctx.setInternalAttribute(ATTR_INTERNAL_SUBSCRIPTION, subscription);

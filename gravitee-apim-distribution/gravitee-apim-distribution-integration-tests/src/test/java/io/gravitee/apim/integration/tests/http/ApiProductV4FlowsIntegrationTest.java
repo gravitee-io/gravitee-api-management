@@ -113,6 +113,7 @@ class ApiProductV4FlowsIntegrationTest {
     private static final String OTHER_KEY = "flows-product-other-key";
     private static final String API_PLAN_KEY = "flows-api-plan-key";
     private static final String PRODUCT_HEADER = "X-Product-Flow";
+    private static final String API_PLAN_HEADER = "X-Api-Plan-Flow";
     private static final String ORDER_ID_HEADER = "X-Order-Id";
 
     abstract static class FlowsTestPreparer extends ApiProductV4IntegrationTest.TestPreparer {
@@ -721,12 +722,50 @@ class ApiProductV4FlowsIntegrationTest {
             gatewayConfigurationBuilder.set("api.validateSubscription", false);
         }
 
+        @Override
+        public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
+            super.configureApi(api, definitionClass);
+            ((Api) api.getDefinition()).getPlans().forEach(plan ->
+                plan.setFlows(List.of(flow("api plan flow", "/", List.of(), List.of(addHeader(API_PLAN_HEADER, "ran")))))
+            );
+        }
+
         @Test
         void should_run_the_product_flows_of_the_matched_product_plan(HttpClient client) {
             deployProduct(PRODUCT_ID, API_KEY_PLAN_ID, List.of(productHeaderFlow("matched")));
             allowProductKey(PRODUCT_ID, API_KEY_PLAN_ID, KEY);
 
             assertThat(callWithKey(client, API_1_PATH, KEY).header(PRODUCT_HEADER)).isEqualTo("matched");
+        }
+
+        @Test
+        void should_run_only_the_flows_of_the_subscribed_product_when_two_products_share_an_api(HttpClient client) {
+            deployProduct(PRODUCT_ID, API_KEY_PLAN_ID, List.of(productHeaderFlow("subscribed")));
+            deployProduct(OTHER_PRODUCT_ID, OTHER_API_KEY_PLAN_ID, List.of(productHeaderFlow("other")));
+            allowProductKey(PRODUCT_ID, API_KEY_PLAN_ID, KEY);
+            allowProductKey(OTHER_PRODUCT_ID, OTHER_API_KEY_PLAN_ID, OTHER_KEY);
+
+            assertThat(callWithKey(client, API_1_PATH, KEY)).satisfies(response -> {
+                assertThat(response.header(PRODUCT_HEADER)).isEqualTo("subscribed");
+                assertThat(response.header(API_PLAN_HEADER)).isNull();
+            });
+            assertThat(callWithKey(client, API_1_PATH, OTHER_KEY)).satisfies(response -> {
+                assertThat(response.header(PRODUCT_HEADER)).isEqualTo("other");
+                assertThat(response.header(API_PLAN_HEADER)).isNull();
+            });
+        }
+
+        @Test
+        void should_run_the_api_plan_flows_and_no_product_flow_for_a_key_of_the_api_own_plan(HttpClient client) {
+            deployProduct(PRODUCT_ID, API_KEY_PLAN_ID, List.of(productHeaderFlow("subscribed")));
+            deployProduct(OTHER_PRODUCT_ID, OTHER_API_KEY_PLAN_ID, List.of(productHeaderFlow("other")));
+            allowKeyForApi(API_PLAN_KEY, API_1_ID);
+
+            Response response = callWithKey(client, API_1_PATH, API_PLAN_KEY);
+
+            assertThat(response.status()).isEqualTo(200);
+            assertThat(response.header(PRODUCT_HEADER)).isNull();
+            assertThat(response.header(API_PLAN_HEADER)).isEqualTo("ran");
         }
     }
 
