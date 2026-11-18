@@ -33,6 +33,7 @@ import { ApiV4PathMappingsHarness } from './api-v4-path-mappings.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { GioTestingRole, GioTestingRoleProvider } from '../../../shared/components/gio-role/gio-role.service';
 import { ApiV4, fakeApiV2, fakeApiV4, fakePage, HttpListener } from '../../../entities/management-api-v2';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
@@ -234,7 +235,7 @@ describe('ApiV4PathMappingsComponent', () => {
 
     await harness.clickAdd();
     httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`, method: 'GET' })
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/portal-navigation-items`, method: 'GET' })
       .flush({ message: 'forbidden' }, { status: 403, statusText: 'Forbidden' });
     fixture.detectChanges();
 
@@ -474,11 +475,234 @@ describe('ApiV4PathMappingsComponent', () => {
     const dialog = await rootLoader.getHarness(MatDialogHarness);
     await (await dialog.getAllHarnesses(MatTabHarness))[1].select();
     expect(await dialog.getText()).toContain('Loading Swagger pages...');
-    expect(await dialog.getText()).not.toContain('No swagger documentation on your API.');
+    expect(await dialog.getText()).not.toContain('No swagger documentation on this API.');
 
     flushPages([]);
-    expect(await dialog.getText()).toContain('No swagger documentation on your API.');
+    expect(await dialog.getText()).toContain('No swagger documentation on this API.');
     expect(await dialog.getText()).not.toContain('Loading Swagger pages...');
+    await (await dialog.getHarness(MatButtonHarness.with({ text: /Cancel/ }))).click();
+  });
+
+  it('should list a published next-gen OpenAPI page and not the classic portal', async () => {
+    await create();
+    flushApi(apiWithMappings(['/kept']));
+    await harness.clickAdd();
+
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/portal-navigation-items`, method: 'GET' })
+      .flush({
+        items: [
+          { id: 'next-1', type: 'PAGE', title: 'Next-gen pets', published: true },
+          { id: 'draft-1', type: 'PAGE', title: 'Draft pets', published: false },
+          { id: 'guide-1', type: 'PAGE', title: 'Guide', published: true },
+        ],
+        publications: [],
+      });
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/portal-navigation-items/next-1/content`,
+        method: 'GET',
+      })
+      .flush({ type: 'OPENAPI' });
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/portal-navigation-items/guide-1/content`,
+        method: 'GET',
+      })
+      .flush({ type: 'GRAVITEE_MARKDOWN' });
+    httpTestingController.expectNone({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/portal-navigation-items/draft-1/content`,
+      method: 'GET',
+    });
+    httpTestingController.expectNone({
+      url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/pages?type=SWAGGER&api=${API_ID}`,
+      method: 'GET',
+    });
+    fixture.detectChanges();
+
+    const dialog = await rootLoader.getHarness(MatDialogHarness);
+    await (await dialog.getAllHarnesses(MatTabHarness))[1].select();
+    expect(await dialog.getText()).toContain('Next-gen pets');
+    expect(await dialog.getText()).not.toContain('Draft pets');
+    expect(await dialog.getText()).not.toContain('Guide');
+    await (await dialog.getHarness(MatButtonHarness.with({ text: /Cancel/ }))).click();
+  });
+
+  it('should list the other next-gen pages when one content request fails', async () => {
+    await create();
+    flushApi(apiWithMappings(['/kept']));
+    await harness.clickAdd();
+
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/portal-navigation-items`, method: 'GET' })
+      .flush({
+        items: [
+          { id: 'broken-1', type: 'PAGE', title: 'Broken pets', published: true },
+          { id: 'next-1', type: 'PAGE', title: 'Next-gen pets', published: true },
+        ],
+        publications: [],
+      });
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/portal-navigation-items/broken-1/content`,
+        method: 'GET',
+      })
+      .flush({ message: 'missing' }, { status: 404, statusText: 'Not Found' });
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/portal-navigation-items/next-1/content`,
+        method: 'GET',
+      })
+      .flush({ type: 'OPENAPI' });
+    fixture.detectChanges();
+
+    const dialog = await rootLoader.getHarness(MatDialogHarness);
+    await (await dialog.getAllHarnesses(MatTabHarness))[1].select();
+    expect(await dialog.getText()).toContain('Next-gen pets');
+    expect(await dialog.getText()).not.toContain('Broken pets');
+    expect(await dialog.getText()).not.toContain('Swagger pages could not be loaded');
+    await (await dialog.getHarness(MatButtonHarness.with({ text: /Cancel/ }))).click();
+  });
+
+  it('should list an unpublished next-gen OpenAPI page for a documentation editor', async () => {
+    await create(['api-definition-u', 'api-definition-r', 'api-documentation-u']);
+    flushApi(apiWithMappings(['/kept']));
+    await harness.clickAdd();
+
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/portal-navigation-items`, method: 'GET' })
+      .flush({
+        items: [{ id: 'draft-1', type: 'PAGE', title: 'Draft pets', published: false }],
+        publications: [],
+      });
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/portal-navigation-items/draft-1/content`,
+        method: 'GET',
+      })
+      .flush({ id: 'content-1', type: 'OPENAPI', content: 'openapi: 3.0.0' });
+    httpTestingController.expectNone(`${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/pages?type=SWAGGER&api=${API_ID}`);
+    fixture.detectChanges();
+
+    const dialog = await rootLoader.getHarness(MatDialogHarness);
+    await (await dialog.getAllHarnesses(MatTabHarness))[1].select();
+    expect(await dialog.getText()).toContain('Draft pets');
+    await (await dialog.getHarness(MatButtonHarness.with({ text: /Cancel/ }))).click();
+  });
+
+  it('should list an unpublished next-gen OpenAPI page for an organization admin', async () => {
+    await create(['api-definition-u', 'api-definition-r'], [{ scope: 'ORGANIZATION', name: 'ADMIN' }]);
+    flushApi(apiWithMappings(['/kept']));
+    await harness.clickAdd();
+
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/portal-navigation-items`, method: 'GET' })
+      .flush({
+        items: [{ id: 'draft-1', type: 'PAGE', title: 'Draft pets', published: false }],
+        publications: [],
+      });
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/portal-navigation-items/draft-1/content`,
+        method: 'GET',
+      })
+      .flush({ id: 'content-1', type: 'OPENAPI', content: 'openapi: 3.0.0' });
+    fixture.detectChanges();
+
+    const dialog = await rootLoader.getHarness(MatDialogHarness);
+    await (await dialog.getAllHarnesses(MatTabHarness))[1].select();
+    expect(await dialog.getText()).toContain('Draft pets');
+    await (await dialog.getHarness(MatButtonHarness.with({ text: /Cancel/ }))).click();
+  });
+
+  it('should list this API published and unpublished Swagger pages', async () => {
+    await create();
+    flushApi(apiWithMappings(['/kept']));
+    await harness.clickAdd();
+
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/portal-navigation-items`, method: 'GET' })
+      .flush({ items: [], publications: [] });
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/pages?type=SWAGGER&api=${API_ID}`, method: 'GET' })
+      .flush([
+        fakePage({ id: 'api-published', name: 'Published pets', type: 'SWAGGER', published: true }),
+        fakePage({ id: 'api-draft', name: 'Draft pets', type: 'SWAGGER', published: false }),
+        fakePage({ id: 'api-guide', name: 'Guide', type: 'MARKDOWN', published: true }),
+      ]);
+    fixture.detectChanges();
+
+    const dialog = await rootLoader.getHarness(MatDialogHarness);
+    await (await dialog.getAllHarnesses(MatTabHarness))[1].select();
+    expect(await dialog.getText()).toContain('Published pets');
+    expect(await dialog.getText()).toContain('Draft pets');
+    expect(await dialog.getText()).not.toContain('Guide');
+    await (await dialog.getHarness(MatButtonHarness.with({ text: /Cancel/ }))).click();
+  });
+
+  it('should show an empty list when the user cannot read this API documentation', async () => {
+    await create();
+    flushApi(apiWithMappings(['/kept']));
+    await harness.clickAdd();
+
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/portal-navigation-items`, method: 'GET' })
+      .flush({ items: [], publications: [] });
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/pages?type=SWAGGER&api=${API_ID}`, method: 'GET' })
+      .flush({ message: 'forbidden' }, { status: 403, statusText: 'Forbidden' });
+    fixture.detectChanges();
+
+    const dialog = await rootLoader.getHarness(MatDialogHarness);
+    await (await dialog.getAllHarnesses(MatTabHarness))[1].select();
+    expect(await dialog.getText()).toContain('No swagger documentation on this API.');
+    expect(await dialog.getText()).not.toContain('Swagger pages could not be loaded');
+    await (await dialog.getHarness(MatButtonHarness.with({ text: /Cancel/ }))).click();
+  });
+
+  it('should report a failure when this API Swagger list fails for another reason', async () => {
+    await create();
+    flushApi(apiWithMappings(['/kept']));
+    await harness.clickAdd();
+
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/portal-navigation-items`, method: 'GET' })
+      .flush({ items: [], publications: [] });
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/pages?type=SWAGGER&api=${API_ID}`, method: 'GET' })
+      .flush({ message: 'unavailable' }, { status: 500, statusText: 'Server Error' });
+    fixture.detectChanges();
+
+    const dialog = await rootLoader.getHarness(MatDialogHarness);
+    await (await dialog.getAllHarnesses(MatTabHarness))[1].select();
+    expect(await dialog.getText()).toContain('Swagger pages could not be loaded');
+    await (await dialog.getHarness(MatButtonHarness.with({ text: /Cancel/ }))).click();
+  });
+
+  it('should list this API Swagger pages when no published next-gen OpenAPI page exists', async () => {
+    await create();
+    flushApi(apiWithMappings(['/kept']));
+    await harness.clickAdd();
+
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/portal-navigation-items`, method: 'GET' })
+      .flush({
+        items: [{ id: 'draft-1', type: 'PAGE', title: 'Draft pets', published: false }],
+        publications: [],
+      });
+    httpTestingController.expectNone({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/portal-navigation-items/draft-1/content`,
+      method: 'GET',
+    });
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/pages?type=SWAGGER&api=${API_ID}`, method: 'GET' })
+      .flush([fakePage({ id: 'portal-1', name: 'API pets', type: 'SWAGGER' })]);
+    fixture.detectChanges();
+
+    const dialog = await rootLoader.getHarness(MatDialogHarness);
+    await (await dialog.getAllHarnesses(MatTabHarness))[1].select();
+    expect(await dialog.getText()).toContain('API pets');
+    expect(await dialog.getText()).not.toContain('Draft pets');
     await (await dialog.getHarness(MatButtonHarness.with({ text: /Cancel/ }))).click();
   });
 
@@ -572,12 +796,13 @@ describe('ApiV4PathMappingsComponent', () => {
     expect(await harness.hasDeleteButtons()).toBe(false);
   });
 
-  async function create(permissions: string[] = ['api-definition-u', 'api-definition-r']): Promise<void> {
+  async function create(permissions: string[] = ['api-definition-u', 'api-definition-r'], roles?: GioTestingRole): Promise<void> {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, MatIconTestingModule, ApiV4PathMappingsComponent],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: GioTestingPermissionProvider, useValue: permissions },
+        { provide: GioTestingRoleProvider, useValue: roles },
       ],
     })
       .overrideProvider(InteractivityChecker, {
@@ -620,8 +845,11 @@ describe('ApiV4PathMappingsComponent', () => {
 
   function flushPages(pages: ReturnType<typeof fakePage>[]): void {
     httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`, method: 'GET' })
-      .flush({ pages, breadcrumb: [] });
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/portal-navigation-items`, method: 'GET' })
+      .flush({ items: [], publications: [] });
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/pages?type=SWAGGER&api=${API_ID}`, method: 'GET' })
+      .flush(pages);
     fixture.detectChanges();
   }
 });

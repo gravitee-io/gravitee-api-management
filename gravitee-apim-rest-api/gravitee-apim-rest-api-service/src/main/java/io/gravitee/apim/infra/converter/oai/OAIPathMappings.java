@@ -40,7 +40,7 @@ public final class OAIPathMappings {
             if (PathMappingTemplates.isCompilable(template)) {
                 result.add(template);
             } else {
-                log.info("Skipping invalid OpenAPI path mapping template [{}]", template);
+                log.info("Skipping invalid OpenAPI path mapping template [{}]", OpenApiPathLog.singleLine(template));
             }
         }
         return new ArrayList<>(result);

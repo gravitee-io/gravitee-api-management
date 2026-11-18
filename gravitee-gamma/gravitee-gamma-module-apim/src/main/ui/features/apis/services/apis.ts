@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { getApiDocumentationPageContent, listApiDocumentation } from './apiDocumentation';
 import {
     apimFetchBlobV2,
     apimFetchJsonOrg,
@@ -39,6 +41,7 @@ import type {
     Property,
     ResponseTemplatesMap,
 } from '../types';
+import type { PortalNavigationPage } from '../types/apiDocumentation';
 import { PathMappingsConflictError } from '../utils/pathMappings';
 import { swaggerDocumentPaths } from '../utils/swaggerDocumentPaths';
 
@@ -375,33 +378,32 @@ export async function updateApiPathMappings(
     });
 }
 
-interface ApiDocumentationPagePayload {
-    id?: string;
-    name?: string;
-    type?: string;
-}
-
-interface ApiDocumentationPagesResponse {
-    pages?: ApiDocumentationPagePayload[];
-}
-
-/** Lists classic SWAGGER documentation pages for path-mapping import (Management API v2 pages). */
-export async function listApiSwaggerPages(environmentId: string, apiId: string): Promise<ApiSwaggerDocumentationPage[]> {
-    const result = await apimFetchJsonV2<ApiDocumentationPagesResponse>(environmentId, `/apis/${encodeURIComponent(apiId)}/pages`);
-    return (result.pages ?? [])
-        .filter((page): page is ApiDocumentationPagePayload & { id: string } => page.type === 'SWAGGER' && !!page.id)
-        .map(page => ({ id: page.id, name: page.name || page.id }));
+export async function listApiSwaggerPages(
+    environmentId: string,
+    apiId: string,
+    includeUnpublished: boolean,
+): Promise<ApiSwaggerDocumentationPage[]> {
+    const { items } = await listApiDocumentation(environmentId, apiId);
+    const pages = items.filter((item): item is PortalNavigationPage => item.type === 'PAGE' && (includeUnpublished || item.published));
+    const documents = await Promise.all(
+        pages.map(async page => {
+            try {
+                const content = await getApiDocumentationPageContent(environmentId, apiId, page.id);
+                return content.type === 'OPENAPI' ? { id: page.id, name: page.title || page.id } : null;
+            } catch {
+                return null;
+            }
+        }),
+    );
+    return documents.filter((page): page is ApiSwaggerDocumentationPage => page !== null);
 }
 
 export async function getApiSwaggerPagePaths(environmentId: string, apiId: string, pageId: string): Promise<string[]> {
-    const detail = await apimFetchJsonV2<{ content?: string }>(
-        environmentId,
-        `/apis/${encodeURIComponent(apiId)}/pages/${encodeURIComponent(pageId)}`,
-    );
+    const detail = await getApiDocumentationPageContent(environmentId, apiId, pageId);
     return swaggerDocumentPaths(detail.content);
 }
 
-/** Imports path templates from a SWAGGER documentation page onto the first HTTP listener. */
+/** Imports path templates from a next-gen OpenAPI page onto the first HTTP listener. */
 export async function importApiPathMappings(environmentId: string, apiId: string, body: ImportApiPathMappings): Promise<ApiPathMappings> {
     return apimFetchJsonV2<ApiPathMappings>(environmentId, `/apis/${encodeURIComponent(apiId)}/path-mappings/_import`, {
         method: 'POST',
