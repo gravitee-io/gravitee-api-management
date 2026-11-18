@@ -7431,6 +7431,10 @@ components:
             description: |
                 Unit of measurement for metric values: `TOKENS` on the LLM token metrics, `CURRENCY` on the
                 LLM cost metrics (a cost in the currency of the model's price list, which the documents do not carry).
+                A `COUNT` is a number of requests (messages on a message metric) whatever the metric's unit: a
+                measures, facets or time-series entry reading `COUNT` only is served `NUMBER`; an entry mixing
+                `COUNT` with other measures keeps the metric's unit, which applies to its measures other than
+                `COUNT`.
             example: "NUMBER"
         AnalyticsInterval:
             description: |
@@ -7746,7 +7750,8 @@ components:
                     description: |
                         Measure value. `AVG`, `MIN`, `MAX` and the percentiles are computed over the documents carrying
                         the metric's value; over a window or bucket without any such document they are `null`, where
-                        `COUNT`, `SUM` and `PERCENTAGE` are 0, on every metric.
+                        `COUNT`, `SUM` and `PERCENTAGE` are 0, on every metric. A facet ranked by `AVG`, `MIN`, `MAX` or a
+                        percentile holds only the groups carrying the value.
                     type: number
                     nullable: true
         AnalyticsMeasuresResponse:
