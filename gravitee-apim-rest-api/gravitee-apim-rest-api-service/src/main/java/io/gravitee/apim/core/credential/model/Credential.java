@@ -100,11 +100,21 @@ public record Credential(
     }
 
     /**
-     * A reference into Gravitee's secret store hands the secret to whoever uses the credential, so the user must be
-     * allowed to read secrets, and so must an expression, which can resolve to any of them. The secrets of a managed
-     * credential were written for it and need no such check.
+     * A reference into Gravitee's secret store must name the environment of the credential, and it hands the secret to
+     * whoever uses the credential, so the user must be allowed to read secrets, and so must an expression, which can
+     * resolve to any of them. The secrets of a managed credential were written for it and need no such check.
      */
     public void requireReferencesUsableBy(CredentialActor actor) {
+        if (
+            secretReferences
+                .values()
+                .stream()
+                .anyMatch(reference -> reference.isInGraviteeStore() && !environmentId.equals(reference.graviteeEnvironmentId()))
+        ) {
+            throw new InvalidCredentialException(
+                "A credential can only reference the Gravitee secrets of its own environment, not another environment."
+            );
+        }
         if (
             !isManaged() &&
             secretReferences
