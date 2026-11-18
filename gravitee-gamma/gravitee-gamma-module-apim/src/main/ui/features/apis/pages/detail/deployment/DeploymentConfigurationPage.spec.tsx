@@ -61,6 +61,7 @@ describe('DeploymentConfigurationPage (sharding tags persist by key, not id)', (
         permissionService.load('api', ['api-definition-u']);
         server.use(
             http.get(`${ORG_BASE}/configuration/tags`, () => HttpResponse.json(ORG_TAGS)),
+            http.get(`${ORG_BASE}/user/tags`, () => HttpResponse.json(['public', 'private'])),
             // API already has the 'public' tag (stored as the key).
             http.get(API_PATH, () => HttpResponse.json({ id: 'api-1', name: 'My API', tags: ['public'] })),
         );
@@ -92,5 +93,28 @@ describe('DeploymentConfigurationPage (sharding tags persist by key, not id)', (
         // Must be slugs the backend accepts — never the UUID that triggered tag.notAllowed (400).
         expect(body.tags).toEqual(['public', 'private']);
         expect(body.tags).not.toContain('258f7ecd-9f41-43e2-8f7e-cd9f4113e243');
+    });
+
+    it('disables the tags the user is not allowed to use', async () => {
+        server.use(http.get(`${ORG_BASE}/user/tags`, () => HttpResponse.json(['public'])));
+        renderPage();
+
+        const privateCheckbox = await screen.findByRole('checkbox', { name: /private/i });
+        await waitFor(() => expect(privateCheckbox).toBeDisabled());
+        expect(screen.getByRole('checkbox', { name: /public/i })).toBeEnabled();
+    });
+
+    it('keeps a restricted tag already set on the API when saving', async () => {
+        server.use(http.get(`${ORG_BASE}/user/tags`, () => HttpResponse.json(['private'])));
+        const putTracker = trackHandler('put', API_PATH, { id: 'api-1' });
+        renderPage();
+
+        const privateCheckbox = await screen.findByRole('checkbox', { name: /private/i });
+        await waitFor(() => expect(privateCheckbox).toBeEnabled());
+        fireEvent.click(privateCheckbox);
+        fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+        await waitFor(() => expect(putTracker.callCount).toBe(1));
+        expect((putTracker.lastCall?.body as { tags: string[] }).tags).toEqual(['public', 'private']);
     });
 });

@@ -34,6 +34,7 @@ import { useParams } from 'react-router-dom';
 import { notify } from '../../../../../shared/notify';
 import { useApiDetail } from '../../../hooks/useApiDetail';
 import { useOrgTags } from '../../../hooks/useOrgTags';
+import { useUserTags } from '../../../hooks/useUserTags';
 import { updateApiShardingTags } from '../../../services/apis';
 import { apiDetailKeys } from '../../../utils/queryKeys';
 
@@ -44,6 +45,7 @@ export function DeploymentConfigurationPage() {
 
     const { data: api, isLoading: apiLoading } = useApiDetail(apiId);
     const { data: orgTags = [], isLoading: tagsLoading } = useOrgTags();
+    const { data: userTags = [], isLoading: userTagsLoading } = useUserTags();
 
     // Sharding tags are part of the API definition, and are frozen for APIs synced from an
     // external source (Kubernetes operator) — mirrors the classic console deployment-config guard.
@@ -91,7 +93,7 @@ export function DeploymentConfigurationPage() {
         setEditedTags(null);
     }, []);
 
-    const isLoading = apiLoading || tagsLoading;
+    const isLoading = apiLoading || tagsLoading || userTagsLoading;
 
     return (
         <div className="space-y-4">
@@ -139,20 +141,21 @@ export function DeploymentConfigurationPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {orgTags.map(tag => {
                             const checked = selectedTagIds.includes(tag.key);
+                            const isTagDisabled = isReadOnly || !userTags.includes(tag.key);
                             return (
                                 <label
                                     key={tag.id}
                                     className={`flex items-start gap-3 rounded-lg border p-3 transition-colors ${
-                                        isReadOnly ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                                        isTagDisabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
                                     } ${
                                         checked
                                             ? 'border-primary/40 bg-primary/5'
-                                            : `border-border ${isReadOnly ? '' : 'hover:border-primary/25 hover:bg-muted/40'}`
+                                            : `border-border ${isTagDisabled ? '' : 'hover:border-primary/25 hover:bg-muted/40'}`
                                     }`}
                                 >
                                     <Checkbox
                                         checked={checked}
-                                        disabled={isReadOnly}
+                                        disabled={isTagDisabled}
                                         onCheckedChange={() => handleToggle(tag.key)}
                                         className="mt-0.5 shrink-0"
                                     />
