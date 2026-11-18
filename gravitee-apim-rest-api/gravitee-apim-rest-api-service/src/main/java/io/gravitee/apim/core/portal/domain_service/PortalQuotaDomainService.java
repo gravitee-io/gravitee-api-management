@@ -18,11 +18,8 @@ package io.gravitee.apim.core.portal.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.portal.model.PortalQuota;
 import io.gravitee.node.api.license.LicenseManager;
-import java.util.OptionalLong;
-import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
-@CustomLog
 @DomainService
 @RequiredArgsConstructor
 public class PortalQuotaDomainService {
@@ -47,30 +44,7 @@ public class PortalQuotaDomainService {
         if (value == null) {
             return DEFAULT_LIMIT;
         }
-        var limit = readLimit(value);
-        if (limit.isEmpty()) {
-            log.warn(
-                "Ignoring the license attribute {} of organization {}: [{}] is not a number, allowing {} portal",
-                PORTALS_MAX_ATTRIBUTE,
-                organizationId,
-                value,
-                DEFAULT_LIMIT
-            );
-            return DEFAULT_LIMIT;
-        }
-        return Math.clamp(limit.getAsLong(), DEFAULT_LIMIT, Integer.MAX_VALUE);
-    }
-
-    // Reads a limit the way gravitee-node's DefaultLicenseFactory does when it picks the higher of the tier's and the
-    // license's value, so APIM enforces the value node resolved.
-    private static OptionalLong readLimit(Object value) {
-        if (value instanceof Number number) {
-            return OptionalLong.of(number.longValue());
-        }
-        try {
-            return OptionalLong.of(Long.parseLong(value.toString().trim()));
-        } catch (NumberFormatException e) {
-            return OptionalLong.empty();
-        }
+        // The license model declares the attribute as an integer limit, and gravitee-node and gravitee-license keep it to that type.
+        return Math.clamp(((Number) value).longValue(), DEFAULT_LIMIT, Integer.MAX_VALUE);
     }
 }

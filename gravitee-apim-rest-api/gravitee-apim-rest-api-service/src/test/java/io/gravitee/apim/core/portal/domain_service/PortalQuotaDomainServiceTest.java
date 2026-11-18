@@ -31,7 +31,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class PortalQuotaDomainServiceTest {
@@ -55,7 +54,7 @@ class PortalQuotaDomainServiceTest {
     }
 
     static Stream<Arguments> portalsMaxValues() {
-        return Stream.of(Arguments.of(10, 10), Arguments.of(3L, 3), Arguments.of("5", 5), Arguments.of(" 7 ", 7));
+        return Stream.of(Arguments.of(10, 10), Arguments.of(3L, 3));
     }
 
     @ParameterizedTest
@@ -67,13 +66,7 @@ class PortalQuotaDomainServiceTest {
     }
 
     static Stream<Arguments> outOfRangeLimits() {
-        return Stream.of(
-            Arguments.of(0, 1),
-            Arguments.of(-1, 1),
-            Arguments.of("-5", 1),
-            Arguments.of(3_000_000_000L, Integer.MAX_VALUE),
-            Arguments.of("3000000000", Integer.MAX_VALUE)
-        );
+        return Stream.of(Arguments.of(0, 1), Arguments.of(-1, 1), Arguments.of(3_000_000_000L, Integer.MAX_VALUE));
     }
 
     @Test
@@ -86,14 +79,6 @@ class PortalQuotaDomainServiceTest {
     @Test
     void should_allow_one_portal_when_the_license_has_no_portals_max_attribute() {
         givenLicense(LicenseFixtures.anEnterpriseLicense());
-
-        assertThat(cut.quota(ORG_ID, 1).limit()).isEqualTo(1);
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = { "lots", "", "2.5" })
-    void should_allow_one_portal_when_the_portals_max_attribute_is_not_a_number(String value) {
-        givenLicense(LicenseFixtures.aLicenseWithAttribute("apim-portals-max", value));
 
         assertThat(cut.quota(ORG_ID, 1).limit()).isEqualTo(1);
     }
