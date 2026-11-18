@@ -529,8 +529,8 @@ spec:
               - LLM
           unit: TOKENS
           measures:
-              - COUNT
               - SUM
+              - COUNT
               - AVG
           facets:
               - API
@@ -584,8 +584,8 @@ spec:
               - LLM
           unit: TOKENS
           measures:
-              - COUNT
               - SUM
+              - COUNT
               - AVG
           facets:
               - API
@@ -640,8 +640,8 @@ spec:
               - LLM
           unit: CURRENCY
           measures:
-              - COUNT
               - SUM
+              - COUNT
               - AVG
           facets:
               - API
@@ -696,8 +696,8 @@ spec:
               - LLM
           unit: CURRENCY
           measures:
-              - COUNT
               - SUM
+              - COUNT
               - AVG
           facets:
               - API
@@ -752,8 +752,8 @@ spec:
               - LLM
           unit: TOKENS
           measures:
-              - COUNT
               - SUM
+              - COUNT
               - AVG
           facets:
               - API
@@ -808,8 +808,8 @@ spec:
               - LLM
           unit: CURRENCY
           measures:
-              - COUNT
               - SUM
+              - COUNT
               - AVG
           facets:
               - API
@@ -1046,8 +1046,8 @@ spec:
               - EDGE
           unit: NUMBER
           measures:
-              - COUNT
               - SUM
+              - COUNT
           facets:
               - API
               - APPLICATION

@@ -49,6 +49,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 /**
@@ -396,17 +397,29 @@ class AdditionalMetricFieldAdapterTest extends AbstractQueryAdapterTest {
             assertThat(scope.at("/aggs/HTTP_GATEWAY_LATENCY#additional-metrics.keyword_fraud-check_tier/terms/order").isObject()).isTrue();
         }
 
-        @Test
-        void should_rank_the_facets_of_an_llm_total_over_the_documents_carrying_either_of_its_values() throws JsonProcessingException {
-            var aggs = JSON.readTree(new HTTPFacetsQueryAdapter().adapt(facets(sorted(Metric.LLM_PROMPT_TOTAL_TOKEN, Measure.AVG)))).at(
-                "/aggs"
-            );
+        @ParameterizedTest
+        @CsvSource(
+            {
+                "LLM_PROMPT_TOTAL_TOKEN, additional-metrics.long_llm-proxy_tokens-sent, additional-metrics.long_llm-proxy_tokens-received",
+                "LLM_PROMPT_TOKEN_TOTAL_COST, additional-metrics.double_llm-proxy_sent-cost, additional-metrics.double_llm-proxy_received-cost",
+            }
+        )
+        void should_rank_the_facets_of_an_llm_total_over_the_documents_carrying_either_of_its_values(
+            Metric total,
+            String sentField,
+            String receivedField
+        ) throws JsonProcessingException {
+            var aggs = JSON.readTree(new HTTPFacetsQueryAdapter().adapt(facets(sorted(total, Measure.AVG)))).at("/aggs");
 
-            assertThat(aggs.at("/LLM_PROMPT_TOTAL_TOKEN#__FILTER__/filter")).isEqualTo(
+            assertThat(aggs.at("/" + total.name() + "#__FILTER__/filter")).isEqualTo(
                 JSON.readTree(
                     "{\"bool\":{\"should\":[" +
-                        "{\"exists\":{\"field\":\"additional-metrics.long_llm-proxy_tokens-sent\"}}," +
-                        "{\"exists\":{\"field\":\"additional-metrics.long_llm-proxy_tokens-received\"}}" +
+                        "{\"exists\":{\"field\":\"" +
+                        sentField +
+                        "\"}}," +
+                        "{\"exists\":{\"field\":\"" +
+                        receivedField +
+                        "\"}}" +
                         "],\"minimum_should_match\":1}}"
                 )
             );
