@@ -41,22 +41,7 @@ public class GetPortalNavigationItemUseCase {
     private final PortalNavigationItemSourceDomainService sourceDomainService;
 
     public Output execute(Input input) {
-        final PortalNavigationItem foundItem = input
-            .portalId()
-            .map(portalId ->
-                accessService.requireItem(
-                    input.organizationId(),
-                    input.environmentId(),
-                    new NavigationItemReference.PortalReference(portalId),
-                    input.portalNavigationItemId()
-                )
-            )
-            .or(() ->
-                Optional.ofNullable(
-                    portalNavigationItemsQueryService.findByIdAndEnvironmentId(input.environmentId(), input.portalNavigationItemId())
-                )
-            )
-            .orElseThrow(() -> new PortalNavigationItemNotFoundException(input.portalNavigationItemId().id().toString()));
+        final PortalNavigationItem foundItem = findItem(input);
 
         input.viewerContext().validateAccess(foundItem);
 
@@ -75,6 +60,22 @@ public class GetPortalNavigationItemUseCase {
         }
 
         return new Output(foundItem);
+    }
+
+    private PortalNavigationItem findItem(Input input) {
+        if (input.portalId().isPresent()) {
+            return accessService.requireItem(
+                input.organizationId(),
+                input.environmentId(),
+                new NavigationItemReference.PortalReference(input.portalId().get()),
+                input.portalNavigationItemId()
+            );
+        }
+        var item = portalNavigationItemsQueryService.findByIdAndEnvironmentId(input.environmentId(), input.portalNavigationItemId());
+        if (item == null) {
+            throw new PortalNavigationItemNotFoundException(input.portalNavigationItemId().id().toString());
+        }
+        return item;
     }
 
     public record Input(
