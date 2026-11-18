@@ -246,7 +246,7 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
 
     private static void refuse(List<Error> errors) {
         if (!errors.isEmpty()) {
-            throw new ValidationDomainException(errors.stream().map(Error::getMessage).collect(Collectors.joining(", ")));
+            throw new ValidationDomainException(errors.stream().map(Error::getMessage).collect(Collectors.joining(" ")));
         }
     }
 
@@ -297,10 +297,14 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
                 errors.add(notRunningInGuardian(step, policy, phase));
             }
             if (policy.guardrail()) {
-                if (!policy.supports(apiTypes)) {
-                    errors.add(incompatibleProtocol(step, apiTypes));
-                } else {
-                    validateScopeProtocol(step, apiTypes, errors);
+                var protocolError = policy.supports(apiTypes)
+                    ? scopeProtocolError(step, apiTypes)
+                    : Optional.of(incompatibleProtocol(step, apiTypes));
+                if (protocolError.isPresent()) {
+                    // the schema of a guardrail usually constrains its scope too: judging it would report
+                    // this cause a second time, or a configuration moot on a Guardian it cannot run in
+                    errors.add(protocolError.get());
+                    continue;
                 }
             }
             validateConfigurationSchema(step, errors, correction);
@@ -330,7 +334,7 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
         if (judged.isEmpty()) {
             // refused here rather than by the shared service, which would answer the parser message: it
             // quotes the configuration it could not read, and that may carry a credential
-            errors.add(Error.severe("Step [%s] has an invalid configuration: it must be a JSON object", step.getName()));
+            errors.add(Error.severe("Step [%s] has an invalid configuration: it must be a JSON object.", step.getName()));
             return;
         }
         String accepted;
@@ -344,14 +348,14 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
                 Error.severe(
                     "Step [%s] has an invalid configuration: %s",
                     step.getName(),
-                    Objects.requireNonNullElse(e.getMessage(), "it does not match the schema of the policy")
+                    asSentence(Objects.requireNonNullElse(e.getMessage(), "it does not match the schema of the policy"))
                 )
             );
             return;
         } catch (PluginNotFoundException e) {
             // the registry read above is a snapshot, and this service resolves the plugin again: a policy
             // uninstalled in between is a refused step, not the 404 this exception would answer
-            errors.add(Error.severe("Step [%s] has an invalid configuration: the policy is not installed", step.getName()));
+            errors.add(Error.severe("Step [%s] has an invalid configuration: the policy is not installed.", step.getName()));
             return;
         }
         if (isSameConfiguration(accepted, judged.get())) {
@@ -366,6 +370,11 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
                 )
             );
         }
+    }
+
+    /** The refusals are joined into one message, so each has to read as a sentence of its own. */
+    private static String asSentence(String message) {
+        return message.endsWith(".") ? message : message + ".";
     }
 
     /**
@@ -405,28 +414,28 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
      * <p>A configuration that is no JSON object is left alone here: the schema check refuses it on its
      * own, naming one cause rather than two, and there is nothing to read in it anyway.
      */
-    private void validateScopeProtocol(Step step, Set<ApiType> apiTypes, List<Error> errors) {
+    private Optional<Error> scopeProtocolError(Step step, Set<ApiType> apiTypes) {
         var configuration = configurationAsObject(step);
         if (configuration.isEmpty()) {
-            return;
+            return Optional.empty();
         }
         var scope = configuration.get().get("scope");
         if (scope == null || scope.isNull()) {
-            return;
+            return Optional.empty();
         }
         if (!scope.isObject()) {
-            errors.add(Error.severe("Guardrail step [%s] has an invalid scope configuration.", step.getName()));
-            return;
+            return Optional.of(Error.severe("Guardrail step [%s] has an invalid scope configuration.", step.getName()));
         }
         var protocol = scope.get("protocol");
         if (protocol == null) {
-            return;
+            return Optional.empty();
         }
         ApiType scopeApiType = protocol.isTextual() ? scopeApiType(protocol.textValue()) : null;
         if (scopeApiType == null) {
-            errors.add(Error.severe("Guardrail step [%s] has an invalid scope protocol.", step.getName()));
-        } else if (apiTypes.stream().anyMatch(apiType -> apiType != scopeApiType)) {
-            errors.add(
+            return Optional.of(Error.severe("Guardrail step [%s] has an invalid scope protocol.", step.getName()));
+        }
+        if (apiTypes.stream().anyMatch(apiType -> apiType != scopeApiType)) {
+            return Optional.of(
                 Error.severe(
                     "Guardrail step [%s] declares scope protocol [%s], incompatible with Guardian API types [%s].",
                     step.getName(),
@@ -435,6 +444,7 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
                 )
             );
         }
+        return Optional.empty();
     }
 
     private static Error notRunningInGuardian(Step step, PolicyCapabilities policy, Phase phase) {

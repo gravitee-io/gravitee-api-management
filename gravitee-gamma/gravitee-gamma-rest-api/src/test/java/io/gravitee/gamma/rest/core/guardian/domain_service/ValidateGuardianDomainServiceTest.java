@@ -24,6 +24,7 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aPolicy;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aPolicyPluginProvider;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.flows;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.validation.Validator;
@@ -462,6 +463,52 @@ class ValidateGuardianDomainServiceTest {
                 message -> assertThat(message).contains("Detect credentials", "$.rules"),
                 message -> assertThat(message).contains("Other guardrail", "$.threshold")
             );
+    }
+
+    @Test
+    void should_refuse_with_one_sentence_per_error() {
+        policies.put("other-guardrail", aGuardrail(flows(LLM_PROXY, "REQUEST", GUARDIAN, "REQUEST")));
+        policyValidation.givenRefuses("other-guardrail", "$.threshold: must have a maximum value of 1");
+        var policy = aPolicy();
+        policy.setConfiguration("{\"scope\":{\"protocol\":\"MCP\"}}");
+        var guardian = aGuardian(definition ->
+            definition.policies(List.of(policy, step("Other guardrail", "other-guardrail", true)))
+        ).build();
+
+        assertThatThrownBy(() -> validator.validateAgainstInstalledPolicies(guardian))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessage(
+                "Guardrail step [Detect credentials] declares scope protocol [MCP], incompatible with Guardian API types [llm-proxy]. " +
+                    "Step [Other guardrail] has an invalid configuration: $.threshold: must have a maximum value of 1."
+            );
+    }
+
+    @Test
+    void should_not_judge_the_schema_of_a_step_refused_for_its_scope_protocol() {
+        policyValidation.givenRefuses("data-logging-masking", "$.scope.protocol: does not have a value in the enumeration");
+        var policy = aPolicy();
+        policy.setConfiguration("{\"scope\":{\"protocol\":\"MCP\"}}");
+        var guardian = aGuardian(definition -> definition.policies(List.of(policy))).build();
+
+        assertThat(validate(guardian).severe().orElseThrow())
+            .as("one cause, one error")
+            .singleElement()
+            .extracting(Validator.Error::getMessage)
+            .asString()
+            .contains("scope protocol [MCP], incompatible");
+    }
+
+    @Test
+    void should_not_judge_the_schema_of_a_guardrail_that_does_not_support_the_api_type() {
+        policies.put("data-logging-masking", aGuardrail(flows(MCP_PROXY, "REQUEST", GUARDIAN, "REQUEST")));
+        policyValidation.givenRefuses("data-logging-masking", "$.rules: is missing but it is required");
+
+        assertThat(validate(aGuardian().build()).severe().orElseThrow())
+            .as("its configuration is moot on a Guardian it cannot run in")
+            .singleElement()
+            .extracting(Validator.Error::getMessage)
+            .asString()
+            .contains("does not support Guardian API types [llm-proxy]");
     }
 
     @Test
