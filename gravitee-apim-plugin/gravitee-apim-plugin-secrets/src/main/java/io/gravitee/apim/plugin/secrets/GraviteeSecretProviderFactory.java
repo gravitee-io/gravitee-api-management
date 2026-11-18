@@ -28,7 +28,7 @@ import org.springframework.beans.factory.ObjectProvider;
  * The plugin manager instantiates this factory reflectively, so the repositories cannot be constructor arguments. They
  * are looked up lazily because the management repository plugin registers them after the factory exists.
  */
-public class BuiltInSecretProviderFactory implements SecretProviderFactory<BuiltInSecretManagerConfiguration> {
+public class GraviteeSecretProviderFactory implements SecretProviderFactory<GraviteeSecretManagerConfiguration> {
 
     private volatile ObjectProvider<SecretRepository> secretRepository;
     private volatile ObjectProvider<OrganizationKeyRepository> organizationKeyRepository;
@@ -48,11 +48,11 @@ public class BuiltInSecretProviderFactory implements SecretProviderFactory<Built
     }
 
     @Override
-    public SecretProvider create(BuiltInSecretManagerConfiguration configuration) {
+    public SecretProvider create(GraviteeSecretManagerConfiguration configuration) {
         if (secretRepository == null) {
-            throw new SecretManagerException("Secret provider [" + BuiltInSecretProvider.ID + "] is not connected to the gateway");
+            throw new SecretManagerException("Secret provider [" + GraviteeSecretProvider.ID + "] is not connected to the gateway");
         }
-        return new BuiltInSecretProvider(
+        return new GraviteeSecretProvider(
             encryptionKey(configuration),
             secretRepository.getIfAvailable(),
             organizationKeyRepository.getIfAvailable(),
@@ -60,7 +60,7 @@ public class BuiltInSecretProviderFactory implements SecretProviderFactory<Built
         );
     }
 
-    private String encryptionKey(BuiltInSecretManagerConfiguration configuration) {
+    private String encryptionKey(GraviteeSecretManagerConfiguration configuration) {
         String key = configuration.encryptionKey();
         return key == null || key.isBlank() ? sharedEncryptionKey.get() : key;
     }

@@ -23,26 +23,27 @@ import java.nio.file.Path;
 /**
  * Ships in the gateway rather than as a plugin archive, so it has no path, manifest or dependencies of its own.
  */
-public class BuiltInSecretProviderPlugin implements SecretProviderPlugin<BuiltInSecretProviderFactory, BuiltInSecretManagerConfiguration> {
+public class GraviteeSecretProviderPlugin
+    implements SecretProviderPlugin<GraviteeSecretProviderFactory, GraviteeSecretManagerConfiguration> {
 
     @Override
     public String id() {
-        return BuiltInSecretProvider.ID;
+        return GraviteeSecretProvider.ID;
     }
 
     @Override
     public String clazz() {
-        return BuiltInSecretProviderFactory.class.getName();
+        return GraviteeSecretProviderFactory.class.getName();
     }
 
     @Override
-    public Class<BuiltInSecretProviderFactory> secretProviderFactory() {
-        return BuiltInSecretProviderFactory.class;
+    public Class<GraviteeSecretProviderFactory> secretProviderFactory() {
+        return GraviteeSecretProviderFactory.class;
     }
 
     @Override
-    public Class<BuiltInSecretManagerConfiguration> configuration() {
-        return BuiltInSecretManagerConfiguration.class;
+    public Class<GraviteeSecretManagerConfiguration> configuration() {
+        return GraviteeSecretManagerConfiguration.class;
     }
 
     @Override

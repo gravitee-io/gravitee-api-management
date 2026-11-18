@@ -17,7 +17,7 @@ package io.gravitee.gateway.standalone.spring;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.apim.plugin.secrets.BuiltInSecretProviderConfiguration;
+import io.gravitee.apim.plugin.secrets.GraviteeSecretProviderConfiguration;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -76,7 +76,7 @@ import org.springframework.context.annotation.Primary;
         PlatformConfiguration.class,
         ConnectorConfiguration.class,
         RequestConfiguration.class,
-        BuiltInSecretProviderConfiguration.class,
+        GraviteeSecretProviderConfiguration.class,
     }
 )
 public class StandaloneConfiguration {

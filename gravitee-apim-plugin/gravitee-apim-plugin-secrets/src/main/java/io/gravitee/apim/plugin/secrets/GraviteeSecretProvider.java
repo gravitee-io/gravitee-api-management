@@ -43,14 +43,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import lombok.CustomLog;
 
 @CustomLog
-public class BuiltInSecretProvider implements SecretProvider {
+public class GraviteeSecretProvider implements SecretProvider {
 
     public static final String ID = "gravitee";
     private static final String KEY_SETTING =
         "Secret provider [" +
         ID +
         "] " +
-        BuiltInSecretManagerConfiguration.ENCRYPTION_KEY +
+        GraviteeSecretManagerConfiguration.ENCRYPTION_KEY +
         " (or " +
         StaticKeyEncryptionKeyProvider.KEY_PROPERTY +
         ")";
@@ -64,7 +64,7 @@ public class BuiltInSecretProvider implements SecretProvider {
     private DataKeyResolver dataKeys;
     private volatile String refusal;
 
-    public BuiltInSecretProvider(
+    public GraviteeSecretProvider(
         String base64Kek,
         SecretRepository secretRepository,
         OrganizationKeyRepository organizationKeyRepository,

@@ -20,25 +20,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-class BuiltInSecretManagerConfigurationTest {
+class GraviteeSecretManagerConfigurationTest {
 
     @Test
     void should_be_enabled_by_default() {
-        assertThat(new BuiltInSecretManagerConfiguration(Map.of()).isEnabled()).isTrue();
+        assertThat(new GraviteeSecretManagerConfiguration(Map.of()).isEnabled()).isTrue();
     }
 
     @Test
     void should_be_disabled_when_configured_so() {
-        assertThat(new BuiltInSecretManagerConfiguration(Map.of("enabled", "false")).isEnabled()).isFalse();
+        assertThat(new GraviteeSecretManagerConfiguration(Map.of("enabled", "false")).isEnabled()).isFalse();
     }
 
     @Test
     void should_read_the_key_encryption_key() {
-        assertThat(new BuiltInSecretManagerConfiguration(Map.of("encryption.key", "a-key")).encryptionKey()).isEqualTo("a-key");
+        assertThat(new GraviteeSecretManagerConfiguration(Map.of("encryption.key", "a-key")).encryptionKey()).isEqualTo("a-key");
     }
 
     @Test
     void should_have_no_key_encryption_key_when_none_is_configured() {
-        assertThat(new BuiltInSecretManagerConfiguration(Map.of()).encryptionKey()).isNull();
+        assertThat(new GraviteeSecretManagerConfiguration(Map.of()).encryptionKey()).isNull();
     }
 }

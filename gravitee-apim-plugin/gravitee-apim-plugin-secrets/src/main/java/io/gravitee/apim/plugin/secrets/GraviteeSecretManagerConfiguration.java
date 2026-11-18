@@ -19,7 +19,7 @@ import io.gravitee.secrets.api.plugin.SecretManagerConfiguration;
 import io.gravitee.secrets.api.util.ConfigHelper;
 import java.util.Map;
 
-public class BuiltInSecretManagerConfiguration implements SecretManagerConfiguration {
+public class GraviteeSecretManagerConfiguration implements SecretManagerConfiguration {
 
     public static final String ENABLED = "enabled";
     public static final String ENCRYPTION_KEY = "encryption.key";
@@ -27,7 +27,7 @@ public class BuiltInSecretManagerConfiguration implements SecretManagerConfigura
     private final boolean enabled;
     private final String encryptionKey;
 
-    public BuiltInSecretManagerConfiguration(Map<String, Object> properties) {
+    public GraviteeSecretManagerConfiguration(Map<String, Object> properties) {
         this.enabled = ConfigHelper.getProperty(properties, ENABLED, Boolean.class, true);
         this.encryptionKey = ConfigHelper.getProperty(properties, ENCRYPTION_KEY, String.class, null);
     }

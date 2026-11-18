@@ -47,7 +47,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
-class BuiltInSecretProviderTest {
+class GraviteeSecretProviderTest {
 
     private static final String ORG = "org-1";
     private static final String ENV = "env-1";
@@ -212,7 +212,7 @@ class BuiltInSecretProviderTest {
     @Nested
     class Start {
 
-        private final Logger logger = (Logger) LoggerFactory.getLogger(BuiltInSecretProvider.class);
+        private final Logger logger = (Logger) LoggerFactory.getLogger(GraviteeSecretProvider.class);
         private final ListAppender<ILoggingEvent> logs = new ListAppender<>();
 
         Start() {
@@ -257,7 +257,7 @@ class BuiltInSecretProviderTest {
 
         @Test
         void should_refuse_every_secret_when_the_management_repository_does_not_store_secrets() {
-            var provider = new BuiltInSecretProvider(base64Kek, null, null, environmentRepository).start();
+            var provider = new GraviteeSecretProvider(base64Kek, null, null, environmentRepository).start();
 
             assertRefusesEverySecret(provider, "does not store secrets");
         }
@@ -300,7 +300,7 @@ class BuiltInSecretProviderTest {
                 .satisfies(event -> {
                     assertThat(event.getLevel()).isEqualTo(Level.WARN);
                     assertThat(event.getFormattedMessage())
-                        .contains(BuiltInSecretManagerConfiguration.ENCRYPTION_KEY, "did not wrap")
+                        .contains(GraviteeSecretManagerConfiguration.ENCRYPTION_KEY, "did not wrap")
                         .doesNotContain(base64Kek);
                 });
         }
@@ -312,12 +312,12 @@ class BuiltInSecretProviderTest {
         when(secretRepository.findByKey(ORG, environmentId, key)).thenReturn(Optional.of(secret));
     }
 
-    private BuiltInSecretProvider started() {
-        return (BuiltInSecretProvider) provider(base64Kek).start();
+    private GraviteeSecretProvider started() {
+        return (GraviteeSecretProvider) provider(base64Kek).start();
     }
 
-    private BuiltInSecretProvider provider(String base64Kek) {
-        return new BuiltInSecretProvider(base64Kek, secretRepository, organizationKeyRepository, environmentRepository);
+    private GraviteeSecretProvider provider(String base64Kek) {
+        return new GraviteeSecretProvider(base64Kek, secretRepository, organizationKeyRepository, environmentRepository);
     }
 
     private static String randomKek() {
