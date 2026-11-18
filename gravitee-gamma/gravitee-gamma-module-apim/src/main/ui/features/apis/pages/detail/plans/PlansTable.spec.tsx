@@ -22,9 +22,10 @@ import { notify } from '../../../../../shared/notify';
 import type { ManagedPlan, PlanContext, PlanStatus } from '../../../types/plan';
 
 const mockReorderMutate = jest.fn();
+const mockTransitionMutate = jest.fn();
 
 jest.mock('../../../hooks/usePlans', () => ({
-    usePlanTransition: () => ({ mutate: jest.fn(), isPending: false }),
+    usePlanTransition: () => ({ mutate: mockTransitionMutate, isPending: false }),
     useReorderPlan: () => ({ mutate: mockReorderMutate, isPending: false }),
 }));
 jest.mock('../../../../../shared/notify', () => ({ notify: { success: jest.fn(), error: jest.fn() } }));
@@ -133,5 +134,33 @@ describe('PlansTable reordering', () => {
             .slice(1)
             .map(row => within(row).getAllByRole('cell')[1].textContent);
         expect(names).toEqual(['Gold', 'Silver', 'Bronze']);
+    });
+});
+
+describe('PlansTable publish', () => {
+    beforeEach(() => {
+        mockTransitionMutate.mockReset();
+        (notify.error as jest.Mock).mockReset();
+    });
+
+    it('shows the server message and leaves an OAuth2 plan in staging when publish is rejected', async () => {
+        const user = userEvent.setup();
+        const message = 'OAuth2 resource [prod-oauth-off] on plan [OAuth2 Plan] is disabled.';
+        mockTransitionMutate.mockImplementation((_variables, options) => options.onError(new Error(message)));
+        const staging = { ...plan('oauth', 'OAuth2 Plan', 0, 'STAGING'), security: { type: 'OAUTH2' } } as ManagedPlan;
+
+        renderTable({
+            ctx: { type: 'api-product', entityId: 'product-1' },
+            status: 'STAGING',
+            plans: [staging],
+        });
+
+        await user.click(screen.getByRole('button', { name: 'Actions for OAuth2 Plan' }));
+        await user.click(await screen.findByRole('menuitem', { name: /publish/i }));
+        await user.click(screen.getByRole('button', { name: 'Publish' }));
+
+        expect(notify.error).toHaveBeenCalledWith(expect.objectContaining({ message }), 'Failed to update plan.');
+        expect(screen.getByText('OAuth2 Plan')).toBeInTheDocument();
+        expect(screen.queryByText('Plan published')).not.toBeInTheDocument();
     });
 });
