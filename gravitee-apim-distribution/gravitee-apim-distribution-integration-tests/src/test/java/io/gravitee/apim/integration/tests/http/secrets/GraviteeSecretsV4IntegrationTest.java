@@ -64,14 +64,14 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 
 @GatewayTest
-@DeployApi({ "/apis/v4/http/secrets/builtin/api-static-ref.json", "/apis/v4/http/secrets/builtin/api-static-ref-other-environment.json" })
-class BuiltInSecretsV4IntegrationTest extends AbstractGatewayTest {
+@DeployApi({ "/apis/v4/http/secrets/gravitee/api-static-ref.json", "/apis/v4/http/secrets/gravitee/api-static-ref-other-environment.json" })
+class GraviteeSecretsV4IntegrationTest extends AbstractGatewayTest {
 
     private static final String ORGANIZATION = "DEFAULT";
     private static final String ENVIRONMENT = "DEFAULT";
     private static final String OTHER_ENVIRONMENT = "other-environment";
     private static final String KEY = "llm-key";
-    private static final String VALUE = "sk-built-in-secret";
+    private static final String VALUE = "sk-gravitee-secret";
 
     private final String base64Kek = randomKek();
     private final StaticKeyEncryptionKeyProvider kek = StaticKeyEncryptionKeyProvider.fromBase64(base64Kek);
@@ -131,7 +131,7 @@ class BuiltInSecretsV4IntegrationTest extends AbstractGatewayTest {
     }
 
     @Test
-    void should_call_the_upstream_with_the_value_of_the_built_in_secret(HttpClient httpClient) {
+    void should_call_the_upstream_with_the_value_of_the_gravitee_secret(HttpClient httpClient) {
         wiremock.stubFor(get("/endpoint").withHeader("Authorization", equalTo("ApiKey " + VALUE)).willReturn(ok("from backend")));
 
         httpClient

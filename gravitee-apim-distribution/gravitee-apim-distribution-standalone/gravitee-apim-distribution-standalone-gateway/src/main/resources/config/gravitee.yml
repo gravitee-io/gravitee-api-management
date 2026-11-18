@@ -1064,12 +1064,12 @@ api:
 #    notificationInterval: 5 # Number of retries after which the notification needs to be sent
   # API level Secret manager configuration
 #  secrets:
-#    # Key encryption key (KEK) of the Management API, base64 of 32 random bytes. Used by the built-in provider
+#    # Key encryption key (KEK) of the Management API, base64 of 32 random bytes. Used by the gravitee provider
 #    # unless its own configuration.encryption.key is set.
 #    encryption:
 #      key: <base64 of 32 random bytes>
 #    providers:
-#      # built-in provider: reads the secrets stored through the Management API, as /gravitee/{envId}/{key}
+#      # gravitee provider: reads the secrets stored through the Management API, as /gravitee/{envId}/{key}
 #      - id: gravitee
 #        plugin: gravitee
 #        configuration:

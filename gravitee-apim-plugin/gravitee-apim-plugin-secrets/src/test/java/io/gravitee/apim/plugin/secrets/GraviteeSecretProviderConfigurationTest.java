@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.env.MapPropertySource;
 
-class BuiltInSecretProviderConfigurationTest {
+class GraviteeSecretProviderConfigurationTest {
 
     private final SecretProviderPluginManager pluginManager = new DefaultSecretProviderPluginManager(
         new DefaultSecretProviderClassLoaderFactory()
@@ -41,7 +41,7 @@ class BuiltInSecretProviderConfigurationTest {
         try (var context = gatewayContext()) {
             context.refresh();
 
-            assertThat((Object) pluginManager.getFactoryById(BuiltInSecretProvider.ID)).isInstanceOf(BuiltInSecretProviderFactory.class);
+            assertThat((Object) pluginManager.getFactoryById(GraviteeSecretProvider.ID)).isInstanceOf(GraviteeSecretProviderFactory.class);
         }
     }
 
@@ -53,9 +53,9 @@ class BuiltInSecretProviderConfigurationTest {
             context.getBeanFactory().registerSingleton("organizationKeyRepository", mock(OrganizationKeyRepository.class));
             context.getBeanFactory().registerSingleton("environmentRepository", mock(EnvironmentRepository.class));
 
-            BuiltInSecretProviderFactory factory = pluginManager.getFactoryById(BuiltInSecretProvider.ID);
-            assertThat(factory.create(new BuiltInSecretManagerConfiguration(Map.of("encryption.key", "a-key")))).isInstanceOf(
-                BuiltInSecretProvider.class
+            GraviteeSecretProviderFactory factory = pluginManager.getFactoryById(GraviteeSecretProvider.ID);
+            assertThat(factory.create(new GraviteeSecretManagerConfiguration(Map.of("encryption.key", "a-key")))).isInstanceOf(
+                GraviteeSecretProvider.class
             );
         }
     }
@@ -72,9 +72,9 @@ class BuiltInSecretProviderConfigurationTest {
             context.getBeanFactory().registerSingleton("organizationKeyRepository", mock(OrganizationKeyRepository.class));
             context.getBeanFactory().registerSingleton("environmentRepository", mock(EnvironmentRepository.class));
 
-            BuiltInSecretProviderFactory factory = pluginManager.getFactoryById(BuiltInSecretProvider.ID);
+            GraviteeSecretProviderFactory factory = pluginManager.getFactoryById(GraviteeSecretProvider.ID);
             factory
-                .create(new BuiltInSecretManagerConfiguration(Map.of()))
+                .create(new GraviteeSecretManagerConfiguration(Map.of()))
                 .start()
                 .resolve(SecretURL.from("/gravitee/env-1/llm-key:value", true))
                 .test()
@@ -85,7 +85,7 @@ class BuiltInSecretProviderConfigurationTest {
     private AnnotationConfigApplicationContext gatewayContext() {
         var context = new AnnotationConfigApplicationContext();
         context.registerBean(SecretProviderPluginManager.class, () -> pluginManager);
-        context.register(BuiltInSecretProviderConfiguration.class);
+        context.register(GraviteeSecretProviderConfiguration.class);
         return context;
     }
 }

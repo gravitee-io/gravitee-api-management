@@ -30,11 +30,11 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.support.StaticApplicationContext;
 
-class BuiltInSecretProviderFactoryTest {
+class GraviteeSecretProviderFactoryTest {
 
     private static final SecretURL LLM_KEY = SecretURL.from("/gravitee/env-1/llm-key:value", true);
 
-    private final BuiltInSecretProviderFactory factory = new BuiltInSecretProviderFactory();
+    private final GraviteeSecretProviderFactory factory = new GraviteeSecretProviderFactory();
     private final StaticApplicationContext gateway = new StaticApplicationContext();
     private String sharedKey;
 
@@ -46,11 +46,11 @@ class BuiltInSecretProviderFactoryTest {
     }
 
     @Test
-    void should_create_the_built_in_provider_with_the_repositories_the_gateway_has_by_then() {
+    void should_create_the_gravitee_provider_with_the_repositories_the_gateway_has_by_then() {
         connect();
         givenSecretRepositories();
 
-        assertThat(factory.create(configuration("a-key"))).isInstanceOf(BuiltInSecretProvider.class);
+        assertThat(factory.create(configuration("a-key"))).isInstanceOf(GraviteeSecretProvider.class);
     }
 
     @Test
@@ -99,7 +99,7 @@ class BuiltInSecretProviderFactoryTest {
         givenSecretRepositories();
         sharedKey = randomKek();
 
-        var provider = factory.create(new BuiltInSecretManagerConfiguration(Map.of())).start();
+        var provider = factory.create(new GraviteeSecretManagerConfiguration(Map.of())).start();
 
         provider.resolve(LLM_KEY).test().assertComplete().assertNoValues();
     }
@@ -139,7 +139,7 @@ class BuiltInSecretProviderFactoryTest {
         gateway.getBeanFactory().registerSingleton("environmentRepository", mock(EnvironmentRepository.class));
     }
 
-    private static BuiltInSecretManagerConfiguration configuration(String key) {
-        return new BuiltInSecretManagerConfiguration(Map.of("encryption.key", key));
+    private static GraviteeSecretManagerConfiguration configuration(String key) {
+        return new GraviteeSecretManagerConfiguration(Map.of("encryption.key", key));
     }
 }

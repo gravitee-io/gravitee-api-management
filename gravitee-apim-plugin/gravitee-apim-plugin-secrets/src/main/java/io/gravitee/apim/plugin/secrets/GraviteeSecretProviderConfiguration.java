@@ -32,22 +32,22 @@ import org.springframework.core.env.Environment;
  */
 @CustomLog
 @Configuration
-public class BuiltInSecretProviderConfiguration {
+public class GraviteeSecretProviderConfiguration {
 
     @Bean
-    public BuiltInSecretProviderFactory builtInSecretProviderFactory(
+    public GraviteeSecretProviderFactory graviteeSecretProviderFactory(
         SecretProviderPluginManager pluginManager,
         Environment environment,
         ObjectProvider<SecretRepository> secretRepository,
         ObjectProvider<OrganizationKeyRepository> organizationKeyRepository,
         ObjectProvider<EnvironmentRepository> environmentRepository
     ) {
-        pluginManager.register(new BuiltInSecretProviderPlugin());
-        BuiltInSecretProviderFactory factory = pluginManager.getFactoryById(BuiltInSecretProvider.ID);
+        pluginManager.register(new GraviteeSecretProviderPlugin());
+        GraviteeSecretProviderFactory factory = pluginManager.getFactoryById(GraviteeSecretProvider.ID);
         factory.connect(secretRepository, organizationKeyRepository, environmentRepository, () ->
             environment.getProperty(StaticKeyEncryptionKeyProvider.KEY_PROPERTY)
         );
-        log.info("Built-in secret provider [{}]: REGISTERED", BuiltInSecretProvider.ID);
+        log.info("Gravitee secret provider [{}]: REGISTERED", GraviteeSecretProvider.ID);
         return factory;
     }
 }
