@@ -19,7 +19,7 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.model.PortalQuota;
 import io.gravitee.node.api.license.LicenseManager;
-import java.util.OptionalInt;
+import java.util.OptionalLong;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -47,24 +47,30 @@ public class PortalQuotaDomainService {
         if (value == null) {
             return DEFAULT_LIMIT;
         }
-        return parseCount(value).orElseGet(() -> {
+        var limit = readLimit(value);
+        if (limit.isEmpty()) {
             log.warn(
-                "Ignoring the license attribute {} of organization {}: [{}] is not a portal count, allowing {} portal",
+                "Ignoring the license attribute {} of organization {}: [{}] is not a number, allowing {} portal",
                 PORTALS_MAX_ATTRIBUTE,
                 organizationId,
                 value,
                 DEFAULT_LIMIT
             );
             return DEFAULT_LIMIT;
-        });
+        }
+        return Math.clamp(limit.getAsLong(), 0, Integer.MAX_VALUE);
     }
 
-    private static OptionalInt parseCount(Object value) {
+    // Reads a limit the way gravitee-node's DefaultLicenseFactory does when it picks the higher of the tier's and the
+    // license's value, so APIM enforces the value node resolved.
+    private static OptionalLong readLimit(Object value) {
+        if (value instanceof Number number) {
+            return OptionalLong.of(number.longValue());
+        }
         try {
-            int count = value instanceof Number number ? number.intValue() : Integer.parseInt(value.toString().trim());
-            return count >= 0 ? OptionalInt.of(count) : OptionalInt.empty();
+            return OptionalLong.of(Long.parseLong(value.toString().trim()));
         } catch (NumberFormatException e) {
-            return OptionalInt.empty();
+            return OptionalLong.empty();
         }
     }
 }
