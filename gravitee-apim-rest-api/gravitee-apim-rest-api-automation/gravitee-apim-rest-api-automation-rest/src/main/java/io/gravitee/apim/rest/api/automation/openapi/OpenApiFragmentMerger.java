@@ -15,12 +15,17 @@
  */
 package io.gravitee.apim.rest.api.automation.openapi;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -42,6 +47,33 @@ public final class OpenApiFragmentMerger {
     private static final String NAME = "name";
 
     private OpenApiFragmentMerger() {}
+
+    /**
+     * Merges fragment files the way a running instance merges the fragments of its modules, so the API docs
+     * site publishes the document an instance serves.
+     *
+     * <p>Usage: {@code OpenApiFragmentMerger <base.yaml> [<module>=<fragment.yaml>...]}. The merged document
+     * goes to standard output, in UTF-8. Fragments merge in argument order.
+     */
+    public static void main(String[] args) throws IOException {
+        if (args.length == 0) {
+            throw new IllegalArgumentException("Usage: OpenApiFragmentMerger <base.yaml> [<module>=<fragment.yaml>...]");
+        }
+        Map<String, String> fragmentsByModule = new LinkedHashMap<>();
+        for (int i = 1; i < args.length; i++) {
+            String[] moduleAndPath = args[i].split("=", 2);
+            if (moduleAndPath.length != 2 || moduleAndPath[0].isEmpty()) {
+                throw new IllegalArgumentException("Expected <module>=<fragment.yaml>, got [" + args[i] + "]");
+            }
+            fragmentsByModule.put(moduleAndPath[0], Files.readString(Path.of(moduleAndPath[1]), UTF_8));
+        }
+        String merged;
+        try (InputStream base = Files.newInputStream(Path.of(args[0]))) {
+            merged = merge(base, fragmentsByModule);
+        }
+        System.out.write(merged.getBytes(UTF_8));
+        System.out.flush();
+    }
 
     /**
      * @param base the Automation API document (YAML)
