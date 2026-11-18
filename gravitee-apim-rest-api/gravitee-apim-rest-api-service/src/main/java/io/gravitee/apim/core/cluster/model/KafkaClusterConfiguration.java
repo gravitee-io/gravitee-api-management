@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.utils.StringUtils;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @param backendMetadataMaxAge seconds during which each gateway instance reuses its own all-topics metadata request to
@@ -39,15 +40,16 @@ public record KafkaClusterConfiguration(List<KafkaClusterConnection> connections
     /**
      * {@code configuration} with a cross id on every connection, slugified from its name when it has none. The rest is
      * kept as sent, for the schema validation to judge: through this record, a max age of 1.5 would reach it as 1, and
-     * "abc" would fail before it.
+     * "abc" would fail before it. A configuration whose connections do not map, or that has a null connection, is returned
+     * as sent too, for the validation to reject.
      */
     public static Object withGeneratedConnectionCrossIds(Object configuration, ObjectMapper objectMapper) {
-        Map<String, Object> sent = objectMapper.convertValue(configuration, RAW);
-        List<KafkaClusterConnection> connections = objectMapper.convertValue(sent.get("connections"), CONNECTIONS);
-        if (connections == null || connections.isEmpty()) {
+        Sent sent = read(configuration, objectMapper).orElse(null);
+        if (sent == null || sent.connections() == null || sent.connections().isEmpty() || sent.connections().contains(null)) {
             return configuration;
         }
-        List<KafkaClusterConnection> updatedConnections = connections
+        List<KafkaClusterConnection> updatedConnections = sent
+            .connections()
             .stream()
             .map(conn ->
                 new KafkaClusterConnection(
@@ -59,18 +61,30 @@ public record KafkaClusterConfiguration(List<KafkaClusterConnection> connections
             )
             .toList();
         Map<String, Object> rebuilt = objectMapper.convertValue(new KafkaClusterConfiguration(updatedConnections, null), RAW);
-        if (sent.containsKey(BACKEND_METADATA_MAX_AGE)) {
-            rebuilt.put(BACKEND_METADATA_MAX_AGE, sent.get(BACKEND_METADATA_MAX_AGE));
+        if (sent.raw().containsKey(BACKEND_METADATA_MAX_AGE)) {
+            rebuilt.put(BACKEND_METADATA_MAX_AGE, sent.raw().get(BACKEND_METADATA_MAX_AGE));
         }
         return rebuilt;
     }
 
     /**
      * The connections of {@code configuration}, read before the schema validation has judged the rest: through this
-     * record, a max age of "abc" would fail the read instead of being rejected.
+     * record, a max age of "abc" would fail the read instead of being rejected. Empty when the connections do not map,
+     * which the validation rejects.
      */
-    public static KafkaClusterConfiguration connectionsOf(Object configuration, ObjectMapper objectMapper) {
-        Map<String, Object> sent = objectMapper.convertValue(configuration, RAW);
-        return new KafkaClusterConfiguration(objectMapper.convertValue(sent.get("connections"), CONNECTIONS));
+    public static Optional<KafkaClusterConfiguration> connectionsOf(Object configuration, ObjectMapper objectMapper) {
+        return read(configuration, objectMapper).map(sent -> new KafkaClusterConfiguration(sent.connections()));
+    }
+
+    private record Sent(Map<String, Object> raw, List<KafkaClusterConnection> connections) {}
+
+    /** {@code configuration} as sent, with its connections read; empty when they do not map. */
+    private static Optional<Sent> read(Object configuration, ObjectMapper objectMapper) {
+        try {
+            Map<String, Object> raw = objectMapper.convertValue(configuration, RAW);
+            return Optional.of(new Sent(raw, objectMapper.convertValue(raw.get("connections"), CONNECTIONS)));
+        } catch (IllegalArgumentException e) {
+            return Optional.empty();
+        }
     }
 }

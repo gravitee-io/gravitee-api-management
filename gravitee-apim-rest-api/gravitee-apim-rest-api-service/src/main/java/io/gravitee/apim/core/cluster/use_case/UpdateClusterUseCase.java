@@ -75,12 +75,15 @@ public class UpdateClusterUseCase {
                 .setConfiguration(
                     KafkaClusterConfiguration.withGeneratedConnectionCrossIds(input.updateCluster().getConfiguration(), objectMapper)
                 );
-            clusterInUseDomainService.checkRemovedConnectionsNotUsed(
-                clusterToUpdate,
-                clusterToUpdate.getKafkaClusterConfiguration(objectMapper),
-                KafkaClusterConfiguration.connectionsOf(input.updateCluster().getConfiguration(), objectMapper),
-                input.auditInfo.environmentId(),
-                "save"
+            // Connections that do not map are rejected by the validation below
+            KafkaClusterConfiguration.connectionsOf(input.updateCluster().getConfiguration(), objectMapper).ifPresent(sent ->
+                clusterInUseDomainService.checkRemovedConnectionsNotUsed(
+                    clusterToUpdate,
+                    clusterToUpdate.getKafkaClusterConfiguration(objectMapper),
+                    sent,
+                    input.auditInfo.environmentId(),
+                    "save"
+                )
             );
         }
 

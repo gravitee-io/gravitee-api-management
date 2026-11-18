@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.cluster.domain_service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.cluster.model.Cluster;
@@ -66,9 +67,14 @@ public class ValidateClusterService {
         }
 
         if (cluster.getType() == ClusterType.KAFKA_CLUSTER) {
-            validateUniqueConnectionNames(cluster);
-            validateUniqueConnectionCrossIds(cluster);
-            validateSaslMechanisms(cluster);
+            try {
+                validateUniqueConnectionNames(cluster);
+                validateUniqueConnectionCrossIds(cluster);
+                validateSaslMechanisms(cluster);
+            } catch (IllegalArgumentException e) {
+                // The schema accepts some values the connection model cannot read, such as an SSL option of another type
+                throw new InvalidDataException("Configuration has an invalid value" + invalidValuePath(e) + ".");
+            }
         }
 
         if (cluster.getType() == ClusterType.KAFKA_VIRTUAL_CLUSTER) {
@@ -176,6 +182,22 @@ public class ValidateClusterService {
                 throw new InvalidDataException("Connection [" + connection.name() + "]: " + reason);
             }
         }
+    }
+
+    /** Where the read of {@code e} failed, as {@code " at connections[0].security.ssl.openSsl"}, or empty if unknown. */
+    private static String invalidValuePath(IllegalArgumentException e) {
+        if (!(e.getCause() instanceof JsonMappingException mapping)) {
+            return "";
+        }
+        StringBuilder path = new StringBuilder();
+        for (JsonMappingException.Reference reference : mapping.getPath()) {
+            if (reference.getFieldName() != null) {
+                path.append(path.isEmpty() ? "" : ".").append(reference.getFieldName());
+            } else if (reference.getIndex() >= 0) {
+                path.append('[').append(reference.getIndex()).append(']');
+            }
+        }
+        return path.isEmpty() ? "" : " at " + path;
     }
 
     private static boolean isSasl(SecurityProtocol protocol) {

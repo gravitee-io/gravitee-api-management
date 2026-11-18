@@ -60,10 +60,14 @@ import io.gravitee.rest.api.service.exceptions.ClusterInUseException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.impl.JsonSchemaServiceImpl;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
 
@@ -205,6 +209,25 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
                 .as("max age %s", maxAge)
                 .isInstanceOf(InvalidDataException.class);
         }
+    }
+
+    static Stream<Object> unmappableConnections() {
+        return Stream.of(
+            "not-a-list",
+            Collections.singletonList(null),
+            List.of(Map.of("name", "conn-1", "bootstrapServers", "kafka1:9092", "security", Map.of("protocol", "FOO")))
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("unmappableConnections")
+    void should_reject_a_kafka_cluster_whose_connections_do_not_map(Object connections) {
+        givenAKafkaCluster();
+        var toUpdate = UpdateCluster.builder().configuration(Map.of("connections", connections)).build();
+
+        assertThatThrownBy(() -> updateClusterUseCase.execute(new UpdateClusterUseCase.Input(KAFKA_CLUSTER_ID, toUpdate, AUDIT_INFO)))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessageContaining("connections");
     }
 
     private static final String KAFKA_CLUSTER_ID = "kafka-cluster-id";
