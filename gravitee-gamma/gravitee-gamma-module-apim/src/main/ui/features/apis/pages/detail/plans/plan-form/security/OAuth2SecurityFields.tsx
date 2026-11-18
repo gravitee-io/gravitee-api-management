@@ -79,8 +79,12 @@ interface OAuth2SecurityFieldsProps {
     value: OAuth2Config;
     onChange: (v: OAuth2Config) => void;
     readOnly?: boolean;
-    /** Resources configured on the API (with plugin icons), used to power the resource autocompletes. */
+    /** Resources configured on the API or API Product (with plugin icons), used to power the resource autocompletes. */
     resourceOptions?: readonly ApiResourceOption[];
+    /** API plans keep the API hint. Product plans point at the product's Resources page. */
+    resourceOwner?: 'API' | 'API_PRODUCT';
+    /** False while an API Product's resources have not loaded yet, so an empty list is not treated as "none saved". */
+    resourcesKnown?: boolean;
     error?: string;
 }
 
@@ -96,13 +100,20 @@ export function OAuth2SecurityFields({
     onChange,
     readOnly = false,
     resourceOptions = [],
+    resourceOwner = 'API',
+    resourcesKnown = true,
     error,
 }: Readonly<OAuth2SecurityFieldsProps>) {
     const oauthOptions = resourceOptions.filter(o => o.type.startsWith('oauth2'));
     const cacheOptions = resourceOptions.filter(o => o.type.startsWith('cache'));
+    const isProduct = resourceOwner === 'API_PRODUCT';
 
     const oauthMissing = isMissingResource(value.oauthResource, oauthOptions);
     const cacheMissing = isMissingResource(value.oauthCacheResource, cacheOptions);
+    const noProductOAuth = isProduct && resourcesKnown && oauthOptions.length === 0;
+    const missingHint = isProduct
+        ? "Resource does not exist. Add it on the product's Resources page for it to be taken into account."
+        : "Resource does not exist. Add it to the API's Resources section for it to be taken into account.";
 
     return (
         <div className="space-y-4">
@@ -115,24 +126,42 @@ export function OAuth2SecurityFields({
                     value={value.oauthResource}
                     onChange={oauthResource => onChange({ ...value, oauthResource })}
                     options={oauthOptions}
-                    placeholder="Name of the OAuth2 resource configured on this API"
+                    placeholder={
+                        isProduct
+                            ? 'Name of the OAuth2 resource configured on this API Product'
+                            : 'Name of the OAuth2 resource configured on this API'
+                    }
                     disabled={readOnly}
                     aria-invalid={error ? true : undefined}
-                    aria-describedby={error ? 'oauth2-resource-error' : oauthMissing ? 'oauth2-resource-missing' : undefined}
+                    aria-describedby={
+                        error
+                            ? 'oauth2-resource-error'
+                            : noProductOAuth
+                              ? 'oauth2-resource-empty'
+                              : oauthMissing
+                                ? 'oauth2-resource-missing'
+                                : undefined
+                    }
                 />
                 {error ? (
                     <p id="oauth2-resource-error" className="text-xs text-destructive">
                         {error}
                     </p>
+                ) : noProductOAuth ? (
+                    <p id="oauth2-resource-empty" className="text-xs text-destructive">
+                        No OAuth2 resource on this API Product. Add one on the product&apos;s Resources page.
+                    </p>
                 ) : (
                     oauthMissing && (
                         <p id="oauth2-resource-missing" className="text-xs text-destructive">
-                            Resource does not exist. Add it to the API&apos;s Resources section for it to be taken into account.
+                            {missingHint}
                         </p>
                     )
                 )}
                 <p className="text-xs text-muted-foreground">
-                    The name of the OAuth2 authorization server resource configured in your API&apos;s Resources section. Supports EL.
+                    {isProduct
+                        ? "The name of the OAuth2 authorization server resource configured on this API Product's Resources page. Supports EL."
+                        : "The name of the OAuth2 authorization server resource configured in your API's Resources section. Supports EL."}
                 </p>
             </div>
 
@@ -149,7 +178,7 @@ export function OAuth2SecurityFields({
                 />
                 {cacheMissing && (
                     <p id="oauth2-cache-resource-missing" className="text-xs text-destructive">
-                        Resource does not exist. Add it to the API&apos;s Resources section for it to be taken into account.
+                        {missingHint}
                     </p>
                 )}
                 <p className="text-xs text-muted-foreground">Cache resource used to store the validated tokens.</p>

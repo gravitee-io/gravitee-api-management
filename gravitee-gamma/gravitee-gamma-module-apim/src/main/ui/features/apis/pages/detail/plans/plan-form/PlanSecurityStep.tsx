@@ -29,6 +29,7 @@ import { useApiDetail } from '../../../../hooks/useApiDetail';
 import { useResourcePlugins } from '../../../../hooks/useApiResources';
 import type { PlanContext, PlanSecurityType, SecurityFormData } from '../../../../types/plan';
 import { PLAN_SECURITY_LABELS } from '../../../../types/plan';
+import type { ApiResource } from '../../../../types/resource';
 
 // Deep-merge stored JWT config with defaults, handling nested objects correctly.
 function resolveJwtConfig(stored: Partial<JwtConfig>): JwtConfig {
@@ -65,20 +66,35 @@ interface PlanSecurityStepProps {
     onChange: (v: SecurityFormData) => void;
     readOnly?: boolean;
     errors?: { oauthResource?: string };
+    /**
+     * API Product resources. Used only when `ctx` is an API Product, including when the list is empty.
+     * API plans ignore this and keep reading the API.
+     */
+    resources?: ApiResource[];
 }
 
-export function PlanSecurityStep({ ctx, securityType, value, onChange, readOnly = false, errors }: Readonly<PlanSecurityStepProps>) {
+export function PlanSecurityStep({
+    ctx,
+    securityType,
+    value,
+    onChange,
+    readOnly = false,
+    errors,
+    resources,
+}: Readonly<PlanSecurityStepProps>) {
     const [selectionRuleOpen, setSelectionRuleOpen] = useState(false);
     const updateConfig = (cfg: unknown) => onChange({ ...value, configuration: cfg as Record<string, unknown> });
 
-    // Resources live on the API definition; suggest them (with plugin icons) in the OAuth2 resource pickers.
-    const apiId = ctx.type === 'api' ? ctx.entityId : undefined;
+    const isProduct = ctx.type === 'api-product';
+    // A product plan must not load an API. The product's resources are already on the product query.
+    const apiId = isProduct ? undefined : ctx.entityId;
     const { data: api } = useApiDetail(apiId);
     const { data: plugins = [] } = useResourcePlugins();
     const resourceOptions = useMemo<ApiResourceOption[]>(() => {
         const iconByType = new Map(plugins.map(p => [p.id, p.icon]));
-        return (api?.resources ?? []).map(r => ({ name: r.name, type: r.type, icon: iconByType.get(r.type) }));
-    }, [api?.resources, plugins]);
+        const source = isProduct ? (resources ?? []) : (api?.resources ?? []);
+        return source.map(r => ({ name: r.name, type: r.type, icon: iconByType.get(r.type) }));
+    }, [api?.resources, isProduct, plugins, resources]);
 
     return (
         <div className="space-y-6">
@@ -107,6 +123,8 @@ export function PlanSecurityStep({ ctx, securityType, value, onChange, readOnly 
                             onChange={updateConfig}
                             readOnly={readOnly}
                             resourceOptions={resourceOptions}
+                            resourceOwner={isProduct ? 'API_PRODUCT' : 'API'}
+                            resourcesKnown={!isProduct || resources !== undefined}
                             error={errors?.oauthResource}
                         />
                     )}
