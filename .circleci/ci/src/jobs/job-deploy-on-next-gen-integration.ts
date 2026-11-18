@@ -32,18 +32,6 @@ export class DeployOnNextGenIntegrationJob {
     const gitBranch = 'qa';
     const apimVersion = computeImagesTag(environment.branch, environment.sha1);
     const integrationControlPlaneId = '5fa78f';
-    const integrationDataPlaneIds = ['5fa78f-894c1d', '5fa78f-558eb0'];
-
-    const commandUpdatingDataplanes = (apimVersion: string, dataplaneIds: string[]) =>
-      dataplaneIds
-        .map(
-          (dataplaneId) => `
-/tmp/jq ".appVersion = \\"${apimVersion}\\"" dataplane-${dataplaneId}.json > tmp.$$.json && \\
-mv tmp.$$.json dataplane-${dataplaneId}.json
-git add dataplane-${dataplaneId}.json
-`,
-        )
-        .join('\n');
 
     const steps: Command[] = [
       new commands.workspace.Attach({ at: '.' }),
@@ -84,7 +72,11 @@ cd ./cloud-deployments-configuration/europe/westeurope/giocloud-worker1-europe-$
 mv tmp.$$.json controlplane-${integrationControlPlaneId}.json
 git add controlplane-${integrationControlPlaneId}.json
 
-${commandUpdatingDataplanes(apimVersion, integrationDataPlaneIds)}
+for dataplane in dataplane-${integrationControlPlaneId}-*.json; do
+  /tmp/jq ".appVersion = \\"${apimVersion}\\"" "$dataplane" > tmp.$$.json && \\
+  mv tmp.$$.json "$dataplane"
+  git add "$dataplane"
+done
 
 git commit -m "feat(${gitBranch}): deploying APIM ${apimVersion}"
 git push

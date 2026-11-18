@@ -689,16 +689,11 @@ jobs:
             mv tmp.$$.json controlplane-5fa78f.json
             git add controlplane-5fa78f.json
 
-
-            /tmp/jq ".appVersion = \"master-784ff35\"" dataplane-5fa78f-894c1d.json > tmp.$$.json && \
-            mv tmp.$$.json dataplane-5fa78f-894c1d.json
-            git add dataplane-5fa78f-894c1d.json
-
-
-            /tmp/jq ".appVersion = \"master-784ff35\"" dataplane-5fa78f-558eb0.json > tmp.$$.json && \
-            mv tmp.$$.json dataplane-5fa78f-558eb0.json
-            git add dataplane-5fa78f-558eb0.json
-
+            for dataplane in dataplane-5fa78f-*.json; do
+              /tmp/jq ".appVersion = \"master-784ff35\"" "$dataplane" > tmp.$$.json && \
+              mv tmp.$$.json "$dataplane"
+              git add "$dataplane"
+            done
 
             git commit -m "feat(qa): deploying APIM master-784ff35"
             git push
