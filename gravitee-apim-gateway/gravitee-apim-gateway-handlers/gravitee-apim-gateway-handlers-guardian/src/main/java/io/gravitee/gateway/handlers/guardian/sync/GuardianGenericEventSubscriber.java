@@ -22,7 +22,10 @@ import io.gravitee.gateway.api.genericevent.GenericEvent;
 import io.gravitee.gateway.api.genericevent.GenericEventSubscriber;
 import io.gravitee.gateway.handlers.guardian.ReactableGuardian;
 import io.gravitee.gateway.handlers.guardian.manager.GuardianManager;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Date;
+import java.util.Objects;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -38,8 +41,15 @@ public class GuardianGenericEventSubscriber implements GenericEventSubscriber {
 
     public static final String GUARDIAN_KIND = "guardian.definition";
 
+    /**
+     * Shared with the Guardian reactor plugin, which counts the definitions it refuses to start: an event refused here
+     * never reaches it, and would otherwise be counted nowhere.
+     */
+    static final String DEPLOYMENT_REJECTIONS = "guardian_deployment_rejections";
+
     private final GuardianManager guardianManager;
     private final ObjectMapper objectMapper;
+    private final MeterRegistry meterRegistry;
 
     @Override
     public void onUpsert(GenericEvent event) {
@@ -50,6 +60,7 @@ public class GuardianGenericEventSubscriber implements GenericEventSubscriber {
                 event.id(),
                 event.environmentId()
             );
+            countRejection(event);
             return;
         }
         Guardian definition;
@@ -58,12 +69,14 @@ public class GuardianGenericEventSubscriber implements GenericEventSubscriber {
         } catch (JsonProcessingException e) {
             // An already deployed revision keeps running: undeploying it would turn a publication error into an outage.
             log.error("Unable to read the definition of Guardian [{}] of environment [{}]", event.id(), event.environmentId(), e);
+            countRejection(event);
             return;
         }
         if (definition.getPhase() == null) {
             // Jackson does not enforce required properties on this bean: an incomplete definition would replace the
             // running revision with one failing every call.
             log.error("Unable to deploy Guardian [{}] of environment [{}]: its definition has no phase", event.id(), event.environmentId());
+            countRejection(event);
             return;
         }
         guardianManager.register(
@@ -75,6 +88,14 @@ public class GuardianGenericEventSubscriber implements GenericEventSubscriber {
                 .revision(String.valueOf(event.updatedAt().toEpochMilli()))
                 .build()
         );
+    }
+
+    private void countRejection(GenericEvent event) {
+        Counter.builder(DEPLOYMENT_REJECTIONS)
+            .description("Guardian revisions the gateway refused to deploy because their definition is invalid")
+            .tag("environment", Objects.requireNonNullElse(event.environmentId(), "unknown"))
+            .register(meterRegistry)
+            .increment();
     }
 
     @Override
