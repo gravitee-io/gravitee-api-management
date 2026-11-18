@@ -20,6 +20,7 @@ import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 
 import { TagService } from '../../../services-ngx/tag.service';
+import { CurrentUserService } from '../../../services-ngx/current-user.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { onlyApiV2V4Filter } from '../../../util/apiFilter.operator';
@@ -42,6 +43,7 @@ export class ApiDeploymentConfigurationComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public shardingTags: Tag[];
+  public userTags: string[] = [];
   public deploymentsForm: DeploymentConfigurationFormGroup;
   public initialDeploymentsFormValue: DeploymentConfiguration;
 
@@ -49,15 +51,21 @@ export class ApiDeploymentConfigurationComponent implements OnInit, OnDestroy {
     public readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly tagService: TagService,
+    private readonly currentUserService: CurrentUserService,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
   ) {}
 
   ngOnInit(): void {
-    combineLatest([this.apiService.get(this.activatedRoute.snapshot.params.apiId), this.tagService.list()])
+    combineLatest([
+      this.apiService.get(this.activatedRoute.snapshot.params.apiId),
+      this.tagService.list(),
+      this.currentUserService.getTags(),
+    ])
       .pipe(
-        tap(([api, shardingTags]) => {
+        tap(([api, shardingTags, userTags]) => {
           this.shardingTags = shardingTags;
+          this.userTags = userTags;
           const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
 
           this.deploymentsForm = new FormGroup({
