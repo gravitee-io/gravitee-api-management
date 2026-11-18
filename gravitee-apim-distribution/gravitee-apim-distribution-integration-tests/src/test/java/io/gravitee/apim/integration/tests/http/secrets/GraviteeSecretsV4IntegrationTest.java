@@ -149,7 +149,7 @@ class GraviteeSecretsV4IntegrationTest extends AbstractGatewayTest {
     }
 
     @Test
-    void should_not_resolve_a_secret_of_another_environment(HttpClient httpClient) throws TechnicalException {
+    void should_answer_503_when_the_environment_has_no_such_secret(HttpClient httpClient) throws TechnicalException {
         wiremock.stubFor(get("/endpoint").willReturn(ok("from backend")));
 
         httpClient
