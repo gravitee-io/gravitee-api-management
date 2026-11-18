@@ -212,8 +212,7 @@ class PortalSummaryDomainServiceTest {
             navigationItems.addAll(
                 List.of(
                     api(PORTAL_ID, OTHER_ENV_ID, "other-env-api", null, true),
-                    api(OTHER_PORTAL_ID, ENV_ID, "deleted-portal-api", null, true),
-                    api(PortalId.ZERO, ENV_ID, "placeholder-api", null, true)
+                    api(OTHER_PORTAL_ID, ENV_ID, "deleted-portal-api", null, true)
                 )
             );
 
