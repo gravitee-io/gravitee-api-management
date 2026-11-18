@@ -232,6 +232,48 @@ class ValidateClusterServiceTest {
     }
 
     @Test
+    void should_tell_what_a_sasl_extension_key_must_be_rather_than_the_schema_pattern() {
+        Cluster cluster = kafkaClusterWithMechanism(
+            Map.of(
+                "type",
+                "OAUTHBEARER_TOKEN",
+                "token",
+                "t",
+                "saslExtensions",
+                List.of(Map.of("extensionKey", "trace1", "extensionValue", "v"))
+            )
+        );
+
+        assertThatThrownBy(() -> validateClusterService.validate(cluster))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessage("Connection [conn-1]: A SASL extension key must be made of letters only, and not be auth: trace1.");
+    }
+
+    @Test
+    void should_leave_a_configuration_of_another_shape_to_the_schema() {
+        Cluster cluster = Cluster.builder()
+            .type(ClusterType.KAFKA_CLUSTER)
+            .name("my-kafka-cluster")
+            .configuration(Map.of("connections", "not-a-list"))
+            .build();
+
+        assertThatThrownBy(() -> validateClusterService.validate(cluster))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessageContaining("$.connections")
+            .hasMessageNotContaining("Connection [");
+    }
+
+    @Test
+    void should_leave_a_missing_jaas_configuration_to_the_schema() {
+        Cluster cluster = kafkaClusterWithMechanism(Map.of("type", "GSSAPI"));
+
+        assertThatThrownBy(() -> validateClusterService.validate(cluster))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessageContaining("saslJaasConfig")
+            .hasMessageNotContaining("Connection [");
+    }
+
+    @Test
     void should_ignore_the_sasl_mechanism_of_a_kafka_cluster_connection_without_sasl() {
         Cluster cluster = kafkaClusterWithMechanism(
             "SSL",

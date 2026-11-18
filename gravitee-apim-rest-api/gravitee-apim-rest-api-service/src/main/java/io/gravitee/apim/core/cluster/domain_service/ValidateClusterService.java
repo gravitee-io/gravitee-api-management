@@ -53,6 +53,10 @@ public class ValidateClusterService {
         if (Objects.isNull(cluster.getConfiguration())) {
             throw new InvalidDataException("Configuration is required.");
         }
+        if (cluster.getType() == ClusterType.KAFKA_CLUSTER) {
+            // Before the schema, whose pattern on the keys would only quote the regex
+            validateSaslExtensionKeys(cluster);
+        }
         try {
             String configJson = objectMapper.writeValueAsString(cluster.getConfiguration());
             String schema = clusterConfigurationSchemaService.getConfigurationSchema(cluster.getType());
@@ -128,6 +132,29 @@ public class ValidateClusterService {
 
         if (!duplicates.isEmpty()) {
             throw new InvalidDataException("Backend references must be unique within a virtual cluster. Duplicates found: " + duplicates);
+        }
+    }
+
+    private void validateSaslExtensionKeys(Cluster cluster) {
+        KafkaClusterConfiguration config;
+        try {
+            config = cluster.getKafkaClusterConfiguration(objectMapper);
+        } catch (IllegalArgumentException e) {
+            // Not the shape of a cluster configuration, which the schema reports
+            return;
+        }
+        if (config == null || config.connections() == null) {
+            return;
+        }
+        for (KafkaClusterConnection connection : config.connections()) {
+            SecurityConfig security = connection == null ? null : connection.security();
+            if (security == null || !isSasl(security.protocol()) || security.sasl() == null || security.sasl().mechanism() == null) {
+                continue;
+            }
+            String reason = security.sasl().mechanism().saslExtensionsUnsupportedReason();
+            if (reason != null) {
+                throw new InvalidDataException("Connection [" + connection.name() + "]: " + reason);
+            }
         }
     }
 
