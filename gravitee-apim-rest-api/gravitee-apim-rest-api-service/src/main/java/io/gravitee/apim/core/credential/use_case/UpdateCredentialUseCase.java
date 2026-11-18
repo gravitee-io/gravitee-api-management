@@ -57,7 +57,7 @@ public class UpdateCredentialUseCase {
             !changed.ownerId().equals(existing.ownerId())
         ) {
             credentialExpressionDomainService.requireValidExpressions(changed);
-            changed.requireReferencesUsableBy(actor);
+            changed.requireValidStoreReferences(actor);
         }
         var updated = credentialCrudService.update(changed);
 
