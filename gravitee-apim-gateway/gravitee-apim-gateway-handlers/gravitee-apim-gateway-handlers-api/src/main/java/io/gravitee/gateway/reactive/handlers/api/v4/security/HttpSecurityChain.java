@@ -22,11 +22,13 @@ import io.gravitee.definition.model.v4.Api;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.handlers.api.security.plan.HttpSecurityPlan;
+import io.gravitee.gateway.reactive.handlers.api.v4.ProductResourceScopedHttpSecurityPlan;
 import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntime;
 import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeRegistry;
 import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeRegistry.MemberApiRuntimes;
 import io.gravitee.gateway.reactive.handlers.api.v4.security.plan.HttpSecurityPlanFactory;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
+import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import jakarta.annotation.Nonnull;
@@ -34,7 +36,9 @@ import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -122,8 +126,16 @@ public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api
         if (productRuntimes.runtimes().isEmpty()) {
             return chain;
         }
+        Map<String, ResourceLifecycleManager> managersByProduct = new HashMap<>();
+        for (ApiProductRuntime runtime : productRuntimes.runtimes()) {
+            managersByProduct.put(runtime.product().getId(), runtime.resourceManager());
+        }
         List<HttpSecurityPlan> plans = new ArrayList<>(productRuntimes.securityPlans().size() + apiPlans.size());
-        plans.addAll(productRuntimes.securityPlans());
+        for (HttpSecurityPlan plan : productRuntimes.securityPlans()) {
+            // The product id is the one stored on the plan when its runtime built it, not a request attribute.
+            ResourceLifecycleManager manager = managersByProduct.get(plan.apiProductId());
+            plans.add(new ProductResourceScopedHttpSecurityPlan(plan, manager));
+        }
         plans.addAll(apiPlans);
         return Flowable.fromIterable(plans);
     }
