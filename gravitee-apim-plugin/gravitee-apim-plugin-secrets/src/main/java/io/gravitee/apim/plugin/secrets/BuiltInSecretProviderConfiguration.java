@@ -27,9 +27,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
 /**
- * Registers the built-in secret provider with the secret provider plugin manager while the gateway context starts, so
- * that the secrets service, which starts afterwards, deploys it from an {@code api.secrets.providers} entry with
- * {@code plugin: gravitee} like any packaged provider.
+ * Registration must happen while the gateway context starts: the secrets service starts afterwards and deploys the
+ * provider from its {@code api.secrets.providers} entry.
  */
 @CustomLog
 @Configuration

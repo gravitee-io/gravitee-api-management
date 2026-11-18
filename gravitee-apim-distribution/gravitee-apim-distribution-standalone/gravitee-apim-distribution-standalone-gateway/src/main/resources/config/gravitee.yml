@@ -1063,15 +1063,19 @@ api:
 #    delayMs: 5000 # The initial delay in milliseconds for exponential retry or the delay between retries for linear retry
 #    notificationInterval: 5 # Number of retries after which the notification needs to be sent
   # API level Secret manager configuration
-  # The built-in secret provider resolves {#secrets.get('/gravitee/<key>:value')} from the secrets of the environment of
-  # the API, through the management repository. It needs no provider entry, but it needs the key encryption key (KEK) of
-  # the Management API: the same value, set here or with the GRAVITEE_API_SECRETS_ENCRYPTION_KEY environment variable.
-  # Without it, the provider is skipped. With a KEK that wrapped none of the stored data keys, the provider does not start
-  # and logs why (never the key). Either way every reference to it fails, and the other secret providers keep working.
 #  secrets:
+#    # Key encryption key (KEK) of the Management API, base64 of 32 random bytes. Used by the built-in provider
+#    # unless its own configuration.encryption.key is set.
 #    encryption:
 #      key: <base64 of 32 random bytes>
 #    providers:
+#      # built-in provider: reads the secrets stored through the Management API, as /gravitee/{envId}/{key}
+#      - id: gravitee
+#        plugin: gravitee
+#        configuration:
+#          enabled: true
+#          # encryption:
+#          #   key: <base64 of 32 random bytes>   # defaults to api.secrets.encryption.key
 #      # exists on all environments
 #      - id: all                # uri starts with '/all/...'
 #        plugin: vault

@@ -25,9 +25,8 @@ import java.util.function.Supplier;
 import org.springframework.beans.factory.ObjectProvider;
 
 /**
- * The secret provider plugin manager instantiates this factory reflectively, so it cannot receive the management
- * repository in its constructor. The gateway connects it once registered, and the repositories are looked up when the
- * secrets service creates the provider: the management repository plugin registers them after the factory exists.
+ * The plugin manager instantiates this factory reflectively, so the repositories cannot be constructor arguments. They
+ * are looked up lazily because the management repository plugin registers them after the factory exists.
  */
 public class BuiltInSecretProviderFactory implements SecretProviderFactory<BuiltInSecretManagerConfiguration> {
 
