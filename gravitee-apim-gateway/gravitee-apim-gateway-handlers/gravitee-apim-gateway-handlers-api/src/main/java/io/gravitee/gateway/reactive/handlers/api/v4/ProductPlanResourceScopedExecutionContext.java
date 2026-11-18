@@ -16,7 +16,9 @@
 package io.gravitee.gateway.reactive.handlers.api.v4;
 
 import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
+import io.gravitee.gateway.reactive.core.context.WrappedExecutionContext;
 import lombok.experimental.Delegate;
 
 /**
@@ -24,7 +26,7 @@ import lombok.experimental.Delegate;
  * resource manager via {@link #getComponent}; the request context's {@code componentProvider} is not swapped, so later
  * API phases and neighbouring stream transformers are unaffected.
  */
-final class ProductPlanResourceScopedExecutionContext implements MutableExecutionContext {
+final class ProductPlanResourceScopedExecutionContext implements MutableExecutionContext, WrappedExecutionContext {
 
     @Delegate(types = { MutableExecutionContext.class }, excludes = ScopedOverrides.class)
     private final MutableExecutionContext delegate;
@@ -48,6 +50,11 @@ final class ProductPlanResourceScopedExecutionContext implements MutableExecutio
     @Override
     public MutableExecutionContext componentProvider(ComponentProvider componentProvider) {
         return this;
+    }
+
+    @Override
+    public HttpExecutionContext unwrap() {
+        return delegate;
     }
 
     private interface ScopedOverrides {

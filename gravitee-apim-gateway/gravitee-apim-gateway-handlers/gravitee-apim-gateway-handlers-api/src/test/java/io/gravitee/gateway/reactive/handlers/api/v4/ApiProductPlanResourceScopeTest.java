@@ -29,6 +29,7 @@ import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
+import io.gravitee.gateway.reactive.core.context.WrappedExecutionContext;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.resource.api.ResourceManager;
 import io.reactivex.rxjava3.core.Completable;
@@ -42,6 +43,25 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class ApiProductPlanResourceScopeTest {
+
+    @Test
+    void scoped_context_exposes_the_request_context_it_decorates() {
+        MutableExecutionContext ctx = mock(MutableExecutionContext.class);
+        AtomicReference<MutableExecutionContext> scoped = new AtomicReference<>();
+
+        ApiProductPlanResourceScope.withProductResourceManager(
+            ctx,
+            providerFor(mock(ResourceLifecycleManager.class)),
+            mock(ResourceLifecycleManager.class),
+            scopedCtx -> {
+                scoped.set(scopedCtx);
+                return Completable.complete();
+            }
+        ).blockingAwait();
+
+        assertThat(scoped.get()).isNotSameAs(ctx).isInstanceOf(WrappedExecutionContext.class);
+        assertThat(((WrappedExecutionContext) scoped.get()).unwrap()).isSameAs(ctx);
+    }
 
     @Test
     void scoped_chunks_transformer_resolves_product_manager() {

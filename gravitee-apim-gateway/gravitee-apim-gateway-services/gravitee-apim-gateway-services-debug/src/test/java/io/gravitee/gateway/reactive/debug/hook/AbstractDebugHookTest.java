@@ -15,13 +15,19 @@
  */
 package io.gravitee.gateway.reactive.debug.hook;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.core.context.WrappedExecutionContext;
 import io.gravitee.gateway.reactive.debug.reactor.context.DebugExecutionContext;
 import io.reactivex.rxjava3.core.Completable;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -70,6 +76,37 @@ class AbstractDebugHookTest {
             .interrupt("id", mock(ExecutionContext.class), ExecutionPhase.REQUEST)
             .test()
             .assertFailure(IllegalArgumentException.class);
+    }
+
+    @Test
+    void should_hand_the_wrapped_debug_context_to_the_hook_when_the_context_is_decorated() {
+        DebugExecutionContext debugCtx = mock(DebugExecutionContext.class);
+        HttpExecutionContext decorated = decorating(decorating(debugCtx));
+        AtomicReference<DebugExecutionContext> seen = new AtomicReference<>();
+        AbstractDebugHook hook = new DummyDebugHook() {
+            @Override
+            protected Completable pre(String id, DebugExecutionContext ctx, ExecutionPhase executionPhase) {
+                seen.set(ctx);
+                return Completable.complete();
+            }
+        };
+
+        hook.pre("id", decorated, ExecutionPhase.REQUEST).test().assertResult();
+
+        assertThat(seen.get()).isSameAs(debugCtx);
+    }
+
+    @Test
+    void should_fail_when_the_decorated_context_does_not_wrap_a_debug_context() {
+        HttpExecutionContext decorated = decorating(mock(ExecutionContext.class));
+
+        new DummyDebugHook().pre("id", decorated, ExecutionPhase.REQUEST).test().assertFailure(IllegalArgumentException.class);
+    }
+
+    private static HttpExecutionContext decorating(HttpExecutionContext wrapped) {
+        HttpExecutionContext decorator = mock(HttpExecutionContext.class, withSettings().extraInterfaces(WrappedExecutionContext.class));
+        when(((WrappedExecutionContext) decorator).unwrap()).thenReturn(wrapped);
+        return decorator;
     }
 
     public class DummyDebugHook extends AbstractDebugHook {
