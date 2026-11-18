@@ -44,6 +44,12 @@ public class LicenseFixtures {
         return license;
     }
 
+    public static License aLicenseWithTierAttribute(String name, Object value) {
+        FakeLicense license = (FakeLicense) anEnterpriseLicense();
+        license.getTierAttributes().put(name, value);
+        return license;
+    }
+
     public static License aLicenseOfTier(String tier) {
         return new FakeLicense(
             License.REFERENCE_TYPE_PLATFORM,

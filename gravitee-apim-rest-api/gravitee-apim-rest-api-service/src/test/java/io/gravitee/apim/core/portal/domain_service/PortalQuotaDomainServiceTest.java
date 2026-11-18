@@ -69,6 +69,13 @@ class PortalQuotaDomainServiceTest {
     }
 
     @Test
+    void should_read_the_limit_the_license_tier_sets_by_default() {
+        givenLicense(LicenseFixtures.aLicenseWithTierAttribute("apim-portals-max", 10));
+
+        assertThat(cut.quota(ORG_ID, ENV_ID).limit()).isEqualTo(10);
+    }
+
+    @Test
     void should_allow_one_portal_when_the_license_has_no_portals_max_attribute() {
         givenLicense(LicenseFixtures.anEnterpriseLicense());
 

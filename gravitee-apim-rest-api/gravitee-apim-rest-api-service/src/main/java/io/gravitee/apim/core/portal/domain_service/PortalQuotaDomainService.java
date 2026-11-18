@@ -43,7 +43,7 @@ public class PortalQuotaDomainService {
         if (license == null) {
             return DEFAULT_LIMIT;
         }
-        var value = license.getAttributes().get(PORTALS_MAX_ATTRIBUTE);
+        var value = license.getEffectiveAttributes().get(PORTALS_MAX_ATTRIBUTE);
         if (value == null) {
             return DEFAULT_LIMIT;
         }
