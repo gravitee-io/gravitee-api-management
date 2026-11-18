@@ -19,12 +19,14 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
 import { HarnessLoader } from '@angular/cdk/testing';
-import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 
+import { ApplicationSharedApiKeyRenewDialogHarness } from './application-shared-api-key-renew-dialog.harness';
 import { ApplicationSharedApiKeysComponent } from './application-shared-api-keys.component';
 import { ApplicationSharedApiKeysHarness } from './application-shared-api-keys.harness';
 
+import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { fakeApplicationSubscriptionApiKey } from '../../../../../entities/subscription/ApplicationSubscriptionApiKey.fixture';
 import { ApiKeyMode, Application } from '../../../../../entities/application/Application';
@@ -65,7 +67,8 @@ describe('ApplicationSharedApiKeysComponent', () => {
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
-          isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
+          isFocusable: () => true, // This checks focus trap, set it to true to avoid the warning
+          isTabbable: () => true,
         },
       })
       .compileComponents();
@@ -115,12 +118,42 @@ describe('ApplicationSharedApiKeysComponent', () => {
 
     await subscriptionApiKeysHarness.renewApiKey();
 
-    await rootLoader.getHarness(GioConfirmDialogHarness).then(dialog => dialog.confirm());
+    const dialog = await rootLoader.getHarness(ApplicationSharedApiKeyRenewDialogHarness);
+    expect(await dialog.getNotice()).toContain('stays valid for two hours');
+    expect(await dialog.hasValueField()).toBe(false);
+    await dialog.submit();
 
-    httpTestingController.expectOne({
+    const request = httpTestingController.expectOne({
       url: `${CONSTANTS_TESTING.env.baseURL}/applications/applicationId/apikeys/_renew`,
       method: 'POST',
     });
+    expect(request.request.body).toEqual({});
+    request.flush({});
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/applicationId/apikeys`,
+        method: 'GET',
+      })
+      .flush([]);
+  });
+
+  it('shows the API message when renew is rejected', async () => {
+    expectApplicationApiKeysGetRequest();
+    const snackBar = TestBed.inject(SnackBarService);
+    jest.spyOn(snackBar, 'error');
+
+    const subscriptionApiKeysHarness = await componentHarness.getSubscriptionApiKeysHarness();
+    await subscriptionApiKeysHarness.renewApiKey();
+    await (await rootLoader.getHarness(ApplicationSharedApiKeyRenewDialogHarness)).submit();
+
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/applicationId/apikeys/_renew`,
+        method: 'POST',
+      })
+      .flush({ message: 'This API key cannot be used' }, { status: 400, statusText: 'Bad Request' });
+
+    expect(snackBar.error).toHaveBeenCalledWith('This API key cannot be used');
   });
 
   const expectApplicationGetRequest = (application: Application): void => {
