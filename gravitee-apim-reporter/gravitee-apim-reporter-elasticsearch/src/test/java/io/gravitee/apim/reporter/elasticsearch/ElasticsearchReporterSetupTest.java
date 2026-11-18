@@ -331,6 +331,27 @@ class ElasticsearchReporterSetupTest {
         assertNoNullPointerExceptionLogged();
     }
 
+    @Test
+    void should_not_send_a_failed_bulk_again_once_the_reporter_stopped() throws Exception {
+        final TestScheduler testScheduler = new TestScheduler();
+        RxJavaPlugins.setComputationSchedulerHandler(ignore -> testScheduler);
+        elasticsearch.stubFor(post(urlPathEqualTo("/_bulk")).willReturn(aResponse().withStatus(HttpStatusCode.SERVICE_UNAVAILABLE_503)));
+        startReporter(Map.of());
+        awaitReporterLog(Level.INFO, "Starting Elastic reporter engine... DONE");
+
+        reporter.report(metrics());
+        await()
+            .atMost(Duration.ofSeconds(10))
+            .until(() -> bulkCalls() == 1);
+        reporter.stop();
+        testScheduler.advanceTimeBy(1, TimeUnit.MINUTES);
+
+        await()
+            .during(Duration.ofSeconds(1))
+            .atMost(Duration.ofSeconds(2))
+            .until(() -> bulkCalls() == 1);
+    }
+
     private void startReporter(Map<String, Object> properties) throws Exception {
         final Map<String, Object> allProperties = new HashMap<>();
         allProperties.put("reporters.elasticsearch.endpoints[0]", elasticsearch.baseUrl());
@@ -344,6 +365,10 @@ class ElasticsearchReporterSetupTest {
 
         reporter = context.getBean(ElasticsearchReporter.class);
         reporter.start();
+    }
+
+    private static int bulkCalls() {
+        return elasticsearch.findAll(postRequestedFor(urlPathEqualTo("/_bulk"))).size();
     }
 
     private static Metrics metrics() {

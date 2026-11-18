@@ -110,18 +110,26 @@ class ApiTemplateVariableProviderTest {
         }
 
         @Test
-        void should_throw_when_evaluate_null_api_properties_in_EL() {
-            var noProperties = anApiV4();
+        void should_return_no_value_when_evaluate_a_property_of_an_api_without_properties() {
+            buildTemplateEngine(anApiV4()).eval("{#api.properties[prop1]}", String.class).test().assertNoValues();
+        }
 
-            buildTemplateEngine(noProperties)
-                .eval("{#api.properties[prop1]}", String.class)
+        @Test
+        void should_expose_empty_non_null_properties_for_an_api_without_properties() {
+            TemplateEngine engine = buildTemplateEngine(anApiV4());
+            engine.eval("{#api.properties == null}", Boolean.class).test().assertValue(false);
+            engine.eval("{#api.properties['prop1'] == null}", Boolean.class).test().assertValue(true);
+        }
+
+        @Test
+        void should_keep_the_legacy_properties_variable_unset_for_an_api_without_properties() {
+            buildTemplateEngine(anApiV4())
+                .eval("{#properties[prop1]}", String.class)
                 .test()
                 .assertError(e -> {
                     assertThat(e)
                         .isInstanceOf(ExpressionEvaluationException.class)
-                        .hasCauseInstanceOf(IllegalArgumentException.class)
                         .hasStackTraceContaining("EL1012E: Cannot index into a null value");
-
                     return true;
                 });
         }
@@ -204,20 +212,15 @@ class ApiTemplateVariableProviderTest {
         }
 
         @Test
-        void should_throw_when_evaluate_null_api_properties_in_EL() {
-            var noProperties = aNativeApiV4();
+        void should_return_no_value_when_evaluate_a_property_of_an_api_without_properties() {
+            buildTemplateEngine(aNativeApiV4()).eval("{#api.properties[prop1]}", String.class).test().assertNoValues();
+        }
 
-            buildTemplateEngine(noProperties)
-                .eval("{#api.properties[prop1]}", String.class)
-                .test()
-                .assertError(e -> {
-                    assertThat(e)
-                        .isInstanceOf(ExpressionEvaluationException.class)
-                        .hasCauseInstanceOf(IllegalArgumentException.class)
-                        .hasStackTraceContaining("EL1012E: Cannot index into a null value");
-
-                    return true;
-                });
+        @Test
+        void should_expose_empty_non_null_properties_for_an_api_without_properties() {
+            TemplateEngine engine = buildTemplateEngine(aNativeApiV4());
+            engine.eval("{#api.properties == null}", Boolean.class).test().assertValue(false);
+            engine.eval("{#api.properties['prop1'] == null}", Boolean.class).test().assertValue(true);
         }
     }
 

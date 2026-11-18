@@ -18,8 +18,8 @@ package io.gravitee.apim.reporter.common.bulk.compressor;
 import io.gravitee.apim.reporter.common.bulk.transformer.TransformedReport;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.vertx.core.buffer.Buffer;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,15 +34,29 @@ public class NoneBulkCompressor implements BulkCompressor {
 
     @Override
     public CompressedBulk compress(List<@NonNull TransformedReport> reports) throws IOException {
-        try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            final Map<String, Integer> countPerType = new HashMap<>(8);
-            for (TransformedReport report : reports) {
-                countPerType.compute(report.type(), (clazz, integer) -> integer != null ? ++integer : 1);
-
-                // In memory, not blocking.
-                out.write(report.transformed().getBytes());
-            }
-            return new CompressedBulk(Buffer.buffer(out.toByteArray()), countPerType);
+        final Map<String, Integer> countPerType = new HashMap<>(8);
+        final Buffer compressed = Buffer.buffer(
+            reports
+                .stream()
+                .mapToInt(report -> report.transformed().length())
+                .sum()
+        );
+        for (TransformedReport report : reports) {
+            countPerType.compute(report.type(), (clazz, integer) -> integer != null ? ++integer : 1);
+            compressed.appendBuffer(report.transformed());
         }
+        return new CompressedBulk(compressed, countPerType, sliceReports(compressed, reports));
+    }
+
+    // Slices share the bytes of the bulk, so keeping the reports does not hold a second copy of them in memory.
+    private static List<TransformedReport> sliceReports(Buffer compressed, List<TransformedReport> reports) {
+        final List<TransformedReport> slices = new ArrayList<>(reports.size());
+        int start = 0;
+        for (TransformedReport report : reports) {
+            final int end = start + report.transformed().length();
+            slices.add(new TransformedReport(compressed.slice(start, end), report.clazz()));
+            start = end;
+        }
+        return slices;
     }
 }
