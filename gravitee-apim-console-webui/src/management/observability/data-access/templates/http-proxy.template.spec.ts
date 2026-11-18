@@ -45,13 +45,26 @@ describe('Dashboard templates', () => {
     expect(apiTypeFilters(template as DashboardTemplate).length).toBeGreaterThan(0);
   });
 
-  it('should read the LLM token and cost totals with SUM, COUNT being a number of requests', () => {
-    const llmMetrics = widgetsOf(LLM_TEMPLATE)
-      .flatMap(widget => widget.request?.metrics ?? [])
-      .filter(metric => metric.name.startsWith('LLM_PROMPT_'));
+  it('should read the LLM totals with SUM and the averages with AVG, COUNT being a number of requests', () => {
+    const llmMeasuresByWidget = Object.fromEntries(
+      widgetsOf(LLM_TEMPLATE)
+        .map((widget): [string, string[]] => [
+          widget.id,
+          (widget.request?.metrics ?? [])
+            .filter(metric => metric.name.startsWith('LLM_PROMPT_'))
+            .flatMap(metric => [...metric.measures, ...(metric.sorts ?? []).map(sort => sort.measure)]),
+        ])
+        .filter(([, measures]) => measures.length > 0),
+    );
 
-    expect(llmMetrics.length).toBeGreaterThan(0);
-    expect(llmMetrics.flatMap(metric => metric.measures)).not.toContain('COUNT');
-    expect(llmMetrics.flatMap(metric => (metric.sorts ?? []).map(sort => sort.measure))).not.toContain('COUNT');
+    expect(llmMeasuresByWidget).toEqual({
+      'llm-total-tokens': ['SUM'],
+      'llm-total-cost': ['SUM'],
+      'llm-average-cost-per-request': ['AVG'],
+      'llm-average-tokens-per-request': ['AVG'],
+      'llm-token-count-over-time': ['SUM', 'SUM', 'SUM'],
+      'llm-token-cost-over-time': ['SUM', 'SUM', 'SUM'],
+      'llm-total-tokens-per-model': ['SUM', 'SUM'],
+    });
   });
 });

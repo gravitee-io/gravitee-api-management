@@ -1083,7 +1083,7 @@ class ObservabilityAnalyticsDataPortAdapterTest {
                 .containsExactly("COUNT", "TOKENS");
         }
 
-        /** A COUNT is a number of requests: an entry reading it alone is served COUNT, without the cost's currency. */
+        /** A COUNT is a number of documents: an entry reading it alone is served COUNT, without the cost's currency. */
         @Test
         void should_serve_an_identified_entry_reading_count_only_as_a_count_and_one_reading_sum_in_the_metric_unit() {
             when(computeMeasuresUseCase.executeForApis(any(), any(), any())).thenReturn(
