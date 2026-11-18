@@ -37,8 +37,16 @@ public final class KafkaClusterBindings {
     /**
      * @param clusterCrossId cluster of the connection the endpoint uses (its group's, or its own override); {@code null}
      *     when that connection is in {@code DIRECT} mode
+     * @param missingBootstrapServers whether the endpoint configuration is an object setting neither a connection nor
+     *     bootstrap servers, which the plugin schema refuses for missing the bootstrap servers of the {@code DIRECT} mode
      */
-    public record Binding(String groupName, String endpointName, String clusterCrossId, String connectionCrossId) {
+    public record Binding(
+        String groupName,
+        String endpointName,
+        String clusterCrossId,
+        String connectionCrossId,
+        boolean missingBootstrapServers
+    ) {
         public boolean isCluster() {
             return clusterCrossId != null;
         }
@@ -116,12 +124,17 @@ public final class KafkaClusterBindings {
                 String effectiveSharedConfiguration = endpoint.isInheritConfiguration()
                     ? group.getSharedConfiguration()
                     : endpoint.getSharedConfigurationOverride();
+                JsonNode configuration = read(endpoint.getConfiguration(), objectMapper);
                 bindings.add(
                     new Binding(
                         group.getName(),
                         endpoint.getName(),
                         clusterCrossId(read(effectiveSharedConfiguration, objectMapper)),
-                        text(read(endpoint.getConfiguration(), objectMapper), "connectionCrossId")
+                        text(configuration, "connectionCrossId"),
+                        configuration != null &&
+                            configuration.isObject() &&
+                            !configuration.has("connectionCrossId") &&
+                            !configuration.hasNonNull("bootstrapServers")
                     )
                 );
             }

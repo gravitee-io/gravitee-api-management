@@ -203,6 +203,70 @@ public class ApiValidationServiceImplTest {
     }
 
     @Test
+    public void shouldReportAMissingClusterConnectionBeforeTheEndpointPluginSchema() {
+        NewApiEntity newApiEntity = new NewApiEntity();
+        newApiEntity.setType(ApiType.MESSAGE);
+        doThrow(new InvalidDataException("must set the connectionCrossId"))
+            .when(validateKafkaClusterBindingDomainService)
+            .validateConnectionsAreSet(any());
+
+        assertThatThrownBy(() ->
+            apiValidationService.validateAndSanitizeNewApi(GraviteeContext.getExecutionContext(), newApiEntity, new PrimaryOwnerEntity())
+        )
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessage("must set the connectionCrossId");
+        verify(endpointGroupsValidationService, never()).validateAndSanitizeHttpV4(any(), any());
+    }
+
+    @Test
+    public void shouldReportAMissingClusterConnectionBeforeTheEndpointPluginSchemaOnUpdate() {
+        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+        updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        updateApiEntity.setType(ApiType.MESSAGE);
+        ApiEntity existingApiEntity = new ApiEntity();
+        existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        existingApiEntity.setType(ApiType.MESSAGE);
+        existingApiEntity.setLifecycleState(CREATED);
+        doThrow(new InvalidDataException("must set the connectionCrossId"))
+            .when(validateKafkaClusterBindingDomainService)
+            .validateConnectionsAreSet(any());
+
+        assertThatThrownBy(() ->
+            apiValidationService.validateAndSanitizeUpdateApi(
+                GraviteeContext.getExecutionContext(),
+                updateApiEntity,
+                new PrimaryOwnerEntity(),
+                existingApiEntity
+            )
+        )
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessage("must set the connectionCrossId");
+        verify(endpointGroupsValidationService, never()).validateAndSanitizeHttpV4(any(), any());
+    }
+
+    @Test
+    public void shouldReportAMissingClusterConnectionBeforeTheEndpointPluginSchemaOnImport() {
+        var apiEntity = new ApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setType(ApiType.MESSAGE);
+        apiEntity.setListeners(List.of(new HttpListener()));
+        doThrow(new InvalidDataException("must set the connectionCrossId"))
+            .when(validateKafkaClusterBindingDomainService)
+            .validateConnectionsAreSet(any());
+
+        assertThatThrownBy(() ->
+            apiValidationService.validateAndSanitizeImportApiForCreation(
+                GraviteeContext.getExecutionContext(),
+                apiEntity,
+                new PrimaryOwnerEntity()
+            )
+        )
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessage("must set the connectionCrossId");
+        verify(endpointGroupsValidationService, never()).validateAndSanitizeHttpV4(any(), any());
+    }
+
+    @Test
     public void shouldCallOtherServicesWhenValidatingImportApiForCreation() {
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
         var apiEntity = new ApiEntity();
