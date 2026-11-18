@@ -138,7 +138,7 @@ export interface PlanFormValue {
 
 export const PLAN_TYPES_BY_CTX: Record<PlanContext['type'], PlanSecurityType[]> = {
     api: ['API_KEY', 'JWT', 'OAUTH2', 'MTLS', 'KEY_LESS'],
-    'api-product': ['API_KEY', 'JWT', 'MTLS'],
+    'api-product': ['API_KEY', 'JWT', 'OAUTH2', 'MTLS'],
 };
 
 export const PLAN_SECURITY_LABELS: Record<PlanSecurityType, string> = {

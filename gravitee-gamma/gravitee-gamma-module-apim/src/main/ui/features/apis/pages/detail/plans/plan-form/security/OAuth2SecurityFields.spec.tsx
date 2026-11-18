@@ -29,9 +29,17 @@ const RESOURCES: ApiResourceOption[] = [
     { name: 'token-cache', type: 'cache' },
 ];
 
-function Harness({ resourceOptions, initial }: { resourceOptions?: ApiResourceOption[]; initial?: Partial<OAuth2Config> }) {
+function Harness({
+    resourceOptions,
+    initial,
+    resourceOwner,
+}: {
+    resourceOptions?: ApiResourceOption[];
+    initial?: Partial<OAuth2Config>;
+    resourceOwner?: 'API' | 'API_PRODUCT';
+}) {
     const [value, setValue] = useState<OAuth2Config>({ ...DEFAULT_OAUTH2_CONFIG, ...initial });
-    return <OAuth2SecurityFields value={value} onChange={setValue} resourceOptions={resourceOptions} />;
+    return <OAuth2SecurityFields value={value} onChange={setValue} resourceOptions={resourceOptions} resourceOwner={resourceOwner} />;
 }
 
 describe('OAuth2SecurityFields resource pickers', () => {
@@ -72,5 +80,45 @@ describe('OAuth2SecurityFields resource pickers', () => {
         render(<Harness resourceOptions={RESOURCES} initial={{ oauthResource: "{#api.properties['authz']}" }} />);
 
         expect(screen.queryByText(/Resource does not exist/i)).not.toBeInTheDocument();
+    });
+
+    it('lists only the product OAuth2 resources and only its cache resources', async () => {
+        const user = userEvent.setup();
+        const productResources: ApiResourceOption[] = [
+            { name: 'prod-oauth', type: 'oauth2' },
+            { name: 'prod-oauth-off', type: 'oauth2' },
+            { name: 'prod-cache', type: 'cache' },
+            { name: 'prod-redis', type: 'cache-redis' },
+            { name: 'prod-auth', type: 'auth-provider-inline-resource' },
+            { name: 'api-only-oauth', type: 'oauth2' },
+        ];
+        render(
+            <Harness
+                resourceOptions={productResources.filter(resource => !resource.name.startsWith('api-only'))}
+                resourceOwner="API_PRODUCT"
+            />,
+        );
+
+        await user.click(screen.getByLabelText(/OAuth2 resource/i));
+        const oauthList = await screen.findByRole('listbox');
+        expect(within(oauthList).getByText('prod-oauth')).toBeInTheDocument();
+        expect(within(oauthList).getByText('prod-oauth-off')).toBeInTheDocument();
+        expect(within(oauthList).queryByText('prod-cache')).not.toBeInTheDocument();
+        expect(within(oauthList).queryByText('prod-auth')).not.toBeInTheDocument();
+        expect(within(oauthList).queryByText('api-only-oauth')).not.toBeInTheDocument();
+
+        await user.click(screen.getByLabelText(/Cache resource/i));
+        const cacheList = await screen.findByRole('listbox');
+        expect(within(cacheList).getByText('prod-cache')).toBeInTheDocument();
+        expect(within(cacheList).getByText('prod-redis')).toBeInTheDocument();
+        expect(within(cacheList).queryByText('prod-oauth')).not.toBeInTheDocument();
+        expect(within(cacheList).queryByText('api-only-oauth')).not.toBeInTheDocument();
+    });
+
+    it('tells the user to add an OAuth2 resource on the API Product when the product has none', () => {
+        render(<Harness resourceOptions={[{ name: 'prod-cache', type: 'cache' }]} resourceOwner="API_PRODUCT" />);
+
+        expect(screen.getByText("No OAuth2 resource on this API Product. Add one on the product's Resources page.")).toBeInTheDocument();
+        expect(screen.queryByText(/Add it to the API/i)).not.toBeInTheDocument();
     });
 });
