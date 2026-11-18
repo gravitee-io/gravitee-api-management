@@ -100,6 +100,55 @@ describe('ApiDeploymentConfigurationComponent', () => {
         // No flush to stop on new call of ngOnInit
         httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' });
         httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags`, method: 'GET' });
+        httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.baseURL}/user/tags`, method: 'GET' });
+      });
+
+      it('should disable the tags the user is not allowed to use', async () => {
+        expectApiGetRequest(api);
+        expectTagGetRequest(
+          [
+            fakeTag({ id: 'tag-1-id', key: 'tag1', name: 'tag1' }),
+            fakeTag({ id: 'tag-2-id', key: 'tag2', name: 'tag2' }),
+            fakeTag({ id: 'tag-3-id', key: 'tag3', name: 'tag3' }),
+          ],
+          ['tag1'],
+        );
+
+        const tagsSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="tags"]' }));
+        await tagsSelect.open();
+
+        const options = await tagsSelect.getOptions();
+        const disabledByTag = await Promise.all(options.map(async option => [await option.getText(), await option.isDisabled()]));
+        expect(disabledByTag).toEqual([
+          [expect.stringContaining('tag1'), false],
+          [expect.stringContaining('tag2'), true],
+          [expect.stringContaining('tag3'), true],
+        ]);
+      });
+
+      it('should keep a restricted tag already set on the API when saving', async () => {
+        expectApiGetRequest(api);
+        expectTagGetRequest(
+          [fakeTag({ id: 'tag-1-id', key: 'tag1', name: 'tag1' }), fakeTag({ id: 'tag-2-id', key: 'tag2', name: 'tag2' })],
+          ['tag1'],
+        );
+
+        const tagsSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="tags"]' }));
+        await tagsSelect.clickOptions({ text: /tag1/ });
+
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        await saveBar.clickSubmit();
+
+        expectApiGetRequest(api);
+        const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+        expect(req.request.body.tags).toStrictEqual(['tag1', 'tag2']);
+        req.flush(api);
+        fixture.detectChanges();
+
+        // Reload triggered by ngOnInit after a successful save
+        httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' });
+        httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags`, method: 'GET' });
+        httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.baseURL}/user/tags`, method: 'GET' });
       });
 
       it('should disable field when origin is kubernetes', async () => {
@@ -167,8 +216,9 @@ describe('ApiDeploymentConfigurationComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectTagGetRequest(tags: Tag[]) {
+  function expectTagGetRequest(tags: Tag[], userTags: string[] = tags.map(tag => tag.key)) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags`, method: 'GET' }).flush(tags);
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.baseURL}/user/tags`, method: 'GET' }).flush(userTags);
     fixture.detectChanges();
   }
 });
