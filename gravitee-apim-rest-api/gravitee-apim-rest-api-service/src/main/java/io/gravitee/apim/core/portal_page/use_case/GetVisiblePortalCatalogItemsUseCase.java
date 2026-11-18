@@ -23,11 +23,14 @@ import io.gravitee.apim.core.api.query_service.ApiPortalSearchQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.domain_service.CheckTypoToleranceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalCatalogNavigationVisibilityDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalCatalogApiProductSummary;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
@@ -70,6 +73,7 @@ public class GetVisiblePortalCatalogItemsUseCase {
         .thenComparing(Api::getId, NULL_SAFE_STRING_COMPARATOR);
     private static final ApiFieldFilter API_FIELD_FILTER = ApiFieldFilter.builder().definitionExcluded(true).pictureExcluded(true).build();
 
+    private final PortalNavigationAccessDomainService accessService;
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
     private final PortalNavigationApiVisibilityDomainService apiVisibilityDomainService;
     private final PortalNavigationApiProductVisibilityDomainService apiProductVisibilityDomainService;
@@ -80,8 +84,12 @@ public class GetVisiblePortalCatalogItemsUseCase {
     private final CheckTypoToleranceDomainService checkTypoToleranceDomainService;
 
     public Output execute(Input input) {
+        var scope = input.portalId().<NavigationItemReference>map(NavigationItemReference.PortalReference::new).orElse(null);
+        if (scope != null) {
+            accessService.requireScope(input.organizationId(), input.environmentId(), scope);
+        }
         List<PortalNavigationItem> navigationItems = portalNavigationItemsQueryService.search(
-            PortalNavigationItemQueryCriteria.builder().environmentId(input.environmentId()).build()
+            PortalNavigationItemQueryCriteria.builder().environmentId(input.environmentId()).reference(scope).build()
         );
         Map<PortalNavigationItemId, PortalNavigationItem> navigationItemsById = navigationItems
             .stream()
@@ -160,11 +168,21 @@ public class GetVisiblePortalCatalogItemsUseCase {
 
     private List<PortalNavigationApi> resolveAccessibleApis(Input input, Optional<PortalCategoryId> categoryId) {
         String categoryIdValue = categoryId.map(PortalCategoryId::toString).orElse(null);
-        return input
+        var accessible = input
             .viewerContext()
             .userId()
             .map(userId -> apiVisibilityDomainService.resolveVisibleItems(input.environmentId(), userId, categoryIdValue))
             .orElseGet(() -> apiVisibilityDomainService.resolveVisiblePublicItems(input.environmentId(), categoryIdValue));
+        return input
+            .portalId()
+            .map(NavigationItemReference.PortalReference::new)
+            .map(scope ->
+                accessible
+                    .stream()
+                    .filter(item -> scope.equals(item.getReference()))
+                    .toList()
+            )
+            .orElse(accessible);
     }
 
     private List<PortalNavigationApi> resolveVisibleApisForProductSummaries(
@@ -474,7 +492,8 @@ public class GetVisiblePortalCatalogItemsUseCase {
         Pageable pageable,
         Optional<String> query,
         Set<PortalNavigationSearchInclude> includes,
-        Optional<PortalCategoryId> categoryId
+        Optional<PortalCategoryId> categoryId,
+        Optional<PortalId> portalId
     ) {}
 
     public record Output(

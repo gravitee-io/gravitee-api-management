@@ -90,7 +90,8 @@ public class PortalNavigationItemsResource extends AbstractResource {
             Optional.ofNullable(parentId).map(PortalNavigationItemId::of),
             loadChildren,
             PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull()),
-            false
+            false,
+            PortalScope.fromPath(uriInfo)
         );
         var output = listPortalNavigationItemsUseCase.execute(input);
         return Response.ok(portalNavigationItemMapper.map(output.items())).build();
@@ -124,7 +125,8 @@ public class PortalNavigationItemsResource extends AbstractResource {
                 new PageableImpl(paginationParam.getPage(), paginationParam.getSize()),
                 Optional.ofNullable(query),
                 coreIncludes,
-                Optional.ofNullable(categoryId)
+                Optional.ofNullable(categoryId),
+                PortalScope.fromPath(uriInfo)
             )
         );
 
@@ -155,7 +157,8 @@ public class PortalNavigationItemsResource extends AbstractResource {
                 new PageableImpl(paginationParam.getPage(), paginationParam.getSize()),
                 Optional.ofNullable(query),
                 coreIncludes,
-                Optional.ofNullable(categoryId).map(PortalCategoryId::of)
+                Optional.ofNullable(categoryId).map(PortalCategoryId::of),
+                PortalScope.fromPath(uriInfo)
             )
         );
 

@@ -49,8 +49,10 @@ public class PortalNavigationItemResource extends AbstractResource {
         var result = getPortalNavigationItemUseCase.execute(
             new GetPortalNavigationItemUseCase.Input(
                 PortalNavigationItemId.of(portalNavigationItemId),
+                executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
-                PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull())
+                PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull()),
+                PortalScope.fromPath(uriInfo)
             )
         );
 
@@ -68,7 +70,8 @@ public class PortalNavigationItemResource extends AbstractResource {
                 portalNavigationItemId,
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
-                PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull())
+                PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull()),
+                PortalScope.fromPath(uriInfo)
             )
         );
 

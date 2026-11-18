@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.PAGE11_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.PAGE12_ID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,6 +40,7 @@ import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundE
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -70,6 +72,7 @@ class GetPortalNavigationItemUseCaseTest {
             new ApiProductAccessibleIdsDomainService(new ApiProductQueryServiceInMemory(), membershipQueryService)
         );
         useCase = new GetPortalNavigationItemUseCase(
+            PortalNavigationUseCaseTestFixtures.accessWithoutPortals(queryService),
             queryService,
             List.of(apiVisibilityDomainService, apiProductVisibilityDomainService),
             new PortalNavigationItemSourceDomainServiceInMemory()
@@ -83,8 +86,10 @@ class GetPortalNavigationItemUseCaseTest {
         // Given
         final var input = new GetPortalNavigationItemUseCase.Input(
             PortalNavigationItemId.of(APIS_ID),
+            ORG_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal(false)
+            PortalNavigationItemViewerContext.forPortal(false),
+            Optional.empty()
         );
 
         // When
@@ -102,8 +107,10 @@ class GetPortalNavigationItemUseCaseTest {
         final var unknownId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000099");
         final var input = new GetPortalNavigationItemUseCase.Input(
             unknownId,
+            ORG_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal(false)
+            PortalNavigationItemViewerContext.forPortal(false),
+            Optional.empty()
         );
 
         // When & Then
@@ -117,8 +124,10 @@ class GetPortalNavigationItemUseCaseTest {
         // Given
         final var input = new GetPortalNavigationItemUseCase.Input(
             PortalNavigationItemId.of(APIS_ID),
+            ORG_ID,
             "different-env",
-            PortalNavigationItemViewerContext.forPortal(false)
+            PortalNavigationItemViewerContext.forPortal(false),
+            Optional.empty()
         );
 
         // When & Then
@@ -132,8 +141,10 @@ class GetPortalNavigationItemUseCaseTest {
         // Given
         final var input = new GetPortalNavigationItemUseCase.Input(
             PortalNavigationItemId.of(PAGE11_ID),
+            ORG_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal(true)
+            PortalNavigationItemViewerContext.forPortal(true),
+            Optional.empty()
         );
 
         // When & Then
@@ -147,8 +158,10 @@ class GetPortalNavigationItemUseCaseTest {
         // Given
         final var input = new GetPortalNavigationItemUseCase.Input(
             PortalNavigationItemId.of(PAGE12_ID),
+            ORG_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal(false)
+            PortalNavigationItemViewerContext.forPortal(false),
+            Optional.empty()
         );
 
         // When & Then
@@ -170,8 +183,10 @@ class GetPortalNavigationItemUseCaseTest {
 
         var input = new GetPortalNavigationItemUseCase.Input(
             apiProduct.getId(),
+            ORG_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal("user-without-access")
+            PortalNavigationItemViewerContext.forPortal("user-without-access"),
+            Optional.empty()
         );
 
         assertThatThrownBy(() -> useCase.execute(input))
@@ -204,8 +219,10 @@ class GetPortalNavigationItemUseCaseTest {
         var output = useCase.execute(
             new GetPortalNavigationItemUseCase.Input(
                 apiProduct.getId(),
+                ORG_ID,
                 ENVIRONMENT_ID,
-                PortalNavigationItemViewerContext.forPortal("product-member")
+                PortalNavigationItemViewerContext.forPortal("product-member"),
+                Optional.empty()
             )
         );
 
@@ -227,8 +244,10 @@ class GetPortalNavigationItemUseCaseTest {
 
         var input = new GetPortalNavigationItemUseCase.Input(
             childPage.getId(),
+            ORG_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal("user-without-access")
+            PortalNavigationItemViewerContext.forPortal("user-without-access"),
+            Optional.empty()
         );
 
         assertThatThrownBy(() -> useCase.execute(input))

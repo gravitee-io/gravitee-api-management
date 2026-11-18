@@ -157,4 +157,9 @@ public class EnvironmentsResource extends AbstractResource {
     public PortalNavigationItemsResource getPortalNavigationItemsResource() {
         return resourceContext.getResource(PortalNavigationItemsResource.class);
     }
+
+    @Path("portal/{" + PortalScope.PORTAL_ID_PARAM + "}")
+    public PortalResource getPortalResource() {
+        return resourceContext.getResource(PortalResource.class);
+    }
 }

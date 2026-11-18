@@ -101,6 +101,7 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
             apiProductVisibilityDomainService
         );
         useCase = new GetVisiblePortalCatalogItemsUseCase(
+            PortalNavigationUseCaseTestFixtures.accessWithoutPortals(navigationItemsQueryService),
             navigationItemsQueryService,
             apiVisibilityDomainService,
             apiProductVisibilityDomainService,
@@ -529,7 +530,8 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
             new PageableImpl(page, size),
             query,
             includes,
-            categoryId.map(PortalCategoryId::of)
+            categoryId.map(PortalCategoryId::of),
+            Optional.empty()
         );
     }
 

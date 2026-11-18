@@ -21,6 +21,7 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
+import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
@@ -63,6 +64,17 @@ final class PortalNavigationUseCaseTestFixtures {
             contents,
             new ApiOwnedNavigationDomainService(navigation, new PortalNavigationItemsCrudServiceInMemory()),
             new ApiQueryServiceInMemory(apis)
+        );
+    }
+
+    /** For reads that name no portal, where the access checks are never reached. */
+    static PortalNavigationAccessDomainService accessWithoutPortals(PortalNavigationItemsQueryService navigation) {
+        return new PortalNavigationAccessDomainService(
+            new PortalCrudServiceInMemory(),
+            new ApiCrudServiceInMemory(),
+            navigation,
+            new PortalPageContentQueryServiceInMemory(),
+            new ApiOwnedNavigationDomainService(navigation, new PortalNavigationItemsCrudServiceInMemory())
         );
     }
 }

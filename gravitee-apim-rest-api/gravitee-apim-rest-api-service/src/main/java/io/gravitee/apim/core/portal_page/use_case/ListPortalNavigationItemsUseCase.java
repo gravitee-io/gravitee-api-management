@@ -18,7 +18,10 @@ package io.gravitee.apim.core.portal_page.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemReadDomainService;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
@@ -32,11 +35,20 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ListPortalNavigationItemsUseCase {
 
+    private final PortalNavigationAccessDomainService accessService;
     private final PortalNavigationItemReadDomainService reader;
 
     public Output execute(Input input) {
+        var scope = input.portalId().map(NavigationItemReference.PortalReference::new).orElse(null);
+        if (scope != null) {
+            accessService.requireScope(input.organizationId(), input.environmentId(), scope);
+            input
+                .parentId()
+                .ifPresent(parentId -> accessService.requireItem(input.organizationId(), input.environmentId(), scope, parentId));
+        }
         var criteria = PortalNavigationItemQueryCriteria.builder()
             .environmentId(input.environmentId())
+            .reference(scope)
             .area(input.portalArea())
             .parentId(input.parentId().orElse(null))
             .build();
@@ -56,6 +68,7 @@ public class ListPortalNavigationItemsUseCase {
         Optional<PortalNavigationItemId> parentId,
         boolean loadChildren,
         PortalNavigationItemViewerContext viewerContext,
-        boolean includeApis
+        boolean includeApis,
+        Optional<PortalId> portalId
     ) {}
 }

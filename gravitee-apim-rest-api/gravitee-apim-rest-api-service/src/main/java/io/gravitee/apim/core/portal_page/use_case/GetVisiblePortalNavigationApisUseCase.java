@@ -20,8 +20,11 @@ import static java.util.stream.Collectors.toSet;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.query_service.ApiPortalSearchQueryService;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.CheckTypoToleranceDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude;
 import io.gravitee.common.data.domain.Page;
@@ -35,17 +38,28 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class GetVisiblePortalNavigationApisUseCase {
 
+    private final PortalNavigationAccessDomainService accessService;
     private final PortalNavigationApiVisibilityDomainService visibilityDomainService;
     private final ApiPortalSearchQueryService apiPortalSearchQueryService;
     private final CheckTypoToleranceDomainService checkTypoToleranceDomainService;
 
     public Output execute(Input input) {
+        var scope = input.portalId().map(NavigationItemReference.PortalReference::new).orElse(null);
+        if (scope != null) {
+            accessService.requireScope(input.organizationId(), input.environmentId(), scope);
+        }
         String categoryId = input.categoryId().orElse(null);
         List<PortalNavigationApi> visible;
         if (input.userId().isPresent()) {
             visible = visibilityDomainService.resolveVisibleItems(input.environmentId(), input.userId().get(), categoryId);
         } else {
             visible = visibilityDomainService.resolveVisiblePublicItems(input.environmentId(), categoryId);
+        }
+        if (scope != null) {
+            visible = visible
+                .stream()
+                .filter(item -> scope.equals(item.getReference()))
+                .toList();
         }
 
         List<Api> searchedApis = List.of();
@@ -108,7 +122,8 @@ public class GetVisiblePortalNavigationApisUseCase {
         Pageable pageable,
         Optional<String> query,
         Set<PortalNavigationSearchInclude> includes,
-        Optional<String> categoryId
+        Optional<String> categoryId,
+        Optional<PortalId> portalId
     ) {}
 
     public record Output(Page<PortalNavigationApi> apis, List<Api> includedApis) {}

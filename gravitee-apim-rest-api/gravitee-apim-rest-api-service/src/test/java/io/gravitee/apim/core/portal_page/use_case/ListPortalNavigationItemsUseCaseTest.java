@@ -106,6 +106,7 @@ class ListPortalNavigationItemsUseCaseTest {
             apiProductAccessibleIdsDomainService
         );
         return new ListPortalNavigationItemsUseCase(
+            PortalNavigationUseCaseTestFixtures.accessWithoutPortals(queryService),
             new PortalNavigationItemReadDomainService(
                 queryService,
                 List.of(apiVisibilityDomainService, apiProductVisibilityDomainService),
@@ -132,7 +133,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -171,7 +173,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.of(PortalNavigationItemId.of(APIS_ID)),
                 false,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -196,7 +199,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.of(PortalNavigationItemId.of(APIS_ID)),
                 true,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -231,7 +235,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forPortal(true),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -279,7 +284,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forPortal(true),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -311,7 +317,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.of(unpublishedFolder.getId()),
                 true,
                 PortalNavigationItemViewerContext.forPortal(true),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -343,7 +350,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.of(publishedFolder.getId()),
                 true,
                 PortalNavigationItemViewerContext.forPortal(true),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -365,7 +373,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.of(PortalNavigationItemId.random()),
                 true,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -396,7 +405,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.of(unpublishedFolder.getId()),
                 true,
                 PortalNavigationItemViewerContext.forPortal(true),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -425,7 +435,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.empty(),
                 false,
                 PortalNavigationItemViewerContext.forPortal(true),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -454,7 +465,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.empty(),
                 false,
                 PortalNavigationItemViewerContext.forPortal(false),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -485,7 +497,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forPortal("user-without-access"),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -528,7 +541,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forPortal("user-member"),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -569,7 +583,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forPortal("user-without-access"),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -603,7 +618,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.of(apiNavItem.getId()),
                 true,
                 PortalNavigationItemViewerContext.forPortal("user-without-access"),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -644,7 +660,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.of(childFolder.getId()),
                 true,
                 PortalNavigationItemViewerContext.forPortal("user-without-access"),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -676,7 +693,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forPortal("user-without-access"),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -713,7 +731,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forPortal("user-without-access"),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -755,7 +774,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forPortal("product-member"),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -793,7 +813,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forPortal("user-without-api-access"),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -822,7 +843,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -846,7 +868,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -868,7 +891,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.of(PortalNavigationItemId.of(APIS_ID)),
                 false,
                 PortalNavigationItemViewerContext.forConsole(),
-                true
+                true,
+                Optional.empty()
             )
         );
 
@@ -893,7 +917,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forConsole(),
-                true
+                true,
+                Optional.empty()
             )
         );
 
@@ -962,7 +987,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -984,7 +1010,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -1005,7 +1032,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.of(navApiRowA),
                 false,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -1024,7 +1052,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -1045,7 +1074,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -1068,7 +1098,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -1124,7 +1155,8 @@ class ListPortalNavigationItemsUseCaseTest {
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forPortal(false),
-                false
+                false,
+                Optional.empty()
             )
         );
 
@@ -1277,7 +1309,8 @@ class ListPortalNavigationItemsUseCaseTest {
                     Optional.ofNullable(parentId),
                     recursive,
                     viewer,
-                    false
+                    false,
+                    Optional.empty()
                 )
             )
             .items();

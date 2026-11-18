@@ -16,13 +16,16 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.ContentRenderer;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityEvaluator;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.RendererException;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
@@ -39,18 +42,26 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class GetPortalPageContentByNavigationIdUseCase {
 
+    private final PortalNavigationAccessDomainService accessService;
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
     private final PortalPageContentQueryService portalPageContentQueryService;
     private final List<PortalNavigationItemVisibilityService> visibilityServices;
     private final List<ContentRenderer> contentRenderers;
 
     public Output execute(Input input) {
-        final var portalNavigationItem = Optional.ofNullable(
-            portalNavigationItemsQueryService.findByIdAndEnvironmentId(
-                input.environmentId(),
-                PortalNavigationItemId.of(input.portalNavigationItemId())
+        var itemId = PortalNavigationItemId.of(input.portalNavigationItemId());
+        final var portalNavigationItem = input
+            .portalId()
+            .map(portalId ->
+                accessService.requireItem(
+                    input.organizationId(),
+                    input.environmentId(),
+                    new NavigationItemReference.PortalReference(portalId),
+                    itemId
+                )
             )
-        ).orElseThrow(() -> new PortalNavigationItemNotFoundException(input.portalNavigationItemId()));
+            .or(() -> Optional.ofNullable(portalNavigationItemsQueryService.findByIdAndEnvironmentId(input.environmentId(), itemId)))
+            .orElseThrow(() -> new PortalNavigationItemNotFoundException(input.portalNavigationItemId()));
 
         input.viewerContext().validateAccess(portalNavigationItem);
 
@@ -89,7 +100,8 @@ public class GetPortalPageContentByNavigationIdUseCase {
         String portalNavigationItemId,
         String organizationId,
         String environmentId,
-        PortalNavigationItemViewerContext viewerContext
+        PortalNavigationItemViewerContext viewerContext,
+        Optional<PortalId> portalId
     ) {}
 
     public record Output(RenderedPageContent renderedContent, PortalNavigationItem portalNavigationItem) {}
