@@ -17,10 +17,16 @@ package io.gravitee.apim.infra.converter.oai;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
 class OAIPathMappingsTest {
 
@@ -45,6 +51,32 @@ class OAIPathMappingsTest {
     @Test
     void should_leave_path_mappings_empty_when_spec_has_no_paths() {
         assertThat(OAIPathMappings.from(new OpenAPI())).isEmpty();
+    }
+
+    @Test
+    void should_log_a_skipped_template_without_line_breaks() {
+        var mappings = new ArrayList<String>();
+        var spec = specWithPaths("/a/**\r\n\u0085\u2028\u2029INJECTED", "/ok");
+        var events = captureInfoLogs(() -> mappings.addAll(OAIPathMappings.from(spec)));
+
+        assertThat(mappings).containsExactly("/ok");
+        assertThat(events).anySatisfy(event -> {
+            assertThat(event.getFormattedMessage()).isEqualTo("Skipping invalid OpenAPI path mapping template [/a/**INJECTED]");
+            assertThat(event.getFormattedMessage()).doesNotContain("\r", "\n", "\u0085", "\u2028", "\u2029");
+        });
+    }
+
+    private static List<ILoggingEvent> captureInfoLogs(Runnable action) {
+        var logger = (Logger) LoggerFactory.getLogger(OAIPathMappings.class);
+        var appender = new ListAppender<ILoggingEvent>();
+        appender.start();
+        logger.addAppender(appender);
+        try {
+            action.run();
+        } finally {
+            logger.detachAppender(appender);
+        }
+        return appender.list;
     }
 
     private static OpenAPI specWithPaths(String... paths) {

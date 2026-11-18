@@ -38,7 +38,8 @@ export const apiDetailKeys = {
 
 export const apiSwaggerPagesKeys = {
     all: ['api-swagger-pages'] as const,
-    list: (envId: string, apiId: string) => [...apiSwaggerPagesKeys.all, envId, apiId] as const,
+    list: (envId: string, apiId: string, includeUnpublished: boolean) =>
+        [...apiSwaggerPagesKeys.all, envId, apiId, includeUnpublished] as const,
     paths: (envId: string, apiId: string, pageId: string) => [...apiSwaggerPagesKeys.all, 'paths', envId, apiId, pageId] as const,
 };
 

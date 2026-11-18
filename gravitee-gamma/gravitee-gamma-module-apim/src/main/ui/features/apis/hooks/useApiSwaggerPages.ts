@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useQuery } from '@tanstack/react-query';
 
 import { retryUnlessClientError } from './retryUnlessClientError';
@@ -20,9 +21,12 @@ import { getApiSwaggerPagePaths, listApiSwaggerPages } from '../services/apis';
 import { apiSwaggerPagesKeys } from '../utils/queryKeys';
 
 export function useApiSwaggerPages(environmentId: string | undefined, apiId: string | undefined, enabled: boolean) {
+    const includeUnpublished = useHasPermission({
+        anyOf: ['api-documentation-c', 'api-documentation-u', 'api-documentation-d'],
+    });
     return useQuery({
-        queryKey: apiSwaggerPagesKeys.list(environmentId ?? '', apiId ?? ''),
-        queryFn: () => listApiSwaggerPages(environmentId!, apiId!),
+        queryKey: apiSwaggerPagesKeys.list(environmentId ?? '', apiId ?? '', includeUnpublished),
+        queryFn: () => listApiSwaggerPages(environmentId!, apiId!, includeUnpublished),
         enabled: enabled && Boolean(environmentId && apiId),
         retry: retryUnlessClientError,
         staleTime: 60_000,
