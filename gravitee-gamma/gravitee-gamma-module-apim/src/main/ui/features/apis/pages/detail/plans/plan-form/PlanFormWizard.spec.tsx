@@ -41,12 +41,15 @@ jest.mock('../../../../hooks/useApiDetail', () => ({ useApiDetail: jest.fn(() =>
 jest.mock('../../../../hooks/useApiResources', () => ({ useResourcePlugins: jest.fn(() => ({ data: [] })) }));
 
 import { PlanFormWizard } from './PlanFormWizard';
+import { useApiDetail } from '../../../../hooks/useApiDetail';
 import { createPlan, getPlan, updatePlan } from '../../../../services/plans';
 import type { ManagedPlan, PlanContext, PlanSecurityType } from '../../../../types/plan';
+import type { ApiResource } from '../../../../types/resource';
 
 const mockCreatePlan = createPlan as jest.Mock;
 const mockGetPlan = getPlan as jest.Mock;
 const mockUpdatePlan = updatePlan as jest.Mock;
+const mockUseApiDetail = useApiDetail as jest.Mock;
 
 const API_CTX: PlanContext = { type: 'api', entityId: 'api-1' };
 const PRODUCT_CTX: PlanContext = { type: 'api-product', entityId: 'product-1' };
@@ -546,5 +549,109 @@ describe('PlanFormWizard Restrictions step', () => {
         expect(rateLimitSwitch).toBeEnabled();
         expect(quotaSwitch).toBeEnabled();
         expect(resourceFilteringSwitch).toBeEnabled();
+    });
+});
+
+const PRODUCT_RESOURCES: ApiResource[] = [
+    { name: 'prod-oauth', type: 'oauth2', enabled: true },
+    { name: 'prod-oauth-off', type: 'oauth2', enabled: false },
+    { name: 'prod-cache', type: 'cache', enabled: true },
+    { name: 'prod-redis', type: 'cache-redis', enabled: true },
+    { name: 'prod-auth', type: 'auth-provider-inline-resource', enabled: true },
+];
+
+const API_ONLY_RESOURCES: ApiResource[] = [
+    { name: 'api-only-oauth', type: 'oauth2', enabled: true },
+    { name: 'api-only-cache', type: 'cache', enabled: true },
+];
+
+function renderOAuthWizard(ctx: PlanContext, resources?: ApiResource[], planId?: string) {
+    mockCreatePlan.mockImplementation((_envId, _ctx, payload) => Promise.resolve({ id: 'plan-new', order: 1, ...payload }));
+    if (planId) {
+        mockGetPlan.mockResolvedValue({ ...V4_OAUTH2_PLAN, id: planId });
+        mockUpdatePlan.mockImplementation((_envId, _ctx, _planId, payload) => Promise.resolve({ ...V4_OAUTH2_PLAN, ...payload }));
+    }
+    return render(
+        <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })}>
+            <MemoryRouter>
+                <PlanFormWizard ctx={ctx} securityType="OAUTH2" resources={resources} planId={planId} />
+            </MemoryRouter>
+        </QueryClientProvider>,
+    );
+}
+
+describe('PlanFormWizard OAuth2 resources', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockUseApiDetail.mockReturnValue({ data: { resources: API_ONLY_RESOURCES } });
+    });
+
+    afterEach(() => {
+        mockUseApiDetail.mockReturnValue({ data: undefined });
+    });
+
+    it('lists only the API Product resources, never the member API resources', async () => {
+        const user = userEvent.setup();
+        renderOAuthWizard(PRODUCT_CTX, PRODUCT_RESOURCES);
+
+        await user.type(await screen.findByLabelText(/^Name/), 'OAuth plan');
+        await user.click(screen.getByRole('button', { name: 'Next' }));
+        await user.click(screen.getByLabelText(/OAuth2 resource/i));
+
+        const oauthList = await screen.findByRole('listbox');
+        expect(within(oauthList).getByText('prod-oauth')).toBeInTheDocument();
+        expect(within(oauthList).getByText('prod-oauth-off')).toBeInTheDocument();
+        expect(within(oauthList).queryByText('api-only-oauth')).not.toBeInTheDocument();
+        expect(within(oauthList).queryByText('prod-cache')).not.toBeInTheDocument();
+
+        await user.click(screen.getByLabelText(/Cache resource/i));
+        const cacheList = await screen.findByRole('listbox');
+        expect(within(cacheList).getByText('prod-cache')).toBeInTheDocument();
+        expect(within(cacheList).getByText('prod-redis')).toBeInTheDocument();
+        expect(within(cacheList).queryByText('api-only-cache')).not.toBeInTheDocument();
+        expect(mockUseApiDetail).toHaveBeenCalledWith(undefined);
+    });
+
+    it('tells the user to add an OAuth2 resource on the API Product when the product has none', async () => {
+        const user = userEvent.setup();
+        renderOAuthWizard(PRODUCT_CTX, []);
+
+        await user.type(await screen.findByLabelText(/^Name/), 'OAuth plan');
+        await user.click(screen.getByRole('button', { name: 'Next' }));
+
+        expect(screen.getByText("No OAuth2 resource on this API Product. Add one on the product's Resources page.")).toBeInTheDocument();
+    });
+
+    it('sends the selected product resource names when creating an OAuth2 plan', async () => {
+        const user = userEvent.setup();
+        renderOAuthWizard(PRODUCT_CTX, PRODUCT_RESOURCES);
+
+        await user.type(await screen.findByLabelText(/^Name/), 'OAuth plan');
+        await user.click(screen.getByRole('button', { name: 'Next' }));
+        await user.type(screen.getByLabelText(/OAuth2 resource/i), 'prod-oauth');
+        await user.type(screen.getByLabelText(/Cache resource/i), 'prod-cache');
+        await user.click(screen.getByRole('button', { name: /create plan/i }));
+
+        await waitFor(() => expect(mockCreatePlan).toHaveBeenCalled());
+        expect(lastCreatePayload()).toMatchObject({
+            security: {
+                type: 'OAUTH2',
+                configuration: expect.objectContaining({ oauthResource: 'prod-oauth', oauthCacheResource: 'prod-cache' }),
+            },
+        });
+    });
+
+    it('keeps an API plan on the API resources', async () => {
+        const user = userEvent.setup();
+        renderOAuthWizard(API_CTX, PRODUCT_RESOURCES);
+
+        await user.type(await screen.findByLabelText(/^Name/), 'OAuth plan');
+        await user.click(screen.getByRole('button', { name: 'Next' }));
+        await user.click(screen.getByLabelText(/OAuth2 resource/i));
+
+        const oauthList = await screen.findByRole('listbox');
+        expect(within(oauthList).getByText('api-only-oauth')).toBeInTheDocument();
+        expect(within(oauthList).queryByText('prod-oauth')).not.toBeInTheDocument();
+        expect(screen.queryByText(/API Product/i)).not.toBeInTheDocument();
     });
 });

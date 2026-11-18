@@ -56,7 +56,11 @@ jest.mock('../../../../apis/hooks/usePlans', () => ({
 }));
 
 jest.mock('../../../../apis/pages/detail/plans/plan-form/PlanFormWizard', () => ({
-    PlanFormWizard: () => <div data-testid="plan-form-wizard">Plan form</div>,
+    PlanFormWizard: ({ resources }: { resources?: { name: string }[] }) => (
+        <div data-testid="plan-form-wizard" data-resources={resources ? resources.map(resource => resource.name).join(',') : 'undefined'}>
+            Plan form
+        </div>
+    ),
 }));
 
 const mockPermissions = useApiProductResourcePermissions as jest.Mock;
@@ -94,7 +98,7 @@ describe('ApiProductPlanFormPage plan security settings', () => {
             canDelete: true,
             isLoading: false,
         });
-        mockUseApiProductDetail.mockReturnValue({ data: { tags: [] } });
+        mockUseApiProductDetail.mockReturnValue({ data: { tags: [] }, isLoading: false, isError: false });
         mockUsePlanSecuritySettings.mockReturnValue({ planSecuritySettings: ALL_SECURITY_ENABLED, isLoading: false });
     });
 
@@ -115,6 +119,44 @@ describe('ApiProductPlanFormPage plan security settings', () => {
 
         expect(await screen.findByTestId('plan-form-wizard')).toBeInTheDocument();
         expect(screen.queryByText('Plans list')).not.toBeInTheDocument();
+    });
+
+    it('passes the product resources to the wizard after the product has loaded', async () => {
+        mockUseApiProductDetail.mockReturnValue({
+            data: { tags: [], resources: [{ name: 'prod-oauth' }, { name: 'prod-cache' }] },
+            isLoading: false,
+            isError: false,
+        });
+
+        renderCreate('OAUTH2');
+
+        expect(await screen.findByTestId('plan-form-wizard')).toHaveAttribute('data-resources', 'prod-oauth,prod-cache');
+    });
+
+    it('passes an empty resource list when the loaded product has none', async () => {
+        renderCreate('OAUTH2');
+
+        expect(await screen.findByTestId('plan-form-wizard')).toHaveAttribute('data-resources', '');
+    });
+
+    it('keeps the wizard behind a skeleton while the product loads', () => {
+        mockUseApiProductDetail.mockReturnValue({ data: undefined, isLoading: true, isError: false });
+
+        renderCreate('OAUTH2');
+
+        expect(screen.getAllByTestId('skeleton').length).toBeGreaterThan(0);
+        expect(screen.queryByTestId('plan-form-wizard')).not.toBeInTheDocument();
+    });
+
+    it('shows an error instead of the wizard when the product query fails', async () => {
+        mockUseApiProductDetail.mockReturnValue({ data: undefined, isLoading: false, isError: true });
+
+        renderCreate('OAUTH2');
+
+        expect(
+            await screen.findByText('Failed to load this API Product. It may have been deleted or you may not have access.'),
+        ).toBeInTheDocument();
+        expect(screen.queryByTestId('plan-form-wizard')).not.toBeInTheDocument();
     });
 
     it('keeps the create wizard behind a skeleton while portal security settings load', () => {
