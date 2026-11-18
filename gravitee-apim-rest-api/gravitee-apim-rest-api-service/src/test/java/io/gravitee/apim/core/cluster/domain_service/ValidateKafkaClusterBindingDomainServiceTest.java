@@ -152,6 +152,49 @@ class ValidateKafkaClusterBindingDomainServiceTest {
     }
 
     @Test
+    void should_ask_for_the_connection_of_a_cluster_endpoint_setting_neither_a_connection_nor_bootstrap_servers() {
+        assertThatThrownBy(() -> service.validateConnectionsAreSet(List.of(group(CLUSTER_SHARED, endpointWithConfiguration("{}")))))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessage(
+                "Endpoint [default] of group [default-group] must set the connectionCrossId of a connection of Kafka cluster [my-cluster]."
+            );
+    }
+
+    @Test
+    void should_leave_to_the_save_validation_the_endpoints_that_set_a_connection_or_bootstrap_servers() {
+        assertThatCode(() ->
+            service.validateConnectionsAreSet(
+                List.of(group(CLUSTER_SHARED, endpoint("sasl", true, null)), group(CLUSTER_SHARED, endpoint(null, true, null)))
+            )
+        ).doesNotThrowAnyException();
+    }
+
+    @Test
+    void should_leave_to_the_plugin_schema_an_endpoint_whose_configuration_is_missing_or_not_an_object() {
+        assertThatCode(() ->
+            service.validateConnectionsAreSet(
+                List.of(
+                    group(CLUSTER_SHARED, endpointWithConfiguration(null)),
+                    group(CLUSTER_SHARED, endpointWithConfiguration("[]")),
+                    group(CLUSTER_SHARED, endpointWithConfiguration("{\"connectionCrossId\":42}"))
+                )
+            )
+        ).doesNotThrowAnyException();
+    }
+
+    @Test
+    void should_leave_to_the_plugin_schema_a_direct_endpoint_and_a_cluster_group_naming_no_cluster() {
+        assertThatCode(() ->
+            service.validateConnectionsAreSet(
+                List.of(
+                    group("{\"security\":{\"protocol\":\"PLAINTEXT\"}}", endpointWithConfiguration("{}")),
+                    group("{\"mode\":\"CLUSTER\"}", endpointWithConfiguration("{}"))
+                )
+            )
+        ).doesNotThrowAnyException();
+    }
+
+    @Test
     void should_reject_a_sasl_connection_without_a_mechanism() {
         deploy(kafkaCluster(ClusterType.KAFKA_CLUSTER, "NONE"));
 
@@ -370,6 +413,10 @@ class ValidateKafkaClusterBindingDomainServiceTest {
                     : "{\"connectionCrossId\":\"" + connectionCrossId + "\"}"
             )
             .build();
+    }
+
+    private static Endpoint endpointWithConfiguration(String configuration) {
+        return Endpoint.builder().name("default").type("kafka").inheritConfiguration(true).configuration(configuration).build();
     }
 
     private static Cluster kafkaCluster(ClusterType type, String mechanism) {

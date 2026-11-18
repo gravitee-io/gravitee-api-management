@@ -154,6 +154,7 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
             )
         );
         // Validate and clean endpoints
+        validateKafkaClusterBindingDomainService.validateConnectionsAreSet(newApiEntity.getEndpointGroups());
         newApiEntity.setEndpointGroups(
             endpointGroupsValidationService.validateAndSanitizeHttpV4(newApiEntity.getType(), newApiEntity.getEndpointGroups())
         );
@@ -214,6 +215,7 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
             )
         );
         // Validate and clean endpoints
+        validateKafkaClusterBindingDomainService.validateConnectionsAreSet(updateApiEntity.getEndpointGroups());
         updateApiEntity.setEndpointGroups(
             endpointGroupsValidationService.validateAndSanitizeHttpV4(updateApiEntity.getType(), updateApiEntity.getEndpointGroups())
         );
@@ -291,6 +293,7 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
             )
         );
         // Validate and clean endpoints
+        validateKafkaClusterBindingDomainService.validateConnectionsAreSet(apiEntity.getEndpointGroups());
         apiEntity.setEndpointGroups(
             endpointGroupsValidationService.validateAndSanitizeHttpV4(apiEntity.getType(), apiEntity.getEndpointGroups())
         );

@@ -42,7 +42,7 @@ import lombok.RequiredArgsConstructor;
  * API's environment and is a {@code KAFKA_CLUSTER}, the connection exists in it, and Message APIs can use its security
  * ({@link KafkaClusterConnection#messageApiUnsupportedReason()}). Checked against the deployed cluster, which is what the
  * gateways run, not the one being edited. The plugin schema already checks the shape (mode, required fields, no inline
- * security).
+ * security), except a missing connection: see {@link #validateConnectionsAreSet}.
  */
 @DomainService
 @RequiredArgsConstructor
@@ -70,12 +70,7 @@ public class ValidateKafkaClusterBindingDomainService {
                 continue;
             }
             if (binding.connectionCrossId() == null) {
-                throw new InvalidDataException(
-                    binding.subject() +
-                        " must set the connectionCrossId of a connection of Kafka cluster [" +
-                        binding.clusterCrossId() +
-                        "]."
-                );
+                throw missingConnection(binding);
             }
             validateConnection(binding.subject(), binding.clusterCrossId(), binding.connectionCrossId(), environmentId, clusters);
         }
@@ -91,6 +86,25 @@ public class ValidateKafkaClusterBindingDomainService {
                 clusters
             );
         }
+    }
+
+    /**
+     * Refuses an endpoint of a {@code CLUSTER} group that sets neither a connection nor bootstrap servers. Called before
+     * the plugin schema, which would only ask such an endpoint for the bootstrap servers of the {@code DIRECT} mode.
+     */
+    public void validateConnectionsAreSet(List<EndpointGroup> endpointGroups) {
+        for (Binding binding : KafkaClusterBindings.of(endpointGroups, objectMapper)) {
+            // A CLUSTER group naming no cluster is left to the schema of its shared configuration
+            if (binding.isCluster() && !binding.clusterCrossId().isEmpty() && binding.missingBootstrapServers()) {
+                throw missingConnection(binding);
+            }
+        }
+    }
+
+    private static InvalidDataException missingConnection(Binding binding) {
+        return new InvalidDataException(
+            binding.subject() + " must set the connectionCrossId of a connection of Kafka cluster [" + binding.clusterCrossId() + "]."
+        );
     }
 
     private Set<ConnectionUse> connectionUses(List<EndpointGroup> endpointGroups) {
