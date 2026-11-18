@@ -1,0 +1,21 @@
+.renew {
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__field {
+    width: 100%;
+  }
+
+  &__error {
+    margin: 0;
+    color: var(--mat-form-field-error-text-color);
+  }
+
+  &__actions {
+    justify-content: flex-end;
+    gap: 8px;
+  }
+}
