@@ -81,7 +81,6 @@ import org.junit.jupiter.params.provider.ValueSource;
  */
 class PortalScopedNavigationReadUseCaseTest {
 
-    private static final PortalId DEFAULT_PORTAL = ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId();
     private static final String API_ID = "api-a";
     private static final String OTHER_API_ID = "api-b";
 
