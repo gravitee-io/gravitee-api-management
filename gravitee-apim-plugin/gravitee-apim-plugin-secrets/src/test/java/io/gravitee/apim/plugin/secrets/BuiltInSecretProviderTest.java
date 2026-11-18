@@ -13,17 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.standalone.secrets;
+package io.gravitee.apim.plugin.secrets;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -42,6 +36,7 @@ import io.gravitee.repository.management.model.OrganizationKey;
 import io.gravitee.repository.management.model.Secret;
 import io.gravitee.secrets.api.core.SecretURL;
 import io.gravitee.secrets.api.errors.SecretManagerException;
+import io.gravitee.secrets.api.plugin.SecretProvider;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Optional;
@@ -56,7 +51,7 @@ class BuiltInSecretProviderTest {
 
     private static final String ORG = "org-1";
     private static final String ENV = "env-1";
-    private static final SecretURL LLM_KEY = SecretURL.from("/gravitee/llm-key:value", true);
+    private static final SecretURL LLM_KEY = SecretURL.from("/gravitee/" + ENV + "/llm-key:value", true);
 
     private final String base64Kek = randomKek();
     private final StaticKeyEncryptionKeyProvider kek = StaticKeyEncryptionKeyProvider.fromBase64(base64Kek);
@@ -89,11 +84,6 @@ class BuiltInSecretProviderTest {
         lenient().when(organizationKeyRepository.findKekIds()).thenReturn(Set.of(kek.id()));
     }
 
-    @Test
-    void should_answer_the_gravitee_provider_of_a_reference() {
-        assertThat(provider(base64Kek).id()).isEqualTo("gravitee");
-    }
-
     @Nested
     class Resolve {
 
@@ -101,7 +91,7 @@ class BuiltInSecretProviderTest {
         void should_resolve_the_decrypted_value_of_a_secret_of_the_environment() throws TechnicalException {
             givenSecret(ENV, "llm-key", "sk-live-123");
 
-            var secrets = started().resolve(ENV, LLM_KEY).blockingGet();
+            var secrets = started().resolve(LLM_KEY).blockingGet();
 
             assertThat(secrets.asMap().get("value").asString()).isEqualTo("sk-live-123");
         }
@@ -110,21 +100,31 @@ class BuiltInSecretProviderTest {
         void should_resolve_nothing_when_the_environment_has_no_secret_with_that_key() throws TechnicalException {
             when(secretRepository.findByKey(ORG, ENV, "llm-key")).thenReturn(Optional.empty());
 
-            started().resolve(ENV, LLM_KEY).test().assertComplete().assertNoValues();
+            started().resolve(LLM_KEY).test().assertComplete().assertNoValues();
         }
 
         @Test
         void should_resolve_nothing_for_an_environment_that_does_not_exist() throws TechnicalException {
             when(environmentRepository.findById("unknown")).thenReturn(Optional.empty());
 
-            started().resolve("unknown", LLM_KEY).test().assertComplete().assertNoValues();
+            started().resolve(SecretURL.from("/gravitee/unknown/llm-key:value", true)).test().assertComplete().assertNoValues();
         }
 
         @Test
-        void should_read_the_secret_only_in_the_environment_of_the_caller() throws TechnicalException {
+        void should_fail_when_the_reference_does_not_name_an_environment() {
+            started()
+                .resolve(SecretURL.from("/gravitee/llm-key:value", true))
+                .test()
+                .assertError(err -> err instanceof SecretManagerException && err.getMessage().contains("/gravitee/{envId}/{key}"));
+
+            verifyNoInteractions(secretRepository, environmentRepository);
+        }
+
+        @Test
+        void should_read_the_secret_only_in_the_environment_of_the_reference() throws TechnicalException {
             when(secretRepository.findByKey(ORG, ENV, "llm-key")).thenReturn(Optional.empty());
 
-            started().resolve(ENV, LLM_KEY).test().assertNoValues();
+            started().resolve(LLM_KEY).test().assertNoValues();
 
             verify(secretRepository).findByKey(ORG, ENV, "llm-key");
             verifyNoMoreInteractions(secretRepository);
@@ -135,8 +135,8 @@ class BuiltInSecretProviderTest {
             givenSecret(ENV, "llm-key", "sk-live-123");
             var provider = started();
 
-            provider.resolve(ENV, LLM_KEY).blockingGet();
-            provider.resolve(ENV, LLM_KEY).blockingGet();
+            provider.resolve(LLM_KEY).blockingGet();
+            provider.resolve(LLM_KEY).blockingGet();
 
             verify(environmentRepository, times(1)).findById(ENV);
         }
@@ -145,7 +145,7 @@ class BuiltInSecretProviderTest {
         void should_fail_when_the_repository_fails() throws TechnicalException {
             when(secretRepository.findByKey(anyString(), anyString(), anyString())).thenThrow(new TechnicalException("down"));
 
-            started().resolve(ENV, LLM_KEY).test().assertError(SecretManagerException.class);
+            started().resolve(LLM_KEY).test().assertError(SecretManagerException.class);
         }
 
         @Test
@@ -157,7 +157,7 @@ class BuiltInSecretProviderTest {
             );
 
             started()
-                .resolve(ENV, LLM_KEY)
+                .resolve(LLM_KEY)
                 .test()
                 .assertError(err -> err instanceof SecretManagerException && !err.getMessage().contains("AAAA"));
         }
@@ -168,7 +168,7 @@ class BuiltInSecretProviderTest {
             when(organizationKeyRepository.findByOrganizationId(ORG)).thenReturn(Optional.empty());
 
             started()
-                .resolve(ENV, LLM_KEY)
+                .resolve(LLM_KEY)
                 .test()
                 .assertError(err -> err instanceof SecretManagerException && err.getMessage().contains("has no data key"));
         }
@@ -178,7 +178,7 @@ class BuiltInSecretProviderTest {
             givenSecret(ENV, "llm-key", "sk-live-123");
             when(organizationKeyRepository.findByOrganizationId(ORG)).thenThrow(new TechnicalException("down"));
 
-            started().resolve(ENV, LLM_KEY).test().assertError(SecretManagerException.class);
+            started().resolve(LLM_KEY).test().assertError(SecretManagerException.class);
         }
 
         @Test
@@ -198,10 +198,15 @@ class BuiltInSecretProviderTest {
             when(organizationKeyRepository.findKekIds()).thenReturn(Set.of(kek.id(), otherKek.id()));
 
             started()
-                .resolve(ENV, LLM_KEY)
+                .resolve(LLM_KEY)
                 .test()
                 .assertError(err -> err instanceof SecretManagerException && !err.getMessage().contains("sk-live-123"));
         }
+    }
+
+    @Test
+    void should_refuse_to_watch_a_secret() {
+        started().watch(LLM_KEY).test().assertError(SecretManagerException.class);
     }
 
     @Nested
@@ -221,30 +226,53 @@ class BuiltInSecretProviderTest {
         }
 
         @Test
-        void should_fail_with_the_property_and_the_reason_when_no_key_encryption_key_is_set() {
-            assertThatThrownBy(() -> provider(null).start())
-                .isInstanceOf(SecretManagerException.class)
-                .hasMessageContaining("api.secrets.encryption.key")
-                .hasMessageContaining("is not set");
+        void should_refuse_every_secret_and_say_why_when_no_key_encryption_key_is_set() {
+            assertRefusesEverySecret(provider(null).start(), "is not set");
         }
 
         @Test
-        void should_fail_without_printing_the_key_when_the_key_encryption_key_is_malformed() {
-            assertThatThrownBy(() -> provider("not-a-key").start())
-                .isInstanceOf(SecretManagerException.class)
-                .hasMessageContaining("api.secrets.encryption.key")
-                .hasMessageNotContaining("not-a-key");
+        void should_refuse_every_secret_without_printing_the_key_when_the_key_encryption_key_is_malformed() {
+            var provider = provider("not-a-key").start();
+
+            assertRefusesEverySecret(provider, "is not valid base64");
+            assertThat(logs.list).allSatisfy(event -> assertThat(event.getFormattedMessage()).doesNotContain("not-a-key"));
         }
 
         @Test
-        void should_fail_when_the_key_encryption_key_wrapped_none_of_the_stored_data_keys() throws TechnicalException {
+        void should_refuse_every_secret_when_the_key_encryption_key_wrapped_none_of_the_stored_data_keys() throws TechnicalException {
             when(organizationKeyRepository.findKekIds()).thenReturn(Set.of("another-kek"));
 
-            assertThatThrownBy(() -> provider(base64Kek).start())
-                .isInstanceOf(SecretManagerException.class)
-                .hasMessageContaining("api.secrets.encryption.key")
-                .hasMessageContaining("does not match")
-                .hasMessageNotContaining(base64Kek);
+            var provider = provider(base64Kek).start();
+
+            assertRefusesEverySecret(provider, "does not match");
+            assertThat(logs.list).allSatisfy(event -> assertThat(event.getFormattedMessage()).doesNotContain(base64Kek));
+        }
+
+        @Test
+        void should_refuse_every_secret_when_the_stored_data_keys_cannot_be_read() throws TechnicalException {
+            when(organizationKeyRepository.findKekIds()).thenThrow(new TechnicalException("down"));
+
+            assertRefusesEverySecret(provider(base64Kek).start(), "failed to read the stored data keys");
+        }
+
+        @Test
+        void should_refuse_every_secret_when_the_management_repository_does_not_store_secrets() {
+            var provider = new BuiltInSecretProvider(base64Kek, null, null, environmentRepository).start();
+
+            assertRefusesEverySecret(provider, "does not store secrets");
+        }
+
+        private void assertRefusesEverySecret(SecretProvider provider, String reason) {
+            assertThat(logs.list)
+                .singleElement()
+                .satisfies(event -> {
+                    assertThat(event.getLevel()).isEqualTo(Level.ERROR);
+                    assertThat(event.getFormattedMessage()).contains(reason);
+                });
+            provider
+                .resolve(LLM_KEY)
+                .test()
+                .assertError(err -> err instanceof SecretManagerException && err.getMessage().contains(reason));
         }
 
         @Test
@@ -272,7 +300,7 @@ class BuiltInSecretProviderTest {
                 .satisfies(event -> {
                     assertThat(event.getLevel()).isEqualTo(Level.WARN);
                     assertThat(event.getFormattedMessage())
-                        .contains(StaticKeyEncryptionKeyProvider.KEY_PROPERTY, "did not wrap")
+                        .contains(BuiltInSecretManagerConfiguration.ENCRYPTION_KEY, "did not wrap")
                         .doesNotContain(base64Kek);
                 });
         }

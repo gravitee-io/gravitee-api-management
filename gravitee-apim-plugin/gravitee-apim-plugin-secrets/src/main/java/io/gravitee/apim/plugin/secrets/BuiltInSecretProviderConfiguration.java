@@ -13,43 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.standalone.secrets;
+package io.gravitee.apim.plugin.secrets;
 
-import static io.gravitee.apim.common.secret.StaticKeyEncryptionKeyProvider.KEY_PROPERTY;
-
+import io.gravitee.apim.common.secret.StaticKeyEncryptionKeyProvider;
+import io.gravitee.node.secrets.plugins.SecretProviderPluginManager;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.OrganizationKeyRepository;
 import io.gravitee.repository.management.api.SecretRepository;
-import io.gravitee.secrets.api.plugin.EnvironmentAwareSecretProvider;
 import lombok.CustomLog;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.core.env.Environment;
 
+/**
+ * Registers the built-in secret provider with the secret provider plugin manager while the gateway context starts, so
+ * that the secrets service, which starts afterwards, deploys it from an {@code api.secrets.providers} entry with
+ * {@code plugin: gravitee} like any packaged provider.
+ */
 @CustomLog
 @Configuration
 public class BuiltInSecretProviderConfiguration {
 
     @Bean
-    @Lazy
-    public EnvironmentAwareSecretProvider builtInSecretProvider(
-        @Value("${" + KEY_PROPERTY + ":#{null}}") String base64Kek,
+    public BuiltInSecretProviderFactory builtInSecretProviderFactory(
+        SecretProviderPluginManager pluginManager,
+        Environment environment,
         ObjectProvider<SecretRepository> secretRepository,
         ObjectProvider<OrganizationKeyRepository> organizationKeyRepository,
         ObjectProvider<EnvironmentRepository> environmentRepository
     ) {
-        SecretRepository secrets = secretRepository.getIfAvailable();
-        OrganizationKeyRepository organizationKeys = organizationKeyRepository.getIfAvailable();
-        if (secrets == null || organizationKeys == null) {
-            log.info("Built-in secret provider [{}]: SKIPPED, the management repository does not store secrets", BuiltInSecretProvider.ID);
-            return null;
-        }
-        if (base64Kek == null || base64Kek.isBlank()) {
-            log.info("Built-in secret provider [{}]: SKIPPED, {} is not set", BuiltInSecretProvider.ID, KEY_PROPERTY);
-            return null;
-        }
-        return new BuiltInSecretProvider(base64Kek, secrets, organizationKeys, environmentRepository.getObject());
+        pluginManager.register(new BuiltInSecretProviderPlugin());
+        BuiltInSecretProviderFactory factory = pluginManager.getFactoryById(BuiltInSecretProvider.ID);
+        factory.connect(secretRepository, organizationKeyRepository, environmentRepository, () ->
+            environment.getProperty(StaticKeyEncryptionKeyProvider.KEY_PROPERTY)
+        );
+        log.info("Built-in secret provider [{}]: REGISTERED", BuiltInSecretProvider.ID);
+        return factory;
     }
 }

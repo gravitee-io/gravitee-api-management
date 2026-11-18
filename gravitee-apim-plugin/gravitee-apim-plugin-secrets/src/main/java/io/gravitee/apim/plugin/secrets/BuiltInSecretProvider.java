@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.standalone.secrets;
-
-import static io.gravitee.apim.common.secret.StaticKeyEncryptionKeyProvider.KEY_PROPERTY;
+package io.gravitee.apim.plugin.secrets;
 
 import io.gravitee.apim.common.secret.DataKeyResolver;
 import io.gravitee.apim.common.secret.InvalidKeyEncryptionKeyException;
@@ -31,10 +29,12 @@ import io.gravitee.repository.management.api.OrganizationKeyRepository;
 import io.gravitee.repository.management.api.SecretRepository;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Secret;
+import io.gravitee.secrets.api.core.SecretEvent;
 import io.gravitee.secrets.api.core.SecretMap;
 import io.gravitee.secrets.api.core.SecretURL;
 import io.gravitee.secrets.api.errors.SecretManagerException;
-import io.gravitee.secrets.api.plugin.EnvironmentAwareSecretProvider;
+import io.gravitee.secrets.api.plugin.SecretProvider;
+import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Map;
 import java.util.Optional;
@@ -43,9 +43,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import lombok.CustomLog;
 
 @CustomLog
-public class BuiltInSecretProvider implements EnvironmentAwareSecretProvider {
+public class BuiltInSecretProvider implements SecretProvider {
 
     public static final String ID = "gravitee";
+    private static final String KEY_SETTING =
+        "Secret provider [" +
+        ID +
+        "] " +
+        BuiltInSecretManagerConfiguration.ENCRYPTION_KEY +
+        " (or " +
+        StaticKeyEncryptionKeyProvider.KEY_PROPERTY +
+        ")";
     private static final String VALUE_KEY = "value";
 
     private final String base64Kek;
@@ -54,6 +62,7 @@ public class BuiltInSecretProvider implements EnvironmentAwareSecretProvider {
     private final EnvironmentRepository environmentRepository;
     private final Map<String, String> organizationOfEnvironment = new ConcurrentHashMap<>();
     private DataKeyResolver dataKeys;
+    private volatile String refusal;
 
     public BuiltInSecretProvider(
         String base64Kek,
@@ -67,50 +76,78 @@ public class BuiltInSecretProvider implements EnvironmentAwareSecretProvider {
         this.environmentRepository = environmentRepository;
     }
 
+    /**
+     * Never throws: the secrets service stops, with every other secret provider, when a provider fails to start. A
+     * provider that cannot serve logs why once and refuses every secret instead.
+     */
     @Override
-    public String id() {
-        return ID;
+    public SecretProvider start() {
+        try {
+            dataKeys = new DataKeyResolver(verifiedKeyEncryptionKey(), this::findStoredDataKey);
+        } catch (SecretManagerException e) {
+            refusal = e.getMessage();
+            log.error("{}: it refuses every secret until this is fixed", refusal, e.getCause());
+        }
+        return this;
     }
 
-    @Override
-    public EnvironmentAwareSecretProvider start() {
+    private KeyEncryptionKeyProvider verifiedKeyEncryptionKey() {
+        if (secretRepository == null || organizationKeyRepository == null) {
+            throw new SecretManagerException(
+                "Secret provider [" + ID + "] cannot read secrets: the management repository does not store secrets"
+            );
+        }
         KeyEncryptionKeyProvider kek;
         try {
             kek = StaticKeyEncryptionKeyProvider.fromBase64(base64Kek);
         } catch (InvalidKeyEncryptionKeyException e) {
-            throw new SecretManagerException(KEY_PROPERTY + " " + e.getMessage());
+            throw new SecretManagerException(KEY_SETTING + " " + e.getMessage());
         }
         Set<String> storedKekIds;
         try {
             storedKekIds = organizationKeyRepository.findKekIds();
         } catch (TechnicalException e) {
-            throw new SecretManagerException("Failed to read the stored data keys", e);
+            throw new SecretManagerException("Secret provider [" + ID + "] failed to read the stored data keys", e);
         }
         if (!storedKekIds.isEmpty() && storedKekIds.stream().noneMatch(kek::canUnwrap)) {
-            throw new SecretManagerException(KEY_PROPERTY + " does not match the key that encrypted the stored secrets");
+            throw new SecretManagerException(KEY_SETTING + " does not match the key that encrypted the stored secrets");
         }
         if (!storedKekIds.stream().allMatch(kek::canUnwrap)) {
             log.warn(
                 "{} did not wrap the data key of every organization: the organizations it did not wrap cannot read their secrets",
-                KEY_PROPERTY
+                KEY_SETTING
             );
         }
-        dataKeys = new DataKeyResolver(kek, this::findStoredDataKey);
-        return this;
+        return kek;
     }
 
     @Override
-    public Maybe<SecretMap> resolve(String environmentId, SecretURL secretURL) {
-        return Maybe.fromCallable(() -> lookup(environmentId, secretURL.path())).onErrorResumeNext(e ->
-            Maybe.error(
-                e instanceof SecretManagerException
-                    ? e
-                    : new SecretManagerException(
-                        "Failed to resolve secret [" + secretURL.path() + "] of environment [" + environmentId + "]",
-                        e
-                    )
-            )
-        );
+    public Maybe<SecretMap> resolve(SecretURL secretURL) {
+        String reason = refusal;
+        if (reason != null) {
+            return Maybe.error(new SecretManagerException(reason));
+        }
+        return Maybe.fromCallable(() -> {
+            String path = secretURL.path();
+            int separator = path.indexOf('/');
+            if (separator <= 0 || separator == path.length() - 1) {
+                throw new SecretManagerException("Secret reference [" + path + "] must have the form /" + ID + "/{envId}/{key}");
+            }
+            String environmentId = path.substring(0, separator);
+            String key = path.substring(separator + 1);
+            try {
+                return lookup(environmentId, key);
+            } catch (SecretManagerException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new SecretManagerException("Failed to resolve secret [" + key + "] of environment [" + environmentId + "]", e);
+            }
+        });
+    }
+
+    @Override
+    public Flowable<SecretEvent> watch(SecretURL secretURL) {
+        return Flowable.error(new SecretManagerException("The " + ID + " secret provider does not support watching secrets"));
     }
 
     private SecretMap lookup(String environmentId, String key) throws TechnicalException {

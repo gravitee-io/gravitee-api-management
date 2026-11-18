@@ -17,6 +17,7 @@ package io.gravitee.gateway.standalone.spring;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.plugin.secrets.BuiltInSecretProviderConfiguration;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -42,7 +43,6 @@ import io.gravitee.gateway.report.spring.ReporterConfiguration;
 import io.gravitee.gateway.repository.plugins.GatewayRepositoryScopeProvider;
 import io.gravitee.gateway.standalone.node.GatewayNode;
 import io.gravitee.gateway.standalone.node.GatewayNodeMetadataResolver;
-import io.gravitee.gateway.standalone.secrets.BuiltInSecretProviderConfiguration;
 import io.gravitee.gateway.standalone.vertx.VertxReactorConfiguration;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.NodeMetadataResolver;
