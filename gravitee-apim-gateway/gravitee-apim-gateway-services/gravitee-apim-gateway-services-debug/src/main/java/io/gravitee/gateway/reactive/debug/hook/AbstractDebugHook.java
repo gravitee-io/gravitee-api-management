@@ -19,6 +19,7 @@ import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.HttpHook;
+import io.gravitee.gateway.reactive.core.context.WrappedExecutionContext;
 import io.gravitee.gateway.reactive.debug.reactor.context.DebugExecutionContext;
 import io.reactivex.rxjava3.core.Completable;
 
@@ -106,8 +107,12 @@ public abstract class AbstractDebugHook implements HttpHook {
     );
 
     private DebugExecutionContext getExecutionContext(final HttpExecutionContext ctx) {
-        if (ctx instanceof DebugExecutionContext) {
-            return (DebugExecutionContext) ctx;
+        HttpExecutionContext current = ctx;
+        while (current instanceof WrappedExecutionContext wrapper) {
+            current = wrapper.unwrap();
+        }
+        if (current instanceof DebugExecutionContext debugCtx) {
+            return debugCtx;
         }
         return null;
     }
