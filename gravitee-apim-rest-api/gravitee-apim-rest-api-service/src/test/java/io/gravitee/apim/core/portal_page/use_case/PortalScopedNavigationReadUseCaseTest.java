@@ -100,7 +100,8 @@ class PortalScopedNavigationReadUseCaseTest {
         apis,
         navigation,
         contents,
-        apiNavigation
+        apiNavigation,
+        apiQuery
     );
     private final PortalNavigationApiVisibilityDomainService apiVisibility = new PortalNavigationApiVisibilityDomainService(
         navigation,
@@ -121,7 +122,8 @@ class PortalScopedNavigationReadUseCaseTest {
             new PortalNavigationItemSourceDomainServiceInMemory(),
             apiSearch,
             apiNavigation,
-            new PortalNavigationItemRenderingDomainService(navigation)
+            new PortalNavigationItemRenderingDomainService(navigation),
+            access
         )
     );
     private final GetPortalNavigationItemUseCase get = new GetPortalNavigationItemUseCase(

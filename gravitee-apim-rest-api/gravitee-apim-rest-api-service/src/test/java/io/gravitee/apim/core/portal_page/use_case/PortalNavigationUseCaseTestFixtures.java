@@ -74,7 +74,8 @@ final class PortalNavigationUseCaseTestFixtures {
             new ApiCrudServiceInMemory(),
             navigation,
             new PortalPageContentQueryServiceInMemory(),
-            new ApiOwnedNavigationDomainService(navigation, new PortalNavigationItemsCrudServiceInMemory())
+            new ApiOwnedNavigationDomainService(navigation, new PortalNavigationItemsCrudServiceInMemory()),
+            new ApiQueryServiceInMemory()
         );
     }
 }
