@@ -447,12 +447,34 @@ describe('ApplicationService', () => {
         done();
       });
 
-      httpTestingController
-        .expectOne({
-          method: 'POST',
-          url: `${CONSTANTS_TESTING.env.baseURL}/applications/applicationId/apikeys/_renew`,
-        })
-        .flush({});
+      const request = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/applicationId/apikeys/_renew`,
+      });
+      expect(request.request.body).toEqual({});
+      request.flush({});
+    });
+
+    it('should send a trimmed custom value', done => {
+      applicationService.renewApiKey('applicationId', '  custom-key-1  ').subscribe(() => done());
+
+      const customRequest = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/applicationId/apikeys/_renew`,
+      });
+      expect(customRequest.request.body).toEqual({ customApiKey: 'custom-key-1' });
+      customRequest.flush({});
+    });
+
+    it('should omit a blank custom value', done => {
+      applicationService.renewApiKey('applicationId', '   ').subscribe(() => done());
+
+      const emptyRequest = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/applicationId/apikeys/_renew`,
+      });
+      expect(emptyRequest.request.body).toEqual({});
+      emptyRequest.flush({});
     });
   });
 
