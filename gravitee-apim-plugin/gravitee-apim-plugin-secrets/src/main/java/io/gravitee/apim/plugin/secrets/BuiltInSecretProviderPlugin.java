@@ -21,8 +21,7 @@ import java.net.URL;
 import java.nio.file.Path;
 
 /**
- * Describes the built-in secret provider to the secret provider plugin manager. It ships in the gateway rather than as
- * a plugin archive, so it has no path, manifest or dependencies of its own.
+ * Ships in the gateway rather than as a plugin archive, so it has no path, manifest or dependencies of its own.
  */
 public class BuiltInSecretProviderPlugin implements SecretProviderPlugin<BuiltInSecretProviderFactory, BuiltInSecretManagerConfiguration> {
 
