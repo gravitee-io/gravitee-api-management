@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4.security;
 
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_VALIDATE_SUBSCRIPTION;
+import static io.gravitee.gateway.reactive.handlers.api.security.plan.AbstractSecurityPlan.ATTR_INTERNAL_PLAN_API_PRODUCT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -33,9 +35,12 @@ import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
+import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.reactive.api.policy.http.HttpSecurityPolicy;
@@ -55,6 +60,7 @@ import io.reactivex.rxjava3.schedulers.TestScheduler;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
@@ -68,6 +74,9 @@ class HttpSecurityChainTest {
     private static final String ENV_ID = "env-1";
 
     private final List<String> tried = new CopyOnWriteArrayList<>();
+    private final List<String> executed = new CopyOnWriteArrayList<>();
+    private final Map<String, Subscription> subscriptionByKey = new HashMap<>();
+    private String presentedKey = "key";
     private final Map<String, Object> internalAttributes = new HashMap<>();
     private final HttpExecutionContext ctx = mock(HttpExecutionContext.class);
     private final PolicyManager policyManager = mock(PolicyManager.class);
@@ -97,6 +106,15 @@ class HttpSecurityChainTest {
         lenient().when(configuration.getProperty("api.security.verbose401", Boolean.class, false)).thenReturn(false);
         lenient().when(ctx.getComponent(Configuration.class)).thenReturn(configuration);
         lenient().when(ctx.withLogger(any())).thenReturn(NOPLogger.NOP_LOGGER);
+        lenient().when(ctx.getAttribute(ContextAttributes.ATTR_API)).thenReturn(API_ID);
+        SubscriptionService subscriptionService = mock(SubscriptionService.class);
+        lenient()
+            .when(subscriptionService.getByApiAndSecurityToken(anyString(), any(), anyString()))
+            .thenAnswer(invocation -> {
+                Subscription subscription = subscriptionByKey.get(invocation.<SecurityToken>getArgument(1).getTokenValue());
+                return Optional.ofNullable(subscription).filter(s -> s.getApi().equals(invocation.getArgument(0)));
+            });
+        lenient().when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
         lenient().when(ctx.interruptWith(any(ExecutionFailure.class))).thenReturn(Completable.error(new RuntimeException("401")));
         lenient()
             .doAnswer(invocation -> internalAttributes.put(invocation.getArgument(0), invocation.getArgument(1)))
@@ -133,6 +151,7 @@ class HttpSecurityChainTest {
 
     @Test
     void should_keep_the_runtime_of_the_matched_product_plan_pinned_and_release_the_others() throws Exception {
+        subscribe("key", "product-a", "a-1");
         securityPlansByProduct.put("product-a", List.of(productPlan("product-a", "a-1", 1, true)));
         securityPlansByProduct.put("product-b", List.of(productPlan("product-b", "b-2", 2, false)));
         registry.deploy(product("product-a"));
@@ -190,6 +209,7 @@ class HttpSecurityChainTest {
 
     @Test
     void should_keep_the_accepting_runtime_held_when_the_completed_chain_is_disposed_late() throws Exception {
+        subscribe("key", "product-a", "a-1");
         securityPlansByProduct.put("product-a", List.of(productPlan("product-a", "a-1", 1, true)));
         registry.deploy(product("product-a"));
         LifecycleComponent<?> firstA = componentByProduct.remove("product-a");
@@ -216,6 +236,73 @@ class HttpSecurityChainTest {
         assertThat(tried).containsExactly("api-0");
     }
 
+    @Test
+    void should_run_only_the_product_plan_a_key_is_subscribed_to_when_subscriptions_are_not_validated() {
+        givenApiSharedByTwoProductsWithValidateSubscriptionDisabled();
+
+        presentedKey = "key-b";
+        cut().execute(ctx).test().assertComplete();
+        assertThat(executed).containsExactly("b-2");
+        assertThat(internalAttributes).containsEntry(ATTR_INTERNAL_PLAN_API_PRODUCT, "product-b");
+        releasePinnedRuntime();
+
+        executed.clear();
+        presentedKey = "key-a";
+        cut().execute(ctx).test().assertComplete();
+        assertThat(executed).containsExactly("a-1");
+        assertThat(internalAttributes).containsEntry(ATTR_INTERNAL_PLAN_API_PRODUCT, "product-a");
+        releasePinnedRuntime();
+    }
+
+    @Test
+    void should_run_the_api_plan_for_a_key_subscribed_to_the_api_when_subscriptions_are_not_validated() {
+        givenApiSharedByTwoProductsWithValidateSubscriptionDisabled();
+        presentedKey = "key-m";
+
+        cut().execute(ctx).test().assertComplete();
+
+        assertThat(executed).containsExactly("api-0");
+        assertThat(internalAttributes).doesNotContainKeys(
+            ATTR_INTERNAL_PLAN_API_PRODUCT,
+            ApiProductRuntime.ATTR_INTERNAL_API_PRODUCT_RUNTIME
+        );
+    }
+
+    @Test
+    void should_run_the_api_plan_without_subscription_check_for_a_key_unknown_to_the_products_when_subscriptions_are_not_validated() {
+        givenApiSharedByTwoProductsWithValidateSubscriptionDisabled();
+        presentedKey = "unknown-key";
+
+        cut().execute(ctx).test().assertComplete();
+
+        assertThat(executed).containsExactly("api-0");
+        assertThat(internalAttributes).doesNotContainKey(ATTR_INTERNAL_PLAN_API_PRODUCT);
+    }
+
+    private void givenApiSharedByTwoProductsWithValidateSubscriptionDisabled() {
+        internalAttributes.put(ATTR_INTERNAL_VALIDATE_SUBSCRIPTION, false);
+        securityPlansByProduct.put("product-a", List.of(productPlan("product-a", "a-1", 1, true)));
+        securityPlansByProduct.put("product-b", List.of(productPlan("product-b", "b-2", 2, true)));
+        registry.deploy(product("product-a"));
+        registry.deploy(product("product-b"));
+        subscribe("key-a", "product-a", "a-1");
+        subscribe("key-b", "product-b", "b-2");
+        subscribe("key-m", API_ID, "api-0");
+    }
+
+    private HttpSecurityChain cut() {
+        return new HttpSecurityChain(apiWithPlan("api-0", 0, true), policyManager, ExecutionPhase.REQUEST, registry, ENV_ID);
+    }
+
+    private void releasePinnedRuntime() {
+        ((ApiProductRuntime) internalAttributes.remove(ApiProductRuntime.ATTR_INTERNAL_API_PRODUCT_RUNTIME)).release();
+        internalAttributes.remove(ATTR_INTERNAL_PLAN_API_PRODUCT);
+    }
+
+    private void subscribe(String key, String scope, String planId) {
+        subscriptionByKey.put(key, Subscription.builder().id("subscription-" + key).api(scope).plan(planId).build());
+    }
+
     private HttpSecurityPlan productPlan(String productId, String planId, int order, boolean accepts) {
         return new HttpSecurityPlan(new SecurityPlanContext(planId, planId, null, productId), securityPolicy(planId, order, accepts));
     }
@@ -224,21 +311,25 @@ class HttpSecurityChainTest {
         HttpSecurityPolicy policy = mock(HttpSecurityPolicy.class);
         lenient().when(policy.id()).thenReturn(name);
         lenient().when(policy.order()).thenReturn(order);
-        lenient().when(policy.requireSubscription(any())).thenReturn(false);
+        lenient().when(policy.requireSubscription(any())).thenReturn(true);
         lenient().when(policy.wwwAuthenticate(any())).thenReturn(Single.just(false));
         lenient().when(policy.onWellKnown(any())).thenReturn(Single.just(false));
-        lenient().when(policy.onRequest(any())).thenReturn(Completable.complete());
+        lenient().when(policy.onRequest(any())).thenReturn(Completable.fromRunnable(() -> executed.add(name)));
         lenient()
             .when(policy.extractSecurityToken(any()))
             .thenAnswer(invocation -> {
                 tried.add(name);
-                return accepts ? Maybe.just(SecurityToken.forApiKey("key")) : Maybe.empty();
+                return accepts ? Maybe.just(SecurityToken.forApiKey(presentedKey)) : Maybe.empty();
             });
         return policy;
     }
 
     private Api apiWithPlan(String planId, int order) {
-        HttpSecurityPolicy policy = securityPolicy(planId, order, false);
+        return apiWithPlan(planId, order, false);
+    }
+
+    private Api apiWithPlan(String planId, int order, boolean accepts) {
+        HttpSecurityPolicy policy = securityPolicy(planId, order, accepts);
         when(policyManager.create(any(), any())).thenReturn(policy);
         Api api = new Api();
         api.setId(API_ID);

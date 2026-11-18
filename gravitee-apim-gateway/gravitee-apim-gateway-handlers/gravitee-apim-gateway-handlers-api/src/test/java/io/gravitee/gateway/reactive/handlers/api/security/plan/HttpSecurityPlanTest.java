@@ -17,6 +17,7 @@ package io.gravitee.gateway.reactive.handlers.api.security.plan;
 
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_DIAGNOSTIC;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_TOKEN;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_VALIDATE_SUBSCRIPTION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -49,6 +50,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.helpers.NOPLogger;
@@ -65,6 +68,7 @@ class HttpSecurityPlanTest {
     protected static final String API_ID = "apiId";
     protected static final String CLIENT_ID = "clientId";
     protected static final String PLAN_ID = "planId";
+    protected static final String PRODUCT_ID = "product-id";
     protected static final String APPLICATION_ID = "applicationId";
     protected static final String SUBSCRIPTION_ID = "subscriptionId";
     protected static final String MOCK_EXCEPTION = "Mock exception";
@@ -191,15 +195,15 @@ class HttpSecurityPlanTest {
         when(policy.extractSecurityToken(ctx)).thenReturn(Maybe.just(securityToken));
         when(plan.getId()).thenReturn(PLAN_ID);
         lenient().when(ctx.getAttribute(ContextAttributes.ATTR_API)).thenReturn(API_ID);
-        when(subscriptionService.getByApiAndSecurityToken("product-id", securityToken, PLAN_ID)).thenReturn(Optional.empty());
+        when(subscriptionService.getByApiAndSecurityToken(PRODUCT_ID, securityToken, PLAN_ID)).thenReturn(Optional.empty());
 
         final HttpSecurityPlan cut = new HttpSecurityPlan(
-            SecurityPlanContext.builder().fromV2(plan).apiProductId("product-id").build(),
+            SecurityPlanContext.builder().fromV2(plan).apiProductId(PRODUCT_ID).build(),
             policy
         );
         cut.canExecute(ctx).test().assertResult(false);
 
-        verify(subscriptionService).getByApiAndSecurityToken("product-id", securityToken, PLAN_ID);
+        verify(subscriptionService).getByApiAndSecurityToken(PRODUCT_ID, securityToken, PLAN_ID);
         verify(subscriptionService, never()).getByApiAndSecurityToken(eq(API_ID), any(), any());
     }
 
@@ -347,6 +351,124 @@ class HttpSecurityPlanTest {
 
         obs.assertResult(true);
         verify(ctx, times(1)).setInternalAttribute(eq(ATTR_INTERNAL_SECURITY_TOKEN), any());
+    }
+
+    @Test
+    void should_accept_a_product_plan_key_subscribed_to_that_plan_when_subscriptions_are_not_validated() {
+        givenProductPlanKeyWithValidateSubscriptionDisabled();
+        final Subscription subscription = mock(Subscription.class);
+        when(subscription.getPlan()).thenReturn(PLAN_ID);
+        when(subscriptionService.getByApiAndSecurityToken(PRODUCT_ID, securityToken, PLAN_ID)).thenReturn(Optional.of(subscription));
+
+        productPlan().canExecute(ctx).test().assertResult(true);
+
+        verify(ctx).setInternalAttribute(ATTR_INTERNAL_SUBSCRIPTION, subscription);
+    }
+
+    @Test
+    void should_skip_a_product_plan_for_a_key_subscribed_to_another_plan_when_subscriptions_are_not_validated() {
+        givenProductPlanKeyWithValidateSubscriptionDisabled();
+        final Subscription subscription = mock(Subscription.class);
+        when(subscription.getPlan()).thenReturn("another-product-plan-id");
+        lenient().when(subscription.isTimeValid(anyLong())).thenReturn(true);
+        when(subscriptionService.getByApiAndSecurityToken(PRODUCT_ID, securityToken, PLAN_ID)).thenReturn(Optional.of(subscription));
+
+        productPlan().canExecute(ctx).test().assertResult(false);
+    }
+
+    @Test
+    void should_accept_a_product_plan_key_whose_subscription_has_not_started_when_subscriptions_are_not_validated() {
+        givenProductPlanKeyWithValidateSubscriptionDisabled();
+        final Subscription subscription = mock(Subscription.class);
+        when(subscription.getPlan()).thenReturn(PLAN_ID);
+        lenient().when(subscription.isTimeValid(anyLong())).thenReturn(false);
+        lenient().when(subscription.getStartingAt()).thenReturn(new Date(System.currentTimeMillis() + 86_400_000));
+        when(subscriptionService.getByApiAndSecurityToken(PRODUCT_ID, securityToken, PLAN_ID)).thenReturn(Optional.of(subscription));
+
+        productPlan().canExecute(ctx).test().assertResult(true);
+
+        verify(ctx).setInternalAttribute(ATTR_INTERNAL_SUBSCRIPTION, subscription);
+    }
+
+    @Test
+    void should_skip_a_product_plan_key_whose_subscription_has_not_started_when_subscriptions_are_validated() {
+        long now = System.currentTimeMillis();
+        when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_DIAGNOSTIC)).thenReturn(securityChainDiagnostic);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_VALIDATE_SUBSCRIPTION)).thenReturn(true);
+        when(policy.requireSubscription(ctx)).thenReturn(true);
+        when(policy.extractSecurityToken(ctx)).thenReturn(Maybe.just(securityToken));
+        when(plan.getId()).thenReturn(PLAN_ID);
+        when(ctx.timestamp()).thenReturn(now);
+        final Subscription subscription = mock(Subscription.class);
+        when(subscription.getPlan()).thenReturn(PLAN_ID);
+        when(subscription.isTimeValid(anyLong())).thenReturn(false);
+        when(subscription.getStartingAt()).thenReturn(new Date(now + 86_400_000));
+        when(subscriptionService.getByApiAndSecurityToken(PRODUCT_ID, securityToken, PLAN_ID)).thenReturn(Optional.of(subscription));
+
+        productPlan().canExecute(ctx).test().assertResult(false);
+
+        verify(securityChainDiagnostic).markPlanHasNotYetStartedSubscription(any(), any());
+    }
+
+    @Test
+    void should_skip_a_product_plan_for_a_key_without_product_subscription_when_subscriptions_are_not_validated() {
+        givenProductPlanKeyWithValidateSubscriptionDisabled();
+        when(subscriptionService.getByApiAndSecurityToken(PRODUCT_ID, securityToken, PLAN_ID)).thenReturn(Optional.empty());
+
+        productPlan().canExecute(ctx).test().assertResult(false);
+
+        verify(subscriptionService).getByApiAndSecurityToken(PRODUCT_ID, securityToken, PLAN_ID);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { true, false })
+    void should_never_accept_a_keyless_product_plan(boolean validateSubscription) {
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_DIAGNOSTIC)).thenReturn(securityChainDiagnostic);
+        when(policy.extractSecurityToken(ctx)).thenReturn(Maybe.just(securityToken));
+        when(policy.requireSubscription(ctx)).thenReturn(false);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_VALIDATE_SUBSCRIPTION)).thenReturn(validateSubscription);
+        when(plan.getId()).thenReturn(PLAN_ID);
+
+        productPlan().canExecute(ctx).test().assertResult(false);
+
+        verify(securityChainDiagnostic).markPlanHasNoSubscription(any(), any(), any());
+        verify(subscriptionService, never()).getByApiAndSecurityToken(any(), any(), any());
+    }
+
+    @Test
+    void should_accept_an_api_plan_without_subscription_lookup_when_subscriptions_are_not_validated() {
+        lenient().when(ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_DIAGNOSTIC)).thenReturn(securityChainDiagnostic);
+        when(policy.extractSecurityToken(ctx)).thenReturn(Maybe.just(securityToken));
+        lenient().when(policy.requireSubscription(ctx)).thenReturn(true);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_VALIDATE_SUBSCRIPTION)).thenReturn(false);
+        when(plan.getId()).thenReturn(PLAN_ID);
+
+        new HttpSecurityPlan(SecurityPlanContext.builder().fromV2(plan).build(), policy).canExecute(ctx).test().assertResult(true);
+
+        verify(ctx, never()).getComponent(SubscriptionService.class);
+    }
+
+    @Test
+    void should_accept_a_keyless_api_plan() {
+        when(policy.extractSecurityToken(ctx)).thenReturn(Maybe.just(securityToken));
+        when(policy.requireSubscription(ctx)).thenReturn(false);
+        when(plan.getId()).thenReturn(PLAN_ID);
+
+        new HttpSecurityPlan(SecurityPlanContext.builder().fromV2(plan).build(), policy).canExecute(ctx).test().assertResult(true);
+    }
+
+    private void givenProductPlanKeyWithValidateSubscriptionDisabled() {
+        when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
+        lenient().when(ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_DIAGNOSTIC)).thenReturn(securityChainDiagnostic);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_VALIDATE_SUBSCRIPTION)).thenReturn(false);
+        when(policy.requireSubscription(ctx)).thenReturn(true);
+        when(policy.extractSecurityToken(ctx)).thenReturn(Maybe.just(securityToken));
+        when(plan.getId()).thenReturn(PLAN_ID);
+    }
+
+    private HttpSecurityPlan productPlan() {
+        return new HttpSecurityPlan(SecurityPlanContext.builder().fromV2(plan).apiProductId(PRODUCT_ID).build(), policy);
     }
 
     @Test
