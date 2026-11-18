@@ -214,8 +214,12 @@ export class ApplicationService {
     return this.http.get<ApplicationSubscriptionApiKey[]>(`${this.constants.env.baseURL}/applications/${applicationId}/apikeys`);
   }
 
-  renewApiKey(applicationId: string): Observable<void> {
-    return this.http.post<void>(`${this.constants.env.baseURL}/applications/${applicationId}/apikeys/_renew`, {});
+  renewApiKey(applicationId: string, customApiKey?: string): Observable<void> {
+    const value = customApiKey?.trim();
+    return this.http.post<void>(
+      `${this.constants.env.baseURL}/applications/${applicationId}/apikeys/_renew`,
+      value ? { customApiKey: value } : {},
+    );
   }
 
   revokeApiKey(applicationId: string, apiKeyId: string): Observable<void> {
