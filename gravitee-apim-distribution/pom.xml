@@ -226,7 +226,7 @@
     <gravitee-resource-schema-registry-http.version>1.0.2</gravitee-resource-schema-registry-http.version>
     <gravitee-resource-storage-azure-blob.version>1.1.1</gravitee-resource-storage-azure-blob.version>
     <gravitee-reactor-message.version>11.1.2</gravitee-reactor-message.version>
-    <gravitee-reactor-native-kafka.version>9.0.0-alpha.33</gravitee-reactor-native-kafka.version>
+    <gravitee-reactor-native-kafka.version>9.0.0-alpha.34</gravitee-reactor-native-kafka.version>
     <gravitee-reactor-mcp-proxy.version>4.12.10</gravitee-reactor-mcp-proxy.version>
     <gravitee-reactor-llm-proxy.version>6.0.0-alpha.7</gravitee-reactor-llm-proxy.version>
     <gravitee-reactor-a2a-proxy.version>2.1.5</gravitee-reactor-a2a-proxy.version>
@@ -246,13 +246,13 @@
     <gravitee-service-secrets.version>4.0.2</gravitee-service-secrets.version>
     <gravitee-policy-interops.version>2.0.0</gravitee-policy-interops.version>
     <gravitee-policy-kafka-quota.version>3.0.0-alpha.5</gravitee-policy-kafka-quota.version>
-    <gravitee-policy-kafka-topic-mapping.version>3.0.0-alpha.6</gravitee-policy-kafka-topic-mapping.version>
-    <gravitee-policy-kafka-acl.version>4.0.0-alpha.7</gravitee-policy-kafka-acl.version>
+    <gravitee-policy-kafka-topic-mapping.version>3.0.0-alpha.7</gravitee-policy-kafka-topic-mapping.version>
+    <gravitee-policy-kafka-acl.version>4.0.0-alpha.8</gravitee-policy-kafka-acl.version>
     <gravitee-policy-kafka-transform-key.version>1.1.0</gravitee-policy-kafka-transform-key.version>
     <gravitee-policy-kafka-message-filtering.version>1.1.2</gravitee-policy-kafka-message-filtering.version>
     <gravitee-policy-kafka-message-encryption-decryption.version>1.1.0-alpha.1</gravitee-policy-kafka-message-encryption-decryption.version>
     <gravitee-policy-kafka-rules.version>2.0.0-alpha.6</gravitee-policy-kafka-rules.version>
-    <gravitee-policy-kafka-namespace.version>2.0.0-alpha.7</gravitee-policy-kafka-namespace.version>
+    <gravitee-policy-kafka-namespace.version>2.0.0-alpha.8</gravitee-policy-kafka-namespace.version>
     <gravitee-policy-kafka-offloading.version>1.2.0</gravitee-policy-kafka-offloading.version>
     <gravitee-policy-token-ratelimit.version>3.0.0</gravitee-policy-token-ratelimit.version>
     <gravitee-policy-cost-ratelimit.version>3.0.0</gravitee-policy-cost-ratelimit.version>
