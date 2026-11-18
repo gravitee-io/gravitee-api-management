@@ -168,6 +168,17 @@ public class PortalScopedNavigationItemsResourceTest extends AbstractResourceTes
         assertThat(statusesForEveryPath(this::target, unknownPortal, page.getId().json())).containsOnly(404);
     }
 
+    @Test
+    void should_answer_not_found_for_a_malformed_item_id() {
+        var unknownPortal = "6c2b1e9e-0000-4000-8000-000000000000";
+
+        assertThat(
+            Stream.of(unknownPortal, portal.toString())
+                .flatMap(portalId -> Stream.of("", "/content").map(suffix -> portalId + "/portal-navigation-items/not-a-uuid" + suffix))
+                .map(path -> target(path).request().get().getStatus())
+        ).containsOnly(404);
+    }
+
     static List<Integer> statusesForEveryPath(Function<String, WebTarget> target, String portalId, String itemId) {
         var base = portalId + "/portal-navigation-items";
         return Stream.of(

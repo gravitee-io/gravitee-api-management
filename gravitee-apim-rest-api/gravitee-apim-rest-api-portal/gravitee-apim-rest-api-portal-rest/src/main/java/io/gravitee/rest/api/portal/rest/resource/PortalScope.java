@@ -17,6 +17,8 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.Optional;
 
@@ -33,6 +35,21 @@ final class PortalScope {
      */
     static Optional<PortalId> fromPath(UriInfo uriInfo) {
         return Optional.ofNullable(uriInfo.getPathParameters().getFirst(PORTAL_ID_PARAM)).map(PortalScope::parse);
+    }
+
+    /**
+     * @throws PortalNavigationItemNotFoundException on a portal-scoped path when the item id is not a UUID: the portal cannot have
+     *     such an item. The unscoped paths keep their existing answer.
+     */
+    static void requireWellFormedItemId(Optional<PortalId> scope, String itemId) {
+        if (scope.isEmpty()) {
+            return;
+        }
+        try {
+            PortalNavigationItemId.of(itemId);
+        } catch (IllegalArgumentException e) {
+            throw new PortalNavigationItemNotFoundException(itemId);
+        }
     }
 
     private static PortalId parse(String portalId) {

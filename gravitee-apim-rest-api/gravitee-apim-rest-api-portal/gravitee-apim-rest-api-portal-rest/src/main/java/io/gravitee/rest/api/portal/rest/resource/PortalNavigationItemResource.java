@@ -45,6 +45,8 @@ public class PortalNavigationItemResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response getPortalNavigationItemById(@PathParam("portalNavigationItemId") String portalNavigationItemId) {
+        var scope = PortalScope.fromPath(uriInfo);
+        PortalScope.requireWellFormedItemId(scope, portalNavigationItemId);
         var executionContext = getExecutionContext();
         var result = getPortalNavigationItemUseCase.execute(
             new GetPortalNavigationItemUseCase.Input(
@@ -52,7 +54,7 @@ public class PortalNavigationItemResource extends AbstractResource {
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
                 PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull()),
-                PortalScope.fromPath(uriInfo)
+                scope
             )
         );
 
@@ -64,6 +66,8 @@ public class PortalNavigationItemResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response getPortalNavigationItemContentById(@PathParam("portalNavigationItemId") String portalNavigationItemId) {
+        var scope = PortalScope.fromPath(uriInfo);
+        PortalScope.requireWellFormedItemId(scope, portalNavigationItemId);
         var executionContext = getExecutionContext();
         var result = getPortalPageContentByNavigationIdUseCase.execute(
             new GetPortalPageContentByNavigationIdUseCase.Input(
@@ -71,7 +75,7 @@ public class PortalNavigationItemResource extends AbstractResource {
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
                 PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull()),
-                PortalScope.fromPath(uriInfo)
+                scope
             )
         );
 
