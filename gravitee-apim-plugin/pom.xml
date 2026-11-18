@@ -54,5 +54,6 @@
         <module>gravitee-apim-plugin-coverage</module>
         <module>gravitee-apim-plugin-apiservice</module>
         <module>gravitee-apim-plugin-reactor</module>
+        <module>gravitee-apim-plugin-secrets</module>
     </modules>
 </project>

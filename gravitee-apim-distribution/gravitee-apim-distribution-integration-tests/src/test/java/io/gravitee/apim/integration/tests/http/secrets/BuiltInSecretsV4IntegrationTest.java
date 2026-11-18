@@ -91,7 +91,9 @@ class BuiltInSecretsV4IntegrationTest extends AbstractGatewayTest {
     @Override
     public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
         super.configureGateway(configurationBuilder);
-        configurationBuilder.setYamlProperty("api.secrets.encryption.key", base64Kek);
+        configurationBuilder.setYamlProperty("api.secrets.providers[0].id", "gravitee");
+        configurationBuilder.setYamlProperty("api.secrets.providers[0].plugin", "gravitee");
+        configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.encryption.key", base64Kek);
     }
 
     @Override
