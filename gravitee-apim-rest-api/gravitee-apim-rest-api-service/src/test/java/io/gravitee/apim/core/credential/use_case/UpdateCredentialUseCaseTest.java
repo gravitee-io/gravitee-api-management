@@ -172,6 +172,18 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
     }
 
     @Test
+    void should_not_point_at_a_secret_of_another_environment() {
+        var credential = fixture.givenACredential();
+
+        assertThatThrownBy(() ->
+            update(fixture.owner(), credential, c -> c.references(Map.of("token", "/gravitee/other-env/my-secret:value")))
+        )
+            .isInstanceOf(InvalidCredentialException.class)
+            .hasMessageContaining("another environment");
+        assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
+    }
+
+    @Test
     void should_not_need_the_secret_read_permission_when_the_references_do_not_change() {
         var credential = fixture.givenACredential(c -> c.references(Map.of("token", "/gravitee/" + ENV_ID + "/my-secret:value")));
 

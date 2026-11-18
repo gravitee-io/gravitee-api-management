@@ -56,22 +56,29 @@ public record SecretReference(String reference, String secretId) {
             );
         }
         var external = new SecretReference(reference, null);
-        if (external.isInGraviteeStore() && !isPlainKey(external.graviteePath())) {
+        if (external.isInGraviteeStore()) {
+            requireOwnStoreKey(field, external.gatewayResolvedPath());
+        }
+        return external;
+    }
+
+    private static void requireOwnStoreKey(String field, String path) {
+        if (!isPlainKey(path)) {
             throw invalidPath(field);
         }
-        if (external.isInGraviteeStore() && external.graviteeEnvironmentAndKey().length != 2) {
+        var environmentAndKey = path.split("/", -1);
+        if (environmentAndKey.length != 2) {
             throw new InvalidCredentialException(
                 "The reference of " + field + " must have the form /gravitee/{envId}/{key}, such as /gravitee/my-env/my-secret:value."
             );
         }
-        if (external.isInGraviteeStore() && external.graviteeEnvironmentAndKey()[1].startsWith(Secret.CREDENTIAL_KEY_PREFIX)) {
+        if (environmentAndKey[1].startsWith(Secret.CREDENTIAL_KEY_PREFIX)) {
             throw new InvalidCredentialException(
                 "The reference of " +
                     field +
                     " points at a secret that another credential holds. Reference a secret of your own or give the value."
             );
         }
-        return external;
     }
 
     private static InvalidCredentialException invalidPath(String field) {
@@ -85,17 +92,12 @@ public record SecretReference(String reference, String secretId) {
         return !key.contains("%") && Arrays.stream(key.split("/", -1)).noneMatch(segment -> segment.equals(".") || segment.equals(".."));
     }
 
-    /** The path after the provider, read the way the gateway reads it: before any query or {@code :key}, trailing slashes trimmed. */
-    private String graviteePath() {
+    private String gatewayResolvedPath() {
         return TRAILING_SLASHES.matcher(withoutQueryAndKey(reference.substring(reference.indexOf('/', 1) + 1))).replaceAll("");
     }
 
-    private String[] graviteeEnvironmentAndKey() {
-        return graviteePath().split("/", -1);
-    }
-
     String graviteeEnvironmentId() {
-        return graviteeEnvironmentAndKey()[0];
+        return gatewayResolvedPath().split("/", -1)[0];
     }
 
     // Mirrors the gateway's SecretURL.from (gravitee-secret-api 4.0.0): it trims trailing slashes, then needs a provider and a path with no empty segment.
