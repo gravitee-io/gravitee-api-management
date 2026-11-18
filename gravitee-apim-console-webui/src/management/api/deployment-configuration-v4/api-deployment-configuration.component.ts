@@ -25,6 +25,7 @@ import { GioPermissionService } from '../../../shared/components/gio-permission/
 import { onlyApiV2V4Filter } from '../../../util/apiFilter.operator';
 import { Tag } from '../../../entities/tag/tag';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
+import { CurrentUserService } from '../../../services-ngx/current-user.service';
 
 interface DeploymentConfiguration {
   tags: string[];
@@ -42,6 +43,7 @@ export class ApiDeploymentConfigurationComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public shardingTags: Tag[];
+  public userTags: string[] = [];
   public deploymentsForm: DeploymentConfigurationFormGroup;
   public initialDeploymentsFormValue: DeploymentConfiguration;
 
@@ -51,13 +53,19 @@ export class ApiDeploymentConfigurationComponent implements OnInit, OnDestroy {
     private readonly tagService: TagService,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
+    private readonly currentUserService: CurrentUserService,
   ) {}
 
   ngOnInit(): void {
-    combineLatest([this.apiService.get(this.activatedRoute.snapshot.params.apiId), this.tagService.list()])
+    combineLatest([
+      this.apiService.get(this.activatedRoute.snapshot.params.apiId),
+      this.tagService.list(),
+      this.currentUserService.getTags(),
+    ])
       .pipe(
-        tap(([api, shardingTags]) => {
+        tap(([api, shardingTags, userTags]) => {
           this.shardingTags = shardingTags;
+          this.userTags = userTags;
           const isReadOnly =
             api.definitionVersion === 'V1' ||
             !this.permissionService.hasAnyMatching(['api-definition-u']) ||
