@@ -47,6 +47,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.impl.JsonSchemaServiceImpl;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -288,6 +289,28 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
         var config = objectMapper.convertValue(output.cluster().getConfiguration(), Map.class);
         var connections = (List<Map<String, Object>>) config.get("connections");
         assertThat(connections.get(0).get("crossId")).isEqualTo("primary-connection");
+    }
+
+    static Stream<Object> unmappableConnections() {
+        return Stream.of(
+            "not-a-list",
+            Collections.singletonList(null),
+            List.of(Map.of("name", "conn-1", "bootstrapServers", "kafka1:9092", "security", Map.of("protocol", "FOO")))
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("unmappableConnections")
+    void should_reject_a_kafka_cluster_whose_connections_do_not_map(Object connections) {
+        var toCreate = CreateCluster.builder()
+            .type(ClusterType.KAFKA_CLUSTER)
+            .name("Kafka Cluster")
+            .configuration(Map.of("connections", connections))
+            .build();
+
+        assertThatThrownBy(() -> createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO)))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessageContaining("connections");
     }
 
     @Test

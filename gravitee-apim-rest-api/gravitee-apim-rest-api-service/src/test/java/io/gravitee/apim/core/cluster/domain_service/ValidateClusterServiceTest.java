@@ -274,6 +274,33 @@ class ValidateClusterServiceTest {
     }
 
     @Test
+    void should_name_a_value_the_schema_accepts_but_the_connection_cannot_hold() {
+        Cluster cluster = Cluster.builder()
+            .type(ClusterType.KAFKA_CLUSTER)
+            .name("my-kafka-cluster")
+            .configuration(
+                Map.of(
+                    "connections",
+                    List.of(
+                        Map.of(
+                            "name",
+                            "conn-1",
+                            "bootstrapServers",
+                            "kafka1:9092",
+                            "security",
+                            Map.of("protocol", "SSL", "ssl", Map.of("trustAll", true, "openSsl", "abc"))
+                        )
+                    )
+                )
+            )
+            .build();
+
+        assertThatThrownBy(() -> validateClusterService.validate(cluster))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessage("Configuration has an invalid value at connections[0].security.ssl.openSsl.");
+    }
+
+    @Test
     void should_ignore_the_sasl_mechanism_of_a_kafka_cluster_connection_without_sasl() {
         Cluster cluster = kafkaClusterWithMechanism(
             "SSL",
