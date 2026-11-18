@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 public class PortalQuotaDomainService {
 
     private static final String PORTALS_MAX_ATTRIBUTE = "apim-portals-max";
+    // Acts as the tier limit for tiers that declare none: like node's tier limits, a license can only raise it.
     private static final int DEFAULT_LIMIT = 1;
 
     private final LicenseManager licenseManager;
@@ -58,7 +59,7 @@ public class PortalQuotaDomainService {
             );
             return DEFAULT_LIMIT;
         }
-        return Math.clamp(limit.getAsLong(), 0, Integer.MAX_VALUE);
+        return Math.clamp(limit.getAsLong(), DEFAULT_LIMIT, Integer.MAX_VALUE);
     }
 
     // Reads a limit the way gravitee-node's DefaultLicenseFactory does when it picks the higher of the tier's and the

@@ -70,7 +70,7 @@ class PortalQuotaDomainServiceTest {
 
     @ParameterizedTest
     @MethodSource("outOfRangeLimits")
-    void should_clamp_a_limit_outside_the_portal_count_range(Object value, int expectedLimit) {
+    void should_keep_the_limit_between_one_portal_and_the_int32_range(Object value, int expectedLimit) {
         givenLicense(LicenseFixtures.aLicenseWithAttribute("apim-portals-max", value));
 
         assertThat(cut.quota(ORG_ID, ENV_ID).limit()).isEqualTo(expectedLimit);
@@ -78,8 +78,9 @@ class PortalQuotaDomainServiceTest {
 
     static Stream<Arguments> outOfRangeLimits() {
         return Stream.of(
-            Arguments.of(-1, 0),
-            Arguments.of("-5", 0),
+            Arguments.of(0, 1),
+            Arguments.of(-1, 1),
+            Arguments.of("-5", 1),
             Arguments.of(3_000_000_000L, Integer.MAX_VALUE),
             Arguments.of("3000000000", Integer.MAX_VALUE)
         );
