@@ -35,7 +35,11 @@
               <mat-label>Sharding tags</mat-label>
               <mat-select formControlName="tags" multiple>
                 @for (tag of shardingTags; track tag.id) {
-                  <mat-option [value]="tag.key">
+                  <mat-option
+                    [value]="tag.key"
+                    [disabled]="!userTags.includes(tag.key)"
+                    [attr.data-testid]="'sharding-tag-option-' + tag.key"
+                  >
                     {{ tag.name
                     }}<span>
                       @if (tag.description) {
