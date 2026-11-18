@@ -8,7 +8,7 @@
         "extensionKey": {
           "type": "string",
           "title": "Extension key",
-          "description": "without 'extension_' prefix",
+          "description": "Letters only, without the 'extension_' prefix",
           "pattern": "^(extension_)?[A-Za-z]+$"
         },
         "extensionValue": {

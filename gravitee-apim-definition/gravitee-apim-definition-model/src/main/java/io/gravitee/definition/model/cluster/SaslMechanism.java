@@ -102,6 +102,11 @@ public record SaslMechanism(
                 return tokenUrlReason;
             }
         }
+        return saslExtensionsUnsupportedReason();
+    }
+
+    /** Why Kafka would refuse a SASL extension key of this mechanism, or {@code null} when it takes them all. */
+    public String saslExtensionsUnsupportedReason() {
         if (saslExtensions != null && ("OAUTHBEARER".equals(type) || "OAUTHBEARER_TOKEN".equals(type))) {
             for (SaslExtension extension : saslExtensions) {
                 if (extension != null && !isSaslExtensionName(extension.kafkaName())) {
