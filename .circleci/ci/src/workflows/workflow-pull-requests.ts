@@ -45,7 +45,6 @@ import {
   TestPluginJob,
   TestRepositoryJob,
   TestRestApiJob,
-  TriggerSaasDockerImagesJob,
   ValidateJob,
   WebuiLintTestJob,
 } from '../jobs';
@@ -502,36 +501,21 @@ export class PullRequestsWorkflow {
     const deployOnAzureJob = DeployOnAzureJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(deployOnAzureJob);
 
-    const runTriggerSaasDockerImagesJob = TriggerSaasDockerImagesJob.create(
-      {
-        ...environment,
-        isDryRun: false,
-      },
-      'dev',
-    );
-    dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
-
     return [
       // Suspended, see communityBuildJob above.
       // new workflow.WorkflowJob(communityBuildJob, {
       //   name: 'Check build as Community user',
       //   context: config.jobContext,
       // }),
-      // Trigger SaaS Docker images creation
-      new workflow.WorkflowJob(runTriggerSaasDockerImagesJob, {
-        context: [...config.jobContext, 'keeper-orb-publishing'],
-        name: 'Trigger SaaS Docker images creation',
+      new workflow.WorkflowJob(releaseHelmDryRunJob, {
+        name: 'Publish Helm chart (internal repo)',
+        context: config.jobContext,
         requires: [
           'Build APIM Management API docker image',
           'Build APIM Gateway docker image',
           'Build APIM Console docker image',
           'Build APIM Portal docker image',
         ],
-      }),
-      new workflow.WorkflowJob(releaseHelmDryRunJob, {
-        name: 'Publish Helm chart (internal repo)',
-        context: config.jobContext,
-        requires: ['Trigger SaaS Docker images creation'],
       }),
       new workflow.WorkflowJob(publishSnapshotJob, {
         name: 'Publish snapshot',
