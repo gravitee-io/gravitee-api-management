@@ -63,6 +63,8 @@ class GuardianGenericEventSubscriberTest {
 
     private final ObjectMapper objectMapper = new GraviteeMapper(false);
 
+    private final SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+
     private GuardianManagerImpl guardianManager;
     private GuardianGenericEventSubscriber cut;
 
@@ -71,7 +73,7 @@ class GuardianGenericEventSubscriberTest {
         GuardianRegistry guardianRegistry = new GuardianRegistry();
         FakeGuardianReactorPlugin.install(eventManager, guardianRegistry);
         guardianManager = new GuardianManagerImpl(eventManager, licenseManager, guardianRegistry, new SimpleMeterRegistry());
-        cut = new GuardianGenericEventSubscriber(guardianManager, objectMapper);
+        cut = new GuardianGenericEventSubscriber(guardianManager, objectMapper, meterRegistry);
     }
 
     @Test
@@ -160,6 +162,29 @@ class GuardianGenericEventSubscriberTest {
 
         assertThat(guardianManager.guardians()).isEmpty();
         verify(eventManager, never()).publishEvent(eq(ReactorEvent.DEPLOY), any());
+    }
+
+    @Test
+    void should_count_every_event_it_refuses_to_deploy_as_a_rejection_of_its_environment() {
+        cut.onUpsert(event(GUARDIAN_ID, ENVIRONMENT_ID, UPDATED_AT, PAYLOAD.replace("\"phase\"", "\"apiTypes\":[\"foo\"],\"phase\"")));
+        cut.onUpsert(event(GUARDIAN_ID, ENVIRONMENT_ID, UPDATED_AT, PAYLOAD.replace("\"phase\":\"REQUEST\",", "")));
+        cut.onUpsert(event(GUARDIAN_ID, ENVIRONMENT_ID, null, PAYLOAD));
+        cut.onUpsert(event(GUARDIAN_ID, "env-b", UPDATED_AT, "{\"phase\":\"NOT_A_PHASE\"}"));
+
+        assertThat(rejections(ENVIRONMENT_ID)).as("an unknown API type, no phase, no update date").isEqualTo(3);
+        assertThat(rejections("env-b")).isEqualTo(1);
+        assertThat(guardianManager.guardians()).isEmpty();
+    }
+
+    @Test
+    void should_not_count_a_deployed_event_as_a_rejection() {
+        cut.onUpsert(event(GUARDIAN_ID, ENVIRONMENT_ID, UPDATED_AT, PAYLOAD));
+
+        assertThat(meterRegistry.find(GuardianGenericEventSubscriber.DEPLOYMENT_REJECTIONS).counter()).isNull();
+    }
+
+    private double rejections(String environmentId) {
+        return meterRegistry.get(GuardianGenericEventSubscriber.DEPLOYMENT_REJECTIONS).tag("environment", environmentId).counter().count();
     }
 
     @Test

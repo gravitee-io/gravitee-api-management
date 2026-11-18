@@ -33,6 +33,7 @@ import io.gravitee.node.api.Node;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import io.vertx.core.Vertx;
 import io.vertx.micrometer.backends.BackendRegistries;
@@ -83,14 +84,8 @@ public class GuardianConfiguration {
         Vertx vertx
     ) {
         // Typed rather than @DependsOn: VertxFactory builds Vert.x, and with it the metrics registry, only when a bean
-        // asks for the Vertx object itself, which this parameter does.
-        var registry = BackendRegistries.getDefaultNow();
-        return new GuardianManagerImpl(
-            eventManager,
-            licenseManager,
-            guardianRegistry,
-            registry == null ? new CompositeMeterRegistry() : registry
-        );
+        // asks for the Vertx object itself, which this parameter does. Beans depending on this one inherit it.
+        return new GuardianManagerImpl(eventManager, licenseManager, guardianRegistry, meterRegistry());
     }
 
     @Bean(destroyMethod = "cancel")
@@ -101,8 +96,14 @@ public class GuardianConfiguration {
     ) {
         return genericEventRegistry.subscribe(
             GuardianGenericEventSubscriber.GUARDIAN_KIND,
-            new GuardianGenericEventSubscriber(guardianManager, objectMapper)
+            new GuardianGenericEventSubscriber(guardianManager, objectMapper, meterRegistry())
         );
+    }
+
+    /** Only available once Vert.x is built: see {@link #guardianManager}. */
+    private static MeterRegistry meterRegistry() {
+        var registry = BackendRegistries.getDefaultNow();
+        return registry == null ? new CompositeMeterRegistry() : registry;
     }
 
     @Bean
