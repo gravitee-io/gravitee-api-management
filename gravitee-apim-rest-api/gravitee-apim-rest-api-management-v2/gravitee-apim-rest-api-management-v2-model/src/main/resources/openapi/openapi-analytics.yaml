@@ -1667,11 +1667,15 @@ components:
                     type: number
                     nullable: true
                     description: |
-                        The measure value. `COUNT` counts the requests carrying the metric's value (messages on a
-                        message metric) and `SUM` totals the value: the token or cost total on an LLM metric. `AVG`,
-                        `MIN`, `MAX` and the percentiles are computed over the documents carrying the value. On every
-                        metric, a window or bucket without any such document reads 0 for `COUNT`, `SUM` and
-                        `PERCENTAGE`, and `null` for the other measures.
+                        The measure value. `COUNT` counts the documents carrying the metric's value (requests, the
+                        events of an Edge, Native or AuthZ metric; on a message metric, the messages their increments
+                        add up to) and `SUM` totals the value: the token or cost total on an LLM metric. `AVG`, `MIN`,
+                        `MAX` and the percentiles are computed over the documents carrying the value. A window or bucket
+                        without any such document reads 0 for `COUNT`, `SUM` and `PERCENTAGE`, and `null` for the other
+                        measures, with three exceptions: a Native operation duration reads 0 over Native events without
+                        an operation sample; an HTTP or message facet ranked by `AVG`, `MIN`, `MAX` or a percentile, and
+                        any facet of an additional metric field, holds only the groups carrying the value; and an AuthZ
+                        facet or time-series group the metric never counted is left out.
                     example: 2984
             example:
                 name: "COUNT"
@@ -1687,13 +1691,12 @@ components:
                 - TOKENS
                 - CURRENCY
             description: |
-                Unit of measurement for metrics. Specifies the unit in which the metric values are expressed:
-                `TOKENS` on the token metrics, `CURRENCY` on the LLM cost metrics (a cost in the currency of the
-                model's price list, which the documents do not carry). A `COUNT` is a number of requests (messages
-                on a message metric) whatever the metric's unit: a measures, facets or time-series entry reading
-                `COUNT` only is served `NUMBER`, on a built-in and an additional metric alike; an entry mixing
-                `COUNT` with other measures keeps the metric's unit, which applies to its measures other than
-                `COUNT`.
+                Unit of measurement for metrics. Specifies the unit in which the metric values are expressed: `TOKENS`
+                on the token metrics, `CURRENCY` on the LLM cost metrics (a cost in the currency of the model's price
+                list, which the documents do not carry). A `COUNT` is a number of requests, messages, or events of an
+                Edge, Native or AuthZ metric, whatever the metric's unit: a measures, facets or time-series entry
+                reading `COUNT` only is served `NUMBER`, on a built-in and an additional metric alike; an entry mixing
+                `COUNT` with other measures keeps the metric's unit, which applies to its measures other than `COUNT`.
             example: "BYTES"
 
         ApiSpec:
