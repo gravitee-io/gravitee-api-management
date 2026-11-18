@@ -1,0 +1,103 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.apim.core.portal.domain_service;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import fixtures.core.model.LicenseFixtures;
+import io.gravitee.apim.core.portal.model.PortalQuota;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+class PortalQuotaDomainServiceTest {
+
+    private static final String ORG_ID = "org-1";
+
+    private final LicenseManager licenseManager = mock(LicenseManager.class);
+    private PortalQuotaDomainService cut;
+
+    @BeforeEach
+    void setUp() {
+        cut = new PortalQuotaDomainService(licenseManager);
+    }
+
+    @ParameterizedTest
+    @MethodSource("portalsMaxValues")
+    void should_read_the_limit_from_the_license_portals_max_attribute(Object value, int expectedLimit) {
+        givenLicense(LicenseFixtures.aLicenseWithAttribute("apim-portals-max", value));
+
+        assertThat(cut.quota(ORG_ID, 1).limit()).isEqualTo(expectedLimit);
+    }
+
+    static Stream<Arguments> portalsMaxValues() {
+        return Stream.of(Arguments.of(10, 10), Arguments.of(3L, 3));
+    }
+
+    @ParameterizedTest
+    @MethodSource("outOfRangeLimits")
+    void should_keep_the_limit_between_one_portal_and_the_int32_range(Object value, int expectedLimit) {
+        givenLicense(LicenseFixtures.aLicenseWithAttribute("apim-portals-max", value));
+
+        assertThat(cut.quota(ORG_ID, 1).limit()).isEqualTo(expectedLimit);
+    }
+
+    static Stream<Arguments> outOfRangeLimits() {
+        return Stream.of(Arguments.of(0, 1), Arguments.of(-1, 1), Arguments.of(3_000_000_000L, Integer.MAX_VALUE));
+    }
+
+    @Test
+    void should_read_the_limit_the_license_tier_sets_by_default() {
+        givenLicense(LicenseFixtures.aLicenseWithTierAttribute("apim-portals-max", 10));
+
+        assertThat(cut.quota(ORG_ID, 1).limit()).isEqualTo(10);
+    }
+
+    @Test
+    void should_allow_one_portal_when_the_license_has_no_portals_max_attribute() {
+        givenLicense(LicenseFixtures.anEnterpriseLicense());
+
+        assertThat(cut.quota(ORG_ID, 1).limit()).isEqualTo(1);
+    }
+
+    @Test
+    void should_allow_one_portal_without_a_license() {
+        givenLicense(null);
+
+        assertThat(cut.quota(ORG_ID, 1).limit()).isEqualTo(1);
+    }
+
+    @Test
+    void should_report_the_portals_used_with_the_limit() {
+        givenLicense(LicenseFixtures.aLicenseWithAttribute("apim-portals-max", 10));
+
+        assertThat(cut.quota(ORG_ID, 2)).isEqualTo(new PortalQuota(2, 10));
+    }
+
+    private void givenLicense(License license) {
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORG_ID)).thenReturn(license);
+    }
+}

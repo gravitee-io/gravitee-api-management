@@ -1179,6 +1179,14 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/ImageResponse"
+        "307":
+          description: The theme stores its logo as an external URL; the client is redirected to it
+          headers:
+            Location:
+              description: The URL of the logo
+              schema:
+                type: string
+                format: uri
         "404":
           description: The portal does not exist in this environment, or its theme has no logo
           content:

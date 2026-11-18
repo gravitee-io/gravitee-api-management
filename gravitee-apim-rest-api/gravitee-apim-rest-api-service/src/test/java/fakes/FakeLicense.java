@@ -39,6 +39,7 @@ public class FakeLicense implements License {
     private final Set<String> features = new HashSet<>();
     private Date expirationDate;
     private final Map<String, Object> attributes = new HashMap<>();
+    private final Map<String, Object> tierAttributes = new HashMap<>();
 
     @Override
     public boolean isFeatureEnabled(String feature) {
@@ -51,6 +52,13 @@ public class FakeLicense implements License {
     @Override
     public boolean isExpired() {
         return expirationDate.before(new Date());
+    }
+
+    @Override
+    public Map<String, Object> getEffectiveAttributes() {
+        var effective = new HashMap<>(tierAttributes);
+        effective.putAll(attributes);
+        return effective;
     }
 
     @Override
