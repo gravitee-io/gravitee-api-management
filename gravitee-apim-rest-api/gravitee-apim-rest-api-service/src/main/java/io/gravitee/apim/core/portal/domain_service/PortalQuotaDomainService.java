@@ -16,7 +16,6 @@
 package io.gravitee.apim.core.portal.domain_service;
 
 import io.gravitee.apim.core.DomainService;
-import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.model.PortalQuota;
 import io.gravitee.node.api.license.LicenseManager;
 import java.util.OptionalLong;
@@ -33,10 +32,10 @@ public class PortalQuotaDomainService {
     private static final int DEFAULT_LIMIT = 1;
 
     private final LicenseManager licenseManager;
-    private final PortalCrudService portalCrudService;
 
-    public PortalQuota quota(String organizationId, String environmentId) {
-        return new PortalQuota(portalCrudService.findByEnvironmentId(environmentId).size(), limit(organizationId));
+    /** @param used the number of portals the environment holds */
+    public PortalQuota quota(String organizationId, int used) {
+        return new PortalQuota(used, limit(organizationId));
     }
 
     private int limit(String organizationId) {

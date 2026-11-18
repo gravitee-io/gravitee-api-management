@@ -20,17 +20,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.LicenseFixtures;
-import inmemory.PortalCrudServiceInMemory;
-import io.gravitee.apim.core.portal.model.Portal;
-import io.gravitee.apim.core.portal.model.PortalId;
-import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.model.PortalQuota;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
-import java.net.URI;
-import java.util.List;
 import java.util.stream.Stream;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -44,16 +37,13 @@ import org.junit.jupiter.params.provider.ValueSource;
 class PortalQuotaDomainServiceTest {
 
     private static final String ORG_ID = "org-1";
-    private static final String ENV_ID = "env-1";
 
-    private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
     private final LicenseManager licenseManager = mock(LicenseManager.class);
     private PortalQuotaDomainService cut;
 
     @BeforeEach
     void setUp() {
-        portalCrudService.reset();
-        cut = new PortalQuotaDomainService(licenseManager, portalCrudService);
+        cut = new PortalQuotaDomainService(licenseManager);
     }
 
     @ParameterizedTest
@@ -61,7 +51,7 @@ class PortalQuotaDomainServiceTest {
     void should_read_the_limit_from_the_license_portals_max_attribute(Object value, int expectedLimit) {
         givenLicense(LicenseFixtures.aLicenseWithAttribute("apim-portals-max", value));
 
-        assertThat(cut.quota(ORG_ID, ENV_ID).limit()).isEqualTo(expectedLimit);
+        assertThat(cut.quota(ORG_ID, 1).limit()).isEqualTo(expectedLimit);
     }
 
     static Stream<Arguments> portalsMaxValues() {
@@ -73,7 +63,7 @@ class PortalQuotaDomainServiceTest {
     void should_keep_the_limit_between_one_portal_and_the_int32_range(Object value, int expectedLimit) {
         givenLicense(LicenseFixtures.aLicenseWithAttribute("apim-portals-max", value));
 
-        assertThat(cut.quota(ORG_ID, ENV_ID).limit()).isEqualTo(expectedLimit);
+        assertThat(cut.quota(ORG_ID, 1).limit()).isEqualTo(expectedLimit);
     }
 
     static Stream<Arguments> outOfRangeLimits() {
@@ -90,14 +80,14 @@ class PortalQuotaDomainServiceTest {
     void should_read_the_limit_the_license_tier_sets_by_default() {
         givenLicense(LicenseFixtures.aLicenseWithTierAttribute("apim-portals-max", 10));
 
-        assertThat(cut.quota(ORG_ID, ENV_ID).limit()).isEqualTo(10);
+        assertThat(cut.quota(ORG_ID, 1).limit()).isEqualTo(10);
     }
 
     @Test
     void should_allow_one_portal_when_the_license_has_no_portals_max_attribute() {
         givenLicense(LicenseFixtures.anEnterpriseLicense());
 
-        assertThat(cut.quota(ORG_ID, ENV_ID).limit()).isEqualTo(1);
+        assertThat(cut.quota(ORG_ID, 1).limit()).isEqualTo(1);
     }
 
     @ParameterizedTest
@@ -105,39 +95,24 @@ class PortalQuotaDomainServiceTest {
     void should_allow_one_portal_when_the_portals_max_attribute_is_not_a_number(String value) {
         givenLicense(LicenseFixtures.aLicenseWithAttribute("apim-portals-max", value));
 
-        assertThat(cut.quota(ORG_ID, ENV_ID).limit()).isEqualTo(1);
+        assertThat(cut.quota(ORG_ID, 1).limit()).isEqualTo(1);
     }
 
     @Test
     void should_allow_one_portal_without_a_license() {
         givenLicense(null);
 
-        assertThat(cut.quota(ORG_ID, ENV_ID).limit()).isEqualTo(1);
+        assertThat(cut.quota(ORG_ID, 1).limit()).isEqualTo(1);
     }
 
     @Test
-    void should_count_only_the_portals_of_the_environment() {
+    void should_report_the_portals_used_with_the_limit() {
         givenLicense(LicenseFixtures.aLicenseWithAttribute("apim-portals-max", 10));
-        portalCrudService.initWith(List.of(portal(ENV_ID, true), portal(ENV_ID, false), portal("env-2", true)));
 
-        assertThat(cut.quota(ORG_ID, ENV_ID)).isEqualTo(new PortalQuota(2, 10));
+        assertThat(cut.quota(ORG_ID, 2)).isEqualTo(new PortalQuota(2, 10));
     }
 
     private void givenLicense(License license) {
         when(licenseManager.getOrganizationLicenseOrPlatform(ORG_ID)).thenReturn(license);
-    }
-
-    @SneakyThrows
-    private static Portal portal(String environmentId, boolean defaultPortal) {
-        return Portal.of(
-            PortalId.random(),
-            environmentId,
-            ORG_ID,
-            "Portal",
-            PortalNavigationStructure.empty(),
-            null,
-            defaultPortal,
-            URI.create("https://portal.acme.io").toURL()
-        );
     }
 }

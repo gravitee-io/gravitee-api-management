@@ -66,7 +66,7 @@ class GetPortalsStatsUseCaseTest {
         );
         cut = new GetPortalsStatsUseCase(
             portalCrudService,
-            new PortalQuotaDomainService(licenseManager, portalCrudService),
+            new PortalQuotaDomainService(licenseManager),
             new PortalSummaryDomainService(
                 new PortalLogoDomainService(new ThemeQueryServiceInMemory()),
                 new PortalNavigationItemsQueryServiceInMemory(navigationItems)

@@ -38,7 +38,7 @@ public class GetPortalsStatsUseCase {
     public Output execute(Input input) {
         var portals = portalCrudService.findByEnvironmentId(input.environmentId());
         return new Output(
-            portalQuotaDomainService.quota(input.organizationId(), input.environmentId()),
+            portalQuotaDomainService.quota(input.organizationId(), portals.size()),
             portalSummaryDomainService.countPublishedApis(input.environmentId(), portals)
         );
     }
