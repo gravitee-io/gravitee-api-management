@@ -67,7 +67,7 @@ class ApprovalRuleEventSubscriberTest {
     @BeforeEach
     void setUp() {
         lenient().when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(license);
-        lenient().when(license.isFeatureEnabled("gamma-aim-module")).thenReturn(true);
+        lenient().when(license.isFeatureEnabled("apim-hitl")).thenReturn(true);
         manager = new ApprovalRuleManagerImpl(new ApprovalFeature(licenseManager, true));
         subscriber = new ApprovalRuleEventSubscriber(manager, new ObjectMapper());
         logs.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
