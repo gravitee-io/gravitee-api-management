@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, Input, OnChanges } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
@@ -43,6 +44,10 @@ import { GioPermissionModule } from '../../../../../../shared/components/gio-per
 import { GioTableWrapperFilters } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { ApplicationService } from '../../../../../../services-ngx/application.service';
+import {
+  ApplicationSharedApiKeyRenewDialogComponent,
+  ApplicationSharedApiKeyRenewDialogResult,
+} from '../../shared-api-keys/application-shared-api-key-renew-dialog.component';
 
 type ApiKeyVM = {
   id: string;
@@ -189,10 +194,14 @@ export class SubscriptionApiKeysComponent implements OnChanges {
   }
 
   renewApiKey() {
-    const renewApiKey$ = this.subscriptionId
-      ? this.applicationSubscriptionService.renewApiKey(this.applicationId, this.subscriptionId)
-      : this.applicationService.renewApiKey(this.applicationId);
+    if (this.subscriptionId) {
+      this.renewSubscriptionApiKey();
+      return;
+    }
+    this.renewSharedApiKey();
+  }
 
+  private renewSubscriptionApiKey() {
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
         width: GIO_DIALOG_WIDTH.MEDIUM,
@@ -206,16 +215,40 @@ export class SubscriptionApiKeysComponent implements OnChanges {
       .afterClosed()
       .pipe(
         filter(result => !!result),
-        switchMap(() => renewApiKey$),
+        switchMap(() => this.applicationSubscriptionService.renewApiKey(this.applicationId, this.subscriptionId)),
         takeUntilDestroyed(this.destroyRef),
       )
-
       .subscribe({
         next: () => {
           this.snackBarService.success(`API Key renewed`);
           this.filters$.next(this.filters$.value);
         },
         error: err => this.snackBarService.error(err.message),
+      });
+  }
+
+  private renewSharedApiKey() {
+    this.matDialog
+      .open<ApplicationSharedApiKeyRenewDialogComponent, undefined, ApplicationSharedApiKeyRenewDialogResult>(
+        ApplicationSharedApiKeyRenewDialogComponent,
+        {
+          width: GIO_DIALOG_WIDTH.MEDIUM,
+          role: 'dialog',
+          id: 'renewSharedApiKeyDialog',
+        },
+      )
+      .afterClosed()
+      .pipe(
+        filter((result): result is ApplicationSharedApiKeyRenewDialogResult => !!result),
+        switchMap(result => this.applicationService.renewApiKey(this.applicationId, result.customApiKey)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.snackBarService.success(`API Key renewed`);
+          this.filters$.next(this.filters$.value);
+        },
+        error: (err: HttpErrorResponse) => this.snackBarService.error(err.error?.message ?? err.message),
       });
   }
 }
