@@ -257,6 +257,28 @@ class PortalScopedNavigationReadUseCaseTest {
 
             assertThat(content(page.getId(), selectedPortal, anonymous()).portalNavigationItem().getId()).isEqualTo(page.getId());
         }
+
+        @Test
+        void should_return_api_documentation_when_the_portal_lists_the_api() {
+            var document = pageWithContent(new NavigationItemReference.ApiReference(API_ID));
+            navigation.initWith(List.of(apiListing(null, selected, API_ID), document));
+
+            assertThat(get(document.getId(), selectedPortal, anonymous()).portalNavigationItem().getId()).isEqualTo(document.getId());
+            assertThat(content(document.getId(), selectedPortal, anonymous()).portalNavigationItem().getId()).isEqualTo(document.getId());
+        }
+
+        @Test
+        void should_not_return_api_documentation_when_only_another_portal_lists_the_api() {
+            var document = pageWithContent(new NavigationItemReference.ApiReference(API_ID));
+            navigation.initWith(List.of(apiListing(null, PORTAL_REFERENCE, API_ID), document));
+
+            assertThatThrownBy(() -> get(document.getId(), selectedPortal, anonymous())).isInstanceOf(
+                PortalNavigationItemNotFoundException.class
+            );
+            assertThatThrownBy(() -> content(document.getId(), selectedPortal, anonymous())).isInstanceOf(
+                PortalNavigationItemNotFoundException.class
+            );
+        }
     }
 
     @Nested
@@ -281,15 +303,27 @@ class PortalScopedNavigationReadUseCaseTest {
             var selectedListing = apiListing(null, selected, API_ID);
             var defaultListing = apiListing(null, PORTAL_REFERENCE, OTHER_API_ID);
             var defaultProduct = anApiProduct(PortalNavigationItemId.random().json(), "Product", null, "product-a");
-            apiProducts.initWith(List.of(ApiProduct.builder().id("product-a").name("Product").environmentId(ENV_ID).build()));
-            navigation.initWith(List.of(selectedListing, defaultListing, defaultProduct));
+            var selectedProduct = anApiProduct(PortalNavigationItemId.random().json(), "Selected product", null, "product-b");
+            selectedProduct.changeOwner(selected);
+            apiProducts.initWith(
+                List.of(
+                    ApiProduct.builder().id("product-a").name("Product").environmentId(ENV_ID).build(),
+                    ApiProduct.builder().id("product-b").name("Selected product").environmentId(ENV_ID).build()
+                )
+            );
+            navigation.initWith(List.of(selectedListing, defaultListing, defaultProduct, selectedProduct));
 
-            assertThat(searchCatalog(Optional.of(selectedPortal)).items().getContent())
+            assertThat(searchCatalog(Optional.of(selectedPortal), Optional.empty()).items().getContent())
                 .extracting(PortalNavigationItem::getId)
-                .containsExactly(selectedListing.getId());
-            assertThat(searchCatalog(Optional.empty()).items().getContent())
+                .containsExactlyInAnyOrder(selectedListing.getId(), selectedProduct.getId());
+            assertThat(searchCatalog(Optional.empty(), Optional.empty()).items().getContent())
                 .extracting(PortalNavigationItem::getId)
-                .containsExactlyInAnyOrder(selectedListing.getId(), defaultListing.getId(), defaultProduct.getId());
+                .containsExactlyInAnyOrder(
+                    selectedListing.getId(),
+                    defaultListing.getId(),
+                    defaultProduct.getId(),
+                    selectedProduct.getId()
+                );
         }
     }
 
@@ -301,26 +335,29 @@ class PortalScopedNavigationReadUseCaseTest {
         @ParameterizedTest
         @ValueSource(booleans = { true, false })
         void should_answer_not_found_on_every_read(boolean authenticated) {
-            var viewer = authenticated ? PortalNavigationItemViewerContext.forPortal("user-1") : anonymous();
+            assertEveryReadIsNotFound(unknown, authenticated ? Optional.of("user-1") : Optional.empty());
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = { true, false })
+        void should_answer_not_found_on_every_read_for_a_portal_of_another_environment(boolean authenticated) {
+            var elsewhere = portals.givenAutomationPortal(ORG_ID, "another-env");
+
+            assertEveryReadIsNotFound(elsewhere, authenticated ? Optional.of("user-1") : Optional.empty());
+        }
+
+        private void assertEveryReadIsNotFound(PortalId portalId, Optional<String> userId) {
+            var viewer = PortalNavigationItemViewerContext.forPortal(userId.orElse(null));
             var page = pageWithContent(PORTAL_REFERENCE);
             navigation.initWith(List.of(page));
 
-            assertThatThrownBy(() -> list(Optional.of(unknown), PortalArea.TOP_NAVBAR, Optional.empty())).isInstanceOf(
+            assertThatThrownBy(() -> list(Optional.of(portalId), PortalArea.TOP_NAVBAR, Optional.empty(), viewer)).isInstanceOf(
                 PortalNotFoundException.class
             );
-            assertThatThrownBy(() -> get(page.getId(), unknown, viewer)).isInstanceOf(PortalNotFoundException.class);
-            assertThatThrownBy(() -> content(page.getId(), unknown, viewer)).isInstanceOf(PortalNotFoundException.class);
-            assertThatThrownBy(() -> searchApis(Optional.of(unknown))).isInstanceOf(PortalNotFoundException.class);
-            assertThatThrownBy(() -> searchCatalog(Optional.of(unknown))).isInstanceOf(PortalNotFoundException.class);
-        }
-
-        @Test
-        void should_answer_not_found_for_a_portal_of_another_environment() {
-            var elsewhere = portals.givenAutomationPortal(ORG_ID, "another-env");
-
-            assertThatThrownBy(() -> list(Optional.of(elsewhere), PortalArea.TOP_NAVBAR, Optional.empty())).isInstanceOf(
-                PortalNotFoundException.class
-            );
+            assertThatThrownBy(() -> get(page.getId(), portalId, viewer)).isInstanceOf(PortalNotFoundException.class);
+            assertThatThrownBy(() -> content(page.getId(), portalId, viewer)).isInstanceOf(PortalNotFoundException.class);
+            assertThatThrownBy(() -> searchApis(Optional.of(portalId), userId)).isInstanceOf(PortalNotFoundException.class);
+            assertThatThrownBy(() -> searchCatalog(Optional.of(portalId), userId)).isInstanceOf(PortalNotFoundException.class);
         }
     }
 
@@ -329,7 +366,16 @@ class PortalScopedNavigationReadUseCaseTest {
         PortalArea area,
         Optional<PortalNavigationItemId> parentId
     ) {
-        return list.execute(new ListPortalNavigationItemsUseCase.Input(ENV_ID, ORG_ID, area, parentId, true, anonymous(), false, portalId));
+        return list(portalId, area, parentId, anonymous());
+    }
+
+    private ListPortalNavigationItemsUseCase.Output list(
+        Optional<PortalId> portalId,
+        PortalArea area,
+        Optional<PortalNavigationItemId> parentId,
+        PortalNavigationItemViewerContext viewer
+    ) {
+        return list.execute(new ListPortalNavigationItemsUseCase.Input(ENV_ID, ORG_ID, area, parentId, true, viewer, false, portalId));
     }
 
     private GetPortalNavigationItemUseCase.Output get(
@@ -351,11 +397,15 @@ class PortalScopedNavigationReadUseCaseTest {
     }
 
     private GetVisiblePortalNavigationApisUseCase.Output searchApis(Optional<PortalId> portalId) {
+        return searchApis(portalId, Optional.empty());
+    }
+
+    private GetVisiblePortalNavigationApisUseCase.Output searchApis(Optional<PortalId> portalId, Optional<String> userId) {
         return searchApis.execute(
             new GetVisiblePortalNavigationApisUseCase.Input(
                 ENV_ID,
                 ORG_ID,
-                Optional.empty(),
+                userId,
                 new PageableImpl(1, 10),
                 Optional.empty(),
                 Set.of(),
@@ -365,12 +415,12 @@ class PortalScopedNavigationReadUseCaseTest {
         );
     }
 
-    private GetVisiblePortalCatalogItemsUseCase.Output searchCatalog(Optional<PortalId> portalId) {
+    private GetVisiblePortalCatalogItemsUseCase.Output searchCatalog(Optional<PortalId> portalId, Optional<String> userId) {
         return searchCatalog.execute(
             new GetVisiblePortalCatalogItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
-                anonymous(),
+                PortalNavigationItemViewerContext.forPortal(userId.orElse(null)),
                 new PageableImpl(1, 10),
                 Optional.empty(),
                 Set.of(),
