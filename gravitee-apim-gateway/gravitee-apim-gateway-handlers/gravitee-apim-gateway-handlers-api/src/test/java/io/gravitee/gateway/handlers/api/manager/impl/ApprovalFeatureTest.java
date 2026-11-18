@@ -16,6 +16,7 @@
 package io.gravitee.gateway.handlers.api.manager.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -41,7 +42,7 @@ class ApprovalFeatureTest {
     @Test
     void should_be_enabled_for_a_licensed_organization_when_gamma_is_enabled() {
         when(licenseManager.getOrganizationLicenseOrPlatform("org-1")).thenReturn(license);
-        when(license.isFeatureEnabled("gamma-aim-module")).thenReturn(true);
+        when(license.isFeatureEnabled("apim-hitl")).thenReturn(true);
 
         assertThat(new ApprovalFeature(licenseManager, true).isEnabledFor("org-1")).isTrue();
     }
@@ -57,7 +58,16 @@ class ApprovalFeatureTest {
     @Test
     void should_be_disabled_for_an_organization_whose_license_lacks_the_feature() {
         when(licenseManager.getOrganizationLicenseOrPlatform("org-1")).thenReturn(license);
-        when(license.isFeatureEnabled("gamma-aim-module")).thenReturn(false);
+        when(license.isFeatureEnabled("apim-hitl")).thenReturn(false);
+
+        assertThat(new ApprovalFeature(licenseManager, true).isEnabledFor("org-1")).isFalse();
+    }
+
+    @Test
+    void should_be_disabled_for_a_license_that_has_the_ai_management_module_but_not_the_feature() {
+        when(licenseManager.getOrganizationLicenseOrPlatform("org-1")).thenReturn(license);
+        lenient().when(license.isFeatureEnabled("gamma-aim-module")).thenReturn(true);
+        when(license.isFeatureEnabled("apim-hitl")).thenReturn(false);
 
         assertThat(new ApprovalFeature(licenseManager, true).isEnabledFor("org-1")).isFalse();
     }

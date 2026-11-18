@@ -69,7 +69,7 @@ class ApprovalRuleManagerImplTest {
     @BeforeEach
     void setUp() {
         lenient().when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(license);
-        lenient().when(license.isFeatureEnabled("gamma-aim-module")).thenReturn(true);
+        lenient().when(license.isFeatureEnabled("apim-hitl")).thenReturn(true);
         manager = new ApprovalRuleManagerImpl(new ApprovalFeature(licenseManager, true));
     }
 
@@ -94,7 +94,7 @@ class ApprovalRuleManagerImplTest {
 
         @Test
         void should_not_receive_rules_of_an_organization_not_licensed_for_them() {
-            when(license.isFeatureEnabled("gamma-aim-module")).thenReturn(false);
+            when(license.isFeatureEnabled("apim-hitl")).thenReturn(false);
             manager.commit();
 
             assertThat(manager.receivesRules("org-1", "env-1")).isFalse();
@@ -121,11 +121,11 @@ class ApprovalRuleManagerImplTest {
          */
         @Test
         void should_cover_a_call_once_licensed_even_when_the_rule_was_deployed_while_unlicensed() {
-            when(license.isFeatureEnabled("gamma-aim-module")).thenReturn(false);
+            when(license.isFeatureEnabled("apim-hitl")).thenReturn(false);
             deployAndCommit(rule("rule-1", "env-1", "payments", 1L));
             assertThat(manager.receivesRules("org-1", "env-1")).isFalse();
 
-            when(license.isFeatureEnabled("gamma-aim-module")).thenReturn(true);
+            when(license.isFeatureEnabled("apim-hitl")).thenReturn(true);
 
             assertThat(manager.receivesRules("org-1", "env-1")).isTrue();
             assertThat(manager.candidates("env-1", null, "payments", null)).extracting(DeployedApprovalRule::id).containsExactly("rule-1");
@@ -900,7 +900,7 @@ class ApprovalRuleManagerImplTest {
 
         @Test
         void should_keep_deploying_without_checking_the_license_for_an_anchored_rule() {
-            when(license.isFeatureEnabled("gamma-aim-module")).thenReturn(false);
+            when(license.isFeatureEnabled("apim-hitl")).thenReturn(false);
             DeployedApprovalRule anchored = anchoredRule("a", null, 1, "payments.refund");
 
             deployAndCommit(anchored);
