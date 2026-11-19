@@ -19,6 +19,7 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
+import io.gravitee.gateway.reactive.handlers.api.v4.product.EmptyProductResourceLifecycleManager;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.resource.api.ResourceManager;
 import io.reactivex.rxjava3.core.Completable;
@@ -40,5 +41,14 @@ final class ApiProductPlanResourceScope {
         final MutableExecutionContext scopedCtx = new ProductPlanResourceScopedExecutionContext(ctx, productScopedProvider);
 
         return scopedWork.apply(scopedCtx);
+    }
+
+    static MutableExecutionContext scope(MutableExecutionContext ctx, ResourceLifecycleManager productResourceManager) {
+        ResourceLifecycleManager manager = productResourceManager != null
+            ? productResourceManager
+            : EmptyProductResourceLifecycleManager.INSTANCE;
+        CustomComponentProvider productComponents = new CustomComponentProvider();
+        productComponents.add(ResourceManager.class, manager);
+        return new ProductPlanResourceScopedExecutionContext(ctx, productComponents);
     }
 }

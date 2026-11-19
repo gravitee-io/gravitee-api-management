@@ -36,9 +36,10 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.reactive.api.policy.http.HttpSecurityPolicy;
+import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.handlers.api.security.plan.HttpSecurityPlan;
 import io.gravitee.gateway.reactive.handlers.api.security.plan.SecurityPlanContext;
 import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntime;
@@ -47,6 +48,7 @@ import io.gravitee.gateway.reactive.handlers.api.v4.product.ApiProductRuntimeReg
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.resource.api.ResourceManager;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
@@ -69,11 +71,12 @@ class HttpSecurityChainTest {
 
     private final List<String> tried = new CopyOnWriteArrayList<>();
     private final Map<String, Object> internalAttributes = new HashMap<>();
-    private final HttpExecutionContext ctx = mock(HttpExecutionContext.class);
+    private final MutableExecutionContext ctx = mock(MutableExecutionContext.class);
     private final PolicyManager policyManager = mock(PolicyManager.class);
     private final Map<String, List<HttpSecurityPlan>> securityPlansByProduct = new HashMap<>();
     private final TestScheduler scheduler = new TestScheduler();
     private final Map<String, LifecycleComponent<?>> componentByProduct = new HashMap<>();
+    private final Map<String, ResourceLifecycleManager> resourceManagerByProduct = new HashMap<>();
     private final ApiProductRuntimeFactory runtimeFactory = mock(ApiProductRuntimeFactory.class);
     private final ApiProductRuntimeRegistry registry = new ApiProductRuntimeRegistry(runtimeFactory, 10_000, scheduler);
 
@@ -89,7 +92,7 @@ class HttpSecurityChainTest {
                     null,
                     null,
                     List.of(componentByProduct.computeIfAbsent(product.getId(), id -> mock(LifecycleComponent.class))),
-                    mock(ResourceLifecycleManager.class),
+                    resourceManagerByProduct.computeIfAbsent(product.getId(), id -> mock(ResourceLifecycleManager.class)),
                     () -> securityPlansByProduct.getOrDefault(product.getId(), List.of())
                 );
             });
@@ -208,12 +211,66 @@ class HttpSecurityChainTest {
     }
 
     @Test
+    void should_resolve_a_product_plan_with_the_product_resource_manager_and_an_api_plan_with_the_api() {
+        ResourceLifecycleManager productManager = mock(ResourceLifecycleManager.class);
+        ResourceLifecycleManager apiManager = mock(ResourceLifecycleManager.class);
+        resourceManagerByProduct.put("product-a", productManager);
+        lenient().when(ctx.getComponent(ResourceManager.class)).thenReturn(apiManager);
+        HttpSecurityPolicy productPolicy = resourceResolvingPolicy("a-1", 1, productManager, "product-manager", "not-product-manager");
+        securityPlansByProduct.put(
+            "product-a",
+            List.of(new HttpSecurityPlan(new SecurityPlanContext("a-1", "a-1", null, "product-a"), productPolicy))
+        );
+        registry.deploy(product("product-a"));
+        HttpSecurityPolicy apiPolicy = resourceResolvingPolicy("api-0", 0, apiManager, "api-manager", "not-api-manager");
+        when(policyManager.create(any(), any())).thenReturn(apiPolicy);
+        Api api = new Api();
+        api.setId(API_ID);
+        api.setType(ApiType.PROXY);
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setPlans(
+            List.of(
+                Plan.builder()
+                    .id("api-0")
+                    .name("api-0")
+                    .mode(PlanMode.STANDARD)
+                    .status(PlanStatus.PUBLISHED)
+                    .security(PlanSecurity.builder().type("api-key").build())
+                    .build()
+            )
+        );
+        HttpSecurityChain cut = new HttpSecurityChain(api, policyManager, ExecutionPhase.REQUEST, registry, ENV_ID);
+
+        cut.execute(ctx).test().assertError(RuntimeException.class);
+
+        assertThat(tried).containsExactly("product-manager", "api-manager");
+    }
+
+    @Test
     void should_try_only_the_api_plans_without_product_support() {
         HttpSecurityChain cut = new HttpSecurityChain(apiWithPlan("api-0", 0), policyManager, ExecutionPhase.REQUEST, null, ENV_ID);
 
         cut.execute(ctx).test().assertError(RuntimeException.class);
 
         assertThat(tried).containsExactly("api-0");
+    }
+
+    private HttpSecurityPolicy resourceResolvingPolicy(String name, int order, ResourceManager expected, String matched, String unmatched) {
+        HttpSecurityPolicy policy = mock(HttpSecurityPolicy.class);
+        lenient().when(policy.id()).thenReturn(name);
+        lenient().when(policy.order()).thenReturn(order);
+        lenient().when(policy.requireSubscription(any())).thenReturn(false);
+        lenient().when(policy.wwwAuthenticate(any())).thenReturn(Single.just(false));
+        lenient().when(policy.onWellKnown(any())).thenReturn(Single.just(false));
+        lenient().when(policy.onRequest(any())).thenReturn(Completable.complete());
+        lenient()
+            .when(policy.extractSecurityToken(any()))
+            .thenAnswer(invocation -> {
+                HttpPlainExecutionContext planCtx = invocation.getArgument(0);
+                tried.add(planCtx.getComponent(ResourceManager.class) == expected ? matched : unmatched);
+                return Maybe.empty();
+            });
+        return policy;
     }
 
     private HttpSecurityPlan productPlan(String productId, String planId, int order, boolean accepts) {

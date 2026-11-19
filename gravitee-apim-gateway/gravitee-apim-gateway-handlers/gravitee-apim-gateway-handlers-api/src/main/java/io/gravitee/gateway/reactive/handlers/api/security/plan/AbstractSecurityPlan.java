@@ -77,6 +77,10 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
         return policy.id();
     }
 
+    public String apiProductId() {
+        return planContext.apiProductId();
+    }
+
     /**
      * Make sure the security plan can be executed for the current request.
      *

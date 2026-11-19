@@ -26,9 +26,11 @@ import java.util.List;
  * A product runtime with no configured resources still scopes the product plan flow away from the
  * member API {@link ResourceManager}: this manager resolves no resource for any name or type.
  */
-final class EmptyProductResourceLifecycleManager extends AbstractLifecycleComponent<ResourceManager> implements ResourceLifecycleManager {
+public final class EmptyProductResourceLifecycleManager
+    extends AbstractLifecycleComponent<ResourceManager>
+    implements ResourceLifecycleManager {
 
-    static final EmptyProductResourceLifecycleManager INSTANCE = new EmptyProductResourceLifecycleManager();
+    public static final EmptyProductResourceLifecycleManager INSTANCE = new EmptyProductResourceLifecycleManager();
 
     private EmptyProductResourceLifecycleManager() {}
 
