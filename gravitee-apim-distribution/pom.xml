@@ -191,8 +191,13 @@
     <!-- Community plugins -->
     <gravitee-policy-aws-lambda.version>3.5.0</gravitee-policy-aws-lambda.version>
     <gravitee-resource-auth-provider-http.version>2.0.1</gravitee-resource-auth-provider-http.version>
+<<<<<<< HEAD
     <gravitee-resource-auth-provider-inline.version>3.0.0</gravitee-resource-auth-provider-inline.version>
     <gravitee-resource-auth-provider-ldap.version>2.0.1</gravitee-resource-auth-provider-ldap.version>
+=======
+    <gravitee-resource-auth-provider-inline.version>3.0.1</gravitee-resource-auth-provider-inline.version>
+    <gravitee-resource-auth-provider-ldap.version>3.0.0</gravitee-resource-auth-provider-ldap.version>
+>>>>>>> feae4b0 (chore(deps): bump gravitee-resource-auth-provider-inline to 3.0.1)
     <gravitee-resource-cache-redis.version>5.0.1</gravitee-resource-cache-redis.version>
     <gravitee-resource-cache-cloud-redis.version>2.0.0</gravitee-resource-cache-cloud-redis.version>
     <gravitee-resource-oauth2-provider-keycloak.version>5.0.0</gravitee-resource-oauth2-provider-keycloak.version>
