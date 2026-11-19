@@ -23,6 +23,7 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aPolicy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -151,6 +152,63 @@ class GammaGuardianRepositoryAdapterTest {
             when(spi.create(any())).thenThrow(new TechnicalException("connection reset"));
 
             assertThatThrownBy(() -> adapter.create(aGuardian().build())).isInstanceOf(TechnicalDomainException.class);
+        }
+    }
+
+    /** The draft version travels with the row, and the store alone decides whether a conditional write goes through. */
+    @Nested
+    class The_version {
+
+        @Test
+        void should_be_read_from_the_stored_row() throws Exception {
+            var row = aStoredRowNamedLikeTheFixture(GUARDIAN_ID);
+            row.setVersion(7);
+            when(spi.findById(GUARDIAN_ID)).thenReturn(Optional.of(row));
+
+            assertThat(adapter.findByEnvironmentId(ENVIRONMENT_ID, GUARDIAN_ID))
+                .get()
+                .extracting(io.gravitee.gamma.rest.core.guardian.model.Guardian::getVersion)
+                .isEqualTo(7);
+        }
+
+        @Test
+        void should_be_written_to_the_stored_row() throws Exception {
+            when(spi.update(any())).thenAnswer(call -> call.getArgument(0));
+
+            adapter.update(aGuardianWithId(GUARDIAN_ID).toBuilder().version(7).build());
+
+            var written = ArgumentCaptor.forClass(io.gravitee.repository.management.model.Guardian.class);
+            verify(spi).update(written.capture());
+            assertThat(written.getValue().getVersion()).isEqualTo(7);
+        }
+
+        /** The comparison is the store's, in the same step as the write: the adapter only passes it on. */
+        @Test
+        void should_leave_the_comparison_to_the_store() throws Exception {
+            when(spi.updateIfVersionMatches(any(), eq(3))).thenAnswer(call -> Optional.of(call.getArgument(0)));
+
+            var written = adapter.updateIfVersionMatches(aGuardianWithId(GUARDIAN_ID).toBuilder().version(4).build(), 3);
+
+            assertThat(written).get().extracting(io.gravitee.gamma.rest.core.guardian.model.Guardian::getVersion).isEqualTo(4);
+        }
+
+        @Test
+        void should_answer_nothing_when_the_store_wrote_nothing() throws Exception {
+            when(spi.updateIfVersionMatches(any(), eq(3))).thenReturn(Optional.empty());
+
+            assertThat(adapter.updateIfVersionMatches(aGuardianWithId(GUARDIAN_ID).toBuilder().version(4).build(), 3)).isEmpty();
+        }
+
+        @Test
+        void should_report_a_name_clash_on_a_conditional_write_as_a_conflict() throws Exception {
+            when(spi.updateIfVersionMatches(any(), eq(3))).thenThrow(new DuplicateKeyException("E11000 duplicate key"));
+            when(spi.findByEnvironmentIdAndNameIgnoreCase(ENVIRONMENT_ID, "Credential leakage")).thenReturn(
+                List.of(aStoredRowNamedLikeTheFixture("another-guardian"))
+            );
+
+            assertThatThrownBy(() -> adapter.updateIfVersionMatches(aGuardianWithId(GUARDIAN_ID), 3)).isInstanceOf(
+                GuardianNameAlreadyExistsException.class
+            );
         }
     }
 

@@ -42,4 +42,5 @@ public class GuardianMongo {
     private Date updatedAt;
     private Date deployedAt;
     private String lifecycleState;
+    private Integer version;
 }

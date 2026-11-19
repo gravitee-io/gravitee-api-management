@@ -52,6 +52,7 @@ import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDraftDomainSe
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianWithoutEnabledGuardrailException;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
+import io.gravitee.gamma.rest.core.guardian.model.DraftPrecondition;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
@@ -267,6 +268,23 @@ class GuardianDeploymentUseCasesTest {
                 .assertThat(policy.getConfiguration())
                 .as("the stored draft is left alone")
                 .isEqualTo("{\"rules\":[{\"policy\":\"ban-topics\"}]}");
+        });
+    }
+
+    /**
+     * A deployment publishes the draft without writing it, so it does not count as a write: the version an
+     * editor read before it is still the one to state after.
+     */
+    @Test
+    void should_leave_the_version_of_the_draft_alone() {
+        repository.reset();
+        repository.givenGuardian(aGuardian().version(3).build());
+
+        var deployed = deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, "Reviewed")).guardian();
+
+        assertSoftly(softly -> {
+            softly.assertThat(deployed.getVersion()).as("answered").isEqualTo(3);
+            softly.assertThat(repository.storedGuardians()).as("stored").singleElement().extracting(Guardian::getVersion).isEqualTo(3);
         });
     }
 
@@ -700,7 +718,8 @@ class GuardianDeploymentUseCasesTest {
                 new UpdateGuardianUseCase.Input(
                     actor,
                     GUARDIAN_ID,
-                    UpdateGuardianCommand.builder().definition(definition).description(description).build()
+                    UpdateGuardianCommand.builder().definition(definition).description(description).build(),
+                    DraftPrecondition.anyVersion()
                 )
             )
             .guardian();

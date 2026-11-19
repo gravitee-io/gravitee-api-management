@@ -82,6 +82,12 @@ class CreateGuardianUseCaseTest {
         assertThat(guardianRepository.storedGuardians()).isEmpty();
     }
 
+    /** The first write of the draft: what the first update has to state. */
+    @Test
+    void should_create_a_guardian_at_version_1() {
+        assertThat(create(aCreateGuardian().build()).guardian().getVersion()).isEqualTo(1);
+    }
+
     @Test
     void should_create_an_undeployed_guardian_in_the_context_environment() {
         var output = create(aCreateGuardian().build());

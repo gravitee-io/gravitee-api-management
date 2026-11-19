@@ -33,10 +33,12 @@ import java.util.Set;
  *
  * <p>Which is why the fields only the store owns are ignored rather than refused. Sending back what
  * {@code GET} returned is exactly what the paragraph above asks for, and that response carries
- * {@code id}, {@code lifecycleState}, {@code deployedAt}, {@code deployedRevisionId}, {@code createdAt} and {@code updatedAt};
+ * {@code id}, {@code lifecycleState}, {@code deployedAt}, {@code deployedRevisionId}, {@code createdAt}, {@code updatedAt}
+ * and {@code version};
  * without this the obedient client got a 400 naming the first of them. They are read here and
  * dropped: the id comes from the path, the lifecycle and the deployment stamp belong to a deployment,
- * and the two timestamps are the store's. A genuinely unknown key is still refused, which is what
+ * and the two timestamps are the store's. The version is not read from the body either: the one an update
+ * is built on is stated in {@code If-Match}. A genuinely unknown key is still refused, which is what
  * {@link RejectUnknownProperties} is for.
  *
  * <p>Constraints live on {@link UpdateGuardianCommand}, not here; see
@@ -45,7 +47,7 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 @RejectUnknownProperties
-@JsonIgnoreProperties({ "id", "lifecycleState", "deployedAt", "deployedRevisionId", "createdAt", "updatedAt" })
+@JsonIgnoreProperties({ "id", "lifecycleState", "deployedAt", "deployedRevisionId", "createdAt", "updatedAt", "version" })
 public record UpdateGuardianRequestDto(
     String name,
     String description,

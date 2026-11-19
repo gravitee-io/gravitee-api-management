@@ -75,6 +75,16 @@ public class Guardian {
 
     private GuardianLifecycleState lifecycleState;
 
+    /**
+     * How many times the draft was written, starting at 1. What a writer states to have its write refused
+     * when the draft changed since it was read — see {@code GuardianRepository#updateIfVersionMatches}.
+     *
+     * <p>The Guardians stored before the counter existed are given version 1 by the upgrade. {@code null}
+     * is left to one written since by a node older than the counter, which cannot be guarded until its next
+     * write gives it one. A deployment does not count: it publishes the draft without changing it.
+     */
+    private Integer version;
+
     public Guardian(Guardian cloned) {
         this.id = cloned.id;
         this.environmentId = cloned.environmentId;
@@ -86,6 +96,7 @@ public class Guardian {
         this.updatedAt = cloned.updatedAt;
         this.deployedAt = cloned.deployedAt;
         this.lifecycleState = cloned.lifecycleState;
+        this.version = cloned.version;
     }
 
     @Override

@@ -51,7 +51,8 @@ public record GuardianDto(
     @JsonFormat(shape = JsonFormat.Shape.STRING) Instant deployedAt,
     String deployedRevisionId,
     @JsonFormat(shape = JsonFormat.Shape.STRING) Instant createdAt,
-    @JsonFormat(shape = JsonFormat.Shape.STRING) Instant updatedAt
+    @JsonFormat(shape = JsonFormat.Shape.STRING) Instant updatedAt,
+    Integer version
 ) {
     public static GuardianDto from(Guardian guardian) {
         return new GuardianDto(
@@ -66,7 +67,8 @@ public record GuardianDto(
             guardian.getDeployedAt(),
             guardian.getDeployedRevisionId(),
             guardian.getCreatedAt(),
-            guardian.getUpdatedAt()
+            guardian.getUpdatedAt(),
+            guardian.getVersion()
         );
     }
 }

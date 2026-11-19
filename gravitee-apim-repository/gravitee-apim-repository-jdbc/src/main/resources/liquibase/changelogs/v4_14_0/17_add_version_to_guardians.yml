@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.14.0_17_add_version_to_guardians
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}guardians
+            columns:
+              - column:
+                  name: version
+                  type: int
+                  # A row inserted by a node older than the column, during a rolling upgrade, still starts at 1.
+                  defaultValueNumeric: 1
+                  constraints:
+                    nullable: true
+        # A Guardian stored before the counter existed starts at 1, like one created since: with no version it
+        # would carry no ETag, and its first save could only be an unguarded overwrite. Not every database
+        # backfills a nullable column from its default, hence the explicit update.
+        - update:
+            tableName: ${gravitee_prefix}guardians
+            columns:
+              - column:
+                  name: version
+                  valueNumeric: 1
+            where: version IS NULL
