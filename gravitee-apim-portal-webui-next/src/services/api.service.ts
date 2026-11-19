@@ -31,14 +31,12 @@ export class ApiService {
     private configService: ConfigService,
   ) {}
 
-  search(page = 1, category: string = 'all', q: string, size = 9): Observable<ApisResponse> {
-    return this.http.post<ApisResponse>(`${this.configService.baseURL}/apis/_search`, null, {
+  search(page = 1, q = '', size = 9): Observable<ApisResponse> {
+    return this.http.post<ApisResponse>(`${this.configService.portalBaseURL}/apis/_search`, null, {
       params: {
         page,
-        category: category !== 'all' && category !== undefined ? category : '',
         size,
-        q: q,
-        [PortalApiViewParam.QUERY_PARAM_NAME]: PortalApiViewParam.DOCUMENTATION,
+        q,
       },
     });
   }

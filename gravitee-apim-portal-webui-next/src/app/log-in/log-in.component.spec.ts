@@ -20,13 +20,24 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
+import { Router } from '@angular/router';
 
 import { LogInComponent } from './log-in.component';
 import { IdentityProvider } from '../../entities/configuration/identity-provider';
+import { fakePortalNavigationLink } from '../../entities/portal-navigation/portal-navigation-item.fixture';
+import { fakeUser } from '../../entities/user/user.fixtures';
 import { AuthService } from '../../services/auth.service';
 import { ConfigService } from '../../services/config.service';
+import { CurrentUserService } from '../../services/current-user.service';
 import { IdentityProviderService } from '../../services/identity-provider.service';
-import { AppTestingModule, ConfigServiceStub, IdentityProviderServiceStub, TESTING_BASE_URL } from '../../testing/app-testing.module';
+import { PortalNavigationItemsService } from '../../services/portal-navigation-items.service';
+import {
+  AppTestingModule,
+  ConfigServiceStub,
+  IdentityProviderServiceStub,
+  TESTING_BASE_URL,
+  TESTING_PORTAL_BASE_URL,
+} from '../../testing/app-testing.module';
 import { DivHarness } from '../../testing/div.harness';
 
 describe('LogInComponent', () => {
@@ -124,7 +135,44 @@ describe('LogInComponent', () => {
     await submitButton.click();
     httpTestingController.expectOne(`${TESTING_BASE_URL}/auth/login`).flush({});
     httpTestingController.expectOne(`${TESTING_BASE_URL}/user`).flush({});
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-navigation-items?area=TOP_NAVBAR&loadChildren=false`).flush({});
+    httpTestingController.expectOne(`${TESTING_PORTAL_BASE_URL}/portal-navigation-items?area=TOP_NAVBAR&loadChildren=false`).flush({});
+  });
+
+  it.each([401, 404, 500])('should complete login and clear stale navigation when navbar reload fails with %p', async status => {
+    await init();
+    const navigate = jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const navigation = TestBed.inject(PortalNavigationItemsService);
+    navigation.topNavbarItems.set([fakePortalNavigationLink()]);
+    const user = fakeUser();
+
+    fixture.componentInstance.logInForm.setValue({ username: 'synthetic-user', password: 'synthetic-password' });
+    fixture.componentInstance.logIn();
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/auth/login`).flush({});
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/user`).flush(user);
+    httpTestingController
+      .expectOne(`${TESTING_PORTAL_BASE_URL}/portal-navigation-items?area=TOP_NAVBAR&loadChildren=false`)
+      .flush({}, { status, statusText: 'Navigation reload failed' });
+
+    expect(TestBed.inject(CurrentUserService).user()).toEqual(user);
+    expect(navigation.topNavbarItems()).toEqual([]);
+    expect(navigate).toHaveBeenCalledWith(['']);
+    const form = await harnessLoader.getHarness(DivHarness.with({ selector: '.log-in__form' }));
+    expect(await form.getText({ childSelector: '.log-in__form__error' })).toBeNull();
+  });
+
+  it('should display invalid credentials without requesting navigation or redirecting', async () => {
+    await init();
+    const navigate = jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    fixture.componentInstance.logInForm.setValue({ username: 'synthetic-user', password: 'synthetic-password' });
+    fixture.componentInstance.logIn();
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/auth/login`).flush({}, { status: 401, statusText: 'Unauthorized' });
+
+    httpTestingController.expectNone(`${TESTING_BASE_URL}/user`);
+    httpTestingController.expectNone(request => request.url.includes('/portal-navigation-items'));
+    expect(navigate).not.toHaveBeenCalled();
+    expect(TestBed.inject(CurrentUserService).isAuthenticated()).toBe(false);
+    const form = await harnessLoader.getHarness(DivHarness.with({ selector: '.log-in__form' }));
+    expect(await form.getText({ childSelector: '.log-in__form__error' })).toContain('The username or password you entered is incorrect');
   });
 
   it('should display sign up link when user registration is enabled', async () => {

@@ -79,7 +79,7 @@ export class LogInComponent {
       .login(this.logInForm.value.username, this.logInForm.value.password)
       .pipe(
         switchMap(_ => this.currentUserService.loadUser()),
-        switchMap(_ => this.portalNavigationItemsService.loadTopNavBarItems()),
+        switchMap(_ => this.portalNavigationItemsService.reloadTopNavBarItemsAfterAuthChange()),
         tap(_ => this.router.navigate([this.redirectUrl()])),
         takeUntilDestroyed(this.destroyRef),
       )

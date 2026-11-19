@@ -19,7 +19,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { PortalAnalyticsFiltersService } from './portal-analytics-filters.service';
 import { ConfigService } from '../../../../services/config.service';
-import { TESTING_BASE_URL } from '../../../../testing/app-testing.module';
+import { TESTING_BASE_URL, TESTING_PORTAL_BASE_URL } from '../../../../testing/app-testing.module';
 
 describe('PortalAnalyticsFiltersService', () => {
   let service: PortalAnalyticsFiltersService;
@@ -31,7 +31,7 @@ describe('PortalAnalyticsFiltersService', () => {
         PortalAnalyticsFiltersService,
         provideHttpClient(),
         provideHttpClientTesting(),
-        { provide: ConfigService, useValue: { baseURL: TESTING_BASE_URL } },
+        { provide: ConfigService, useValue: { baseURL: TESTING_BASE_URL, portalBaseURL: TESTING_PORTAL_BASE_URL } },
       ],
     });
 
@@ -73,7 +73,13 @@ describe('PortalAnalyticsFiltersService', () => {
     });
 
     httpTestingController
-      .expectOne(req => req.url === `${TESTING_BASE_URL}/apis/_search`)
+      .expectOne(
+        req =>
+          req.url === `${TESTING_PORTAL_BASE_URL}/apis/_search` &&
+          req.params.get('q') === 'test' &&
+          req.params.get('page') === '1' &&
+          req.params.get('size') === '10',
+      )
       .flush({
         data: [
           { id: 'api-1', name: 'My API' },
