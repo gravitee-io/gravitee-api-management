@@ -815,6 +815,17 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             Application updatedApplication = updateApplication(application);
 
+            // Group-derived application permissions are cached per user. Updating the application's
+            // groups does not touch membership rows, so invalidate those cache entries (locally and
+            // across Management API instances) or /members/permissions stays stale for up to 60s.
+            if (applicationGroupsChanged(applicationToUpdate.getGroups(), groups)) {
+                membershipService.invalidatePermissionCacheForReferenceAndSendCommand(
+                    MembershipReferenceType.APPLICATION.name(),
+                    applicationId,
+                    executionContext
+                );
+            }
+
             createAuditLog(
                 executionContext,
                 APPLICATION_UPDATED,
@@ -831,6 +842,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 ex
             );
         }
+    }
+
+    private static boolean applicationGroupsChanged(Set<String> previousGroups, Set<String> nextGroups) {
+        Set<String> previous = previousGroups == null ? Set.of() : previousGroups;
+        Set<String> next = nextGroups == null ? Set.of() : nextGroups;
+        return !previous.equals(next);
     }
 
     @Override
