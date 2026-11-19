@@ -65,6 +65,7 @@ public class FindApiMetricsDetailResponseAdapter {
             .requestContentLength(asLongOr(json.get("request-content-length"), 0))
             .responseContentLength(asLongOr(json.get("response-content-length"), 0))
             .remoteAddress(asTextOrNull(json.get("remote-address")))
+            .user(asTextOrNull(json.get("user")))
             .gatewayLatency(coalesceLong(json, "gateway-latency-ms", "proxy-latency"))
             .gatewayResponseTime(coalesceLong(json, "gateway-response-time-ms", "response-time"))
             .endpointResponseTime(coalesceLong(json, "endpoint-response-time-ms", "api-response-time"))

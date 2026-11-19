@@ -67,6 +67,7 @@ public class HTTPFieldResolver implements FieldResolver {
             case Filter.Name.GEO_IP_CITY -> "geoip.city_name";
             case Filter.Name.GEO_IP_CONTINENT -> "geoip.continent_name";
             case Filter.Name.CONSUMER_IP -> "remote-address";
+            case Filter.Name.USER -> "user";
             case Filter.Name.HTTP_USER_AGENT_OS_NAME -> "user_agent.os_name";
             case Filter.Name.HTTP_USER_AGENT_DEVICE -> "user_agent.device.name";
             case Filter.Name.LLM_PROXY_MODEL -> "additional-metrics.keyword_llm-proxy_model";
@@ -113,6 +114,7 @@ public class HTTPFieldResolver implements FieldResolver {
             case GEO_IP_CITY -> "geoip.city_name";
             case GEO_IP_CONTINENT -> "geoip.continent_name";
             case CONSUMER_IP -> "remote-address";
+            case USER -> "user";
             case HTTP_USER_AGENT_OS_NAME -> "user_agent.os_name";
             case HTTP_USER_AGENT_DEVICE -> "user_agent.device.name";
             case LLM_PROXY_MODEL -> "additional-metrics.keyword_llm-proxy_model";

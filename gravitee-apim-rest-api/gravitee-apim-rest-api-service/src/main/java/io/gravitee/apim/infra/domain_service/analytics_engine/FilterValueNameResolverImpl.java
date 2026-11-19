@@ -27,6 +27,7 @@ import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.repository.analytics.engine.api.query.EndUser;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.Collection;
 import java.util.Collections;
@@ -46,6 +47,7 @@ public class FilterValueNameResolverImpl implements FilterValueNameResolver {
 
     private static final String UNKNOWN_APPLICATION_ID = "1";
     private static final String UNKNOWN_APPLICATION_NAME = "Unknown";
+    private static final String NO_END_USER_NAME = "No end user";
     private static final String PARENT_SEPARATOR = " · ";
 
     private final ApiCrudService apiCrudService;
@@ -74,6 +76,7 @@ public class FilterValueNameResolverImpl implements FilterValueNameResolver {
             }
             case PLAN -> planLabels(environmentId, planCrudService.findByIds(ids));
             case API_PRODUCT -> apiProductNamesOf(environmentId, new HashSet<>(ids));
+            case USER -> ids.contains(EndUser.NONE) ? Map.of(EndUser.NONE, NO_END_USER_NAME) : Collections.emptyMap();
             default -> Collections.emptyMap();
         };
     }

@@ -61,7 +61,9 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
         FacetSpec.Name.PLAN,
         FilterSpec.Name.PLAN,
         FacetSpec.Name.API_PRODUCT,
-        FilterSpec.Name.API_PRODUCT
+        FilterSpec.Name.API_PRODUCT,
+        FacetSpec.Name.USER,
+        FilterSpec.Name.USER
     );
 
     private final FilterValueNameResolver filterValueNameResolver;
