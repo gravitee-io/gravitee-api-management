@@ -24,31 +24,29 @@
     placeholder="Search applications"
     (searchTerm)="searchChange.emit($event)"
   />
-  <app-button-toggle-group class="choose-application__view-toggle" [(value)]="viewMode">
-    <app-button-toggle-option value="tile" icon="grid_view" i18n-label="@@subscribeToApiApplicationsCardsView" label="Cards" />
-    <app-button-toggle-option value="table" icon="view_list" i18n-label="@@subscribeToApiApplicationsListView" label="List" />
-  </app-button-toggle-group>
+  <div class="choose-application__toolbar-actions">
+    <app-button-toggle-group class="choose-application__view-toggle" [(value)]="viewMode">
+      <app-button-toggle-option value="tile" icon="grid_view" i18n-label="@@subscribeToApiApplicationsCardsView" label="Cards" />
+      <app-button-toggle-option value="table" icon="view_list" i18n-label="@@subscribeToApiApplicationsListView" label="List" />
+    </app-button-toggle-group>
+    @if (canCreateApplication) {
+      <button
+        mat-stroked-button
+        type="button"
+        class="choose-application__create"
+        data-testid="subscribe-create-application"
+        (click)="createApplication.emit()"
+      >
+        <mat-icon>add</mat-icon>
+        <span i18n="@@subscribeToApiCreateApplicationAndSubscribe">Create application and Subscribe</span>
+      </button>
+    }
+  </div>
 </div>
 
 @if (applications.length || canCreateApplication) {
   @if (viewMode() === 'tile') {
     <div class="applications" [appIsNarrow]="'applications--narrow'" [appIsMobile]="'applications--mobile'">
-      @if (canCreateApplication) {
-        <button
-          type="button"
-          class="create-application-tile"
-          data-testid="subscribe-create-application"
-          (click)="createApplication.emit()"
-        >
-          <span class="create-application-tile__icon material-icons" aria-hidden="true">add_circle_outline</span>
-          <span class="create-application-tile__title next-gen-h5" i18n="@@subscribeToApiCreateApplicationAndSubscribe"
-            >Create application and Subscribe</span
-          >
-          <span class="create-application-tile__description m3-body-medium" i18n="@@subscribeToApiCreateApplicationAndSubscribeDescription">
-            Create a new application and continue this subscription with it.
-          </span>
-        </button>
-      }
       @for (application of applications; track application.id) {
         <app-radio-card
           [value]="application"
@@ -67,17 +65,6 @@
     </div>
   } @else {
     <div class="applications-table">
-      @if (canCreateApplication) {
-        <button
-          type="button"
-          class="applications-table__create"
-          data-testid="subscribe-create-application"
-          (click)="createApplication.emit()"
-        >
-          <mat-icon>add</mat-icon>
-          <span i18n="@@subscribeToApiCreateApplicationAndSubscribe">Create application and Subscribe</span>
-        </button>
-      }
       @if (applications.length) {
         <table mat-table [dataSource]="applications" class="applications-table__table">
           <ng-container matColumnDef="select">
@@ -142,7 +129,7 @@
         <div class="m3-body-medium" i18n="@@subscribeToApiNoApplicationsMatchingSearchMessage">
           Try a different name, or create a new application.
         </div>
-      } @else if (!canCreateApplication) {
+      } @else {
         <div class="m3-title-medium" i18n="@@subscribeToApiNoApplicationsFound">No application found</div>
         <div class="m3-body-medium" i18n="@@subscribeToApiNoApplicationsFoundMessage">Create an application and it will show up here.</div>
       }

@@ -103,28 +103,31 @@ describe('SubscribeToApiChooseApplicationComponent', () => {
     expect(emittedQuery).toBe('Payments');
   });
 
-  it('should emit createApplication when the create tile is clicked', () => {
+  it('should emit createApplication when the toolbar create button is clicked', () => {
     let created = false;
     component.canCreateApplication = true;
     component.createApplication.subscribe(() => (created = true));
     fixture.detectChanges();
 
-    const createTile: HTMLButtonElement | null = fixture.nativeElement.querySelector(
+    const createButton: HTMLButtonElement | null = fixture.nativeElement.querySelector(
       '[data-testid="subscribe-create-application"]',
     );
-    expect(createTile).toBeTruthy();
-    createTile!.click();
+    expect(createButton).toBeTruthy();
+    createButton!.click();
 
     expect(created).toBe(true);
   });
 
-  it('should show tiles and table view toggles instead of a create button', () => {
+  it('should show create button to the right of Cards and List toggles', () => {
     component.canCreateApplication = true;
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('[data-testid="subscribe-create-application"]')).toBeTruthy();
-    expect(fixture.nativeElement.textContent).toContain('Create application and Subscribe');
-    expect(fixture.nativeElement.textContent).toContain('Cards');
-    expect(fixture.nativeElement.textContent).toContain('List');
+    const toolbarActions: HTMLElement | null = fixture.nativeElement.querySelector('.choose-application__toolbar-actions');
+    expect(toolbarActions).toBeTruthy();
+    expect(toolbarActions!.querySelector('[data-testid="subscribe-create-application"]')).toBeTruthy();
+    expect(toolbarActions!.textContent).toContain('Create application and Subscribe');
+    expect(toolbarActions!.textContent).toContain('Cards');
+    expect(toolbarActions!.textContent).toContain('List');
+    expect(fixture.nativeElement.querySelector('.create-application-tile')).toBeNull();
   });
 });
