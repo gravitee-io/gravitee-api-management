@@ -15,9 +15,10 @@
  */
 package io.gravitee.apim.reporter.elasticsearch;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
@@ -104,16 +105,24 @@ class ElasticsearchReporterFlavorTest {
     }
 
     @Test
-    void should_stay_inactive_without_writing_anything_on_serverless() throws Exception {
-        startReporter(Map.of());
+    void should_prepare_the_serverless_data_streams_with_their_retention() throws Exception {
+        startReporter(Map.of("reporters.elasticsearch.lifecycle.retention.log", "7d"));
 
-        assertThat(reporter.canHandle(Metrics.on(System.currentTimeMillis()).build())).isFalse();
-        assertThat(elasticsearch.findAll(anyRequestedFor(anyUrl())))
-            .isNotEmpty()
-            .allSatisfy(request -> assertThat(request.getMethod().getName() + " " + request.getUrl()).isEqualTo("GET /"));
-        assertThat(messages(Level.ERROR))
-            .singleElement()
-            .satisfies(message -> assertThat(message).contains("Elastic Cloud Serverless index setup is not available"));
+        await()
+            .atMost(Duration.ofSeconds(10))
+            .until(() -> messages(Level.INFO).contains("Starting Elastic reporter engine... DONE"));
+        assertThat(reporter.canHandle(Metrics.on(System.currentTimeMillis()).build())).isTrue();
+        elasticsearch.verify(
+            putRequestedFor(urlEqualTo("/_index_template/gravitee-request")).withRequestBody(
+                matchingJsonPath("$.template.lifecycle.data_retention", equalTo("45d"))
+            )
+        );
+        elasticsearch.verify(
+            putRequestedFor(urlEqualTo("/_index_template/gravitee-v4-log")).withRequestBody(
+                matchingJsonPath("$.template.lifecycle.data_retention", equalTo("7d"))
+            )
+        );
+        assertThat(messages(Level.ERROR)).isEmpty();
     }
 
     @Test

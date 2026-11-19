@@ -15,10 +15,13 @@
  */
 package io.gravitee.apim.reporter.elasticsearch.factory;
 
+import static java.lang.String.format;
+
 import io.gravitee.apim.reporter.elasticsearch.config.DataStreamRules;
 import io.gravitee.apim.reporter.elasticsearch.config.Flavor;
 import io.gravitee.apim.reporter.elasticsearch.config.FlavorRules;
 import io.gravitee.apim.reporter.elasticsearch.config.ReporterConfiguration;
+import io.gravitee.apim.reporter.elasticsearch.config.ServerlessRetention;
 import io.gravitee.apim.reporter.elasticsearch.factory.es7.Elastic7xBeanFactory;
 import io.gravitee.apim.reporter.elasticsearch.factory.es8.Elastic8xBeanFactory;
 import io.gravitee.apim.reporter.elasticsearch.factory.es9.Elastic9xBeanFactory;
@@ -67,13 +70,6 @@ public class BeanFactoryBuilder {
             return null;
         }
 
-        // Serverless answers with a regular 8.x or 9.x version: it must never reach the classic beans below.
-        if (flavor == Flavor.SERVERLESS) {
-            logStartupSummary(configuration, flavor, configuredFlavor.isEmpty());
-            log.error("The Elastic Cloud Serverless index setup is not available in this version yet. {}", REPORTER_DISABLED);
-            return null;
-        }
-
         final BeanFactory beanFactory = getBeanFactoryFromElasticsearchInfo(info);
         if (beanFactory == null) {
             log.error(
@@ -82,6 +78,10 @@ public class BeanFactoryBuilder {
                 info.getVersion().getNumber()
             );
             return null;
+        }
+        // Serverless answers with a regular 8.x or 9.x version: only its document format comes from the classic beans.
+        if (flavor == Flavor.SERVERLESS) {
+            return serverlessBeanFactory(beanFactory, configuration, configuredFlavor.isEmpty());
         }
         if (!configuration.isDataStreamIndex()) {
             logStartupSummary(configuration, flavor, configuredFlavor.isEmpty());
@@ -99,9 +99,28 @@ public class BeanFactoryBuilder {
         return new DataStreamBeanFactory(beanFactory, DataStreamLifecycle.of(version, configuration));
     }
 
+    private static BeanFactory serverlessBeanFactory(
+        final BeanFactory clusterBeanFactory,
+        final ReporterConfiguration configuration,
+        final boolean detected
+    ) {
+        final Optional<String> retentionViolation = ServerlessRetention.violation(configuration);
+        if (retentionViolation.isPresent()) {
+            log.error("{} {}", retentionViolation.get(), REPORTER_DISABLED);
+            return null;
+        }
+        final ServerlessRetention retention = ServerlessRetention.of(configuration);
+        log.info("{}, retention [{}]", startupSummary(configuration, Flavor.SERVERLESS, detected), retention.summary());
+        return new ServerlessBeanFactory(clusterBeanFactory, retention);
+    }
+
     private static void logStartupSummary(final ReporterConfiguration configuration, final Flavor flavor, final boolean detected) {
-        log.info(
-            "Elasticsearch reporter: flavor [{}] ({}), authentication [{}], index mode [{}], disabled by the flavor [{}]",
+        log.info(startupSummary(configuration, flavor, detected));
+    }
+
+    private static String startupSummary(final ReporterConfiguration configuration, final Flavor flavor, final boolean detected) {
+        return format(
+            "Elasticsearch reporter: flavor [%s] (%s), authentication [%s], index mode [%s], disabled by the flavor [%s]",
             flavor.value(),
             detected ? "detected" : "configured",
             authenticationMode(configuration),
