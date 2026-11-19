@@ -1073,7 +1073,7 @@ api:
 #      # Add one entry per environment, listing its environment id (not its name) in both environments and
 #      # configuration.environment: the provider then refuses a reference to any other environment. An entry with no
 #      # environments, several, or a configuration.environment that differs makes it refuse every secret.
-#      # Set environments in this file: the secrets service ignores it when set by environment variable.
+#      # Keep the id gravitee. Set environments in this file: the secrets service ignores it when set by environment variable.
 #      # Any gateway holding the KEK can decrypt the secrets of every environment, so give it only to gateways that
 #      # serve environments allowed to read them.
 #      - id: gravitee
