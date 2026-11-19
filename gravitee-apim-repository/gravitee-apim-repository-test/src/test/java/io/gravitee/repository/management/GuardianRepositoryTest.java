@@ -145,6 +145,85 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
             assertThat(updated.get().isDeployed()).isTrue();
         }
 
+        /** The counter is stored and read back like any other field: nothing here increments it. */
+        @Test
+        public void should_keep_the_version_it_is_given() throws Exception {
+            final Guardian guardian = guardianRepository.findById("id_update_test").orElseThrow().toBuilder().version(4).build();
+
+            guardianRepository.update(guardian);
+
+            assertThat(guardianRepository.findById("id_update_test")).get().extracting(Guardian::getVersion).isEqualTo(4);
+        }
+
+        @Test
+        public void should_read_no_version_from_a_guardian_stored_without_one() throws Exception {
+            assertThat(guardianRepository.findById("id_find-by-id_test")).get().extracting(Guardian::getVersion).isNull();
+        }
+
+        @Test
+        public void should_replace_a_guardian_still_at_the_expected_version() throws Exception {
+            final Guardian stored = guardianRepository.update(
+                guardianRepository.findById("id_update_test").orElseThrow().toBuilder().version(1).build()
+            );
+
+            final Optional<Guardian> written = guardianRepository.updateIfVersionMatches(
+                stored.toBuilder().name("written at version 1").version(2).build(),
+                1
+            );
+
+            assertThat(written).get().extracting(Guardian::getName, Guardian::getVersion).containsExactly("written at version 1", 2);
+            assertThat(guardianRepository.findById("id_update_test"))
+                .get()
+                .extracting(Guardian::getName, Guardian::getVersion)
+                .containsExactly("written at version 1", 2);
+        }
+
+        @Test
+        public void should_leave_a_guardian_that_moved_past_the_expected_version() throws Exception {
+            final Guardian stored = guardianRepository.update(
+                guardianRepository.findById("id_update_test").orElseThrow().toBuilder().version(2).build()
+            );
+
+            final Optional<Guardian> written = guardianRepository.updateIfVersionMatches(
+                stored.toBuilder().name("written from a stale read").version(2).build(),
+                1
+            );
+
+            assertThat(written).isEmpty();
+            assertThat(guardianRepository.findById("id_update_test"))
+                .get()
+                .extracting(Guardian::getName, Guardian::getVersion)
+                .containsExactly("name crud update", 2);
+        }
+
+        /** No version is not version zero, nor any other: such a Guardian cannot be guarded. */
+        @Test
+        public void should_leave_a_guardian_stored_without_a_version() throws Exception {
+            final Guardian stored = guardianRepository.findById("id_update_test").orElseThrow();
+
+            final Optional<Guardian> written = guardianRepository.updateIfVersionMatches(
+                stored.toBuilder().name("written over no version").version(1).build(),
+                0
+            );
+
+            assertThat(written).isEmpty();
+            assertThat(guardianRepository.findById("id_update_test")).get().extracting(Guardian::getName).isEqualTo("name crud update");
+        }
+
+        @Test
+        public void should_write_nothing_for_a_guardian_that_does_not_exist() throws Exception {
+            final Guardian unknown = guardianRepository
+                .findById("id_update_test")
+                .orElseThrow()
+                .toBuilder()
+                .id("unknown")
+                .version(2)
+                .build();
+
+            assertThat(guardianRepository.updateIfVersionMatches(unknown, 1)).isEmpty();
+            assertThat(guardianRepository.findById("unknown")).isEmpty();
+        }
+
         @Test
         public void should_find_by_id() throws Exception {
             final Optional<Guardian> optional = guardianRepository.findById("id_find-by-id_test");

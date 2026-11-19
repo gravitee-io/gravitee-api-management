@@ -16,6 +16,7 @@
 package io.gravitee.repository.jdbc.management;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static io.gravitee.repository.jdbc.utils.FieldUtils.toSnakeCase;
 
 import io.gravitee.common.data.domain.Page;
@@ -66,12 +67,31 @@ public class JdbcGuardianRepository extends JdbcAbstractCrudRepository<Guardian,
             .addColumn("deployed_at", Types.TIMESTAMP, Date.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .addColumn("version", Types.INTEGER, Integer.class)
             .build();
     }
 
     @Override
     protected String getId(Guardian item) {
         return item.getId();
+    }
+
+    @Override
+    public Optional<Guardian> updateIfVersionMatches(Guardian guardian, int expectedVersion) throws TechnicalException {
+        if (guardian == null || guardian.getId() == null) {
+            throw new IllegalStateException("Guardian to update must have an id");
+        }
+        log.debug("JdbcGuardianRepository.updateIfVersionMatches({}, {})", guardian.getId(), expectedVersion);
+        try {
+            // one statement for the comparison and the write, so no other writer can get in between the two
+            final var sql = getOrm().getUpdateSql() + " and " + escapeReservedWord("version") + " = ?";
+            final int rows = jdbcTemplate.update(
+                getOrm().buildUpdatePreparedStatementCreator(sql, guardian, guardian.getId(), expectedVersion)
+            );
+            return rows == 0 ? Optional.empty() : findById(guardian.getId());
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to update guardian [%s]".formatted(guardian.getId()), ex);
+        }
     }
 
     @Override

@@ -65,6 +65,16 @@ public class Guardian {
     private Instant updatedAt;
 
     /**
+     * How many times the draft was written, starting at 1. A writer states the one it read, and its write
+     * is refused when the draft moved on since. The Guardians stored before the counter existed were
+     * given version 1 by the upgrade; {@code null} is left to one written since by a node older than the
+     * counter, until its next write.
+     *
+     * <p>A deployment does not count: it publishes the draft without changing it.
+     */
+    private Integer version;
+
+    /**
      * The Guardian a creation payload describes, scoped to the environment it is created in — which
      * comes from the path, never from the payload.
      *
@@ -88,7 +98,8 @@ public class Guardian {
     }
 
     /**
-     * Replaces the definition and the description wholesale, the way a {@code PUT} does. The identity
+     * Replaces the definition and the description wholesale, the way a {@code PUT} does, and counts the
+     * write. The identity
      * comes from the path and the deployment stamp from a deployment, so neither is the caller's to
      * send: the first is carried over explicitly, the second simply survives in the builder.
      */
@@ -105,6 +116,7 @@ public class Guardian {
             )
             .description(command.getDescription())
             .updatedAt(TimeProvider.instantNow())
+            .version(version == null ? 1 : version + 1)
             .build();
     }
 

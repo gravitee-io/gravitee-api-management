@@ -43,6 +43,12 @@ public interface GuardianRepository {
 
     Guardian update(Guardian guardian);
 
+    /**
+     * Stores the Guardian only if the stored one is still at {@code expectedVersion}, in one step, and
+     * answers empty when it is not, or is gone.
+     */
+    Optional<Guardian> updateIfVersionMatches(Guardian guardian, int expectedVersion);
+
     void updateUpdatedAt(String environmentId, String guardianId, Instant updatedAt);
 
     void delete(String guardianId);

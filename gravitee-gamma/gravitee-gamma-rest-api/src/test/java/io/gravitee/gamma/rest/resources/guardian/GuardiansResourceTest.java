@@ -57,6 +57,8 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
@@ -354,6 +356,12 @@ class GuardiansResourceTest extends AbstractResourceTest {
     @Nested
     class CreateGuardian {
 
+        /** So the console can save its first edit without reading the Guardian again. */
+        @Test
+        void should_name_the_version_of_the_created_guardian_in_the_etag() {
+            assertThat(post(PAYLOAD).getEntityTag()).isEqualTo(new EntityTag("1"));
+        }
+
         @Test
         void should_return_201_with_a_location_and_an_undeployed_guardian() {
             Response response = post(PAYLOAD);
@@ -595,7 +603,162 @@ class GuardiansResourceTest extends AbstractResourceTest {
         }
 
         private Response put(Object payload) {
-            return rootTarget("/" + GUARDIAN_ID).request().put(Entity.entity(payload, MediaType.APPLICATION_JSON_TYPE));
+            return rootTarget("/" + GUARDIAN_ID)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "*")
+                .put(Entity.entity(payload, MediaType.APPLICATION_JSON_TYPE));
+        }
+
+        /**
+         * The version of the draft travels as an ETag, and an update states the one it was built on in
+         * If-Match: a write built on a draft someone else changed since is refused, not applied over it.
+         */
+        @Nested
+        class The_version_an_update_is_built_on {
+
+            @BeforeEach
+            void storedAtVersion3() {
+                guardianRepository.reset();
+                guardianRepository.givenGuardian(
+                    GuardianFixtures.aGuardian(d -> d.id(GUARDIAN_ID).environmentId(ENVIRONMENT).name("Credential leakage"))
+                        .version(3)
+                        .build()
+                );
+            }
+
+            private Response putBuiltOn(String ifMatch) {
+                var request = rootTarget("/" + GUARDIAN_ID).request();
+                return (ifMatch == null ? request : request.header(HttpHeaders.IF_MATCH, ifMatch)).put(
+                    Entity.entity(payloadWith("name", "Renamed"), MediaType.APPLICATION_JSON_TYPE)
+                );
+            }
+
+            @Test
+            void should_name_the_version_of_a_guardian_it_reads_in_the_etag_and_in_the_body() {
+                var response = rootTarget("/" + GUARDIAN_ID).request().get();
+
+                SoftAssertions.assertSoftly(softly -> {
+                    softly.assertThat(response.getEntityTag()).as("ETag").isEqualTo(new EntityTag("3"));
+                    softly.assertThat(response.readEntity(JsonNode.class).at("/version").asInt()).as("version").isEqualTo(3);
+                });
+            }
+
+            @Test
+            void should_store_an_update_built_on_the_current_version_and_answer_the_next_one() {
+                var response = putBuiltOn("\"3\"");
+
+                SoftAssertions.assertSoftly(softly -> {
+                    softly.assertThat(response.getStatus()).as("status").isEqualTo(HttpStatusCode.OK_200);
+                    softly.assertThat(response.getEntityTag()).as("ETag").isEqualTo(new EntityTag("4"));
+                    softly.assertThat(response.readEntity(JsonNode.class).at("/name").asText()).as("name").isEqualTo("Renamed");
+                });
+            }
+
+            @Test
+            void should_refuse_an_update_built_on_an_older_version_with_412_and_the_guardian_as_it_is_now() {
+                var response = putBuiltOn("\"2\"");
+                var body = response.readEntity(JsonNode.class);
+
+                SoftAssertions.assertSoftly(softly -> {
+                    softly.assertThat(response.getStatus()).as("status").isEqualTo(412);
+                    softly.assertThat(response.getEntityTag()).as("the ETag to state next").isEqualTo(new EntityTag("3"));
+                    softly.assertThat(body.at("/http_status").asInt()).as("http_status").isEqualTo(412);
+                    softly.assertThat(body.at("/currentVersion").asInt()).as("currentVersion").isEqualTo(3);
+                    softly.assertThat(body.at("/guardian/name").asText()).as("the stored name").isEqualTo("Credential leakage");
+                    softly.assertThat(body.at("/message").asText()).as("message").contains("modified since it was read");
+                });
+                assertThat(guardianRepository.storedGuardians())
+                    .singleElement()
+                    .extracting(Guardian::getName)
+                    .isEqualTo("Credential leakage");
+            }
+
+            /** Refused rather than read as an overwrite: an implicit force is what this exists to prevent. */
+            @Test
+            void should_refuse_an_update_that_states_no_version_with_428() {
+                var response = putBuiltOn(null);
+
+                SoftAssertions.assertSoftly(softly -> {
+                    softly.assertThat(response.getStatus()).as("status").isEqualTo(428);
+                    softly
+                        .assertThat(response.readEntity(JsonNode.class).at("/message").asText())
+                        .as("message")
+                        .contains("If-Match is required");
+                });
+                assertThat(guardianRepository.storedGuardians())
+                    .singleElement()
+                    .extracting(Guardian::getName)
+                    .isEqualTo("Credential leakage");
+            }
+
+            /** Not a failed precondition: an overwrite states none, so there is no version to hand back. */
+            @Test
+            void should_answer_409_to_an_overwrite_other_writers_overtake_every_time() {
+                guardianRepository.givenAnotherWriterAlwaysGetsInFirst(stored ->
+                    stored.toBuilder().description("Saved meanwhile").version(stored.getVersion() + 1).build()
+                );
+
+                var response = putBuiltOn("*");
+
+                SoftAssertions.assertSoftly(softly -> {
+                    softly.assertThat(response.getStatus()).as("status").isEqualTo(HttpStatusCode.CONFLICT_409);
+                    softly.assertThat(response.getEntityTag()).as("no ETag to state").isNull();
+                    softly.assertThat(response.readEntity(JsonNode.class).at("/message").asText()).as("message").contains("try again");
+                });
+                assertThat(guardianRepository.storedGuardians())
+                    .singleElement()
+                    .extracting(Guardian::getName)
+                    .as("the overwrite was not stored")
+                    .isEqualTo("Credential leakage");
+            }
+
+            @Test
+            void should_overwrite_whatever_is_stored_when_asked_to_with_a_star() {
+                var response = putBuiltOn("*");
+
+                SoftAssertions.assertSoftly(softly -> {
+                    softly.assertThat(response.getStatus()).as("status").isEqualTo(HttpStatusCode.OK_200);
+                    softly.assertThat(response.getEntityTag()).as("ETag").isEqualTo(new EntityTag("4"));
+                });
+            }
+
+            /** A proxy may weaken a validator or a client send several: both name versions all the same. */
+            @ParameterizedTest
+            @ValueSource(strings = { "W/\"3\"", "3", "\"1\", \"3\"" })
+            void should_read_every_way_http_writes_the_current_version(String ifMatch) {
+                assertThat(putBuiltOn(ifMatch).getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            }
+
+            @ParameterizedTest
+            @ValueSource(strings = { "\"abc\"", "*, \"3\"" })
+            void should_refuse_a_validator_this_api_did_not_issue_with_400(String ifMatch) {
+                assertThat(putBuiltOn(ifMatch).getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            }
+
+            /** Sending back what GET returned must keep working, the version it now carries included. */
+            @Test
+            void should_ignore_a_version_sent_in_the_body() {
+                var response = rootTarget("/" + GUARDIAN_ID)
+                    .request()
+                    .header(HttpHeaders.IF_MATCH, "\"3\"")
+                    .put(Entity.entity(payloadWith("version", 99), MediaType.APPLICATION_JSON_TYPE));
+
+                SoftAssertions.assertSoftly(softly -> {
+                    softly.assertThat(response.getStatus()).as("status").isEqualTo(HttpStatusCode.OK_200);
+                    softly.assertThat(response.readEntity(JsonNode.class).at("/version").asInt()).as("version").isEqualTo(4);
+                });
+            }
+
+            /** Stored before the counter existed: nothing to match on, so nothing is promised in an ETag. */
+            @Test
+            void should_carry_no_etag_for_a_guardian_that_has_no_version_yet() {
+                guardianRepository.reset();
+                guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
+
+                var response = rootTarget("/" + GUARDIAN_ID).request().get();
+
+                assertThat(response.getEntityTag()).isNull();
+            }
         }
 
         @Test
@@ -789,7 +952,10 @@ class GuardiansResourceTest extends AbstractResourceTest {
             deploy(Map.of());
             var read = rootTarget("/" + GUARDIAN_ID).request().get().readEntity(JsonNode.class);
 
-            var response = rootTarget("/" + GUARDIAN_ID).request().put(Entity.entity(read, MediaType.APPLICATION_JSON_TYPE));
+            var response = rootTarget("/" + GUARDIAN_ID)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "*")
+                .put(Entity.entity(read, MediaType.APPLICATION_JSON_TYPE));
 
             assertThat(response.getStatus()).as("update with the read deployed revision").isEqualTo(HttpStatusCode.OK_200);
         }
@@ -969,6 +1135,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
 
             Response response = rootTarget("/second-id")
                 .request()
+                .header(HttpHeaders.IF_MATCH, "*")
                 .put(Entity.entity(payloadWith("name", " Credential leakage "), MediaType.APPLICATION_JSON_TYPE));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CONFLICT_409);
@@ -981,6 +1148,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
 
             Response response = rootTarget("/" + GUARDIAN_ID)
                 .request()
+                .header(HttpHeaders.IF_MATCH, "*")
                 .put(Entity.entity(payloadWith("name", "  Credential leakage  "), MediaType.APPLICATION_JSON_TYPE));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -998,6 +1166,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
 
             Response response = rootTarget("/" + GUARDIAN_ID)
                 .request()
+                .header(HttpHeaders.IF_MATCH, "*")
                 .put(Entity.entity(payloadWith("name", blank), MediaType.APPLICATION_JSON_TYPE));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
@@ -1014,6 +1183,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
 
             Response response = rootTarget("/" + GUARDIAN_ID)
                 .request()
+                .header(HttpHeaders.IF_MATCH, "*")
                 .put(Entity.entity(payloadWith("name", tooLong), MediaType.APPLICATION_JSON_TYPE));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
@@ -1080,6 +1250,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
 
             Response response = rootTarget("/second-id")
                 .request()
+                .header(HttpHeaders.IF_MATCH, "*")
                 .put(Entity.entity(payloadWith("name", "Credential leakage"), MediaType.APPLICATION_JSON_TYPE));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CONFLICT_409);
@@ -1098,6 +1269,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
 
             Response response = rootTarget("/" + GUARDIAN_ID)
                 .request()
+                .header(HttpHeaders.IF_MATCH, "*")
                 .put(Entity.entity(payloadWith("name", "Credential leakage"), MediaType.APPLICATION_JSON_TYPE));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -1112,6 +1284,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
 
             Response response = rootTarget("/third-id")
                 .request()
+                .header(HttpHeaders.IF_MATCH, "*")
                 .put(Entity.entity(payloadWith("name", "CREDENTIAL LEAKAGE"), MediaType.APPLICATION_JSON_TYPE));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CONFLICT_409);
@@ -1127,7 +1300,10 @@ class GuardiansResourceTest extends AbstractResourceTest {
             var noName = new HashMap<String, Object>(PAYLOAD);
             noName.remove("name");
 
-            Response response = rootTarget("/" + GUARDIAN_ID).request().put(Entity.entity(noName, MediaType.APPLICATION_JSON_TYPE));
+            Response response = rootTarget("/" + GUARDIAN_ID)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "*")
+                .put(Entity.entity(noName, MediaType.APPLICATION_JSON_TYPE));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
         }
@@ -1139,6 +1315,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
 
             Response response = rootTarget("/" + GUARDIAN_ID)
                 .request()
+                .header(HttpHeaders.IF_MATCH, "*")
                 .put(Entity.entity(payloadWith("name", "Credential leakage"), MediaType.APPLICATION_JSON_TYPE));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -1150,6 +1327,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
 
             Response response = rootTarget("/" + GUARDIAN_ID)
                 .request()
+                .header(HttpHeaders.IF_MATCH, "*")
                 .put(Entity.entity(payloadWith("name", "credential leakage"), MediaType.APPLICATION_JSON_TYPE));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -1295,7 +1473,10 @@ class GuardiansResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_on_update_without_the_update_permission() {
-            Response response = rootTarget("/" + GUARDIAN_ID).request().put(Entity.entity(PAYLOAD, MediaType.APPLICATION_JSON_TYPE));
+            Response response = rootTarget("/" + GUARDIAN_ID)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "*")
+                .put(Entity.entity(PAYLOAD, MediaType.APPLICATION_JSON_TYPE));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
         }
@@ -1334,7 +1515,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
                 "get",
                 guardian.request().get(),
                 "update",
-                guardian.request().put(Entity.entity(PAYLOAD, MediaType.APPLICATION_JSON_TYPE)),
+                guardian.request().header(HttpHeaders.IF_MATCH, "*").put(Entity.entity(PAYLOAD, MediaType.APPLICATION_JSON_TYPE)),
                 "deploy",
                 rootTarget("/" + GUARDIAN_ID + "/_deploy").request().post(Entity.json(Map.of())),
                 "undeploy",
@@ -1363,7 +1544,10 @@ class GuardiansResourceTest extends AbstractResourceTest {
         @Test
         void should_leave_the_stored_guardians_untouched() {
             post(PAYLOAD);
-            rootTarget("/" + GUARDIAN_ID).request().put(Entity.entity(PAYLOAD, MediaType.APPLICATION_JSON_TYPE));
+            rootTarget("/" + GUARDIAN_ID)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "*")
+                .put(Entity.entity(PAYLOAD, MediaType.APPLICATION_JSON_TYPE));
             rootTarget("/" + GUARDIAN_ID + "/_deploy").request().post(Entity.json(Map.of()));
             rootTarget("/" + GUARDIAN_ID).request().delete();
 

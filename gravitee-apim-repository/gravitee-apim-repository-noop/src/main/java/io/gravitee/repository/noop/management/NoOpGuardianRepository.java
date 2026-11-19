@@ -25,6 +25,7 @@ import io.gravitee.repository.management.model.Guardian;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author GraviteeSource Team
@@ -33,6 +34,11 @@ public class NoOpGuardianRepository extends AbstractNoOpManagementRepository<Gua
 
     @Override
     public void updateUpdatedAt(String environmentId, String guardianId, Date updatedAt) {}
+
+    @Override
+    public Optional<Guardian> updateIfVersionMatches(Guardian guardian, int expectedVersion) {
+        return Optional.empty();
+    }
 
     @Override
     public Page<Guardian> search(GuardianCriteria criteria, Pageable pageable, Sortable sortable) {

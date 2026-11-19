@@ -84,6 +84,7 @@ public class CreateGuardianUseCase {
             .lifecycleState(GuardianLifecycleState.UNDEPLOYED)
             .createdAt(now)
             .updatedAt(now)
+            .version(1)
             .build();
 
         // on the assembled Guardian, not the payload: what is compared has to be what will be stored
