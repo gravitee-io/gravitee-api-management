@@ -69,7 +69,14 @@ class MessageConnectionReportingIntegrationTest {
         configuration.setFlushInterval(1L);
         Node node = mock(Node.class);
         when(node.id()).thenReturn("gateway-id");
-        reporter = new ElasticsearchReporter(node, configuration, pipelineConfiguration, freeMarkerComponent, client);
+        reporter = new ElasticsearchReporter(
+            node,
+            configuration,
+            pipelineConfiguration,
+            freeMarkerComponent,
+            client,
+            new DroppedDocumentsMetric(null)
+        );
         reporter.start();
         waitUntilReady();
     }

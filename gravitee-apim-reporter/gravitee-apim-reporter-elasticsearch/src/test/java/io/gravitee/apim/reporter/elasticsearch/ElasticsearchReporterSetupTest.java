@@ -114,7 +114,14 @@ class ElasticsearchReporterSetupTest {
             PipelineConfiguration pipelineConfiguration,
             FreeMarkerComponent freeMarkerComponent
         ) {
-            return new ElasticsearchReporter(node, reporterConfiguration, pipelineConfiguration, freeMarkerComponent, client);
+            return new ElasticsearchReporter(
+                node,
+                reporterConfiguration,
+                pipelineConfiguration,
+                freeMarkerComponent,
+                client,
+                new DroppedDocumentsMetric(null)
+            );
         }
     }
 

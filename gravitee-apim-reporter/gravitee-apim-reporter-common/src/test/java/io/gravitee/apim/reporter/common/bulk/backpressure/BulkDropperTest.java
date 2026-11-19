@@ -26,7 +26,9 @@ import io.gravitee.apim.reporter.common.bulk.transformer.TransformedReport;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.log.Log;
+import io.gravitee.reporter.api.v4.metric.MessageMetrics;
 import io.vertx.core.buffer.Buffer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
@@ -69,6 +71,37 @@ class BulkDropperTest {
             .contains("Reasons: [cluster_block_exception]")
             .contains("Total: [")
             .satisfies(message -> assertThat(message.substring(message.indexOf("Total: ["))).contains("metrics=4", "log=1"));
+    }
+
+    @Test
+    void should_tell_the_listener_how_many_reports_of_each_type_a_dropped_bulk_held() {
+        final List<String> dropped = new ArrayList<>();
+        final BulkDropper dropper = new BulkDropper((reason, type, count) -> dropped.add(reason + " " + type + " " + count));
+        final List<TransformedReport> reports = List.of(report(MessageMetrics.class), report(MessageMetrics.class), report(Log.class));
+
+        dropper.drop(new CompressedBulk(Buffer.buffer(), Map.of("metrics", 2, "log", 1), reports), BulkDropper.Reason.OVERFLOW);
+
+        assertThat(dropped).containsExactlyInAnyOrder("OVERFLOW v4-message-metrics 2", "OVERFLOW log 1");
+    }
+
+    @Test
+    void should_tell_the_listener_about_the_reports_the_target_rejected() {
+        final List<String> dropped = new ArrayList<>();
+        final BulkDropper dropper = new BulkDropper((reason, type, count) -> dropped.add(reason + " " + type + " " + count));
+
+        dropper.drop(List.of(report(Metrics.class), report(Metrics.class)), List.of("mapper_parsing_exception"));
+
+        assertThat(dropped).containsExactly("REJECTED request 2");
+    }
+
+    @Test
+    void should_fall_back_to_the_counted_types_when_a_compressed_bulk_keeps_no_reports() {
+        final List<String> dropped = new ArrayList<>();
+        final BulkDropper dropper = new BulkDropper((reason, type, count) -> dropped.add(reason + " " + type + " " + count));
+
+        dropper.drop(new CompressedBulk(Buffer.buffer(), Map.of("metrics", 3)), BulkDropper.Reason.ERROR);
+
+        assertThat(dropped).containsExactly("ERROR metrics 3");
     }
 
     private String lastWarning() {
