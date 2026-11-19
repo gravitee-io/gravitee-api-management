@@ -71,7 +71,7 @@ export class PortalAnalyticsFiltersService implements FilterDefinitionProvider, 
   getValues(query: FilterValuesQuery): Observable<FilterValuesResult> {
     switch (query.filterName) {
       case 'API':
-        return this.apiService.search(query.page, 'all', query.query ?? '', query.perPage).pipe(
+        return this.apiService.search(query.page, query.query ?? '', query.perPage).pipe(
           map(response => ({
             data: (response.data ?? []).map(api => ({ value: api.id, label: api.name })),
             hasNextPage: (response.metadata?.pagination?.current_page ?? 1) < (response.metadata?.pagination?.total_pages ?? 1),

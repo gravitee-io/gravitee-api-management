@@ -43,7 +43,7 @@ export class LogOutComponent implements OnInit {
         .logout()
         .pipe(
           tap(_ => this.currentUserService.clear()),
-          switchMap(_ => this.portalNavigationItemsService.loadTopNavBarItems()),
+          switchMap(_ => this.portalNavigationItemsService.reloadTopNavBarItemsAfterAuthChange()),
           tap(_ => this.router.navigate([''])),
           takeUntilDestroyed(this.destroyRef),
         )

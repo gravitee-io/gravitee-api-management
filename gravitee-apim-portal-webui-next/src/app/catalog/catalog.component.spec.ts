@@ -31,7 +31,7 @@ import { PortalCategory } from '../../entities/categories/portal-category';
 import { fakePortalCategory } from '../../entities/categories/portal-category.fixture';
 import { PortalNavigationItemsSearchResponse } from '../../entities/portal-navigation/portal-navigation-apis-search';
 import { fakePortalNavigationApi, fakePortalNavigationApiProduct } from '../../entities/portal-navigation/portal-navigation-item.fixture';
-import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
+import { AppTestingModule, TESTING_BASE_URL, TESTING_PORTAL_BASE_URL } from '../../testing/app-testing.module';
 
 describe('CatalogComponent', () => {
   let fixture: ComponentFixture<CatalogComponent>;
@@ -340,7 +340,7 @@ describe('CatalogComponent', () => {
       flushCategories(categories);
       fixture.detectChanges();
 
-      httpTestingController.expectNone(request => request.url === `${TESTING_BASE_URL}/portal-navigation-items/_search`);
+      httpTestingController.expectNone(request => request.url === `${TESTING_PORTAL_BASE_URL}/portal-navigation-items/_search`);
       expect(fixture.nativeElement.querySelector('.api-list__empty-state').textContent).toContain('Something went wrong');
     });
 
@@ -393,7 +393,7 @@ describe('CatalogComponent', () => {
     return httpTestingController.expectOne(
       request =>
         request.method === 'GET' &&
-        request.url === `${TESTING_BASE_URL}/portal-navigation-items/_search` &&
+        request.url === `${TESTING_PORTAL_BASE_URL}/portal-navigation-items/_search` &&
         request.params.get('type') === 'catalog' &&
         request.params.getAll('include')?.join(',') === 'api,api_product' &&
         request.params.get('page') === `${page}` &&
