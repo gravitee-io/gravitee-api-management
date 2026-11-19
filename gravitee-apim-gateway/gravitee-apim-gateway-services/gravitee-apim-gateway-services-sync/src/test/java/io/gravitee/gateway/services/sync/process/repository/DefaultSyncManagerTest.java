@@ -451,6 +451,19 @@ class DefaultSyncManagerTest {
         }
 
         @Test
+        void should_read_the_distributed_events_published_since_the_last_cycle_before_replaying_when_resuming() throws Exception {
+            when(distributedSyncService.status()).thenReturn(Single.just(DistributedSyncStatus.RESUMING));
+            long storedFrom = 10_000_000L;
+            when(distributedSyncService.state()).thenReturn(Maybe.just(DistributedSyncState.builder().from(storedFrom).to(2L).build()));
+
+            cut.start();
+
+            InOrder inOrder = inOrder(distributedSynchronizer, synchronizer);
+            inOrder.verify(distributedSynchronizer).synchronize(eq(-1L), any());
+            inOrder.verify(synchronizer).synchronize(eq(storedFrom - DefaultSyncManager.RESUME_MARGIN_MS), any(), anySet());
+        }
+
+        @Test
         void should_stay_resuming_when_the_replay_fails() throws Exception {
             synchronizers.clear();
             synchronizers.add(new FakeSynchronizer(Completable.error(new RuntimeException("control plane unreachable")), 1));

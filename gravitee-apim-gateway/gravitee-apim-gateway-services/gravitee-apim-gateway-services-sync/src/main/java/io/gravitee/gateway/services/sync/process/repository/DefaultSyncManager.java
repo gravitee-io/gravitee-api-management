@@ -207,8 +207,10 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
     }
 
     /**
-     * The primary replays from its last successful control plane sync, which is the window stored before the pause.
-     * The status changes only after a successful replay, so a failure or a new primary restarts it safely.
+     * The primary first reads the distributed events once more, so local changes published since its last cycle are
+     * applied before it leaves Redis. It then replays from its last successful control plane sync, which is the window
+     * stored before the pause. The status changes only after a successful replay, so a failure or a new primary restarts
+     * it safely.
      */
     private Completable resume() {
         return Completable.defer(() -> {
@@ -216,8 +218,8 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
                 return synchronizeFromDistributedEvents();
             }
             isClusterPrimaryNode.set(true);
-            return distributedSyncService
-                .state()
+            return synchronizeFromDistributedEvents()
+                .andThen(distributedSyncService.state())
                 .doOnSuccess(state -> nextFromTime = state.getFrom() == null ? -1 : state.getFrom() - RESUME_MARGIN_MS)
                 .ignoreElement()
                 .andThen(synchronizeFromControlPlane(System.currentTimeMillis()))
