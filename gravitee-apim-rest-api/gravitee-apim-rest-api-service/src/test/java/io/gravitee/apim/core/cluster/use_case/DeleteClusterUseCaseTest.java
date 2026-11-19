@@ -23,6 +23,7 @@ import fixtures.core.model.ApiFixtures;
 import inmemory.AbstractUseCaseTest;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.ClusterCrudServiceInMemory;
+import inmemory.ClusterSecretResolverInMemory;
 import inmemory.EventLatestQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -49,6 +50,7 @@ class DeleteClusterUseCaseTest extends AbstractUseCaseTest {
     private DeleteClusterUseCase deleteClusterUseCase;
     private final ClusterCrudServiceInMemory clusterCrudService = new ClusterCrudServiceInMemory();
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
+    private final ClusterSecretResolverInMemory clusterSecretResolver = new ClusterSecretResolverInMemory();
     private Cluster existingCluster;
 
     @BeforeEach
@@ -61,7 +63,8 @@ class DeleteClusterUseCaseTest extends AbstractUseCaseTest {
             objectMapper
         );
         apiQueryService.reset();
-        deleteClusterUseCase = new DeleteClusterUseCase(clusterCrudService, auditService, clusterInUseDomainService);
+        clusterSecretResolver.reset();
+        deleteClusterUseCase = new DeleteClusterUseCase(clusterCrudService, auditService, clusterInUseDomainService, clusterSecretResolver);
 
         existingCluster = Cluster.builder()
             .id(GENERATED_UUID)
@@ -86,6 +89,13 @@ class DeleteClusterUseCaseTest extends AbstractUseCaseTest {
     }
 
     @Test
+    void should_revoke_the_secrets_discovered_for_the_deleted_cluster() {
+        deleteClusterUseCase.execute(new DeleteClusterUseCase.Input(existingCluster.getId(), AUDIT_INFO));
+
+        assertThat(clusterSecretResolver.revoked()).containsExactly(existingCluster.getId());
+    }
+
+    @Test
     void should_not_delete_a_cluster_a_started_api_still_uses() {
         // An API started before the cluster binding guards existed may still use an undeployed cluster.
         Cluster used = existingCluster.toBuilder().crossId("cluster-1").type(ClusterType.KAFKA_CLUSTER).build();
@@ -98,6 +108,7 @@ class DeleteClusterUseCaseTest extends AbstractUseCaseTest {
             .isInstanceOf(ClusterInUseException.class)
             .hasMessage("Cannot delete cluster 'Cluster 1': 1 started API (started-api) uses it. Stop it first.");
         assertThat(clusterCrudService.storage()).hasSize(1);
+        assertThat(clusterSecretResolver.revoked()).isEmpty();
     }
 
     @Test
