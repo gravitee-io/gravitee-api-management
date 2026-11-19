@@ -20,7 +20,7 @@ import { ActivatedRouteSnapshot, Router, RouterStateSnapshot } from '@angular/ro
 import { homepageContentResolver } from './homepage-content.resolver';
 import { PortalNavigationItem } from '../entities/portal-navigation/portal-navigation-item';
 import { PortalPageContent } from '../entities/portal-navigation/portal-page-content';
-import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
+import { AppTestingModule, TESTING_PORTAL_BASE_URL } from '../testing/app-testing.module';
 
 describe('homepageContentResolver', () => {
   let routerSpy: jest.SpyInstance;
@@ -98,17 +98,45 @@ describe('homepageContentResolver', () => {
     expectGetHomepagePortalNavigationItems([]);
   });
 
-  it('navigates to catalog and returns empty on backend error', done => {
+  it('navigates to the startup error page on backend error', done => {
     executeResolver().subscribe({
       complete: () => {
-        expect(routerSpy).toHaveBeenCalledWith(['catalog']);
+        expect(routerSpy).toHaveBeenCalledWith(['/503']);
         done();
       },
     });
 
     httpTestingController
-      .expectOne(`${TESTING_BASE_URL}/portal-navigation-items?area=HOMEPAGE&loadChildren=false`)
+      .expectOne(`${TESTING_PORTAL_BASE_URL}/portal-navigation-items?area=HOMEPAGE&loadChildren=false`)
       .flush('Network Error', { status: 500, statusText: 'Server Error' });
+  });
+
+  it('navigates to /503 when the portal is unknown rather than showing an empty catalog', done => {
+    executeResolver().subscribe({
+      complete: () => {
+        expect(routerSpy).toHaveBeenCalledWith(['/503']);
+        done();
+      },
+    });
+    httpTestingController
+      .expectOne(`${TESTING_PORTAL_BASE_URL}/portal-navigation-items?area=HOMEPAGE&loadChildren=false`)
+      .flush({}, { status: 404, statusText: 'Not Found' });
+  });
+
+  it.each([
+    { status: 404, route: '/404' },
+    { status: 500, route: '/503' },
+  ])('navigates to $route when a known homepage content request fails with $status', ({ status, route }, done) => {
+    executeResolver().subscribe({
+      complete: () => {
+        expect(routerSpy).toHaveBeenCalledWith([route]);
+        done();
+      },
+    });
+    expectGetHomepagePortalNavigationItems([{ id: 'home' } as PortalNavigationItem]);
+    httpTestingController
+      .expectOne(`${TESTING_PORTAL_BASE_URL}/portal-navigation-items/home/content`)
+      .flush({}, { status, statusText: 'Content request failed' });
   });
 
   it('handles undefined service result (nullish path)', done => {
@@ -124,10 +152,10 @@ describe('homepageContentResolver', () => {
   });
 
   function expectGetHomepagePortalNavigationItems(response: PortalNavigationItem[]) {
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-navigation-items?area=HOMEPAGE&loadChildren=false`).flush(response);
+    httpTestingController.expectOne(`${TESTING_PORTAL_BASE_URL}/portal-navigation-items?area=HOMEPAGE&loadChildren=false`).flush(response);
   }
 
   function expectGetHomepageContent(navId: string, response: PortalPageContent) {
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-navigation-items/${navId}/content`).flush(response);
+    httpTestingController.expectOne(`${TESTING_PORTAL_BASE_URL}/portal-navigation-items/${navId}/content`).flush(response);
   }
 });

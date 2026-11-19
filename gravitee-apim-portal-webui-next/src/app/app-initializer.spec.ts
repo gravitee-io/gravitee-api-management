@@ -52,7 +52,7 @@ describe('initApp', () => {
     httpTestingController.verify();
   });
 
-  function runInitializer(): Promise<unknown> {
+  function startInitializer(): Promise<unknown> {
     const initializerFn = initApp(
       TestBed.inject(AuthService),
       TestBed.inject(ConfigService),
@@ -61,10 +61,59 @@ describe('initApp', () => {
       TestBed.inject(PortalNavigationItemsService),
       TestBed.inject(Router),
     );
-    const initialized = firstValueFrom(initializerFn());
+    return firstValueFrom(initializerFn());
+  }
+
+  function runInitializer(): Promise<unknown> {
+    const initialized = startInitializer();
     httpTestingController.expectOne('./assets/config.json').flush({ baseURL: 'https://apim.example.com/portal' });
     return initialized;
   }
+
+  it('should stop startup before environment requests when bootstrap provides no portal ID', async () => {
+    const initialized = runInitializer();
+    httpTestingController.expectOne(bootstrapUrl).flush({ baseURL: 'https://apim.example.com/portal', environmentId: 'DEFAULT' });
+    await initialized;
+    expect(navigate).toHaveBeenCalledWith(['/503'], { state: {} });
+  });
+
+  it.each([undefined, 'configured-portal'])(
+    'should resolve bootstrap portal before navigation independently of deployment portal %p and route unknown portal to /503',
+    async portalId => {
+      const initialized = startInitializer();
+      httpTestingController.expectNone(request => request.url.includes('/portal-navigation-items'));
+      httpTestingController.expectOne('./assets/config.json').flush({ baseURL: 'https://apim.example.com/portal', portalId });
+      httpTestingController.expectNone(request => request.url.includes('/portal-navigation-items'));
+      httpTestingController
+        .expectOne(bootstrapUrl)
+        .flush({ baseURL: 'https://apim.example.com/portal', environmentId: 'DEFAULT', portalId: 'default-portal' });
+      const environmentURL = 'https://apim.example.com/portal/environments/DEFAULT';
+      httpTestingController.expectOne(`${environmentURL}/theme?type=PORTAL_NEXT`).flush({});
+      httpTestingController.expectOne(`${environmentURL}/configuration`).flush({});
+      httpTestingController.expectOne(`${environmentURL}/user`).flush({}, { status: 401, statusText: 'Unauthorized' });
+      const navigation = httpTestingController.expectOne(
+        request => request.url === `${environmentURL}/portal/default-portal/portal-navigation-items`,
+      );
+      navigation.flush({}, { status: 404, statusText: 'Not Found' });
+      await initialized;
+      expect(navigate).toHaveBeenCalledWith(['/503'], { state: { status: 404 } });
+    },
+  );
+
+  it('should complete startup for a valid empty portal and an anonymous user', async () => {
+    const initialized = runInitializer();
+    httpTestingController
+      .expectOne(bootstrapUrl)
+      .flush({ baseURL: 'https://apim.example.com/portal', environmentId: 'DEFAULT', portalId: 'empty-portal' });
+    const environmentURL = 'https://apim.example.com/portal/environments/DEFAULT';
+    httpTestingController.expectOne(`${environmentURL}/theme?type=PORTAL_NEXT`).flush({});
+    httpTestingController.expectOne(`${environmentURL}/configuration`).flush({});
+    httpTestingController.expectOne(`${environmentURL}/user`).flush({}, { status: 401, statusText: 'Unauthorized' });
+    httpTestingController.expectOne(request => request.url === `${environmentURL}/portal/empty-portal/portal-navigation-items`).flush([]);
+    await initialized;
+    expect(navigate).not.toHaveBeenCalled();
+    expect(TestBed.inject(PortalNavigationItemsService).topNavbarItems()).toEqual([]);
+  });
 
   it('should navigate to /503 with a cloneable state when the bootstrap call fails on the network', async () => {
     const initialized = runInitializer();
