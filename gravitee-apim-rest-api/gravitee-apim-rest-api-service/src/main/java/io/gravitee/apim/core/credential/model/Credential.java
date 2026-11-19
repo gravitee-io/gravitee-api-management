@@ -19,6 +19,7 @@ import io.gravitee.apim.core.credential.exception.CredentialManagementNotAllowed
 import io.gravitee.apim.core.credential.exception.InvalidCredentialException;
 import io.gravitee.apim.core.credential.model.CredentialActor.SecretAccess;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import lombok.Builder;
@@ -99,19 +100,25 @@ public record Credential(
         return toBuilder().rotatedAt(now).updatedAt(now).build();
     }
 
-    /**
-     * A reference into Gravitee's secret store must name the environment of the credential. It hands the secret to whoever
-     * uses the credential, so the user must be allowed to read secrets, and so must an expression, which can resolve to any
-     * of them. The secrets of a managed credential were written for it and need no such check.
-     */
     public void requireValidStoreReferences(CredentialActor actor) {
         var storeReferences = secretReferences.values().stream().filter(SecretReference::isInGraviteeStore).toList();
+        requireStoreReferencesInOwnEnvironment(storeReferences);
+        if (!isManaged()) {
+            requireSecretReadAccessToHandOutStoreReferences(actor, storeReferences);
+        }
+    }
+
+    private void requireStoreReferencesInOwnEnvironment(List<SecretReference> storeReferences) {
         if (storeReferences.stream().anyMatch(reference -> !environmentId.equals(reference.graviteeEnvironmentId()))) {
             throw new InvalidCredentialException(
                 "A credential can only reference the Gravitee secrets of its own environment, not another environment."
             );
         }
-        if (!isManaged() && (!storeReferences.isEmpty() || secretReferences.values().stream().anyMatch(SecretReference::isExpression))) {
+    }
+
+    private void requireSecretReadAccessToHandOutStoreReferences(CredentialActor actor, List<SecretReference> storeReferences) {
+        // An expression can resolve to any secret of the store.
+        if (!storeReferences.isEmpty() || secretReferences.values().stream().anyMatch(SecretReference::isExpression)) {
             actor.requireSecretAccess(SecretAccess.READ);
         }
     }
