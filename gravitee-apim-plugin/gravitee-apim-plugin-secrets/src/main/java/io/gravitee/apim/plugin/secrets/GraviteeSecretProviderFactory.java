@@ -22,6 +22,7 @@ import io.gravitee.secrets.api.errors.SecretManagerException;
 import io.gravitee.secrets.api.plugin.SecretProvider;
 import io.gravitee.secrets.api.plugin.SecretProviderFactory;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import org.springframework.beans.factory.ObjectProvider;
 
@@ -31,11 +32,7 @@ import org.springframework.beans.factory.ObjectProvider;
  */
 public class GraviteeSecretProviderFactory implements SecretProviderFactory<GraviteeSecretManagerConfiguration> {
 
-    private volatile ObjectProvider<SecretRepository> secretRepository;
-    private volatile ObjectProvider<OrganizationKeyRepository> organizationKeyRepository;
-    private volatile ObjectProvider<EnvironmentRepository> environmentRepository;
-    private volatile Supplier<String> sharedEncryptionKey;
-    private volatile Optional<String> misconfiguration;
+    private final AtomicReference<Connection> connection = new AtomicReference<>();
 
     void connect(
         ObjectProvider<SecretRepository> secretRepository,
@@ -44,32 +41,39 @@ public class GraviteeSecretProviderFactory implements SecretProviderFactory<Grav
         Supplier<String> sharedEncryptionKey,
         Optional<String> misconfiguration
     ) {
-        this.secretRepository = secretRepository;
-        this.organizationKeyRepository = organizationKeyRepository;
-        this.environmentRepository = environmentRepository;
-        this.sharedEncryptionKey = sharedEncryptionKey;
-        this.misconfiguration = misconfiguration;
+        connection.set(
+            new Connection(secretRepository, organizationKeyRepository, environmentRepository, sharedEncryptionKey, misconfiguration)
+        );
     }
 
     @Override
     public SecretProvider create(GraviteeSecretManagerConfiguration configuration) {
-        if (secretRepository == null) {
+        Connection connected = connection.get();
+        if (connected == null) {
             throw new SecretManagerException("Secret provider [" + GraviteeSecretProvider.ID + "] is not connected to the gateway");
         }
-        if (misconfiguration.isPresent()) {
-            return GraviteeSecretProvider.refusing(misconfiguration.get());
+        if (connected.misconfiguration().isPresent()) {
+            return GraviteeSecretProvider.refusing(connected.misconfiguration().get());
         }
         return new GraviteeSecretProvider(
-            encryptionKey(configuration),
+            encryptionKey(configuration, connected.sharedEncryptionKey()),
             configuration.environment(),
-            secretRepository.getIfAvailable(),
-            organizationKeyRepository.getIfAvailable(),
-            environmentRepository.getIfAvailable()
+            connected.secretRepository().getIfAvailable(),
+            connected.organizationKeyRepository().getIfAvailable(),
+            connected.environmentRepository().getIfAvailable()
         );
     }
 
-    private String encryptionKey(GraviteeSecretManagerConfiguration configuration) {
+    private static String encryptionKey(GraviteeSecretManagerConfiguration configuration, Supplier<String> sharedEncryptionKey) {
         String key = configuration.encryptionKey();
         return key == null || key.isBlank() ? sharedEncryptionKey.get() : key;
     }
+
+    private record Connection(
+        ObjectProvider<SecretRepository> secretRepository,
+        ObjectProvider<OrganizationKeyRepository> organizationKeyRepository,
+        ObjectProvider<EnvironmentRepository> environmentRepository,
+        Supplier<String> sharedEncryptionKey,
+        Optional<String> misconfiguration
+    ) {}
 }
