@@ -64,6 +64,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -109,7 +110,6 @@ public class ApisResourceTest extends AbstractResourceTest {
     public void init() {
         resetAllMocks();
         prepareInMemoryServices();
-        portalCrudService.reset();
         PortalNavigationFixtures.givenDefaultPortal(portalCrudService, GraviteeContext.getCurrentEnvironment());
 
         ApiEntity publishedApi1 = new ApiEntity();
@@ -215,6 +215,11 @@ public class ApisResourceTest extends AbstractResourceTest {
                 ParameterReferenceType.ENVIRONMENT
             )
         ).thenReturn(false);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        portalCrudService.reset();
     }
 
     private void prepareInMemoryServices() {
