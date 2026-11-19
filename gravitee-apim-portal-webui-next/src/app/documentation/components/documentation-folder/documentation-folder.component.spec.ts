@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { HttpErrorResponse } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, Subject } from 'rxjs';
+import { BehaviorSubject, Subject, throwError } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { DocumentationFolderComponent } from './documentation-folder.component';
@@ -60,6 +61,8 @@ describe('DocumentationFolderComponent', () => {
       content: string;
       isAuthenticated: boolean;
       apiHasMcp: boolean;
+      navigationStatus: number;
+      contentStatus: number;
     }> = {
       queryParams: { selectedId: 'p1' },
       items: MOCK_CHILDREN,
@@ -77,8 +80,20 @@ describe('DocumentationFolderComponent', () => {
     } as unknown as jest.Mocked<Router>;
 
     navigationServiceSpy = {
-      getNavigationItems: jest.fn().mockReturnValue(of(params.items ?? ([] as unknown as PortalNavigationItem[]))),
-      getNavigationItemContent: jest.fn().mockReturnValue(of({ content: params.content!, type: 'GRAVITEE_MARKDOWN' })),
+      getNavigationItems: jest
+        .fn()
+        .mockReturnValue(
+          params.navigationStatus
+            ? throwError(() => new HttpErrorResponse({ status: params.navigationStatus }))
+            : of(params.items ?? ([] as unknown as PortalNavigationItem[])),
+        ),
+      getNavigationItemContent: jest
+        .fn()
+        .mockReturnValue(
+          params.contentStatus
+            ? throwError(() => new HttpErrorResponse({ status: params.contentStatus }))
+            : of({ content: params.content!, type: 'GRAVITEE_MARKDOWN' }),
+        ),
     } as unknown as PortalNavigationItemsService;
 
     const apiHasMcp = params.apiHasMcp === true;
@@ -141,6 +156,22 @@ describe('DocumentationFolderComponent', () => {
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationFolderComponentHarness);
     return itemsSubject;
   };
+
+  it.each([
+    [404, '/404'],
+    [500, '/503'],
+  ])('should show an error page for folder HTTP %s', async (status, path) => {
+    await init({ navigationStatus: status, queryParams: { selectedId: 'p1' } });
+    expect(routerSpy.navigate).toHaveBeenCalledWith([path]);
+  });
+
+  it.each([
+    [404, '/404'],
+    [500, '/503'],
+  ])('should show an error page for selected content HTTP %s', async (status, path) => {
+    await init({ contentStatus: status, items: MOCK_CHILDREN, queryParams: { selectedId: 'p1' } });
+    expect(routerSpy.navigate).toHaveBeenCalledWith([path]);
+  });
 
   describe('loading skeletons', () => {
     it('should show sidenav, main content and breadcrumb skeletons while folder navigation items load', async () => {

@@ -23,7 +23,7 @@ import { DocumentationComponent } from './documentation.component';
 import { DocumentationComponentHarness } from './documentation.component.harness';
 import { PortalNavigationItem } from '../../../entities/portal-navigation/portal-navigation-item';
 import { fakePortalNavigationFolder, fakePortalNavigationPage } from '../../../entities/portal-navigation/portal-navigation-item.fixture';
-import { AppTestingModule, TESTING_BASE_URL } from '../../../testing/app-testing.module';
+import { AppTestingModule, TESTING_PORTAL_BASE_URL } from '../../../testing/app-testing.module';
 import { NotFoundComponent } from '../../not-found/not-found.component';
 
 describe('DocumentationComponent', () => {
@@ -38,7 +38,7 @@ describe('DocumentationComponent', () => {
       providers: [provideRouter([{ path: '404', component: NotFoundComponent }])],
     }).compileComponents();
 
-    routerSpy = jest.spyOn(TestBed.inject(Router), 'navigate');
+    routerSpy = jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
 
     fixture = TestBed.createComponent(DocumentationComponent);
     fixture.componentRef.setInput('navItem', navItem);
@@ -80,15 +80,27 @@ describe('DocumentationComponent', () => {
     });
   });
 
+  it.each([
+    [404, '/404'],
+    [500, '/503'],
+  ])('should show an error page for content HTTP %s', async (status, path) => {
+    await init(fakePortalNavigationPage({ id: 'page1' }));
+    httpTestingController
+      .expectOne(`${TESTING_PORTAL_BASE_URL}/portal-navigation-items/page1/content`)
+      .flush({}, { status, statusText: 'Failed' });
+    await fixture.whenStable();
+    expect(routerSpy).toHaveBeenCalledWith([path]);
+  });
+
   function expectPageContentRequest(pageId: string, content: string) {
-    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-navigation-items/${pageId}/content`);
+    const req = httpTestingController.expectOne(`${TESTING_PORTAL_BASE_URL}/portal-navigation-items/${pageId}/content`);
     expect(req.request.method).toEqual('GET');
     req.flush({ content, type: 'GRAVITEE_MARKDOWN' });
   }
 
   function expectGetNavigationItemsRequest(parentId: string, response: PortalNavigationItem[]) {
     const req = httpTestingController.expectOne(
-      `${TESTING_BASE_URL}/portal-navigation-items?parentId=${parentId}&area=TOP_NAVBAR&loadChildren=true`,
+      `${TESTING_PORTAL_BASE_URL}/portal-navigation-items?parentId=${parentId}&area=TOP_NAVBAR&loadChildren=true`,
     );
     expect(req.request.method).toEqual('GET');
     req.flush(response);

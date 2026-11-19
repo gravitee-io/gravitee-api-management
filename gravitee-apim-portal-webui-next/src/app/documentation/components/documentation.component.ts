@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, effect, input } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
@@ -50,8 +51,14 @@ export class DocumentationComponent {
   isItemPage = computed(() => this.navItem()?.type === 'PAGE');
   pageContent$: Observable<PortalPageContent | null> = toObservable(this.navItem).pipe(
     filter(navItem => navItem?.type === 'PAGE'),
-    switchMap(navItem => this.portalNavigationItemsService.getNavigationItemContent(navItem.id)),
-    catchError(() => of(null)),
+    switchMap(navItem =>
+      this.portalNavigationItemsService.getNavigationItemContent(navItem.id).pipe(
+        catchError((error: unknown) => {
+          this.router.navigate([error instanceof HttpErrorResponse && error.status === 404 ? '/404' : '/503']);
+          return of(null);
+        }),
+      ),
+    ),
   );
   constructor(
     private readonly router: Router,

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, ResolveFn, Router, RouterStateSnapshot } from '@angular/router';
 import { catchError, EMPTY, switchMap } from 'rxjs';
@@ -33,10 +34,15 @@ export const homepageContentResolver = ((
         return EMPTY;
       }
 
-      return portalNavigationItemsService.getNavigationItemContent(homepages[0].id);
+      return portalNavigationItemsService.getNavigationItemContent(homepages[0].id).pipe(
+        catchError((error: unknown) => {
+          router.navigate([error instanceof HttpErrorResponse && error.status === 404 ? '/404' : '/503']);
+          return EMPTY;
+        }),
+      );
     }),
-    catchError(_ => {
-      router.navigate(['catalog']);
+    catchError(() => {
+      router.navigate(['/503']);
       return EMPTY;
     }),
   );
