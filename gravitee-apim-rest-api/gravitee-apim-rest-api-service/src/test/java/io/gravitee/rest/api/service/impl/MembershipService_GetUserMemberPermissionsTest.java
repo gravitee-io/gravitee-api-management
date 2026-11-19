@@ -21,9 +21,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verify;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.node.api.Node;
 import io.gravitee.repository.management.api.CommandRepository;
+import io.gravitee.repository.management.model.Command;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.service.MembershipService;
@@ -36,6 +38,7 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -138,6 +141,49 @@ public class MembershipService_GetUserMemberPermissionsTest {
 
         verify(membershipService, times(2)).getUserMember(EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
         verify(commandRepository).create(any());
+    }
+
+    @SneakyThrows
+    @Test
+    public void should_invalidate_all_user_permission_entries_for_a_reference() {
+        MemberEntity member = new MemberEntity();
+        member.setPermissions(Map.of("APPLICATION", new char[] { 'R' }));
+
+        String otherUser = "other-user";
+        String otherReference = REFERENCE_ID + "-other";
+        doReturn(member)
+            .when(membershipService)
+            .getUserMember(EXECUTION_CONTEXT, MembershipReferenceType.APPLICATION, REFERENCE_ID, USER_ID);
+        doReturn(member)
+            .when(membershipService)
+            .getUserMember(EXECUTION_CONTEXT, MembershipReferenceType.APPLICATION, REFERENCE_ID, otherUser);
+        doReturn(member)
+            .when(membershipService)
+            .getUserMember(EXECUTION_CONTEXT, MembershipReferenceType.APPLICATION, otherReference, USER_ID);
+
+        membershipService.getUserMemberPermissions(EXECUTION_CONTEXT, MembershipReferenceType.APPLICATION, REFERENCE_ID, USER_ID);
+        membershipService.getUserMemberPermissions(EXECUTION_CONTEXT, MembershipReferenceType.APPLICATION, REFERENCE_ID, otherUser);
+        membershipService.getUserMemberPermissions(EXECUTION_CONTEXT, MembershipReferenceType.APPLICATION, otherReference, USER_ID);
+
+        membershipService.invalidatePermissionCacheForReferenceAndSendCommand(
+            MembershipReferenceType.APPLICATION.name(),
+            REFERENCE_ID,
+            EXECUTION_CONTEXT
+        );
+
+        membershipService.getUserMemberPermissions(EXECUTION_CONTEXT, MembershipReferenceType.APPLICATION, REFERENCE_ID, USER_ID);
+        membershipService.getUserMemberPermissions(EXECUTION_CONTEXT, MembershipReferenceType.APPLICATION, REFERENCE_ID, otherUser);
+        membershipService.getUserMemberPermissions(EXECUTION_CONTEXT, MembershipReferenceType.APPLICATION, otherReference, USER_ID);
+
+        verify(membershipService, times(2)).getUserMember(EXECUTION_CONTEXT, MembershipReferenceType.APPLICATION, REFERENCE_ID, USER_ID);
+        verify(membershipService, times(2)).getUserMember(EXECUTION_CONTEXT, MembershipReferenceType.APPLICATION, REFERENCE_ID, otherUser);
+        verify(membershipService, times(1)).getUserMember(EXECUTION_CONTEXT, MembershipReferenceType.APPLICATION, otherReference, USER_ID);
+        ArgumentCaptor<Command> commandCaptor = ArgumentCaptor.forClass(Command.class);
+        verify(commandRepository).create(commandCaptor.capture());
+        JsonNode content = objectMapper.readTree(commandCaptor.getValue().getContent());
+        assertThat(content.get("invalidateAllMembers").asBoolean()).isTrue();
+        assertThat(content.get("memberType").asText()).isEqualTo("USER");
+        assertThat(content.get("memberId").asText()).isEmpty();
     }
 
     @Test

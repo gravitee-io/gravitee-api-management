@@ -2383,6 +2383,63 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         }
     }
 
+    @Override
+    public void invalidatePermissionCacheForReference(String referenceType, String referenceId) {
+        if (referenceType == null || referenceId == null) {
+            return;
+        }
+        String prefix = referenceType + "#" + referenceId + "#";
+        cachedPermissions
+            .asMap()
+            .keySet()
+            .removeIf(key -> key.startsWith(prefix));
+    }
+
+    @Override
+    public void invalidatePermissionCacheForReferenceAndSendCommand(
+        String referenceType,
+        String referenceId,
+        ExecutionContext executionContext
+    ) {
+        invalidatePermissionCacheForReference(referenceType, referenceId);
+        sendInvalidatePermissionCacheForReferenceCommand(referenceType, referenceId, executionContext);
+    }
+
+    private void sendInvalidatePermissionCacheForReferenceCommand(String referenceType, String referenceId, ExecutionContext context) {
+        Command command = new Command();
+        command.setOrganizationId(context.getOrganizationId());
+        command.setFrom(node.id());
+        command.setTo(MessageRecipient.MANAGEMENT_APIS.name());
+        command.setTags(List.of(CommandTags.GROUP_DEFAULT_ROLES_UPDATE.name()));
+
+        if (context.hasEnvironmentId()) {
+            command.setEnvironmentId(context.getEnvironmentId());
+        }
+
+        // Nodes that do not know invalidateAllMembers still call invalidateRoleCache, which requires a member type.
+        // The id is empty, so that call drops no real cache entry. Nodes that know the flag clear every user of the reference.
+        InvalidateRoleCacheCommandEntity eventData = InvalidateRoleCacheCommandEntity.builder()
+            .referenceType(referenceType)
+            .referenceId(referenceId)
+            .memberType(MembershipMemberType.USER.name())
+            .memberId("")
+            .invalidateAllMembers(true)
+            .build();
+
+        try {
+            command.setContent(this.objectMapper.writeValueAsString(eventData));
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize permission-cache invalidation command {}", eventData, e);
+            return;
+        }
+
+        try {
+            commandRepository.create(command);
+        } catch (TechnicalException e) {
+            log.error("Failed to create command to invalidate permission cache for {}", eventData, e);
+        }
+    }
+
     private static String computeCachedRoleKey(String referenceType, String referenceId, String memberType, String memberId) {
         String cachedRoleKey;
         if (memberType.equals("USER")) {
