@@ -81,6 +81,13 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- The gateway owns the Micrometer registry the dropped documents are counted in -->
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-micrometer-metrics</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
 
         <!-- Unit Tests -->
         <dependency>

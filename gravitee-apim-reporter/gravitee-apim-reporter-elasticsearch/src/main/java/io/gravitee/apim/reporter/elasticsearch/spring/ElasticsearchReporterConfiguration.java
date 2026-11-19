@@ -17,11 +17,13 @@ package io.gravitee.apim.reporter.elasticsearch.spring;
 
 import static io.gravitee.apim.reporter.elasticsearch.config.PipelineConfiguration.DEFAULT_PIPELINE_INGEST_PLUGINS;
 
+import io.gravitee.apim.reporter.elasticsearch.DroppedDocumentsMetric;
 import io.gravitee.apim.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.common.templating.FreeMarkerComponent;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.client.http.*;
+import io.vertx.micrometer.backends.BackendRegistries;
 import io.vertx.rxjava3.core.Vertx;
 import java.nio.file.Path;
 import org.springframework.beans.factory.annotation.Value;
@@ -79,6 +81,12 @@ public class ElasticsearchReporterConfiguration {
         }
 
         return new HttpClient(clientConfiguration);
+    }
+
+    @Bean
+    public DroppedDocumentsMetric droppedDocumentsMetric() {
+        // Vert.x creates the registry when the gateway metrics are enabled, before the plugins start.
+        return new DroppedDocumentsMetric(BackendRegistries.getDefaultNow());
     }
 
     @Bean

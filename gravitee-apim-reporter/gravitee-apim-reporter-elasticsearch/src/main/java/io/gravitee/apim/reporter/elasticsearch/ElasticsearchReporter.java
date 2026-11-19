@@ -57,6 +57,7 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
     private final PipelineConfiguration pipelineConfiguration;
     private final FreeMarkerComponent freeMarkerComponent;
     private final Client client;
+    private final DroppedDocumentsMetric droppedDocumentsMetric;
 
     private final Set<Class<? extends Reportable>> acceptableReportables = new HashSet<>();
     private final AtomicLong droppedDocuments = new AtomicLong();
@@ -123,7 +124,7 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
                     beanFactory.createIndexNameGenerator(reporterConfiguration)
                 ),
                 new NoneBulkCompressor(),
-                new BulkDropper()
+                new BulkDropper(droppedDocumentsMetric)
             );
             bulkProcessor.start();
         }
@@ -138,7 +139,10 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
         if (reporterConfiguration.isEnabled()) {
             switch (setupState) {
                 case READY -> bulkProcessor.process(reportable);
-                case PREPARING, FAILED -> droppedDocuments.incrementAndGet();
+                case PREPARING, FAILED -> {
+                    droppedDocuments.incrementAndGet();
+                    droppedDocumentsMetric.droppedDuringSetup(reportable);
+                }
             }
         }
     }

@@ -101,7 +101,14 @@ class AdditionalKeywordMetricsMappingTest {
             when(node.id()).thenReturn("test-gateway");
             when(node.hostname()).thenReturn("localhost");
             pipelineConfiguration = new PipelineConfiguration("user_agent", null, freeMarkerComponent);
-            return new ElasticsearchReporter(node, reporterConfiguration, pipelineConfiguration, freeMarkerComponent, client);
+            return new ElasticsearchReporter(
+                node,
+                reporterConfiguration,
+                pipelineConfiguration,
+                freeMarkerComponent,
+                client,
+                new DroppedDocumentsMetric(null)
+            );
         }
     }
 

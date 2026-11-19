@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.reporter.common.bulk.backpressure;
 
+import io.gravitee.apim.reporter.common.MetricsType;
 import io.gravitee.apim.reporter.common.bulk.compressor.CompressedBulk;
 import io.gravitee.apim.reporter.common.bulk.transformer.TransformedReport;
 import java.util.Collection;
@@ -23,21 +24,34 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
-import lombok.NoArgsConstructor;
 
 @CustomLog
-@NoArgsConstructor
 public class BulkDropper {
 
     private final Map<String, Integer> countPerType = new ConcurrentHashMap<>(8);
+    private final DroppedReportsListener listener;
 
     public enum Reason {
         ERROR,
         OVERFLOW,
+        REJECTED,
+    }
+
+    public BulkDropper() {
+        this(DroppedReportsListener.NONE);
+    }
+
+    public BulkDropper(DroppedReportsListener listener) {
+        this.listener = listener;
     }
 
     public void drop(CompressedBulk bulk, Reason reason) {
         count(bulk.countPerType());
+        if (bulk.reports().isEmpty()) {
+            bulk.countPerType().forEach((type, count) -> listener.dropped(reason, type, count));
+        } else {
+            reportDropped(reason, bulk.reports());
+        }
 
         if (reason == Reason.OVERFLOW) {
             log.warn(
@@ -61,8 +75,16 @@ public class BulkDropper {
             .stream()
             .collect(Collectors.toMap(TransformedReport::type, report -> 1, Integer::sum));
         count(rejected);
+        reportDropped(Reason.REJECTED, reports);
 
         log.warn("Reports rejected by the target. Dropping reports [{}]. Reasons: {}. Total: [{}].", rejected, reasons, countPerType);
+    }
+
+    private void reportDropped(Reason reason, List<TransformedReport> reports) {
+        reports
+            .stream()
+            .collect(Collectors.toMap(report -> MetricsType.typeOf(report.clazz()), report -> 1, Integer::sum))
+            .forEach((type, count) -> listener.dropped(reason, type, count));
     }
 
     private void count(Map<String, Integer> dropped) {

@@ -27,6 +27,8 @@ import io.gravitee.reporter.api.v4.metric.event.ApplicationEventMetrics;
 import io.gravitee.reporter.api.v4.metric.event.OperationEventMetrics;
 import io.gravitee.reporter.api.v4.metric.event.TopicEventMetrics;
 import io.gravitee.reporter.api.v4.report.DecisionReport;
+import java.util.Arrays;
+import java.util.Locale;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -61,5 +63,16 @@ public enum MetricsType {
 
     public Class<? extends Reportable> getClazz() {
         return clazz;
+    }
+
+    /**
+     * @return the name of the type of a report, such as {@code v4-metrics}, or the lowercase name of its class when it has none
+     */
+    public static String typeOf(Class<? extends Reportable> clazz) {
+        return Arrays.stream(values())
+            .filter(type -> type.clazz.equals(clazz))
+            .findFirst()
+            .map(MetricsType::getType)
+            .orElseGet(() -> clazz.getSimpleName().toLowerCase(Locale.ROOT));
     }
 }

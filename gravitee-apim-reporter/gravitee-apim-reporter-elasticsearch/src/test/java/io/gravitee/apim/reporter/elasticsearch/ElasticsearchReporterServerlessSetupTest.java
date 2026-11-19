@@ -46,6 +46,7 @@ import io.gravitee.common.templating.FreeMarkerComponent;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.node.api.Node;
 import io.gravitee.reporter.api.http.Metrics;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
 import java.time.Duration;
@@ -105,9 +106,22 @@ class ElasticsearchReporterServerlessSetupTest {
             Client client,
             ReporterConfiguration reporterConfiguration,
             PipelineConfiguration pipelineConfiguration,
-            FreeMarkerComponent freeMarkerComponent
+            FreeMarkerComponent freeMarkerComponent,
+            SimpleMeterRegistry meterRegistry
         ) {
-            return new ElasticsearchReporter(node, reporterConfiguration, pipelineConfiguration, freeMarkerComponent, client);
+            return new ElasticsearchReporter(
+                node,
+                reporterConfiguration,
+                pipelineConfiguration,
+                freeMarkerComponent,
+                client,
+                new DroppedDocumentsMetric(meterRegistry)
+            );
+        }
+
+        @Bean
+        public SimpleMeterRegistry meterRegistry() {
+            return new SimpleMeterRegistry();
         }
     }
 
@@ -171,10 +185,47 @@ class ElasticsearchReporterServerlessSetupTest {
         testScheduler.advanceTimeBy(1, TimeUnit.MINUTES);
 
         assertThat(reporterMessages(Level.WARN)).anySatisfy(message -> assertThat(message).contains("2 documents dropped"));
+        assertThat(
+            context
+                .getBean(SimpleMeterRegistry.class)
+                .get("reporter_elasticsearch_dropped_documents")
+                .tag("reason", "setup")
+                .tag("type", "request")
+                .counter()
+                .count()
+        ).isEqualTo(2);
         reporter.report(metrics());
         await()
             .atMost(Duration.ofSeconds(10))
             .until(() -> elasticsearch.findAll(postRequestedFor(urlPathEqualTo("/_bulk"))).size() == 1);
+    }
+
+    @Test
+    void should_count_the_documents_elasticsearch_rejects_in_the_dropped_documents_metric() throws Exception {
+        elasticsearch.stubFor(
+            post(urlPathEqualTo("/_bulk")).willReturn(
+                okJson(
+                    "{\"took\":1,\"errors\":true,\"items\":[{\"create\":{\"_index\":\"gravitee-request\",\"status\":400," +
+                        "\"error\":{\"type\":\"mapper_parsing_exception\",\"reason\":\"failed to parse\"}}}]}"
+                )
+            )
+        );
+        startReporter();
+        awaitReporterLog(Level.INFO, "Starting Elastic reporter engine... DONE");
+
+        reporter.report(metrics());
+
+        await()
+            .atMost(Duration.ofSeconds(10))
+            .until(() -> {
+                final var counter = context
+                    .getBean(SimpleMeterRegistry.class)
+                    .find("reporter_elasticsearch_dropped_documents")
+                    .tag("reason", "rejected")
+                    .tag("type", "request")
+                    .counter();
+                return counter != null && counter.count() == 1;
+            });
     }
 
     @Test
