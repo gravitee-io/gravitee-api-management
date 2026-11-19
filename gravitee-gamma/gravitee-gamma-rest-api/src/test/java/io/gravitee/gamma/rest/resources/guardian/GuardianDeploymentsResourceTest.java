@@ -39,6 +39,8 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
 import java.util.List;
@@ -100,7 +102,9 @@ class GuardianDeploymentsResourceTest extends AbstractResourceTest {
     }
 
     private static Guardian guardian(String id, String environmentId, String name) {
-        return GuardianFixtures.aGuardian(d -> d.id(id).environmentId(environmentId).name(name)).build();
+        return GuardianFixtures.aGuardian(d -> d.id(id).environmentId(environmentId).name(name))
+            .version(1)
+            .build();
     }
 
     @BeforeEach
@@ -113,6 +117,19 @@ class GuardianDeploymentsResourceTest extends AbstractResourceTest {
         assertThat(rootTarget("/" + GUARDIAN_ID + "/_deploy").request().post(Entity.json(body)).getStatus())
             .as("deployment")
             .isEqualTo(HttpStatusCode.OK_200);
+    }
+
+    /** A deployment and its withdrawal answer the Guardian, so they name its version, which neither changed. */
+    @Test
+    void should_name_the_unchanged_version_in_the_etag_of_a_deployment_and_of_its_withdrawal() {
+        var deployed = rootTarget("/" + GUARDIAN_ID + "/_deploy").request().post(Entity.json(Map.of()));
+        var withdrawn = rootTarget("/" + GUARDIAN_ID + "/_undeploy").request().post(null);
+
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(deployed.getEntityTag()).as("after the deployment").isEqualTo(new EntityTag("1"));
+            softly.assertThat(withdrawn.getStatus()).as("withdrawal").isEqualTo(HttpStatusCode.OK_200);
+            softly.assertThat(withdrawn.getEntityTag()).as("after the withdrawal").isEqualTo(new EntityTag("1"));
+        });
     }
 
     @Test
@@ -272,13 +289,14 @@ class GuardianDeploymentsResourceTest extends AbstractResourceTest {
             "policies",
             List.of(Map.of("name", "Detect credentials", "policy", "data-logging-masking", "enabled", true))
         );
-        assertThat(rootTarget("/" + GUARDIAN_ID).request().put(Entity.json(renamed)).getStatus())
+        assertThat(rootTarget("/" + GUARDIAN_ID).request().header(HttpHeaders.IF_MATCH, "*").put(Entity.json(renamed)).getStatus())
             .as("update")
             .isEqualTo(HttpStatusCode.OK_200);
 
         var response = rollback(revisionId);
 
         assertThat(response.getStatus()).as("rollback response").isEqualTo(HttpStatusCode.OK_200);
+        assertThat(response.getEntityTag()).as("created at 1, updated to 2, rolled back to 3").isEqualTo(new EntityTag("3"));
         var body = response.readEntity(JsonNode.class);
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(body.at("/name").asText()).as("restored name").isEqualTo("Credential leakage");

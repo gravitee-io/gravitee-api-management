@@ -119,8 +119,11 @@ public class GuardiansResource {
             CreateGuardianUseCase.Input.builder().auditInfo(CurrentAuditInfo.of()).guardianToCreate(request.toCore()).build()
         );
 
-        var created = GuardianDto.from(output.guardian());
-        return Response.created(uriInfo.getAbsolutePathBuilder().path(created.id()).build()).entity(created).build();
+        var created = output.guardian();
+        return GuardianEntityTag.withETag(
+            Response.created(uriInfo.getAbsolutePathBuilder().path(created.getId()).build()),
+            created
+        ).build();
     }
 
     @Path("/{guardianId}")

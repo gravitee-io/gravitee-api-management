@@ -22,6 +22,7 @@ import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDraftDomainSe
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianPublicationDomainService;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
+import io.gravitee.gamma.rest.core.guardian.model.DraftPrecondition;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
@@ -65,6 +66,8 @@ public class RollbackGuardianUseCase {
             drafts.replace(
                 existingGuardian,
                 command,
+                // a rollback replaces the draft by design, whatever it holds
+                DraftPrecondition.anyVersion(),
                 input.auditInfo(),
                 GuardianAuditEvent.GUARDIAN_ROLLED_BACK,
                 Map.of(AuditProperties.GUARDIAN_DEPLOYMENT, deployed.revision().id()),

@@ -24,9 +24,11 @@ import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.mongodb.core.FindAndReplaceOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -51,6 +53,20 @@ public class GuardianMongoRepositoryImpl implements GuardianMongoRepositoryCusto
             Query.query(where("environmentId").is(environmentId).and("_id").is(guardianId)),
             new Update().max("updatedAt", updatedAt),
             GuardianMongo.class
+        );
+    }
+
+    @Override
+    public Optional<GuardianMongo> replaceIfVersionMatches(GuardianMongo guardian, int expectedVersion) {
+        Objects.requireNonNull(guardian, "Guardian must not be null");
+        // one command for the comparison and the write: a read followed by a save would let another
+        // writer in between the two
+        return Optional.ofNullable(
+            mongoTemplate.findAndReplace(
+                Query.query(where("_id").is(guardian.getId()).and("version").is(expectedVersion)),
+                guardian,
+                FindAndReplaceOptions.options().returnNew()
+            )
         );
     }
 

@@ -144,8 +144,12 @@ paths:
                             $ref: "#/components/schemas/CreateGuardian"
             responses:
                 "201":
-                    description: The Guardian as created, with a `Location` header pointing at it.
+                    description: |
+                        The Guardian as created, with a `Location` header pointing at it and the `ETag`
+                        its first update has to state.
                     headers:
+                        ETag:
+                            $ref: "#/components/headers/GuardianETag"
                         Location:
                             description: URL of the created Guardian.
                             schema:
@@ -224,6 +228,9 @@ paths:
             responses:
                 "200":
                     description: The Guardian.
+                    headers:
+                        ETag:
+                            $ref: "#/components/headers/GuardianETag"
                     content:
                         application/json:
                             schema:
@@ -246,11 +253,35 @@ paths:
                 required.
 
                 **The response of `GET /guardians/{guardianId}` is a valid body here.** The fields only
-                the store owns — `id`, `lifecycleState`, `deployedAt`, `createdAt`, `updatedAt` — are
+                the store owns — `id`, `lifecycleState`, `deployedAt`, `createdAt`, `updatedAt`, `version` — are
                 read and dropped, so a client need not strip them. They cannot be set this way: the id
                 comes from the path, the lifecycle and the deployment stamp belong to a deployment, and
                 the timestamps are the store's.
+
+                **An update states the version it was built on.** Every response carrying a Guardian
+                names the version of its draft in `ETag`, and this operation requires that value back in
+                `If-Match`, so two writers — or two tabs — editing one Guardian cannot silently undo each
+                other:
+
+                - no `If-Match` answers `428`: the update is refused rather than read as an overwrite;
+                - an `If-Match` naming another version than the stored one answers `412`, carrying the
+                  Guardian as it is now and its `ETag`, and stores nothing;
+                - `If-Match: *` overwrites whatever version is stored: it is the deliberate way to
+                  overwrite. An overwrite overtaken by other writers on each of its attempts answers
+                  `409` rather than write blindly: no precondition failed, and trying again is the
+                  remedy.
+
+                Every Guardian has a version: those stored before versions existed are given version 1
+                when the store is upgraded. Updates are only guarded once every management node is
+                upgraded: a node that predates versions writes a Guardian without counting it, so a
+                stale `If-Match` can still pass while such a node is running.
+
+                A deployment, an undeployment and a rollback state no version. The first two publish the
+                draft without changing it, so they leave its version alone; a rollback replaces the draft
+                by design and counts as a write.
             operationId: updateGuardian
+            parameters:
+                - $ref: "#/components/parameters/ifMatchParam"
             requestBody:
                 required: true
                 content:
@@ -260,6 +291,9 @@ paths:
             responses:
                 "200":
                     description: The Guardian as updated.
+                    headers:
+                        ETag:
+                            $ref: "#/components/headers/GuardianETag"
                     content:
                         application/json:
                             schema:
@@ -293,6 +327,9 @@ paths:
                         the default of a missing required property and prunes properties a closed
                         schema forbids, exactly as it does for an API flow. Read the created or
                         updated Guardian back to see what was stored.
+
+                        An `If-Match` that is neither `*` nor a list of versions this API issued is
+                        refused too, as is one mixing the two.
                     content:
                         application/json:
                             schema:
@@ -303,6 +340,29 @@ paths:
                         compared without regard to case or to the whitespace around them, so
                         `Credential leakage`, `credential leakage` and ` Credential leakage ` are the
                         same name here.
+
+                        Also answered to an `If-Match: *` update that other writers overtook on each
+                        of its attempts: nothing was stored, and the update can be tried again.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "412":
+                    description: |
+                        The Guardian changed since the version `If-Match` names was read. Nothing was
+                        stored. The body carries the Guardian as it is now, and the `ETag` header the
+                        version to state on the next attempt.
+                    headers:
+                        ETag:
+                            $ref: "#/components/headers/GuardianETag"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GuardianConflict"
+                "428":
+                    description: |
+                        No `If-Match` was sent. Send back the `ETag` the Guardian was read with, or `*`
+                        to overwrite whatever version is stored.
                     content:
                         application/json:
                             schema:
@@ -381,6 +441,9 @@ paths:
             responses:
                 "200":
                     description: The Guardian with its current publication state and deployment date.
+                    headers:
+                        ETag:
+                            $ref: "#/components/headers/GuardianETag"
                     content:
                         application/json:
                             schema:
@@ -411,6 +474,9 @@ paths:
             responses:
                 "200":
                     description: The Guardian with no active publication and its last deployment date.
+                    headers:
+                        ETag:
+                            $ref: "#/components/headers/GuardianETag"
                     content:
                         application/json:
                             schema:
@@ -534,6 +600,9 @@ paths:
             responses:
                 "200":
                     description: The Guardian with the rolled back draft.
+                    headers:
+                        ETag:
+                            $ref: "#/components/headers/GuardianETag"
                     content:
                         application/json:
                             schema:
@@ -551,7 +620,10 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                 "409":
-                    description: Another Guardian of the environment holds the name of the revision.
+                    description: |
+                        Another Guardian of the environment holds the name of the revision. Also answered
+                        when other writers overtook the rollback on each of its attempts: the draft is
+                        left as they stored it, and the rollback can be tried again.
                     content:
                         application/json:
                             schema:
@@ -594,6 +666,17 @@ components:
             schema:
                 type: string
                 maxLength: 64
+        ifMatchParam:
+            name: If-Match
+            in: header
+            required: true
+            description: |
+                The version the update is built on: the `ETag` the Guardian was read with, quoted, as in
+                `"4"`. A weak validator (`W/"4"`) and a list (`"3", "4"`) are read too. `*` overwrites
+                whatever version is stored.
+            schema:
+                type: string
+            example: '"4"'
         deploymentIdParam:
             name: deploymentId
             in: path
@@ -602,6 +685,14 @@ components:
             schema:
                 type: string
 
+    headers:
+        GuardianETag:
+            description: |
+                The version of the Guardian's draft, quoted, to send back in `If-Match` when updating it.
+                Absent only for a Guardian written by a node that predates versions, during a rolling upgrade.
+            schema:
+                type: string
+            example: '"4"'
     responses:
         BadRequest:
             description: The request is not acceptable.
@@ -666,6 +757,14 @@ components:
                     $ref: "#/components/schemas/Timestamp"
                 updatedAt:
                     $ref: "#/components/schemas/Timestamp"
+                version:
+                    type: integer
+                    minimum: 1
+                    description: |
+                        How many times the draft was written, starting at 1 — the value the `ETag`
+                        header carries, readable by a client that only parses bodies. An update states it
+                        in `If-Match`. A deployment does not change it. Absent only for a Guardian
+                        written by a node that predates versions, during a rolling upgrade.
             required:
                 - id
                 - name
@@ -688,6 +787,41 @@ components:
                 lifecycleState: UNDEPLOYED
                 createdAt: "2026-11-07T10:00:01.119Z"
                 updatedAt: "2026-11-07T10:00:01.119Z"
+                version: 1
+
+        GuardianConflict:
+            type: object
+            description: |
+                Body of the `412` answered when a Guardian changed since the caller read it: the error
+                shape of this surface, plus what a client needs to recover without a second request.
+            properties:
+                message:
+                    type: string
+                http_status:
+                    type: integer
+                currentVersion:
+                    type: integer
+                    description: The version the Guardian is at now, as the `ETag` header carries it.
+                guardian:
+                    $ref: "#/components/schemas/Guardian"
+            required:
+                - message
+                - http_status
+                - guardian
+            example:
+                message: "Guardian 'cd7e491c-5398-483d-b24e-208d6ac197f1' has been modified since it was read (version [3] was required, the current version is 4)."
+                http_status: 412
+                currentVersion: 4
+                guardian:
+                    id: cd7e491c-5398-483d-b24e-208d6ac197f1
+                    name: Credential leakage guard
+                    phase: RESPONSE
+                    apiTypes:
+                        - llm-proxy
+                    lifecycleState: UNDEPLOYED
+                    createdAt: "2026-11-07T10:00:01.119Z"
+                    updatedAt: "2026-11-07T11:12:40.002Z"
+                    version: 4
 
         GuardianSummary:
             type: object
@@ -802,7 +936,7 @@ components:
                 `id` is accepted only to be ignored: the path owns the identity, so a value in the body
                 is never applied and never has to be stripped.
 
-                Rejects any key it does not declare. The six `readOnly` properties below are
+                Rejects any key it does not declare. The seven `readOnly` properties below are
                 declared for exactly that reason: they are what a `GET` returns and only the store
                 writes them, so they are accepted here and ignored rather than refused, and the
                 response of a `GET` can be sent straight back.
@@ -836,6 +970,10 @@ components:
                         - $ref: "#/components/schemas/Timestamp"
                     readOnly: true
                     description: Ignored — the store owns it.
+                version:
+                    type: integer
+                    readOnly: true
+                    description: Ignored — the version an update is built on is stated in `If-Match`.
                 name:
                     type: string
                     maxLength: 512

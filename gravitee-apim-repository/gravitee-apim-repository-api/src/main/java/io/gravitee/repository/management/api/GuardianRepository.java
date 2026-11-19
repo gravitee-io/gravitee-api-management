@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Guardian;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author GraviteeSource Team
@@ -30,6 +31,25 @@ import java.util.List;
 public interface GuardianRepository extends CrudRepository<Guardian, String> {
     /** Atomically advances updatedAt within the environment without replacing any other field. */
     void updateUpdatedAt(String environmentId, String guardianId, Date updatedAt) throws TechnicalException;
+
+    /**
+     * Replaces the Guardian only if its stored {@code version} is still {@code expectedVersion}, and
+     * returns empty when it is not, or when the Guardian no longer exists.
+     *
+     * <p>Separate from {@link #update(Object)} rather than layered on top of it: the comparison and the
+     * write have to be the same query — comparing in one round trip and writing in another is the race
+     * this closes — and {@code update} comes from the shared {@code CrudRepository} contract, which
+     * means the same unconditional write for every entity.
+     *
+     * <p>{@code expectedVersion} is a primitive: a Guardian whose stored version is {@code null}, written
+     * before the counter existed, cannot be guarded, and a null would not compare the same way in each
+     * backend — SQL's {@code = NULL} never matches, Mongo's does.
+     *
+     * @param guardian the Guardian to store, carrying the version it has once written
+     * @param expectedVersion the version the stored Guardian must still have
+     * @return the Guardian as stored, or empty when nothing was written
+     */
+    Optional<Guardian> updateIfVersionMatches(Guardian guardian, int expectedVersion) throws TechnicalException;
 
     /**
      * Search for Guardians matching the given criteria.

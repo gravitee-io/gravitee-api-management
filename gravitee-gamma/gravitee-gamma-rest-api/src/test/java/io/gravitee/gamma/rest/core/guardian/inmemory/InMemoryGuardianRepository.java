@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.UnaryOperator;
 
 /**
  * In-memory {@link GuardianRepository} for domain tests.
@@ -39,6 +40,8 @@ import java.util.Optional;
 public class InMemoryGuardianRepository implements GuardianRepository {
 
     private final List<Guardian> guardians = new ArrayList<>();
+    private UnaryOperator<Guardian> otherWrite;
+    private int otherWritesLeft;
 
     public void givenGuardian(Guardian guardian) {
         guardians.add(guardian);
@@ -50,6 +53,7 @@ public class InMemoryGuardianRepository implements GuardianRepository {
 
     public void reset() {
         guardians.clear();
+        otherWrite = null;
     }
 
     @Override
@@ -96,6 +100,43 @@ public class InMemoryGuardianRepository implements GuardianRepository {
         guardians.removeIf(g -> Objects.equals(g.getId(), guardian.getId()));
         guardians.add(guardian);
         return guardian;
+    }
+
+    /**
+     * Has another writer change the stored Guardian just before the next conditional write reaches the
+     * store — the window between a use case reading the draft and writing it back. A writer answering
+     * {@code null} deletes it.
+     */
+    public void givenAnotherWriterGetsInFirst(UnaryOperator<Guardian> otherWrite) {
+        givenAnotherWriterGetsInFirst(1, otherWrite);
+    }
+
+    /** The same, before each of the next {@code times} conditional writes. */
+    public void givenAnotherWriterGetsInFirst(int times, UnaryOperator<Guardian> otherWrite) {
+        this.otherWrite = otherWrite;
+        this.otherWritesLeft = times;
+    }
+
+    /** The same, before every conditional write: a Guardian written faster than it can be overwritten. */
+    public void givenAnotherWriterAlwaysGetsInFirst(UnaryOperator<Guardian> otherWrite) {
+        givenAnotherWriterGetsInFirst(Integer.MAX_VALUE, otherWrite);
+    }
+
+    @Override
+    public Optional<Guardian> updateIfVersionMatches(Guardian guardian, int expectedVersion) {
+        if (otherWrite != null && otherWritesLeft > 0) {
+            otherWritesLeft--;
+            guardians.replaceAll(g -> Objects.equals(g.getId(), guardian.getId()) ? otherWrite.apply(g) : g);
+            guardians.removeIf(Objects::isNull);
+        }
+        var stored = guardians
+            .stream()
+            .filter(g -> Objects.equals(g.getId(), guardian.getId()))
+            .findFirst();
+        if (stored.isEmpty() || !Objects.equals(stored.get().getVersion(), expectedVersion)) {
+            return Optional.empty();
+        }
+        return Optional.of(update(guardian));
     }
 
     @Override

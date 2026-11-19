@@ -19,6 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.GuardianCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.GuardianMongo;
 import java.util.Date;
+import java.util.Optional;
 import org.springframework.data.domain.PageRequest;
 
 /**
@@ -26,6 +27,9 @@ import org.springframework.data.domain.PageRequest;
  */
 public interface GuardianMongoRepositoryCustom {
     void updateUpdatedAt(String environmentId, String guardianId, Date updatedAt);
+
+    /** Replaces the Guardian only if its stored version is still the expected one; empty when nothing was written. */
+    Optional<GuardianMongo> replaceIfVersionMatches(GuardianMongo guardian, int expectedVersion);
 
     Page<GuardianMongo> search(GuardianCriteria guardianCriteria, PageRequest pageRequest);
 }

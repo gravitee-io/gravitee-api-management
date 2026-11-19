@@ -29,7 +29,6 @@ import io.gravitee.gamma.rest.resources.dto.PaginatedResponseDto;
 import io.gravitee.gamma.rest.resources.guardian.dto.DeployGuardianRequestDto;
 import io.gravitee.gamma.rest.resources.guardian.dto.GuardianDeploymentDetailDto;
 import io.gravitee.gamma.rest.resources.guardian.dto.GuardianDeploymentDto;
-import io.gravitee.gamma.rest.resources.guardian.dto.GuardianDto;
 import io.gravitee.gamma.rest.resources.guardian.dto.UpdateGuardianRequestDto;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -49,6 +48,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 
 /**
@@ -108,9 +109,9 @@ public class GuardianResource {
     @Path("/_undeploy")
     @GraviteeLicenseFeature(GuardiansResource.GUARDIANS_LICENSE_FEATURE)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GUARDIAN, acls = { RolePermissionAction.UPDATE }) })
-    public GuardianDto undeploy(@PathParam("guardianId") String guardianId) {
+    public Response undeploy(@PathParam("guardianId") String guardianId) {
         var output = undeployGuardianUseCase.execute(new UndeployGuardianUseCase.Input(CurrentAuditInfo.of(), guardianId));
-        return GuardianDto.from(output.guardian());
+        return GuardianEntityTag.withETag(Response.ok(), output.guardian()).build();
     }
 
     @POST
@@ -118,11 +119,11 @@ public class GuardianResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @GraviteeLicenseFeature(GuardiansResource.GUARDIANS_LICENSE_FEATURE)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GUARDIAN, acls = { RolePermissionAction.UPDATE }) })
-    public GuardianDto deploy(@PathParam("guardianId") String guardianId, @Valid DeployGuardianRequestDto request) {
+    public Response deploy(@PathParam("guardianId") String guardianId, @Valid DeployGuardianRequestDto request) {
         var output = deployGuardianUseCase.execute(
             new DeployGuardianUseCase.Input(CurrentAuditInfo.of(), guardianId, request == null ? null : request.deploymentLabel())
         );
-        return GuardianDto.from(output.guardian());
+        return GuardianEntityTag.withETag(Response.ok(), output.guardian()).build();
     }
 
     @GET
@@ -171,35 +172,41 @@ public class GuardianResource {
     @Path("/deployments/{deploymentId}/_rollback")
     @GraviteeLicenseFeature(GuardiansResource.GUARDIANS_LICENSE_FEATURE)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GUARDIAN, acls = { RolePermissionAction.UPDATE }) })
-    public GuardianDto rollback(@PathParam("guardianId") String guardianId, @PathParam("deploymentId") String deploymentId) {
+    public Response rollback(@PathParam("guardianId") String guardianId, @PathParam("deploymentId") String deploymentId) {
         var output = rollbackGuardianUseCase.execute(new RollbackGuardianUseCase.Input(CurrentAuditInfo.of(), guardianId, deploymentId));
-        return GuardianDto.from(output.guardian());
+        return GuardianEntityTag.withETag(Response.ok(), output.guardian()).build();
     }
 
     @GET
     @GraviteeLicenseFeature(GuardiansResource.GUARDIANS_LICENSE_FEATURE)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GUARDIAN, acls = { RolePermissionAction.READ }) })
-    public GuardianDto get(@PathParam("guardianId") String guardianId) {
+    public Response get(@PathParam("guardianId") String guardianId) {
         var ctx = GraviteeContext.getExecutionContext();
         var output = getGuardianUseCase.execute(
             GetGuardianUseCase.Input.builder().environmentId(ctx.getEnvironmentId()).guardianId(guardianId).build()
         );
-        return GuardianDto.from(output.guardian());
+        return GuardianEntityTag.withETag(Response.ok(), output.guardian()).build();
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @GraviteeLicenseFeature(GuardiansResource.GUARDIANS_LICENSE_FEATURE)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GUARDIAN, acls = { RolePermissionAction.UPDATE }) })
-    public GuardianDto update(@PathParam("guardianId") String guardianId, @NotNull UpdateGuardianRequestDto request) {
+    public Response update(
+        @PathParam("guardianId") String guardianId,
+        @Context HttpHeaders headers,
+        @NotNull UpdateGuardianRequestDto request
+    ) {
+        var precondition = GuardianEntityTag.requiredPrecondition(headers.getRequestHeader(HttpHeaders.IF_MATCH));
         var output = updateGuardianUseCase.execute(
             UpdateGuardianUseCase.Input.builder()
                 .auditInfo(CurrentAuditInfo.of())
                 .guardianId(guardianId)
                 .guardianToUpdate(request.toCore())
+                .precondition(precondition)
                 .build()
         );
-        return GuardianDto.from(output.guardian());
+        return GuardianEntityTag.withETag(Response.ok(), output.guardian()).build();
     }
 
     @DELETE

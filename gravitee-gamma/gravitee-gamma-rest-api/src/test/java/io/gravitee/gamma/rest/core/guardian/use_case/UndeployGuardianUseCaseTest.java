@@ -71,6 +71,23 @@ class UndeployGuardianUseCaseTest {
         return new UndeployGuardianUseCase(store, events.service(store), audits.service);
     }
 
+    /**
+     * A withdrawal takes the publication down without writing the draft, so it does not count as a write:
+     * the version an editor read before it is still the one to state after.
+     */
+    @Test
+    void should_leave_the_version_of_the_draft_alone() {
+        repository.reset();
+        repository.givenGuardian(aGuardian().lifecycleState(GuardianLifecycleState.DEPLOYED).deployedAt(DEPLOYED_AT).version(3).build());
+
+        var withdrawn = useCase(repository, publications).execute(new UndeployGuardianUseCase.Input(actor, GUARDIAN_ID)).guardian();
+
+        assertSoftly(softly -> {
+            softly.assertThat(withdrawn.getVersion()).as("answered").isEqualTo(3);
+            softly.assertThat(repository.storedGuardians()).as("stored").singleElement().extracting(Guardian::getVersion).isEqualTo(3);
+        });
+    }
+
     @Test
     void should_preserve_a_draft_saved_while_the_withdrawal_is_published() {
         var newer = aGuardian(d -> d.name("Concurrent draft"))
