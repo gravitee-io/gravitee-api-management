@@ -757,7 +757,7 @@ data:
           plugins:
             ingest: {{ .Values.es.pipeline.plugins.ingest }}
         {{- $retention := .Values.es.lifecycle.retention | default dict }}
-        {{- $withRetention := or $retention.monitor $retention.request $retention.health $retention.log $retention.eventMetrics $retention.decisions }}
+        {{- $withRetention := or $retention.monitor $retention.request $retention.health $retention.log $retention.eventMetrics $retention.decisions (hasKey $retention "allowDecrease") }}
         {{- if or (eq .Values.es.lifecycle.enabled true) $withRetention }}
         lifecycle:
           {{- if (eq .Values.es.lifecycle.enabled true) }}
@@ -791,6 +791,9 @@ data:
             {{- with $retention.decisions }}
             decisions: {{ . }}
             {{- end }}
+            {{- if hasKey $retention "allowDecrease" }}
+            allow_decrease: {{ $retention.allowDecrease }}
+            {{- end }}
           {{- end }}
         {{- end }}
         {{- if .Values.es.security.apiKey }}
@@ -822,6 +825,26 @@ data:
         bulk:
           actions: 1000           # Number of requests action before flush
           flush_interval: 5       # Flush interval in seconds
+          {{- $bulk := .Values.es.bulk | default dict }}
+          {{- if hasKey $bulk "maxConcurrentSend" }}
+          max_concurrent_send: {{ $bulk.maxConcurrentSend }}
+          {{- end }}
+          {{- if hasKey $bulk "maxMemorySize" }}
+          max_memory_size: {{ int64 $bulk.maxMemorySize }}
+          {{- end }}
+          {{- $retry := $bulk.retry | default dict }}
+          {{- if or (hasKey $retry "maxRetries") (hasKey $retry "initialDelay") (hasKey $retry "maxDelay") }}
+          retry:
+            {{- if hasKey $retry "maxRetries" }}
+            max_retries: {{ $retry.maxRetries }}
+            {{- end }}
+            {{- if hasKey $retry "initialDelay" }}
+            initial_delay: {{ $retry.initialDelay }}
+            {{- end }}
+            {{- if hasKey $retry "maxDelay" }}
+            max_delay: {{ $retry.maxDelay }}
+            {{- end }}
+          {{- end }}
 
       {{- range $key, $value := .Values.gateway.reporters }}
       {{- if ne $key "elasticsearch"}}

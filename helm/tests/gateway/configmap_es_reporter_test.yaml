@@ -115,6 +115,72 @@ tests:
           path: data["gravitee.yml"]
           pattern: "\\n\\s+retention:\\n\\s+(monitor|request|health|log|event_metrics|decisions):"
 
+  - it: Render allowDecrease alone in the data stream retention
+    template: gateway/gateway-configmap.yaml
+    set:
+      es:
+        lifecycle:
+          retention:
+            allowDecrease: true
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "\\n    lifecycle:\\n      retention:\\n        allow_decrease: true\\n"
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "policies:"
+
+  - it: Render allowDecrease after the data stream retentions
+    template: gateway/gateway-configmap.yaml
+    set:
+      es:
+        lifecycle:
+          retention:
+            monitor: 7d
+            allowDecrease: false
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "\\n      retention:\\n        monitor: 7d\\n        allow_decrease: false\\n"
+
+  - it: Render the bulk settings that are set, after the flush interval
+    template: gateway/gateway-configmap.yaml
+    set:
+      es:
+        bulk:
+          maxConcurrentSend: 20
+          maxMemorySize: 52428800
+          retry:
+            maxRetries: 4
+            initialDelay: 1000
+            maxDelay: 20000
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "\\n      flush_interval: 5 +# Flush interval in seconds\\n      max_concurrent_send: 20\\n      max_memory_size: 52428800\\n      retry:\\n        max_retries: 4\\n        initial_delay: 1000\\n        max_delay: 20000\\n"
+
+  - it: Render only the bulk retry settings that are set
+    template: gateway/gateway-configmap.yaml
+    set:
+      es:
+        bulk:
+          retry:
+            maxRetries: 0
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "\\n      retry:\\n        max_retries: 0\\n"
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "max_concurrent_send|max_memory_size|initial_delay|max_delay"
+
+  - it: Render no bulk setting beyond the actions and the flush interval by default
+    template: gateway/gateway-configmap.yaml
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "max_concurrent_send|max_memory_size|max_retries|initial_delay|max_delay"
+
   - it: Check override es settings
     template: gateway/gateway-configmap.yaml
     set:
