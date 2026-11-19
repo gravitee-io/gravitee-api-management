@@ -15,6 +15,7 @@
  */
 import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { AsyncPipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { rxResource, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
@@ -148,7 +149,10 @@ export class DocumentationFolderComponent {
             return of(this.folderData());
         }
       }),
-      catchError(() => of({ children: [], selectedPageContent: null })),
+      catchError((error: unknown) => {
+        this.router.navigate([error instanceof HttpErrorResponse && error.status === 404 ? '/404' : '/503']);
+        return of({ children: [], selectedPageContent: null });
+      }),
     );
   }
 

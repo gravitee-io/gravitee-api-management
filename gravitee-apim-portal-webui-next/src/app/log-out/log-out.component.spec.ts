@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 import { HttpTestingController } from '@angular/common/http/testing';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { Router } from '@angular/router';
 
 import { LogOutComponent } from './log-out.component';
+import { fakePortalNavigationLink } from '../../entities/portal-navigation/portal-navigation-item.fixture';
 import { fakeUser } from '../../entities/user/user.fixtures';
 import { CurrentUserService } from '../../services/current-user.service';
-import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
+import { PortalNavigationItemsService } from '../../services/portal-navigation-items.service';
+import { AppTestingModule, TESTING_BASE_URL, TESTING_PORTAL_BASE_URL } from '../../testing/app-testing.module';
 
 describe('LogOutComponent', () => {
   let fixture: ComponentFixture<LogOutComponent>;
@@ -49,9 +51,30 @@ describe('LogOutComponent', () => {
     fixture.detectChanges();
 
     httpTestingController.expectOne(`${TESTING_BASE_URL}/auth/logout`).flush({});
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-navigation-items?area=TOP_NAVBAR&loadChildren=false`).flush({});
+    httpTestingController.expectOne(`${TESTING_PORTAL_BASE_URL}/portal-navigation-items?area=TOP_NAVBAR&loadChildren=false`).flush({});
     expect(router.navigate).toHaveBeenCalledTimes(1);
     expect(router.navigate).toHaveBeenCalledWith(['']);
     expect(currentUserService.user()).toEqual({});
   });
+
+  it.each([401, 404, 500])(
+    'should complete logout and clear stale navigation when navbar reload fails with %p',
+    fakeAsync((status: number) => {
+      const navigate = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+      const navigation = TestBed.inject(PortalNavigationItemsService);
+      navigation.topNavbarItems.set([fakePortalNavigationLink()]);
+      currentUserService.user.set(fakeUser());
+      fixture.detectChanges();
+
+      httpTestingController.expectOne(`${TESTING_BASE_URL}/auth/logout`).flush({});
+      httpTestingController
+        .expectOne(`${TESTING_PORTAL_BASE_URL}/portal-navigation-items?area=TOP_NAVBAR&loadChildren=false`)
+        .flush({}, { status, statusText: 'Navigation reload failed' });
+      tick();
+
+      expect(currentUserService.user()).toEqual({});
+      expect(navigation.topNavbarItems()).toEqual([]);
+      expect(navigate).toHaveBeenCalledWith(['']);
+    }),
+  );
 });
