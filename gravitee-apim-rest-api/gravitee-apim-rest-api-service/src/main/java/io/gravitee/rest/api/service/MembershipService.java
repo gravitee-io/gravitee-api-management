@@ -298,6 +298,22 @@ public interface MembershipService {
      */
     void invalidateCacheForRole(String roleId);
 
+    /**
+     * Invalidates every cached user-permission entry for a reference (all users).
+     * Call this when inputs to permission resolution change without a membership row update,
+     * such as an application's groups list changing.
+     *
+     * @param referenceType the type of the reference (e.g. "APPLICATION", "API")
+     * @param referenceId the ID of the reference
+     */
+    void invalidatePermissionCacheForReference(String referenceType, String referenceId);
+
+    /**
+     * Same as {@link #invalidatePermissionCacheForReference(String, String)} and multicasts the
+     * invalidation to other Management API instances.
+     */
+    void invalidatePermissionCacheForReferenceAndSendCommand(String referenceType, String referenceId, ExecutionContext executionContext);
+
     class MembershipReference {
 
         private final MembershipReferenceType type;
