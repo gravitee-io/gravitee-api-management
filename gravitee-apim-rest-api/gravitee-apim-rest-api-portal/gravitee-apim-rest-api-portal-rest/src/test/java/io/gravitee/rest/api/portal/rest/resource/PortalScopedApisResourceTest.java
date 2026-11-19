@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static io.gravitee.rest.api.portal.rest.fixture.PortalNavigationFixtures.givenDefaultPortal;
 import static io.gravitee.rest.api.portal.rest.resource.PortalScopedNavigationItemsResourceTest.ENV_ID;
 import static io.gravitee.rest.api.portal.rest.resource.PortalScopedNavigationItemsResourceTest.ORG_ID;
-import static io.gravitee.rest.api.portal.rest.resource.PortalScopedNavigationItemsResourceTest.givenDefaultPortal;
 import static io.gravitee.rest.api.portal.rest.resource.PortalScopedNavigationItemsResourceTest.givenPortal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -126,10 +126,14 @@ public class PortalScopedApisResourceTest extends AbstractResourceTest {
         return root().path("environments/" + ENV_ID + "/apis/_search");
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = { "6c2b1e9e-0000-4000-8000-000000000000", "not-a-uuid" })
-    void should_answer_not_found_for_an_unknown_portal(String unknownPortal) {
-        assertThat(search(target(unknownPortal + "/apis/_search")).getStatus()).isEqualTo(404);
+    @Test
+    void should_answer_not_found_for_an_unknown_portal() {
+        assertThat(search(target("6c2b1e9e-0000-4000-8000-000000000000/apis/_search")).getStatus()).isEqualTo(404);
+    }
+
+    @Test
+    void should_answer_bad_request_for_a_malformed_portal_id() {
+        assertThat(search(target("not-a-uuid/apis/_search")).getStatus()).isEqualTo(400);
     }
 
     @Test

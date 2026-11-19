@@ -47,6 +47,7 @@ import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.portal.rest.fixture.PortalNavigationFixtures;
 import io.gravitee.rest.api.portal.rest.model.ApisResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
@@ -109,7 +110,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         resetAllMocks();
         prepareInMemoryServices();
         portalCrudService.reset();
-        PortalScopedNavigationItemsResourceTest.givenDefaultPortal(portalCrudService, GraviteeContext.getCurrentEnvironment());
+        PortalNavigationFixtures.givenDefaultPortal(portalCrudService, GraviteeContext.getCurrentEnvironment());
 
         ApiEntity publishedApi1 = new ApiEntity();
         publishedApi1.setLifecycleState(ApiLifecycleState.PUBLISHED);

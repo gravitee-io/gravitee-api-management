@@ -31,8 +31,6 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class PortalScopedApisResourceNotAuthenticatedTest extends AbstractResourceTest {
@@ -70,10 +68,14 @@ public class PortalScopedApisResourceNotAuthenticatedTest extends AbstractResour
         portalCrudService.reset();
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = { "6c2b1e9e-0000-4000-8000-000000000000", "not-a-uuid" })
-    void should_answer_not_found_for_an_unknown_portal(String unknownPortal) {
-        assertThat(search(target(unknownPortal + "/apis/_search")).getStatus()).isEqualTo(404);
+    @Test
+    void should_answer_not_found_for_an_unknown_portal() {
+        assertThat(search(target("6c2b1e9e-0000-4000-8000-000000000000/apis/_search")).getStatus()).isEqualTo(404);
+    }
+
+    @Test
+    void should_answer_bad_request_for_a_malformed_portal_id() {
+        assertThat(search(target("not-a-uuid/apis/_search")).getStatus()).isEqualTo(400);
     }
 
     @Test
