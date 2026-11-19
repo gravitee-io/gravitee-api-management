@@ -72,7 +72,7 @@ public record SecretReference(String reference, String secretId) {
                 "The reference of " + field + " must have the form /gravitee/{envId}/{key}, such as /gravitee/my-env/my-secret:value."
             );
         }
-        if (environmentAndKey[1].startsWith(Secret.CREDENTIAL_KEY_PREFIX)) {
+        if (Secret.isCredentialKey(environmentAndKey[1])) {
             throw new InvalidCredentialException(
                 "The reference of " +
                     field +

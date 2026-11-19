@@ -36,9 +36,14 @@ public record Secret(String id, String organizationId, String environmentId, Str
 
     /** Refuses the keys kept for credentials, which only the credential API may change. */
     public static void requireUserKey(String key) {
-        if (key != null && key.startsWith(CREDENTIAL_KEY_PREFIX)) {
+        if (key != null && isCredentialKey(key)) {
             throw new SecretKeptForCredentialException(key);
         }
+    }
+
+    /** Ignores case: a repository whose collation ignores case, such as MySQL, matches the key of a credential in any case. */
+    public static boolean isCredentialKey(String key) {
+        return key.regionMatches(true, 0, CREDENTIAL_KEY_PREFIX, 0, CREDENTIAL_KEY_PREFIX.length());
     }
 
     public Secret withUpdatedAt(Instant now) {
