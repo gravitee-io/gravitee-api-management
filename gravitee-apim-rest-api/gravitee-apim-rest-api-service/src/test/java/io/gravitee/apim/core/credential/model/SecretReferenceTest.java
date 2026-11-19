@@ -49,11 +49,20 @@ class SecretReferenceTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    @ValueSource(strings = { "vault/secret", "/vault/my secret", "/vault/{#context.attributes['k']}", "{#secrets.get('/vault/k')}" })
+    @ValueSource(strings = { "vault/secret", "/vault/my secret", "/vault/{#context.attributes['k']}" })
     void should_reject_an_invalid_external_reference(String reference) {
         assertThatThrownBy(() -> SecretReference.external("token", reference))
             .isInstanceOf(InvalidCredentialException.class)
             .hasMessageContaining("token");
+    }
+
+    @Test
+    void should_keep_an_external_reference_written_as_an_expression() {
+        var reference = SecretReference.external("token", "{#secrets.get('/vault/k')}");
+
+        assertThat(reference.reference()).isEqualTo("{#secrets.get('/vault/k')}");
+        assertThat(reference.isExpression()).isTrue();
+        assertThat(reference.isInGraviteeStore()).isFalse();
     }
 
     @Test
