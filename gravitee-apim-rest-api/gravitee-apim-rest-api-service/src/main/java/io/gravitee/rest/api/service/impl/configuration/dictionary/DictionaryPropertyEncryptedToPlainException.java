@@ -26,11 +26,11 @@ import java.util.Map;
  */
 public class DictionaryPropertyEncryptedToPlainException extends AbstractValidationException {
 
-    private final String dictionaryId;
+    private final String dictionaryKey;
     private final String propertyKey;
 
-    public DictionaryPropertyEncryptedToPlainException(String dictionaryId, String propertyKey) {
-        this.dictionaryId = dictionaryId;
+    public DictionaryPropertyEncryptedToPlainException(String dictionaryKey, String propertyKey) {
+        this.dictionaryKey = dictionaryKey;
         this.propertyKey = propertyKey;
     }
 
@@ -40,8 +40,9 @@ public class DictionaryPropertyEncryptedToPlainException extends AbstractValidat
             "Dictionary property [" +
             propertyKey +
             "] on dictionary [" +
-            dictionaryId +
-            "] is already encrypted; it cannot be made plain again. Renew it with a new value instead."
+            dictionaryKey +
+            "] is encrypted and cannot become plain in the same update. " +
+            "Keep it encrypted, or remove it, save, then add it back as a plain property."
         );
     }
 
@@ -53,7 +54,7 @@ public class DictionaryPropertyEncryptedToPlainException extends AbstractValidat
     @Override
     public Map<String, String> getParameters() {
         Map<String, String> parameters = new HashMap<>();
-        parameters.put("dictionary", dictionaryId);
+        parameters.put("dictionary", dictionaryKey);
         parameters.put("property", propertyKey);
         return unmodifiableMap(parameters);
     }
