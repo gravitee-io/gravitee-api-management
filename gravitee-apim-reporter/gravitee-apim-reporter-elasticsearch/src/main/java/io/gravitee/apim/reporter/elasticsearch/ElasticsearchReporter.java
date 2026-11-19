@@ -76,6 +76,7 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
             super.doStart();
             log.info("Starting Elastic reporter engine...");
             disposables = new CompositeDisposable();
+            disposables.add(Flowable.interval(1, 1, TimeUnit.MINUTES).subscribe(tick -> logDroppedDocuments()));
 
             BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client, reporterConfiguration);
             if (beanFactory == null) {
@@ -104,8 +105,6 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
                     },
                     throwable -> {
                         setupState = SetupState.FAILED;
-                        // Once the reporter is stopped, the disposables are disposed: the logger added afterwards is disposed at once
-                        disposables.add(Flowable.interval(1, 1, TimeUnit.MINUTES).subscribe(tick -> logDroppedDocuments()));
                         log.error(
                             "{}. The Elasticsearch reporter is disabled: no analytics will be written to Elasticsearch until the gateway restarts.",
                             throwable.getMessage(),
@@ -139,19 +138,23 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
         if (reporterConfiguration.isEnabled()) {
             switch (setupState) {
                 case READY -> bulkProcessor.process(reportable);
-                case FAILED -> droppedDocuments.incrementAndGet();
-                case PREPARING -> log.debug("Elastic reporter engine is still starting, dropping reportable {}", reportable.getClass());
+                case PREPARING, FAILED -> droppedDocuments.incrementAndGet();
             }
         }
     }
 
     private void logDroppedDocuments() {
         final long dropped = droppedDocuments.getAndSet(0);
-        if (dropped > 0) {
+        if (dropped == 0) {
+            return;
+        }
+        if (setupState == SetupState.FAILED) {
             log.warn(
                 "The Elasticsearch reporter is disabled since its setup failed at startup: {} documents dropped in the last minute.",
                 dropped
             );
+        } else {
+            log.warn("{} documents dropped in the last minute while the Elasticsearch reporter was setting up.", dropped);
         }
     }
 

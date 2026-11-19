@@ -295,6 +295,12 @@ public class ReporterConfiguration {
     @Value("${reporters.elasticsearch.lifecycle.retention.decisions:#{null}}")
     private String dataRetentionDecisions;
 
+    /**
+     * Whether a retention shorter than the one of an existing data stream is applied, which deletes the older documents.
+     */
+    @Value("${reporters.elasticsearch.lifecycle.retention.allow_decrease:false}")
+    private boolean dataRetentionAllowDecrease;
+
     public List<Endpoint> getEndpoints() {
         if (endpoints == null) {
             endpoints = initializeEndpoints();
@@ -743,6 +749,14 @@ public class ReporterConfiguration {
 
     public void setDataRetentionDecisions(String dataRetentionDecisions) {
         this.dataRetentionDecisions = dataRetentionDecisions;
+    }
+
+    public boolean isDataRetentionAllowDecrease() {
+        return dataRetentionAllowDecrease;
+    }
+
+    public void setDataRetentionAllowDecrease(boolean dataRetentionAllowDecrease) {
+        this.dataRetentionAllowDecrease = dataRetentionAllowDecrease;
     }
 
     public String getFlavor() {

@@ -50,8 +50,6 @@ import org.slf4j.LoggerFactory;
 @ExtendWith(MockitoExtension.class)
 class BeanFactoryBuilderFlavorTest {
 
-    private static final String SERVERLESS_NOT_AVAILABLE = "Elastic Cloud Serverless index setup is not available";
-
     @Mock
     Client client;
 
@@ -101,7 +99,7 @@ class BeanFactoryBuilderFlavorTest {
         void should_detect_serverless_when_the_build_flavor_is_serverless() {
             givenCluster("serverless");
 
-            assertThat(BeanFactoryBuilder.buildFactory(client, configuration)).isNull();
+            assertThat(BeanFactoryBuilder.buildFactory(client, configuration)).isInstanceOf(ServerlessBeanFactory.class);
             assertThat(summary()).contains("flavor [serverless] (detected)");
         }
 
@@ -132,7 +130,7 @@ class BeanFactoryBuilderFlavorTest {
             configuration.setFlavor("serverless");
             givenCluster("default");
 
-            assertThat(BeanFactoryBuilder.buildFactory(client, configuration)).isNull();
+            assertThat(BeanFactoryBuilder.buildFactory(client, configuration)).isInstanceOf(ServerlessBeanFactory.class);
             assertThat(summary()).contains("flavor [serverless] (configured)");
         }
 
@@ -159,27 +157,32 @@ class BeanFactoryBuilderFlavorTest {
     }
 
     @Nested
-    class InterimServerlessBehaviour {
+    class ServerlessBeans {
 
-        @Test
-        void should_stay_inactive_with_one_error_and_never_use_the_elasticsearch_8_beans() {
+        @ParameterizedTest(name = "index_mode {0}")
+        @NullSource
+        @ValueSource(strings = { "data_stream" })
+        void should_write_the_serverless_data_streams(String indexMode) {
+            configuration.setIndexMode(indexMode);
             givenCluster("serverless");
 
-            assertThat(BeanFactoryBuilder.buildFactory(client, configuration)).isNull();
-            assertThat(messages(Level.ERROR))
-                .singleElement()
-                .satisfies(message -> assertThat(message).contains(SERVERLESS_NOT_AVAILABLE));
+            assertThat(BeanFactoryBuilder.buildFactory(client, configuration)).isInstanceOf(ServerlessBeanFactory.class);
+            assertThat(messages(Level.ERROR)).isEmpty();
         }
 
         @Test
-        void should_accept_the_data_stream_index_mode() {
-            configuration.setIndexMode("data_stream");
+        void should_refuse_a_retention_elasticsearch_would_not_accept() {
+            configuration.setDataRetentionLog("7 days");
             givenCluster("serverless");
 
             assertThat(BeanFactoryBuilder.buildFactory(client, configuration)).isNull();
             assertThat(messages(Level.ERROR))
                 .singleElement()
-                .satisfies(message -> assertThat(message).contains(SERVERLESS_NOT_AVAILABLE));
+                .satisfies(message ->
+                    assertThat(message)
+                        .contains("'reporters.elasticsearch.lifecycle.retention.log'")
+                        .contains("The Elasticsearch reporter is disabled.")
+                );
         }
     }
 
@@ -268,14 +271,15 @@ class BeanFactoryBuilderFlavorTest {
         }
 
         @Test
-        void should_log_one_line_for_serverless() {
+        void should_log_one_line_for_serverless_with_the_retention_of_each_setting() {
             configuration.setApiKey("encoded-key");
+            configuration.setDataRetentionLog("7d");
             givenCluster("serverless");
 
             BeanFactoryBuilder.buildFactory(client, configuration);
 
             assertThat(summary()).isEqualTo(
-                "Elasticsearch reporter: flavor [serverless] (detected), authentication [api_key], index mode [data_stream], disabled by the flavor [index settings (number_of_shards, number_of_replicas, refresh_interval), lifecycle policies]"
+                "Elasticsearch reporter: flavor [serverless] (detected), authentication [api_key], index mode [data_stream], disabled by the flavor [index settings (number_of_shards, number_of_replicas, refresh_interval), lifecycle policies], retention [request=45d, log=7d, monitor=45d, health=45d, event_metrics=45d, decisions=45d]"
             );
         }
 

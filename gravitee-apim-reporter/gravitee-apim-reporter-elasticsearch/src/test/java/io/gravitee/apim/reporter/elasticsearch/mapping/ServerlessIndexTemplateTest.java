@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.config.ReporterConfiguration;
+import io.gravitee.apim.reporter.elasticsearch.config.ServerlessRetention;
 import io.gravitee.apim.reporter.elasticsearch.mapping.es9.ES9IndexPreparer;
 import io.gravitee.apim.reporter.elasticsearch.mapping.serverless.ServerlessIndexPreparer;
 import io.gravitee.common.templating.FreeMarkerComponent;
@@ -71,6 +72,28 @@ class ServerlessIndexTemplateTest {
         String template = serverlessPreparer(configurationWithInfrastructureSettings()).generateIndexTemplate(type);
 
         assertThat(template).doesNotContain("lifecycle").doesNotContain("data_retention").doesNotContain("rollover_alias");
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("types")
+    void should_carry_the_retention_of_the_type_when_the_reporter_writes_it(Type type) {
+        var configuration = new ReporterConfiguration();
+        configuration.setDataRetentionLog("7d");
+        var retention = ServerlessRetention.of(configuration);
+        var freeMarkerComponent = freeMarkerComponent();
+        var preparer = new ServerlessIndexPreparer(
+            configuration,
+            new PipelineConfiguration(freeMarkerComponent),
+            freeMarkerComponent,
+            null,
+            retention,
+            "4.14.0"
+        );
+
+        JsonNode template = parse(preparer.generateIndexTemplate(type));
+
+        assertThat(template.at("/template/lifecycle/data_retention").asText()).isEqualTo(retention.of(type));
+        assertThat(template.at("/template/mappings").isObject()).isTrue();
     }
 
     @ParameterizedTest(name = "{0}")
@@ -135,7 +158,12 @@ class ServerlessIndexTemplateTest {
 
     @SneakyThrows
     private static JsonNode serverlessTemplate(Type type, ReporterConfiguration configuration) {
-        return JSON.readTree(serverlessPreparer(configuration).generateIndexTemplate(type));
+        return parse(serverlessPreparer(configuration).generateIndexTemplate(type));
+    }
+
+    @SneakyThrows
+    private static JsonNode parse(String template) {
+        return JSON.readTree(template);
     }
 
     @SneakyThrows
