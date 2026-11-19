@@ -1023,6 +1023,24 @@ api:
   #secrets:
   #  encryption:
   #    key: <base64 of 32 random bytes>
+  # Secret providers resolving the secret references ({#secrets.get('/vault/...')}) of registered Kafka cluster
+  # connections, as the gateway does (same keys as its api.secrets section). Needs the secrets service, an Enterprise
+  # feature. Add ?renewable=true to a reference to follow its rotation.
+  #  providers:
+  #    - id: all                # uri starts with '/all/...'
+  #      plugin: vault
+  #      configuration:
+  #        enabled: true
+  #        host: 127.0.0.1
+  #        port: 8200
+  #        ssl:
+  #          enabled: false     # not for production
+  #        auth:
+  #          method: token      # one of "token", "github", "userpass", "approle", "cert" (mTLS)
+  #          config:
+  #            token:
+  #  renewal:
+  #    enabled: true
 
 # Scoring
 scoring:
