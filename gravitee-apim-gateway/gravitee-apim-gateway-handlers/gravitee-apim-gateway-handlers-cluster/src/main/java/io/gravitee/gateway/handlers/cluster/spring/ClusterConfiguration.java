@@ -16,6 +16,8 @@
 package io.gravitee.gateway.handlers.cluster.spring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.common.cluster.DefaultClusterSecurityResolver;
+import io.gravitee.apim.common.cluster.KafkaClusterDefinitionSecretRefsFinder;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.cluster.ClusterSecurityResolver;
 import io.gravitee.el.TemplateVariableProvider;
@@ -23,8 +25,6 @@ import io.gravitee.el.TemplateVariableProviderFactory;
 import io.gravitee.el.TemplateVariableScope;
 import io.gravitee.gateway.handlers.cluster.manager.ClusterManager;
 import io.gravitee.gateway.handlers.cluster.manager.impl.ClusterManagerImpl;
-import io.gravitee.gateway.handlers.cluster.secrets.KafkaClusterDefinitionSecretRefsFinder;
-import io.gravitee.gateway.handlers.cluster.security.DefaultClusterSecurityResolver;
 import io.gravitee.secrets.api.discovery.DefinitionSecretRefsFinder;
 import java.util.List;
 import java.util.stream.Stream;
