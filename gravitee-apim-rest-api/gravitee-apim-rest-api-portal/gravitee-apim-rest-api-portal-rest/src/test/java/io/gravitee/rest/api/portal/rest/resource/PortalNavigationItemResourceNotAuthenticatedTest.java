@@ -72,7 +72,7 @@ public class PortalNavigationItemResourceNotAuthenticatedTest extends AbstractRe
     @BeforeEach
     public void init() {
         GraviteeContext.setCurrentEnvironment(ENV_ID);
-        PortalScopedNavigationItemsResourceTest.givenDefaultPortal(portalCrudService, ENV_ID);
+        PortalNavigationFixtures.givenDefaultPortal(portalCrudService, ENV_ID);
         doAnswer(invocation -> {
             var in = (PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput) invocation.getArgument(0);
             return RenderedPageContent.of(

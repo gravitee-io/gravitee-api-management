@@ -24,19 +24,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
-import io.gravitee.apim.core.exception.NotFoundDomainException;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityService;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
@@ -56,6 +58,8 @@ class GetPortalNavigationItemUseCaseTest {
     private PortalNavigationItemsQueryServiceInMemory queryService;
     private MembershipQueryServiceInMemory membershipQueryService;
 
+    private List<PortalNavigationItemVisibilityService> visibilityServices;
+
     @BeforeEach
     void setUp() {
         queryService = new PortalNavigationItemsQueryServiceInMemory();
@@ -72,10 +76,11 @@ class GetPortalNavigationItemUseCaseTest {
             queryService,
             new ApiProductAccessibleIdsDomainService(new ApiProductQueryServiceInMemory(), membershipQueryService)
         );
+        visibilityServices = List.of(apiVisibilityDomainService, apiProductVisibilityDomainService);
         useCase = new GetPortalNavigationItemUseCase(
             PortalNavigationUseCaseTestFixtures.accessWithDefaultPortal(queryService),
             queryService,
-            List.of(apiVisibilityDomainService, apiProductVisibilityDomainService),
+            visibilityServices,
             new PortalNavigationItemSourceDomainServiceInMemory()
         );
 
@@ -123,6 +128,18 @@ class GetPortalNavigationItemUseCaseTest {
     @Test
     void should_throw_when_item_exists_in_different_environment() {
         // Given
+        var useCaseInOtherEnvironment = new GetPortalNavigationItemUseCase(
+            PortalNavigationUseCaseTestFixtures.access(
+                ORG_ID,
+                "different-env",
+                queryService,
+                new PortalPageContentQueryServiceInMemory(),
+                new ApiCrudServiceInMemory()
+            ),
+            queryService,
+            visibilityServices,
+            new PortalNavigationItemSourceDomainServiceInMemory()
+        );
         final var input = new GetPortalNavigationItemUseCase.Input(
             PortalNavigationItemId.of(APIS_ID),
             ORG_ID,
@@ -132,7 +149,7 @@ class GetPortalNavigationItemUseCaseTest {
         );
 
         // When & Then
-        assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(NotFoundDomainException.class);
+        assertThatThrownBy(() -> useCaseInOtherEnvironment.execute(input)).isInstanceOf(PortalNavigationItemNotFoundException.class);
     }
 
     @Test

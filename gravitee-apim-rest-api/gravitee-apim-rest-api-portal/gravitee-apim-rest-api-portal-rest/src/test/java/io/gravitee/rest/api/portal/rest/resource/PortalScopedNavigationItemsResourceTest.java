@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.PortalPageContentFixtures;
@@ -25,7 +24,6 @@ import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
-import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
@@ -106,7 +104,7 @@ public class PortalScopedNavigationItemsResourceTest extends AbstractResourceTes
 
     @Test
     void should_list_only_the_default_portals_items_on_the_unscoped_path() {
-        var defaultPortal = givenDefaultPortal(portalCrudService, ENV_ID);
+        var defaultPortal = PortalNavigationFixtures.givenDefaultPortal(portalCrudService, ENV_ID);
         var onDefault = folder("Default", defaultPortal, PortalArea.TOP_NAVBAR);
         var other = folder("Other", otherPortal, PortalArea.TOP_NAVBAR);
         portalNavigationItemsQueryService.initWith(List.of(onDefault, other));
@@ -216,24 +214,6 @@ public class PortalScopedNavigationItemsResourceTest extends AbstractResourceTes
         )
             .map(request -> request.request().get().getStatus())
             .toList();
-    }
-
-    @SneakyThrows
-    static PortalId givenDefaultPortal(PortalCrudServiceInMemory portals, String environmentId) {
-        var id = ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId();
-        portals.create(
-            Portal.of(
-                id,
-                environmentId,
-                ORG_ID,
-                "Developer Portal",
-                PortalNavigationStructure.empty(),
-                null,
-                true,
-                URI.create("https://portal.example.com/next").toURL()
-            )
-        );
-        return id;
     }
 
     @SneakyThrows

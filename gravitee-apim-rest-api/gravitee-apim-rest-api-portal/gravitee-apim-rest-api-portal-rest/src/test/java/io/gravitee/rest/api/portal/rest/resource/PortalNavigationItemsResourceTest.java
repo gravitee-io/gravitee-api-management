@@ -83,7 +83,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     @BeforeEach
     public void init() {
         GraviteeContext.setCurrentEnvironment(ENV_ID);
-        PortalScopedNavigationItemsResourceTest.givenDefaultPortal(portalCrudService, ENV_ID);
+        PortalNavigationFixtures.givenDefaultPortal(portalCrudService, ENV_ID);
         when(parameterService.findAsBoolean(any(), eq(Key.PORTAL_NEXT_SEARCH_FUZZY), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
             false
         );

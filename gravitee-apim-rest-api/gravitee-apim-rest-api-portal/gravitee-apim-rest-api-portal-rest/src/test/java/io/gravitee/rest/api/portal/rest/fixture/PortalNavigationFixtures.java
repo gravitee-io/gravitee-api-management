@@ -17,8 +17,13 @@ package io.gravitee.rest.api.portal.rest.fixture;
 
 import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 
+import inmemory.PortalCrudServiceInMemory;
+import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -27,13 +32,34 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import lombok.SneakyThrows;
 
 public final class PortalNavigationFixtures {
 
     private PortalNavigationFixtures() {}
+
+    /** The environment's default portal, which owns the navigation at {@code PORTAL_REFERENCE} and serves the unscoped paths. */
+    @SneakyThrows
+    public static PortalId givenDefaultPortal(PortalCrudServiceInMemory portals, String environmentId) {
+        var id = ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId();
+        portals.create(
+            Portal.of(
+                id,
+                environmentId,
+                GraviteeContext.getDefaultOrganization(),
+                "Developer Portal",
+                PortalNavigationStructure.empty(),
+                null,
+                true,
+                URI.create("https://portal.example.com/next").toURL()
+            )
+        );
+        return id;
+    }
 
     public static PortalNavigationItemId randomNavigationId() {
         return PortalNavigationItemId.random();

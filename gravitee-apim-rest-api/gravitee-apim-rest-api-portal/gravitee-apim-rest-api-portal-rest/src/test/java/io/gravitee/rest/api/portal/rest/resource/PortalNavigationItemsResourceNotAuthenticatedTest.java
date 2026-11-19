@@ -70,7 +70,7 @@ public class PortalNavigationItemsResourceNotAuthenticatedTest extends AbstractR
     @BeforeEach
     public void init() {
         GraviteeContext.setCurrentEnvironment(ENV_ID);
-        PortalScopedNavigationItemsResourceTest.givenDefaultPortal(portalCrudService, ENV_ID);
+        PortalNavigationFixtures.givenDefaultPortal(portalCrudService, ENV_ID);
     }
 
     @AfterEach
