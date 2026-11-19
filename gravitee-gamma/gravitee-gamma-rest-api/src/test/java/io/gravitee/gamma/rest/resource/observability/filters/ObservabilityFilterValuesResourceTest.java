@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.EndUserDisplayDomainService;
 import io.gravitee.gamma.rest.core.observability.filter.inmemory.InMemoryObservabilityFilterDataPort;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterValue;
 import io.gravitee.gamma.rest.core.observability.filter.use_case.GetObservabilityFilterDefinitionsUseCase;
@@ -127,7 +128,11 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
 
         @Bean
         GetObservabilityFilterValuesUseCase getObservabilityFilterValuesUseCase(InMemoryObservabilityFilterDataPort dataPort) {
-            return new GetObservabilityFilterValuesUseCase(new SpiFilterRegistry(), dataPort);
+            return new GetObservabilityFilterValuesUseCase(
+                new SpiFilterRegistry(),
+                dataPort,
+                new EndUserDisplayDomainService(organizationId -> false)
+            );
         }
     }
 }

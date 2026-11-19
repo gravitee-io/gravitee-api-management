@@ -27,6 +27,7 @@ import io.gravitee.gamma.rest.resources.observability.filters.dto.FilterValueDto
 import io.gravitee.gamma.rest.resources.observability.filters.dto.ResolveFilterLabelsRequestDto;
 import io.gravitee.gamma.rest.resources.observability.filters.dto.ResolveFilterLabelsResponseDto;
 import io.gravitee.gamma.rest.resources.tracing.dto.PaginatedResponseDto;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
@@ -87,6 +88,7 @@ public class ObservabilityFiltersResource {
     ) {
         var output = getFilterDefinitionsUseCase.execute(
             new GetObservabilityFilterDefinitionsUseCase.Input(
+                GraviteeContext.getCurrentOrganization(),
                 parse(signals, Signal.class, Signal::valueOf, "signal"),
                 parse(apiTypes, ApiType.class, ApiType::valueOf, "apiType")
             )
@@ -116,7 +118,8 @@ public class ObservabilityFiltersResource {
                 page,
                 perPage,
                 parse(apiTypes, ApiType.class, ApiType::valueOf, "apiType"),
-                presentOrNull(apiProduct)
+                presentOrNull(apiProduct),
+                GraviteeContext.getCurrentOrganization()
             )
         );
         List<FilterValueDto> data = output.values().data().stream().map(FilterValueDto::from).toList();

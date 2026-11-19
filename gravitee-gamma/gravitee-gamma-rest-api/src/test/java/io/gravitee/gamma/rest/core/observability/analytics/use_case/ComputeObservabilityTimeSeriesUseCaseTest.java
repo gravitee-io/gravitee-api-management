@@ -33,6 +33,7 @@ import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsSortSp
 import io.gravitee.gamma.rest.core.observability.analytics.model.DataKind;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.EndUserDisplayDomainService;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
@@ -85,7 +86,8 @@ class ComputeObservabilityTimeSeriesUseCaseTest {
         var pipeline = new AnalyticsRequestPipeline(
             new ObservabilityFilterValidator(filterRegistry),
             new AccessibleApiScopeDomainService(),
-            new EntrypointScopeProviderAdapter()
+            new EntrypointScopeProviderAdapter(),
+            new EndUserDisplayDomainService(organizationId -> false)
         );
         useCase = new ComputeObservabilityTimeSeriesUseCase(analyticsDataPort, pipeline);
     }

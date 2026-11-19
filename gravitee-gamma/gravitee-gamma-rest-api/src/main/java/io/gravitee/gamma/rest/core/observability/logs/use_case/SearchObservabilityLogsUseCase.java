@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.core.observability.logs.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.EndUserDisplayDomainService;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
@@ -75,6 +76,7 @@ public class SearchObservabilityLogsUseCase {
     private final ObservabilityFilterValidator filterValidator;
     private final AccessibleApiScopeDomainService accessibleApiScope;
     private final EntrypointScopeProvider entrypointScopeProvider;
+    private final EndUserDisplayDomainService endUserDisplay;
 
     public record Input(
         String organizationId,
@@ -95,6 +97,7 @@ public class SearchObservabilityLogsUseCase {
         var conditions = withUriEqAsStartsWith(input.filters != null ? input.filters : List.<FilterCondition>of());
 
         filterValidator.validate(conditions, Signal.LOGS);
+        endUserDisplay.requireDisplayedIfNamed(input.organizationId, conditions.stream().map(FilterCondition::name));
         validateTimeRange(input.from, input.to);
 
         var recordType = extractRecordType(conditions);

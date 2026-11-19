@@ -16,9 +16,11 @@
 package io.gravitee.gamma.rest.core.observability.filter.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.EndUserDisplayDomainService;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
+import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import java.util.List;
 import java.util.Set;
@@ -41,12 +43,19 @@ import lombok.AllArgsConstructor;
 public class GetObservabilityFilterDefinitionsUseCase {
 
     private final FilterRegistry filterRegistry;
+    private final EndUserDisplayDomainService endUserDisplay;
 
-    public record Input(Set<Signal> signals, Set<ApiType> apiTypes) {}
+    public record Input(String organizationId, Set<Signal> signals, Set<ApiType> apiTypes) {}
 
     public record Output(List<FilterSpec> filters) {}
 
     public Output execute(Input input) {
-        return new Output(filterRegistry.getFilters(input.signals(), input.apiTypes()));
+        var displaysEndUser = endUserDisplay.displaysEndUser(input.organizationId());
+        var filters = filterRegistry
+            .getFilters(input.signals(), input.apiTypes())
+            .stream()
+            .filter(spec -> displaysEndUser || !StaticFilters.isEndUser(spec.name()))
+            .toList();
+        return new Output(filters);
     }
 }

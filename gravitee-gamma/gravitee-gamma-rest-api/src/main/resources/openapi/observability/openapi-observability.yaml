@@ -2391,6 +2391,13 @@ components:
                     type: string
                     description: IP address of the client.
                     example: "203.0.113.42"
+                user:
+                    type: string
+                    description: >-
+                        End user of the call, as the JWT or OAuth2 plan reported it (the claim set as
+                        `userClaim`, `sub` by default). Absent unless the organization setting
+                        `logging.user.displayed` is on.
+                    example: "00000000-0000-0000-0000-0000000000a1"
                 requestContentLength:
                     type: integer
                     format: int64
@@ -2608,6 +2615,11 @@ components:
                 subscriptionId:
                     type: string
                     description: Identifier of the subscription the request was matched to.
+                user:
+                    type: string
+                    description: >-
+                        End user of the call, as the JWT or OAuth2 plan reported it. Absent unless the
+                        organization setting `logging.user.displayed` is on.
                 message:
                     type: string
                     description: Error or diagnostic message attached to the log entry.
