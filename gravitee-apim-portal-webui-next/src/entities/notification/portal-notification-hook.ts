@@ -68,8 +68,8 @@ export const SUBSCRIPTION_CLOSE_TO_EXPIRY_HOOK: PortalNotificationHook = {
 
 export const CERTIFICATE_UPLOADED_HOOK: PortalNotificationHook = {
   id: 'CERTIFICATE_UPLOADED',
-  label: 'Certificate upload',
-  description: 'Triggered when a client certificate is uploaded for the application.',
+  label: 'CSR upload',
+  description: 'Triggered when a CSR is uploaded for the application.',
   category: 'CERTIFICATE',
 };
 

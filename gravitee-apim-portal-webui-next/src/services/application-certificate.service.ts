@@ -41,6 +41,10 @@ export class ApplicationCertificateService {
     );
   }
 
+  get(applicationId: string, certId: string): Observable<ClientCertificate> {
+    return this.http.get<ClientCertificate>(`${this.configService.baseURL}/applications/${applicationId}/certificates/${certId}`);
+  }
+
   create(applicationId: string, body: CreateClientCertificateInput): Observable<ClientCertificate> {
     return this.http.post<ClientCertificate>(`${this.configService.baseURL}/applications/${applicationId}/certificates`, body);
   }

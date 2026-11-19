@@ -371,6 +371,61 @@ describe('ApplicationTabSettingsCertificatesComponent', () => {
     expect(getErrorMessage()).toBeNull();
   });
 
+  it('should download certificate PEM from row content', async () => {
+    const pem = '-----BEGIN CERTIFICATE-----\npem\n-----END CERTIFICATE-----';
+    const createElementSpy = jest.spyOn(document, 'createElement');
+    const clickMock = jest.fn();
+    createElementSpy.mockReturnValue({ click: clickMock, href: '', download: '' } as unknown as HTMLAnchorElement);
+    const createObjectUrlSpy = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:cert');
+    const revokeObjectUrlSpy = jest.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+
+    await initWithCertificates([fakeCertificate({ id: 'cert-1', name: 'My Certificate', certificate: pem })]);
+
+    const downloadButton = fixture.nativeElement.querySelector(
+      '[data-testid="paginated-table-action-download-certificate-button"]',
+    ) as HTMLButtonElement;
+    downloadButton.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(clickMock).toHaveBeenCalled();
+    expect(createObjectUrlSpy).toHaveBeenCalled();
+    expect(revokeObjectUrlSpy).toHaveBeenCalledWith('blob:cert');
+
+    createElementSpy.mockRestore();
+    createObjectUrlSpy.mockRestore();
+    revokeObjectUrlSpy.mockRestore();
+  });
+
+  it('should fetch certificate by id when PEM is missing from the list row', async () => {
+    const pem = '-----BEGIN CERTIFICATE-----\npem\n-----END CERTIFICATE-----';
+    const createElementSpy = jest.spyOn(document, 'createElement');
+    const clickMock = jest.fn();
+    createElementSpy.mockReturnValue({ click: clickMock, href: '', download: '' } as unknown as HTMLAnchorElement);
+    jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:cert');
+    jest.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+
+    await initWithCertificates([fakeCertificate({ id: 'cert-1', name: 'My Certificate' })]);
+
+    const downloadButton = fixture.nativeElement.querySelector(
+      '[data-testid="paginated-table-action-download-certificate-button"]',
+    ) as HTMLButtonElement;
+    downloadButton.click();
+    fixture.detectChanges();
+
+    httpTestingController
+      .expectOne({
+        url: `${TESTING_BASE_URL}/applications/${applicationId}/certificates/cert-1`,
+        method: 'GET',
+      })
+      .flush(fakeCertificate({ id: 'cert-1', name: 'My Certificate', certificate: pem }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(clickMock).toHaveBeenCalled();
+    createElementSpy.mockRestore();
+  });
+
   function flushCertificatesRequest(data: ClientCertificate[] = [], totalElements = data.length, page = 1, size = 10): void {
     httpTestingController
       .expectOne({

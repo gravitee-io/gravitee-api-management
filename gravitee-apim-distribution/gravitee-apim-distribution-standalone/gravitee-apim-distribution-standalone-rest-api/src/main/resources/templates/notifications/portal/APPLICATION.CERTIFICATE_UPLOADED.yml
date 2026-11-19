@@ -1,4 +1,4 @@
 title: |
-  [${application.name}] Certificate uploaded
+  [${application.name}] CSR uploaded
 message: |
-  A new client certificate has been uploaded for the application "${application.name}".
+  A new CSR has been uploaded for the application "${application.name}".

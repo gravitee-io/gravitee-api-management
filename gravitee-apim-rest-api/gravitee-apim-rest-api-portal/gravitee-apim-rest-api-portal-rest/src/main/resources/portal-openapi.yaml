@@ -8777,6 +8777,9 @@ components:
                     type: string
                 fingerprint:
                     type: string
+                certificate:
+                    type: string
+                    description: PEM-encoded certificate
                 createdAt:
                     type: string
                     format: date-time

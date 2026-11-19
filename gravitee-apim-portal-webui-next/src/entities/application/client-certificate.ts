@@ -23,6 +23,7 @@ export interface ClientCertificate {
   subject?: string;
   issuer?: string;
   fingerprint?: string;
+  certificate?: string;
   createdAt?: string;
   startsAt?: string;
   endsAt?: string;

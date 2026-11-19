@@ -65,7 +65,7 @@
           [currentPage]="currentPage()"
           [pageSize]="pageSize"
           [navigable]="false"
-          [actions]="canManage() ? activeActions : []"
+          [actions]="activeActions()"
           (pageChange)="onPageChange($event)"
           (actionClick)="onActiveAction($event)"
         />
@@ -82,7 +82,7 @@
           [currentPage]="currentPage()"
           [pageSize]="pageSize"
           [navigable]="false"
-          [actions]="canManage() ? historyActions : []"
+          [actions]="historyActions()"
           (pageChange)="onPageChange($event)"
           (actionClick)="onHistoryAction($event)"
         />

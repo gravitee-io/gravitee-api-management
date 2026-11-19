@@ -29,7 +29,7 @@ public enum ApplicationHook implements Hook {
     SUBSCRIPTION_TRANSFERRED("Subscription Transferred", "Triggered when a Subscription is transferred.", "SUBSCRIPTION"),
     SUBSCRIPTION_FAILED("Subscription Failed", "Triggered when a Subscription fails.", "SUBSCRIPTION"),
     NEW_SUPPORT_TICKET("New Support Ticket", "Triggered when a new support ticket is created", "SUPPORT"),
-    CERTIFICATE_UPLOADED("Certificate upload", "Triggered when a client certificate is uploaded for the application.", "CERTIFICATE"),
+    CERTIFICATE_UPLOADED("CSR upload", "Triggered when a CSR is uploaded for the application.", "CERTIFICATE"),
     CERTIFICATE_EXPIRY("Certificate expiry", "Triggered when a client certificate expires.", "CERTIFICATE"),
     CERTIFICATE_CLOSE_TO_EXPIRY(
         "Certificate close to expiry",

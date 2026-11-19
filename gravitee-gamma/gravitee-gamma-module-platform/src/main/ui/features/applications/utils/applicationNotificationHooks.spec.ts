@@ -17,6 +17,7 @@ import type { ApplicationNotificationHook } from '../types/applicationNotificati
 import {
     CERTIFICATE_CLOSE_TO_EXPIRY_HOOK_ID,
     CERTIFICATE_EXPIRY_HOOK_ID,
+    CERTIFICATE_UPLOADED_HOOK_ID,
     groupVisibleApplicationHooks,
     persistApplicationNotificationHooks,
     SUBSCRIPTION_CLOSE_TO_EXPIRY_HOOK_ID,
@@ -51,6 +52,7 @@ describe('applicationNotificationHooks', () => {
                 SUBSCRIPTION_CLOSE_TO_EXPIRY_HOOK_ID,
             ]);
             expect(grouped.find(category => category.name === 'CERTIFICATE')?.hooks.map(h => h.id)).toEqual([
+                CERTIFICATE_UPLOADED_HOOK_ID,
                 CERTIFICATE_EXPIRY_HOOK_ID,
                 CERTIFICATE_CLOSE_TO_EXPIRY_HOOK_ID,
             ]);
@@ -59,6 +61,22 @@ describe('applicationNotificationHooks', () => {
         it('still injects categories when the hooks API is empty', () => {
             const grouped = groupVisibleApplicationHooks([]);
             expect(grouped.map(category => category.name)).toEqual(['SUBSCRIPTION', 'CERTIFICATE']);
+        });
+
+        it('shows CSR upload label for the certificate uploaded hook from the API', () => {
+            const grouped = groupVisibleApplicationHooks([
+                {
+                    id: CERTIFICATE_UPLOADED_HOOK_ID,
+                    label: 'Certificate upload',
+                    description: 'Triggered when a client certificate is uploaded for the application.',
+                    scope: 'APPLICATION',
+                    category: 'CERTIFICATE',
+                },
+            ]);
+
+            const uploadHook = grouped.find(category => category.name === 'CERTIFICATE')?.hooks.find(h => h.id === CERTIFICATE_UPLOADED_HOOK_ID);
+            expect(uploadHook?.label).toBe('CSR upload');
+            expect(uploadHook?.description).toBe('Triggered when a CSR is uploaded for the application.');
         });
     });
 

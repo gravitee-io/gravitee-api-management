@@ -104,7 +104,7 @@ describe('AddCertificateDialogComponent', () => {
     await init();
     await fillAndValidate();
 
-    expect(fixture.componentInstance.stepper().selectedIndex).toBe(1);
+    expect(fixture.componentInstance.stepper()?.selectedIndex).toBe(1);
   });
 
   it('should pre-fill endsAt from certificate expiration returned by validation', async () => {
@@ -134,7 +134,7 @@ describe('AddCertificateDialogComponent', () => {
     fixture.detectChanges();
 
     expect(await harness.validateErrorText()).toBeTruthy();
-    expect(fixture.componentInstance.stepper().selectedIndex).toBe(0);
+    expect(fixture.componentInstance.stepper()?.selectedIndex).toBe(0);
   });
 
   it('should not show grace period field when hasActiveCertificates is false', async () => {
@@ -282,5 +282,66 @@ describe('AddCertificateDialogComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.componentInstance.uploadForm.controls.name.value).toBe('already-set');
+  });
+
+  it('should jump to Confirm when CSR content is detected', async () => {
+    await init();
+
+    const csr = '-----BEGIN CERTIFICATE REQUEST-----\ncsr-body\n-----END CERTIFICATE REQUEST-----';
+    fixture.componentInstance.uploadForm.setValue({ name: '', certificate: csr });
+    fixture.detectChanges();
+    await harness.clickContinueUpload();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.detectedPemType()).toBe('csr');
+    expect(fixture.componentInstance.stepper()?.selectedIndex).toBe(2);
+  });
+
+  it('should submit CSR from Confirm without updating an active certificate grace period', async () => {
+    const activeCertificateId = 'old-cert-id';
+    await init(makeData({ hasActiveCertificates: true, activeCertificateId, activeCertificateName: 'Old Cert' }));
+
+    const csr = '-----BEGIN CERTIFICATE REQUEST-----\ncsr-body\n-----END CERTIFICATE REQUEST-----';
+    fixture.componentInstance.uploadForm.setValue({ name: 'csr-upload', certificate: csr });
+    fixture.detectChanges();
+    await harness.clickContinueUpload();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.stepper()?.selectedIndex).toBe(2);
+
+    await harness.clickSubmit();
+    fixture.detectChanges();
+
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/${APPLICATION_ID}`).flush({
+      id: APPLICATION_ID,
+      name: 'App',
+      settings: {},
+    });
+    fixture.detectChanges();
+
+    const saveReq = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/${APPLICATION_ID}`);
+    expect(saveReq.request.body).toMatchObject({ csr });
+    saveReq.flush({ id: APPLICATION_ID, name: 'App', settings: {}, csr });
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    httpTestingController.expectNone(`${CERTIFICATES_URL}/${activeCertificateId}`);
+    expect(dialogRef.close).toHaveBeenCalledWith(true);
+  });
+
+  it('should show an error for unrecognized PEM content', async () => {
+    await init();
+
+    fixture.componentInstance.uploadForm.setValue({ name: 'My Cert', certificate: 'not-a-pem' });
+    fixture.detectChanges();
+    await harness.clickContinueUpload();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(await harness.validateErrorText()).toBeTruthy();
+    expect(fixture.componentInstance.stepper()?.selectedIndex).toBe(0);
   });
 });

@@ -45,8 +45,8 @@ export const SUBSCRIPTION_CLOSE_TO_EXPIRY_HOOK: ApplicationNotificationHook = {
 
 export const CERTIFICATE_UPLOADED_HOOK: ApplicationNotificationHook = {
     id: CERTIFICATE_UPLOADED_HOOK_ID,
-    label: 'Certificate upload',
-    description: 'Triggered when a client certificate is uploaded for the application.',
+    label: 'CSR upload',
+    description: 'Triggered when a CSR is uploaded for the application.',
     scope: 'APPLICATION',
     category: 'CERTIFICATE',
 };
@@ -136,11 +136,15 @@ function upsertHookInCategory(
         return [...categories, { name: categoryName, hooks: [hook] }];
     }
     const category = categories[idx]!;
-    if (category.hooks.some(h => h.id === hook.id)) {
-        return [...categories];
-    }
+    const existingIdx = category.hooks.findIndex(h => h.id === hook.id);
     const next = [...categories];
-    next[idx] = { ...category, hooks: [...category.hooks, hook] };
+    if (existingIdx === -1) {
+        next[idx] = { ...category, hooks: [...category.hooks, hook] };
+        return next;
+    }
+    const hooks = [...category.hooks];
+    hooks[existingIdx] = hook;
+    next[idx] = { ...category, hooks };
     return next;
 }
 

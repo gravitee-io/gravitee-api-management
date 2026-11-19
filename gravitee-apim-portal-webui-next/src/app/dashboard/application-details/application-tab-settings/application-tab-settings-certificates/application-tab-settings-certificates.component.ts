@@ -74,23 +74,35 @@ export class ApplicationTabSettingsCertificatesComponent implements OnInit {
     { id: 'daysRemaining', label: 'Days Remaining' },
   ];
 
-  activeActions: TableAction<CertificateTableRow>[] = [
-    {
-      id: 'delete-certificate-button',
-      icon: 'delete',
-      ariaLabel: $localize`:@@deleteCertificateAriaLabel:Delete certificate`,
-      color: 'warn',
-    },
-  ];
+  private readonly downloadAction: TableAction<CertificateTableRow> = {
+    id: 'download-certificate-button',
+    icon: 'download',
+    ariaLabel: $localize`:@@downloadCertificateAriaLabel:Download certificate`,
+  };
 
-  historyActions: TableAction<CertificateTableRow>[] = [
-    {
-      id: 'delete-history-certificate-button',
-      icon: 'delete',
-      ariaLabel: $localize`:@@deleteCertificateAriaLabel:Delete certificate`,
-      color: 'warn',
-    },
-  ];
+  private readonly deleteActiveAction: TableAction<CertificateTableRow> = {
+    id: 'delete-certificate-button',
+    icon: 'delete',
+    ariaLabel: $localize`:@@deleteCertificateAriaLabel:Delete certificate`,
+    color: 'warn',
+  };
+
+  private readonly deleteHistoryAction: TableAction<CertificateTableRow> = {
+    id: 'delete-history-certificate-button',
+    icon: 'delete',
+    ariaLabel: $localize`:@@deleteCertificateAriaLabel:Delete certificate`,
+    color: 'warn',
+  };
+
+  activeActions = computed<TableAction<CertificateTableRow>[]>(() => [
+    this.downloadAction,
+    ...(this.canManage() ? [this.deleteActiveAction] : []),
+  ]);
+
+  historyActions = computed<TableAction<CertificateTableRow>[]>(() => [
+    this.downloadAction,
+    ...(this.canManage() ? [this.deleteHistoryAction] : []),
+  ]);
 
   ngOnInit(): void {
     this.loadCertificates();
@@ -164,6 +176,27 @@ export class ApplicationTabSettingsCertificatesComponent implements OnInit {
       });
   }
 
+  downloadCertificate(cert: ClientCertificate): void {
+    this.error.set(null);
+
+    const download$ = cert.certificate
+      ? of(cert)
+      : this.certService.get(this.applicationId(), cert.id);
+
+    download$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: certificate => {
+        if (!certificate.certificate) {
+          this.error.set($localize`:@@downloadCertificateMissingError:Certificate content is not available for download.`);
+          return;
+        }
+        this.triggerCertificateDownload(certificate.name, certificate.certificate);
+      },
+      error: () => {
+        this.error.set($localize`:@@downloadCertificateError:An error occurred while downloading the certificate. Please try again`);
+      },
+    });
+  }
+
   onActiveAction(event: { actionId: string; row: CertificateTableRow }): void {
     this.handleCertificateAction(event);
   }
@@ -224,9 +257,24 @@ export class ApplicationTabSettingsCertificatesComponent implements OnInit {
   }
 
   private handleCertificateAction(event: { actionId: string; row: CertificateTableRow }): void {
+    if (event.actionId === 'download-certificate-button') {
+      this.downloadCertificate(event.row.certificate);
+      return;
+    }
     if (event.actionId === 'delete-certificate-button' || event.actionId === 'delete-history-certificate-button') {
       this.deleteCertificate(event.row.certificate);
     }
+  }
+
+  private triggerCertificateDownload(name: string, pem: string): void {
+    const safeName = name.replace(/[^a-z0-9-_]+/gi, '-').toLowerCase() || 'certificate';
+    const blob = new Blob([pem], { type: 'application/x-pem-file' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `${safeName}.pem`;
+    anchor.click();
+    URL.revokeObjectURL(url);
   }
 
   private confirmAndDeleteCertificate(cert: ClientCertificate, certificates: ClientCertificate[]): Observable<unknown> {

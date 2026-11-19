@@ -19,7 +19,6 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
-import { MatDivider } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
@@ -29,10 +28,8 @@ import { isEqual } from 'lodash';
 import { map, Observable, of, startWith, Subject, take, takeUntil, tap } from 'rxjs';
 
 import { CopyCodeComponent } from '../../../../../components/copy-code/copy-code.component';
-import { CsrUploadComponent } from '../../../../../components/csr-upload/csr-upload.component';
 import { Application, ApplicationGrantType, ApplicationType } from '../../../../../entities/application/application';
 import { UserApplicationPermissions } from '../../../../../entities/permission/permission';
-import { ApplicationCertificateService } from '../../../../../services/application-certificate.service';
 import { ApplicationService } from '../../../../../services/application.service';
 import { ConfigService } from '../../../../../services/config.service';
 import { ApplicationTabSettingsCertificatesComponent } from '../application-tab-settings-certificates/application-tab-settings-certificates.component';
@@ -45,7 +42,6 @@ interface ApplicationSettingsVM {
   appClientId: string | undefined;
   oauthRedirectUris: string[] | undefined;
   oauthGrantTypes: string[] | undefined;
-  csr: string | undefined;
 }
 
 interface ApplicationSettingsForm {
@@ -56,7 +52,6 @@ interface ApplicationSettingsForm {
   appClientId: FormControl<string | undefined>;
   oauthRedirectUris: FormControl<string[] | undefined>;
   oauthGrantTypes: FormControl<string[] | undefined>;
-  csr: FormControl<string | undefined>;
 }
 
 interface ApplicationGrantTypeVM {
@@ -70,10 +65,8 @@ interface ApplicationGrantTypeVM {
   imports: [
     ApplicationTabSettingsCertificatesComponent,
     CopyCodeComponent,
-    CsrUploadComponent,
     MatButtonModule,
     MatCardModule,
-    MatDivider,
     MatChipsModule,
     MatFormFieldModule,
     MatIcon,
@@ -87,8 +80,6 @@ interface ApplicationGrantTypeVM {
 })
 export class ApplicationTabSettingsEditComponent implements OnInit {
   protected readonly configService = inject(ConfigService);
-  private readonly certService = inject(ApplicationCertificateService);
-
   applicationId = input.required<string>();
   applicationTypeConfiguration = input.required<ApplicationType>();
   userApplicationPermissions = input.required<UserApplicationPermissions>();
@@ -109,7 +100,6 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
     appClientId: undefined,
     oauthRedirectUris: undefined,
     oauthGrantTypes: undefined,
-    csr: undefined,
   };
 
   applicationSettingsForm: FormGroup<ApplicationSettingsForm> = new FormGroup<ApplicationSettingsForm>({
@@ -120,7 +110,6 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
     appClientId: new FormControl<string | undefined>(undefined, { nonNullable: true }),
     oauthRedirectUris: new FormControl<string[] | undefined>(undefined, { nonNullable: true }),
     oauthGrantTypes: new FormControl<string[] | undefined>(undefined, { nonNullable: true }),
-    csr: new FormControl<string | undefined>(undefined, { nonNullable: true }),
   });
 
   grantTypesList: ApplicationGrantTypeVM[] | undefined;
@@ -213,7 +202,6 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
       appClientId: application.settings.app?.client_id,
       oauthGrantTypes: application.settings.oauth?.grant_types,
       oauthRedirectUris: application.settings.oauth?.redirect_uris,
-      csr: application.csr,
     };
   }
 
@@ -242,13 +230,11 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
   }
 
   private computeApplicationToSave(appVM: ApplicationSettingsVM) {
-    const csr = appVM.csr?.trim();
     const appToUpdate = {
       ...this.application,
       name: appVM.name,
       description: appVM.description,
       domain: appVM.domain,
-      csr: csr || undefined,
     };
     if (appToUpdate.settings.app) {
       appToUpdate.settings.app.type = appVM.appType;

@@ -29,7 +29,10 @@ import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { of, switchMap, tap } from 'rxjs';
 
 import { ApplicationCertificateService } from '../../../../../../services/application-certificate.service';
+import { ApplicationService } from '../../../../../../services/application.service';
 import { fileNameWithoutExtension } from '../../../../../../utils/common.utils';
+
+export type DetectedPemType = 'certificate' | 'csr' | 'unknown';
 
 export interface AddCertificateDialogData {
   applicationId: string;
@@ -60,15 +63,17 @@ export class AddCertificateDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<AddCertificateDialogComponent>);
   readonly data: AddCertificateDialogData = inject(MAT_DIALOG_DATA);
   private readonly certService = inject(ApplicationCertificateService);
+  private readonly applicationService = inject(ApplicationService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly stepper = viewChild.required<MatStepper>('stepper');
+  readonly stepper = viewChild<MatStepper>('certificateStepper');
 
   readonly minDate = new Date();
   readonly maxGracePeriodDate: Date | undefined = this.data.activeCertificateExpiration
     ? new Date(this.data.activeCertificateExpiration)
     : undefined;
 
+  detectedPemType = signal<DetectedPemType | null>(null);
   isSubmitting = signal(false);
   submitError = signal<string | null>(null);
   isValidating = signal(false);
@@ -87,15 +92,53 @@ export class AddCertificateDialogComponent {
   continueStep(group: FormGroup): void {
     group.markAllAsTouched();
     if (group.invalid) return;
-    this.stepper().next();
+    this.stepper()?.next();
+  }
+
+  goPrevious(): void {
+    const stepper = this.stepper();
+    if (!stepper) return;
+    // CSR skips Configure, so Previous from Confirm returns to Upload.
+    if (this.detectedPemType() === 'csr' && stepper.selectedIndex === 2) {
+      stepper.selectedIndex = 0;
+      return;
+    }
+    stepper.previous();
   }
 
   validateAndContinue(): void {
+    this.validateError.set(null);
+    this.submitError.set(null);
+
+    const pem = this.uploadForm.controls.certificate.value.trim();
+    this.uploadForm.controls.certificate.markAsTouched();
+    if (!pem) {
+      this.uploadForm.controls.certificate.updateValueAndValidity();
+      return;
+    }
+
+    const detectedType = this.detectPemType(pem);
+    this.detectedPemType.set(detectedType);
+
+    if (detectedType === 'csr') {
+      const stepper = this.stepper();
+      if (stepper) {
+        stepper.selectedIndex = 2; // Jump to Confirm, skipping Configure / grace period
+      }
+      return;
+    }
+
+    if (detectedType === 'unknown') {
+      this.validateError.set(
+        $localize`:@@addCertificateUnrecognizedPem:Please provide a PEM-encoded certificate or CSR.`,
+      );
+      return;
+    }
+
     this.uploadForm.markAllAsTouched();
     if (this.uploadForm.invalid) return;
 
     this.isValidating.set(true);
-    this.validateError.set(null);
 
     this.certService
       .validate(this.data.applicationId, this.uploadForm.controls.certificate.value)
@@ -110,7 +153,7 @@ export class AddCertificateDialogComponent {
       .subscribe({
         next: () => {
           this.isValidating.set(false);
-          this.stepper().next();
+          this.stepper()?.next();
         },
         error: (err: HttpErrorResponse) => {
           this.isValidating.set(false);
@@ -133,6 +176,7 @@ export class AddCertificateDialogComponent {
     if (!file) return;
     const content = await this.readFileAsText(file);
     this.uploadForm.controls.certificate.setValue(content);
+    this.detectedPemType.set(null);
     if (!this.uploadForm.controls.name.value) {
       this.uploadForm.controls.name.setValue(fileNameWithoutExtension(file.name));
     }
@@ -140,7 +184,13 @@ export class AddCertificateDialogComponent {
   }
 
   onSubmit(): void {
-    if (this.uploadForm.invalid || this.configureForm.invalid) return;
+    if (this.detectedPemType() === 'csr') {
+      this.submitCsr(this.uploadForm.controls.certificate.value.trim(), false);
+      return;
+    }
+
+    this.configureForm.markAllAsTouched();
+    if (this.configureForm.invalid || this.uploadForm.invalid) return;
 
     const { name, certificate } = this.uploadForm.value;
     const { endsAt, gracePeriodEnd } = this.configureForm.value;
@@ -155,15 +205,7 @@ export class AddCertificateDialogComponent {
         ...(endsAt ? { endsAt: endsAt.toISOString() } : {}),
       })
       .pipe(
-        switchMap(() => {
-          if (gracePeriodEnd && this.data.activeCertificateId) {
-            return this.certService.update(this.data.applicationId, this.data.activeCertificateId!, {
-              ...(this.data.activeCertificateName ? { name: this.data.activeCertificateName } : {}),
-              endsAt: gracePeriodEnd.toISOString(),
-            });
-          }
-          return of(null);
-        }),
+        switchMap(() => this.updateActiveCertificateGracePeriod(gracePeriodEnd ?? null)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
@@ -180,6 +222,57 @@ export class AddCertificateDialogComponent {
           }
         },
       });
+  }
+
+  detectPemType(content: string): DetectedPemType {
+    const normalized = content.toUpperCase();
+    if (normalized.includes('BEGIN CERTIFICATE REQUEST') || normalized.includes('BEGIN NEW CERTIFICATE REQUEST')) {
+      return 'csr';
+    }
+    if (normalized.includes('BEGIN CERTIFICATE')) {
+      return 'certificate';
+    }
+    return 'unknown';
+  }
+
+  private submitCsr(csr: string, applyGracePeriod = true): void {
+    this.isSubmitting.set(true);
+    this.validateError.set(null);
+    this.submitError.set(null);
+
+    const gracePeriodEnd = applyGracePeriod ? this.configureForm.controls.gracePeriodEnd.value : null;
+
+    this.applicationService
+      .get(this.data.applicationId)
+      .pipe(
+        switchMap(application => this.applicationService.save({ ...application, csr })),
+        switchMap(() => this.updateActiveCertificateGracePeriod(gracePeriodEnd)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.isSubmitting.set(false);
+          this.dialogRef.close(true);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.isSubmitting.set(false);
+          if (err.status === 400) {
+            this.submitError.set($localize`:@@addCertificateCsrValidationError:Validation failed for CSR uploaded. Please try again`);
+          } else {
+            this.submitError.set($localize`:@@addCertificateCsrSubmitError:An error occurred while saving the CSR. Please try again`);
+          }
+        },
+      });
+  }
+
+  private updateActiveCertificateGracePeriod(gracePeriodEnd: Date | null) {
+    if (gracePeriodEnd && this.data.activeCertificateId) {
+      return this.certService.update(this.data.applicationId, this.data.activeCertificateId, {
+        ...(this.data.activeCertificateName ? { name: this.data.activeCertificateName } : {}),
+        endsAt: gracePeriodEnd.toISOString(),
+      });
+    }
+    return of(null);
   }
 
   private readFileAsText(file: File): Promise<string> {

@@ -18,7 +18,7 @@
 <h2 mat-dialog-title i18n="@@addCertificateDialogTitle">Add certificate</h2>
 
 <mat-dialog-content class="add-certificate-dialog__content">
-  <mat-stepper [linear]="false" animationDuration="0" #stepper>
+  <mat-stepper [linear]="false" animationDuration="0" #certificateStepper>
     <!-- Step 1: Upload -->
     <mat-step>
       <ng-template matStepLabel>
@@ -35,20 +35,20 @@
 
         <div class="add-certificate-dialog__certificate-input">
           <div class="add-certificate-dialog__section">
-            <span class="next-gen-h4" i18n="@@addCertificatePasteLabel">Paste certificate</span>
+            <span class="next-gen-h4" i18n="@@addCertificatePasteLabel">Paste certificate or CSR</span>
             <mat-form-field appearance="outline" class="add-certificate-dialog__field">
-              <mat-label i18n="@@addCertificatePemLabel">Certificate (PEM)</mat-label>
+              <mat-label i18n="@@addCertificatePemLabel">Certificate or CSR (PEM)</mat-label>
               <textarea
                 matInput
                 formControlName="certificate"
                 rows="6"
                 placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
-                aria-label="PEM certificate"
+                aria-label="PEM certificate or CSR"
                 i18n-aria-label="@@addCertificatePemAriaLabel"
                 data-testid="certificate-pem-input"
               ></textarea>
               @if (uploadForm.controls.certificate.hasError('required') && uploadForm.controls.certificate.touched) {
-                <mat-error i18n="@@addCertificatePemRequired">Certificate is required.</mat-error>
+                <mat-error i18n="@@addCertificatePemRequired">Certificate or CSR is required.</mat-error>
               }
             </mat-form-field>
           </div>
@@ -58,15 +58,15 @@
             <label class="add-certificate-dialog__file-label">
               <input
                 type="file"
-                accept=".pem,.crt,.cer"
+                accept=".pem,.crt,.cer,.csr,.req"
                 class="add-certificate-dialog__file-input"
                 (change)="onFileSelected($event)"
-                aria-label="Upload certificate file"
+                aria-label="Upload certificate or CSR file"
                 i18n-aria-label="@@addCertificateFileInputAriaLabel"
                 data-testid="certificate-file-input"
               />
               <mat-icon aria-hidden="true">upload_file</mat-icon>
-              <span i18n="@@addCertificateChooseFile">Choose file (.pem, .crt, .cer)</span>
+              <span i18n="@@addCertificateChooseFile">Choose file (.pem, .crt, .cer, .csr, .req)</span>
             </label>
           </div>
         </div>
@@ -74,6 +74,11 @@
         @if (validateError(); as validateError) {
           <p class="add-certificate-dialog__error next-gen-small" data-testid="certificate-validate-error" role="alert">
             {{ validateError }}
+          </p>
+        }
+        @if (submitError(); as submitError) {
+          <p class="add-certificate-dialog__error next-gen-small" data-testid="certificate-submit-error" role="alert">
+            {{ submitError }}
           </p>
         }
       </form>
@@ -85,20 +90,28 @@
         <span i18n="@@addCertificateStepConfigure">Configure</span>
       </ng-template>
       <form [formGroup]="configureForm" class="add-certificate-dialog__step">
-        <mat-form-field appearance="outline" class="add-certificate-dialog__field">
-          <mat-label i18n="@@addCertificateEndsAtLabel">Active until (optional)</mat-label>
-          <input matInput [matDatepicker]="endsAtPicker" [min]="minDate" formControlName="endsAt" data-testid="certificate-ends-at-input" />
-          <mat-datepicker-toggle
-            matIconSuffix
-            [for]="endsAtPicker"
-            aria-label="Open calendar"
-            i18n-aria-label="@@addCertificateEndsAtCalendarAriaLabel"
-          />
-          <mat-datepicker #endsAtPicker />
-          <mat-hint i18n="@@addCertificateEndsAtHint">When this certificate should stop being active</mat-hint>
-        </mat-form-field>
+        @if (detectedPemType() === 'certificate') {
+          <mat-form-field appearance="outline" class="add-certificate-dialog__field">
+            <mat-label i18n="@@addCertificateEndsAtLabel">Active until (optional)</mat-label>
+            <input
+              matInput
+              [matDatepicker]="endsAtPicker"
+              [min]="minDate"
+              formControlName="endsAt"
+              data-testid="certificate-ends-at-input"
+            />
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="endsAtPicker"
+              aria-label="Open calendar"
+              i18n-aria-label="@@addCertificateEndsAtCalendarAriaLabel"
+            />
+            <mat-datepicker #endsAtPicker />
+            <mat-hint i18n="@@addCertificateEndsAtHint">When this certificate should stop being active</mat-hint>
+          </mat-form-field>
+        }
 
-        @if (data.hasActiveCertificates) {
+        @if (detectedPemType() === 'certificate' && data.hasActiveCertificates) {
           <div class="add-certificate-dialog__grace-period-info">
             <mat-icon aria-hidden="true">info_outline</mat-icon>
             <span class="next-gen-small" i18n="@@addCertificateGracePeriodInfo">
@@ -142,12 +155,20 @@
       <div class="add-certificate-dialog__step">
         <div class="add-certificate-dialog__summary" data-testid="certificate-summary">
           <span class="next-gen-h5" i18n="@@addCertificateSummaryTitle">Certificate Summary</span>
-          <div class="add-certificate-dialog__summary-row">
-            <span class="next-gen-small add-certificate-dialog__summary-label" i18n="@@addCertificateSummaryNameLabel">Name:</span>
-            <span class="next-gen-small add-certificate-dialog__summary-value" data-testid="certificate-summary-name">{{
-              uploadForm.controls.name.value
-            }}</span>
-          </div>
+          @if (detectedPemType() === 'csr') {
+            <div class="add-certificate-dialog__summary-row">
+              <span class="next-gen-small add-certificate-dialog__summary-label" i18n="@@addCertificateSummaryTypeLabel">Type:</span>
+              <span class="next-gen-small add-certificate-dialog__summary-value" data-testid="certificate-summary-type">CSR</span>
+            </div>
+          }
+          @if (uploadForm.controls.name.value) {
+            <div class="add-certificate-dialog__summary-row">
+              <span class="next-gen-small add-certificate-dialog__summary-label" i18n="@@addCertificateSummaryNameLabel">Name:</span>
+              <span class="next-gen-small add-certificate-dialog__summary-value" data-testid="certificate-summary-name">{{
+                uploadForm.controls.name.value
+              }}</span>
+            </div>
+          }
           @if (configureForm.controls.endsAt.value) {
             <div class="add-certificate-dialog__summary-row">
               <span class="next-gen-small add-certificate-dialog__summary-label" i18n="@@addCertificateSummaryEndsAtLabel"
@@ -181,11 +202,11 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  @if (stepper.selectedIndex > 0) {
+  @if ((stepper()?.selectedIndex ?? 0) > 0) {
     <button
       mat-stroked-button
       type="button"
-      (click)="stepper.previous()"
+      (click)="goPrevious()"
       data-testid="certificate-previous-button"
       i18n="@@addCertificatePreviousButton"
     >
@@ -201,19 +222,19 @@
   >
     Cancel
   </button>
-  @if (stepper.selectedIndex === 0) {
+  @if ((stepper()?.selectedIndex ?? 0) === 0) {
     <button
       mat-flat-button
       color="primary"
       type="button"
-      [disabled]="isValidating()"
+      [disabled]="isValidating() || isSubmitting()"
       (click)="validateAndContinue()"
       data-testid="certificate-continue-upload-button"
       i18n="@@addCertificateContinueButton"
     >
       Continue
     </button>
-  } @else if (stepper.selectedIndex === 1) {
+  } @else if ((stepper()?.selectedIndex ?? 0) === 1) {
     <button
       mat-flat-button
       color="primary"
@@ -232,9 +253,12 @@
       [disabled]="isSubmitting()"
       (click)="onSubmit()"
       data-testid="certificate-submit-button"
-      i18n="@@addCertificateSubmitButton"
     >
-      Add Certificate
+      @if (detectedPemType() === 'csr') {
+        <span i18n="@@addCertificateSubmitCsrButton">Submit CSR</span>
+      } @else {
+        <span i18n="@@addCertificateSubmitButton">Add Certificate</span>
+      }
     </button>
   }
 </mat-dialog-actions>
