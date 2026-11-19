@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.apim.core.api.use_case.SearchApisForPortalUseCase;
 import io.gravitee.apim.core.category.use_case.GetCategoryApisUseCase;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.CategoryEntity;
@@ -60,6 +61,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -171,26 +173,11 @@ public class ApisResource extends AbstractResource<Api, String> {
         @BeanParam PaginationParam paginationParam
     ) {
         try {
-            final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-
             if (PortalApiViewParam.isDocumentationView(view)) {
-                var output = searchApisForPortalUseCase.execute(
-                    new SearchApisForPortalUseCase.Input(
-                        executionContext.getEnvironmentId(),
-                        executionContext.getOrganizationId(),
-                        getAuthenticatedUserOrNull(),
-                        query,
-                        new PageableImpl(paginationParam.getPage(), paginationParam.getSize()),
-                        null
-                    )
-                );
-                List<String> apiIds = output.apis().getContent().stream().map(io.gravitee.apim.core.api.model.Api::getId).toList();
-                Map<String, Map<String, Object>> metadata = new HashMap<>(
-                    Map.of("paginateMetaData", new HashMap<>(Map.of("totalElements", output.apis().getTotalElements())))
-                );
-                return createListResponse(executionContext, apiIds, paginationParam, metadata);
+                return searchNavigationApis(query, paginationParam, Optional.empty());
             }
 
+            final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
             Collection<String> apisList;
             if (category == null || category.isEmpty()) {
                 apisList = filteringService.searchApis(executionContext, getAuthenticatedUserOrNull(), query);
@@ -201,6 +188,27 @@ public class ApisResource extends AbstractResource<Api, String> {
         } catch (TechnicalException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e).build();
         }
+    }
+
+    /** Searches the APIs reachable from the portal navigation: of the whole environment, or of one portal when scoped. */
+    Response searchNavigationApis(String query, PaginationParam paginationParam, Optional<PortalId> portalId) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        var output = searchApisForPortalUseCase.execute(
+            new SearchApisForPortalUseCase.Input(
+                executionContext.getEnvironmentId(),
+                executionContext.getOrganizationId(),
+                getAuthenticatedUserOrNull(),
+                query,
+                new PageableImpl(paginationParam.getPage(), paginationParam.getSize()),
+                null,
+                portalId
+            )
+        );
+        List<String> apiIds = output.apis().getContent().stream().map(io.gravitee.apim.core.api.model.Api::getId).toList();
+        Map<String, Map<String, Object>> metadata = new HashMap<>(
+            Map.of("paginateMetaData", new HashMap<>(Map.of("totalElements", output.apis().getTotalElements())))
+        );
+        return createListResponse(executionContext, apiIds, paginationParam, metadata);
     }
 
     @Path("{apiId}")

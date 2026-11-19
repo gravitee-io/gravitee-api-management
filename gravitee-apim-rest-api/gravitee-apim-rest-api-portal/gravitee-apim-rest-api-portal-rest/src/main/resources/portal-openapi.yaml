@@ -4647,6 +4647,40 @@ paths:
                 500:
                     $ref: "#/components/responses/InternalServerError"
 
+    /portal/{portalId}/apis/_search:
+        parameters:
+            - $ref: "#/components/parameters/portalIdParam"
+        post:
+            tags:
+                - Api
+            parameters:
+                - $ref: "#/components/parameters/pageNumberParam"
+                - $ref: "#/components/parameters/pageSizeParam"
+                - $ref: "#/components/parameters/apiQueryParam"
+            summary: Search the APIs of a portal with a query
+            description: |
+                Same as `/apis/_search` with `view=documentation`, limited to the APIs reachable from the navigation of the given portal.
+                The visibility rules of the documentation view always apply; a `view` parameter is ignored.
+                Supports pagination.
+                When the fuzzy search is enabled, minor typos in the query may still match.
+            operationId: searchApisForPortal
+            x-gravitee-portal: next
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    description: Search the APIs of the portal accessible to the current user
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApisResponse"
+                404:
+                    $ref: "#/components/responses/PortalNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+
 components:
     requestBodies:
         pictureUpdateInputBody:

@@ -28,4 +28,9 @@ public class PortalResource extends AbstractResource {
     public PortalNavigationItemsResource getPortalNavigationItemsResource() {
         return resourceContext.getResource(PortalNavigationItemsResource.class);
     }
+
+    @Path("apis")
+    public PortalApisResource getPortalApisResource() {
+        return resourceContext.getResource(PortalApisResource.class);
+    }
 }
