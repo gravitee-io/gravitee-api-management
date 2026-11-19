@@ -25,6 +25,7 @@ import io.gravitee.apim.core.cluster.domain_service.ClusterInUseDomainService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
 import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
+import io.gravitee.apim.core.cluster.service_provider.ClusterSecretResolver;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.Map;
@@ -37,6 +38,7 @@ public class DeleteClusterUseCase {
     private final ClusterCrudService clusterCrudService;
     private final AuditDomainService auditService;
     private final ClusterInUseDomainService clusterInUseDomainService;
+    private final ClusterSecretResolver clusterSecretResolver;
 
     public record Input(String clusterId, AuditInfo auditInfo) {}
 
@@ -52,6 +54,7 @@ public class DeleteClusterUseCase {
         clusterInUseDomainService.checkNotUsed(cluster, input.auditInfo.environmentId(), "delete");
 
         clusterCrudService.delete(input.clusterId, input.auditInfo.environmentId());
+        clusterSecretResolver.revoke(input.clusterId);
 
         createAuditLog(input.clusterId, input.auditInfo());
 
