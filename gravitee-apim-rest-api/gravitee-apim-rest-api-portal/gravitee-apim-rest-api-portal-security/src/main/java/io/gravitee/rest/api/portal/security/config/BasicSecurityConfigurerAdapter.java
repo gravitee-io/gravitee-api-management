@@ -61,8 +61,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.session.DisableEncodeUrlFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+import org.springframework.web.filter.UrlHandlerFilter;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -173,6 +175,9 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
         authorizations(http);
         cors(http);
         configure(http, environment, cookieCsrfSignedTokenRepository());
+
+        // Jersey serves "/x/" as "/x" but the Ant request matchers do not match it, so trim the slash before any matcher runs.
+        http.addFilterBefore(UrlHandlerFilter.trailingSlashHandler("/**").wrapRequest().build(), DisableEncodeUrlFilter.class);
 
         http.addFilterBefore(
             new TokenAuthenticationFilter(jwtSecret, cookieGenerator, null, null, authoritiesProvider),
