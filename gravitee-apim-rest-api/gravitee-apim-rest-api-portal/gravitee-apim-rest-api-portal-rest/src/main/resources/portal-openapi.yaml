@@ -4297,6 +4297,7 @@ paths:
             x-gravitee-portal: next
             description: |
                 Get all the navigation items to be displayed in given area.
+                Without a portal in the path, the environment's default portal is read (its only portal when it has no default one).
             security:
                 - {}
                 - BasicAuth: []
@@ -4323,6 +4324,10 @@ paths:
             responses:
                 200:
                     $ref: "#/components/responses/PortalNavigationItemsSuccess"
+                400:
+                    $ref: "#/components/responses/BadRequestError"
+                404:
+                    $ref: "#/components/responses/PortalNotFoundError"
                 500:
                     $ref: "#/components/responses/InternalServerError"
 
@@ -4332,6 +4337,7 @@ paths:
                 - Portal
             summary: Search portal navigation items.
             description: |
+                Without a portal in the path, the environment's default portal is read (its only portal when it has no default one).
                 When the fuzzy search is enabled, minor typos in the query may still match.
                 For `type=catalog`, an API is returned as a standalone catalog result only when its navigation item has no `API_PRODUCT` ancestor.
                 APIs within an API Product navigation subtree remain available for the API Product summary and documentation tree.
@@ -4389,6 +4395,8 @@ paths:
                                 $ref: "#/components/schemas/PortalNavigationItemsSearchResponse"
                 400:
                     $ref: "#/components/responses/BadRequestError"
+                404:
+                    $ref: "#/components/responses/PortalNotFoundError"
                 500:
                     $ref: "#/components/responses/InternalServerError"
 
@@ -4408,6 +4416,7 @@ paths:
             x-gravitee-portal: next
             description: |
                 Get a specific portal navigation item by its ID.
+                Without a portal in the path, the environment's default portal is read (its only portal when it has no default one).
             security:
                 - {}
                 - BasicAuth: []
@@ -4415,8 +4424,10 @@ paths:
             responses:
                 200:
                     $ref: "#/components/responses/PortalNavigationItemSuccess"
+                400:
+                    $ref: "#/components/responses/BadRequestError"
                 404:
-                    $ref: "#/components/responses/PortalNavigationItemNotFoundError"
+                    $ref: "#/components/responses/PortalOrNavigationItemNotFoundError"
                 500:
                     $ref: "#/components/responses/InternalServerError"
 
@@ -4437,6 +4448,7 @@ paths:
             description: |
                 Get a specific portal navigation item's content by its ID.
                 Only portal navigation items of type 'PAGE' have content.
+                Without a portal in the path, the environment's default portal is read (its only portal when it has no default one).
             security:
                 - {}
                 - BasicAuth: []
@@ -4445,13 +4457,193 @@ paths:
                 200:
                     $ref: "#/components/responses/PortalNavigationItemContentSuccess"
                 400:
-                    description: The portal navigation item is not of type 'PAGE'.
+                    description: The portal navigation item id is malformed, or the item is not of type 'PAGE'.
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ErrorResponse"
                 404:
-                    $ref: "#/components/responses/PortalNavigationItemNotFoundError"
+                    $ref: "#/components/responses/PortalOrNavigationItemNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+
+    /portal/{portalId}/portal-navigation-items:
+        parameters:
+            - $ref: "#/components/parameters/portalIdParam"
+        get:
+            tags:
+                - Portal
+            summary: Get the navigation items of a portal.
+            operationId: getPortalNavigationItemsForPortal
+            x-gravitee-portal: next
+            description: |
+                Get the navigation items of the given portal to be displayed in given area, the homepage included.
+                Items of other portals are never returned.
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            parameters:
+                - name: area
+                  in: query
+                  required: true
+                  description: The area of the navigation items (e.g., 'APPLICATION', 'API', etc.)
+                  schema:
+                      $ref: "#/components/schemas/PortalArea"
+                - name: parentId
+                  in: query
+                  required: false
+                  description: The parent ID to filter navigation items. It must belong to the portal.
+                  schema:
+                      type: string
+                - name: loadChildren
+                  in: query
+                  required: false
+                  description: Whether to load child navigation items.
+                  schema:
+                      type: boolean
+            responses:
+                200:
+                    $ref: "#/components/responses/PortalNavigationItemsSuccess"
+                400:
+                    $ref: "#/components/responses/BadRequestError"
+                404:
+                    $ref: "#/components/responses/PortalOrNavigationItemNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+
+    /portal/{portalId}/portal-navigation-items/_search:
+        parameters:
+            - $ref: "#/components/parameters/portalIdParam"
+        get:
+            tags:
+                - Portal
+            summary: Search the navigation items of a portal.
+            description: |
+                Same search as `/portal-navigation-items/_search`, limited to the API and API Product navigation items of the given portal.
+            operationId: searchPortalNavigationItemsForPortal
+            x-gravitee-portal: next
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            parameters:
+                - name: query
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                - name: type
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                      enum:
+                          - api
+                          - catalog
+                - name: include
+                  in: query
+                  required: false
+                  schema:
+                      type: array
+                      items:
+                          $ref: "#/components/schemas/PortalNavigationSearchInclude"
+                - name: categoryId
+                  in: query
+                  required: false
+                  description: Filter results to navigation items belonging to the given category.
+                  schema:
+                      type: string
+                - name: page
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+                      default: 1
+                - name: size
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+                      default: 10
+            responses:
+                200:
+                    description: Search results
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PortalNavigationItemsSearchResponse"
+                400:
+                    $ref: "#/components/responses/BadRequestError"
+                404:
+                    $ref: "#/components/responses/PortalNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+
+    /portal/{portalId}/portal-navigation-items/{portalNavigationItemId}:
+        parameters:
+            - $ref: "#/components/parameters/portalIdParam"
+            - name: portalNavigationItemId
+              in: path
+              required: true
+              description: Id of a portal navigation item.
+              schema:
+                  type: string
+        get:
+            tags:
+                - Portal
+            summary: Get a navigation item of a portal by its ID.
+            operationId: getPortalNavigationItemByIdForPortal
+            x-gravitee-portal: next
+            description: |
+                Get a navigation item of the given portal by its ID.
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    $ref: "#/components/responses/PortalNavigationItemSuccess"
+                400:
+                    $ref: "#/components/responses/BadRequestError"
+                404:
+                    $ref: "#/components/responses/PortalOrNavigationItemNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+
+    /portal/{portalId}/portal-navigation-items/{portalNavigationItemId}/content:
+        parameters:
+            - $ref: "#/components/parameters/portalIdParam"
+            - name: portalNavigationItemId
+              in: path
+              required: true
+              description: Id of a portal navigation item.
+              schema:
+                  type: string
+        get:
+            tags:
+                - Portal
+            summary: Get the content of a navigation item of a portal by its ID.
+            operationId: getPortalNavigationItemContentByIdForPortal
+            x-gravitee-portal: next
+            description: |
+                Get the content of a navigation item of the given portal by its ID.
+                Only portal navigation items of type 'PAGE' have content.
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    $ref: "#/components/responses/PortalNavigationItemContentSuccess"
+                400:
+                    description: The portal navigation item id is malformed, or the item is not of type 'PAGE'.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                404:
+                    $ref: "#/components/responses/PortalOrNavigationItemNotFoundError"
                 500:
                     $ref: "#/components/responses/InternalServerError"
 
@@ -4483,6 +4675,14 @@ components:
             description: Id of an API.
             schema:
                 type: string
+        portalIdParam:
+            name: portalId
+            in: path
+            required: true
+            description: Id of a portal of the environment, a UUID.
+            schema:
+                type: string
+                format: uuid
         apiProductIdParam:
             name: apiProductId
             in: path
@@ -9363,8 +9563,14 @@ components:
                 application/json:
                     schema:
                         $ref: "#/components/schemas/ErrorResponse"
-        PortalNavigationItemNotFoundError:
-            description: Portal navigation item not found
+        PortalNotFoundError:
+            description: Portal not found in the environment
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/ErrorResponse"
+        PortalOrNavigationItemNotFoundError:
+            description: Portal not found in the environment, or navigation item not found in the portal
             content:
                 application/json:
                     schema:

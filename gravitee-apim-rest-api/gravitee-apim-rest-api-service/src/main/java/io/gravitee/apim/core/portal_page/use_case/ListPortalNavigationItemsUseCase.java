@@ -18,6 +18,8 @@ package io.gravitee.apim.core.portal_page.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemReadDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -32,11 +34,23 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ListPortalNavigationItemsUseCase {
 
+    private final PortalNavigationAccessDomainService accessService;
     private final PortalNavigationItemReadDomainService reader;
 
     public Output execute(Input input) {
+        var scope = accessService.resolveScope(input.organizationId(), input.environmentId(), input.portalId());
+        if (input.parentId().isPresent()) {
+            var parentId = input.parentId().get();
+            if (input.portalId().isPresent()) {
+                accessService.requireItem(input.organizationId(), input.environmentId(), scope, parentId);
+            } else if (!accessService.belongsTo(input.organizationId(), input.environmentId(), scope, parentId)) {
+                // The paths that name no portal keep answering an unknown parent, or one outside the default portal, with an empty list.
+                return new Output(List.of(), Map.of());
+            }
+        }
         var criteria = PortalNavigationItemQueryCriteria.builder()
             .environmentId(input.environmentId())
+            .reference(scope)
             .area(input.portalArea())
             .parentId(input.parentId().orElse(null))
             .build();
@@ -56,6 +70,7 @@ public class ListPortalNavigationItemsUseCase {
         Optional<PortalNavigationItemId> parentId,
         boolean loadChildren,
         PortalNavigationItemViewerContext viewerContext,
-        boolean includeApis
+        boolean includeApis,
+        Optional<PortalId> portalId
     ) {}
 }

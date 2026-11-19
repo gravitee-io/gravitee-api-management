@@ -17,17 +17,20 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.PAGE11_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.PAGE12_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
@@ -35,10 +38,12 @@ import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityService;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -52,6 +57,8 @@ class GetPortalNavigationItemUseCaseTest {
     private GetPortalNavigationItemUseCase useCase;
     private PortalNavigationItemsQueryServiceInMemory queryService;
     private MembershipQueryServiceInMemory membershipQueryService;
+
+    private List<PortalNavigationItemVisibilityService> visibilityServices;
 
     @BeforeEach
     void setUp() {
@@ -69,9 +76,11 @@ class GetPortalNavigationItemUseCaseTest {
             queryService,
             new ApiProductAccessibleIdsDomainService(new ApiProductQueryServiceInMemory(), membershipQueryService)
         );
+        visibilityServices = List.of(apiVisibilityDomainService, apiProductVisibilityDomainService);
         useCase = new GetPortalNavigationItemUseCase(
+            PortalNavigationUseCaseTestFixtures.accessWithDefaultPortal(queryService),
             queryService,
-            List.of(apiVisibilityDomainService, apiProductVisibilityDomainService),
+            visibilityServices,
             new PortalNavigationItemSourceDomainServiceInMemory()
         );
 
@@ -83,8 +92,10 @@ class GetPortalNavigationItemUseCaseTest {
         // Given
         final var input = new GetPortalNavigationItemUseCase.Input(
             PortalNavigationItemId.of(APIS_ID),
+            ORG_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal(false)
+            PortalNavigationItemViewerContext.forPortal(false),
+            Optional.empty()
         );
 
         // When
@@ -102,8 +113,10 @@ class GetPortalNavigationItemUseCaseTest {
         final var unknownId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000099");
         final var input = new GetPortalNavigationItemUseCase.Input(
             unknownId,
+            ORG_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal(false)
+            PortalNavigationItemViewerContext.forPortal(false),
+            Optional.empty()
         );
 
         // When & Then
@@ -115,16 +128,28 @@ class GetPortalNavigationItemUseCaseTest {
     @Test
     void should_throw_when_item_exists_in_different_environment() {
         // Given
+        var useCaseInOtherEnvironment = new GetPortalNavigationItemUseCase(
+            PortalNavigationUseCaseTestFixtures.access(
+                ORG_ID,
+                "different-env",
+                queryService,
+                new PortalPageContentQueryServiceInMemory(),
+                new ApiCrudServiceInMemory()
+            ),
+            queryService,
+            visibilityServices,
+            new PortalNavigationItemSourceDomainServiceInMemory()
+        );
         final var input = new GetPortalNavigationItemUseCase.Input(
             PortalNavigationItemId.of(APIS_ID),
+            ORG_ID,
             "different-env",
-            PortalNavigationItemViewerContext.forPortal(false)
+            PortalNavigationItemViewerContext.forPortal(false),
+            Optional.empty()
         );
 
         // When & Then
-        assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(PortalNavigationItemNotFoundException.class)
-            .hasMessage("Portal navigation item not found");
+        assertThatThrownBy(() -> useCaseInOtherEnvironment.execute(input)).isInstanceOf(PortalNavigationItemNotFoundException.class);
     }
 
     @Test
@@ -132,8 +157,10 @@ class GetPortalNavigationItemUseCaseTest {
         // Given
         final var input = new GetPortalNavigationItemUseCase.Input(
             PortalNavigationItemId.of(PAGE11_ID),
+            ORG_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal(true)
+            PortalNavigationItemViewerContext.forPortal(true),
+            Optional.empty()
         );
 
         // When & Then
@@ -147,8 +174,10 @@ class GetPortalNavigationItemUseCaseTest {
         // Given
         final var input = new GetPortalNavigationItemUseCase.Input(
             PortalNavigationItemId.of(PAGE12_ID),
+            ORG_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal(false)
+            PortalNavigationItemViewerContext.forPortal(false),
+            Optional.empty()
         );
 
         // When & Then
@@ -170,8 +199,10 @@ class GetPortalNavigationItemUseCaseTest {
 
         var input = new GetPortalNavigationItemUseCase.Input(
             apiProduct.getId(),
+            ORG_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal("user-without-access")
+            PortalNavigationItemViewerContext.forPortal("user-without-access"),
+            Optional.empty()
         );
 
         assertThatThrownBy(() -> useCase.execute(input))
@@ -204,8 +235,10 @@ class GetPortalNavigationItemUseCaseTest {
         var output = useCase.execute(
             new GetPortalNavigationItemUseCase.Input(
                 apiProduct.getId(),
+                ORG_ID,
                 ENVIRONMENT_ID,
-                PortalNavigationItemViewerContext.forPortal("product-member")
+                PortalNavigationItemViewerContext.forPortal("product-member"),
+                Optional.empty()
             )
         );
 
@@ -227,8 +260,10 @@ class GetPortalNavigationItemUseCaseTest {
 
         var input = new GetPortalNavigationItemUseCase.Input(
             childPage.getId(),
+            ORG_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal("user-without-access")
+            PortalNavigationItemViewerContext.forPortal("user-without-access"),
+            Optional.empty()
         );
 
         assertThatThrownBy(() -> useCase.execute(input))

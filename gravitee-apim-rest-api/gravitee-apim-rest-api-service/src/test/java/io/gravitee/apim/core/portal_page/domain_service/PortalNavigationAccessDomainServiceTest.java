@@ -38,10 +38,12 @@ import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
+import io.gravitee.apim.core.portal.exception.DefaultPortalNotFoundException;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
@@ -165,6 +167,80 @@ class PortalNavigationAccessDomainServiceTest {
         assertThatThrownBy(() -> service.requireItem(ORG_ID, ENV_ID, PORTAL, page.getId())).isInstanceOf(
             PortalNavigationItemNotFoundException.class
         );
+    }
+
+    @Nested
+    class ResolveScope {
+
+        @Test
+        void should_keep_a_given_portal_of_the_environment() {
+            assertThat(service.resolveScope(ORG_ID, ENV_ID, Optional.of(PORTAL_ID))).isEqualTo(PORTAL);
+        }
+
+        @Test
+        void should_hide_a_given_unknown_portal() {
+            assertThatThrownBy(() -> service.resolveScope(ORG_ID, ENV_ID, Optional.of(OTHER_PORTAL_ID))).isInstanceOf(
+                PortalNotFoundException.class
+            );
+        }
+
+        @Test
+        void should_use_the_default_portal_when_none_is_given() throws Exception {
+            when(portals.findByEnvironmentId(ENV_ID)).thenReturn(
+                List.of(aPortal(OTHER_PORTAL_ID, ORG_ID, false), aPortal(PORTAL_ID, ORG_ID, true))
+            );
+
+            assertThat(service.resolveScope(ORG_ID, ENV_ID, Optional.empty())).isEqualTo(PORTAL);
+        }
+
+        @Test
+        void should_use_the_only_portal_when_none_is_given_and_it_is_not_the_default_one() throws Exception {
+            when(portals.findByEnvironmentId(ENV_ID)).thenReturn(List.of(aPortal(OTHER_PORTAL_ID, ORG_ID, false)));
+
+            assertThat(service.resolveScope(ORG_ID, ENV_ID, Optional.empty())).isEqualTo(OTHER_PORTAL);
+        }
+
+        @Test
+        void should_fail_when_none_is_given_and_the_environment_has_no_default_portal() throws Exception {
+            when(portals.findByEnvironmentId(ENV_ID)).thenReturn(
+                List.of(aPortal(PORTAL_ID, ORG_ID, false), aPortal(OTHER_PORTAL_ID, ORG_ID, false))
+            );
+
+            assertThatThrownBy(() -> service.resolveScope(ORG_ID, ENV_ID, Optional.empty())).isInstanceOf(
+                DefaultPortalNotFoundException.class
+            );
+        }
+
+        @Test
+        void should_fail_when_none_is_given_and_the_environment_has_no_portal() {
+            when(portals.findByEnvironmentId(ENV_ID)).thenReturn(List.of());
+
+            assertThatThrownBy(() -> service.resolveScope(ORG_ID, ENV_ID, Optional.empty())).isInstanceOf(
+                DefaultPortalNotFoundException.class
+            );
+        }
+
+        @Test
+        void should_fail_when_none_is_given_and_the_default_portal_belongs_to_another_organization() throws Exception {
+            when(portals.findByEnvironmentId(ENV_ID)).thenReturn(List.of(aPortal(PORTAL_ID, "other-org", true)));
+
+            assertThatThrownBy(() -> service.resolveScope(ORG_ID, ENV_ID, Optional.empty())).isInstanceOf(
+                DefaultPortalNotFoundException.class
+            );
+        }
+
+        private static Portal aPortal(PortalId id, String organizationId, boolean defaultPortal) throws Exception {
+            return Portal.of(
+                id,
+                ENV_ID,
+                organizationId,
+                "Portal",
+                PortalNavigationStructure.empty(),
+                null,
+                defaultPortal,
+                URI.create("https://portal.example.test").toURL()
+            );
+        }
     }
 
     @Test

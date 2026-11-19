@@ -16,7 +16,9 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.ContentRenderer;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityEvaluator;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
@@ -39,18 +41,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class GetPortalPageContentByNavigationIdUseCase {
 
+    private final PortalNavigationAccessDomainService accessService;
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
     private final PortalPageContentQueryService portalPageContentQueryService;
     private final List<PortalNavigationItemVisibilityService> visibilityServices;
     private final List<ContentRenderer> contentRenderers;
 
     public Output execute(Input input) {
-        final var portalNavigationItem = Optional.ofNullable(
-            portalNavigationItemsQueryService.findByIdAndEnvironmentId(
-                input.environmentId(),
-                PortalNavigationItemId.of(input.portalNavigationItemId())
-            )
-        ).orElseThrow(() -> new PortalNavigationItemNotFoundException(input.portalNavigationItemId()));
+        final var portalNavigationItem = findItem(input);
 
         input.viewerContext().validateAccess(portalNavigationItem);
 
@@ -85,11 +83,17 @@ public class GetPortalPageContentByNavigationIdUseCase {
         return new Output(rendered, portalNavigationItem);
     }
 
+    private PortalNavigationItem findItem(Input input) {
+        var scope = accessService.resolveScope(input.organizationId(), input.environmentId(), input.portalId());
+        return accessService.requireItem(input.organizationId(), input.environmentId(), scope, input.portalNavigationItemId());
+    }
+
     public record Input(
-        String portalNavigationItemId,
+        PortalNavigationItemId portalNavigationItemId,
         String organizationId,
         String environmentId,
-        PortalNavigationItemViewerContext viewerContext
+        PortalNavigationItemViewerContext viewerContext,
+        Optional<PortalId> portalId
     ) {}
 
     public record Output(RenderedPageContent renderedContent, PortalNavigationItem portalNavigationItem) {}

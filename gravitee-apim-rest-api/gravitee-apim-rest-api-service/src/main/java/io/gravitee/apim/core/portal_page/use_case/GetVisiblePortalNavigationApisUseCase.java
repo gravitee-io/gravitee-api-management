@@ -20,7 +20,9 @@ import static java.util.stream.Collectors.toSet;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.query_service.ApiPortalSearchQueryService;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.CheckTypoToleranceDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude;
@@ -35,18 +37,19 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class GetVisiblePortalNavigationApisUseCase {
 
+    private final PortalNavigationAccessDomainService accessService;
     private final PortalNavigationApiVisibilityDomainService visibilityDomainService;
     private final ApiPortalSearchQueryService apiPortalSearchQueryService;
     private final CheckTypoToleranceDomainService checkTypoToleranceDomainService;
 
     public Output execute(Input input) {
-        String categoryId = input.categoryId().orElse(null);
-        List<PortalNavigationApi> visible;
-        if (input.userId().isPresent()) {
-            visible = visibilityDomainService.resolveVisibleItems(input.environmentId(), input.userId().get(), categoryId);
-        } else {
-            visible = visibilityDomainService.resolveVisiblePublicItems(input.environmentId(), categoryId);
-        }
+        var scope = accessService.resolveScope(input.organizationId(), input.environmentId(), input.portalId());
+        List<PortalNavigationApi> visible = visibilityDomainService.resolveVisibleItems(
+            input.environmentId(),
+            scope,
+            input.userId().orElse(null),
+            input.categoryId().orElse(null)
+        );
 
         List<Api> searchedApis = List.of();
         Optional<String> queryText = input.query().filter(q -> !q.isBlank());
@@ -108,7 +111,8 @@ public class GetVisiblePortalNavigationApisUseCase {
         Pageable pageable,
         Optional<String> query,
         Set<PortalNavigationSearchInclude> includes,
-        Optional<String> categoryId
+        Optional<String> categoryId,
+        Optional<PortalId> portalId
     ) {}
 
     public record Output(Page<PortalNavigationApi> apis, List<Api> includedApis) {}

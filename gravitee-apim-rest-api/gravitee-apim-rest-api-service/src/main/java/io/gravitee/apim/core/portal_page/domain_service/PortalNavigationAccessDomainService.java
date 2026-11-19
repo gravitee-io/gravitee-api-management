@@ -20,7 +20,9 @@ import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
+import io.gravitee.apim.core.portal.exception.DefaultPortalNotFoundException;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
+import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
@@ -283,6 +285,25 @@ public class PortalNavigationAccessDomainService {
         }
     }
 
+    /**
+     * The portal a Portal API read is scoped to.
+     *
+     * @param portalId the portal the request names; empty on the paths that name none, which serve the default portal
+     * @throws PortalNotFoundException when the given portal is not one of the environment's
+     * @throws DefaultPortalNotFoundException when no portal is given and the environment has neither a default nor a single portal
+     */
+    public NavigationItemReference.PortalReference resolveScope(String organizationId, String environmentId, Optional<PortalId> portalId) {
+        if (portalId.isPresent()) {
+            var scope = new NavigationItemReference.PortalReference(portalId.get());
+            requireScope(organizationId, environmentId, scope);
+            return scope;
+        }
+        return Portal.defaultOrOnly(portalCrudService.findByEnvironmentId(environmentId))
+            .filter(portal -> organizationId.equals(portal.getOrganizationId()))
+            .map(portal -> new NavigationItemReference.PortalReference(portal.getId()))
+            .orElseThrow(() -> new DefaultPortalNotFoundException(environmentId));
+    }
+
     public void requireScope(String organizationId, String environmentId, NavigationItemReference scope) {
         switch (Objects.requireNonNull(scope, "scope")) {
             case NavigationItemReference.PortalReference portal -> portalCrudService
@@ -294,6 +315,21 @@ public class PortalNavigationAccessDomainService {
                 .filter(found -> environmentId.equals(found.getEnvironmentId()))
                 .orElseThrow(() -> new ApiNotFoundException(api.apiId()));
         }
+    }
+
+    /**
+     * Whether the item belongs to the scope: the scope owns it, or it is API documentation reachable from the scope. Unlike
+     * {@link #requireItem}, the ancestry of an item the scope owns is not checked, so a read keeps reporting a broken one itself.
+     */
+    public boolean belongsTo(String organizationId, String environmentId, NavigationItemReference scope, PortalNavigationItemId itemId) {
+        var item = navigationItemsQueryService.findByIdAndEnvironmentId(environmentId, itemId);
+        if (item == null) {
+            return false;
+        }
+        if (item.getReference() instanceof NavigationItemReference.ApiReference) {
+            return isAccessible(organizationId, environmentId, scope, item);
+        }
+        return scope.equals(item.getReference());
     }
 
     public PortalNavigationItem requireItem(

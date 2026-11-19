@@ -19,6 +19,7 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
@@ -56,35 +57,41 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
      * Resolves visible APIs for unauthenticated portal access where only public APIs should be exposed.
      */
     public List<PortalNavigationApi> resolveVisibleItems(String environmentId) {
-        return resolveVisiblePublicItems(environmentId, null);
-    }
-
-    /**
-     * Resolves visible APIs for unauthenticated portal access, restricted to a single category, where only
-     * public APIs should be exposed. Unlike {@link #resolveVisibleItems(String, String, String)}, this performs
-     * no membership/subscription lookups since there is no authenticated user to check access for.
-     */
-    public List<PortalNavigationApi> resolveVisiblePublicItems(String environmentId, @Nullable String categoryId) {
-        return fetchApiItems(environmentId, categoryId)
-            .stream()
-            .filter(i -> PortalVisibility.PUBLIC.equals(i.getVisibility()))
-            .toList();
+        return onlyPublic(fetchApiItems(environmentId, null, null));
     }
 
     /**
      * Enforces portal navigation access control by filtering APIs based on visibility rules and user permissions.
      */
     public List<PortalNavigationApi> resolveVisibleItems(String environmentId, String userId) {
-        return resolveVisibleItems(environmentId, userId, null);
+        return visibleTo(userId, fetchApiItems(environmentId, null, null));
     }
 
     /**
-     * Enforces portal navigation access control by filtering APIs based on visibility rules and user permissions,
-     * optionally restricted to a single category.
+     * The API listings of one portal that the viewer may see, optionally restricted to a single category. Visibility is
+     * decided on that portal's listings only: an API listed publicly by another portal stays hidden here when this
+     * portal lists it as private.
+     *
+     * @param userId the authenticated viewer, or null for an anonymous one, who sees public listings only
      */
-    public List<PortalNavigationApi> resolveVisibleItems(String environmentId, String userId, @Nullable String categoryId) {
-        List<PortalNavigationApi> apiItems = fetchApiItems(environmentId, categoryId);
+    public List<PortalNavigationApi> resolveVisibleItems(
+        String environmentId,
+        NavigationItemReference.PortalReference portal,
+        @Nullable String userId,
+        @Nullable String categoryId
+    ) {
+        var portalItems = fetchApiItems(environmentId, portal, categoryId);
+        return userId == null ? onlyPublic(portalItems) : visibleTo(userId, portalItems);
+    }
 
+    private static List<PortalNavigationApi> onlyPublic(List<PortalNavigationApi> apiItems) {
+        return apiItems
+            .stream()
+            .filter(i -> PortalVisibility.PUBLIC.equals(i.getVisibility()))
+            .toList();
+    }
+
+    private List<PortalNavigationApi> visibleTo(String userId, List<PortalNavigationApi> apiItems) {
         Set<String> publicIds = new HashSet<>();
         Set<String> privateIds = new HashSet<>();
         for (PortalNavigationApi item : apiItems) {
@@ -105,12 +112,17 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
             .toList();
     }
 
-    private List<PortalNavigationApi> fetchApiItems(String environmentId, @Nullable String categoryId) {
+    private List<PortalNavigationApi> fetchApiItems(
+        String environmentId,
+        @Nullable NavigationItemReference reference,
+        @Nullable String categoryId
+    ) {
         PortalCategoryId parsedCategoryId = categoryId != null ? PortalCategoryId.of(categoryId) : null;
         return queryService
             .search(
                 PortalNavigationItemQueryCriteria.builder()
                     .environmentId(environmentId)
+                    .reference(reference)
                     .published(true)
                     .root(false)
                     .type(PortalNavigationItemType.API)

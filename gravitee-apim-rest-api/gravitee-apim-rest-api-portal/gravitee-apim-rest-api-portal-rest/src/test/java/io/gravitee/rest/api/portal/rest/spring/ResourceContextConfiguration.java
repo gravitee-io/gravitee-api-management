@@ -1334,6 +1334,7 @@ public class ResourceContextConfiguration {
 
     @Bean
     public ListPortalNavigationItemsUseCase listPortalNavigationItemsUseCase(
+        PortalNavigationAccessDomainService portalNavigationAccessDomainService,
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
         PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService,
         PortalNavigationApiProductVisibilityDomainService portalNavigationApiProductVisibilityDomainService,
@@ -1341,6 +1342,7 @@ public class ResourceContextConfiguration {
         PortalNavigationItemCrudService portalNavigationItemCrudService
     ) {
         return new ListPortalNavigationItemsUseCase(
+            portalNavigationAccessDomainService,
             new PortalNavigationItemReadDomainService(
                 portalNavigationItemsQueryService,
                 List.of(portalNavigationApiVisibilityDomainService, portalNavigationApiProductVisibilityDomainService),
@@ -1418,11 +1420,13 @@ public class ResourceContextConfiguration {
 
     @Bean
     public GetVisiblePortalNavigationApisUseCase getVisiblePortalNavigationApisUseCase(
+        PortalNavigationAccessDomainService portalNavigationAccessDomainService,
         PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService,
         ApiPortalSearchQueryServiceInMemory apiPortalSearchQueryService,
         CheckTypoToleranceDomainService checkTypoToleranceDomainService
     ) {
         return new GetVisiblePortalNavigationApisUseCase(
+            portalNavigationAccessDomainService,
             portalNavigationApiVisibilityDomainService,
             apiPortalSearchQueryService,
             checkTypoToleranceDomainService
@@ -1431,6 +1435,7 @@ public class ResourceContextConfiguration {
 
     @Bean
     public GetVisiblePortalCatalogItemsUseCase getVisiblePortalCatalogItemsUseCase(
+        PortalNavigationAccessDomainService portalNavigationAccessDomainService,
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
         PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService,
         PortalNavigationApiProductVisibilityDomainService portalNavigationApiProductVisibilityDomainService,
@@ -1441,6 +1446,7 @@ public class ResourceContextConfiguration {
         CheckTypoToleranceDomainService checkTypoToleranceDomainService
     ) {
         return new GetVisiblePortalCatalogItemsUseCase(
+            portalNavigationAccessDomainService,
             portalNavigationItemsQueryService,
             portalNavigationApiVisibilityDomainService,
             portalNavigationApiProductVisibilityDomainService,

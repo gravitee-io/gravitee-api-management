@@ -17,8 +17,10 @@ package io.gravitee.apim.core.portal.model;
 
 import jakarta.annotation.Nonnull;
 import java.net.URL;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Predicate;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -123,6 +125,18 @@ public class Portal {
         }
         var needle = query.strip().toLowerCase(Locale.ROOT);
         return portal -> portal.getName().toLowerCase(Locale.ROOT).contains(needle);
+    }
+
+    /**
+     * @param environmentPortals all the portals of one environment
+     * @return its default portal, else its only portal: an environment managed by automation has no default one
+     */
+    public static Optional<Portal> defaultOrOnly(List<Portal> environmentPortals) {
+        return environmentPortals
+            .stream()
+            .filter(Portal::isDefault)
+            .findFirst()
+            .or(() -> environmentPortals.size() == 1 ? Optional.of(environmentPortals.getFirst()) : Optional.empty());
     }
 
     public boolean isDefault() {

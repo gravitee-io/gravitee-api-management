@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 
 import fixtures.core.model.PortalPageContentFixtures;
+import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.portal.model.PortalArea;
@@ -50,6 +51,9 @@ public class PortalNavigationItemResourceNotAuthenticatedTest extends AbstractRe
     private PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService;
 
     @Autowired
+    private PortalCrudServiceInMemory portalCrudService;
+
+    @Autowired
     private PortalPageContentQueryServiceInMemory portalPageContentQueryService;
 
     @Autowired
@@ -68,6 +72,7 @@ public class PortalNavigationItemResourceNotAuthenticatedTest extends AbstractRe
     @BeforeEach
     public void init() {
         GraviteeContext.setCurrentEnvironment(ENV_ID);
+        PortalNavigationFixtures.givenDefaultPortal(portalCrudService, ENV_ID);
         doAnswer(invocation -> {
             var in = (PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput) invocation.getArgument(0);
             return RenderedPageContent.of(
@@ -82,6 +87,7 @@ public class PortalNavigationItemResourceNotAuthenticatedTest extends AbstractRe
     @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
+        portalCrudService.reset();
         portalNavigationItemsQueryService.reset();
         portalPageContentQueryService.reset();
     }

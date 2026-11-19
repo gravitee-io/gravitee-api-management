@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.PAGE11_CONTENT_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.PAGE11_ID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,6 +42,7 @@ import inmemory.SubscriptionQueryServiceInMemory;
 import io.gravitee.apim.core.api.service_provider.ApiTemplateModelProvider;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
 import io.gravitee.apim.core.environment.service_provider.EnvironmentTemplateModelProvider;
+import io.gravitee.apim.core.exception.NotFoundDomainException;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.DefaultContentRenderer;
@@ -55,6 +57,7 @@ import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalPageContentTemplateException;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
@@ -81,7 +84,7 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class GetPortalPageContentByNavigationIdUseCaseTest {
 
-    private static final String ORGANIZATION_ID = PortalPageContentFixtures.ORGANIZATION_ID;
+    private static final String ORGANIZATION_ID = ORG_ID;
     private static final String ENVIRONMENT_ID = ENV_ID;
     private static final String UNPUBLISHED_ID = PortalNavigationItemFixtures.UNPUBLISHED_ID;
     private static final String PRIVATE_ID = PortalNavigationItemFixtures.PRIVATE_ID;
@@ -134,6 +137,13 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
             environmentTemplateModelProvider
         );
         useCase = new GetPortalPageContentByNavigationIdUseCase(
+            PortalNavigationUseCaseTestFixtures.access(
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                navigationItemsQueryService,
+                pageContentQueryService,
+                apiCrudService
+            ),
             navigationItemsQueryService,
             pageContentQueryService,
             List.of(apiVisibilityDomainService, apiProductVisibilityDomainService),
@@ -174,10 +184,11 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
     @Test
     void should_return_portal_page_content_when_navigation_page_found() {
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
-            PAGE11_ID,
+            PortalNavigationItemId.of(PAGE11_ID),
             ORGANIZATION_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forConsole()
+            PortalNavigationItemViewerContext.forConsole(),
+            Optional.empty()
         );
 
         var output = useCase.execute(input);
@@ -204,10 +215,11 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
 
         var output = useCase.execute(
             new GetPortalPageContentByNavigationIdUseCase.Input(
-                pageId,
+                PortalNavigationItemId.of(pageId),
                 ORGANIZATION_ID,
                 ENVIRONMENT_ID,
-                PortalNavigationItemViewerContext.forConsole()
+                PortalNavigationItemViewerContext.forConsole(),
+                Optional.empty()
             )
         );
 
@@ -252,10 +264,11 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
 
         var output = useCase.execute(
             new GetPortalPageContentByNavigationIdUseCase.Input(
-                pageId,
+                PortalNavigationItemId.of(pageId),
                 ORGANIZATION_ID,
                 ENVIRONMENT_ID,
-                PortalNavigationItemViewerContext.forConsole()
+                PortalNavigationItemViewerContext.forConsole(),
+                Optional.empty()
             )
         );
 
@@ -273,10 +286,11 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
             .renderGraviteeMarkdown(any());
 
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
-            PAGE11_ID,
+            PortalNavigationItemId.of(PAGE11_ID),
             ORGANIZATION_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forConsole()
+            PortalNavigationItemViewerContext.forConsole(),
+            Optional.empty()
         );
 
         var output = useCase.execute(input);
@@ -299,10 +313,11 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
         when(environmentTemplateModelProvider.getEnvironmentMetadata(eq(ENVIRONMENT_ID))).thenReturn(envMetadata);
 
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
-            PAGE11_ID,
+            PortalNavigationItemId.of(PAGE11_ID),
             ORGANIZATION_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forConsole()
+            PortalNavigationItemViewerContext.forConsole(),
+            Optional.empty()
         );
 
         useCase.execute(input);
@@ -319,10 +334,11 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
             .renderGraviteeMarkdown(any());
 
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
-            PAGE11_ID,
+            PortalNavigationItemId.of(PAGE11_ID),
             ORGANIZATION_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forConsole()
+            PortalNavigationItemViewerContext.forConsole(),
+            Optional.empty()
         );
 
         assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(PortalPageContentTemplateException.class);
@@ -350,10 +366,11 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
 
         useCase.execute(
             new GetPortalPageContentByNavigationIdUseCase.Input(
-                pageId,
+                PortalNavigationItemId.of(pageId),
                 ORGANIZATION_ID,
                 ENVIRONMENT_ID,
-                PortalNavigationItemViewerContext.forConsole()
+                PortalNavigationItemViewerContext.forConsole(),
+                Optional.empty()
             )
         );
 
@@ -366,10 +383,11 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
     void should_throw_when_navigation_item_not_found() {
         var unknownId = "00000000-0000-0000-0000-000000000099";
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
-            unknownId,
+            PortalNavigationItemId.of(unknownId),
             ORGANIZATION_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forConsole()
+            PortalNavigationItemViewerContext.forConsole(),
+            Optional.empty()
         );
 
         assertThatThrownBy(() -> useCase.execute(input))
@@ -380,10 +398,11 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
     @Test
     void should_throw_when_navigation_item_is_not_a_page() {
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
-            PortalNavigationItemFixtures.APIS_ID,
+            PortalNavigationItemId.of(PortalNavigationItemFixtures.APIS_ID),
             ORGANIZATION_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forConsole()
+            PortalNavigationItemViewerContext.forConsole(),
+            Optional.empty()
         );
 
         assertThatThrownBy(() -> useCase.execute(input))
@@ -396,10 +415,11 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
         pageContentQueryService.initWith(List.of());
 
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
-            PAGE11_ID,
+            PortalNavigationItemId.of(PAGE11_ID),
             ORGANIZATION_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forConsole()
+            PortalNavigationItemViewerContext.forConsole(),
+            Optional.empty()
         );
 
         assertThatThrownBy(() -> useCase.execute(input))
@@ -410,24 +430,24 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
     @Test
     void should_throw_when_navigation_item_exists_in_different_environment() {
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
-            PAGE11_ID,
+            PortalNavigationItemId.of(PAGE11_ID),
             ORGANIZATION_ID,
             "different-env",
-            PortalNavigationItemViewerContext.forConsole()
+            PortalNavigationItemViewerContext.forConsole(),
+            Optional.empty()
         );
 
-        assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(PortalNavigationItemNotFoundException.class)
-            .hasMessage("Portal navigation item not found");
+        assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(NotFoundDomainException.class);
     }
 
     @Test
     void should_throw_when_navigation_item_not_visible_in_portal() {
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
-            UNPUBLISHED_ID,
+            PortalNavigationItemId.of(UNPUBLISHED_ID),
             ORGANIZATION_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal(true)
+            PortalNavigationItemViewerContext.forPortal(true),
+            Optional.empty()
         );
 
         assertThatThrownBy(() -> useCase.execute(input))
@@ -438,10 +458,11 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
     @Test
     void should_throw_when_navigation_item_private_and_user_not_authenticated() {
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
-            PRIVATE_ID,
+            PortalNavigationItemId.of(PRIVATE_ID),
             ORGANIZATION_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal(false)
+            PortalNavigationItemViewerContext.forPortal(false),
+            Optional.empty()
         );
 
         assertThatThrownBy(() -> useCase.execute(input))
@@ -469,10 +490,11 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
         navigationItemsQueryService.initWith(List.of(apiProduct, page));
 
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
-            PAGE11_ID,
+            PortalNavigationItemId.of(PAGE11_ID),
             ORGANIZATION_ID,
             ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal("non-member")
+            PortalNavigationItemViewerContext.forPortal("non-member"),
+            Optional.empty()
         );
 
         assertThatThrownBy(() -> useCase.execute(input))

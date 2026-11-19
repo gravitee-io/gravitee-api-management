@@ -17,9 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.rest.api.service.common.GraviteeContext.getExecutionContext;
 
-import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.use_case.GetVisiblePortalCatalogItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetVisiblePortalNavigationApisUseCase;
@@ -82,15 +80,18 @@ public class PortalNavigationItemsResource extends AbstractResource {
         @Nullable @QueryParam("parentId") String parentId,
         @QueryParam("loadChildren") @DefaultValue("true") boolean loadChildren
     ) {
+        var scope = PortalScope.fromPath(uriInfo);
+        var parent = Optional.ofNullable(parentId).map(id -> IdParams.navigationItemId("parentId", id));
         var executionContext = getExecutionContext();
         var input = new ListPortalNavigationItemsUseCase.Input(
             executionContext.getEnvironmentId(),
             executionContext.getOrganizationId(),
             portalNavigationItemMapper.map(area),
-            Optional.ofNullable(parentId).map(PortalNavigationItemId::of),
+            parent,
             loadChildren,
             PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull()),
-            false
+            false,
+            scope
         );
         var output = listPortalNavigationItemsUseCase.execute(input);
         return Response.ok(portalNavigationItemMapper.map(output.items())).build();
@@ -124,7 +125,8 @@ public class PortalNavigationItemsResource extends AbstractResource {
                 new PageableImpl(paginationParam.getPage(), paginationParam.getSize()),
                 Optional.ofNullable(query),
                 coreIncludes,
-                Optional.ofNullable(categoryId)
+                Optional.ofNullable(categoryId),
+                PortalScope.fromPath(uriInfo)
             )
         );
 
@@ -145,6 +147,8 @@ public class PortalNavigationItemsResource extends AbstractResource {
     }
 
     private Response searchPortalCatalog(String query, Set<String> include, String categoryId, PaginationParam paginationParam) {
+        var scope = PortalScope.fromPath(uriInfo);
+        var category = Optional.ofNullable(categoryId).map(id -> IdParams.categoryId("categoryId", id));
         Set<io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude> coreIncludes = parseIncludes(include);
         var executionContext = getExecutionContext();
         var output = getVisiblePortalCatalogItemsUseCase.execute(
@@ -155,7 +159,8 @@ public class PortalNavigationItemsResource extends AbstractResource {
                 new PageableImpl(paginationParam.getPage(), paginationParam.getSize()),
                 Optional.ofNullable(query),
                 coreIncludes,
-                Optional.ofNullable(categoryId).map(PortalCategoryId::of)
+                category,
+                scope
             )
         );
 

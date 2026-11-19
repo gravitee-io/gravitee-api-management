@@ -19,6 +19,7 @@ import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.portal.model.PortalArea;
@@ -51,6 +52,9 @@ public class PortalNavigationItemsResourceNotAuthenticatedTest extends AbstractR
     private PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService;
 
     @Autowired
+    private PortalCrudServiceInMemory portalCrudService;
+
+    @Autowired
     private ApiProductQueryServiceInMemory apiProductQueryService;
 
     @Override
@@ -66,11 +70,13 @@ public class PortalNavigationItemsResourceNotAuthenticatedTest extends AbstractR
     @BeforeEach
     public void init() {
         GraviteeContext.setCurrentEnvironment(ENV_ID);
+        PortalNavigationFixtures.givenDefaultPortal(portalCrudService, ENV_ID);
     }
 
     @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
+        portalCrudService.reset();
         portalNavigationItemsQueryService.reset();
         apiProductQueryService.reset();
     }

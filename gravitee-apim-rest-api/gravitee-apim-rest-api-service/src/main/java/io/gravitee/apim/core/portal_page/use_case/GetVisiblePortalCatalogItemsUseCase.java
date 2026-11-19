@@ -23,11 +23,14 @@ import io.gravitee.apim.core.api.query_service.ApiPortalSearchQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.domain_service.CheckTypoToleranceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalCatalogNavigationVisibilityDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalCatalogApiProductSummary;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
@@ -70,6 +73,7 @@ public class GetVisiblePortalCatalogItemsUseCase {
         .thenComparing(Api::getId, NULL_SAFE_STRING_COMPARATOR);
     private static final ApiFieldFilter API_FIELD_FILTER = ApiFieldFilter.builder().definitionExcluded(true).pictureExcluded(true).build();
 
+    private final PortalNavigationAccessDomainService accessService;
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
     private final PortalNavigationApiVisibilityDomainService apiVisibilityDomainService;
     private final PortalNavigationApiProductVisibilityDomainService apiProductVisibilityDomainService;
@@ -80,13 +84,14 @@ public class GetVisiblePortalCatalogItemsUseCase {
     private final CheckTypoToleranceDomainService checkTypoToleranceDomainService;
 
     public Output execute(Input input) {
+        var scope = accessService.resolveScope(input.organizationId(), input.environmentId(), input.portalId());
         List<PortalNavigationItem> navigationItems = portalNavigationItemsQueryService.search(
-            PortalNavigationItemQueryCriteria.builder().environmentId(input.environmentId()).build()
+            PortalNavigationItemQueryCriteria.builder().environmentId(input.environmentId()).reference(scope).build()
         );
         Map<PortalNavigationItemId, PortalNavigationItem> navigationItemsById = navigationItems
             .stream()
             .collect(Collectors.toMap(PortalNavigationItem::getId, Function.identity(), (first, ignored) -> first));
-        List<PortalNavigationApi> accessibleApis = resolveAccessibleApis(input, input.categoryId());
+        List<PortalNavigationApi> accessibleApis = resolveAccessibleApis(input, scope, input.categoryId());
         Set<PortalNavigationItemId> accessibleApiNavigationItemIds = accessibleApis
             .stream()
             .map(PortalNavigationItem::getId)
@@ -143,6 +148,7 @@ public class GetVisiblePortalCatalogItemsUseCase {
         List<Api> includedApis = resolveIncludedApis(input, pageEntries, matchingApisById);
         List<PortalNavigationApi> visibleApisForProductSummaries = resolveVisibleApisForProductSummaries(
             input,
+            scope,
             pageEntries,
             navigationItemsById,
             accessibleApiProductIds,
@@ -158,17 +164,22 @@ public class GetVisiblePortalCatalogItemsUseCase {
         return new Output(page, includedApis, includedApiProducts);
     }
 
-    private List<PortalNavigationApi> resolveAccessibleApis(Input input, Optional<PortalCategoryId> categoryId) {
-        String categoryIdValue = categoryId.map(PortalCategoryId::toString).orElse(null);
-        return input
-            .viewerContext()
-            .userId()
-            .map(userId -> apiVisibilityDomainService.resolveVisibleItems(input.environmentId(), userId, categoryIdValue))
-            .orElseGet(() -> apiVisibilityDomainService.resolveVisiblePublicItems(input.environmentId(), categoryIdValue));
+    private List<PortalNavigationApi> resolveAccessibleApis(
+        Input input,
+        NavigationItemReference.PortalReference scope,
+        Optional<PortalCategoryId> categoryId
+    ) {
+        return apiVisibilityDomainService.resolveVisibleItems(
+            input.environmentId(),
+            scope,
+            input.viewerContext().userId().orElse(null),
+            categoryId.map(PortalCategoryId::toString).orElse(null)
+        );
     }
 
     private List<PortalNavigationApi> resolveVisibleApisForProductSummaries(
         Input input,
+        NavigationItemReference.PortalReference scope,
         List<CatalogEntry> pageEntries,
         Map<PortalNavigationItemId, PortalNavigationItem> navigationItemsById,
         Set<String> accessibleApiProductIds,
@@ -184,7 +195,7 @@ public class GetVisiblePortalCatalogItemsUseCase {
             return categoryVisibleApis;
         }
 
-        List<PortalNavigationApi> accessibleApis = resolveAccessibleApis(input, Optional.empty());
+        List<PortalNavigationApi> accessibleApis = resolveAccessibleApis(input, scope, Optional.empty());
         Set<PortalNavigationItemId> accessibleApiNavigationItemIds = accessibleApis
             .stream()
             .map(PortalNavigationItem::getId)
@@ -474,7 +485,8 @@ public class GetVisiblePortalCatalogItemsUseCase {
         Pageable pageable,
         Optional<String> query,
         Set<PortalNavigationSearchInclude> includes,
-        Optional<PortalCategoryId> categoryId
+        Optional<PortalCategoryId> categoryId,
+        Optional<PortalId> portalId
     ) {}
 
     public record Output(

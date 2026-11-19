@@ -16,6 +16,8 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityEvaluator;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityService;
@@ -32,14 +34,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class GetPortalNavigationItemUseCase {
 
+    private final PortalNavigationAccessDomainService accessService;
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
     private final List<PortalNavigationItemVisibilityService> visibilityServices;
     private final PortalNavigationItemSourceDomainService sourceDomainService;
 
     public Output execute(Input input) {
-        final PortalNavigationItem foundItem = Optional.ofNullable(
-            portalNavigationItemsQueryService.findByIdAndEnvironmentId(input.environmentId(), input.portalNavigationItemId())
-        ).orElseThrow(() -> new PortalNavigationItemNotFoundException(input.portalNavigationItemId().id().toString()));
+        final PortalNavigationItem foundItem = findItem(input);
 
         input.viewerContext().validateAccess(foundItem);
 
@@ -60,10 +61,17 @@ public class GetPortalNavigationItemUseCase {
         return new Output(foundItem);
     }
 
+    private PortalNavigationItem findItem(Input input) {
+        var scope = accessService.resolveScope(input.organizationId(), input.environmentId(), input.portalId());
+        return accessService.requireItem(input.organizationId(), input.environmentId(), scope, input.portalNavigationItemId());
+    }
+
     public record Input(
         PortalNavigationItemId portalNavigationItemId,
+        String organizationId,
         String environmentId,
-        PortalNavigationItemViewerContext viewerContext
+        PortalNavigationItemViewerContext viewerContext,
+        Optional<PortalId> portalId
     ) {}
 
     public record Output(PortalNavigationItem portalNavigationItem) {}
