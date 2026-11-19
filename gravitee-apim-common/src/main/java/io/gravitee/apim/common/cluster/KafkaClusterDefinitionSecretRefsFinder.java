@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.cluster.secrets;
-
-import static io.gravitee.gateway.handlers.cluster.manager.impl.ClusterManagerImpl.CLUSTER_DEFINITION_KIND;
+package io.gravitee.apim.common.cluster;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,6 +34,9 @@ import java.util.Optional;
  * rewrites them into expressions that {@link io.gravitee.definition.model.cluster.ClusterSecurityResolver} evaluates.
  */
 public class KafkaClusterDefinitionSecretRefsFinder implements DefinitionSecretRefsFinder<KafkaClusterReactableCluster> {
+
+    /** The definition kind of a cluster in secret discovery events, grants and secret spec ACLs. */
+    public static final String CLUSTER_DEFINITION_KIND = "cluster";
 
     private final ObjectMapper objectMapper;
 
