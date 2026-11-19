@@ -44,17 +44,12 @@ public class GetVisiblePortalNavigationApisUseCase {
 
     public Output execute(Input input) {
         var scope = accessService.resolveScope(input.organizationId(), input.environmentId(), input.portalId());
-        String categoryId = input.categoryId().orElse(null);
-        List<PortalNavigationApi> visible;
-        if (input.userId().isPresent()) {
-            visible = visibilityDomainService.resolveVisibleItems(input.environmentId(), input.userId().get(), categoryId);
-        } else {
-            visible = visibilityDomainService.resolveVisiblePublicItems(input.environmentId(), categoryId);
-        }
-        visible = visible
-            .stream()
-            .filter(item -> scope.equals(item.getReference()))
-            .toList();
+        List<PortalNavigationApi> visible = visibilityDomainService.resolveVisibleItems(
+            input.environmentId(),
+            scope,
+            input.userId().orElse(null),
+            input.categoryId().orElse(null)
+        );
 
         List<Api> searchedApis = List.of();
         Optional<String> queryText = input.query().filter(q -> !q.isBlank());

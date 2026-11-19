@@ -43,10 +43,12 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
+import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.portal.exception.DefaultPortalNotFoundException;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.CheckTypoToleranceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.DefaultContentRenderer;
@@ -330,6 +332,27 @@ class PortalScopedNavigationReadUseCaseTest {
     class Search {
 
         @Test
+        void should_resolve_api_visibility_within_the_portal() {
+            var privateListing = apiListing(null, selected, API_ID);
+            privateListing.setVisibility(PortalVisibility.PRIVATE);
+            var publicListingElsewhere = apiListing(null, PORTAL_REFERENCE, API_ID);
+            navigation.initWith(List.of(privateListing, publicListingElsewhere));
+
+            assertThat(searchApis(Optional.of(selectedPortal), Optional.empty()).apis().getContent()).isEmpty();
+            assertThat(searchApis(Optional.of(selectedPortal), Optional.of("non-member")).apis().getContent()).isEmpty();
+            assertThat(searchCatalog(Optional.of(selectedPortal), Optional.of("non-member")).items().getContent()).isEmpty();
+
+            memberships.initWith(List.of(apiMember("member", API_ID)));
+
+            assertThat(searchApis(Optional.of(selectedPortal), Optional.of("member")).apis().getContent())
+                .extracting(PortalNavigationItem::getId)
+                .containsExactly(privateListing.getId());
+            assertThat(searchCatalog(Optional.of(selectedPortal), Optional.of("member")).items().getContent())
+                .extracting(PortalNavigationItem::getId)
+                .containsExactly(privateListing.getId());
+        }
+
+        @Test
         void should_return_only_the_portals_api_listings() {
             var selectedListing = apiListing(null, selected, API_ID);
             var defaultListing = apiListing(null, PORTAL_REFERENCE, OTHER_API_ID);
@@ -506,6 +529,16 @@ class PortalScopedNavigationReadUseCaseTest {
                 portalId
             )
         );
+    }
+
+    private static Membership apiMember(String userId, String apiId) {
+        return Membership.builder()
+            .id("membership-" + userId + "-" + apiId)
+            .memberId(userId)
+            .memberType(Membership.Type.USER)
+            .referenceType(Membership.ReferenceType.API)
+            .referenceId(apiId)
+            .build();
     }
 
     private static PortalNavigationItemViewerContext anonymous() {

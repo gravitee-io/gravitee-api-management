@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.domain_service;
 
 import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiQueryServiceInMemory;
@@ -27,8 +28,10 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -54,6 +57,8 @@ class PortalNavigationApiVisibilityDomainServiceTest {
     private static final String CATEGORY_ID_1 = "11111111-1111-1111-1111-111111111111";
     private static final String CATEGORY_ID_2 = "22222222-2222-2222-2222-222222222222";
     private static final String UNKNOWN_CATEGORY_ID = "99999999-9999-9999-9999-999999999999";
+    private static final NavigationItemReference.PortalReference DEFAULT_PORTAL =
+        (NavigationItemReference.PortalReference) PORTAL_REFERENCE;
 
     private PortalNavigationApiVisibilityDomainService domainService;
     private PortalNavigationItemsQueryServiceInMemory navQueryService;
@@ -222,7 +227,7 @@ class PortalNavigationApiVisibilityDomainServiceTest {
             )
         );
 
-        var result = domainService.resolveVisiblePublicItems(ENV_ID, CATEGORY_ID_1);
+        var result = domainService.resolveVisibleItems(ENV_ID, DEFAULT_PORTAL, null, CATEGORY_ID_1);
 
         assertThat(result).extracting(PortalNavigationApi::getApiId).containsExactly(PUBLIC_API_ID);
     }
@@ -233,7 +238,7 @@ class PortalNavigationApiVisibilityDomainServiceTest {
             List.of(PortalNavigationItemFixtures.anApi(PUBLIC_API_ID, PortalVisibility.PUBLIC, List.of(PortalCategoryId.of(CATEGORY_ID_1))))
         );
 
-        var result = domainService.resolveVisiblePublicItems(ENV_ID, UNKNOWN_CATEGORY_ID);
+        var result = domainService.resolveVisibleItems(ENV_ID, DEFAULT_PORTAL, null, UNKNOWN_CATEGORY_ID);
 
         assertThat(result).isEmpty();
     }
@@ -247,7 +252,7 @@ class PortalNavigationApiVisibilityDomainServiceTest {
             )
         );
 
-        var result = domainService.resolveVisibleItems(ENV_ID, USER_ID, CATEGORY_ID_1);
+        var result = domainService.resolveVisibleItems(ENV_ID, DEFAULT_PORTAL, USER_ID, CATEGORY_ID_1);
 
         assertThat(result).extracting(PortalNavigationApi::getApiId).containsExactly(PUBLIC_API_ID);
     }
@@ -364,6 +369,85 @@ class PortalNavigationApiVisibilityDomainServiceTest {
         void unknown_api_is_not_visible_by_id() {
             navQueryService.initWith(List.of(publishedApiNavItem(PUBLIC_API_ID, PortalVisibility.PUBLIC)));
             assertThat(domainService.isApiVisibleToUser(ENV_ID, "non-existent-api", USER_ID)).isFalse();
+        }
+    }
+
+    @Nested
+    class Within_a_portal {
+
+        private static final String SHARED_API_ID = "shared-api";
+        private final NavigationItemReference.PortalReference portalA = new NavigationItemReference.PortalReference(PortalId.random());
+        private final NavigationItemReference.PortalReference portalB = new NavigationItemReference.PortalReference(PortalId.random());
+
+        @BeforeEach
+        void an_api_private_in_portal_a_and_public_in_portal_b() {
+            navQueryService.initWith(
+                List.of(
+                    listing(SHARED_API_ID, PortalVisibility.PRIVATE, portalA),
+                    listing(SHARED_API_ID, PortalVisibility.PUBLIC, portalB),
+                    listing(PUBLIC_API_ID, PortalVisibility.PUBLIC, portalB)
+                )
+            );
+        }
+
+        @Test
+        void anonymous_user_does_not_see_the_private_listing() {
+            assertThat(domainService.resolveVisibleItems(ENV_ID, portalA, null, null)).isEmpty();
+        }
+
+        @Test
+        void non_member_does_not_see_the_private_listing_although_another_portal_lists_the_api_publicly() {
+            assertThat(domainService.resolveVisibleItems(ENV_ID, portalA, USER_ID, null)).isEmpty();
+        }
+
+        @Test
+        void member_sees_the_private_listing() {
+            membershipQueryService.initWith(List.of(apiMembership(USER_ID, SHARED_API_ID)));
+
+            assertThat(domainService.resolveVisibleItems(ENV_ID, portalA, USER_ID, null))
+                .extracting(PortalNavigationApi::getApiId, PortalNavigationApi::getReference)
+                .containsExactly(tuple(SHARED_API_ID, portalA));
+        }
+
+        @Test
+        void subscriber_sees_the_private_listing() {
+            membershipQueryService.initWith(List.of(applicationMembership(USER_ID, "app-1")));
+            subscriptionQueryService.initWith(List.of(aSubscription("app-1", SHARED_API_ID, SubscriptionEntity.Status.ACCEPTED)));
+
+            assertThat(domainService.resolveVisibleItems(ENV_ID, portalA, USER_ID, null))
+                .extracting(PortalNavigationApi::getApiId)
+                .containsExactly(SHARED_API_ID);
+        }
+
+        @Test
+        void everyone_sees_only_the_portals_own_public_listings() {
+            assertThat(domainService.resolveVisibleItems(ENV_ID, portalB, null, null))
+                .extracting(PortalNavigationApi::getApiId, PortalNavigationApi::getReference)
+                .containsExactlyInAnyOrder(tuple(SHARED_API_ID, portalB), tuple(PUBLIC_API_ID, portalB));
+            assertThat(domainService.resolveVisibleItems(ENV_ID, portalB, USER_ID, null))
+                .extracting(PortalNavigationApi::getReference)
+                .containsOnly(portalB);
+        }
+
+        @Test
+        void keeps_only_the_requested_category() {
+            var inCategory = PortalNavigationItemFixtures.anApi(
+                "categorized-api",
+                PortalVisibility.PUBLIC,
+                List.of(PortalCategoryId.of(CATEGORY_ID_1))
+            );
+            inCategory.changeOwner(portalB);
+            navQueryService.initWith(List.of(inCategory, listing(PUBLIC_API_ID, PortalVisibility.PUBLIC, portalB)));
+
+            assertThat(domainService.resolveVisibleItems(ENV_ID, portalB, USER_ID, CATEGORY_ID_1))
+                .extracting(PortalNavigationApi::getApiId)
+                .containsExactly("categorized-api");
+        }
+
+        private PortalNavigationApi listing(String apiId, PortalVisibility visibility, NavigationItemReference.PortalReference portal) {
+            var item = publishedApiNavItem(apiId, visibility);
+            item.changeOwner(portal);
+            return item;
         }
     }
 

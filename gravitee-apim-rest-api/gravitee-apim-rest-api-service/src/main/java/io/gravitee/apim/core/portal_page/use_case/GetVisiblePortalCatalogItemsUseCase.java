@@ -169,16 +169,12 @@ public class GetVisiblePortalCatalogItemsUseCase {
         NavigationItemReference.PortalReference scope,
         Optional<PortalCategoryId> categoryId
     ) {
-        String categoryIdValue = categoryId.map(PortalCategoryId::toString).orElse(null);
-        var accessible = input
-            .viewerContext()
-            .userId()
-            .map(userId -> apiVisibilityDomainService.resolveVisibleItems(input.environmentId(), userId, categoryIdValue))
-            .orElseGet(() -> apiVisibilityDomainService.resolveVisiblePublicItems(input.environmentId(), categoryIdValue));
-        return accessible
-            .stream()
-            .filter(item -> scope.equals(item.getReference()))
-            .toList();
+        return apiVisibilityDomainService.resolveVisibleItems(
+            input.environmentId(),
+            scope,
+            input.viewerContext().userId().orElse(null),
+            categoryId.map(PortalCategoryId::toString).orElse(null)
+        );
     }
 
     private List<PortalNavigationApi> resolveVisibleApisForProductSummaries(
