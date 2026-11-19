@@ -57,6 +57,18 @@ final class GraviteeSecretProviderEntries {
     }
 
     private static Optional<String> problemOf(Map<String, Object> entry, String name) {
+        String id = ConfigHelper.getProperty(entry, "id", String.class, GraviteeSecretProvider.ID);
+        if (!GraviteeSecretProvider.ID.equals(id)) {
+            return Optional.of(
+                "Secret provider entry " +
+                    name +
+                    " must have the id " +
+                    GraviteeSecretProvider.ID +
+                    ", which the Management API checks references against, not [" +
+                    id +
+                    "]"
+            );
+        }
         List<String> deployedFor = new ArrayList<>();
         for (int index = 0; entry.containsKey("environments[" + index + "]"); index++) {
             deployedFor.add(entry.get("environments[" + index + "]").toString());

@@ -30,15 +30,15 @@ class GraviteeSecretProviderEntriesTest {
 
     @Test
     void should_accept_an_entry_bound_to_the_one_environment_it_is_deployed_for() {
-        givenEntry(0, "gravitee", "prod-env", "prod-env");
+        givenEntry(0, "prod-env", "prod-env");
 
         assertThat(misconfiguration()).isEmpty();
     }
 
     @Test
     void should_accept_one_entry_per_environment() {
-        givenEntry(0, "gravitee", "dev-env", "dev-env");
-        givenEntry(1, "gravitee", "test-env", "test-env");
+        givenEntry(0, "dev-env", "dev-env");
+        givenEntry(1, "test-env", "test-env");
 
         assertThat(misconfiguration()).isEmpty();
     }
@@ -62,7 +62,7 @@ class GraviteeSecretProviderEntriesTest {
 
     @Test
     void should_refuse_an_entry_deployed_for_several_environments() {
-        givenEntry(0, "gravitee", "dev-env", "dev-env");
+        givenEntry(0, "dev-env", "dev-env");
         gravitee.put("api.secrets.providers[0].environments[1]", "test-env");
 
         assertThat(misconfiguration()).hasValueSatisfying(reason -> assertThat(reason).contains("exactly one environment id"));
@@ -70,7 +70,7 @@ class GraviteeSecretProviderEntriesTest {
 
     @Test
     void should_refuse_an_entry_bound_to_another_environment_than_the_one_it_is_deployed_for() {
-        givenEntry(0, "gravitee", "dev-env", "prod-env");
+        givenEntry(0, "dev-env", "prod-env");
 
         assertThat(misconfiguration()).hasValueSatisfying(reason ->
             assertThat(reason).contains("api.secrets.providers[0]", "configuration.environment", "[prod-env]", "[dev-env]")
@@ -87,10 +87,28 @@ class GraviteeSecretProviderEntriesTest {
 
     @Test
     void should_refuse_the_gateway_when_any_gravitee_entry_is_misconfigured() {
-        givenEntry(0, "gravitee", "prod-env", "prod-env");
+        givenEntry(0, "prod-env", "prod-env");
         gravitee.put("api.secrets.providers[1].plugin", "gravitee");
 
         assertThat(misconfiguration()).hasValueSatisfying(reason -> assertThat(reason).contains("api.secrets.providers[1]"));
+    }
+
+    @Test
+    void should_refuse_an_entry_whose_id_is_not_gravitee() {
+        givenEntry(0, "prod-env", "prod-env");
+        gravitee.put("api.secrets.providers[0].id", "internal");
+
+        assertThat(misconfiguration()).hasValueSatisfying(reason ->
+            assertThat(reason).contains("api.secrets.providers[0]", "id", "[internal]")
+        );
+    }
+
+    @Test
+    void should_accept_an_entry_that_sets_the_gravitee_id() {
+        givenEntry(0, "prod-env", "prod-env");
+        gravitee.put("api.secrets.providers[0].id", "gravitee");
+
+        assertThat(misconfiguration()).isEmpty();
     }
 
     @Test
@@ -110,8 +128,8 @@ class GraviteeSecretProviderEntriesTest {
         assertThat(misconfiguration()).isEmpty();
     }
 
-    private void givenEntry(int index, String plugin, String deployedFor, String boundTo) {
-        gravitee.put("api.secrets.providers[" + index + "].plugin", plugin);
+    private void givenEntry(int index, String deployedFor, String boundTo) {
+        gravitee.put("api.secrets.providers[" + index + "].plugin", "gravitee");
         gravitee.put("api.secrets.providers[" + index + "].environments[0]", deployedFor);
         gravitee.put("api.secrets.providers[" + index + "].configuration.environment", boundTo);
     }
