@@ -216,6 +216,30 @@ class PortalScopedNavigationReadUseCaseTest {
         }
 
         @Test
+        void should_answer_an_empty_list_for_a_parent_of_another_portal_when_no_portal_is_given() {
+            var selectedFolder = rootFolder("Selected", selected, PortalArea.TOP_NAVBAR);
+            var child = aPage("Selected page", selectedFolder.getId()).toBuilder().area(PortalArea.TOP_NAVBAR).reference(selected).build();
+            navigation.initWith(List.of(selectedFolder, child));
+
+            assertThat(list(Optional.empty(), PortalArea.TOP_NAVBAR, Optional.of(selectedFolder.getId())).items()).isEmpty();
+        }
+
+        @Test
+        void should_list_the_children_of_a_default_portal_parent_when_no_portal_is_given() {
+            var defaultFolder = rootFolder("Default", PORTAL_REFERENCE, PortalArea.TOP_NAVBAR);
+            var child = aPage("Default page", defaultFolder.getId())
+                .toBuilder()
+                .area(PortalArea.TOP_NAVBAR)
+                .reference(PORTAL_REFERENCE)
+                .build();
+            navigation.initWith(List.of(defaultFolder, child));
+
+            assertThat(list(Optional.empty(), PortalArea.TOP_NAVBAR, Optional.of(defaultFolder.getId())).items())
+                .extracting(PortalNavigationItem::getId)
+                .containsExactly(child.getId());
+        }
+
+        @Test
         void should_return_only_the_default_portals_items_when_no_portal_is_given() {
             var defaultFolder = rootFolder("Default", PORTAL_REFERENCE, PortalArea.TOP_NAVBAR);
             var selectedFolder = rootFolder("Selected", selected, PortalArea.TOP_NAVBAR);

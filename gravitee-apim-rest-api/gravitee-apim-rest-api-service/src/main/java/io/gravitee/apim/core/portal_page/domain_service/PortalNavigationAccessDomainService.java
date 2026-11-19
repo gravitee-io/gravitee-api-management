@@ -317,6 +317,21 @@ public class PortalNavigationAccessDomainService {
         }
     }
 
+    /**
+     * Whether the item belongs to the scope: the scope owns it, or it is API documentation reachable from the scope. Unlike
+     * {@link #requireItem}, the ancestry of an item the scope owns is not checked, so a read keeps reporting a broken one itself.
+     */
+    public boolean belongsTo(String organizationId, String environmentId, NavigationItemReference scope, PortalNavigationItemId itemId) {
+        var item = navigationItemsQueryService.findByIdAndEnvironmentId(environmentId, itemId);
+        if (item == null) {
+            return false;
+        }
+        if (item.getReference() instanceof NavigationItemReference.ApiReference) {
+            return isAccessible(organizationId, environmentId, scope, item);
+        }
+        return scope.equals(item.getReference());
+    }
+
     public PortalNavigationItem requireItem(
         String organizationId,
         String environmentId,

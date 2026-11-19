@@ -39,11 +39,14 @@ public class ListPortalNavigationItemsUseCase {
 
     public Output execute(Input input) {
         var scope = accessService.resolveScope(input.organizationId(), input.environmentId(), input.portalId());
-        // The paths that name no portal keep answering an unknown parent with an empty list.
-        if (input.portalId().isPresent()) {
-            input
-                .parentId()
-                .ifPresent(parentId -> accessService.requireItem(input.organizationId(), input.environmentId(), scope, parentId));
+        if (input.parentId().isPresent()) {
+            var parentId = input.parentId().get();
+            if (input.portalId().isPresent()) {
+                accessService.requireItem(input.organizationId(), input.environmentId(), scope, parentId);
+            } else if (!accessService.belongsTo(input.organizationId(), input.environmentId(), scope, parentId)) {
+                // The paths that name no portal keep answering an unknown parent, or one outside the default portal, with an empty list.
+                return new Output(List.of(), Map.of());
+            }
         }
         var criteria = PortalNavigationItemQueryCriteria.builder()
             .environmentId(input.environmentId())
