@@ -50,7 +50,7 @@ public class GraviteeSecretProvider implements SecretProvider {
         "Secret provider [" +
         ID +
         "] " +
-        GraviteeSecretManagerConfiguration.ENCRYPTION_KEY +
+        GraviteeSecretManagerConfiguration.ENCRYPTION_KEY_PROPERTY +
         " (or " +
         StaticKeyEncryptionKeyProvider.KEY_PROPERTY +
         ")";

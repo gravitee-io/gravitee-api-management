@@ -352,7 +352,7 @@ class GraviteeSecretProviderTest {
                 .satisfies(event -> {
                     assertThat(event.getLevel()).isEqualTo(Level.WARN);
                     assertThat(event.getFormattedMessage())
-                        .contains(GraviteeSecretManagerConfiguration.ENCRYPTION_KEY, "did not wrap")
+                        .contains(GraviteeSecretManagerConfiguration.ENCRYPTION_KEY_PROPERTY, "did not wrap")
                         .doesNotContain(base64Kek);
                 });
         }
