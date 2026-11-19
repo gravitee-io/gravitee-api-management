@@ -43,6 +43,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
+import io.gravitee.apim.core.portal.exception.DefaultPortalNotFoundException;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
@@ -215,14 +216,14 @@ class PortalScopedNavigationReadUseCaseTest {
         }
 
         @Test
-        void should_return_every_portals_items_when_no_portal_is_given() {
+        void should_return_only_the_default_portals_items_when_no_portal_is_given() {
             var defaultFolder = rootFolder("Default", PORTAL_REFERENCE, PortalArea.TOP_NAVBAR);
             var selectedFolder = rootFolder("Selected", selected, PortalArea.TOP_NAVBAR);
             navigation.initWith(List.of(defaultFolder, selectedFolder));
 
             assertThat(list(Optional.empty(), PortalArea.TOP_NAVBAR, Optional.empty()).items())
                 .extracting(PortalNavigationItem::getId)
-                .containsExactlyInAnyOrder(defaultFolder.getId(), selectedFolder.getId());
+                .containsExactly(defaultFolder.getId());
         }
     }
 
@@ -246,6 +247,26 @@ class PortalScopedNavigationReadUseCaseTest {
                 PortalNavigationItemNotFoundException.class
             );
             assertThatThrownBy(() -> content(page.getId(), selectedPortal, anonymous())).isInstanceOf(
+                PortalNavigationItemNotFoundException.class
+            );
+        }
+
+        @Test
+        void should_read_the_items_of_the_default_portal_when_no_portal_is_given() {
+            var selectedPage = pageWithContent(selected);
+            var defaultPage = pageWithContent(PORTAL_REFERENCE);
+            navigation.initWith(List.of(defaultPage, selectedPage));
+
+            assertThat(get(defaultPage.getId(), Optional.empty(), anonymous()).portalNavigationItem().getId()).isEqualTo(
+                defaultPage.getId()
+            );
+            assertThat(content(defaultPage.getId(), Optional.empty(), anonymous()).portalNavigationItem().getId()).isEqualTo(
+                defaultPage.getId()
+            );
+            assertThatThrownBy(() -> get(selectedPage.getId(), Optional.empty(), anonymous())).isInstanceOf(
+                PortalNavigationItemNotFoundException.class
+            );
+            assertThatThrownBy(() -> content(selectedPage.getId(), Optional.empty(), anonymous())).isInstanceOf(
                 PortalNavigationItemNotFoundException.class
             );
         }
@@ -295,7 +316,7 @@ class PortalScopedNavigationReadUseCaseTest {
                 .containsExactly(selectedListing.getId());
             assertThat(searchApis(Optional.empty()).apis().getContent())
                 .extracting(PortalNavigationItem::getId)
-                .containsExactlyInAnyOrder(selectedListing.getId(), defaultListing.getId());
+                .containsExactly(defaultListing.getId());
         }
 
         @Test
@@ -318,12 +339,31 @@ class PortalScopedNavigationReadUseCaseTest {
                 .containsExactlyInAnyOrder(selectedListing.getId(), selectedProduct.getId());
             assertThat(searchCatalog(Optional.empty(), Optional.empty()).items().getContent())
                 .extracting(PortalNavigationItem::getId)
-                .containsExactlyInAnyOrder(
-                    selectedListing.getId(),
-                    defaultListing.getId(),
-                    defaultProduct.getId(),
-                    selectedProduct.getId()
-                );
+                .containsExactlyInAnyOrder(defaultListing.getId(), defaultProduct.getId());
+        }
+    }
+
+    @Nested
+    class No_default_portal {
+
+        @ParameterizedTest
+        @ValueSource(booleans = { true, false })
+        void should_answer_not_found_on_every_read_when_no_portal_is_given(boolean authenticated) {
+            portals.portalCrudService().reset();
+            portals.givenAutomationPortal(ORG_ID, ENV_ID);
+            portals.givenAutomationPortal(ORG_ID, ENV_ID);
+            var userId = authenticated ? Optional.of("user-1") : Optional.<String>empty();
+            var viewer = PortalNavigationItemViewerContext.forPortal(userId.orElse(null));
+            var page = pageWithContent(PORTAL_REFERENCE);
+            navigation.initWith(List.of(page));
+
+            assertThatThrownBy(() -> list(Optional.empty(), PortalArea.TOP_NAVBAR, Optional.empty(), viewer)).isInstanceOf(
+                DefaultPortalNotFoundException.class
+            );
+            assertThatThrownBy(() -> get(page.getId(), Optional.empty(), viewer)).isInstanceOf(DefaultPortalNotFoundException.class);
+            assertThatThrownBy(() -> content(page.getId(), Optional.empty(), viewer)).isInstanceOf(DefaultPortalNotFoundException.class);
+            assertThatThrownBy(() -> searchApis(Optional.empty(), userId)).isInstanceOf(DefaultPortalNotFoundException.class);
+            assertThatThrownBy(() -> searchCatalog(Optional.empty(), userId)).isInstanceOf(DefaultPortalNotFoundException.class);
         }
     }
 
@@ -383,7 +423,15 @@ class PortalScopedNavigationReadUseCaseTest {
         PortalId portalId,
         PortalNavigationItemViewerContext viewer
     ) {
-        return get.execute(new GetPortalNavigationItemUseCase.Input(id, ORG_ID, ENV_ID, viewer, Optional.of(portalId)));
+        return get(id, Optional.of(portalId), viewer);
+    }
+
+    private GetPortalNavigationItemUseCase.Output get(
+        PortalNavigationItemId id,
+        Optional<PortalId> portalId,
+        PortalNavigationItemViewerContext viewer
+    ) {
+        return get.execute(new GetPortalNavigationItemUseCase.Input(id, ORG_ID, ENV_ID, viewer, portalId));
     }
 
     private GetPortalPageContentByNavigationIdUseCase.Output content(
@@ -391,9 +439,15 @@ class PortalScopedNavigationReadUseCaseTest {
         PortalId portalId,
         PortalNavigationItemViewerContext viewer
     ) {
-        return content.execute(
-            new GetPortalPageContentByNavigationIdUseCase.Input(id.json(), ORG_ID, ENV_ID, viewer, Optional.of(portalId))
-        );
+        return content(id, Optional.of(portalId), viewer);
+    }
+
+    private GetPortalPageContentByNavigationIdUseCase.Output content(
+        PortalNavigationItemId id,
+        Optional<PortalId> portalId,
+        PortalNavigationItemViewerContext viewer
+    ) {
+        return content.execute(new GetPortalPageContentByNavigationIdUseCase.Input(id.json(), ORG_ID, ENV_ID, viewer, portalId));
     }
 
     private GetVisiblePortalNavigationApisUseCase.Output searchApis(Optional<PortalId> portalId) {

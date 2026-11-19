@@ -101,7 +101,7 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
             apiProductVisibilityDomainService
         );
         useCase = new GetVisiblePortalCatalogItemsUseCase(
-            PortalNavigationUseCaseTestFixtures.accessWithoutPortals(navigationItemsQueryService),
+            PortalNavigationUseCaseTestFixtures.accessWithDefaultPortal(navigationItemsQueryService),
             navigationItemsQueryService,
             apiVisibilityDomainService,
             apiProductVisibilityDomainService,

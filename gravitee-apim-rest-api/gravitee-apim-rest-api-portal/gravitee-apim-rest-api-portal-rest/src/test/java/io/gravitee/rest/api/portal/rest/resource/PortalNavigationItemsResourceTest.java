@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import inmemory.ApiPortalSearchQueryServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
+import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
@@ -63,6 +64,9 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     private PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService;
 
     @Autowired
+    private PortalCrudServiceInMemory portalCrudService;
+
+    @Autowired
     private ApiPortalSearchQueryServiceInMemory apiPortalSearchQueryService;
 
     @Autowired
@@ -79,6 +83,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     @BeforeEach
     public void init() {
         GraviteeContext.setCurrentEnvironment(ENV_ID);
+        PortalScopedNavigationItemsResourceTest.givenDefaultPortal(portalCrudService, ENV_ID);
         when(parameterService.findAsBoolean(any(), eq(Key.PORTAL_NEXT_SEARCH_FUZZY), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
             false
         );
@@ -87,6 +92,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
+        portalCrudService.reset();
         portalNavigationItemsQueryService.reset();
         apiPortalSearchQueryService.reset();
         apiProductQueryService.reset();

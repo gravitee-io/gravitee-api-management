@@ -48,6 +48,34 @@ class PortalTest {
     }
 
     @Nested
+    class DefaultOrOnly {
+
+        private final Portal defaultPortal = Portal.createDefault("env", "org", "Default", url("https://portal.example"));
+        private final Portal other = Portal.create("env", "org", "Partners", url("https://partners.example"));
+        private final Portal another = Portal.create("env", "org", "Internal", url("https://internal.example"));
+
+        @Test
+        void should_pick_the_default_portal_among_others() {
+            assertThat(Portal.defaultOrOnly(List.of(other, defaultPortal, another))).contains(defaultPortal);
+        }
+
+        @Test
+        void should_pick_the_only_portal_when_it_is_not_the_default_one() {
+            assertThat(Portal.defaultOrOnly(List.of(other))).contains(other);
+        }
+
+        @Test
+        void should_pick_none_among_several_portals_without_a_default_one() {
+            assertThat(Portal.defaultOrOnly(List.of(other, another))).isEmpty();
+        }
+
+        @Test
+        void should_pick_none_without_portals() {
+            assertThat(Portal.defaultOrOnly(List.of())).isEmpty();
+        }
+    }
+
+    @Nested
     class Factories {
 
         @Test

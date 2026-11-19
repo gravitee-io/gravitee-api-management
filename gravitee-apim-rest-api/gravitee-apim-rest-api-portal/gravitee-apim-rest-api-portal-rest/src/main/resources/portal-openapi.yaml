@@ -4297,6 +4297,7 @@ paths:
             x-gravitee-portal: next
             description: |
                 Get all the navigation items to be displayed in given area.
+                Without a portal in the path, the environment's default portal is read (its only portal when it has no default one).
             security:
                 - {}
                 - BasicAuth: []
@@ -4323,6 +4324,8 @@ paths:
             responses:
                 200:
                     $ref: "#/components/responses/PortalNavigationItemsSuccess"
+                404:
+                    $ref: "#/components/responses/PortalNotFoundError"
                 500:
                     $ref: "#/components/responses/InternalServerError"
 
@@ -4332,6 +4335,7 @@ paths:
                 - Portal
             summary: Search portal navigation items.
             description: |
+                Without a portal in the path, the environment's default portal is read (its only portal when it has no default one).
                 When the fuzzy search is enabled, minor typos in the query may still match.
                 For `type=catalog`, an API is returned as a standalone catalog result only when its navigation item has no `API_PRODUCT` ancestor.
                 APIs within an API Product navigation subtree remain available for the API Product summary and documentation tree.
@@ -4389,6 +4393,8 @@ paths:
                                 $ref: "#/components/schemas/PortalNavigationItemsSearchResponse"
                 400:
                     $ref: "#/components/responses/BadRequestError"
+                404:
+                    $ref: "#/components/responses/PortalNotFoundError"
                 500:
                     $ref: "#/components/responses/InternalServerError"
 
@@ -4408,6 +4414,7 @@ paths:
             x-gravitee-portal: next
             description: |
                 Get a specific portal navigation item by its ID.
+                Without a portal in the path, the environment's default portal is read (its only portal when it has no default one).
             security:
                 - {}
                 - BasicAuth: []
@@ -4416,7 +4423,7 @@ paths:
                 200:
                     $ref: "#/components/responses/PortalNavigationItemSuccess"
                 404:
-                    $ref: "#/components/responses/PortalNavigationItemNotFoundError"
+                    $ref: "#/components/responses/PortalOrNavigationItemNotFoundError"
                 500:
                     $ref: "#/components/responses/InternalServerError"
 
@@ -4437,6 +4444,7 @@ paths:
             description: |
                 Get a specific portal navigation item's content by its ID.
                 Only portal navigation items of type 'PAGE' have content.
+                Without a portal in the path, the environment's default portal is read (its only portal when it has no default one).
             security:
                 - {}
                 - BasicAuth: []
@@ -4451,7 +4459,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/ErrorResponse"
                 404:
-                    $ref: "#/components/responses/PortalNavigationItemNotFoundError"
+                    $ref: "#/components/responses/PortalOrNavigationItemNotFoundError"
                 500:
                     $ref: "#/components/responses/InternalServerError"
 
@@ -9542,12 +9550,6 @@ components:
                         $ref: "#/components/schemas/ErrorResponse"
         GroupNotFoundError:
             description: Group not found
-            content:
-                application/json:
-                    schema:
-                        $ref: "#/components/schemas/ErrorResponse"
-        PortalNavigationItemNotFoundError:
-            description: Portal navigation item not found
             content:
                 application/json:
                     schema:

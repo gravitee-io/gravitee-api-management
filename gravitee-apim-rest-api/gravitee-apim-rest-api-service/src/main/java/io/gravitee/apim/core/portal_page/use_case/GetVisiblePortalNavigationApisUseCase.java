@@ -24,7 +24,6 @@ import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.CheckTypoToleranceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
-import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude;
 import io.gravitee.common.data.domain.Page;
@@ -44,10 +43,7 @@ public class GetVisiblePortalNavigationApisUseCase {
     private final CheckTypoToleranceDomainService checkTypoToleranceDomainService;
 
     public Output execute(Input input) {
-        var scope = input.portalId().map(NavigationItemReference.PortalReference::new).orElse(null);
-        if (scope != null) {
-            accessService.requireScope(input.organizationId(), input.environmentId(), scope);
-        }
+        var scope = accessService.resolveScope(input.organizationId(), input.environmentId(), input.portalId());
         String categoryId = input.categoryId().orElse(null);
         List<PortalNavigationApi> visible;
         if (input.userId().isPresent()) {
@@ -55,12 +51,10 @@ public class GetVisiblePortalNavigationApisUseCase {
         } else {
             visible = visibilityDomainService.resolveVisiblePublicItems(input.environmentId(), categoryId);
         }
-        if (scope != null) {
-            visible = visible
-                .stream()
-                .filter(item -> scope.equals(item.getReference()))
-                .toList();
-        }
+        visible = visible
+            .stream()
+            .filter(item -> scope.equals(item.getReference()))
+            .toList();
 
         List<Api> searchedApis = List.of();
         Optional<String> queryText = input.query().filter(q -> !q.isBlank());

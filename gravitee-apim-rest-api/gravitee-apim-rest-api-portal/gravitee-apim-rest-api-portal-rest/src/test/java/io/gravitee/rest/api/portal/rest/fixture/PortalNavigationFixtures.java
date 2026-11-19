@@ -26,6 +26,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -52,7 +53,7 @@ public final class PortalNavigationFixtures {
         return PortalNavigationFolder.builder()
             .reference(PORTAL_REFERENCE)
             .id(id)
-            .organizationId("org")
+            .organizationId(GraviteeContext.getDefaultOrganization())
             .environmentId("env")
             .title(title)
             .segment(PortalNavigationItem.slugify(title).value())
@@ -67,7 +68,7 @@ public final class PortalNavigationFixtures {
         return PortalNavigationLink.builder()
             .reference(PORTAL_REFERENCE)
             .id(id)
-            .organizationId("org")
+            .organizationId(GraviteeContext.getDefaultOrganization())
             .environmentId("env")
             .title(title)
             .segment(PortalNavigationItem.slugify(title).value())
@@ -83,7 +84,7 @@ public final class PortalNavigationFixtures {
         return PortalNavigationPage.builder()
             .reference(PORTAL_REFERENCE)
             .id(id)
-            .organizationId("org")
+            .organizationId(GraviteeContext.getDefaultOrganization())
             .environmentId("env")
             .title(title)
             .segment(PortalNavigationItem.slugify(title).value())
@@ -99,7 +100,7 @@ public final class PortalNavigationFixtures {
         return PortalNavigationApiProduct.builder()
             .reference(PORTAL_REFERENCE)
             .id(id)
-            .organizationId("org")
+            .organizationId(GraviteeContext.getDefaultOrganization())
             .environmentId("env")
             .title(title)
             .segment(PortalNavigationItem.slugify(title).value())

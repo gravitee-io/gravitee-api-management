@@ -31,6 +31,7 @@ import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
+import io.gravitee.apim.core.exception.NotFoundDomainException;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
@@ -72,7 +73,7 @@ class GetPortalNavigationItemUseCaseTest {
             new ApiProductAccessibleIdsDomainService(new ApiProductQueryServiceInMemory(), membershipQueryService)
         );
         useCase = new GetPortalNavigationItemUseCase(
-            PortalNavigationUseCaseTestFixtures.accessWithoutPortals(queryService),
+            PortalNavigationUseCaseTestFixtures.accessWithDefaultPortal(queryService),
             queryService,
             List.of(apiVisibilityDomainService, apiProductVisibilityDomainService),
             new PortalNavigationItemSourceDomainServiceInMemory()
@@ -131,9 +132,7 @@ class GetPortalNavigationItemUseCaseTest {
         );
 
         // When & Then
-        assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(PortalNavigationItemNotFoundException.class)
-            .hasMessage("Portal navigation item not found");
+        assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(NotFoundDomainException.class);
     }
 
     @Test

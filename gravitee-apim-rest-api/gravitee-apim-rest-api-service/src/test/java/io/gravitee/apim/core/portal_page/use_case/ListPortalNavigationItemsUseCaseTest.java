@@ -106,7 +106,7 @@ class ListPortalNavigationItemsUseCaseTest {
             apiProductAccessibleIdsDomainService
         );
         return new ListPortalNavigationItemsUseCase(
-            PortalNavigationUseCaseTestFixtures.accessWithoutPortals(queryService),
+            PortalNavigationUseCaseTestFixtures.accessWithDefaultPortal(queryService),
             new PortalNavigationItemReadDomainService(
                 queryService,
                 List.of(apiVisibilityDomainService, apiProductVisibilityDomainService),

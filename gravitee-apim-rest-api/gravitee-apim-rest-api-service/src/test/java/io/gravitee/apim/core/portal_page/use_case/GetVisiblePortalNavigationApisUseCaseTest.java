@@ -73,7 +73,7 @@ class GetVisiblePortalNavigationApisUseCaseTest {
         );
         var visibilityDomainService = new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService);
         useCase = new GetVisiblePortalNavigationApisUseCase(
-            PortalNavigationUseCaseTestFixtures.accessWithoutPortals(navQueryService),
+            PortalNavigationUseCaseTestFixtures.accessWithDefaultPortal(navQueryService),
             visibilityDomainService,
             apiSearchQueryService,
             new CheckTypoToleranceDomainService(new ParametersQueryServiceInMemory())

@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 
 import fixtures.core.model.PortalPageContentFixtures;
+import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.portal.model.PortalArea;
@@ -57,6 +58,9 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
     private PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService;
 
     @Autowired
+    private PortalCrudServiceInMemory portalCrudService;
+
+    @Autowired
     private PortalPageContentQueryServiceInMemory portalPageContentQueryService;
 
     @Autowired
@@ -70,6 +74,7 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
     @BeforeEach
     public void init() {
         GraviteeContext.setCurrentEnvironment(ENV_ID);
+        PortalScopedNavigationItemsResourceTest.givenDefaultPortal(portalCrudService, ENV_ID);
         doAnswer(invocation -> {
             var in = (PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput) invocation.getArgument(0);
             return RenderedPageContent.of(
@@ -84,6 +89,7 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
     @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
+        portalCrudService.reset();
         portalNavigationItemsQueryService.reset();
         portalPageContentQueryService.reset();
     }

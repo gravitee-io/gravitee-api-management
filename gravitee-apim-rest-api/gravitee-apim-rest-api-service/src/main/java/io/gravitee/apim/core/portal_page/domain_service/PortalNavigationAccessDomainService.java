@@ -20,7 +20,9 @@ import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
+import io.gravitee.apim.core.portal.exception.DefaultPortalNotFoundException;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
+import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
@@ -281,6 +283,25 @@ public class PortalNavigationAccessDomainService {
             }
             return inProduct;
         }
+    }
+
+    /**
+     * The portal a Portal API read is scoped to.
+     *
+     * @param portalId the portal the request names; empty on the paths that name none, which serve the default portal
+     * @throws PortalNotFoundException when the given portal is not one of the environment's
+     * @throws DefaultPortalNotFoundException when no portal is given and the environment has neither a default nor a single portal
+     */
+    public NavigationItemReference.PortalReference resolveScope(String organizationId, String environmentId, Optional<PortalId> portalId) {
+        if (portalId.isPresent()) {
+            var scope = new NavigationItemReference.PortalReference(portalId.get());
+            requireScope(organizationId, environmentId, scope);
+            return scope;
+        }
+        return Portal.defaultOrOnly(portalCrudService.findByEnvironmentId(environmentId))
+            .filter(portal -> organizationId.equals(portal.getOrganizationId()))
+            .map(portal -> new NavigationItemReference.PortalReference(portal.getId()))
+            .orElseThrow(() -> new DefaultPortalNotFoundException(environmentId));
     }
 
     public void requireScope(String organizationId, String environmentId, NavigationItemReference scope) {

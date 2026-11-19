@@ -84,17 +84,14 @@ public class GetVisiblePortalCatalogItemsUseCase {
     private final CheckTypoToleranceDomainService checkTypoToleranceDomainService;
 
     public Output execute(Input input) {
-        var scope = input.portalId().<NavigationItemReference>map(NavigationItemReference.PortalReference::new).orElse(null);
-        if (scope != null) {
-            accessService.requireScope(input.organizationId(), input.environmentId(), scope);
-        }
+        var scope = accessService.resolveScope(input.organizationId(), input.environmentId(), input.portalId());
         List<PortalNavigationItem> navigationItems = portalNavigationItemsQueryService.search(
             PortalNavigationItemQueryCriteria.builder().environmentId(input.environmentId()).reference(scope).build()
         );
         Map<PortalNavigationItemId, PortalNavigationItem> navigationItemsById = navigationItems
             .stream()
             .collect(Collectors.toMap(PortalNavigationItem::getId, Function.identity(), (first, ignored) -> first));
-        List<PortalNavigationApi> accessibleApis = resolveAccessibleApis(input, input.categoryId());
+        List<PortalNavigationApi> accessibleApis = resolveAccessibleApis(input, scope, input.categoryId());
         Set<PortalNavigationItemId> accessibleApiNavigationItemIds = accessibleApis
             .stream()
             .map(PortalNavigationItem::getId)
@@ -151,6 +148,7 @@ public class GetVisiblePortalCatalogItemsUseCase {
         List<Api> includedApis = resolveIncludedApis(input, pageEntries, matchingApisById);
         List<PortalNavigationApi> visibleApisForProductSummaries = resolveVisibleApisForProductSummaries(
             input,
+            scope,
             pageEntries,
             navigationItemsById,
             accessibleApiProductIds,
@@ -166,27 +164,26 @@ public class GetVisiblePortalCatalogItemsUseCase {
         return new Output(page, includedApis, includedApiProducts);
     }
 
-    private List<PortalNavigationApi> resolveAccessibleApis(Input input, Optional<PortalCategoryId> categoryId) {
+    private List<PortalNavigationApi> resolveAccessibleApis(
+        Input input,
+        NavigationItemReference.PortalReference scope,
+        Optional<PortalCategoryId> categoryId
+    ) {
         String categoryIdValue = categoryId.map(PortalCategoryId::toString).orElse(null);
         var accessible = input
             .viewerContext()
             .userId()
             .map(userId -> apiVisibilityDomainService.resolveVisibleItems(input.environmentId(), userId, categoryIdValue))
             .orElseGet(() -> apiVisibilityDomainService.resolveVisiblePublicItems(input.environmentId(), categoryIdValue));
-        return input
-            .portalId()
-            .map(NavigationItemReference.PortalReference::new)
-            .map(scope ->
-                accessible
-                    .stream()
-                    .filter(item -> scope.equals(item.getReference()))
-                    .toList()
-            )
-            .orElse(accessible);
+        return accessible
+            .stream()
+            .filter(item -> scope.equals(item.getReference()))
+            .toList();
     }
 
     private List<PortalNavigationApi> resolveVisibleApisForProductSummaries(
         Input input,
+        NavigationItemReference.PortalReference scope,
         List<CatalogEntry> pageEntries,
         Map<PortalNavigationItemId, PortalNavigationItem> navigationItemsById,
         Set<String> accessibleApiProductIds,
@@ -202,7 +199,7 @@ public class GetVisiblePortalCatalogItemsUseCase {
             return categoryVisibleApis;
         }
 
-        List<PortalNavigationApi> accessibleApis = resolveAccessibleApis(input, Optional.empty());
+        List<PortalNavigationApi> accessibleApis = resolveAccessibleApis(input, scope, Optional.empty());
         Set<PortalNavigationItemId> accessibleApiNavigationItemIds = accessibleApis
             .stream()
             .map(PortalNavigationItem::getId)

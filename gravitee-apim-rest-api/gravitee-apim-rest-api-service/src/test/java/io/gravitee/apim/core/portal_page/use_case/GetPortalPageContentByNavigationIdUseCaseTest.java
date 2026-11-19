@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.PAGE11_CONTENT_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.PAGE11_ID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,6 +42,7 @@ import inmemory.SubscriptionQueryServiceInMemory;
 import io.gravitee.apim.core.api.service_provider.ApiTemplateModelProvider;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
 import io.gravitee.apim.core.environment.service_provider.EnvironmentTemplateModelProvider;
+import io.gravitee.apim.core.exception.NotFoundDomainException;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.DefaultContentRenderer;
@@ -81,7 +83,7 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class GetPortalPageContentByNavigationIdUseCaseTest {
 
-    private static final String ORGANIZATION_ID = PortalPageContentFixtures.ORGANIZATION_ID;
+    private static final String ORGANIZATION_ID = ORG_ID;
     private static final String ENVIRONMENT_ID = ENV_ID;
     private static final String UNPUBLISHED_ID = PortalNavigationItemFixtures.UNPUBLISHED_ID;
     private static final String PRIVATE_ID = PortalNavigationItemFixtures.PRIVATE_ID;
@@ -134,7 +136,13 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
             environmentTemplateModelProvider
         );
         useCase = new GetPortalPageContentByNavigationIdUseCase(
-            PortalNavigationUseCaseTestFixtures.accessWithoutPortals(navigationItemsQueryService),
+            PortalNavigationUseCaseTestFixtures.access(
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                navigationItemsQueryService,
+                pageContentQueryService,
+                apiCrudService
+            ),
             navigationItemsQueryService,
             pageContentQueryService,
             List.of(apiVisibilityDomainService, apiProductVisibilityDomainService),
@@ -428,9 +436,7 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
             Optional.empty()
         );
 
-        assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(PortalNavigationItemNotFoundException.class)
-            .hasMessage("Portal navigation item not found");
+        assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(NotFoundDomainException.class);
     }
 
     @Test

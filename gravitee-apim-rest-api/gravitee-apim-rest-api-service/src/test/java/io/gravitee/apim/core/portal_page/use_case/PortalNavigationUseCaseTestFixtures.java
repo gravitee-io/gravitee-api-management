@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.portal_page.use_case;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 
 import inmemory.ApiCrudServiceInMemory;
@@ -67,15 +69,8 @@ final class PortalNavigationUseCaseTestFixtures {
         );
     }
 
-    /** For reads that name no portal, where the access checks are never reached. */
-    static PortalNavigationAccessDomainService accessWithoutPortals(PortalNavigationItemsQueryService navigation) {
-        return new PortalNavigationAccessDomainService(
-            new PortalCrudServiceInMemory(),
-            new ApiCrudServiceInMemory(),
-            navigation,
-            new PortalPageContentQueryServiceInMemory(),
-            new ApiOwnedNavigationDomainService(navigation, new PortalNavigationItemsCrudServiceInMemory()),
-            new ApiQueryServiceInMemory()
-        );
+    /** For reads that name no portal: they are served by the environment's default portal, at {@code PORTAL_REFERENCE}. */
+    static PortalNavigationAccessDomainService accessWithDefaultPortal(PortalNavigationItemsQueryService navigation) {
+        return access(ORG_ID, ENV_ID, navigation, new PortalPageContentQueryServiceInMemory(), new ApiCrudServiceInMemory());
     }
 }

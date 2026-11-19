@@ -22,7 +22,6 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSour
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityEvaluator;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityService;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
-import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
@@ -63,19 +62,8 @@ public class GetPortalNavigationItemUseCase {
     }
 
     private PortalNavigationItem findItem(Input input) {
-        if (input.portalId().isPresent()) {
-            return accessService.requireItem(
-                input.organizationId(),
-                input.environmentId(),
-                new NavigationItemReference.PortalReference(input.portalId().get()),
-                input.portalNavigationItemId()
-            );
-        }
-        var item = portalNavigationItemsQueryService.findByIdAndEnvironmentId(input.environmentId(), input.portalNavigationItemId());
-        if (item == null) {
-            throw new PortalNavigationItemNotFoundException(input.portalNavigationItemId().id().toString());
-        }
-        return item;
+        var scope = accessService.resolveScope(input.organizationId(), input.environmentId(), input.portalId());
+        return accessService.requireItem(input.organizationId(), input.environmentId(), scope, input.portalNavigationItemId());
     }
 
     public record Input(

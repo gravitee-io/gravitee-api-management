@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.PortalPageContentFixtures;
@@ -24,6 +25,7 @@ import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
@@ -103,15 +105,39 @@ public class PortalScopedNavigationItemsResourceTest extends AbstractResourceTes
     }
 
     @Test
-    void should_keep_listing_every_portals_items_on_the_unscoped_path() {
-        var own = folder("Own", portal, PortalArea.TOP_NAVBAR);
+    void should_list_only_the_default_portals_items_on_the_unscoped_path() {
+        var defaultPortal = givenDefaultPortal(portalCrudService, ENV_ID);
+        var onDefault = folder("Default", defaultPortal, PortalArea.TOP_NAVBAR);
         var other = folder("Other", otherPortal, PortalArea.TOP_NAVBAR);
-        portalNavigationItemsQueryService.initWith(List.of(own, other));
+        portalNavigationItemsQueryService.initWith(List.of(onDefault, other));
 
-        Response response = root().path("environments/DEFAULT/portal-navigation-items").queryParam("area", "TOP_NAVBAR").request().get();
+        Response response = unscoped("portal-navigation-items").queryParam("area", "TOP_NAVBAR").request().get();
 
         assertThat(response.getStatus()).isEqualTo(200);
-        assertThat(ids(response.readEntity(ITEMS))).containsExactlyInAnyOrder(own.getId().json(), other.getId().json());
+        assertThat(ids(response.readEntity(ITEMS))).containsExactly(onDefault.getId().json());
+    }
+
+    @Test
+    void should_answer_not_found_on_the_unscoped_paths_without_a_default_portal() {
+        var page = page(portal, PortalPageContentId.random());
+        portalNavigationItemsQueryService.initWith(List.of(page));
+
+        var base = "portal-navigation-items";
+        var itemId = page.getId().json();
+
+        assertThat(
+            Stream.of(
+                unscoped(base).queryParam("area", "TOP_NAVBAR"),
+                unscoped(base + "/_search").queryParam("type", "api"),
+                unscoped(base + "/_search").queryParam("type", "catalog"),
+                unscoped(base + "/" + itemId),
+                unscoped(base + "/" + itemId + "/content")
+            ).map(request -> request.request().get().getStatus())
+        ).containsOnly(404);
+    }
+
+    private WebTarget unscoped(String path) {
+        return root().path("environments/" + ENV_ID + "/" + path);
     }
 
     @Test
@@ -190,6 +216,24 @@ public class PortalScopedNavigationItemsResourceTest extends AbstractResourceTes
         )
             .map(request -> request.request().get().getStatus())
             .toList();
+    }
+
+    @SneakyThrows
+    static PortalId givenDefaultPortal(PortalCrudServiceInMemory portals, String environmentId) {
+        var id = ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId();
+        portals.create(
+            Portal.of(
+                id,
+                environmentId,
+                ORG_ID,
+                "Developer Portal",
+                PortalNavigationStructure.empty(),
+                null,
+                true,
+                URI.create("https://portal.example.com/next").toURL()
+            )
+        );
+        return id;
     }
 
     @SneakyThrows
