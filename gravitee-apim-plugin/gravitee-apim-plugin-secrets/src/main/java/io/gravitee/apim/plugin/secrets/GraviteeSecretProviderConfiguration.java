@@ -24,7 +24,7 @@ import lombok.CustomLog;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
+import org.springframework.core.env.ConfigurableEnvironment;
 
 /**
  * Registration must happen while the gateway context starts: the secrets service starts afterwards and deploys the
@@ -37,15 +37,19 @@ public class GraviteeSecretProviderConfiguration {
     @Bean
     public GraviteeSecretProviderFactory graviteeSecretProviderFactory(
         SecretProviderPluginManager pluginManager,
-        Environment environment,
+        ConfigurableEnvironment environment,
         ObjectProvider<SecretRepository> secretRepository,
         ObjectProvider<OrganizationKeyRepository> organizationKeyRepository,
         ObjectProvider<EnvironmentRepository> environmentRepository
     ) {
         pluginManager.register(new GraviteeSecretProviderPlugin());
         GraviteeSecretProviderFactory factory = pluginManager.getFactoryById(GraviteeSecretProvider.ID);
-        factory.connect(secretRepository, organizationKeyRepository, environmentRepository, () ->
-            environment.getProperty(StaticKeyEncryptionKeyProvider.KEY_PROPERTY)
+        factory.connect(
+            secretRepository,
+            organizationKeyRepository,
+            environmentRepository,
+            () -> environment.getProperty(StaticKeyEncryptionKeyProvider.KEY_PROPERTY),
+            GraviteeSecretProviderEntries.misconfiguration(environment)
         );
         log.info("Gravitee secret provider [{}]: REGISTERED", GraviteeSecretProvider.ID);
         return factory;

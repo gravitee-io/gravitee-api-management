@@ -27,6 +27,7 @@ import io.gravitee.secrets.api.errors.SecretManagerException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.support.StaticApplicationContext;
 
@@ -37,6 +38,7 @@ class GraviteeSecretProviderFactoryTest {
     private final GraviteeSecretProviderFactory factory = new GraviteeSecretProviderFactory();
     private final StaticApplicationContext gateway = new StaticApplicationContext();
     private String sharedKey;
+    private Optional<String> misconfiguration = Optional.empty();
 
     @Test
     void should_refuse_to_create_a_provider_before_it_is_connected_to_the_gateway() {
@@ -64,6 +66,35 @@ class GraviteeSecretProviderFactoryTest {
             .resolve(LLM_KEY)
             .test()
             .assertError(err -> err instanceof SecretManagerException && err.getMessage().contains("does not store secrets"));
+    }
+
+    @Test
+    void should_create_a_provider_that_serves_only_the_environment_of_its_entry() {
+        connect();
+        givenSecretRepositories();
+        sharedKey = randomKek();
+
+        var provider = factory.create(new GraviteeSecretManagerConfiguration(Map.of("environment", "env-1"))).start();
+
+        provider
+            .resolve(SecretURL.from("/gravitee/env-2/llm-key:value", true))
+            .test()
+            .assertError(err -> err instanceof SecretManagerException && err.getMessage().contains("[env-2]"));
+    }
+
+    @Test
+    void should_create_a_provider_that_refuses_every_secret_when_a_provider_entry_is_misconfigured() {
+        misconfiguration = Optional.of("Secret provider entry api.secrets.providers[0] must list exactly one environment id");
+        connect();
+        givenSecretRepositories();
+        sharedKey = randomKek();
+
+        var provider = factory.create(new GraviteeSecretManagerConfiguration(Map.of("environment", "env-1"))).start();
+
+        provider
+            .resolve(LLM_KEY)
+            .test()
+            .assertError(err -> err instanceof SecretManagerException && err.getMessage().contains("api.secrets.providers[0]"));
     }
 
     @Test
@@ -99,7 +130,7 @@ class GraviteeSecretProviderFactoryTest {
         givenSecretRepositories();
         sharedKey = randomKek();
 
-        var provider = factory.create(new GraviteeSecretManagerConfiguration(Map.of())).start();
+        var provider = factory.create(new GraviteeSecretManagerConfiguration(Map.of("environment", "env-1"))).start();
 
         provider.resolve(LLM_KEY).test().assertComplete().assertNoValues();
     }
@@ -123,7 +154,8 @@ class GraviteeSecretProviderFactoryTest {
             gateway.getBeanProvider(SecretRepository.class),
             gateway.getBeanProvider(OrganizationKeyRepository.class),
             gateway.getBeanProvider(EnvironmentRepository.class),
-            () -> sharedKey
+            () -> sharedKey,
+            misconfiguration
         );
     }
 
@@ -140,6 +172,6 @@ class GraviteeSecretProviderFactoryTest {
     }
 
     private static GraviteeSecretManagerConfiguration configuration(String key) {
-        return new GraviteeSecretManagerConfiguration(Map.of("encryption.key", key));
+        return new GraviteeSecretManagerConfiguration(Map.of("encryption.key", key, "environment", "env-1"));
     }
 }

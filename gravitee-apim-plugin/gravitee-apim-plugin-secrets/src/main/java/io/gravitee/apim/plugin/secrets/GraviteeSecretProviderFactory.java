@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.SecretRepository;
 import io.gravitee.secrets.api.errors.SecretManagerException;
 import io.gravitee.secrets.api.plugin.SecretProvider;
 import io.gravitee.secrets.api.plugin.SecretProviderFactory;
+import java.util.Optional;
 import java.util.function.Supplier;
 import org.springframework.beans.factory.ObjectProvider;
 
@@ -34,17 +35,20 @@ public class GraviteeSecretProviderFactory implements SecretProviderFactory<Grav
     private volatile ObjectProvider<OrganizationKeyRepository> organizationKeyRepository;
     private volatile ObjectProvider<EnvironmentRepository> environmentRepository;
     private volatile Supplier<String> sharedEncryptionKey;
+    private volatile Optional<String> misconfiguration;
 
     void connect(
         ObjectProvider<SecretRepository> secretRepository,
         ObjectProvider<OrganizationKeyRepository> organizationKeyRepository,
         ObjectProvider<EnvironmentRepository> environmentRepository,
-        Supplier<String> sharedEncryptionKey
+        Supplier<String> sharedEncryptionKey,
+        Optional<String> misconfiguration
     ) {
         this.secretRepository = secretRepository;
         this.organizationKeyRepository = organizationKeyRepository;
         this.environmentRepository = environmentRepository;
         this.sharedEncryptionKey = sharedEncryptionKey;
+        this.misconfiguration = misconfiguration;
     }
 
     @Override
@@ -52,8 +56,12 @@ public class GraviteeSecretProviderFactory implements SecretProviderFactory<Grav
         if (secretRepository == null) {
             throw new SecretManagerException("Secret provider [" + GraviteeSecretProvider.ID + "] is not connected to the gateway");
         }
+        if (misconfiguration.isPresent()) {
+            return GraviteeSecretProvider.refusing(misconfiguration.get());
+        }
         return new GraviteeSecretProvider(
             encryptionKey(configuration),
+            configuration.environment(),
             secretRepository.getIfAvailable(),
             organizationKeyRepository.getIfAvailable(),
             environmentRepository.getIfAvailable()

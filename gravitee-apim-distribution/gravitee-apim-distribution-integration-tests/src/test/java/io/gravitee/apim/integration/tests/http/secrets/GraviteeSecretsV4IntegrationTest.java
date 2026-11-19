@@ -22,9 +22,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.graviteesource.service.secrets.SecretsService;
@@ -72,6 +73,7 @@ class GraviteeSecretsV4IntegrationTest extends AbstractGatewayTest {
     private static final String OTHER_ENVIRONMENT = "other-environment";
     private static final String KEY = "llm-key";
     private static final String VALUE = "sk-gravitee-secret";
+    private static final String OTHER_VALUE = "sk-other-environment-secret";
 
     private final String base64Kek = randomKek();
     private final StaticKeyEncryptionKeyProvider kek = StaticKeyEncryptionKeyProvider.fromBase64(base64Kek);
@@ -93,6 +95,8 @@ class GraviteeSecretsV4IntegrationTest extends AbstractGatewayTest {
         super.configureGateway(configurationBuilder);
         configurationBuilder.setYamlProperty("api.secrets.providers[0].id", "gravitee");
         configurationBuilder.setYamlProperty("api.secrets.providers[0].plugin", "gravitee");
+        configurationBuilder.setYamlProperty("api.secrets.providers[0].environments[0]", ENVIRONMENT);
+        configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.environment", ENVIRONMENT);
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.encryption.key", base64Kek);
     }
 
@@ -149,7 +153,7 @@ class GraviteeSecretsV4IntegrationTest extends AbstractGatewayTest {
     }
 
     @Test
-    void should_answer_503_when_the_environment_has_no_such_secret(HttpClient httpClient) throws TechnicalException {
+    void should_answer_503_when_the_reference_names_another_environment(HttpClient httpClient) throws TechnicalException {
         wiremock.stubFor(get("/endpoint").willReturn(ok("from backend")));
 
         httpClient
@@ -163,7 +167,7 @@ class GraviteeSecretsV4IntegrationTest extends AbstractGatewayTest {
             .awaitDone(10, TimeUnit.SECONDS)
             .assertComplete();
 
-        verify(secrets, atLeastOnce()).findByKey(ORGANIZATION, OTHER_ENVIRONMENT, KEY);
+        verify(secrets, never()).findByKey(anyString(), eq(OTHER_ENVIRONMENT), anyString());
         wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")));
     }
 
@@ -172,6 +176,9 @@ class GraviteeSecretsV4IntegrationTest extends AbstractGatewayTest {
         secret.setEncryptedValue(SecretEnvelope.seal(dataKey, new SecretScope(ORGANIZATION, ENVIRONMENT, secret.getId()), VALUE));
         lenient().when(secrets.findByKey(anyString(), anyString(), anyString())).thenReturn(Optional.empty());
         lenient().when(secrets.findByKey(ORGANIZATION, ENVIRONMENT, KEY)).thenReturn(Optional.of(secret));
+        var other = Secret.builder().id("secret-2").organizationId(ORGANIZATION).environmentId(OTHER_ENVIRONMENT).key(KEY).build();
+        other.setEncryptedValue(SecretEnvelope.seal(dataKey, new SecretScope(ORGANIZATION, OTHER_ENVIRONMENT, other.getId()), OTHER_VALUE));
+        lenient().when(secrets.findByKey(ORGANIZATION, OTHER_ENVIRONMENT, KEY)).thenReturn(Optional.of(other));
         return secrets;
     }
 

@@ -57,6 +57,7 @@ public class GraviteeSecretProvider implements SecretProvider {
     private static final String VALUE_KEY = "value";
 
     private final String base64Kek;
+    private final String environmentId;
     private final SecretRepository secretRepository;
     private final OrganizationKeyRepository organizationKeyRepository;
     private final EnvironmentRepository environmentRepository;
@@ -66,14 +67,22 @@ public class GraviteeSecretProvider implements SecretProvider {
 
     public GraviteeSecretProvider(
         String base64Kek,
+        String environmentId,
         SecretRepository secretRepository,
         OrganizationKeyRepository organizationKeyRepository,
         EnvironmentRepository environmentRepository
     ) {
         this.base64Kek = base64Kek;
+        this.environmentId = environmentId;
         this.secretRepository = secretRepository;
         this.organizationKeyRepository = organizationKeyRepository;
         this.environmentRepository = environmentRepository;
+    }
+
+    static GraviteeSecretProvider refusing(String reason) {
+        var provider = new GraviteeSecretProvider(null, null, null, null, null);
+        provider.refusal = reason;
+        return provider;
     }
 
     /**
@@ -82,6 +91,10 @@ public class GraviteeSecretProvider implements SecretProvider {
      */
     @Override
     public SecretProvider start() {
+        if (refusal != null) {
+            log.error("{}: it refuses every secret until this is fixed", refusal);
+            return this;
+        }
         try {
             dataKeys = new DataKeyResolver(verifiedKeyEncryptionKey(), this::findStoredDataKey);
         } catch (SecretManagerException e) {
@@ -133,7 +146,20 @@ public class GraviteeSecretProvider implements SecretProvider {
             if (separator <= 0 || separator == path.length() - 1) {
                 throw new SecretManagerException("Secret reference [" + path + "] must have the form /" + ID + "/{envId}/{key}");
             }
-            String environmentId = path.substring(0, separator);
+            String referencedEnvironmentId = path.substring(0, separator);
+            if (!referencedEnvironmentId.equals(environmentId)) {
+                throw new SecretManagerException(
+                    "Secret reference [" +
+                        path +
+                        "] names environment [" +
+                        referencedEnvironmentId +
+                        "], but secret provider [" +
+                        ID +
+                        "] serves environment [" +
+                        environmentId +
+                        "] only"
+                );
+            }
             String key = path.substring(separator + 1);
             try {
                 return lookup(environmentId, key);
