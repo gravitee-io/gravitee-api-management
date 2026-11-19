@@ -52,21 +52,16 @@ final class GraviteeSecretProviderEntries {
     private static boolean isEnabledGraviteeEntry(Map<String, Object> entry) {
         return (
             GraviteeSecretProvider.ID.equals(ConfigHelper.getProperty(entry, "plugin", String.class, null)) &&
-            ConfigHelper.getProperty(entry, "configuration." + GraviteeSecretManagerConfiguration.ENABLED, Boolean.class, true)
+            ConfigHelper.getProperty(entry, "configuration." + GraviteeSecretManagerConfiguration.ENABLED_PROPERTY, Boolean.class, true)
         );
     }
 
     private static Optional<String> problemOf(Map<String, Object> entry, String name) {
         String id = ConfigHelper.getProperty(entry, "id", String.class, GraviteeSecretProvider.ID);
         if (!GraviteeSecretProvider.ID.equals(id)) {
-            return Optional.of(
-                "Secret provider entry " +
-                    name +
-                    " must have the id " +
-                    GraviteeSecretProvider.ID +
-                    ", which the Management API checks references against, not [" +
-                    id +
-                    "]"
+            return problem(
+                name,
+                "must have the id " + GraviteeSecretProvider.ID + ", which the Management API checks references against, not [" + id + "]"
             );
         }
         List<String> deployedFor = new ArrayList<>();
@@ -74,25 +69,19 @@ final class GraviteeSecretProviderEntries {
             deployedFor.add(entry.get("environments[" + index + "]").toString());
         }
         if (deployedFor.size() != 1) {
-            return Optional.of(
-                "Secret provider entry " +
-                    name +
-                    " must list exactly one environment id in environments, set in gravitee.yml, but lists " +
-                    deployedFor
-            );
+            return problem(name, "must list exactly one environment id in environments, set in gravitee.yml, but lists " + deployedFor);
         }
         String boundTo = ConfigHelper.getProperty(
             entry,
-            "configuration." + GraviteeSecretManagerConfiguration.ENVIRONMENT,
+            "configuration." + GraviteeSecretManagerConfiguration.ENVIRONMENT_PROPERTY,
             String.class,
             null
         );
         if (!deployedFor.getFirst().equals(boundTo)) {
-            return Optional.of(
-                "Secret provider entry " +
-                    name +
-                    " must set configuration." +
-                    GraviteeSecretManagerConfiguration.ENVIRONMENT +
+            return problem(
+                name,
+                "must set configuration." +
+                    GraviteeSecretManagerConfiguration.ENVIRONMENT_PROPERTY +
                     " to the environment id it is deployed for: [" +
                     boundTo +
                     "] is not [" +
@@ -101,6 +90,10 @@ final class GraviteeSecretProviderEntries {
             );
         }
         return Optional.empty();
+    }
+
+    private static Optional<String> problem(String name, String requirement) {
+        return Optional.of("Secret provider entry " + name + " " + requirement);
     }
 
     private static String entry(int index) {
