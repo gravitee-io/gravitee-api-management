@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
@@ -23,20 +22,6 @@ import {
   SubscribeToApiChooseApplicationComponent,
 } from './subscribe-to-api-choose-application.component';
 import { fakeApplication } from '../../../../entities/application/application.fixture';
-import { ObservabilityBreakpointService } from '../../../../services/observability-breakpoint.service';
-
-class MockObservabilityBreakpointService {
-  static mockIsNarrow: WritableSignal<boolean> = signal(false);
-  static mockIsMobile: WritableSignal<boolean> = signal(false);
-
-  get isNarrow() {
-    return MockObservabilityBreakpointService.mockIsNarrow.asReadonly();
-  }
-
-  get isMobile() {
-    return MockObservabilityBreakpointService.mockIsMobile.asReadonly();
-  }
-}
 
 describe('SubscribeToApiChooseApplicationComponent', () => {
   let component: SubscribeToApiChooseApplicationComponent;
@@ -45,12 +30,8 @@ describe('SubscribeToApiChooseApplicationComponent', () => {
   const DEFAULT_PAGINATION: ApplicationsPagination = { currentPage: 1, totalApplications: 0, pageSize: DEFAULT_APPLICATIONS_PAGE_SIZE };
 
   beforeEach(async () => {
-    MockObservabilityBreakpointService.mockIsNarrow = signal(false);
-    MockObservabilityBreakpointService.mockIsMobile = signal(false);
-
     await TestBed.configureTestingModule({
       imports: [SubscribeToApiChooseApplicationComponent, NoopAnimationsModule],
-      providers: [{ provide: ObservabilityBreakpointService, useClass: MockObservabilityBreakpointService }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(SubscribeToApiChooseApplicationComponent);
@@ -89,9 +70,9 @@ describe('SubscribeToApiChooseApplicationComponent', () => {
     let emittedSize: number | undefined;
     component.pageSizeChange.subscribe(s => (emittedSize = s));
 
-    component.pageSizeChange.emit(12);
+    component.pageSizeChange.emit(15);
 
-    expect(emittedSize).toBe(12);
+    expect(emittedSize).toBe(15);
   });
 
   it('should emit searchChange when searching applications', () => {
@@ -118,16 +99,17 @@ describe('SubscribeToApiChooseApplicationComponent', () => {
     expect(created).toBe(true);
   });
 
-  it('should show create button to the right of Cards and List toggles', () => {
+  it('should show list view and create button without cards toggle', () => {
+    const app = fakeApplication({ id: 'app-1', name: 'App One' });
+    component.applications = [{ ...app, disabled: false }];
     component.canCreateApplication = true;
     fixture.detectChanges();
 
-    const toolbarActions: HTMLElement | null = fixture.nativeElement.querySelector('.choose-application__toolbar-actions');
-    expect(toolbarActions).toBeTruthy();
-    expect(toolbarActions!.querySelector('[data-testid="subscribe-create-application"]')).toBeTruthy();
-    expect(toolbarActions!.textContent).toContain('Create application and Subscribe');
-    expect(toolbarActions!.textContent).toContain('Cards');
-    expect(toolbarActions!.textContent).toContain('List');
-    expect(fixture.nativeElement.querySelector('.create-application-tile')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.applications-table__table')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('[data-testid="subscribe-create-application"]')).toBeTruthy();
+    expect(fixture.nativeElement.textContent).toContain('Create application & subscribe');
+    expect(fixture.nativeElement.textContent).not.toContain('Cards');
+    expect(fixture.nativeElement.querySelector('.applications')).toBeNull();
+    expect(fixture.nativeElement.querySelector('app-button-toggle-group')).toBeNull();
   });
 });

@@ -37,16 +37,8 @@
   min-width: 0;
 }
 
-.choose-application__toolbar-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-left: auto;
-}
-
 .choose-application__create {
+  margin-left: auto;
   white-space: nowrap;
 }
 
@@ -60,32 +52,6 @@
 
   &--inline {
     padding: 24px 0 0;
-  }
-}
-
-.applications {
-  display: grid;
-  margin-top: 8px;
-  gap: 32px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-
-  &--narrow {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  &--mobile {
-    grid-template-columns: 1fr;
-  }
-
-  &__description {
-    display: -webkit-box;
-    overflow: hidden;
-    max-height: 98px;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 4;
-    line-clamp: 4;
-    text-overflow: ellipsis;
-    word-wrap: break-word;
   }
 }
 
