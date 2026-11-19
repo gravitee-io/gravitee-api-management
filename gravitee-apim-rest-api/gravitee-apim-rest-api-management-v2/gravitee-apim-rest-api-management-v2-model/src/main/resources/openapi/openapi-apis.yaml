@@ -3546,16 +3546,20 @@ paths:
                 - API Documentation
             summary: Publish an API to the portal
             description: |-
-                Lists the API under the chosen section of the portal's main navigation and publishes every page,
-                folder and link the API owns, including those that were hidden individually.
+                Lists the API under the chosen section of the named portal's main navigation and publishes every page,
+                folder and link the API owns, including those that were hidden individually. Without `portalId`, the
+                environment's default portal is used.
 
-                The section must be one returned by `_publish-locations`. When the API already has a hidden
-                listing, for example one added in the portal editor, that listing is reused: it is moved to the
-                chosen section if it is elsewhere, and made visible together with what is stored under it. An API
-                whose listing is visible is already published and cannot be published again.
+                The section must be one returned by `_publish-locations` for the same portal; a section of another
+                portal is refused. When the API already has a hidden listing in the portal, for example one added in
+                the portal editor, that listing is reused: it is moved to the chosen section if it is elsewhere, and
+                made visible together with what is stored under it. An API whose listing in the portal is visible is
+                already published there and cannot be published again.
 
                 User must have the API_DOCUMENTATION[UPDATE] permission.
             operationId: publishApiToPortal
+            parameters:
+                - $ref: "#/components/parameters/portalIdQueryParam"
             requestBody:
                 content:
                     application/json:
@@ -3570,13 +3574,15 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/ApiPortalPublication"
                 "400":
-                    description: The API is already published, or the section is not a publish location
+                    description: |-
+                        The API is already published to the portal, or the section is not a publish location of the
+                        portal, including a section that belongs to another portal
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Error"
                 "404":
-                    description: The section does not exist
+                    description: The section does not exist, or the portal does not exist in this environment
                     content:
                         application/json:
                             schema:
@@ -3593,20 +3599,28 @@ paths:
                 - API Documentation
             summary: Unpublish an API from the portal
             description: |-
-                Hides every navigation item listing the API in a portal, with what is stored under it, and
-                unpublishes every page, folder and link the API owns. Nothing is deleted: publishing the API again
-                shows the same navigation item.
+                Hides every navigation item listing the API in the named portal, with what is stored under it, and
+                unpublishes every page, folder and link the API owns. Without `portalId`, the environment's default
+                portal is used. Nothing is deleted: publishing the API again shows the same navigation item.
 
-                A listing under an API product is left untouched. An API with no visible listing is not published,
-                and the request is rejected.
+                A listing under an API product is left untouched. An API with no visible listing in the portal is not
+                published there, and the request is rejected.
 
                 User must have the API_DOCUMENTATION[UPDATE] permission.
             operationId: unpublishApiFromPortal
+            parameters:
+                - $ref: "#/components/parameters/portalIdQueryParam"
             responses:
                 "204":
                     description: The API is no longer visible in the portal
                 "400":
                     description: The API is not published to the portal
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: The portal does not exist in this environment
                     content:
                         application/json:
                             schema:
@@ -3648,11 +3662,14 @@ paths:
                 - API Documentation
             summary: Get the portal sections an API can be published to
             description: |-
-                Get the published top-level folders of the portal's main navigation, in display order.
+                Get the published top-level folders of the named portal's main navigation, in display order.
+                Without `portalId`, the environment's default portal is used.
                 Only their id and name are returned, never the portal tree.
 
                 User must have the API_DOCUMENTATION[READ] permission.
             operationId: getApiPortalPublishLocations
+            parameters:
+                - $ref: "#/components/parameters/portalIdQueryParam"
             responses:
                 "200":
                     description: The portal sections the API can be published to
@@ -3660,6 +3677,12 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ApiPortalPublishLocationsResponse"
+                "404":
+                    description: The portal does not exist in this environment
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -10113,6 +10136,14 @@ components:
             description: Id of an API.
             schema:
                 type: string
+        portalIdQueryParam:
+            name: portalId
+            in: query
+            required: false
+            description: The portal to target. Without it, the environment's default portal is used.
+            schema:
+                type: string
+                format: uuid
         portalNavigationItemIdParam:
             name: navId
             in: path
