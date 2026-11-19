@@ -17,6 +17,7 @@ package io.gravitee.apim.core.api_key.domain_service;
 
 import static assertions.CoreAssertions.assertThat;
 import static fixtures.core.model.AuditInfoFixtures.anAuditInfo;
+import static java.util.stream.Collectors.joining;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 import fixtures.core.model.ApiKeyFixtures;
@@ -85,6 +86,13 @@ class GenerateApiKeyDomainServiceTest {
     private static final String FIRST_SHARED_KEY_ID = UUID.nameUUIDFromBytes(
         ("shared-api-key:" + APPLICATION_ID).getBytes(StandardCharsets.UTF_8)
     ).toString();
+
+    private static String replacementSharedKeyId(String... keyIds) {
+        String joined = Arrays.stream(keyIds).sorted().collect(joining(","));
+        return UUID.nameUUIDFromBytes(
+            ("shared-api-key-replacement:" + APPLICATION_ID + ":" + joined).getBytes(StandardCharsets.UTF_8)
+        ).toString();
+    }
 
     private static final BaseApplicationEntity APPLICATION_1 = BaseApplicationEntity.builder().id(APPLICATION_ID).build();
     private static final SubscriptionEntity SUBSCRIPTION_1 = SubscriptionFixtures.aSubscription()
@@ -499,6 +507,180 @@ class GenerateApiKeyDomainServiceTest {
             assertThat(audits.storage())
                 .filteredOn(audit -> ApiKeyAuditEvent.APIKEY_CREATED.name().equals(audit.getEvent()))
                 .hasSize(1);
+        }
+
+        @Test
+        @SneakyThrows
+        void create_a_single_shared_key_when_every_key_is_revoked_and_subscriptions_are_accepted_together() {
+            var revoked = ApiKeyFixtures.anApiKey()
+                .toBuilder()
+                .id("revoked-key")
+                .applicationId(APPLICATION_ID)
+                .subscriptions(List.of(SUBSCRIPTION_ID_2))
+                .key("apigee-old-key")
+                .revoked(true)
+                .revokedAt(INSTANT_NOW.minusSeconds(3600).atZone(ZoneId.systemDefault()))
+                .build();
+            givenApiKeys(revoked);
+            var randomIds = new AtomicInteger();
+            UuidString.overrideGenerator(() -> "random-" + randomIds.incrementAndGet());
+            var subscriptions = IntStream.rangeClosed(1, 6)
+                .mapToObj(i -> SUBSCRIPTION_1.toBuilder().id("subscription-" + i).applicationId(APPLICATION_SHARED.getId()).build())
+                .toList();
+            var everyoneReadTheKeys = new CountDownLatch(subscriptions.size());
+            var audits = new SynchronizedAuditCrudService();
+            var nodes = List.of(nodeReadingTogether(everyoneReadTheKeys, audits), nodeReadingTogether(everyoneReadTheKeys, audits));
+            var executor = Executors.newFixedThreadPool(subscriptions.size());
+            var returnedKeys = new ArrayList<ApiKeyEntity>();
+
+            try {
+                var results = new ArrayList<Future<ApiKeyEntity>>();
+                for (int i = 0; i < subscriptions.size(); i++) {
+                    var node = nodes.get(i % nodes.size());
+                    var subscription = subscriptions.get(i);
+                    results.add(executor.submit(() -> node.generate(subscription, AUDIT_INFO, "apigee-old-key")));
+                }
+                for (var result : results) {
+                    returnedKeys.add(result.get(30, TimeUnit.SECONDS));
+                }
+            } finally {
+                executor.shutdownNow();
+                UuidString.overrideGenerator(() -> "generated-id");
+            }
+
+            var expectedId = replacementSharedKeyId("revoked-key");
+            assertThat(apiKeyCrudService.storage()).hasSize(2);
+            assertThat(apiKeyCrudService.storage())
+                .filteredOn(key -> expectedId.equals(key.getId()))
+                .singleElement()
+                .satisfies(key -> {
+                    assertThat(key.isRevoked()).isFalse();
+                    assertThat(key.getExpireAt()).isNull();
+                    assertThat(key.getSubscriptions()).containsExactlyInAnyOrderElementsOf(
+                        Stream.concat(Stream.of(SUBSCRIPTION_ID_2), subscriptions.stream().map(SubscriptionEntity::getId)).toList()
+                    );
+                    assertThat(returnedKeys)
+                        .hasSize(subscriptions.size())
+                        .allSatisfy(returned -> {
+                            assertThat(returned.getId()).isEqualTo(expectedId);
+                            assertThat(returned.getKey()).isEqualTo(key.getKey());
+                        });
+                });
+            assertThat(apiKeyCrudService.storage())
+                .filteredOn(key -> "revoked-key".equals(key.getId()))
+                .singleElement()
+                .satisfies(key -> {
+                    assertThat(key.isRevoked()).isTrue();
+                    assertThat(key.getSubscriptions()).containsExactly(SUBSCRIPTION_ID_2);
+                });
+            assertThat(audits.storage())
+                .filteredOn(audit -> ApiKeyAuditEvent.APIKEY_CREATED.name().equals(audit.getEvent()))
+                .hasSize(1);
+        }
+
+        @Test
+        void create_a_new_shared_key_when_every_key_is_revoked_and_ignore_a_custom_value() {
+            var revoked = ApiKeyFixtures.anApiKey()
+                .toBuilder()
+                .id("revoked-key")
+                .applicationId(APPLICATION_ID)
+                .subscriptions(List.of(SUBSCRIPTION_ID_2))
+                .key("apigee-old-key")
+                .revoked(true)
+                .revokedAt(INSTANT_NOW.minusSeconds(3600).atZone(ZoneId.systemDefault()))
+                .build();
+            givenApiKeys(revoked);
+            var subscription = SUBSCRIPTION_1.toBuilder().applicationId(APPLICATION_SHARED.getId()).build();
+
+            var result = service.generate(subscription, AUDIT_INFO, "apigee-old-key");
+
+            assertThat(result.getId()).isEqualTo(replacementSharedKeyId("revoked-key"));
+            assertThat(result.getKey()).isEqualTo("generated-id");
+            assertThat(result.getExpireAt()).isNull();
+            assertThat(result.isRevoked()).isFalse();
+            assertThat(result.getSubscriptions()).containsExactlyInAnyOrder(SUBSCRIPTION_ID_2, SUBSCRIPTION_ID_1);
+            assertThat(apiKeyCrudService.storage()).hasSize(2);
+            assertThat(apiKeyCrudService.storage())
+                .filteredOn(key -> "revoked-key".equals(key.getId()))
+                .singleElement()
+                .satisfies(key -> {
+                    assertThat(key.isRevoked()).isTrue();
+                    assertThat(key.getSubscriptions()).containsExactly(SUBSCRIPTION_ID_2);
+                    assertThat(key.getUpdatedAt()).isEqualTo(revoked.getUpdatedAt());
+                });
+        }
+
+        @Test
+        void create_a_new_live_key_when_an_earlier_replacement_has_expired() {
+            var revoked = ApiKeyFixtures.anApiKey()
+                .toBuilder()
+                .id("revoked-key")
+                .applicationId(APPLICATION_ID)
+                .subscriptions(List.of(SUBSCRIPTION_ID_2))
+                .key("apigee-old-key")
+                .revoked(true)
+                .revokedAt(INSTANT_NOW.minusSeconds(3600).atZone(ZoneId.systemDefault()))
+                .build();
+            givenApiKeys(revoked);
+            var firstSubscription = SUBSCRIPTION_1.toBuilder().applicationId(APPLICATION_SHARED.getId()).build();
+            var first = service.generate(firstSubscription, AUDIT_INFO, null);
+            var expiredReplacement = first
+                .toBuilder()
+                .expireAt(INSTANT_NOW.minusSeconds(60).atZone(ZoneId.systemDefault()))
+                .revoked(false)
+                .revokedAt(null)
+                .build();
+            givenApiKeys(revoked, expiredReplacement);
+            var secondSubscription = SUBSCRIPTION_1.toBuilder().id("subscription-3").applicationId(APPLICATION_SHARED.getId()).build();
+
+            var result = service.generate(secondSubscription, AUDIT_INFO, null);
+
+            assertThat(result.getId()).isEqualTo(replacementSharedKeyId("revoked-key", expiredReplacement.getId()));
+            assertThat(result.isRevoked()).isFalse();
+            assertThat(result.getExpireAt()).isNull();
+            assertThat(result.getSubscriptions()).containsExactlyInAnyOrder(SUBSCRIPTION_ID_2, SUBSCRIPTION_ID_1, "subscription-3");
+            assertThat(apiKeyCrudService.storage())
+                .filteredOn(key -> expiredReplacement.getId().equals(key.getId()))
+                .singleElement()
+                .satisfies(key -> {
+                    assertThat(key.isExpired()).isTrue();
+                    assertThat(key.getSubscriptions()).containsExactlyInAnyOrderElementsOf(expiredReplacement.getSubscriptions());
+                });
+            assertThat(apiKeyCrudService.storage())
+                .filteredOn(key -> "revoked-key".equals(key.getId()))
+                .singleElement()
+                .satisfies(key -> {
+                    assertThat(key.isRevoked()).isTrue();
+                    assertThat(key.getSubscriptions()).containsExactly(SUBSCRIPTION_ID_2);
+                });
+        }
+
+        @Test
+        void create_a_new_shared_key_when_every_key_is_expired() {
+            var expired = ApiKeyFixtures.anApiKey()
+                .toBuilder()
+                .id("expired-key")
+                .applicationId(APPLICATION_ID)
+                .subscriptions(List.of(SUBSCRIPTION_ID_2))
+                .key("expired-key-value")
+                .revoked(false)
+                .expireAt(INSTANT_NOW.minusSeconds(60).atZone(ZoneId.systemDefault()))
+                .build();
+            givenApiKeys(expired);
+            var subscription = SUBSCRIPTION_1.toBuilder().applicationId(APPLICATION_SHARED.getId()).build();
+
+            var result = service.generate(subscription, AUDIT_INFO, null);
+
+            assertThat(result.getId()).isEqualTo(replacementSharedKeyId("expired-key"));
+            assertThat(result.getExpireAt()).isNull();
+            assertThat(result.getSubscriptions()).containsExactlyInAnyOrder(SUBSCRIPTION_ID_2, SUBSCRIPTION_ID_1);
+            assertThat(apiKeyCrudService.storage())
+                .filteredOn(key -> "expired-key".equals(key.getId()))
+                .singleElement()
+                .satisfies(key -> {
+                    assertThat(key.getExpireAt()).isEqualTo(expired.getExpireAt());
+                    assertThat(key.getSubscriptions()).containsExactly(SUBSCRIPTION_ID_2);
+                });
         }
 
         /** A node that first read the keys of the application before another node created the first one. */
