@@ -32,6 +32,7 @@ import io.gravitee.gamma.rest.core.observability.analytics.model.DataKind;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort.MeasuresQuery;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.EndUserDisplayDomainService;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
@@ -82,7 +83,12 @@ class ComputeObservabilityMeasuresUseCaseTest {
     void setUp() {
         var accessibleApiScope = new AccessibleApiScopeDomainService();
         var filterValidator = new ObservabilityFilterValidator(filterRegistry);
-        var pipeline = new AnalyticsRequestPipeline(filterValidator, accessibleApiScope, new EntrypointScopeProviderAdapter());
+        var pipeline = new AnalyticsRequestPipeline(
+            filterValidator,
+            accessibleApiScope,
+            new EntrypointScopeProviderAdapter(),
+            new EndUserDisplayDomainService(organizationId -> false)
+        );
         useCase = new ComputeObservabilityMeasuresUseCase(analyticsDataPort, pipeline);
 
         lenient()

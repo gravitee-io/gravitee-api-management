@@ -27,9 +27,13 @@ import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.A
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.BuiltInAdditionalMetricsPort;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.TrafficReadPermissionPort;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.EndUserDisplayDomainService;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
+import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -61,6 +65,7 @@ public class GetObservabilityAnalyticsDefinitionUseCase {
     private final AdditionalMetricDiscoveryPort discovery;
     private final TrafficReadPermissionPort trafficReadPermission;
     private final AdditionalMetricCatalogDomainService catalog;
+    private final EndUserDisplayDomainService endUserDisplay;
 
     public record Input(String organizationId, String environmentId, Set<ApiType> apiTypes, Set<CatalogOrigin> origins) {
         /** Every origin. */
@@ -90,7 +95,7 @@ public class GetObservabilityAnalyticsDefinitionUseCase {
         }
         var support = analyticsDefinitionPort.additionalMetricSupport();
         if (!support.servesAnyOf(kinds)) {
-            return new Output(AnalyticsDefinition.of(metrics.values()).narrowedTo(input.origins()), false);
+            return new Output(AnalyticsDefinition.of(shown(input.organizationId(), metrics.values())).narrowedTo(input.origins()), false);
         }
         var builtInNamesByRawKey = builtInAdditionalMetrics.builtInNamesByRawKey();
         var records = metricDefinitions.findByEnvironmentId(input.environmentId());
@@ -107,8 +112,19 @@ public class GetObservabilityAnalyticsDefinitionUseCase {
         metrics.computeIfPresent(support.dimensionsOf(), (name, metric) -> metric.groupedAlsoBy(additional.facetsFor(metric.apiTypes())));
         additional.metrics().forEach(metric -> metrics.putIfAbsent(metric.name(), metric));
         return new Output(
-            AnalyticsDefinition.of(metrics.values()).narrowedTo(input.origins()),
+            AnalyticsDefinition.of(shown(input.organizationId(), metrics.values())).narrowedTo(input.origins()),
             discovered.map(AdditionalMetricDiscovery::truncated).orElse(false)
         );
+    }
+
+    /** The end user is offered as a facet and a filter only where the organization displays it. */
+    private List<MetricDefinition> shown(String organizationId, Collection<MetricDefinition> metrics) {
+        if (endUserDisplay.displaysEndUser(organizationId)) {
+            return List.copyOf(metrics);
+        }
+        return metrics
+            .stream()
+            .map(metric -> metric.without(StaticFilters.USER.name()))
+            .toList();
     }
 }
