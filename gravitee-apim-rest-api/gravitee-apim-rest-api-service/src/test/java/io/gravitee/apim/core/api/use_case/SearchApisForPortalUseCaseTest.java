@@ -202,6 +202,51 @@ class SearchApisForPortalUseCaseTest {
     }
 
     @Test
+    void resolves_api_visibility_within_the_given_portal() {
+        var portal = givenPortal(ENV_ID, ORG_ID);
+        navQueryService.initWith(
+            List.of(
+                publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PRIVATE, portal),
+                publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PUBLIC)
+            )
+        );
+        apiSearchQueryService.initWith(List.of(anApi(PRIVATE_API_ID)));
+
+        assertThat(useCase.execute(scopedInput(null, portal)).apis().getContent()).isEmpty();
+        assertThat(useCase.execute(scopedInput(USER_ID, portal)).apis().getContent()).isEmpty();
+
+        membershipQueryService.initWith(List.of(apiMembership(USER_ID, PRIVATE_API_ID)));
+
+        assertThat(useCase.execute(scopedInput(USER_ID, portal)).apis().getContent())
+            .extracting(Api::getId)
+            .containsExactly(PRIVATE_API_ID);
+    }
+
+    @Test
+    void resolves_api_visibility_within_the_default_portal_when_no_portal_is_given() {
+        var otherPortal = givenPortal(ENV_ID, ORG_ID);
+        navQueryService.initWith(
+            List.of(
+                publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PRIVATE),
+                publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PUBLIC, otherPortal)
+            )
+        );
+        apiSearchQueryService.initWith(List.of(anApi(PRIVATE_API_ID)));
+        var nonMember = new SearchApisForPortalUseCase.Input(
+            ENV_ID,
+            ORG_ID,
+            USER_ID,
+            null,
+            new PageableImpl(1, 10),
+            null,
+            Optional.empty()
+        );
+
+        assertThat(useCase.execute(nonMember).apis().getContent()).isEmpty();
+        assertThat(useCase.execute(nonMember).apis().getTotalElements()).isZero();
+    }
+
+    @Test
     void searches_the_default_portals_apis_when_no_portal_is_given() {
         var otherPortal = givenPortal(ENV_ID, ORG_ID);
         navQueryService.initWith(

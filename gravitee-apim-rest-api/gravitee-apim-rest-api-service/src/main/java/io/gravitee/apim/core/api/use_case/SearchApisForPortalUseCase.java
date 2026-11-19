@@ -49,13 +49,7 @@ public class SearchApisForPortalUseCase {
 
     public Output execute(Input input) {
         var scope = accessService.resolveScope(input.organizationId(), input.environmentId(), input.portalId());
-        List<PortalNavigationApi> visible = input.userId() != null
-            ? visibilityDomainService.resolveVisibleItems(input.environmentId(), input.userId())
-            : visibilityDomainService.resolveVisibleItems(input.environmentId());
-        visible = visible
-            .stream()
-            .filter(item -> scope.equals(item.getReference()))
-            .toList();
+        List<PortalNavigationApi> visible = visibilityDomainService.resolveVisibleItems(input.environmentId(), scope, input.userId(), null);
         Set<String> allowedIds = visible.stream().map(PortalNavigationApi::getApiId).collect(toSet());
 
         return new Output(
