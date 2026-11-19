@@ -112,8 +112,30 @@ class GraviteeSecretProviderTest {
         @Test
         void should_resolve_nothing_for_an_environment_that_does_not_exist() throws TechnicalException {
             when(environmentRepository.findById("unknown")).thenReturn(Optional.empty());
+            var provider = new GraviteeSecretProvider(
+                base64Kek,
+                "unknown",
+                secretRepository,
+                organizationKeyRepository,
+                environmentRepository
+            );
 
-            started().resolve(SecretURL.from("/gravitee/unknown/llm-key:value", true)).test().assertComplete().assertNoValues();
+            provider.start().resolve(SecretURL.from("/gravitee/unknown/llm-key:value", true)).test().assertComplete().assertNoValues();
+        }
+
+        @Test
+        void should_refuse_a_reference_to_another_environment_without_reading_the_repository() {
+            started()
+                .resolve(SecretURL.from("/gravitee/env-2/llm-key:value", true))
+                .test()
+                .assertError(
+                    err ->
+                        err instanceof SecretManagerException &&
+                        err.getMessage().contains("[env-2]") &&
+                        err.getMessage().contains("[" + ENV + "]")
+                );
+
+            verifyNoInteractions(secretRepository, environmentRepository);
         }
 
         @Test
@@ -270,16 +292,26 @@ class GraviteeSecretProviderTest {
 
         @Test
         void should_refuse_every_secret_when_the_management_repository_has_no_environments() {
-            var provider = new GraviteeSecretProvider(base64Kek, secretRepository, organizationKeyRepository, null).start();
+            var provider = new GraviteeSecretProvider(base64Kek, ENV, secretRepository, organizationKeyRepository, null).start();
 
             assertRefusesEverySecret(provider, "does not store secrets");
         }
 
         @Test
         void should_refuse_every_secret_when_the_management_repository_does_not_store_secrets() {
-            var provider = new GraviteeSecretProvider(base64Kek, null, null, environmentRepository).start();
+            var provider = new GraviteeSecretProvider(base64Kek, ENV, null, null, environmentRepository).start();
 
             assertRefusesEverySecret(provider, "does not store secrets");
+        }
+
+        @Test
+        void should_refuse_every_secret_when_its_provider_entry_is_misconfigured() {
+            var provider = GraviteeSecretProvider.refusing(
+                "Secret provider entry api.secrets.providers[1] must list exactly one environment id"
+            ).start();
+
+            assertRefusesEverySecret(provider, "api.secrets.providers[1]");
+            verifyNoInteractions(secretRepository, organizationKeyRepository, environmentRepository);
         }
 
         private void assertRefusesEverySecret(SecretProvider provider, String reason) {
@@ -337,7 +369,7 @@ class GraviteeSecretProviderTest {
     }
 
     private GraviteeSecretProvider provider(String base64Kek) {
-        return new GraviteeSecretProvider(base64Kek, secretRepository, organizationKeyRepository, environmentRepository);
+        return new GraviteeSecretProvider(base64Kek, ENV, secretRepository, organizationKeyRepository, environmentRepository);
     }
 
     private static String randomKek() {
