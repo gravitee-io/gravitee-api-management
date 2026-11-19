@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
 import lombok.AllArgsConstructor;
@@ -32,6 +33,15 @@ public class InvalidateRoleCacheCommandEntity {
     private String referenceId;
     private String memberType;
     private String memberId;
+
+    /**
+     * When true, invalidate every cached permission entry for {@code referenceType}/{@code referenceId}
+     * (all users), instead of a single member. Used when an application's groups change and group-derived
+     * application permissions must be recomputed immediately.
+     * Omitted from JSON when false so existing single-member commands stay unchanged.
+     */
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+    private boolean invalidateAllMembers;
 
     @JsonProperty("created_at")
     private Date createdAt;
