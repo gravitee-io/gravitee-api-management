@@ -15,10 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.PortalId;
-import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.Optional;
 
@@ -30,33 +27,9 @@ final class PortalScope {
     private PortalScope() {}
 
     /**
-     * @return empty on the unscoped paths, which keep reading the whole environment
-     * @throws PortalNotFoundException when the id is not a UUID: no portal can have it, so it is answered like any unknown portal
+     * @return empty on the unscoped paths, which read the environment's default portal
      */
     static Optional<PortalId> fromPath(UriInfo uriInfo) {
-        return Optional.ofNullable(uriInfo.getPathParameters().getFirst(PORTAL_ID_PARAM)).map(PortalScope::parse);
-    }
-
-    /**
-     * @throws PortalNavigationItemNotFoundException on a portal-scoped path when the item id is not a UUID: the portal cannot have
-     *     such an item. The unscoped paths keep their existing answer.
-     */
-    static void requireWellFormedItemId(Optional<PortalId> scope, String itemId) {
-        if (scope.isEmpty()) {
-            return;
-        }
-        try {
-            PortalNavigationItemId.of(itemId);
-        } catch (IllegalArgumentException e) {
-            throw new PortalNavigationItemNotFoundException(itemId);
-        }
-    }
-
-    private static PortalId parse(String portalId) {
-        try {
-            return PortalId.of(portalId);
-        } catch (IllegalArgumentException e) {
-            throw new PortalNotFoundException(portalId);
-        }
+        return Optional.ofNullable(uriInfo.getPathParameters().getFirst(PORTAL_ID_PARAM)).map(id -> IdParams.portalId(PORTAL_ID_PARAM, id));
     }
 }

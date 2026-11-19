@@ -17,7 +17,6 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.rest.api.service.common.GraviteeContext.getExecutionContext;
 
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentByNavigationIdUseCase;
@@ -46,11 +45,11 @@ public class PortalNavigationItemResource extends AbstractResource {
     @RequirePortalAuth
     public Response getPortalNavigationItemById(@PathParam("portalNavigationItemId") String portalNavigationItemId) {
         var scope = PortalScope.fromPath(uriInfo);
-        PortalScope.requireWellFormedItemId(scope, portalNavigationItemId);
+        var itemId = IdParams.navigationItemId("portalNavigationItemId", portalNavigationItemId);
         var executionContext = getExecutionContext();
         var result = getPortalNavigationItemUseCase.execute(
             new GetPortalNavigationItemUseCase.Input(
-                PortalNavigationItemId.of(portalNavigationItemId),
+                itemId,
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
                 PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull()),
@@ -67,11 +66,11 @@ public class PortalNavigationItemResource extends AbstractResource {
     @RequirePortalAuth
     public Response getPortalNavigationItemContentById(@PathParam("portalNavigationItemId") String portalNavigationItemId) {
         var scope = PortalScope.fromPath(uriInfo);
-        PortalScope.requireWellFormedItemId(scope, portalNavigationItemId);
+        var itemId = IdParams.navigationItemId("portalNavigationItemId", portalNavigationItemId);
         var executionContext = getExecutionContext();
         var result = getPortalPageContentByNavigationIdUseCase.execute(
             new GetPortalPageContentByNavigationIdUseCase.Input(
-                portalNavigationItemId,
+                itemId,
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
                 PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull()),

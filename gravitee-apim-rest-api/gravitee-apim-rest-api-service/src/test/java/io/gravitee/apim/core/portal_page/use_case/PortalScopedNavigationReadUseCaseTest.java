@@ -447,7 +447,7 @@ class PortalScopedNavigationReadUseCaseTest {
         Optional<PortalId> portalId,
         PortalNavigationItemViewerContext viewer
     ) {
-        return content.execute(new GetPortalPageContentByNavigationIdUseCase.Input(id.json(), ORG_ID, ENV_ID, viewer, portalId));
+        return content.execute(new GetPortalPageContentByNavigationIdUseCase.Input(id, ORG_ID, ENV_ID, viewer, portalId));
     }
 
     private GetVisiblePortalNavigationApisUseCase.Output searchApis(Optional<PortalId> portalId) {

@@ -85,16 +85,11 @@ public class GetPortalPageContentByNavigationIdUseCase {
 
     private PortalNavigationItem findItem(Input input) {
         var scope = accessService.resolveScope(input.organizationId(), input.environmentId(), input.portalId());
-        return accessService.requireItem(
-            input.organizationId(),
-            input.environmentId(),
-            scope,
-            PortalNavigationItemId.of(input.portalNavigationItemId())
-        );
+        return accessService.requireItem(input.organizationId(), input.environmentId(), scope, input.portalNavigationItemId());
     }
 
     public record Input(
-        String portalNavigationItemId,
+        PortalNavigationItemId portalNavigationItemId,
         String organizationId,
         String environmentId,
         PortalNavigationItemViewerContext viewerContext,

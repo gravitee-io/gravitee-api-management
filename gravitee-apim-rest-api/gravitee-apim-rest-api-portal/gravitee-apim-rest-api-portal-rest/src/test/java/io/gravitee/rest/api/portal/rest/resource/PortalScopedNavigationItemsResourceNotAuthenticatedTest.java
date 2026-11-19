@@ -32,8 +32,6 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class PortalScopedNavigationItemsResourceNotAuthenticatedTest extends AbstractResourceTest {
@@ -70,13 +68,20 @@ public class PortalScopedNavigationItemsResourceNotAuthenticatedTest extends Abs
         portalCrudService.reset();
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = { "6c2b1e9e-0000-4000-8000-000000000000", "not-a-uuid" })
-    void should_answer_not_found_on_every_path_for_an_unknown_portal(String unknownPortal) {
+    @Test
+    void should_answer_not_found_on_every_path_for_an_unknown_portal() {
         var page = page(portal, PortalPageContentId.random());
         portalNavigationItemsQueryService.initWith(List.of(page));
 
-        assertThat(statusesForEveryPath(this::target, unknownPortal, page.getId().json())).containsOnly(404);
+        assertThat(statusesForEveryPath(this::target, "6c2b1e9e-0000-4000-8000-000000000000", page.getId().json())).containsOnly(404);
+    }
+
+    @Test
+    void should_answer_bad_request_on_every_path_for_a_malformed_portal_id() {
+        var page = page(portal, PortalPageContentId.random());
+        portalNavigationItemsQueryService.initWith(List.of(page));
+
+        assertThat(statusesForEveryPath(this::target, "not-a-uuid", page.getId().json())).containsOnly(400);
     }
 
     @Test

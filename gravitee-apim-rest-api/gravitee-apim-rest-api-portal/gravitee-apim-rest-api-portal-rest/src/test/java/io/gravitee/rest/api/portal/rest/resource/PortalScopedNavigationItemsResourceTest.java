@@ -183,24 +183,38 @@ public class PortalScopedNavigationItemsResourceTest extends AbstractResourceTes
         assertThat(statusesForEveryPath(this::target, elsewhere.toString(), page.getId().json())).containsOnly(404);
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = { "6c2b1e9e-0000-4000-8000-000000000000", "not-a-uuid" })
-    void should_answer_not_found_on_every_path_for_an_unknown_portal(String unknownPortal) {
+    @Test
+    void should_answer_not_found_on_every_path_for_an_unknown_portal() {
         var page = page(portal, PortalPageContentId.random());
         portalNavigationItemsQueryService.initWith(List.of(page));
 
-        assertThat(statusesForEveryPath(this::target, unknownPortal, page.getId().json())).containsOnly(404);
+        assertThat(statusesForEveryPath(this::target, "6c2b1e9e-0000-4000-8000-000000000000", page.getId().json())).containsOnly(404);
     }
 
     @Test
-    void should_answer_not_found_for_a_malformed_item_id() {
-        var unknownPortal = "6c2b1e9e-0000-4000-8000-000000000000";
+    void should_answer_bad_request_on_every_path_for_a_malformed_portal_id() {
+        var page = page(portal, PortalPageContentId.random());
+        portalNavigationItemsQueryService.initWith(List.of(page));
 
+        assertThat(statusesForEveryPath(this::target, "not-a-uuid", page.getId().json())).containsOnly(400);
+    }
+
+    @Test
+    void should_answer_bad_request_for_a_malformed_id_on_the_scoped_and_unscoped_paths() {
         assertThat(
-            Stream.of(unknownPortal, portal.toString())
-                .flatMap(portalId -> Stream.of("", "/content").map(suffix -> portalId + "/portal-navigation-items/not-a-uuid" + suffix))
-                .map(path -> target(path).request().get().getStatus())
-        ).containsOnly(404);
+            Stream.of(portal + "/portal-navigation-items", null)
+                .flatMap(base -> {
+                    Function<String, WebTarget> at = path ->
+                        base == null ? unscoped("portal-navigation-items" + path) : target(base + path);
+                    return Stream.of(
+                        at.apply("/not-a-uuid"),
+                        at.apply("/not-a-uuid/content"),
+                        at.apply("").queryParam("area", "TOP_NAVBAR").queryParam("parentId", "not-a-uuid"),
+                        at.apply("/_search").queryParam("type", "catalog").queryParam("categoryId", "not-a-uuid")
+                    );
+                })
+                .map(request -> request.request().get().getStatus())
+        ).containsOnly(400);
     }
 
     static List<Integer> statusesForEveryPath(Function<String, WebTarget> target, String portalId, String itemId) {
