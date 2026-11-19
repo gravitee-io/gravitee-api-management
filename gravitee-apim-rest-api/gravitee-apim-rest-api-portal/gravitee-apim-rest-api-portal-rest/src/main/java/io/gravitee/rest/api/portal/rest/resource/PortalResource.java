@@ -19,7 +19,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 
-/** The resources of one portal of the environment; the sub-resources read the portal with {@link PortalScope}. */
 public class PortalResource extends AbstractResource {
 
     @Context
