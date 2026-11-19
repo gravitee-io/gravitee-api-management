@@ -76,7 +76,13 @@ public class ServiceConfiguration {
     @Autowired
     private Environment environment;
 
+    /**
+     * ⚠️ DO NOT REMOVE @Primary annotation: the plugin registry adds a {@code pluginEventManager}, and plugins that inject
+     * an EventManager without a qualifier, such as the secrets service, need this one, as on the gateway.
+     * @return a new EventManager
+     */
     @Bean
+    @Primary
     public EventManager eventManager() {
         return new EventManagerImpl();
     }
