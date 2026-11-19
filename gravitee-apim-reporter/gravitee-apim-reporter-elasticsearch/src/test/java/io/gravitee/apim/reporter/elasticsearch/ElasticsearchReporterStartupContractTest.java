@@ -94,8 +94,9 @@ class ElasticsearchReporterStartupContractTest {
     );
     private static final List<String> DATA_STREAM_TYPES = List.of("event-metrics", "decisions");
 
+    // One server per case: a bulk still in flight when a case stops must reach that case's server, not the next one's.
     @RegisterExtension
-    static WireMockExtension elasticsearch = WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
+    WireMockExtension elasticsearch = WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
     private AnnotationConfigApplicationContext context;
     private ElasticsearchReporter reporter;
@@ -213,7 +214,6 @@ class ElasticsearchReporterStartupContractTest {
         if (context != null) {
             context.close();
         }
-        elasticsearch.resetAll();
     }
 
     @ParameterizedTest(name = "{0} {1}")
@@ -269,7 +269,7 @@ class ElasticsearchReporterStartupContractTest {
             .noneMatch(call -> call.contains("_settings") || call.contains("_lifecycle") || call.contains("_ilm"));
     }
 
-    private static void stubCluster(Cluster cluster, boolean aliasesExist) {
+    private void stubCluster(Cluster cluster, boolean aliasesExist) {
         elasticsearch.stubFor(get(urlEqualTo("/")).willReturn(okJson(cluster.info())));
         elasticsearch.stubFor(put(urlPathMatching("/_index_template/.*")).willReturn(okJson(ACKNOWLEDGED)));
         elasticsearch.stubFor(put(urlPathMatching("/_template/.*")).willReturn(okJson(ACKNOWLEDGED)));
@@ -305,7 +305,7 @@ class ElasticsearchReporterStartupContractTest {
     }
 
     /** Every call in the order the stub received it (its journal lists the latest first), leaving out the client's periodic health checks after the first one. */
-    private static List<LoggedRequest> allCalls() {
+    private List<LoggedRequest> allCalls() {
         final List<ServeEvent> events = new ArrayList<>(elasticsearch.getAllServeEvents());
         Collections.reverse(events);
         final List<LoggedRequest> calls = new ArrayList<>();
@@ -322,7 +322,7 @@ class ElasticsearchReporterStartupContractTest {
     }
 
     /** The calls that prepare the cluster: neither the version lookup nor the bulk requests. */
-    private static List<LoggedRequest> setupCalls() {
+    private List<LoggedRequest> setupCalls() {
         return allCalls()
             .stream()
             .filter(request -> !"GET /".equals(callLine(request)))
