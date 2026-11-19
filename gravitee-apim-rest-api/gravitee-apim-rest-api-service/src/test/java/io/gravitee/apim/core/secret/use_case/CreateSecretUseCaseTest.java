@@ -149,7 +149,7 @@ class CreateSecretUseCaseTest extends AbstractUseCaseTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "credential.cred-1.token", "credential." })
+    @ValueSource(strings = { "credential.cred-1.token", "credential.", "Credential.cred-1.token", "CREDENTIAL." })
     void should_keep_the_keys_that_start_with_credential_for_credentials(String key) {
         assertThatThrownBy(() -> useCase.execute(create(key, "sk-ant-123"))).isInstanceOf(SecretKeptForCredentialException.class);
         assertThat(secretCrudService.storage()).isEmpty();
