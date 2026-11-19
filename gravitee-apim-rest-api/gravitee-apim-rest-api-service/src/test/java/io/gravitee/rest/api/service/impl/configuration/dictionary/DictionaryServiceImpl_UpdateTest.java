@@ -794,7 +794,7 @@ public class DictionaryServiceImpl_UpdateTest {
     public void should_reject_moving_a_stored_encrypted_key_to_plain_in_one_write() throws TechnicalException {
         Map<String, DictionaryProperty> stored = new HashMap<>();
         stored.put("secret", new DictionaryProperty("cipher", true));
-        given_stored_dictionary_without_update_stub(stored);
+        given_stored_dictionary_without_update_stub(stored).setKey("my-dictionary");
 
         // What Automation sends when a manifest moves the key out of encryptedProperties.
         UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
@@ -802,10 +802,54 @@ public class DictionaryServiceImpl_UpdateTest {
             Map.of("secret", DictionaryPropertyOptions.builder().encrypted(false).build())
         );
 
-        assertThatThrownBy(() -> dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity))
-            .isInstanceOf(DictionaryPropertyEncryptedToPlainException.class)
-            .hasMessageContaining("secret");
+        assertThatThrownBy(() ->
+            dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity)
+        ).isInstanceOfSatisfying(DictionaryPropertyEncryptedToPlainException.class, e -> {
+            assertThat(e).hasMessage(
+                "Dictionary property [secret] on dictionary [my-dictionary] is encrypted and cannot become plain in the same update. " +
+                    "Keep it encrypted, or remove it, save, then add it back as a plain property."
+            );
+            assertThat(e.getParameters()).containsExactlyInAnyOrderEntriesOf(Map.of("dictionary", "my-dictionary", "property", "secret"));
+        });
         verify(dictionaryRepository, never()).update(any());
+    }
+
+    @Test
+    public void should_name_the_dictionary_by_its_key_on_a_validation_refusing_a_one_step_move_to_plain() throws TechnicalException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("cipher", true));
+        given_stored_dictionary_without_update_stub(stored).setKey("my-dictionary");
+
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
+            Map.of("secret", "now-plain"),
+            Map.of("secret", DictionaryPropertyOptions.builder().encrypted(false).build())
+        );
+
+        assertThatThrownBy(() ->
+            dictionaryService.validateUpdate(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity)
+        ).isInstanceOfSatisfying(DictionaryPropertyEncryptedToPlainException.class, e -> {
+            assertThat(e).hasMessageContaining("on dictionary [my-dictionary]");
+            assertThat(e.getParameters()).containsEntry("dictionary", "my-dictionary");
+        });
+    }
+
+    @Test
+    public void should_name_a_legacy_dictionary_without_key_by_its_id_when_refusing_a_one_step_move_to_plain() throws TechnicalException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("cipher", true));
+        given_stored_dictionary_without_update_stub(stored);
+
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
+            Map.of("secret", "now-plain"),
+            Map.of("secret", DictionaryPropertyOptions.builder().encrypted(false).build())
+        );
+
+        assertThatThrownBy(() ->
+            dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity)
+        ).isInstanceOfSatisfying(DictionaryPropertyEncryptedToPlainException.class, e -> {
+            assertThat(e).hasMessageContaining("on dictionary [" + DICTIONARY_ID + "]");
+            assertThat(e.getParameters()).containsEntry("dictionary", DICTIONARY_ID);
+        });
     }
 
     @ParameterizedTest(name = "encryptable option sent: {0}")
@@ -1151,11 +1195,11 @@ public class DictionaryServiceImpl_UpdateTest {
         when(dictionaryRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
-    private void given_stored_dictionary_without_update_stub(Map<String, DictionaryProperty> properties) throws TechnicalException {
-        given_stored_dictionary_without_update_stub(properties, io.gravitee.repository.management.model.DictionaryType.MANUAL);
+    private Dictionary given_stored_dictionary_without_update_stub(Map<String, DictionaryProperty> properties) throws TechnicalException {
+        return given_stored_dictionary_without_update_stub(properties, io.gravitee.repository.management.model.DictionaryType.MANUAL);
     }
 
-    private void given_stored_dictionary_without_update_stub(
+    private Dictionary given_stored_dictionary_without_update_stub(
         Map<String, DictionaryProperty> properties,
         io.gravitee.repository.management.model.DictionaryType type
     ) throws TechnicalException {
@@ -1168,6 +1212,7 @@ public class DictionaryServiceImpl_UpdateTest {
         existing.setProperties(properties);
 
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
+        return existing;
     }
 
     /** {@code true} is the shape the Automation mapper sends for every {@code encryptedProperties} key. */
