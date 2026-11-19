@@ -28,6 +28,7 @@ import inmemory.ApiCategoryOrderQueryServiceInMemory;
 import inmemory.ApiPortalSearchQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
+import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.ValidateResourceDomainServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
@@ -46,6 +47,7 @@ import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.portal.rest.fixture.PortalNavigationFixtures;
 import io.gravitee.rest.api.portal.rest.model.ApisResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
@@ -62,6 +64,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -95,6 +98,9 @@ public class ApisResourceTest extends AbstractResourceTest {
     @Autowired
     private PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryServiceInMemory;
 
+    @Autowired
+    private PortalCrudServiceInMemory portalCrudService;
+
     @Override
     protected String contextPath() {
         return "apis";
@@ -104,6 +110,7 @@ public class ApisResourceTest extends AbstractResourceTest {
     public void init() {
         resetAllMocks();
         prepareInMemoryServices();
+        PortalNavigationFixtures.givenDefaultPortal(portalCrudService, GraviteeContext.getCurrentEnvironment());
 
         ApiEntity publishedApi1 = new ApiEntity();
         publishedApi1.setLifecycleState(ApiLifecycleState.PUBLISHED);
@@ -208,6 +215,11 @@ public class ApisResourceTest extends AbstractResourceTest {
                 ParameterReferenceType.ENVIRONMENT
             )
         ).thenReturn(false);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        portalCrudService.reset();
     }
 
     private void prepareInMemoryServices() {

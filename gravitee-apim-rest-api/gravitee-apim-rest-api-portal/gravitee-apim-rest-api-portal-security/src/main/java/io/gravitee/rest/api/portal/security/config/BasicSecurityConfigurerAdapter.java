@@ -266,6 +266,8 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
             .permitAll()
             .requestMatchers(HttpMethod.POST, uriPrefix + "/apis/_search")
             .permitAll()
+            .requestMatchers(HttpMethod.POST, uriPrefix + "/portal/*/apis/_search")
+            .permitAll()
             // Pages
             .requestMatchers(HttpMethod.GET, uriPrefix + "/pages/**")
             .permitAll()
