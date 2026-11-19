@@ -32,10 +32,12 @@ import inmemory.SubscriptionQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.portal.exception.DefaultPortalNotFoundException;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.CheckTypoToleranceDomainService;
@@ -75,6 +77,7 @@ class SearchApisForPortalUseCaseTest {
     void setUp() {
         navQueryService = new PortalNavigationItemsQueryServiceInMemory();
         portalCrudService = new PortalCrudServiceInMemory();
+        givenDefaultPortal();
         membershipQueryService = new MembershipQueryServiceInMemory();
         var subscriptionQueryService = new SubscriptionQueryServiceInMemory();
         apiSearchQueryService = new ApiPortalSearchQueryServiceInMemory();
@@ -199,6 +202,37 @@ class SearchApisForPortalUseCaseTest {
     }
 
     @Test
+    void searches_the_default_portals_apis_when_no_portal_is_given() {
+        var otherPortal = givenPortal(ENV_ID, ORG_ID);
+        navQueryService.initWith(
+            List.of(
+                publishedApiNavItem("api-default", PortalVisibility.PUBLIC),
+                publishedApiNavItem("api-other", PortalVisibility.PUBLIC, otherPortal)
+            )
+        );
+        apiSearchQueryService.initWith(List.of(anApi("api-default"), anApi("api-other")));
+
+        var result = useCase.execute(
+            new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, null, null, new PageableImpl(1, 10), null, Optional.empty())
+        );
+
+        assertThat(result.apis().getContent()).extracting(Api::getId).containsExactly("api-default");
+        assertThat(result.apis().getTotalElements()).isEqualTo(1);
+    }
+
+    @Test
+    void throws_default_portal_not_found_when_no_portal_is_given_and_the_environment_has_no_default_one() {
+        portalCrudService.reset();
+        givenPortal(ENV_ID, ORG_ID);
+        givenPortal(ENV_ID, ORG_ID);
+        var anonymous = new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, null, null, new PageableImpl(1, 10), null, Optional.empty());
+        var member = new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, USER_ID, null, new PageableImpl(1, 10), null, Optional.empty());
+
+        assertThatThrownBy(() -> useCase.execute(anonymous)).isInstanceOf(DefaultPortalNotFoundException.class);
+        assertThatThrownBy(() -> useCase.execute(member)).isInstanceOf(DefaultPortalNotFoundException.class);
+    }
+
+    @Test
     void throws_portal_not_found_for_an_unknown_portal() {
         var unknown = PortalId.random();
 
@@ -218,6 +252,22 @@ class SearchApisForPortalUseCaseTest {
 
     private SearchApisForPortalUseCase.Input scopedInput(String userId, PortalId portalId) {
         return new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, userId, null, new PageableImpl(1, 10), null, Optional.of(portalId));
+    }
+
+    @SneakyThrows
+    private void givenDefaultPortal() {
+        portalCrudService.create(
+            Portal.of(
+                ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId(),
+                ENV_ID,
+                ORG_ID,
+                "Developer Portal",
+                PortalNavigationStructure.empty(),
+                null,
+                true,
+                URI.create("https://portal.example.com").toURL()
+            )
+        );
     }
 
     @SneakyThrows

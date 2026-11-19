@@ -84,6 +84,15 @@ public class PortalScopedApisResourceNotAuthenticatedTest extends AbstractResour
     }
 
     @Test
+    void should_answer_not_found_on_the_unscoped_path_without_a_default_portal() {
+        givenPortal(portalCrudService, ENV_ID);
+
+        assertThat(
+            search(root().path("environments/" + ENV_ID + "/apis/_search").queryParam("view", "documentation")).getStatus()
+        ).isEqualTo(404);
+    }
+
+    @Test
     void should_search_a_known_portal_anonymously() {
         assertThat(search(target(portal + "/apis/_search")).getStatus()).isEqualTo(200);
     }

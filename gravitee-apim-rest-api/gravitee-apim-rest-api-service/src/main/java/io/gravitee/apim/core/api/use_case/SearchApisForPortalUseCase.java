@@ -24,7 +24,6 @@ import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.CheckTypoToleranceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
-import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -49,19 +48,14 @@ public class SearchApisForPortalUseCase {
     private final CheckTypoToleranceDomainService checkTypoToleranceDomainService;
 
     public Output execute(Input input) {
-        var scope = input.portalId().map(NavigationItemReference.PortalReference::new).orElse(null);
-        if (scope != null) {
-            accessService.requireScope(input.organizationId(), input.environmentId(), scope);
-        }
+        var scope = accessService.resolveScope(input.organizationId(), input.environmentId(), input.portalId());
         List<PortalNavigationApi> visible = input.userId() != null
             ? visibilityDomainService.resolveVisibleItems(input.environmentId(), input.userId())
             : visibilityDomainService.resolveVisibleItems(input.environmentId());
-        if (scope != null) {
-            visible = visible
-                .stream()
-                .filter(item -> scope.equals(item.getReference()))
-                .toList();
-        }
+        visible = visible
+            .stream()
+            .filter(item -> scope.equals(item.getReference()))
+            .toList();
         Set<String> allowedIds = visible.stream().map(PortalNavigationApi::getApiId).collect(toSet());
 
         return new Output(

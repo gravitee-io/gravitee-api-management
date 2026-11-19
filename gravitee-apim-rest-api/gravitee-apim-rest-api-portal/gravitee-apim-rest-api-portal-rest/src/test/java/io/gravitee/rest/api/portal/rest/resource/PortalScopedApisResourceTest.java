@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.rest.api.portal.rest.resource.PortalScopedNavigationItemsResourceTest.ENV_ID;
 import static io.gravitee.rest.api.portal.rest.resource.PortalScopedNavigationItemsResourceTest.ORG_ID;
+import static io.gravitee.rest.api.portal.rest.resource.PortalScopedNavigationItemsResourceTest.givenDefaultPortal;
 import static io.gravitee.rest.api.portal.rest.resource.PortalScopedNavigationItemsResourceTest.givenPortal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -103,11 +104,26 @@ public class PortalScopedApisResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    void should_keep_searching_every_portals_apis_on_the_unscoped_path() {
-        Response response = search(root().path("environments/DEFAULT/apis/_search").queryParam("view", "documentation"));
+    void should_search_only_the_default_portals_apis_on_the_unscoped_path() {
+        var defaultPortal = givenDefaultPortal(portalCrudService, ENV_ID);
+        portalNavigationItemsQueryService.initWith(
+            List.of(apiListing("api-default", defaultPortal), apiListing("api-own", portal), apiListing("api-other", otherPortal))
+        );
+        apiPortalSearchQueryService.initWith(List.of(anApi("api-default"), anApi("api-own"), anApi("api-other")));
+
+        Response response = search(unscoped().queryParam("view", "documentation"));
 
         assertThat(response.getStatus()).isEqualTo(200);
-        assertThat(response.readEntity(ApisResponse.class).getData()).extracting("id").containsExactlyInAnyOrder("api-own", "api-other");
+        assertThat(response.readEntity(ApisResponse.class).getData()).extracting("id").containsExactly("api-default");
+    }
+
+    @Test
+    void should_answer_not_found_on_the_unscoped_path_without_a_default_portal() {
+        assertThat(search(unscoped().queryParam("view", "documentation")).getStatus()).isEqualTo(404);
+    }
+
+    private WebTarget unscoped() {
+        return root().path("environments/" + ENV_ID + "/apis/_search");
     }
 
     @ParameterizedTest

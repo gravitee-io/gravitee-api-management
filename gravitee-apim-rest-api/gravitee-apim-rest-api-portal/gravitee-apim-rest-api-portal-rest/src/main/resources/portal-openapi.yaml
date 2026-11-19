@@ -268,6 +268,8 @@ paths:
             summary: Search APIs with a query
             description: |
                 Same as `/apis` but with a search query as a parameter. Search for API using the search engine.
+                With `view=documentation`, the APIs are those reachable from the navigation of the environment's default portal
+                (its only portal when it has no default one).
                 Supports pagination.
                 When the fuzzy search is enabled, minor typos in the query may still match.
             operationId: searchApis
@@ -283,6 +285,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ApisResponse"
+                404:
+                    $ref: "#/components/responses/PortalNotFoundError"
                 500:
                     $ref: "#/components/responses/InternalServerError"
     /apis/categories:

@@ -190,7 +190,7 @@ public class ApisResource extends AbstractResource<Api, String> {
         }
     }
 
-    /** Searches the APIs reachable from the portal navigation: of the whole environment, or of one portal when scoped. */
+    /** Searches the APIs reachable from the navigation of the given portal, or of the default portal when none is given. */
     Response searchNavigationApis(String query, PaginationParam paginationParam, Optional<PortalId> portalId) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         var output = searchApisForPortalUseCase.execute(

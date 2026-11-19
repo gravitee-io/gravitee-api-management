@@ -28,6 +28,7 @@ import inmemory.ApiCategoryOrderQueryServiceInMemory;
 import inmemory.ApiPortalSearchQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
+import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.ValidateResourceDomainServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
@@ -95,6 +96,9 @@ public class ApisResourceTest extends AbstractResourceTest {
     @Autowired
     private PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryServiceInMemory;
 
+    @Autowired
+    private PortalCrudServiceInMemory portalCrudService;
+
     @Override
     protected String contextPath() {
         return "apis";
@@ -104,6 +108,8 @@ public class ApisResourceTest extends AbstractResourceTest {
     public void init() {
         resetAllMocks();
         prepareInMemoryServices();
+        portalCrudService.reset();
+        PortalScopedNavigationItemsResourceTest.givenDefaultPortal(portalCrudService, GraviteeContext.getCurrentEnvironment());
 
         ApiEntity publishedApi1 = new ApiEntity();
         publishedApi1.setLifecycleState(ApiLifecycleState.PUBLISHED);
