@@ -401,6 +401,8 @@ es:
     # takes either a policy or a retention: the reporter refuses to start when a type has both, so with enabled true,
     # set the policies of these types to "" (monitor, request, health and log default to my_policy). The reporter
     # ignores it in the other index modes, and refuses it on OpenSearch.
+    # On Elastic Cloud Serverless, every type gets a retention, 45d unless set, and a restart applies a longer value to the
+    # existing data streams; a shorter one is only applied with allowDecrease: true, as it deletes the older documents.
     retention: {}
       # monitor: 7d ## gravitee-monitor data stream
       # request: 30d ## gravitee-request, gravitee-v4-metrics and gravitee-v4-message-metrics data streams
@@ -408,8 +410,20 @@ es:
       # log: 7d ## gravitee-log, gravitee-v4-log and gravitee-v4-message-log data streams
       # eventMetrics: 30d ## gravitee-event-metrics data stream
       # decisions: 30d ## gravitee-decisions data stream
+      # allowDecrease: false ## apply a shorter retention to the existing data streams (Elastic Cloud Serverless only)
     # http:
       # timeout: 10000
+  # Bulks of the gateway reporter, on every cluster and index mode. Unset keys keep the reporter defaults: 100 bulks
+  # sent at once, 26214400 bytes (25 MB) of bulks waiting to be sent, beyond which new bulks are dropped, and 6 retries
+  # of a refused bulk (such as a 429) from 3000 to 30000 ms. Dropped documents are counted in the gateway metric
+  # reporter_elasticsearch_dropped_documents.
+  bulk: {}
+    # maxConcurrentSend: 100
+    # maxMemorySize: 26214400
+    # retry:
+      # maxRetries: 6
+      # initialDelay: 3000 ## milliseconds
+      # maxDelay: 30000 ## milliseconds
   ssl:
     enabled: false
     # keystore:
