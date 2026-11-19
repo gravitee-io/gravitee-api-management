@@ -102,6 +102,33 @@ public class ReporterConfiguration {
     private Long flushInterval = DEFAULT_BULK_FLUSH_INTERVAL;
 
     /**
+     * Bulks sent and not yet answered; null keeps the default of {@link BulkConfiguration}.
+     */
+    @Value("${reporters.elasticsearch.bulk.max_concurrent_send:#{null}}")
+    private Integer bulkMaxConcurrentSend;
+
+    /**
+     * Memory, in bytes, of the bulks waiting to be sent, beyond which new bulks are dropped.
+     */
+    @Value("${reporters.elasticsearch.bulk.max_memory_size:#{null}}")
+    private Long bulkMaxMemorySize;
+
+    /**
+     * Retries of a bulk Elasticsearch refuses or cannot answer, such as a 429, before it is dropped.
+     */
+    @Value("${reporters.elasticsearch.bulk.retry.max_retries:#{null}}")
+    private Integer bulkMaxRetries;
+
+    /**
+     * Delay, in milliseconds, before the first retry of a bulk, growing up to the max delay.
+     */
+    @Value("${reporters.elasticsearch.bulk.retry.initial_delay:#{null}}")
+    private Integer bulkRetryInitialDelay;
+
+    @Value("${reporters.elasticsearch.bulk.retry.max_delay:#{null}}")
+    private Integer bulkRetryMaxDelay;
+
+    /**
      * Elasticsearch basic oauth login.
      */
     @Value("${reporters.elasticsearch.security.username:#{null}}")
@@ -314,7 +341,15 @@ public class ReporterConfiguration {
     }
 
     public BulkConfiguration getBulkConfiguration() {
-        return new BulkConfiguration(bulkActions, flushInterval, null, null, null, null, null);
+        return new BulkConfiguration(
+            bulkActions,
+            flushInterval,
+            bulkMaxConcurrentSend,
+            bulkMaxRetries,
+            bulkRetryInitialDelay,
+            bulkRetryMaxDelay,
+            bulkMaxMemorySize
+        );
     }
 
     public Integer getBulkActions() {
