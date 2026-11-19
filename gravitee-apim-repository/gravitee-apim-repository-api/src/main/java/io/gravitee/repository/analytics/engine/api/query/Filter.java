@@ -39,6 +39,7 @@ public record Filter(Filter.Name name, Operator operator, Object value) {
         GEO_IP_CITY,
         GEO_IP_CONTINENT,
         CONSUMER_IP,
+        USER,
         HTTP_USER_AGENT_OS_NAME,
         HTTP_USER_AGENT_DEVICE,
         MESSAGE_CONNECTOR_TYPE,

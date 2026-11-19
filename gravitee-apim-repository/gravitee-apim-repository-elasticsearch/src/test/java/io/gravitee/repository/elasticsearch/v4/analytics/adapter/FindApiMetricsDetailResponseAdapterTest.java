@@ -86,6 +86,15 @@ class FindApiMetricsDetailResponseAdapterTest extends AbstractAdapterTest {
         }
 
         @Test
+        void should_read_the_end_user_the_plan_reported() {
+            final SearchResponse searchResponse = buildSearchHit("api-proxy-v4-metrics-with-user.json");
+
+            var result = FindApiMetricsDetailResponseAdapter.adaptFirst(searchResponse).orElseThrow();
+
+            assertThat(result.getUser()).isEqualTo("idp-subject-42");
+        }
+
+        @Test
         void should_leave_the_security_credential_null_when_the_document_omits_the_fields() {
             // security-type / security-token sit at the document root, not in additional-metrics, so they are
             // read explicitly — and read the same way on a v2 document, which uses the identical field names
