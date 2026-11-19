@@ -94,6 +94,19 @@ public class MongoGuardianRepository implements GuardianRepository {
     }
 
     @Override
+    public Optional<Guardian> updateIfVersionMatches(Guardian guardian, int expectedVersion) throws TechnicalException {
+        if (guardian == null || guardian.getId() == null) {
+            throw new IllegalStateException("Guardian to update must have an id");
+        }
+        log.debug("Update guardian with id [{}] if at version [{}]", guardian.getId(), expectedVersion);
+        try {
+            return internalGuardianMongoRepo.replaceIfVersionMatches(mapGuardian(guardian), expectedVersion).map(this::mapGuardian);
+        } catch (Exception e) {
+            throw new TechnicalException("An error occurred when updating guardian [%s]".formatted(guardian.getId()), e);
+        }
+    }
+
+    @Override
     public void delete(String id) throws TechnicalException {
         try {
             internalGuardianMongoRepo.deleteById(id);

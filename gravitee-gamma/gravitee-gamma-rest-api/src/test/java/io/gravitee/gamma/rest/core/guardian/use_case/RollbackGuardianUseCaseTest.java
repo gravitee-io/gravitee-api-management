@@ -45,8 +45,11 @@ import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomai
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianDeploymentNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
+import io.gravitee.gamma.rest.core.guardian.exception.GuardianOverwriteOvertakenException;
+import io.gravitee.gamma.rest.core.guardian.exception.GuardianVersionConflictException;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.CreateGuardian;
+import io.gravitee.gamma.rest.core.guardian.model.DraftPrecondition;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
@@ -100,6 +103,98 @@ class RollbackGuardianUseCaseTest {
     @AfterEach
     void restore_clock() {
         TimeProvider.overrideClock(Clock.systemDefaultZone());
+    }
+
+    /** A rollback replaces the draft, so an editor who read it before has to be told it moved on. */
+    @Test
+    void should_count_a_rollback_as_a_write_of_the_draft() {
+        repository.reset();
+        repository.givenGuardian(
+            aGuardian(definition -> definition.name("First name"))
+                .version(3)
+                .build()
+        );
+        var first = deployRevision();
+        save("Second name", "Changed description");
+
+        var result = rollback.execute(new RollbackGuardianUseCase.Input(actor, GUARDIAN_ID, first)).guardian();
+
+        assertThat(result.getVersion()).as("3, saved to 4, rolled back to 5").isEqualTo(5);
+    }
+
+    /**
+     * A rollback states no version, so losing every attempt is a plain conflict and not a failed
+     * precondition: the draft stays as the other writers stored it, and the rollback can be tried again.
+     */
+    @Test
+    void should_answer_a_conflict_when_other_writers_overtake_the_rollback_every_time() {
+        repository.reset();
+        repository.givenGuardian(
+            aGuardian(definition -> definition.name("First name"))
+                .version(3)
+                .build()
+        );
+        var first = deployRevision();
+        save("Second name", "Changed description");
+        repository.givenAnotherWriterAlwaysGetsInFirst(stored ->
+            stored.toBuilder().description("Saved meanwhile").version(stored.getVersion() + 1).build()
+        );
+
+        assertThatThrownBy(() -> rollback.execute(new RollbackGuardianUseCase.Input(actor, GUARDIAN_ID, first)))
+            .isInstanceOf(GuardianOverwriteOvertakenException.class)
+            .isNotInstanceOf(GuardianVersionConflictException.class);
+
+        assertThat(repository.findByEnvironmentId(ENVIRONMENT_ID, GUARDIAN_ID)).hasValueSatisfying(stored -> {
+            assertThat(stored.getName()).as("the draft, not rolled back").isEqualTo("Second name");
+            assertThat(stored.getDescription()).as("as the other writers left it").isEqualTo("Saved meanwhile");
+        });
+    }
+
+    /**
+     * A rollback restores a definition and keeps the description, which is not part of one. A description
+     * saved by someone else while the rollback was being stored is the one to keep, not the one it read first.
+     */
+    @Test
+    void should_keep_a_description_saved_while_the_rollback_was_being_stored() {
+        repository.reset();
+        repository.givenGuardian(
+            aGuardian(definition -> definition.name("First name"))
+                .version(3)
+                .build()
+        );
+        var first = deployRevision();
+        save("Second name", "Changed description");
+        repository.givenAnotherWriterGetsInFirst(stored ->
+            stored.toBuilder().description("Saved meanwhile").version(stored.getVersion() + 1).build()
+        );
+
+        var result = rollback.execute(new RollbackGuardianUseCase.Input(actor, GUARDIAN_ID, first)).guardian();
+
+        assertSoftly(softly -> {
+            softly.assertThat(result.getName()).as("restored definition").isEqualTo("First name");
+            softly.assertThat(result.getDescription()).as("description kept as it is stored now").isEqualTo("Saved meanwhile");
+        });
+    }
+
+    /** A node older than the counter writes a draft without version: nothing is left to compare, the description still is. */
+    @Test
+    void should_keep_a_description_saved_by_a_writer_that_left_no_version() {
+        repository.reset();
+        repository.givenGuardian(
+            aGuardian(definition -> definition.name("First name"))
+                .version(3)
+                .build()
+        );
+        var first = deployRevision();
+        save("Second name", "Changed description");
+        repository.givenAnotherWriterGetsInFirst(stored -> stored.toBuilder().description("Saved meanwhile").version(null).build());
+
+        var result = rollback.execute(new RollbackGuardianUseCase.Input(actor, GUARDIAN_ID, first)).guardian();
+
+        assertSoftly(softly -> {
+            softly.assertThat(result.getName()).as("restored definition").isEqualTo("First name");
+            softly.assertThat(result.getDescription()).as("description kept as it is stored now").isEqualTo("Saved meanwhile");
+        });
     }
 
     @Test
@@ -352,7 +447,8 @@ class RollbackGuardianUseCaseTest {
             new UpdateGuardianUseCase.Input(
                 actor,
                 GUARDIAN_ID,
-                UpdateGuardianCommand.builder().definition(aGuardianDefinition().name(name).build()).description(description).build()
+                UpdateGuardianCommand.builder().definition(aGuardianDefinition().name(name).build()).description(description).build(),
+                DraftPrecondition.anyVersion()
             )
         );
     }

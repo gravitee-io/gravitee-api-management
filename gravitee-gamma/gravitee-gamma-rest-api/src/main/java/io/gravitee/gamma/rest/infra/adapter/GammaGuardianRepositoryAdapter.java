@@ -142,6 +142,18 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
         }
     }
 
+    @Override
+    public Optional<Guardian> updateIfVersionMatches(Guardian guardian, int expectedVersion) {
+        try {
+            return RepositoryCalls.wrap(
+                () -> guardianRepository.updateIfVersionMatches(toRepository(guardian), expectedVersion),
+                "Failed to update guardian '%s'".formatted(guardian.getId())
+            ).map(GammaGuardianRepositoryAdapter::toCore);
+        } catch (RuntimeException e) {
+            throw refusalForUpdate(e, guardian);
+        }
+    }
+
     /**
      * What to raise for a creation the store refused.
      *
@@ -245,6 +257,7 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
             .deployedAt(toInstant(source.getDeployedAt()))
             .createdAt(toInstant(source.getCreatedAt()))
             .updatedAt(toInstant(source.getUpdatedAt()))
+            .version(source.getVersion())
             .build();
     }
 
@@ -266,6 +279,7 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
         target.setDeployedAt(toDate(source.getDeployedAt()));
         target.setCreatedAt(toDate(source.getCreatedAt()));
         target.setUpdatedAt(toDate(source.getUpdatedAt()));
+        target.setVersion(source.getVersion());
         return target;
     }
 

@@ -20,11 +20,13 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDraftDomainService;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
+import io.gravitee.gamma.rest.core.guardian.model.DraftPrecondition;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianAuditEvent;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
 import java.util.Map;
+import java.util.Objects;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -57,6 +59,7 @@ public class UpdateGuardianUseCase {
             drafts.replace(
                 existingGuardian,
                 input.guardianToUpdate(),
+                input.precondition(),
                 input.auditInfo(),
                 GuardianAuditEvent.GUARDIAN_UPDATED,
                 Map.of(),
@@ -66,7 +69,12 @@ public class UpdateGuardianUseCase {
     }
 
     @Builder
-    public record Input(AuditInfo auditInfo, String guardianId, UpdateGuardianCommand guardianToUpdate) {}
+    public record Input(AuditInfo auditInfo, String guardianId, UpdateGuardianCommand guardianToUpdate, DraftPrecondition precondition) {
+        public Input {
+            // stating none and asking to overwrite are opposite intents: a caller has to say which
+            Objects.requireNonNull(precondition, "The version an update is built on must be stated");
+        }
+    }
 
     public record Output(Guardian guardian) {}
 }
