@@ -75,7 +75,11 @@ public class SpelSecretExpressionParser implements SecretExpressionParser {
     private static Optional<String> text(SpelNode node) {
         return switch (node) {
             case StringLiteral literal -> Optional.of((String) literal.getLiteralValue().getValue());
-            case OpPlus plus -> text(plus.getChild(0)).flatMap(left -> text(plus.getChild(1)).map(right -> left + right));
+            case OpPlus plus -> {
+                var left = text(plus.getChild(0));
+                var right = text(plus.getChild(1));
+                yield left.isPresent() && right.isPresent() ? Optional.of(left.get() + right.get()) : Optional.empty();
+            }
             default -> Optional.empty();
         };
     }
