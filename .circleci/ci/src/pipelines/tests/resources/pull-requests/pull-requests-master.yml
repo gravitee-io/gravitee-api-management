@@ -690,6 +690,7 @@ jobs:
             git add controlplane-5fa78f.json
 
             for dataplane in dataplane-5fa78f-*.json; do
+              [ -e "$dataplane" ] || continue
               /tmp/jq ".appVersion = \"master-784ff35\"" "$dataplane" > tmp.$$.json && \
               mv tmp.$$.json "$dataplane"
               git add "$dataplane"
