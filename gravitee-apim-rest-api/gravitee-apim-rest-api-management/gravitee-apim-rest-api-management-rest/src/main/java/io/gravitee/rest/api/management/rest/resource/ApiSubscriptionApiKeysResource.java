@@ -98,6 +98,7 @@ public class ApiSubscriptionApiKeysResource extends AbstractApiKeyResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ) })
     public List<ApiKeyEntity> getApiKeysForApiSubscription() {
+        requireCanManageApi(api);
         // Check subscription exists and belongs to API
         checkSubscription(subscription);
 

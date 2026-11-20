@@ -123,6 +123,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             array = @ArraySchema(schema = @Schema(allowableValues = { "keys", "security" }))
         ) @QueryParam("expand") List<String> expand
     ) {
+        requireCanManageApi(api);
         // Transform query parameters to a subscription query
         SubscriptionQuery subscriptionQuery = subscriptionParam.toQuery();
         subscriptionQuery.setApi(api);
@@ -265,6 +266,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         @Parameter(name = "key", required = true) @CustomApiKey @NotNull @QueryParam("key") String key,
         @Parameter(name = "application", required = true) @NotNull @QueryParam("application") String application
     ) {
+        requireCanManageApi(api);
         boolean canCreate = apiKeyService.canCreate(GraviteeContext.getExecutionContext(), key, api, application);
         return Response.ok(canCreate).build();
     }
