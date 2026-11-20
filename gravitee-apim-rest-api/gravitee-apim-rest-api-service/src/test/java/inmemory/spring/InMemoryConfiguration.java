@@ -55,6 +55,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public ApiDefinitionCrudServiceInMemory apiDefinitionCrudService(ApiCrudServiceInMemory apiCrudServiceInMemory) {
+        return new ApiDefinitionCrudServiceInMemory(apiCrudServiceInMemory);
+    }
+
+    @Bean
     public ApiMetadataQueryServiceInMemory apiMetadataQueryService() {
         return new ApiMetadataQueryServiceInMemory();
     }

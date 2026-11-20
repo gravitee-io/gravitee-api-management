@@ -15,8 +15,10 @@
  */
 package inmemory;
 
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.model.Event;
+import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -54,6 +56,19 @@ public class EventCrudInMemory implements EventCrudService, InMemoryAlternative<
             .build();
         storage.add(event);
         return event;
+    }
+
+    /** Through the same mapping as the implementation, so a stored payload is the one the gateways would read. */
+    @Override
+    public Event createApiEvent(
+        String organizationId,
+        String environmentId,
+        Set<String> environmentIds,
+        EventType eventType,
+        Api api,
+        Map<Event.EventProperties, String> properties
+    ) {
+        return createEvent(organizationId, environmentId, environmentIds, eventType, ApiAdapter.INSTANCE.toRepository(api), properties);
     }
 
     @SneakyThrows

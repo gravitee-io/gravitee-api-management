@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.core.guardian.port.service_provider;
 
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gamma.rest.core.guardian.exception.ApiInternalFlowChangedException;
@@ -41,12 +42,20 @@ public interface GuardedApiPort {
     Page<ApiReference> findByGuardian(String environmentId, String guardianId, int pageNumber, int pageSize);
 
     /**
-     * Replaces the internal flow of an API that has one; the API needs a redeployment to run it.
+     * Replaces the internal flow of an API that has one, and sends that change to the gateways by the same call —
+     * only that change, not whatever else was saved on the API without being deployed.
      *
+     * <p>An API the gateways do not run — never deployed, stopped or unpublished — is written and nothing is sent: it
+     * stays out of sync, and its publisher's next deployment is what carries the Guardians over.
+     *
+     * @param auditInfo who is calling and from where; the environment of the call is read from it, so an API of
+     *     another environment answers as an unknown one.
      * @param expectedInternalFlow the flow {@code internalFlow} was computed from, the one the caller read. The write
      *     happens only while the API still holds it, so two callers editing the same API cannot overwrite one another.
      * @throws ApiInternalFlowChangedException when the API no longer holds {@code expectedInternalFlow}.
      * @throws io.gravitee.apim.core.api.exception.ApiNotFoundException when the environment holds no such API.
+     * @throws io.gravitee.apim.core.exception.TechnicalDomainException when what the gateways run cannot be read, so
+     *     the change cannot be sent to them. Nothing is written then — neither the internal flow nor the event.
      */
-    GuardedApi updateInternalFlow(String environmentId, String apiId, Flow expectedInternalFlow, Flow internalFlow);
+    GuardedApi updateInternalFlow(AuditInfo auditInfo, String apiId, Flow expectedInternalFlow, Flow internalFlow);
 }

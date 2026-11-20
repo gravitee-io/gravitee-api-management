@@ -16,16 +16,17 @@
 package io.gravitee.gamma.rest.infra.adapter;
 
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
-import io.gravitee.apim.core.api.crud_service.ApiDefinitionCrudService;
+import io.gravitee.apim.core.api.domain_service.DeployApiInternalFlowDomainService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
-import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.model.Sortable;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.gamma.rest.core.guardian.exception.ApiCannotRunGuardiansException;
 import io.gravitee.gamma.rest.core.guardian.exception.ApiInternalFlowChangedException;
 import io.gravitee.gamma.rest.core.guardian.model.ApiReference;
 import io.gravitee.gamma.rest.core.guardian.model.GuardedApi;
@@ -33,7 +34,6 @@ import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardedApiPort
 import io.gravitee.rest.api.model.common.PageableImpl;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -44,13 +44,19 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class GuardedApiPortAdapter implements GuardedApiPort {
 
+    /** Shown in the API's deployment history, on the entry a Guardian change republishes. */
+    private static final String DEPLOYMENT_LABEL = "Guardians updated";
+
     private final ApiCrudService apiCrudService;
     private final ApiQueryService apiQueryService;
-    private final ApiDefinitionCrudService apiDefinitionCrudService;
+    private final DeployApiInternalFlowDomainService deployApiInternalFlow;
 
     @Override
     public Optional<GuardedApi> findById(String environmentId, String apiId) {
-        return apiCrudService.findById(apiId).filter(inEnvironment(environmentId)).map(GuardedApiPortAdapter::toGuardedApi);
+        return apiCrudService
+            .findById(apiId)
+            .filter(api -> api.belongsToEnvironment(environmentId))
+            .map(GuardedApis::of);
     }
 
     @Override
@@ -65,46 +71,30 @@ public class GuardedApiPortAdapter implements GuardedApiPort {
     }
 
     /**
-     * Two guards, closing two windows. The flow comparison closes the one between the caller's read and this call:
-     * it names the conflict before anything is written. The conditional write closes the one between the read below
-     * and the write itself, and it writes the definition alone — so a {@code PUT} that changed another field of the
-     * same API in that window is neither rolled back nor silently overwritten.
+     * Two guards. The flow comparison closes the window between the caller's read and this call: it names the
+     * conflict before anything is written. The conditional write closes the one between the read below and the write
+     * itself, and it writes the definition alone — so a {@code PUT} that changed another field of the same API in
+     * that window is neither rolled back nor silently overwritten.
+     *
+     * <p>{@link DeployApiInternalFlowDomainService#replaceInternalFlow} writes the definition and hands it to the
+     * gateways, and does neither when the write loses the compare-and-swap.
      */
     @Override
-    public GuardedApi updateInternalFlow(String environmentId, String apiId, Flow expectedInternalFlow, Flow internalFlow) {
+    public GuardedApi updateInternalFlow(AuditInfo auditInfo, String apiId, Flow expectedInternalFlow, Flow internalFlow) {
         var api = apiCrudService
             .findById(apiId)
-            .filter(inEnvironment(environmentId))
+            .filter(stored -> stored.belongsToEnvironment(auditInfo.environmentId()))
             .orElseThrow(() -> new ApiNotFoundException(apiId));
-        var definition = v4DefinitionOf(api).orElseThrow(() -> new ApiNotFoundException(apiId));
-        if (!Objects.equals(definition.getInternalFlow(), expectedInternalFlow)) {
+        if (!api.holdsInternalFlow()) {
+            throw new ApiCannotRunGuardiansException(apiId);
+        }
+        if (!Objects.equals(api.internalFlow(), expectedInternalFlow)) {
             throw new ApiInternalFlowChangedException(apiId);
         }
-        var updated = api
-            .toBuilder()
-            .apiDefinitionValue(definition.toBuilder().internalFlow(internalFlow).build())
-            .updatedAt(TimeProvider.now())
-            .build();
-        if (!apiDefinitionCrudService.replaceDefinition(updated, api.getUpdatedAt())) {
+        var updated = api.withInternalFlow(internalFlow).toBuilder().updatedAt(TimeProvider.now()).build();
+        if (!deployApiInternalFlow.replaceInternalFlow(auditInfo, updated, api.getUpdatedAt(), DEPLOYMENT_LABEL)) {
             throw new ApiInternalFlowChangedException(apiId);
         }
-        return toGuardedApi(updated);
-    }
-
-    private static Predicate<Api> inEnvironment(String environmentId) {
-        return api -> Objects.equals(api.getEnvironmentId(), environmentId);
-    }
-
-    private static GuardedApi toGuardedApi(Api api) {
-        var builder = GuardedApi.builder().id(api.getId()).environmentId(api.getEnvironmentId()).name(api.getName()).type(api.getType());
-        v4DefinitionOf(api).ifPresent(definition -> builder.supportsGuardians(true).internalFlow(definition.getInternalFlow()));
-        return builder.build();
-    }
-
-    /** The definition of an API that can hold an internal flow, empty for a native or an edge one. */
-    private static Optional<io.gravitee.definition.model.v4.Api> v4DefinitionOf(Api api) {
-        return api.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api definition
-            ? Optional.of(definition)
-            : Optional.empty();
+        return GuardedApis.of(updated);
     }
 }
