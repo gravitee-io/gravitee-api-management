@@ -41,10 +41,10 @@ import io.gravitee.rest.api.service.exceptions.MessageUrlForbiddenException;
 import io.gravitee.rest.api.service.exceptions.NotifierDisabledException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
+import io.gravitee.rest.api.service.notifiers.WebhookNotifierPolicy;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.vertx.core.buffer.Buffer;
 import java.net.ConnectException;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
@@ -54,7 +54,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.env.Environment;
+import org.springframework.mock.env.MockEnvironment;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -82,9 +82,6 @@ class MessageService_CreateTest {
     @Mock
     private NotificationTemplateService notificationTemplateService;
 
-    @Mock
-    private Environment environment;
-
     private ExecutionContext executionContext;
 
     @BeforeEach
@@ -92,8 +89,11 @@ class MessageService_CreateTest {
         GraviteeContext.setCurrentOrganization("DEFAULT");
         GraviteeContext.setCurrentEnvironment("DEFAULT");
         executionContext = GraviteeContext.getExecutionContext();
-        ReflectionTestUtils.setField(messageService, "httpEnabled", true);
-        ReflectionTestUtils.setField(messageService, "httpWhitelist", List.of());
+        useWebhookPolicy(new MockEnvironment());
+    }
+
+    private void useWebhookPolicy(MockEnvironment environment) {
+        ReflectionTestUtils.setField(messageService, "webhookNotifierPolicy", new WebhookNotifierPolicy(environment));
     }
 
     @AfterEach
@@ -186,7 +186,7 @@ class MessageService_CreateTest {
 
     @Test
     void should_keep_forbidden_error_when_url_not_whitelisted() {
-        ReflectionTestUtils.setField(messageService, "httpWhitelist", List.of("https://allowed.example"));
+        useWebhookPolicy(new MockEnvironment().withProperty("notifiers.webhook.whitelist[0]", "https://allowed.example"));
 
         assertThatThrownBy(() -> messageService.create(executionContext, httpMessage())).isInstanceOf(MessageUrlForbiddenException.class);
         verifyNoInteractions(httpClientService);
@@ -194,7 +194,7 @@ class MessageService_CreateTest {
 
     @Test
     void should_keep_notifier_disabled_error_when_http_notifier_disabled() {
-        ReflectionTestUtils.setField(messageService, "httpEnabled", false);
+        useWebhookPolicy(new MockEnvironment().withProperty("notifiers.webhook.enabled", "false"));
 
         assertThatThrownBy(() -> messageService.create(executionContext, httpMessage())).isInstanceOf(NotifierDisabledException.class);
         verifyNoInteractions(httpClientService);

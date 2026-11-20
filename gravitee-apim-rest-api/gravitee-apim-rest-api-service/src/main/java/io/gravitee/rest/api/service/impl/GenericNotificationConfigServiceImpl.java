@@ -27,6 +27,7 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.BadNotificationConfigException;
 import io.gravitee.rest.api.service.exceptions.NotificationConfigNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.notifiers.WebhookNotifierPolicy;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -45,15 +46,21 @@ import org.springframework.stereotype.Component;
 @Component
 public class GenericNotificationConfigServiceImpl extends AbstractService implements GenericNotificationConfigService {
 
+    private static final String WEBHOOK_NOTIFIER_ID = "default-webhook";
+
     @Lazy
     @Autowired
     GenericNotificationConfigRepository genericNotificationConfigRepository;
+
+    @Autowired
+    WebhookNotifierPolicy webhookNotifierPolicy;
 
     @Override
     public GenericNotificationConfigEntity create(GenericNotificationConfigEntity entity) {
         if (entity.getNotifier() == null || entity.getNotifier().isEmpty() || entity.getName() == null || entity.getName().isEmpty()) {
             throw new BadNotificationConfigException();
         }
+        assertWebhookAllowed(entity);
         try {
             GenericNotificationConfig notificationConfig = convert(entity);
             notificationConfig.setId(UuidString.generateRandom());
@@ -79,6 +86,14 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
                 .findById(entity.getId())
                 .filter(config -> belongsTo(config, entity.getReferenceType(), entity.getReferenceId()))
                 .orElseThrow(NotificationConfigNotFoundException::new);
+            // A webhook stored before the current settings stays updatable (e.g. its hooks) as long as its target is
+            // unchanged; the send-time check still blocks the call itself.
+            if (
+                !Objects.equals(existingConfig.getNotifier(), entity.getNotifier()) ||
+                !Objects.equals(existingConfig.getConfig(), entity.getConfig())
+            ) {
+                assertWebhookAllowed(entity);
+            }
 
             GenericNotificationConfig notificationConfig = convert(entity);
             // Reference and organization are immutable on update; keep the stored values rather than
@@ -107,6 +122,12 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
             genericNotificationConfigRepository.delete(id);
         } catch (TechnicalException te) {
             throw new TechnicalManagementException("An error occurs while trying to delete the generic notification " + id, te);
+        }
+    }
+
+    private void assertWebhookAllowed(GenericNotificationConfigEntity entity) {
+        if (WEBHOOK_NOTIFIER_ID.equals(entity.getNotifier())) {
+            webhookNotifierPolicy.assertAllowed(entity.getConfig());
         }
     }
 
