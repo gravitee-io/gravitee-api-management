@@ -19,6 +19,8 @@ import * as Highcharts from 'highcharts';
 import { asyncScheduler, combineLatest, Observable, ReplaySubject } from 'rxjs';
 import { map, observeOn } from 'rxjs/operators';
 
+import { LIGHT_CHART_PALETTE } from '../../../../shared/components/gio-chart-abstract/gio-chart-abstract.component';
+
 export interface HealthAvailabilityTimeFrameOption {
   timestamp: {
     start: number;
@@ -73,6 +75,7 @@ export class HealthAvailabilityTimeFrameComponent implements AfterViewInit, OnCh
 
 const getChartOption = (option: HealthAvailabilityTimeFrameOption, colors: HealthAvailabilityTimeFrameColors): Highcharts.Options => {
   return {
+    palette: LIGHT_CHART_PALETTE,
     chart: {
       type: 'column',
       backgroundColor: 'transparent',

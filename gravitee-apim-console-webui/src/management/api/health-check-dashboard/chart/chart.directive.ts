@@ -19,6 +19,8 @@ import { mapChart } from 'highcharts';
 import 'highcharts/modules/map';
 import { cloneDeep, filter, forEach, map, max, merge, sortBy } from 'lodash';
 
+import { LIGHT_CHART_PALETTE } from '../../../../shared/components/gio-chart-abstract/gio-chart-abstract.component';
+
 class ChartDirective {
   constructor() {
     return {
@@ -129,6 +131,7 @@ class ChartDirective {
               noData: {
                 useHTML: true,
               },
+              palette: LIGHT_CHART_PALETTE,
             });
 
             if (newOptions.title) {
