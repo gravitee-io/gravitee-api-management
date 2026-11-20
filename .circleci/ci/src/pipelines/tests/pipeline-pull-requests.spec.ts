@@ -66,4 +66,43 @@ describe('Pull requests workflow tests', () => {
       expect(result.stringify()).toStrictEqual(expected);
     },
   );
+
+  describe('NextGen environment deployment', () => {
+    const generatedFor = (branch: string, supportBranches: string[]) =>
+      generatePullRequestsConfig({
+        action: 'pull_requests',
+        apimVersionPath: './src/pipelines/tests/resources/common/pom.xml',
+        baseBranch: branch,
+        branch,
+        sha1: '784ff35ca',
+        changedFiles: ['pom.xml'],
+        buildNum: '1234',
+        buildId: '1234',
+        graviteeioVersion: '',
+        isDryRun: false,
+        supportBranches,
+      }).stringify();
+
+    it('should deploy the newest support line on the support control plane', () => {
+      const generated = generatedFor('4.14.x', ['4.14.x', '4.13.x']);
+
+      expect(generated).toContain('name: Deploy on NextGen Integration environment');
+      expect(generated).toContain('controlplane-607284.json');
+      expect(generated).toContain('.appVersion = \\"4.14.x-784ff35\\"');
+      expect(generated).not.toContain('controlplane-5fa78f.json');
+    });
+
+    it('should hand the support control plane over to a newly cut line', () => {
+      const generated = generatedFor('4.15.x', ['4.15.x', '4.14.x', '4.13.x']);
+
+      expect(generated).toContain('controlplane-607284.json');
+      expect(generated).toContain('.appVersion = \\"4.15.x-784ff35\\"');
+    });
+
+    it('should stop deploying a support line once a newer one is cut', () => {
+      const generated = generatedFor('4.14.x', ['4.15.x', '4.14.x', '4.13.x']);
+
+      expect(generated).not.toContain('Deploy on NextGen Integration environment');
+    });
+  });
 });
