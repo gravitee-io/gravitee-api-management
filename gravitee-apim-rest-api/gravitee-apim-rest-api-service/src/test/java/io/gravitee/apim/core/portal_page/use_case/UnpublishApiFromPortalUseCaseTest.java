@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static fixtures.core.model.PortalNavigationItemFixtures.aFolder;
 import static fixtures.core.model.PortalNavigationItemFixtures.aPage;
 import static fixtures.core.model.PortalNavigationItemFixtures.anApi;
@@ -56,6 +57,7 @@ class UnpublishApiFromPortalUseCaseTest {
 
     private static final String API_ID = "api-a";
     private static final String OTHER_API_ID = "api-b";
+    private static final PortalId DEFAULT_PORTAL_ID = ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId();
 
     private PortalNavigationItemId failingUpdateOf;
 
@@ -237,7 +239,7 @@ class UnpublishApiFromPortalUseCaseTest {
         var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).published(false).build();
         page.markAsRoot();
         queryService.initWith(List.of(section, page));
-        var input = new PublishApiToPortalUseCase.Input(ORG_ID, ENV_ID, API_ID, section.getId(), null);
+        var input = new PublishApiToPortalUseCase.Input(ORG_ID, ENV_ID, API_ID, section.getId(), DEFAULT_PORTAL_ID);
 
         var published = publishUseCase.execute(input);
         unpublish();
@@ -273,6 +275,17 @@ class UnpublishApiFromPortalUseCaseTest {
     }
 
     @Test
+    void should_reject_when_no_portal_is_given_and_leave_the_api_published() {
+        var section = aSection();
+        var listing = aListing(section, API_ID);
+        queryService.initWith(List.of(section, listing));
+
+        assertThatThrownBy(() -> unpublishFrom(null)).isInstanceOf(InvalidPortalNavigationItemDataException.class);
+
+        assertThat(stored(listing.getId()).getPublished()).isTrue();
+    }
+
+    @Test
     void should_reject_an_unknown_portal_and_leave_the_api_published() {
         var section = aSection();
         var listing = aListing(section, API_ID);
@@ -281,21 +294,6 @@ class UnpublishApiFromPortalUseCaseTest {
         assertThatThrownBy(() -> unpublishFrom(PortalId.random())).isInstanceOf(PortalNotFoundException.class);
 
         assertThat(stored(listing.getId()).getPublished()).isTrue();
-    }
-
-    @Test
-    void should_unpublish_from_the_only_portal_when_it_is_not_the_default_one() {
-        navigationPortals.portalCrudService().delete(navigationPortals.defaultPortalIdOf(ENV_ID));
-        var automationPortal = portal(navigationPortals.givenAutomationPortal(ORG_ID, ENV_ID));
-        var section = aSection();
-        section.changeOwner(automationPortal);
-        var listing = aListing(section, API_ID);
-        listing.changeOwner(automationPortal);
-        queryService.initWith(List.of(section, listing));
-
-        unpublish();
-
-        assertThat(stored(listing.getId()).getPublished()).isFalse();
     }
 
     @Nested
@@ -329,7 +327,7 @@ class UnpublishApiFromPortalUseCaseTest {
         }
 
         @Test
-        void should_unpublish_from_the_default_portal_when_no_portal_is_named() {
+        void should_unpublish_from_the_default_portal_and_leave_the_api_on_the_other() {
             unpublish();
 
             assertThat(stored(defaultPortalListing.getId()).getPublished()).isFalse();
@@ -363,7 +361,7 @@ class UnpublishApiFromPortalUseCaseTest {
     }
 
     private void unpublish() {
-        unpublishFrom(null);
+        unpublishFrom(DEFAULT_PORTAL_ID);
     }
 
     private void unpublishFrom(PortalId portalId) {

@@ -259,6 +259,7 @@ import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ImportPortalNavigationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListApiDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListApiPublishLocationsUseCase;
+import io.gravitee.apim.core.portal_page.use_case.ListApiPublishPortalsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsForPortalUseCase;
 import io.gravitee.apim.core.portal_page.use_case.PublishApiToPortalUseCase;
 import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForPortalNavigationItemsUseCase;
@@ -1605,6 +1606,11 @@ public class ResourceContextConfiguration {
             portalNavigationItemDomainService,
             navigationPortalDomainService
         );
+    }
+
+    @Bean
+    public ListApiPublishPortalsUseCase listApiPublishPortalsUseCase(PortalCrudServiceInMemory portalCrudService) {
+        return new ListApiPublishPortalsUseCase(portalCrudService);
     }
 
     @Bean

@@ -59,6 +59,7 @@ class PublishApiToPortalUseCaseTest {
 
     private static final String API_ID = "api-a";
     private static final String OTHER_API_ID = "api-b";
+    private static final PortalId DEFAULT_PORTAL_ID = ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId();
 
     private PortalNavigationItemId failingUpdateOf;
 
@@ -343,6 +344,16 @@ class PublishApiToPortalUseCaseTest {
     }
 
     @Test
+    void should_reject_when_no_portal_is_given() {
+        var section = aSection("APIs");
+        queryService.initWith(List.of(section));
+
+        assertThatThrownBy(() -> publishTo(section.getId(), null)).isInstanceOf(InvalidPortalNavigationItemDataException.class);
+
+        assertThat(listingRows()).isEmpty();
+    }
+
+    @Test
     void should_reject_an_unknown_portal_without_creating_anything() {
         var section = aSection("APIs");
         queryService.initWith(List.of(section));
@@ -380,18 +391,6 @@ class PublishApiToPortalUseCaseTest {
                     assertThat(listing.getPublished()).isTrue();
                 });
             assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, defaultPortalSection.getId())).isEmpty();
-        }
-
-        @Test
-        void should_publish_to_the_default_portal_when_no_portal_is_named() {
-            publishTo(defaultPortalSection.getId());
-
-            assertThat(listingRows())
-                .singleElement()
-                .satisfies(listing -> {
-                    assertThat(listing.getParentId()).isEqualTo(defaultPortalSection.getId());
-                    assertThat(listing.getReference()).isEqualTo(PORTAL_REFERENCE);
-                });
         }
 
         @Test
@@ -441,7 +440,7 @@ class PublishApiToPortalUseCaseTest {
     }
 
     private PublishApiToPortalUseCase.Output publishTo(PortalNavigationItemId sectionId) {
-        return publishTo(sectionId, null);
+        return publishTo(sectionId, DEFAULT_PORTAL_ID);
     }
 
     private PublishApiToPortalUseCase.Output publishTo(PortalNavigationItemId sectionId, PortalId portalId) {

@@ -127,6 +127,7 @@ class ApiDocumentationNavigationResource_UnknownApiTest extends AbstractResource
     private static Stream<Named<Function<WebTarget, Response>>> operations() {
         return Stream.of(
             Named.of("list", target -> target.request().get()),
+            Named.of("publish portals", target -> target.path("_publish-portals").request().get()),
             Named.of("publish locations", target -> target.path("_publish-locations").request().get()),
             Named.of("create", target ->
                 target.request().post(json(PortalNavigationItemsFixtures.aCreatePortalNavigationPage().parentId(null)))
@@ -148,7 +149,10 @@ class ApiDocumentationNavigationResource_UnknownApiTest extends AbstractResource
                     )
             ),
             Named.of("publish", target ->
-                target.path("_publish").request().post(json(new PublishApiToPortal().sectionId(UUID.randomUUID())))
+                target
+                    .path("_publish")
+                    .request()
+                    .post(json(new PublishApiToPortal().portalId(UUID.randomUUID()).sectionId(UUID.randomUUID())))
             ),
             Named.of("unpublish", target -> target.path("_unpublish").request().post(json(""))),
             Named.of("create the overview page", target -> target.path("_overview-page").request().post(json("")))

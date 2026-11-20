@@ -212,6 +212,16 @@ class ApiDocumentationNavigationResource_UnpublishTest extends AbstractResourceT
     }
 
     @Test
+    void should_return_400_when_no_portal_is_given() {
+        var section = aSection();
+        var listing = aListing(section);
+        portalNavigationItemCrudService.initWith(List.of(section, listing));
+
+        assertThat(rootTarget().request().post(Entity.json(""))).hasStatus(BAD_REQUEST_400);
+        assertThat(listing.getPublished()).isTrue();
+    }
+
+    @Test
     void should_return_404_for_an_unknown_portal() {
         var section = aSection();
         var listing = aListing(section);
@@ -227,7 +237,7 @@ class ApiDocumentationNavigationResource_UnpublishTest extends AbstractResourceT
     }
 
     private Response unpublish() {
-        return rootTarget().request().post(Entity.json(""));
+        return unpublishFrom(((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId().toString());
     }
 
     private static PortalNavigationFolder aSection() {
