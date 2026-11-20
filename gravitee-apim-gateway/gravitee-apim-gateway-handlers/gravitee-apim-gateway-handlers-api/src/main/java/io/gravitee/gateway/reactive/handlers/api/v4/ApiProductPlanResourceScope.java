@@ -37,7 +37,11 @@ final class ApiProductPlanResourceScope {
         final CustomComponentProvider productComponents = new CustomComponentProvider();
         productComponents.add(ResourceManager.class, productResourceManager);
         final ComponentProvider productScopedProvider = new CompositeComponentProvider(productComponents, apiComponentProvider);
-        final MutableExecutionContext scopedCtx = new ProductPlanResourceScopedExecutionContext(ctx, productScopedProvider);
+        final MutableExecutionContext scopedCtx = new ProductPlanResourceScopedExecutionContext(
+            ctx,
+            productScopedProvider,
+            productResourceManager
+        );
 
         return scopedWork.apply(scopedCtx);
     }
