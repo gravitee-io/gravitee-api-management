@@ -25,6 +25,7 @@ import inmemory.SecretValueEncryptorInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.credential.domain_service.CredentialAuditDomainService;
+import io.gravitee.apim.core.credential.domain_service.CredentialExpressionDomainService;
 import io.gravitee.apim.core.credential.domain_service.CredentialOwnerDomainService;
 import io.gravitee.apim.core.credential.domain_service.CredentialSecretsDomainService;
 import io.gravitee.apim.core.credential.use_case.CreateCredentialUseCase;
@@ -35,6 +36,7 @@ import io.gravitee.apim.core.credential.use_case.RotateCredentialUseCase;
 import io.gravitee.apim.core.credential.use_case.SearchCredentialsUseCase;
 import io.gravitee.apim.core.credential.use_case.UpdateCredentialUseCase;
 import io.gravitee.apim.core.secret.domain_service.SecretDomainService;
+import io.gravitee.apim.infra.credential.SpelSecretExpressionParser;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -105,7 +107,8 @@ class CredentialsTestConfiguration {
             credentialCrudService,
             credentialSecretsDomainService,
             credentialOwnerDomainService,
-            credentialAuditDomainService
+            credentialAuditDomainService,
+            new CredentialExpressionDomainService(new SpelSecretExpressionParser())
         );
     }
 
@@ -131,7 +134,12 @@ class CredentialsTestConfiguration {
         CredentialOwnerDomainService credentialOwnerDomainService,
         CredentialAuditDomainService credentialAuditDomainService
     ) {
-        return new UpdateCredentialUseCase(credentialCrudService, credentialOwnerDomainService, credentialAuditDomainService);
+        return new UpdateCredentialUseCase(
+            credentialCrudService,
+            credentialOwnerDomainService,
+            credentialAuditDomainService,
+            new CredentialExpressionDomainService(new SpelSecretExpressionParser())
+        );
     }
 
     @Bean

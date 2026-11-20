@@ -95,6 +95,69 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
     }
 
     @Test
+    void should_turn_a_path_into_an_expression_and_back() {
+        var credential = fixture.givenACredential();
+        var expression = "{#secrets.get(#context.attributes['openai-key-uri'])}";
+
+        var withExpression = update(fixture.owner(), credential, c -> c.references(Map.of("token", expression)));
+        var withPath = update(fixture.owner(), withExpression, c -> c.references(Map.of("token", "/vault/secret/openai:token")));
+
+        assertThat(withExpression.secretReferences()).containsOnly(Map.entry("token", new SecretReference(expression, null)));
+        assertThat(withPath.secretReferences()).containsOnly(Map.entry("token", new SecretReference("/vault/secret/openai:token", null)));
+    }
+
+    @Test
+    void should_require_the_secret_read_permission_to_point_at_an_expression() {
+        var credential = fixture.givenACredential();
+
+        assertThatThrownBy(() ->
+            update(fixture.ownerWithSecretAccess(), credential, c ->
+                c.references(Map.of("token", "{#secrets.get(#context.attributes['openai-key-uri'])}"))
+            )
+        ).isInstanceOf(SecretPermissionRequiredException.class);
+        assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
+    }
+
+    @Test
+    void should_not_point_an_expression_at_the_secret_of_another_credential() {
+        var credential = fixture.givenACredential();
+
+        assertThatThrownBy(() ->
+            update(fixture.admin(), credential, c ->
+                c.references(Map.of("token", "{#secrets.get('/gravitee/credential.other.token', #context.attributes['key'])}"))
+            )
+        )
+            .isInstanceOf(InvalidCredentialException.class)
+            .hasMessageContaining("another credential");
+        assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
+    }
+
+    @Test
+    void should_not_point_an_expression_of_joined_text_at_the_secret_of_another_credential() {
+        var credential = fixture.givenACredential();
+
+        assertThatThrownBy(() ->
+            update(fixture.admin(), credential, c ->
+                c.references(Map.of("token", "{#secrets.get('/gravitee/cred' + 'ential.other.token:value')}"))
+            )
+        )
+            .isInstanceOf(InvalidCredentialException.class)
+            .hasMessageContaining("another credential");
+        assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
+    }
+
+    @Test
+    void should_reject_an_expression_reading_the_request() {
+        var credential = fixture.givenACredential();
+
+        assertThatThrownBy(() ->
+            update(fixture.admin(), credential, c -> c.references(Map.of("token", "{#secrets.get(#request.headers['X-Uri'][0])}")))
+        )
+            .isInstanceOf(InvalidCredentialException.class)
+            .hasMessageContaining("token");
+    }
+
+    @Test
     void should_require_the_secret_read_permission_to_point_at_a_secret_gravitee_stores() {
         var credential = fixture.givenACredential();
         var withoutRead = fixture.ownerWithSecretAccess(SecretAccess.CREATE, SecretAccess.UPDATE, SecretAccess.DELETE);
@@ -283,5 +346,17 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
                 assertThat(audit.getProperties()).containsEntry("CREDENTIAL", credential.id());
                 assertThat(audit.getPatch()).contains("Renamed");
             });
+    }
+
+    @Test
+    void should_audit_the_expression_as_written() {
+        var credential = fixture.givenACredential();
+        fixture.auditCrudService.reset();
+
+        update(fixture.owner(), credential, c -> c.references(Map.of("token", "{#secrets.get(#context.attributes['openai-key-uri'])}")));
+
+        assertThat(fixture.auditCrudService.storage())
+            .singleElement()
+            .satisfies(audit -> assertThat(audit.getPatch()).contains("#context.attributes['openai-key-uri']"));
     }
 }

@@ -18,6 +18,7 @@ package io.gravitee.apim.core.credential.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.credential.crud_service.CredentialCrudService;
 import io.gravitee.apim.core.credential.domain_service.CredentialAuditDomainService;
+import io.gravitee.apim.core.credential.domain_service.CredentialExpressionDomainService;
 import io.gravitee.apim.core.credential.domain_service.CredentialOwnerDomainService;
 import io.gravitee.apim.core.credential.model.Credential;
 import io.gravitee.apim.core.credential.model.CredentialActor;
@@ -33,6 +34,7 @@ public class UpdateCredentialUseCase {
     private final CredentialCrudService credentialCrudService;
     private final CredentialOwnerDomainService credentialOwnerDomainService;
     private final CredentialAuditDomainService credentialAuditDomainService;
+    private final CredentialExpressionDomainService credentialExpressionDomainService;
 
     public record Input(CredentialActor actor, String credentialId, UpdateCredentialCommand command) {}
 
@@ -54,6 +56,7 @@ public class UpdateCredentialUseCase {
             !changed.configuration().equals(existing.configuration()) ||
             !changed.ownerId().equals(existing.ownerId())
         ) {
+            credentialExpressionDomainService.requireValidExpressions(changed);
             changed.requireReferencesUsableBy(actor);
         }
         var updated = credentialCrudService.update(changed);

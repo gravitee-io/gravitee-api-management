@@ -18,6 +18,7 @@ package inmemory.spring;
 import inmemory.*;
 import io.gravitee.apim.core.api.domain_service.NotificationCRDDomainService;
 import io.gravitee.apim.core.api.query_service.ApiPortalSearchQueryService;
+import io.gravitee.apim.core.credential.service_provider.SecretExpressionParser;
 import io.gravitee.apim.core.event.query_service.EventLatestQueryService;
 import io.gravitee.apim.core.integration.service_provider.A2aAgentFetcher;
 import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
@@ -33,6 +34,7 @@ import io.gravitee.apim.core.specgen.service_provider.SpecGenNotificationProvide
 import io.gravitee.apim.core.specgen.service_provider.SpecGenProvider;
 import io.gravitee.apim.core.theme.domain_service.ThemeImageWriteValidator;
 import io.gravitee.apim.core.workflow.query_service.WorkflowQueryService;
+import io.gravitee.apim.infra.credential.SpelSecretExpressionParser;
 import io.gravitee.apim.infra.domain_service.theme.ThemeImageWriteValidatorImpl;
 import io.gravitee.apim.infra.query_service.audit.AuditEventQueryServiceImpl;
 import org.mockito.Mockito;
@@ -668,6 +670,11 @@ public class InMemoryConfiguration {
     @Bean
     public CredentialConsumersInMemory credentialConsumers() {
         return new CredentialConsumersInMemory();
+    }
+
+    @Bean
+    public SecretExpressionParser secretExpressionParser() {
+        return new SpelSecretExpressionParser();
     }
 
     @Bean

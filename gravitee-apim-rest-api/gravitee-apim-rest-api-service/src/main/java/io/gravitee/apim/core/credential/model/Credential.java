@@ -101,10 +101,17 @@ public record Credential(
 
     /**
      * A reference into Gravitee's secret store hands the secret to whoever uses the credential, so the user must be
-     * allowed to read secrets. The secrets of a managed credential were written for it and need no such check.
+     * allowed to read secrets, and so must an expression, which can resolve to any of them. The secrets of a managed
+     * credential were written for it and need no such check.
      */
     public void requireReferencesUsableBy(CredentialActor actor) {
-        if (!isManaged() && secretReferences.values().stream().anyMatch(SecretReference::isInGraviteeStore)) {
+        if (
+            !isManaged() &&
+            secretReferences
+                .values()
+                .stream()
+                .anyMatch(reference -> reference.isInGraviteeStore() || reference.isExpression())
+        ) {
             actor.requireSecretAccess(SecretAccess.READ);
         }
     }

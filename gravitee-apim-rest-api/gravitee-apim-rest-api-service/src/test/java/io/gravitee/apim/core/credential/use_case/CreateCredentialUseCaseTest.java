@@ -198,6 +198,68 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
         }
 
         @Test
+        void should_store_an_expression_the_gateway_resolves_per_request() {
+            var expression = "{#secrets.get(#context.attributes['openai-key-uri'])}";
+
+            var credential = fixture.createCredentialUseCase
+                .execute(
+                    new CreateCredentialUseCase.Input(
+                        "credential-1",
+                        fixture.ownerWithSecretAccess(SecretAccess.READ),
+                        NewCredentialCommand.builder()
+                            .name("OpenAI per tenant")
+                            .strategy(CredentialStrategy.BEARER)
+                            .references(Map.of("token", expression))
+                            .build()
+                    )
+                )
+                .credential();
+
+            assertThat(credential.secretReferences().get("token").reference()).isEqualTo(expression);
+            assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
+        }
+
+        @Test
+        void should_require_the_secret_read_permission_to_reference_through_an_expression() {
+            var command = NewCredentialCommand.builder()
+                .name("OpenAI per tenant")
+                .strategy(CredentialStrategy.BEARER)
+                .references(Map.of("token", "{#secrets.get(#context.attributes['openai-key-uri'])}"))
+                .build();
+
+            assertThatThrownBy(() ->
+                fixture.createCredentialUseCase.execute(
+                    new CreateCredentialUseCase.Input("credential-1", fixture.ownerWithSecretAccess(), command)
+                )
+            ).isInstanceOf(SecretPermissionRequiredException.class);
+            assertThat(fixture.credentialCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_not_reference_the_secret_of_another_credential_through_an_expression() {
+            var command = NewCredentialCommand.builder()
+                .name("OpenAI")
+                .strategy(CredentialStrategy.BEARER)
+                .references(Map.of("token", "{#secrets.get('/gravitee/credential.other.token', 'value')}"))
+                .build();
+
+            assertThatThrownBy(() ->
+                fixture.createCredentialUseCase.execute(new CreateCredentialUseCase.Input("credential-1", fixture.admin(), command))
+            )
+                .isInstanceOf(InvalidCredentialException.class)
+                .hasMessageContaining("another credential");
+            assertThat(fixture.credentialCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_reject_an_expression_that_is_not_a_secret_lookup() {
+            assertThatThrownBy(() ->
+                fixture.givenACredential(c -> c.references(Map.of("token", "{#T(java.lang.System).getenv('TOKEN')}")))
+            ).isInstanceOf(InvalidCredentialException.class);
+            assertThat(fixture.credentialCrudService.storage()).isEmpty();
+        }
+
+        @Test
         void should_reject_a_reference_that_holds_an_expression() {
             assertThatThrownBy(() ->
                 fixture.givenACredential(c -> c.references(Map.of("token", "/vault/{#context.attributes['x']}")))
