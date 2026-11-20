@@ -1285,6 +1285,66 @@ jobs:
           path: ./gravitee-apim-distribution/gravitee-apim-distribution-e2e/.tmp/videos
       - store_artifacts:
           path: ./gravitee-apim-distribution/gravitee-apim-distribution-e2e/.logs
+  job-trigger-platform-cujs:
+    docker:
+      - image: cimg/node:24.22.1
+    resource_class: small
+    steps:
+      - keeper/env-export:
+          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+          var-name: GITHUB_TOKEN
+      - gh/setup
+      - run:
+          name: Run the CUJs the pull request names
+          command: |-
+            if ! body=$(gh pr view "${CIRCLE_BRANCH}" --repo gravitee-io/gravitee-api-management --json body --jq .body); then
+              echo "No pull request for this branch: no CUJ to run."
+              exit 0
+            fi
+            line() { printf '%s\n' "${body}" | tr -d '\r' | sed -n "s/^$1:[[:space:]]*//p" | head -n 1 | tr -d ' '; }
+            CUJS=$(line CUJ)
+            if [ -z "${CUJS}" ]; then
+              echo "No 'CUJ:' line in the pull request description: nothing to run."
+              exit 0
+            fi
+            if ! [[ "${CUJS}" =~ ^CUJ-[0-9]+(,CUJ-[0-9]+)*$ ]]; then
+              echo "The 'CUJ:' line must look like 'CUJ: CUJ-72, CUJ-161', got: ${CUJS}"
+              exit 1
+            fi
+            E2E_BRANCH=$(line CUJ-branch)
+            E2E_BRANCH=${E2E_BRANCH:-main}
+            if ! [[ "${E2E_BRANCH}" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+              echo "The 'CUJ-branch:' line must name a gravitee-platform-e2e branch, got: ${E2E_BRANCH}"
+              exit 1
+            fi
+
+            status() {
+              gh api "repos/gravitee-io/gravitee-api-management/statuses/${CIRCLE_SHA1}" \
+                -f state="$1" -f context=e2e/CUJ -f target_url="$2" -f description="$3" > /dev/null
+            }
+
+            params=$(jq -n --arg c "${CUJS}" --arg line "master-latest" --arg image "apim-1234-run-e2e-784ff35" \
+              '{trigger: "cuj", cujs: $c, "apim-tag": $line, "am-tag": $line, "apim-image-tag": $image}')
+            response=$(curl --fail --silent --show-error --request POST \
+              --url https://circleci.com/api/v2/project/gh/gravitee-io/gravitee-platform-e2e/pipeline \
+              --header "Circle-Token: ${CIRCLE_TOKEN}" \
+              --header 'content-type: application/json' \
+              --data "$(jq -n --argjson p "${params}" --arg b "${E2E_BRANCH}" '{branch: $b, parameters: $p}')")
+            pipeline_id=$(jq -r .id <<< "${response}")
+            url="https://app.circleci.com/pipelines/github/gravitee-io/gravitee-platform-e2e/$(jq -r .number <<< "${response}")"
+            echo "${CUJS} on gravitee-platform-e2e@${E2E_BRANCH}, images apim-1234-run-e2e-784ff35, chart master-latest: ${url}"
+            status pending "${url}" "${CUJS}: running"
+
+            for _ in $(seq 1 120); do
+              sleep 60
+              state=$(curl --silent --header "Circle-Token: ${CIRCLE_TOKEN}" \
+                "https://circleci.com/api/v2/pipeline/${pipeline_id}/workflow" | jq -r '.items[0].status // "pending"') || state=pending
+              case "${state}" in
+                success) status success "${url}" "${CUJS}: passed"; exit 0 ;;
+                failed | error | canceled | unauthorized | not_run) status failure "${url}" "${CUJS}: ${state}"; exit 0 ;;
+              esac
+            done
+            status error "${url}" "${CUJS}: no result after 120 minutes"
 workflows:
   pull_requests:
     jobs:
@@ -1622,7 +1682,18 @@ workflows:
             - Build APIM Gateway docker image
             - Build APIM Console docker image
             - Build APIM Portal docker image
+      - job-trigger-platform-cujs:
+          context:
+            - cicd-orchestrator
+          name: Run platform CUJs
+          requires:
+            - Build APIM Management API docker image
+            - Build APIM Gateway docker image
+            - Build APIM Console docker image
+            - Build APIM Portal docker image
+            - Build Gamma Console docker image
 orbs:
   keeper: gravitee-io/keeper@0.7.3
   helm: circleci/helm@3.0.0
   slack: circleci/slack@4.12.5
+  gh: circleci/github-cli@1.0.5

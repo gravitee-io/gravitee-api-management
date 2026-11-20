@@ -19,7 +19,7 @@ import { CircleCIEnvironment } from '../pipelines';
 import { isE2EBranch, isSupportBranchOrMaster } from '../utils';
 import { config } from '../config';
 import { BaseExecutor } from '../executors';
-import { DangerJsJob, TestApimChartsJob } from '../jobs';
+import { DangerJsJob, TestApimChartsJob, TriggerPlatformCujsJob } from '../jobs';
 import { orbs } from '../orbs';
 import { backendImageJobs } from './groups/backend-image-jobs';
 import { e2eJobs } from './groups/e2e-jobs';
@@ -57,11 +57,29 @@ export class PullRequestsWorkflow {
         ...this.getCommonJobs(dynamicConfig, environment, false, true, shouldBuildDockerImages, true),
         ...backendImageJobs(dynamicConfig, environment),
         ...e2eJobs(dynamicConfig, environment),
+        this.getPlatformCujsJob(dynamicConfig, environment),
       );
     } else {
       jobs = this.getCommonJobs(dynamicConfig, environment, true, true, shouldBuildDockerImages, true);
     }
     return new Workflow('pull_requests', jobs);
+  }
+
+  // Every image the platform cluster composes, under this build's tag.
+  private static getPlatformCujsJob(dynamicConfig: Config, environment: CircleCIEnvironment): workflow.WorkflowJob {
+    const triggerPlatformCujsJob = TriggerPlatformCujsJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(triggerPlatformCujsJob);
+    return new workflow.WorkflowJob(triggerPlatformCujsJob, {
+      context: config.jobContext,
+      name: 'Run platform CUJs',
+      requires: [
+        'Build APIM Management API docker image',
+        'Build APIM Gateway docker image',
+        'Build APIM Console docker image',
+        'Build APIM Portal docker image',
+        'Build Gamma Console docker image',
+      ],
+    });
   }
 
   private static getCommonJobs(
