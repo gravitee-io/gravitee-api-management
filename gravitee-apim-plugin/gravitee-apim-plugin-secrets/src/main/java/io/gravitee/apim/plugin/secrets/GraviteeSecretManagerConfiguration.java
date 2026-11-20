@@ -23,16 +23,13 @@ public class GraviteeSecretManagerConfiguration implements SecretManagerConfigur
 
     public static final String ENABLED_PROPERTY = "enabled";
     public static final String ENCRYPTION_KEY_PROPERTY = "encryption.key";
-    public static final String ENVIRONMENT_PROPERTY = "environment";
 
     private final boolean enabled;
     private final String encryptionKey;
-    private final String environment;
 
     public GraviteeSecretManagerConfiguration(Map<String, Object> properties) {
         this.enabled = ConfigHelper.getProperty(properties, ENABLED_PROPERTY, Boolean.class, true);
         this.encryptionKey = ConfigHelper.getProperty(properties, ENCRYPTION_KEY_PROPERTY, String.class, null);
-        this.environment = ConfigHelper.getProperty(properties, ENVIRONMENT_PROPERTY, String.class, null);
     }
 
     @Override
@@ -42,9 +39,5 @@ public class GraviteeSecretManagerConfiguration implements SecretManagerConfigur
 
     public String encryptionKey() {
         return encryptionKey;
-    }
-
-    public String environment() {
-        return environment;
     }
 }

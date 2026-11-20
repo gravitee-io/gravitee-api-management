@@ -36,6 +36,7 @@ import io.gravitee.secrets.api.errors.SecretManagerException;
 import io.gravitee.secrets.api.plugin.SecretProvider;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -55,9 +56,9 @@ public class GraviteeSecretProvider implements SecretProvider {
         StaticKeyEncryptionKeyProvider.KEY_PROPERTY +
         ")";
     private static final String VALUE_KEY = "value";
+    private static final String ENV_ID = SecretURL.WellKnownQueryParam.ENV_ID;
 
     private final String base64Kek;
-    private final String environmentId;
     private final SecretRepository secretRepository;
     private final OrganizationKeyRepository organizationKeyRepository;
     private final EnvironmentRepository environmentRepository;
@@ -67,22 +68,14 @@ public class GraviteeSecretProvider implements SecretProvider {
 
     public GraviteeSecretProvider(
         String base64Kek,
-        String environmentId,
         SecretRepository secretRepository,
         OrganizationKeyRepository organizationKeyRepository,
         EnvironmentRepository environmentRepository
     ) {
         this.base64Kek = base64Kek;
-        this.environmentId = environmentId;
         this.secretRepository = secretRepository;
         this.organizationKeyRepository = organizationKeyRepository;
         this.environmentRepository = environmentRepository;
-    }
-
-    static GraviteeSecretProvider refusing(String reason) {
-        var provider = new GraviteeSecretProvider(null, null, null, null, null);
-        provider.refusal = reason;
-        return provider;
     }
 
     /**
@@ -91,10 +84,6 @@ public class GraviteeSecretProvider implements SecretProvider {
      */
     @Override
     public SecretProvider start() {
-        if (refusal != null) {
-            log.error("{}: it refuses every secret until this is fixed", refusal);
-            return this;
-        }
         try {
             dataKeys = new DataKeyResolver(verifiedKeyEncryptionKey(), this::findStoredDataKey);
         } catch (SecretManagerException e) {
@@ -141,26 +130,17 @@ public class GraviteeSecretProvider implements SecretProvider {
             return Maybe.error(new SecretManagerException(reason));
         }
         return Maybe.fromCallable(() -> {
-            String path = secretURL.path();
-            int separator = path.indexOf('/');
-            if (separator <= 0 || separator == path.length() - 1) {
-                throw new SecretManagerException("Secret reference [" + path + "] must have the form /" + ID + "/{envId}/{key}");
-            }
-            String referencedEnvironmentId = path.substring(0, separator);
-            if (!referencedEnvironmentId.equals(environmentId)) {
+            String key = secretURL.path();
+            if (key.isEmpty() || key.contains("/")) {
                 throw new SecretManagerException(
-                    "Secret reference [" +
-                        path +
-                        "] names environment [" +
-                        referencedEnvironmentId +
-                        "], but secret provider [" +
-                        ID +
-                        "] serves environment [" +
-                        environmentId +
-                        "] only"
+                    "Secret reference [" + key + "] must have the form /" + ID + "/{key}:value?" + ENV_ID + "={envId}"
                 );
             }
-            String key = path.substring(separator + 1);
+            Collection<String> environmentIds = secretURL.query().get(ENV_ID);
+            if (environmentIds.size() != 1) {
+                throw new SecretManagerException("Secret reference [" + key + "] must name its environment with ?" + ENV_ID + "={envId}");
+            }
+            String environmentId = environmentIds.iterator().next();
             try {
                 return lookup(environmentId, key);
             } catch (SecretManagerException e) {
