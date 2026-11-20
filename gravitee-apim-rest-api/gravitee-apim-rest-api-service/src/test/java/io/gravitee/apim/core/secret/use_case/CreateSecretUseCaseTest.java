@@ -66,7 +66,7 @@ class CreateSecretUseCaseTest extends AbstractUseCaseTest {
         assertThat(secret.organizationId()).isEqualTo(ORG_ID);
         assertThat(secret.environmentId()).isEqualTo(ENV_ID);
         assertThat(secret.key()).isEqualTo("anthropic-key");
-        assertThat(secret.path()).isEqualTo("/gravitee/" + ENV_ID + "/anthropic-key:value");
+        assertThat(secret.path()).isEqualTo("/gravitee/anthropic-key:value?envId=" + ENV_ID);
         assertThat(secret.createdAt()).isEqualTo(INSTANT_NOW);
         assertThat(secret.updatedAt()).isEqualTo(INSTANT_NOW);
     }

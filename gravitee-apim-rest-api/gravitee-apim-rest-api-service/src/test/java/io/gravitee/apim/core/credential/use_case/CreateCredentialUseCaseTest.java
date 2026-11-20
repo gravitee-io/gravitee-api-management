@@ -109,7 +109,7 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { "/gravitee/" + ENV_ID + "/other-secret:value", "/GRAVITEE/" + ENV_ID + "/my-secret:value" })
+        @ValueSource(strings = { "/gravitee/other-secret:value?envId=" + ENV_ID, "/GRAVITEE/my-secret:value?envId=" + ENV_ID })
         void should_require_the_secret_read_permission_to_reference_a_secret_gravitee_stores(String reference) {
             var withoutRead = fixture.ownerWithSecretAccess(SecretAccess.CREATE, SecretAccess.UPDATE, SecretAccess.DELETE);
             var command = NewCredentialCommand.builder()
@@ -131,7 +131,7 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
             var command = NewCredentialCommand.builder()
                 .name("OpenAI")
                 .strategy(CredentialStrategy.BEARER)
-                .references(Map.of("token", "/gravitee/" + ENV_ID + "/credential.other.token:value"))
+                .references(Map.of("token", "/gravitee/credential.other.token:value?envId=" + ENV_ID))
                 .build();
 
             assertThatThrownBy(() ->
@@ -147,7 +147,7 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
             var command = NewCredentialCommand.builder()
                 .name("OpenAI")
                 .strategy(CredentialStrategy.BEARER)
-                .references(Map.of("token", "/gravitee/other-env/my-secret:value"))
+                .references(Map.of("token", "/gravitee/my-secret:value?envId=other-env"))
                 .build();
 
             assertThatThrownBy(() ->
@@ -168,7 +168,7 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
                         NewCredentialCommand.builder()
                             .name("OpenAI")
                             .strategy(CredentialStrategy.BEARER)
-                            .references(Map.of("token", "/gravitee/" + ENV_ID + "/my-secret:value"))
+                            .references(Map.of("token", "/gravitee/my-secret:value?envId=" + ENV_ID))
                             .build()
                     )
                 )
@@ -307,14 +307,14 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
                 Map.entry(
                     "clientId",
                     new SecretReference(
-                        "/gravitee/" + ENV_ID + "/credential.credential-1.clientId:value?renewable=true&reloadOnChange=true",
+                        "/gravitee/credential.credential-1.clientId:value?envId=" + ENV_ID + "&renewable=true&reloadOnChange=true",
                         "secret-1"
                     )
                 ),
                 Map.entry(
                     "clientSecret",
                     new SecretReference(
-                        "/gravitee/" + ENV_ID + "/credential.credential-1.clientSecret:value?renewable=true&reloadOnChange=true",
+                        "/gravitee/credential.credential-1.clientSecret:value?envId=" + ENV_ID + "&renewable=true&reloadOnChange=true",
                         "secret-2"
                     )
                 )
