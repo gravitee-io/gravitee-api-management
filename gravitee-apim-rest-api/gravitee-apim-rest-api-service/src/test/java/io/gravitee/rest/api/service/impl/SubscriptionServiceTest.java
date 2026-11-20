@@ -1257,8 +1257,7 @@ public class SubscriptionServiceTest {
         subscription.setFailureCause(failureCause);
 
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
-        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(v4Api(new SubscriptionListener()));
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
 
@@ -2215,10 +2214,9 @@ public class SubscriptionServiceTest {
         Subscription subscription = buildTestSubscription(ACCEPTED);
 
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
-        when(apiModelEntity.getDefinitionVersion()).thenReturn(DefinitionVersion.V2);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(v2Api());
 
         subscriptionService.pauseConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
     }
@@ -2228,12 +2226,9 @@ public class SubscriptionServiceTest {
         Subscription subscription = buildTestSubscription(ACCEPTED);
 
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
-        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
-        when(apiModel.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
-        when(apiModel.getListeners()).thenReturn(List.of());
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(v4Api());
 
         subscriptionService.pauseConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
     }
@@ -2244,12 +2239,9 @@ public class SubscriptionServiceTest {
         subscription.setConsumerStatus(Subscription.ConsumerStatus.STOPPED);
 
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
-        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
-        when(apiModel.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
-        when(apiModel.getListeners()).thenReturn(List.of(new SubscriptionListener()));
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(v4Api(new SubscriptionListener()));
 
         subscriptionService.pauseConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
     }
@@ -2260,18 +2252,16 @@ public class SubscriptionServiceTest {
         subscription.setConsumerStatus(Subscription.ConsumerStatus.STARTED);
 
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
-        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
-        when(apiModel.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
-        when(apiModel.getListeners()).thenReturn(List.of(new SubscriptionListener()));
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(v4Api(new SubscriptionListener()));
         when(subscriptionRepository.update(subscription)).thenReturn(subscription);
         final ApiKeyEntity apiKey = buildTestApiKey(subscription.getId(), false, false);
         when(apiKeyService.findBySubscription(any(), any())).thenReturn(List.of(apiKey));
 
         subscriptionService.pauseConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
 
+        verify(apiTemplateService, never()).findByIdForTemplates(any(), anyString());
         assertThat(subscription.getConsumerPausedAt()).isNotNull();
         assertThat(subscription.getConsumerStatus()).isEqualTo(Subscription.ConsumerStatus.STOPPED);
         verify(apiKeyService).update(GraviteeContext.getExecutionContext(), apiKey);
@@ -2308,9 +2298,8 @@ public class SubscriptionServiceTest {
         Subscription subscription = buildTestSubscription(ACCEPTED);
 
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
-        when(apiModelEntity.getDefinitionVersion()).thenReturn(DefinitionVersion.V2);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(v2Api());
 
         subscriptionService.resumeConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
     }
@@ -2320,11 +2309,8 @@ public class SubscriptionServiceTest {
         Subscription subscription = buildTestSubscription(ACCEPTED);
 
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
-        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
-        when(apiModel.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
-        when(apiModel.getListeners()).thenReturn(List.of());
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(v4Api());
 
         subscriptionService.resumeConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
     }
@@ -2335,11 +2321,8 @@ public class SubscriptionServiceTest {
         subscription.setConsumerStatus(Subscription.ConsumerStatus.STARTED);
 
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
-        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
-        when(apiModel.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
-        when(apiModel.getListeners()).thenReturn(List.of(new SubscriptionListener()));
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(v4Api(new SubscriptionListener()));
 
         subscriptionService.resumeConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
     }
@@ -2350,17 +2333,15 @@ public class SubscriptionServiceTest {
         subscription.setConsumerStatus(Subscription.ConsumerStatus.STOPPED);
 
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
-        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
-        when(apiModel.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
-        when(apiModel.getListeners()).thenReturn(List.of(new SubscriptionListener()));
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(v4Api(new SubscriptionListener()));
         when(subscriptionRepository.update(subscription)).thenReturn(subscription);
         final ApiKeyEntity apiKey = buildTestApiKey(subscription.getId(), false, false);
         when(apiKeyService.findBySubscription(any(), any())).thenReturn(List.of(apiKey));
 
         subscriptionService.resumeConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
 
+        verify(apiTemplateService, never()).findByIdForTemplates(any(), anyString());
         assertThat(subscription.getConsumerPausedAt()).isNull();
         assertThat(subscription.getConsumerStatus()).isEqualTo(Subscription.ConsumerStatus.STARTED);
         verify(apiKeyService).update(GraviteeContext.getExecutionContext(), apiKey);
@@ -2391,16 +2372,14 @@ public class SubscriptionServiceTest {
         subscription.setApi(API_ID);
 
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
-        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
-        when(apiModel.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
-        when(apiModel.getListeners()).thenReturn(List.of(new SubscriptionListener()));
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(v4Api(new SubscriptionListener()));
         when(subscriptionRepository.update(subscription)).thenReturn(subscription);
         final ApiKeyEntity apiKey = buildTestApiKey(subscription.getId(), false, false);
         when(apiKeyService.findBySubscription(any(), any())).thenReturn(List.of(apiKey));
 
         subscriptionService.resumeFailed(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
 
+        verify(apiTemplateService, never()).findByIdForTemplates(any(), anyString());
         assertThat(subscription.getConsumerPausedAt()).isNull();
         assertThat(subscription.getConsumerStatus()).isEqualTo(Subscription.ConsumerStatus.STARTED);
         verify(apiKeyService).update(GraviteeContext.getExecutionContext(), apiKey);
@@ -2686,5 +2665,17 @@ public class SubscriptionServiceTest {
         subscription.setApplication(application);
         subscription.setSubscribedBy(subscribedBy);
         return subscription;
+    }
+
+    private static io.gravitee.rest.api.model.v4.api.ApiEntity v4Api(io.gravitee.definition.model.v4.listener.Listener... listeners) {
+        return io.gravitee.rest.api.model.v4.api.ApiEntity.builder()
+            .id(API_ID)
+            .definitionVersion(DefinitionVersion.V4)
+            .listeners(List.of(listeners))
+            .build();
+    }
+
+    private static ApiEntity v2Api() {
+        return ApiEntity.builder().id(API_ID).graviteeDefinitionVersion(DefinitionVersion.V2.getLabel()).build();
     }
 }
