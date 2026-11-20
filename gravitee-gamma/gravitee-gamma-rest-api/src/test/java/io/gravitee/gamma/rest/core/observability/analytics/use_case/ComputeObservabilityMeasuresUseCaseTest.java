@@ -32,6 +32,7 @@ import io.gravitee.gamma.rest.core.observability.analytics.model.DataKind;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort.MeasuresQuery;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.EndUserDisplayDomainService;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
@@ -69,6 +70,7 @@ class ComputeObservabilityMeasuresUseCaseTest {
     private static final FilterCondition STATUS_200 = new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of("200"));
     private static final FilterCondition STATUS_500 = new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of("500"));
     private static final FilterCondition SERVER_ERRORS = new FilterCondition("HTTP_STATUS", FilterOperator.GTE, List.of("500"));
+    private static final FilterCondition BY_END_USER = new FilterCondition("USER", FilterOperator.EQ, List.of("alice"));
 
     @Mock
     private ObservabilityAnalyticsDataPort analyticsDataPort;
@@ -82,7 +84,12 @@ class ComputeObservabilityMeasuresUseCaseTest {
     void setUp() {
         var accessibleApiScope = new AccessibleApiScopeDomainService();
         var filterValidator = new ObservabilityFilterValidator(filterRegistry);
-        var pipeline = new AnalyticsRequestPipeline(filterValidator, accessibleApiScope, new EntrypointScopeProviderAdapter());
+        var pipeline = new AnalyticsRequestPipeline(
+            filterValidator,
+            accessibleApiScope,
+            new EntrypointScopeProviderAdapter(),
+            new EndUserDisplayDomainService(organizationId -> false)
+        );
         useCase = new ComputeObservabilityMeasuresUseCase(analyticsDataPort, pipeline);
 
         lenient()
@@ -117,6 +124,16 @@ class ComputeObservabilityMeasuresUseCaseTest {
                         null,
                         null,
                         Set.of(Signal.ANALYTICS),
+                        Set.of(ApiType.HTTP_PROXY)
+                    ),
+                    new FilterSpec(
+                        "USER",
+                        "End user",
+                        FilterType.KEYWORD,
+                        List.of(FilterOperator.EQ, FilterOperator.IN),
+                        null,
+                        null,
+                        Set.of(Signal.LOGS, Signal.ANALYTICS),
                         Set.of(ApiType.HTTP_PROXY)
                     ),
                     new FilterSpec(
@@ -472,6 +489,61 @@ class ComputeObservabilityMeasuresUseCaseTest {
             var groups = computedQuery().groups();
             assertThat(groups.get(0).apiIds()).containsExactly("api-1");
             assertThat(groups.get(1).isEmpty()).isTrue();
+        }
+    }
+
+    /** The end user is shown only where the organization turns {@code logging.user.displayed} on. */
+    @Nested
+    class EndUserDisplay {
+
+        @Test
+        void should_refuse_a_request_condition_on_the_end_user_before_any_data_access_while_it_is_not_displayed() {
+            assertThatThrownBy(() -> execute(List.of(BY_END_USER), metric("HTTP_REQUESTS")))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.end_user_not_displayed");
+            verifyNoInteractions(analyticsDataPort);
+        }
+
+        @Test
+        void should_refuse_a_metric_condition_on_the_end_user_before_any_data_access_while_it_is_not_displayed() {
+            assertThatThrownBy(() -> execute(List.of(), metric("HTTP_REQUESTS", BY_END_USER)))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.end_user_not_displayed");
+            verifyNoInteractions(analyticsDataPort);
+        }
+
+        /** Displayed, the end user identifies callers: only the APIs whose requests the caller reads are counted. */
+        @Test
+        void should_count_the_end_user_conditions_on_the_apis_whose_requests_the_caller_reads_while_it_is_displayed() {
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.PER_REQUEST)).thenReturn(
+                List.of(new AccessibleApi("logged-api", "Logged API", ApiType.HTTP_PROXY))
+            );
+            when(analyticsDataPort.computeMeasures(any())).thenReturn(JsonNodeFactory.instance.objectNode());
+
+            useCaseDisplayingTheEndUser().execute(
+                new ComputeObservabilityMeasuresUseCase.Input(
+                    ORG_ID,
+                    ENV_ID,
+                    List.of(BY_END_USER),
+                    FROM,
+                    TO,
+                    List.of(metric("HTTP_REQUESTS", BY_END_USER))
+                )
+            );
+
+            assertThat(computedQuery().groups()).allSatisfy(group -> assertThat(group.apiIds()).containsExactly("logged-api"));
+        }
+
+        private ComputeObservabilityMeasuresUseCase useCaseDisplayingTheEndUser() {
+            var pipeline = new AnalyticsRequestPipeline(
+                new ObservabilityFilterValidator(filterRegistry),
+                new AccessibleApiScopeDomainService(),
+                new EntrypointScopeProviderAdapter(),
+                new EndUserDisplayDomainService(organizationId -> true)
+            );
+            return new ComputeObservabilityMeasuresUseCase(analyticsDataPort, pipeline);
         }
     }
 

@@ -66,6 +66,7 @@ public class MetricsQuery {
         private String uri;
         private List<ResponseTimeRange> responseTimeRanges;
         private Set<String> errorKeys;
+        private Set<String> users;
         private Set<String> llmProxyModels;
         private Set<String> llmProxyProviders;
         private Set<String> mcpProxyTools;

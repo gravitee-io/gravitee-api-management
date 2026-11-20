@@ -88,6 +88,15 @@ class FindApiMetricsDetailResponseAdapterTest extends AbstractAdapterTest {
         }
 
         @Test
+        void should_read_the_end_user_the_plan_reported() {
+            final SearchResponse searchResponse = buildSearchHit("api-proxy-v4-metrics-with-user.json");
+
+            var result = FindApiMetricsDetailResponseAdapter.adaptFirst(searchResponse).orElseThrow();
+
+            assertThat(result.getUser()).isEqualTo("idp-subject-42");
+        }
+
+        @Test
         void should_map_the_trace_id_when_the_document_carries_one() {
             final SearchResponse searchResponse = buildSearchHit("api-proxy-v4-metrics-with-trace.json");
 

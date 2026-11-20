@@ -33,7 +33,9 @@ import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsSortSp
 import io.gravitee.gamma.rest.core.observability.analytics.model.DataKind;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.EndUserDisplayDomainService;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
+import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
@@ -47,6 +49,7 @@ import io.gravitee.gamma.rest.infra.adapter.EntrypointScopeProviderAdapter;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -85,7 +88,8 @@ class ComputeObservabilityTimeSeriesUseCaseTest {
         var pipeline = new AnalyticsRequestPipeline(
             new ObservabilityFilterValidator(filterRegistry),
             new AccessibleApiScopeDomainService(),
-            new EntrypointScopeProviderAdapter()
+            new EntrypointScopeProviderAdapter(),
+            new EndUserDisplayDomainService(organizationId -> false)
         );
         useCase = new ComputeObservabilityTimeSeriesUseCase(analyticsDataPort, pipeline);
     }
@@ -200,6 +204,97 @@ class ComputeObservabilityTimeSeriesUseCaseTest {
                 )
             )
         );
+    }
+
+    /** The end user is shown only where the organization turns {@code logging.user.displayed} on. */
+    @Nested
+    class EndUserDisplay {
+
+        private static final FilterCondition BY_END_USER = new FilterCondition("USER", FilterOperator.EQ, List.of("alice"));
+
+        @Test
+        void should_refuse_a_request_condition_on_the_end_user_before_any_data_access_while_it_is_not_displayed() {
+            var input = new ComputeObservabilityTimeSeriesUseCase.Input(
+                ORG_ID,
+                ENV_ID,
+                List.of(BY_END_USER),
+                FROM,
+                TO,
+                60_000L,
+                METRICS,
+                List.of(),
+                null,
+                List.of()
+            );
+
+            assertEndUserNotDisplayed(() -> useCase.execute(input));
+        }
+
+        @Test
+        void should_refuse_a_metric_condition_on_the_end_user_before_any_data_access_while_it_is_not_displayed() {
+            givenTheEndUserFilter();
+            var metrics = List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of(BY_END_USER)));
+
+            assertEndUserNotDisplayed(() -> useCase.execute(input(60_000L, metrics)));
+        }
+
+        @Test
+        void should_refuse_a_breakdown_by_end_user_before_any_data_access_while_it_is_not_displayed() {
+            assertEndUserNotDisplayed(() -> useCase.execute(input(60_000L, METRICS, List.of("USER"), null)));
+        }
+
+        /** Displayed, the end user identifies callers: only the APIs whose requests the caller reads are counted. */
+        @Test
+        void should_break_down_by_end_user_over_the_apis_whose_requests_the_caller_reads_while_it_is_displayed() {
+            givenTheEndUserFilter();
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.PER_REQUEST)).thenReturn(
+                List.of(new AccessibleApi("logged-api", "Logged API", ApiType.HTTP_PROXY))
+            );
+            when(analyticsDataPort.computeTimeSeries(any())).thenReturn(JsonNodeFactory.instance.objectNode());
+            var metrics = List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of(BY_END_USER)));
+
+            useCaseDisplayingTheEndUser().execute(input(60_000L, metrics, List.of("USER"), null));
+
+            var captor = ArgumentCaptor.forClass(ObservabilityAnalyticsDataPort.TimeSeriesQuery.class);
+            verify(analyticsDataPort).computeTimeSeries(captor.capture());
+            assertThat(captor.getValue().scope().apiIds()).containsExactly("logged-api");
+            assertThat(captor.getValue().scope().filters()).contains(BY_END_USER);
+        }
+
+        private void assertEndUserNotDisplayed(ThrowingCallable request) {
+            assertThatThrownBy(request)
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.end_user_not_displayed");
+            verifyNoInteractions(analyticsDataPort);
+        }
+
+        private void givenTheEndUserFilter() {
+            when(filterRegistry.getFilters(any(), any())).thenReturn(
+                List.of(
+                    new FilterSpec(
+                        "USER",
+                        "End user",
+                        FilterType.KEYWORD,
+                        List.of(FilterOperator.EQ, FilterOperator.IN),
+                        null,
+                        null,
+                        Set.of(Signal.LOGS, Signal.ANALYTICS),
+                        Set.of(ApiType.HTTP_PROXY)
+                    )
+                )
+            );
+        }
+
+        private ComputeObservabilityTimeSeriesUseCase useCaseDisplayingTheEndUser() {
+            var pipeline = new AnalyticsRequestPipeline(
+                new ObservabilityFilterValidator(filterRegistry),
+                new AccessibleApiScopeDomainService(),
+                new EntrypointScopeProviderAdapter(),
+                new EndUserDisplayDomainService(organizationId -> true)
+            );
+            return new ComputeObservabilityTimeSeriesUseCase(analyticsDataPort, pipeline);
+        }
     }
 
     @Nested

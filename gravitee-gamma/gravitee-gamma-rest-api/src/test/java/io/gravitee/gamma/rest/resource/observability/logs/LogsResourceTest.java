@@ -29,6 +29,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.EndUserDisplayDomainService;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
@@ -502,7 +503,8 @@ class LogsResourceTest extends AbstractResourceTest {
             logsDataPort,
             new ObservabilityFilterValidator(new SpiFilterRegistry(List.of())),
             new AccessibleApiScopeDomainService(),
-            new EntrypointScopeProviderAdapter()
+            new EntrypointScopeProviderAdapter(),
+            new EndUserDisplayDomainService(organizationId -> false)
         );
 
         @ParameterizedTest(name = "{0}")
@@ -518,6 +520,23 @@ class LogsResourceTest extends AbstractResourceTest {
             JsonNode body = response.readEntity(JsonNode.class);
             assertThat(body.get("message").asText()).startsWith(message);
             assertThat(body.get("technicalCode").asText()).isEqualTo(code);
+            verifyNoInteractions(logsDataPort);
+        }
+
+        /** The organization of these tests leaves {@code logging.user.displayed} off. */
+        @Test
+        void should_answer_400_to_an_end_user_condition_while_the_organization_does_not_display_it() {
+            when(searchLogsUseCase.execute(any())).thenAnswer(invocation -> realUseCase.execute(invocation.getArgument(0)));
+            var filters = List.of(Map.of("name", "USER", "operator", "EQ", "value", "alice"));
+
+            Response response = rootTarget("search")
+                .request()
+                .post(Entity.entity(Map.of("timeRange", TIME_RANGE, "filters", filters), MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            assertThat(response.readEntity(JsonNode.class).get("technicalCode").asText()).isEqualTo(
+                "observability.filter.end_user_not_displayed"
+            );
             verifyNoInteractions(logsDataPort);
         }
 

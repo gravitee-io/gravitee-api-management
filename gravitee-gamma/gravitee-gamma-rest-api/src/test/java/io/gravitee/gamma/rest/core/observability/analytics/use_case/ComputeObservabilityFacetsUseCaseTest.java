@@ -28,7 +28,9 @@ import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsFacetM
 import io.gravitee.gamma.rest.core.observability.analytics.model.DataKind;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.EndUserDisplayDomainService;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
+import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
@@ -65,7 +67,8 @@ class ComputeObservabilityFacetsUseCaseTest {
         var pipeline = new AnalyticsRequestPipeline(
             new ObservabilityFilterValidator(filterRegistry),
             new AccessibleApiScopeDomainService(),
-            new EntrypointScopeProviderAdapter()
+            new EntrypointScopeProviderAdapter(),
+            new EndUserDisplayDomainService(organizationId -> false)
         );
         var useCase = new ComputeObservabilityFacetsUseCase(analyticsDataPort, pipeline);
         var input = new ComputeObservabilityFacetsUseCase.Input(
@@ -92,7 +95,8 @@ class ComputeObservabilityFacetsUseCaseTest {
         var pipeline = new AnalyticsRequestPipeline(
             new ObservabilityFilterValidator(filterRegistry),
             new AccessibleApiScopeDomainService(),
-            new EntrypointScopeProviderAdapter()
+            new EntrypointScopeProviderAdapter(),
+            new EndUserDisplayDomainService(organizationId -> false)
         );
         var useCase = new ComputeObservabilityFacetsUseCase(analyticsDataPort, pipeline);
         when(analyticsDataPort.loadAccessibleApis("org-1", "env-1", DataKind.AGGREGATES)).thenReturn(List.of());
@@ -121,7 +125,8 @@ class ComputeObservabilityFacetsUseCaseTest {
         var pipeline = new AnalyticsRequestPipeline(
             new ObservabilityFilterValidator(filterRegistry),
             new AccessibleApiScopeDomainService(),
-            new EntrypointScopeProviderAdapter()
+            new EntrypointScopeProviderAdapter(),
+            new EndUserDisplayDomainService(organizationId -> false)
         );
         var useCase = new ComputeObservabilityFacetsUseCase(analyticsDataPort, pipeline);
         when(analyticsDataPort.loadAccessibleApis("org-1", "env-1", DataKind.PER_REQUEST)).thenReturn(
@@ -135,6 +140,59 @@ class ComputeObservabilityFacetsUseCaseTest {
             Instant.parse("2026-06-11T00:00:00Z"),
             List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of())),
             List.of("CONSUMER_IP"),
+            null,
+            List.of()
+        );
+
+        useCase.execute(input);
+
+        var captor = ArgumentCaptor.forClass(ObservabilityAnalyticsDataPort.FacetsQuery.class);
+        verify(analyticsDataPort).computeFacets(captor.capture());
+        assertThat(captor.getValue().scope().apiIds()).containsExactly("logged-api");
+    }
+
+    @Test
+    void should_refuse_a_breakdown_by_end_user_before_any_data_access_while_the_organization_does_not_display_it() {
+        var input = new ComputeObservabilityFacetsUseCase.Input(
+            "org-1",
+            "env-1",
+            List.of(),
+            Instant.parse("2026-06-10T00:00:00Z"),
+            Instant.parse("2026-06-11T00:00:00Z"),
+            List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of())),
+            List.of("USER"),
+            null,
+            List.of()
+        );
+
+        assertThatThrownBy(() -> useCase().execute(input))
+            .isInstanceOf(UnsupportedObservabilityFilterException.class)
+            .extracting("technicalCode")
+            .isEqualTo("observability.filter.end_user_not_displayed");
+        verifyNoInteractions(analyticsDataPort);
+    }
+
+    /** Displayed, the end user identifies callers: a breakdown by it counts only the APIs whose requests the caller reads. */
+    @Test
+    void should_scope_a_breakdown_by_end_user_to_the_apis_whose_requests_the_caller_reads_while_the_organization_displays_it() {
+        var pipeline = new AnalyticsRequestPipeline(
+            new ObservabilityFilterValidator(filterRegistry),
+            new AccessibleApiScopeDomainService(),
+            new EntrypointScopeProviderAdapter(),
+            new EndUserDisplayDomainService(organizationId -> true)
+        );
+        var useCase = new ComputeObservabilityFacetsUseCase(analyticsDataPort, pipeline);
+        when(analyticsDataPort.loadAccessibleApis("org-1", "env-1", DataKind.PER_REQUEST)).thenReturn(
+            List.of(new AccessibleApi("logged-api", "Logged API", ApiType.HTTP_PROXY))
+        );
+        var input = new ComputeObservabilityFacetsUseCase.Input(
+            "org-1",
+            "env-1",
+            List.of(),
+            Instant.parse("2026-06-10T00:00:00Z"),
+            Instant.parse("2026-06-11T00:00:00Z"),
+            List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of())),
+            List.of("USER"),
             null,
             List.of()
         );
@@ -176,7 +234,8 @@ class ComputeObservabilityFacetsUseCaseTest {
         var pipeline = new AnalyticsRequestPipeline(
             new ObservabilityFilterValidator(filterRegistry),
             new AccessibleApiScopeDomainService(),
-            new EntrypointScopeProviderAdapter()
+            new EntrypointScopeProviderAdapter(),
+            new EndUserDisplayDomainService(organizationId -> false)
         );
         return new ComputeObservabilityFacetsUseCase(analyticsDataPort, pipeline);
     }

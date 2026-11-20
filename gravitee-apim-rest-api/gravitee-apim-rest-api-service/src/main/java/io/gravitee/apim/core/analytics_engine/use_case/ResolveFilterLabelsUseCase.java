@@ -27,6 +27,7 @@ import io.gravitee.apim.core.analytics_engine.query_service.FilterValuesQuerySer
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.repository.analytics.engine.api.query.EndUser;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -85,6 +86,9 @@ public class ResolveFilterLabelsUseCase {
         var resolved = entries
             .stream()
             .map(entry -> {
+                if (isEndUser(entry)) {
+                    return new ResolvedEntry(entry.filterName(), endUserLabels(input.auditInfo().environmentId(), entry.ids()));
+                }
                 if (!isResolvable(entry)) {
                     log.warn("Ignoring unsupported observability filter label resolution request for filter [{}]", entry.filterName());
                     return new ResolvedEntry(entry.filterName(), Map.of());
@@ -185,6 +189,21 @@ public class ResolveFilterLabelsUseCase {
             .stream()
             .filter(label -> ids.contains(label.getKey()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    /**
+     * An end user is shown as the plan reported it, with no name to look up: only the key of the calls without one has
+     * a label, the one its facet bucket shows.
+     */
+    private Map<String, String> endUserLabels(String environmentId, List<String> ids) {
+        if (ids == null || !ids.contains(EndUser.NONE)) {
+            return Map.of();
+        }
+        return filterValueNameResolver.resolveNames(environmentId, FilterSpec.Name.USER, List.of(EndUser.NONE));
+    }
+
+    private static boolean isEndUser(Entry entry) {
+        return parseFilterName(entry.filterName()) == FilterSpec.Name.USER;
     }
 
     private static boolean isResolvable(Entry entry) {

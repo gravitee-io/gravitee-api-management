@@ -29,6 +29,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.EndUserDisplayDomainService;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
@@ -100,7 +101,13 @@ class SearchObservabilityLogsUseCaseTest {
     void setUp() {
         accessibleApiScope = new AccessibleApiScopeDomainService();
         var filterValidator = new ObservabilityFilterValidator(filterRegistry);
-        useCase = new SearchObservabilityLogsUseCase(logsDataPort, filterValidator, accessibleApiScope, entrypointScopeProvider);
+        useCase = new SearchObservabilityLogsUseCase(
+            logsDataPort,
+            filterValidator,
+            accessibleApiScope,
+            entrypointScopeProvider,
+            new EndUserDisplayDomainService(organizationId -> false)
+        );
 
         when(filterRegistry.getFilters(any(), any())).thenReturn(
             List.of(
@@ -187,7 +194,8 @@ class SearchObservabilityLogsUseCaseTest {
                 StaticFilters.GUARDRAIL.toSpec(),
                 StaticFilters.GUARDRAIL_SEARCH.toSpec(),
                 StaticFilters.GUARDRAIL_OUTCOME.toSpec(),
-                StaticFilters.URI.toSpec()
+                StaticFilters.URI.toSpec(),
+                StaticFilters.USER.toSpec()
             )
         );
     }
@@ -855,6 +863,39 @@ class SearchObservabilityLogsUseCaseTest {
                 .extracting("technicalCode")
                 .isEqualTo("observability.filter.invalid_name");
             verifyNoInteractions(logsDataPort);
+        }
+
+        @Test
+        void should_refuse_an_end_user_condition_before_any_data_access_while_the_organization_does_not_display_it() {
+            var filters = List.of(new FilterCondition("USER", FilterOperator.IN, List.of("idp-subject-42")));
+
+            assertThatThrownBy(() -> useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20)))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.end_user_not_displayed");
+            verifyNoInteractions(logsDataPort);
+        }
+
+        @Test
+        void should_hand_an_end_user_condition_to_the_engine_once_the_organization_displays_it() {
+            var displaying = new SearchObservabilityLogsUseCase(
+                logsDataPort,
+                new ObservabilityFilterValidator(filterRegistry),
+                accessibleApiScope,
+                new EntrypointScopeProviderAdapter(),
+                new EndUserDisplayDomainService(ORG_ID::equals)
+            );
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
+            );
+            when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
+            var userCondition = new FilterCondition("USER", FilterOperator.IN, List.of("idp-subject-42"));
+
+            displaying.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(userCondition), FROM, TO, 1, 20));
+
+            var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
+            verify(logsDataPort).searchLogs(any(), any(), captor.capture());
+            assertThat(captor.getValue().conditions()).containsExactly(userCondition);
         }
 
         @Test

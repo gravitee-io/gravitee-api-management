@@ -20,6 +20,7 @@ import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.M
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.gravitee.repository.analytics.engine.api.query.EndUser;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.FacetName;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
@@ -85,6 +86,26 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
             )
             .asDouble();
         assertThat(gatewayP90).isEqualTo(90.0);
+    }
+
+    @Test
+    void should_group_the_calls_without_an_end_user_under_the_none_key() throws JsonProcessingException {
+        var query = new FacetsQuery(buildTimeRange(), buildFilters(), buildMetrics(), List.of(Facet.USER));
+
+        var aggs = JSON.readTree(adapter.adapt(query)).at("/aggs");
+
+        var terms = aggs.at("/HTTP_GATEWAY_LATENCY#USER/terms");
+        assertThat(terms.at("/field").asText()).isEqualTo("user");
+        assertThat(terms.at("/missing").asText()).isEqualTo(EndUser.NONE);
+    }
+
+    @Test
+    void should_not_group_missing_values_for_other_facets() throws JsonProcessingException {
+        var query = new FacetsQuery(buildTimeRange(), buildFilters(), buildMetrics(), List.of(Facet.APPLICATION));
+
+        var aggs = JSON.readTree(adapter.adapt(query)).at("/aggs");
+
+        assertThat(aggs.at("/HTTP_GATEWAY_LATENCY#APPLICATION/terms/missing").isMissingNode()).isTrue();
     }
 
     @Test

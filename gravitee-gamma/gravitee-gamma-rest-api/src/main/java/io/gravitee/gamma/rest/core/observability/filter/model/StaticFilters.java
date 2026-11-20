@@ -139,6 +139,7 @@ public enum StaticFilters {
     GEO_IP_CITY("City", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
     GEO_IP_CONTINENT("Continent", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
     CONSUMER_IP("Consumer IP", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
+    USER("End user", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
     HTTP_USER_AGENT_OS_NAME("User Agent OS", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
     HTTP_USER_AGENT_DEVICE("User Agent Device", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
     // The analytics engine has no error-key dimension; the platform catalog serves it for logs only.
@@ -355,8 +356,18 @@ public enum StaticFilters {
         return WITHOUT_VALUE_LISTING;
     }
 
+    /** Served only when the organization displays the end user ({@code logging.user.displayed}). */
+    public static boolean isEndUser(String name) {
+        return USER.name().equals(name);
+    }
+
     /** Fields holding a person or a client identifier, as the platform catalog classifies them (pinned by a test). */
-    private static final Set<String> IDENTIFYING = Set.of(CONSUMER_IP.name(), NATIVE_CLIENT_ID.name(), AUTHZ_SUBJECT_ID.name());
+    private static final Set<String> IDENTIFYING = Set.of(
+        CONSUMER_IP.name(),
+        USER.name(),
+        NATIVE_CLIENT_ID.name(),
+        AUTHZ_SUBJECT_ID.name()
+    );
 
     /** A query using one of these, as condition or facet, reads the calls themselves. */
     public static Set<String> identifying() {

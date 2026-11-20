@@ -25,6 +25,7 @@ import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricV
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogFlags;
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.catalog.model.DiscoveredAdditionalMetric;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.EndUserDisplayDomainService;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.ExtensibleFilters;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
@@ -51,6 +52,8 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
     private static final String ENVIRONMENT = MetricDefinitionFixture.ENVIRONMENT;
     private static final Set<ApiType> HTTP_FAMILY = Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MESSAGE, ApiType.MCP, ApiType.A2A);
     private static final Set<ApiType> AI_KINDS = Set.of(ApiType.LLM, ApiType.MCP, ApiType.A2A);
+    /** Every built-in but USER, which the organizations of these tests do not display. */
+    private static final int SERVED_BUILT_INS = StaticFilters.values().length - 1 + ExtensibleFilters.values().length;
 
     private final MetricDefinitionFixture metricDefinitions = new MetricDefinitionFixture();
 
@@ -62,14 +65,15 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
         metricDefinitions.ports,
         metricDefinitions.ports,
         metricDefinitions.ports,
-        metricDefinitions.catalog
+        metricDefinitions.catalog,
+        new EndUserDisplayDomainService(organizationId -> false)
     );
 
     @Test
     void should_return_the_full_catalog_when_both_axes_are_empty() {
         var output = useCase.execute(new GetObservabilityFilterDefinitionsUseCase.Input(ORGANIZATION, ENVIRONMENT, Set.of(), Set.of()));
 
-        assertThat(output.filters()).hasSize(StaticFilters.values().length + ExtensibleFilters.values().length);
+        assertThat(output.filters()).hasSize(SERVED_BUILT_INS);
         assertThat(output.filters())
             .extracting(FilterSpec::name)
             .contains("API", "API_TYPE", "HTTP_GATEWAY_RESPONSE_TIME", "MCP_PROXY_METHOD", "URI", "HTTP_PATH", "HTTP_PATH_MAPPING");
@@ -146,6 +150,41 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
     }
 
     @Nested
+    class EndUser {
+
+        @Test
+        void should_leave_out_the_end_user_while_the_organization_does_not_display_it() {
+            var output = useCase.execute(
+                new GetObservabilityFilterDefinitionsUseCase.Input(ORGANIZATION, ENVIRONMENT, Set.of(Signal.LOGS), Set.of(ApiType.LLM))
+            );
+
+            assertThat(output.filters()).extracting(FilterSpec::name).doesNotContain("USER");
+        }
+
+        @Test
+        void should_serve_the_end_user_for_logs_and_analytics_once_the_organization_displays_it() {
+            var displaying = new GetObservabilityFilterDefinitionsUseCase(
+                new SpiFilterRegistry(),
+                metricDefinitions.repository,
+                metricDefinitions.ports,
+                metricDefinitions.ports,
+                metricDefinitions.ports,
+                metricDefinitions.ports,
+                metricDefinitions.catalog,
+                new EndUserDisplayDomainService(ORGANIZATION::equals)
+            );
+
+            for (var signal : List.of(Signal.LOGS, Signal.ANALYTICS)) {
+                var output = displaying.execute(
+                    new GetObservabilityFilterDefinitionsUseCase.Input(ORGANIZATION, ENVIRONMENT, Set.of(signal), Set.of(ApiType.LLM))
+                );
+
+                assertThat(output.filters()).as("filters of %s", signal).extracting(FilterSpec::name).contains("USER");
+            }
+        }
+    }
+
+    @Nested
     class DeclaredEntries {
 
         @Test
@@ -158,9 +197,7 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
                 .execute(new GetObservabilityFilterDefinitionsUseCase.Input(ORGANIZATION, ENVIRONMENT, Set.of(), Set.of()))
                 .filters();
 
-            assertThat(filters.subList(0, StaticFilters.values().length + ExtensibleFilters.values().length)).allSatisfy(spec ->
-                assertThat(spec.catalog()).isNull()
-            );
+            assertThat(filters.subList(0, SERVED_BUILT_INS)).allSatisfy(spec -> assertThat(spec.catalog()).isNull());
             assertThat(declared(filters, "additional-metrics.double_checkout_basket-value")).satisfies(spec -> {
                 assertThat(spec.label()).isEqualTo("Basket value");
                 assertThat(spec.type()).isEqualTo(FilterType.NUMBER);
@@ -548,7 +585,8 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
                 metricDefinitions.ports,
                 metricDefinitions.ports,
                 metricDefinitions.ports,
-                metricDefinitions.catalog
+                metricDefinitions.catalog,
+                new EndUserDisplayDomainService(organizationId -> false)
             );
             metricDefinitions.ports.givenBuiltIn("long_llm-proxy_tokens-sent", "TOKENS_SENT", "LLM_PROMPT_TOKEN_SENT");
             metricDefinitions.ports.givenBuiltInMetric(aMetric("LLM_PROMPT_TOKEN_SENT", "TOKENS", List.of(ApiType.LLM)));
@@ -858,7 +896,7 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
             var output = useCase.execute(new GetObservabilityFilterDefinitionsUseCase.Input(ORGANIZATION, ENVIRONMENT, Set.of(), Set.of()));
 
             assertThat(dynamic(output.filters())).isEmpty();
-            assertThat(output.filters()).hasSize(StaticFilters.values().length + ExtensibleFilters.values().length);
+            assertThat(output.filters()).hasSize(SERVED_BUILT_INS);
             assertThat(spec(output.filters(), "MCP_PROXY_TOOL").catalog()).isEqualTo(
                 new CatalogFlags(
                     CatalogOrigin.BUILT_IN,
