@@ -527,14 +527,14 @@ describe('ApiDocumentationPage', () => {
             expect(mockUnpublish).not.toHaveBeenCalled();
         });
 
-        it('unpublishes once confirmed, then closes', async () => {
+        it('unpublishes from the portal the API is published in once confirmed, then closes', async () => {
             const user = userEvent.setup();
             renderPage();
 
             await user.click(screen.getByRole('button', { name: 'Unpublish' }));
             await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Unpublish' }));
 
-            expect(mockUnpublish).toHaveBeenCalled();
+            expect(mockUnpublish).toHaveBeenCalledWith('DEFAULT');
             expect(notify.success).toHaveBeenCalledWith('Unpublished from the developer portal');
             expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
         });
