@@ -57,4 +57,20 @@ describe('GioChartBarComponent', () => {
     expect(await barChart.hasNoData()).toBeFalsy();
     expect(await barChart.displaysChart()).toBeTruthy();
   });
+
+  it('should render chart with the light color scheme, not the one of the browser or OS', async () => {
+    fixture.componentInstance.data = [
+      {
+        name: 'Series 1',
+        values: [10, 20, 30, 40, 50],
+      },
+    ];
+    fixture.componentInstance.options = {
+      categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+    };
+    fixture.detectChanges();
+
+    const barChart = await loader.getHarness(GioChartBarHarness);
+    expect(await barChart.getChartColorScheme()).toBe('light');
+  });
 });
