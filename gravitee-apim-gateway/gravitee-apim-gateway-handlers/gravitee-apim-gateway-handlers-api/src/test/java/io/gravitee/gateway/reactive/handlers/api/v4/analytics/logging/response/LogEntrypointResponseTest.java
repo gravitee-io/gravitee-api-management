@@ -161,6 +161,7 @@ class LogEntrypointResponseTest {
 
         assertNull(logResponse.getHeaders());
         assertThat(logResponse.getBody()).isEqualTo(BODY_CONTENT);
+        assertThat(logResponse.isBodyTruncated()).isFalse();
     }
 
     @Test
@@ -203,6 +204,47 @@ class LogEntrypointResponseTest {
 
         assertNull(logResponse.getHeaders());
         assertThat(logResponse.getBody()).isEqualTo(BODY_CONTENT.substring(0, maxPayloadSize));
+        assertThat(logResponse.isBodyTruncated()).isTrue();
+    }
+
+    @Test
+    void should_not_flag_a_body_that_is_not_logged_when_max_payload_size_is_zero() {
+        when(response.chunks()).thenReturn(Flowable.just(Buffer.buffer(BODY_CONTENT)));
+        when(response.headers()).thenReturn(HttpHeaders.create());
+        when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
+        when(loggingContext.entrypointResponsePayload()).thenReturn(true);
+        when(loggingContext.getMaxSizeLogMessage()).thenReturn(0);
+        when(loggingContext.isBodyLoggable()).thenReturn(true);
+        when(loggingContext.isContentTypeLoggable(any(), any())).thenReturn(true);
+
+        final var logResponse = new LogEntrypointResponse(loggingContext, response);
+        logResponse.capture(ctx);
+        verify(response).chunks(chunksCaptor.capture());
+        chunksCaptor.getValue().test().assertComplete();
+
+        assertNull(logResponse.getBody());
+        assertThat(logResponse.isBodyTruncated()).isFalse();
+    }
+
+    @Test
+    void should_not_flag_the_body_when_the_response_fails_after_a_truncated_chunk() {
+        when(response.chunks()).thenReturn(
+            Flowable.concat(Flowable.just(Buffer.buffer(BODY_CONTENT)), Flowable.error(new RuntimeException("backend failure")))
+        );
+        when(response.headers()).thenReturn(HttpHeaders.create());
+        when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
+        when(loggingContext.entrypointResponsePayload()).thenReturn(true);
+        when(loggingContext.getMaxSizeLogMessage()).thenReturn(5);
+        when(loggingContext.isBodyLoggable()).thenReturn(true);
+        when(loggingContext.isContentTypeLoggable(any(), any())).thenReturn(true);
+
+        final var logResponse = new LogEntrypointResponse(loggingContext, response);
+        logResponse.capture(ctx);
+        verify(response).chunks(chunksCaptor.capture());
+        chunksCaptor.getValue().test().assertError(RuntimeException.class);
+
+        assertNull(logResponse.getBody());
+        assertThat(logResponse.isBodyTruncated()).isFalse();
     }
 
     @Test

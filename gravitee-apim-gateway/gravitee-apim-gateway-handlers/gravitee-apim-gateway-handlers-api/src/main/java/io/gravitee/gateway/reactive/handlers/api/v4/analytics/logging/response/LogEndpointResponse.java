@@ -25,6 +25,7 @@ import io.gravitee.gateway.reactive.core.context.HttpResponseInternal;
 import io.gravitee.gateway.reactive.core.v4.analytics.BufferUtils;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LogHeadersCaptor;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Allows to log the response status, headers and body returned by the backend endpoint depending on what is configured on the {@link LoggingContext}.
@@ -48,11 +49,19 @@ public class LogEndpointResponse extends LogResponse {
             // Nothing to prepare for the endpoint response.
             if (isLogPayload() && loggingContext.isContentTypeLoggable(response.headers().get(HttpHeaderNames.CONTENT_TYPE), ctx)) {
                 final Buffer buffer = Buffer.buffer();
+                final AtomicBoolean truncated = new AtomicBoolean();
                 if (loggingContext.isBodyLoggable()) {
                     chunks = chunks
-                        .doOnNext(chunk -> BufferUtils.appendBuffer(buffer, chunk, loggingContext.getMaxSizeLogMessage()))
+                        .doOnNext(chunk -> {
+                            if (BufferUtils.appendBuffer(buffer, chunk, loggingContext.getMaxSizeLogMessage())) {
+                                truncated.set(true);
+                            }
+                        })
                         .doFinally(() -> {
-                            if (buffer.length() > 0) this.setBody(buffer.toString());
+                            if (buffer.length() > 0) {
+                                this.setBody(buffer.toString());
+                                this.setBodyTruncated(truncated.get());
+                            }
                         });
                 } else {
                     this.setBody("BODY NOT CAPTURED");

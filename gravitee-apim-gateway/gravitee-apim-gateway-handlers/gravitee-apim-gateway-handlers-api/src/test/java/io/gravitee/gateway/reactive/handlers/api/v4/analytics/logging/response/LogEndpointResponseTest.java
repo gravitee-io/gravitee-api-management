@@ -175,6 +175,7 @@ class LogEndpointResponseTest {
 
         assertNull(cut.getHeaders());
         assertThat(cut.getBody()).isEqualTo(BODY_CONTENT);
+        assertThat(cut.isBodyTruncated()).isFalse();
     }
 
     @Test
@@ -193,6 +194,7 @@ class LogEndpointResponseTest {
 
         assertThat(cut.getHeaders().deeplyEquals(backendHeaders)).isTrue();
         assertThat(cut.getBody()).isEqualTo(BODY_CONTENT);
+        assertThat(cut.isBodyTruncated()).isFalse();
     }
 
     @Test
@@ -228,6 +230,23 @@ class LogEndpointResponseTest {
 
         assertNull(cut.getHeaders());
         assertThat(cut.getBody()).isEqualTo(BODY_CONTENT.substring(0, maxPayloadSize));
+        assertThat(cut.isBodyTruncated()).isTrue();
+    }
+
+    @Test
+    void should_not_flag_a_body_that_is_not_logged_when_max_payload_size_is_zero() {
+        initializeHeaders(HttpHeaders.create());
+        when(loggingContext.endpointResponseHeaders()).thenReturn(false);
+        when(loggingContext.endpointResponsePayload()).thenReturn(true);
+        when(loggingContext.getMaxSizeLogMessage()).thenReturn(0);
+        when(loggingContext.isBodyLoggable()).thenReturn(true);
+        when(loggingContext.isContentTypeLoggable(any(), any())).thenReturn(true);
+
+        cut.setupCapture(ctx);
+        triggerResponseFromBackend(HttpHeaders.create());
+
+        assertNull(cut.getBody());
+        assertThat(cut.isBodyTruncated()).isFalse();
     }
 
     @Test
