@@ -54,7 +54,13 @@ import { useApiDocumentation, useDeleteApiDocumentationItem, useUnpublishApiFrom
 import { useExpandedDocumentationFolders } from '../../hooks/useExpandedDocumentationFolders';
 import { useFetchNow } from '../../hooks/useFetchNow';
 import type { ApiDocumentationItem, ApiPortalPublication, PortalNavigationFolder } from '../../types/apiDocumentation';
-import { type DocumentationRow, getAncestors, getPublishedSection, syncStateOf } from '../../utils/documentationTree';
+import {
+    type DocumentationRow,
+    getAncestors,
+    getPublishedPublication,
+    getPublishedSection,
+    syncStateOf,
+} from '../../utils/documentationTree';
 
 const DESCRIPTION = 'Pages, folders and links that describe this API in the developer portal.';
 
@@ -130,8 +136,10 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
     }
 
     async function handleUnpublish() {
+        const published = getPublishedPublication(data?.publications ?? []);
+        if (!published) return;
         try {
-            await unpublishMutation.mutateAsync();
+            await unpublishMutation.mutateAsync(published.portalId);
             notify.success('Unpublished from the developer portal');
             setIsUnpublishing(false);
         } catch (error) {

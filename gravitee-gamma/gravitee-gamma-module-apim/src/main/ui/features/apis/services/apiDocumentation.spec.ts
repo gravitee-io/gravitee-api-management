@@ -22,6 +22,7 @@ import {
     importApiDocumentation,
     listApiDocumentation,
     listApiPublishLocations,
+    listApiPublishPortals,
     publishApiToPortal,
     saveApiDocumentationPageConfiguration,
     saveApiDocumentationPageContent,
@@ -154,19 +155,26 @@ describe('apiDocumentation service', () => {
         });
     });
 
+    describe('listApiPublishPortals', () => {
+        it('GETs the portals the API can be published to', async () => {
+            await listApiPublishPortals('env-1', 'api-1');
+            expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', `${BASE_PATH}/_publish-portals`);
+        });
+    });
+
     describe('listApiPublishLocations', () => {
-        it('GETs the sections the API can be published to', async () => {
-            await listApiPublishLocations('env-1', 'api-1');
-            expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', `${BASE_PATH}/_publish-locations`);
+        it('GETs the sections of the given portal the API can be published to', async () => {
+            await listApiPublishLocations('env-1', 'api-1', 'portal-1');
+            expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', `${BASE_PATH}/_publish-locations?portalId=portal-1`);
         });
     });
 
     describe('publishApiToPortal', () => {
-        it('POSTs the chosen section', async () => {
-            await publishApiToPortal('env-1', 'api-1', { sectionId: 'section-1' });
+        it('POSTs the chosen portal and section', async () => {
+            await publishApiToPortal('env-1', 'api-1', { portalId: 'portal-1', sectionId: 'section-1' });
             expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', `${BASE_PATH}/_publish`, {
                 method: 'POST',
-                body: JSON.stringify({ sectionId: 'section-1' }),
+                body: JSON.stringify({ portalId: 'portal-1', sectionId: 'section-1' }),
             });
         });
     });
@@ -182,9 +190,9 @@ describe('apiDocumentation service', () => {
     });
 
     describe('unpublishApiFromPortal', () => {
-        it('POSTs with no body', async () => {
-            await unpublishApiFromPortal('env-1', 'api-1');
-            expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', `${BASE_PATH}/_unpublish`, { method: 'POST' });
+        it('POSTs to the given portal with no body', async () => {
+            await unpublishApiFromPortal('env-1', 'api-1', 'portal-1');
+            expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', `${BASE_PATH}/_unpublish?portalId=portal-1`, { method: 'POST' });
         });
     });
 
