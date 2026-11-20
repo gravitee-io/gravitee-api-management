@@ -42,6 +42,16 @@ class SecureMemberAccessPolicyTest {
 
     public static class Bean {
 
+        public static String helper() {
+            return "static";
+        }
+
+        public void setName(String name) {}
+
+        public Bean withName(String name) {
+            return this;
+        }
+
         public String publicField = "value";
 
         public Bean() {}
@@ -129,6 +139,18 @@ class SecureMemberAccessPolicyTest {
         ClassMemberAccessPolicy beanPolicy = policy.forClass(Bean.class);
         assertThat(beanPolicy.isFieldExposed(Bean.class.getField("publicField"))).isFalse();
         assertThat(beanPolicy.isConstructorExposed(Bean.class.getConstructor())).isFalse();
+    }
+
+    @Test
+    void should_hide_static_methods() throws Exception {
+        assertThat(policy.forClass(Bean.class).isMethodExposed(Bean.class.getMethod("helper"))).isFalse();
+        assertThat(policy.forClass(String.class).isMethodExposed(String.class.getMethod("valueOf", Object.class))).isFalse();
+    }
+
+    @Test
+    void should_hide_setters() throws Exception {
+        assertThat(policy.forClass(Bean.class).isMethodExposed(Bean.class.getMethod("setName", String.class))).isFalse();
+        assertThat(policy.forClass(Bean.class).isMethodExposed(Bean.class.getMethod("withName", String.class))).isTrue();
     }
 
     @Test
