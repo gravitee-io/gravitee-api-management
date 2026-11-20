@@ -92,7 +92,6 @@ import io.gravitee.rest.api.model.subscription.ReferenceDisplayInfo;
 import io.gravitee.rest.api.model.subscription.SubscribedReference;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
-import io.gravitee.rest.api.model.v4.api.ApiModel;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
@@ -1420,12 +1419,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             final GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
             String referenceId = genericPlanEntity.getReferenceId();
             boolean isApiProduct = genericPlanEntity.getReferenceType() == GenericPlanEntity.ReferenceType.API_PRODUCT;
-            GenericApiModel genericApiModel = null;
             if (!isApiProduct && referenceId != null) {
-                genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, referenceId);
-            }
-            if (genericApiModel != null) {
-                validateConsumerStatus(subscription, genericApiModel);
+                validateConsumerStatus(subscription, apiSearchService.findGenericById(executionContext, referenceId, false, false, false));
             }
 
             // Here, do not care about the status managed by the publisher. The subscription will be active on the gateway if consumerStatus == ACTIVE and status == ACCEPTED
@@ -1563,12 +1558,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             final GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
             String referenceId = genericPlanEntity.getReferenceId();
             boolean isApiProduct = genericPlanEntity.getReferenceType() == GenericPlanEntity.ReferenceType.API_PRODUCT;
-            GenericApiModel genericApiModel = null;
             if (!isApiProduct && referenceId != null) {
-                genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, referenceId);
-            }
-            if (genericApiModel != null) {
-                validateConsumerStatus(subscription, genericApiModel);
+                validateConsumerStatus(subscription, apiSearchService.findGenericById(executionContext, referenceId, false, false, false));
             }
 
             if (subscription.canBeStartedByConsumer()) {
@@ -1599,12 +1590,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             String referenceId = subscription.getIdentifier();
             boolean isApiProduct = subscription.getReferenceType() == SubscriptionReferenceType.API_PRODUCT;
-            GenericApiModel genericApiModel = null;
             if (!isApiProduct && referenceId != null) {
-                genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, referenceId);
-            }
-            if (genericApiModel != null) {
-                checkApiDefinitionVersion(subscription, genericApiModel);
+                checkApiDefinitionVersion(
+                    subscription,
+                    apiSearchService.findGenericById(executionContext, referenceId, false, false, false)
+                );
             }
 
             return resumeSubscription(executionContext, subscription, referenceId);
@@ -1658,33 +1648,32 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         });
     }
 
-    private static void validateConsumerStatus(Subscription subscription, GenericApiModel genericApiModel) {
+    private static void validateConsumerStatus(Subscription subscription, GenericApiEntity api) {
         if (subscription.getConsumerStatus() == Subscription.ConsumerStatus.FAILURE) {
             throw new SubscriptionFailureException(subscription);
         }
-        checkApiDefinitionVersion(subscription, genericApiModel);
+        checkApiDefinitionVersion(subscription, api);
     }
 
-    private static void checkApiDefinitionVersion(Subscription subscription, GenericApiModel genericApiModel) {
-        if (!DefinitionVersion.V4.equals(genericApiModel.getDefinitionVersion())) {
+    private static void checkApiDefinitionVersion(Subscription subscription, GenericApiEntity api) {
+        if (!DefinitionVersion.V4.equals(api.getDefinitionVersion())) {
             throw new SubscriptionConsumerStatusNotUpdatableException(
                 subscription,
                 SubscriptionConsumerStatusNotUpdatableException.Cause.DEFINITION_NOT_V4
             );
-        } else {
-            final ApiModel v4ApiModel = (ApiModel) genericApiModel;
-            if (
-                v4ApiModel.getListeners() == null ||
-                v4ApiModel
-                    .getListeners()
-                    .stream()
-                    .noneMatch(l -> l.getType().equals(ListenerType.SUBSCRIPTION))
-            ) {
-                throw new SubscriptionConsumerStatusNotUpdatableException(
-                    subscription,
-                    SubscriptionConsumerStatusNotUpdatableException.Cause.NO_SUBSCRIPTION_LISTENER
-                );
-            }
+        }
+        if (
+            !(api instanceof io.gravitee.rest.api.model.v4.api.ApiEntity v4Api) ||
+            v4Api.getListeners() == null ||
+            v4Api
+                .getListeners()
+                .stream()
+                .noneMatch(l -> l.getType().equals(ListenerType.SUBSCRIPTION))
+        ) {
+            throw new SubscriptionConsumerStatusNotUpdatableException(
+                subscription,
+                SubscriptionConsumerStatusNotUpdatableException.Cause.NO_SUBSCRIPTION_LISTENER
+            );
         }
     }
 
