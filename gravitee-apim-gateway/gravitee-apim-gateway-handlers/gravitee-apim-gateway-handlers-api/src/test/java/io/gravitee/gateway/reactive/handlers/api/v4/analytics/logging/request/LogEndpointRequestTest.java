@@ -152,6 +152,7 @@ class LogEndpointRequestTest {
 
         assertNull(cut.getHeaders());
         assertThat(cut.getBody()).isEqualTo(BODY_CONTENT);
+        assertThat(cut.isBodyTruncated()).isFalse();
     }
 
     @Test
@@ -170,6 +171,7 @@ class LogEndpointRequestTest {
 
         assertThat(cut.getHeaders().deeplyEquals(backendHeaders)).isTrue();
         assertThat(cut.getBody()).isEqualTo(BODY_CONTENT);
+        assertThat(cut.isBodyTruncated()).isFalse();
     }
 
     @Test
@@ -205,6 +207,7 @@ class LogEndpointRequestTest {
 
         assertNull(cut.getHeaders());
         assertThat(cut.getBody()).isEqualTo(BODY_CONTENT.substring(0, maxPayloadSize));
+        assertThat(cut.isBodyTruncated()).isTrue();
     }
 
     @Test
