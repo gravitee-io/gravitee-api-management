@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
@@ -711,6 +712,22 @@ public class ApiKeyServiceTest {
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(plan);
 
         apiKeyService.renew(GraviteeContext.getExecutionContext(), subscription, "alreadyExistingApiKey");
+    }
+
+    @Test
+    public void shouldDeleteTheApiKeysOfTheApplication() throws TechnicalException {
+        when(apiKeyRepository.deleteByApplication(APPLICATION_ID)).thenReturn(List.of("key-1"));
+
+        apiKeyService.deleteByApplication(APPLICATION_ID);
+
+        verify(apiKeyRepository).deleteByApplication(APPLICATION_ID);
+    }
+
+    @Test
+    public void shouldFailToDeleteTheApiKeysOfTheApplicationOnTechnicalError() throws TechnicalException {
+        when(apiKeyRepository.deleteByApplication(APPLICATION_ID)).thenThrow(new TechnicalException("boom"));
+
+        assertThrows(TechnicalManagementException.class, () -> apiKeyService.deleteByApplication(APPLICATION_ID));
     }
 
     @Test(expected = TechnicalManagementException.class)
