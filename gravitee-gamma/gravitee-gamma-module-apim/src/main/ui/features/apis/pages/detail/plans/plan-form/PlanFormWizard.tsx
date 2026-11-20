@@ -34,6 +34,7 @@ import type {
     SecurityFormData,
 } from '../../../../types/plan';
 import { EMPTY_GENERAL, EMPTY_RESTRICTIONS, EMPTY_SECURITY, PLAN_SECURITY_LABELS } from '../../../../types/plan';
+import type { ApiResource } from '../../../../types/resource';
 import { planToFormValue } from '../../../../utils/planTransformers';
 
 function validateGeneral(data: GeneralFormData): Partial<Record<keyof GeneralFormData, string>> {
@@ -62,6 +63,11 @@ interface PlanFormWizardProps {
     readOnly?: boolean;
     /** Sharding tags of the parent API / API Product — a plan's tags must be a subset of these. */
     referenceTags?: string[];
+    /**
+     * Resources of an API Product. Product plans list these and never the member APIs' resources.
+     * Left unset for API plans, which keep reading the API.
+     */
+    resources?: ApiResource[];
     /** Classic console skips the Restrictions step for TCP Proxy APIs. */
     skipRestrictions?: boolean;
 }
@@ -72,6 +78,7 @@ export function PlanFormWizard({
     planId,
     readOnly = false,
     referenceTags,
+    resources,
     skipRestrictions = false,
 }: Readonly<PlanFormWizardProps>) {
     const navigate = useNavigate();
@@ -239,6 +246,7 @@ export function PlanFormWizard({
                         }}
                         readOnly={readOnly}
                         errors={securityErrors}
+                        resources={resources}
                     />
                 )}
 

@@ -51,11 +51,11 @@ const mockUsePlanSecuritySettings = usePlanSecuritySettings as jest.Mock;
 
 const ALL_ENABLED = { API_KEY: true, JWT: true, OAUTH2: true, MTLS: true, KEY_LESS: true };
 
-function renderDropdown(restrictToKeyless?: boolean) {
+function renderDropdown(restrictToKeyless?: boolean, ctx: PlanContext = CTX) {
     return render(
         <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
             <MemoryRouter>
-                <CreatePlanDropdown ctx={CTX} restrictToKeyless={restrictToKeyless} />
+                <CreatePlanDropdown ctx={ctx} restrictToKeyless={restrictToKeyless} />
             </MemoryRouter>
         </QueryClientProvider>,
     );
@@ -72,6 +72,16 @@ describe('CreatePlanDropdown', () => {
         expect(screen.getByRole('menuitem', { name: /api key/i })).toBeInTheDocument();
         expect(screen.getByRole('menuitem', { name: /oauth2/i })).toBeInTheDocument();
         expect(screen.getByRole('menuitem', { name: /keyless/i })).toBeInTheDocument();
+    });
+
+    it('offers OAuth2 on an API Product and still hides Keyless', () => {
+        renderDropdown(false, { type: 'api-product', entityId: 'product-1' });
+
+        expect(screen.getByRole('menuitem', { name: /oauth2/i })).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', { name: /api key/i })).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', { name: /jwt/i })).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', { name: /mtls/i })).toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', { name: /keyless/i })).not.toBeInTheDocument();
     });
 
     it('restricts the menu to Keyless only when restrictToKeyless is set', () => {

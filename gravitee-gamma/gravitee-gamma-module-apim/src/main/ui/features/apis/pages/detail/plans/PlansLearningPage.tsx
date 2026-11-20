@@ -47,7 +47,7 @@ const API_BENEFITS = [
 ] as const;
 
 const API_PRODUCT_BENEFITS = [
-    { text: 'Built-in security — API Key, JWT, or mTLS per plan' },
+    { text: 'Built-in security — API Key, JWT, OAuth2, or mTLS per plan' },
     { text: 'Control which consumers can subscribe to your API Product' },
     { text: 'Lifecycle management from staging to published to deprecated' },
 ] as const;

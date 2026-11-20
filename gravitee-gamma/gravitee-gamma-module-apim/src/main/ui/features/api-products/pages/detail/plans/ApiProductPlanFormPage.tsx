@@ -23,6 +23,7 @@ import { PLAN_TYPES_BY_CTX } from '../../../../apis/types/plan';
 import type { PlanContext, PlanSecurityType } from '../../../../apis/types/plan';
 import { useApiProductDetail } from '../../../hooks/useApiProductDetail';
 import { useApiProductResourcePermissions } from '../../../hooks/useApiProductPermissions';
+import type { ApiProductResource } from '../../../types/apiProduct';
 
 /**
  * Adapter for /api-products/:productId/plans/new/:securityType (create) and
@@ -30,13 +31,15 @@ import { useApiProductResourcePermissions } from '../../../hooks/useApiProductPe
  */
 export function ApiProductPlanFormPage() {
     const { productId, securityType, planId } = useParams<{ productId: string; securityType?: string; planId?: string }>();
+    const navigate = useNavigate();
     const ctx: PlanContext = { type: 'api-product', entityId: productId ?? '' };
     const { canCreate, canUpdate, isLoading: permissionsLoading } = useApiProductResourcePermissions(productId, 'PLAN');
     // Plan sharding tags are constrained to the parent API Product's tags (subset rule).
-    const { data: product } = useApiProductDetail(productId);
+    const { data: product, isLoading: productLoading, isError: productError } = useApiProductDetail(productId);
     const { planSecuritySettings, isLoading: planSecurityLoading } = usePlanSecuritySettings();
     const securitySettingsLoading = Boolean(securityType && planSecurityLoading);
-    const isLoading = permissionsLoading || securitySettingsLoading;
+    // No product yet, and the query has not failed: still loading (including before the query is enabled).
+    const isLoading = permissionsLoading || securitySettingsLoading || productLoading || (!product && !productError);
 
     if (isLoading) {
         return (
@@ -46,6 +49,21 @@ export function ApiProductPlanFormPage() {
             </div>
         );
     }
+
+    if (!product) {
+        return (
+            <div className="flex flex-col items-center justify-center gap-4 p-8">
+                <p className="text-sm text-muted-foreground">
+                    Failed to load this API Product. It may have been deleted or you may not have access.
+                </p>
+                <Button variant="outline" size="sm" onClick={() => navigate('..')}>
+                    Back to Plans
+                </Button>
+            </div>
+        );
+    }
+
+    const productResources = product.resources ?? [];
 
     if (securityType) {
         const securityTypeValid = PLAN_TYPES_BY_CTX[ctx.type].includes(securityType as PlanSecurityType);
@@ -58,12 +76,19 @@ export function ApiProductPlanFormPage() {
         }
         return (
             <PageFocused>
-                <PlanFormWizard ctx={ctx} securityType={securityType as PlanSecurityType} referenceTags={product?.tags} />
+                <PlanFormWizard
+                    ctx={ctx}
+                    securityType={securityType as PlanSecurityType}
+                    referenceTags={product.tags}
+                    resources={productResources}
+                />
             </PageFocused>
         );
     }
 
-    return <PlanEditWrapper ctx={ctx} planId={planId ?? ''} canUpdate={canUpdate} referenceTags={product?.tags} />;
+    return (
+        <PlanEditWrapper ctx={ctx} planId={planId ?? ''} canUpdate={canUpdate} referenceTags={product.tags} resources={productResources} />
+    );
 }
 
 function PlanEditWrapper({
@@ -71,7 +96,8 @@ function PlanEditWrapper({
     planId,
     canUpdate,
     referenceTags,
-}: Readonly<{ ctx: PlanContext; planId: string; canUpdate: boolean; referenceTags?: string[] }>) {
+    resources,
+}: Readonly<{ ctx: PlanContext; planId: string; canUpdate: boolean; referenceTags?: string[]; resources?: ApiProductResource[] }>) {
     const navigate = useNavigate();
     const { data: plan, isLoading, isError } = usePlan(ctx, planId);
 
@@ -103,6 +129,7 @@ function PlanEditWrapper({
                 planId={planId}
                 readOnly={plan.status === 'CLOSED' || !canUpdate}
                 referenceTags={referenceTags}
+                resources={resources}
             />
         </PageFocused>
     );
