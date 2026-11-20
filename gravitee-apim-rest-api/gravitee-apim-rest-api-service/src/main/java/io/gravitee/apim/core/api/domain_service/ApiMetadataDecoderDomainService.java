@@ -18,17 +18,25 @@ package io.gravitee.apim.core.api.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
-import io.gravitee.apim.core.documentation.model.ApiFreemarkerTemplate;
+import io.gravitee.apim.core.documentation.model.PrimaryOwnerApiTemplateData;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.template.TemplateProcessor;
 import io.gravitee.apim.core.template.TemplateProcessorException;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -83,12 +91,73 @@ public class ApiMetadataDecoderDomainService {
         }
     }
 
-    @SuperBuilder
+    /**
+     * Data exposed as {@code api} to metadata templates. It is deliberately flat: metadata values are written by any API or
+     * environment metadata editor, so it must not carry the API definition (endpoints, SSL options, proxies, properties).
+     */
+    @Builder
     @Getter
-    public static class ApiMetadataDecodeContext extends ApiFreemarkerTemplate {
+    @AllArgsConstructor
+    public static class ApiMetadataDecodeContext {
+
+        private String id;
+        private String name;
+        private String description;
+        private String version;
+        private DefinitionVersion definitionVersion;
+
+        @Builder.Default
+        private ApiType type = ApiType.PROXY;
+
+        private String picture;
+        private PrimaryOwnerApiTemplateData primaryOwner;
+
+        @Builder.Default
+        private Api.Visibility visibility = Api.Visibility.PRIVATE;
+
+        @Builder.Default
+        private Api.LifecycleState state = Api.LifecycleState.STOPPED;
+
+        @Builder.Default
+        private Api.ApiLifecycleState lifecycleState = Api.ApiLifecycleState.CREATED;
+
+        @Builder.Default
+        private Set<String> tags = new HashSet<>();
+
+        @Builder.Default
+        private Map<String, String> metadata = new HashMap<>();
+
+        private Date deployedAt;
+        private Date createdAt;
+        private Date updatedAt;
 
         public ApiMetadataDecodeContext(Api api, Map<String, String> metadata, PrimaryOwnerEntity primaryOwner) {
-            super(api, metadata, primaryOwner);
+            this.id = api.getId();
+            this.name = api.getName();
+            this.description = api.getDescription();
+            this.version = api.getVersion();
+            this.definitionVersion = api.getDefinitionVersion();
+            this.type = api.getType();
+            this.picture = api.getPicture();
+            this.primaryOwner = PrimaryOwnerApiTemplateData.from(primaryOwner);
+            this.visibility = api.getVisibility();
+            this.state = api.getLifecycleState();
+            this.lifecycleState = api.getApiLifecycleState();
+            if (DefinitionVersion.V4.equals(api.getDefinitionVersion())) {
+                if (api.getApiDefinitionHttpV4() != null) {
+                    this.tags = api.getApiDefinitionHttpV4().getTags();
+                }
+            } else if (api.getApiDefinition() != null) {
+                this.tags = api.getApiDefinition().getTags();
+            }
+            this.metadata = metadata;
+            this.deployedAt = toDate(api.getDeployedAt());
+            this.createdAt = toDate(api.getCreatedAt());
+            this.updatedAt = toDate(api.getUpdatedAt());
+        }
+
+        private static Date toDate(ZonedDateTime dateTime) {
+            return dateTime == null ? null : Date.from(dateTime.toInstant());
         }
     }
 }

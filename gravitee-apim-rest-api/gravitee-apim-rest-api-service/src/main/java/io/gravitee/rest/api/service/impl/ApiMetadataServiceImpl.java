@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.MetadataReferenceType.API;
+import static io.gravitee.rest.api.service.v4.mapper.ApiMetadataDecodeContextMapper.toApiMetadataDecodeContext;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
@@ -129,7 +130,7 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
         String referenceId
     ) {
         final GenericApiEntity genericApi = apiSearchService.findGenericById(executionContext, referenceId);
-        metadataService.checkMetadataFormat(executionContext, format, value, referenceType, genericApi);
+        metadataService.checkMetadataFormat(executionContext, format, value, referenceType, toApiMetadataDecodeContext(genericApi));
     }
 
     @Override
@@ -145,7 +146,7 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
             executionContext.getOrganizationId(),
             genericApiEntity.getId(),
             new StringReader(mapMetadata.toString()),
-            Collections.singletonMap("api", genericApiEntity)
+            Collections.singletonMap("api", toApiMetadataDecodeContext(genericApiEntity))
         );
         Map<String, Object> metadataDecoded = null;
         if (decodedValue != null) {
