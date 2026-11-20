@@ -1992,6 +1992,19 @@
                 </dependency>
                 <dependency>
                     <groupId>com.graviteesource.resource</groupId>
+                    <artifactId>gravitee-resource-ai-model-decision</artifactId>
+                    <version>${gravitee-resource-ai-model-decision.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.resource</groupId>
                     <artifactId>gravitee-resource-schema-registry-confluent</artifactId>
                     <version>${gravitee-resource-schema-registry-confluent.version}</version>
                     <type>zip</type>

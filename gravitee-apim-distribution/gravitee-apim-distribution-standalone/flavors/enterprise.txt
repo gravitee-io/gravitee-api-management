@@ -69,6 +69,7 @@ gravitee-resource-ai-vector-store-redis
 gravitee-resource-ai-vector-store-aws-s3
 gravitee-resource-ai-model-text-embedding
 gravitee-resource-ai-model-token-classification
+gravitee-resource-ai-model-decision
 gravitee-resource-schema-registry-confluent
 gravitee-resource-schema-registry-embedded
 
