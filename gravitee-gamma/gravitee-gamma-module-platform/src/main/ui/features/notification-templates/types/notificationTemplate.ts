@@ -21,6 +21,7 @@ export type NotificationTemplateScope =
     | 'API_PRODUCT'
     | 'APPLICATION'
     | 'PORTAL'
+    | 'HITL'
     | 'TEMPLATES_FOR_ACTION'
     | 'TEMPLATES_FOR_ALERT'
     | 'TEMPLATES_TO_INCLUDE';

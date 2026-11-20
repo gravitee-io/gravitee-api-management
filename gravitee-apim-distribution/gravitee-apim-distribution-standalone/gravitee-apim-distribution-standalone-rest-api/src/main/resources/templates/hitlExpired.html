@@ -1,0 +1,13 @@
+<html>
+<body style="text-align: center;">
+<header>
+	<#include "header.html" />
+</header>
+<div style="margin-top: 50px; color: #424e5a;">
+	<h3>Hi,</h3>
+	<p>Nobody decided on <code>${((hitl.tool)!'')?html}</code> before ${((hitl.expiresAt)!'')?html}.</p>
+	<p>The tool will not run.</p>
+	<p><a href="${((hitl.approvalUrl)!'')?html}">Open the approval</a></p>
+</div>
+</body>
+</html>

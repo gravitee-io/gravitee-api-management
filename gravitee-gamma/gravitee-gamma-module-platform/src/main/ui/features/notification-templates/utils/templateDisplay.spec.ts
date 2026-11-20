@@ -63,6 +63,7 @@ describe('groupTemplatesByCategory', () => {
                 template({ scope: 'APPLICATION', name: 'New Subscription', type: 'EMAIL', hook: 'SUBSCRIPTION_NEW' }),
                 template({ scope: 'API_PRODUCT', name: 'API-Key Expired', type: 'EMAIL', hook: 'APIKEY_EXPIRED' }),
                 template({ scope: 'PORTAL', name: 'User Created', type: 'EMAIL', hook: 'USER_CREATED' }),
+                template({ scope: 'HITL', name: 'HITL.HITL_APPROVAL_REQUIRED', type: 'EMAIL', hook: 'HITL_APPROVAL_REQUIRED' }),
                 template({ scope: 'API', name: 'API Started', type: 'EMAIL', hook: 'API_STARTED' }),
                 template({ scope: 'TEMPLATES_TO_INCLUDE', name: 'header.html', type: 'EMAIL', hook: '' }),
                 template({ scope: 'TEMPLATES_FOR_ALERT', name: 'HTTP status code', type: 'EMAIL', hook: 'CONSUMER_HTTP_STATUS' }),
@@ -75,6 +76,7 @@ describe('groupTemplatesByCategory', () => {
             'API_PRODUCT',
             'APPLICATION',
             'PORTAL',
+            'HITL',
             'TEMPLATES_FOR_ACTION',
             'TEMPLATES_FOR_ALERT',
             'TEMPLATES_TO_INCLUDE',
@@ -143,6 +145,10 @@ describe('scopeLabel', () => {
         expect(scopeLabel('TEMPLATES_TO_INCLUDE')).toBe('Templates to include');
         expect(scopeLabel('TEMPLATES_FOR_ACTION')).toBe('Templates for action');
         expect(scopeLabel('API')).toBe('API');
+    });
+
+    it('labels the HITL scope as Human in the lead', () => {
+        expect(scopeLabel('HITL')).toBe('Human in the lead');
     });
 });
 

@@ -24,6 +24,7 @@ import {
     FolderOpenIcon,
     LayoutDashboardIcon,
     MonitorIcon,
+    ShieldIcon,
     type LucideIcon,
 } from '@gravitee/graphene-core/icons';
 import { useMemo, useState } from 'react';
@@ -36,6 +37,7 @@ const SCOPE_ICONS: Record<string, LucideIcon> = {
     API_PRODUCT: BoxesIcon,
     APPLICATION: AppWindowIcon,
     PORTAL: MonitorIcon,
+    HITL: ShieldIcon,
     TEMPLATES_FOR_ACTION: FileTextIcon,
     TEMPLATES_FOR_ALERT: BellIcon,
     TEMPLATES_TO_INCLUDE: FolderOpenIcon,

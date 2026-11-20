@@ -269,6 +269,15 @@ public class EmailNotificationBuilder {
             "<#if apiKey??>API Key of<#else>Subscription to</#if> ${api.name} will expire in ${expirationDelay} days!"
         ),
         TEMPLATES_FOR_ACTION_GENERIC_MESSAGE(ActionHook.GENERIC_MESSAGE, "genericMessage.html", "${messageSubject}"),
+        HITL_APPROVAL_REQUIRED(HitlHook.HITL_APPROVAL_REQUIRED, "hitlApprovalRequired.html", "Approval needed: ${((hitl.tool)!'')}"),
+        HITL_APPROVAL_REMINDER(
+            HitlHook.HITL_APPROVAL_REMINDER,
+            "hitlApprovalReminder.html",
+            "Reminder: ${((hitl.tool)!'')} still needs approval"
+        ),
+        HITL_APPROVED(HitlHook.HITL_APPROVED, "hitlApproved.html", "${((hitl.tool)!'')} was approved"),
+        HITL_REJECTED(HitlHook.HITL_REJECTED, "hitlRejected.html", "${((hitl.tool)!'')} was rejected"),
+        HITL_EXPIRED(HitlHook.HITL_EXPIRED, "hitlExpired.html", "${((hitl.tool)!'')} expired without a decision"),
         TEMPLATES_FOR_ALERT_CONSUMER_HTTP_STATUS(
             AlertHook.CONSUMER_HTTP_STATUS,
             "alert_HTTPStatus.html",

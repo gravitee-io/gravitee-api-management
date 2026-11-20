@@ -1,0 +1,13 @@
+<html>
+<body style="text-align: center;">
+<header>
+	<#include "header.html" />
+</header>
+<div style="margin-top: 50px; color: #424e5a;">
+	<h3>Hi,</h3>
+	<p><code>${((hitl.tool)!'')?html}</code> from <b>${((hitl.agent)!'')?html}</b> is still waiting.</p>
+	<p>Rule: ${((hitl.rule)!'')?html}. The window closes at ${((hitl.expiresAt)!'')?html}.</p>
+	<p><a href="${((hitl.approvalUrl)!'')?html}">Open the approval</a></p>
+</div>
+</body>
+</html>

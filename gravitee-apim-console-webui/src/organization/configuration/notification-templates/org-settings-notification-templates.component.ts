@@ -109,6 +109,10 @@ export class OrgSettingsNotificationTemplatesComponent implements OnInit {
       return 'API Product';
     }
 
+    if (scope === 'HITL') {
+      return 'Human in the lead';
+    }
+
     return capitalize(scope.split('_').join(' '));
   }
 
@@ -122,6 +126,8 @@ export class OrgSettingsNotificationTemplatesComponent implements OnInit {
         return 'list';
       case 'PORTAL':
         return 'important_devices';
+      case 'HITL':
+        return 'shield';
       case 'TEMPLATES_FOR_ACTION':
         return 'assignment';
       case 'TEMPLATES_FOR_ALERT':
