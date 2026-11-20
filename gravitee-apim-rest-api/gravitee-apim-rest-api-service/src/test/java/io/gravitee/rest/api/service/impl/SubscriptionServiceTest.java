@@ -51,6 +51,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
+import io.gravitee.apim.core.notification.model.UserNotificationTemplateData;
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
@@ -2174,7 +2175,9 @@ public class SubscriptionServiceTest {
             argThat(
                 params ->
                     params.containsKey(NotificationParamsBuilder.PARAM_USER) &&
-                    subscribedByDisplayName.equals(((UserEntity) params.get(NotificationParamsBuilder.PARAM_USER)).getDisplayName())
+                    subscribedByDisplayName.equals(
+                        ((UserNotificationTemplateData) params.get(NotificationParamsBuilder.PARAM_USER)).getDisplayName()
+                    )
             )
         );
         verify(notifierService).trigger(
@@ -2184,7 +2187,9 @@ public class SubscriptionServiceTest {
             argThat(
                 params ->
                     params.containsKey(NotificationParamsBuilder.PARAM_USER) &&
-                    subscribedByDisplayName.equals(((UserEntity) params.get(NotificationParamsBuilder.PARAM_USER)).getDisplayName())
+                    subscribedByDisplayName.equals(
+                        ((UserNotificationTemplateData) params.get(NotificationParamsBuilder.PARAM_USER)).getDisplayName()
+                    )
             )
         );
     }
