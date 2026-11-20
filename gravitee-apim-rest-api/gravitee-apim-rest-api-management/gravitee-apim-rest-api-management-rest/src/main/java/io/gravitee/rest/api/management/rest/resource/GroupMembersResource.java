@@ -21,6 +21,7 @@ import static io.gravitee.rest.api.service.exceptions.GroupInvitationForbiddenEx
 import static io.gravitee.rest.api.service.notification.PortalHook.GROUP_INVITATION;
 import static java.util.stream.Collectors.toList;
 
+import io.gravitee.apim.infra.adapter.UserAdapter;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.MediaType;
@@ -344,7 +345,7 @@ public class GroupMembersResource extends AbstractResource {
                     UserEntity userEntity = this.userService.findById(executionContext, updatedMembership.getId());
                     Map<String, Object> params = new HashMap<>();
                     params.put("group", groupEntity);
-                    params.put("user", userEntity);
+                    params.put("user", UserAdapter.INSTANCE.toUserNotificationTemplateData(userEntity));
                     this.notifierService.trigger(executionContext, GROUP_INVITATION, params);
                 }
             }
