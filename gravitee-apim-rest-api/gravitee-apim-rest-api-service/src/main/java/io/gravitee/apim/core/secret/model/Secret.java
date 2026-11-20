@@ -51,6 +51,6 @@ public record Secret(String id, String organizationId, String environmentId, Str
     }
 
     public String path() {
-        return "/gravitee/" + environmentId + "/" + key + ":value";
+        return "/gravitee/" + key + ":value?envId=" + environmentId;
     }
 }
