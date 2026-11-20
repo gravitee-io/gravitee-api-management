@@ -142,6 +142,8 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
     public List<SubscriptionEntity> findActiveByApplicationIdsAndApiIds(Set<String> applicationIds, Set<String> apiIds) {
         var criteria = SubscriptionCriteria.builder()
             .statuses(List.of(SubscriptionStatus.ACCEPTED.name(), SubscriptionStatus.PENDING.name(), SubscriptionStatus.PAUSED.name()))
+            // The repositories apply the apis filter only together with referenceTypes
+            .referenceTypes(Set.of(io.gravitee.repository.management.model.SubscriptionReferenceType.API))
             .apis(List.copyOf(apiIds))
             .applications(List.copyOf(applicationIds))
             .build();
