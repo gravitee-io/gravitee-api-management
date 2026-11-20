@@ -56,6 +56,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -216,6 +217,7 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
             .referenceType(NotificationReferenceType.APPLICATION)
             .referenceId(applicationId)
             .params(params)
+            .recipients(recipients)
             .build();
         triggerPortalNotifications(executionContext, data);
         triggerGenericNotifications(executionContext, data);
@@ -294,7 +296,7 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
             var notificationConfigs = genericNotificationConfigs
                 .stream()
                 .collect(Collectors.groupingBy(GenericNotificationConfig::getNotifier));
-            if (notificationConfigs.isEmpty()) {
+            if (notificationConfigs.isEmpty() && CollectionUtils.isEmpty(data.recipients)) {
                 log.debug(
                     "No GenericNotificationConfig for hook {} (referenceType={}, referenceId={}); email/webhook notifiers are skipped",
                     data.hook.name(),
@@ -306,31 +308,35 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
             list().forEach(notifier -> {
                 switch (notifier.type()) {
                     case EMAIL -> {
-                        var recipients = notificationConfigs
+                        var configuredRecipients = notificationConfigs
                             .getOrDefault(notifier.getId(), Collections.emptyList())
                             .stream()
                             .map(GenericNotificationConfig::getConfig)
-                            .collect(Collectors.toList());
-
-                        if (!CollectionUtils.isEmpty(data.recipients)) {
-                            var emailAdditionalRecipients = data.recipients
-                                .stream()
-                                .filter(r -> r.type().equals(DEFAULT_EMAIL_NOTIFIER_ID))
-                                .map(Recipient::value)
-                                .toList();
-                            recipients.addAll(emailAdditionalRecipients);
-                        }
+                            .toList();
 
                         // extract emails from templated string (eg: ${api.primaryOwner.email})
-                        var processedRecipients = emailRecipientsService.processTemplatedRecipients(recipients, data.params);
+                        var recipients = new HashSet<>(
+                            emailRecipientsService.processTemplatedRecipients(configuredRecipients, data.params)
+                        );
+
+                        if (!CollectionUtils.isEmpty(data.recipients)) {
+                            // a recipient given by the caller is an address held by the platform, never a template:
+                            // it is added after template processing so it is never evaluated nor split
+                            data.recipients
+                                .stream()
+                                .filter(r -> notifier.type().name().equals(r.type()))
+                                .map(Recipient::value)
+                                .forEach(recipients::add);
+                        }
+
                         // extract emails of opted-in users if trial instance
-                        var validRecipients = parameterService.findAsBoolean(
+                        Collection<String> validRecipients = parameterService.findAsBoolean(
                                 executionContext,
                                 Key.TRIAL_INSTANCE,
                                 ParameterReferenceType.SYSTEM
                             )
-                            ? emailRecipientsService.filterRegisteredUser(executionContext, processedRecipients)
-                            : processedRecipients;
+                            ? emailRecipientsService.filterRegisteredUser(executionContext, recipients)
+                            : recipients;
 
                         emailNotifierService.trigger(executionContext, data.hook, data.params, validRecipients);
                     }

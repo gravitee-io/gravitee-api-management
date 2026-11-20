@@ -37,6 +37,8 @@ import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApiProductHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApplicationHookContext;
+import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApiHookContext;
+import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApplicationHookContext;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
@@ -552,6 +554,59 @@ class AcceptSubscriptionDomainServiceTest {
                         "subscription-id",
                         USER_ID
                     )
+                )
+            );
+        }
+
+        @Test
+        void should_trigger_rejection_notifications_for_subscriber_when_the_integration_fails() {
+            // Given
+            Plan plan = PlanFixtures.HttpV4.anApiKey()
+                .toBuilder()
+                .definitionVersion(DefinitionVersion.FEDERATED)
+                .id("plan-published")
+                .federatedPlanDefinition(FederatedPlan.builder().security(PlanSecurity.builder().type("api-key").build()).build())
+                .build()
+                .setPlanStatus(PlanStatus.PUBLISHED);
+            SubscriptionEntity subscription = givenExistingSubscription(
+                SubscriptionFixtures.aSubscription()
+                    .toBuilder()
+                    .subscribedBy("subscriber")
+                    .planId(plan.getId())
+                    .status(SubscriptionEntity.Status.PENDING)
+                    .build()
+            );
+            userCrudService.initWith(List.of(BaseUserEntity.builder().id("subscriber").email("subscriber@mail.fake").build()));
+            apiCrudService.create(
+                Api.builder().id(subscription.getApiId()).originContext(new OriginContext.Integration("integration-id")).build()
+            );
+            integrationCrudService.initWith(List.of(IntegrationFixture.anApiIntegration()));
+            integrationAgent.configureSubscriptionFailureFor("integration-id", new RuntimeException("agent is down"));
+
+            // When
+            accept(subscription, plan);
+
+            // Then
+            assertThat(triggerNotificationDomainService.getApplicationNotifications()).contains(
+                new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
+                    new Recipient("EMAIL", "subscriber@mail.fake"),
+                    new SubscriptionRejectedApplicationHookContext(
+                        "application-id",
+                        SubscriptionReferenceType.API,
+                        subscription.getReferenceId(),
+                        "plan-published",
+                        "subscription-id",
+                        USER_ID
+                    )
+                )
+            );
+            assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
+                new SubscriptionRejectedApiHookContext(
+                    subscription.getReferenceId(),
+                    "application-id",
+                    "plan-published",
+                    "subscription-id",
+                    USER_ID
                 )
             );
         }
