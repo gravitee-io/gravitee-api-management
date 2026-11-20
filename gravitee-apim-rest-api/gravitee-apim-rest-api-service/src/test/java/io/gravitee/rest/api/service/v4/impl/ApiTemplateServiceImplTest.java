@@ -15,15 +15,22 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.template.TemplateProcessorException;
+import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.EndpointGroup;
+import io.gravitee.definition.model.HttpProxy;
+import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
@@ -54,6 +61,7 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -249,5 +257,45 @@ public class ApiTemplateServiceImplTest {
         assertTrue(genericApiModel instanceof NativeApiModel);
         assertEquals("value resolved", genericApiModel.getMetadata().get("key"));
         assertEquals("support@gravitee.test", genericApiModel.getMetadata().get("email-support"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void shouldNotExposeApiDefinitionToMetadataTemplates() throws TemplateProcessorException {
+        var httpProxy = new HttpProxy();
+        httpProxy.setPassword("proxy-secret");
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId("api");
+        apiEntity.setName("My API");
+        apiEntity.setVersion("1.0");
+        apiEntity.setPrimaryOwner(PrimaryOwnerEntity.builder().id("owner").email("owner@gravitee.io").type("USER").build());
+        apiEntity.setProxy(Proxy.builder().groups(Set.of(EndpointGroup.builder().name("default").httpProxy(httpProxy).build())).build());
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), "api", false, false, false)).thenReturn(apiEntity);
+
+        ApiMetadataEntity apiMetadataEntity = new ApiMetadataEntity();
+        apiMetadataEntity.setApiId("api");
+        apiMetadataEntity.setKey("key");
+        apiMetadataEntity.setValue("value");
+        when(apiMetadataService.findAllByApi(GraviteeContext.getExecutionContext(), "api")).thenReturn(List.of(apiMetadataEntity));
+        when(notificationTemplateService.resolveInlineTemplateWithParam(any(), any(), any(Reader.class), any())).thenReturn("{key=value}");
+        when(primaryOwnerService.getPrimaryOwnerEmail(any(), any())).thenReturn("owner@gravitee.io");
+
+        apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), "api", true);
+
+        var params = ArgumentCaptor.forClass(Object.class);
+        verify(notificationTemplateService).resolveInlineTemplateWithParam(any(), eq("api"), any(Reader.class), params.capture());
+        var templateProcessor = new FreemarkerTemplateProcessor();
+        assertThat(
+            templateProcessor.processInlineTemplate(
+                "${(api.proxy.groups?first.httpProxy.password)!'not-exposed'}",
+                (Map<String, Object>) params.getValue()
+            )
+        ).isEqualTo("not-exposed");
+        assertThat(
+            templateProcessor.processInlineTemplate(
+                "${api.name}|${api.version}|${api.primaryOwner.email}",
+                (Map<String, Object>) params.getValue()
+            )
+        ).isEqualTo("My API|1.0|owner@gravitee.io");
     }
 }
