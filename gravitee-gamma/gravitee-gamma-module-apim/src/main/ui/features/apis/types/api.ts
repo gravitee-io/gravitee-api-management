@@ -78,6 +78,12 @@ export interface ApiSwaggerDocumentationPage {
     name: string;
 }
 
+/** Published MARKDOWN documentation page a plan can reference as its general conditions. */
+export interface ApiGeneralConditionsPage {
+    id: string;
+    name: string;
+}
+
 export interface ImportApiPathMappings {
     pageId: string;
     overwrite?: boolean;
