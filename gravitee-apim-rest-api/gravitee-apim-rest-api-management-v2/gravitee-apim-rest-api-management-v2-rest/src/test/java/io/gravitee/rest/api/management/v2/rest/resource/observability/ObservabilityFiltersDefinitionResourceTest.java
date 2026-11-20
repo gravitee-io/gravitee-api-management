@@ -18,6 +18,8 @@ package io.gravitee.rest.api.management.v2.rest.resource.observability;
 import static assertions.MAPIAssertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.repository.management.model.Parameter;
+import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ApiName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSpec;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSpecsResponse;
@@ -25,6 +27,7 @@ import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Operator;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Signal;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -65,6 +68,8 @@ class ObservabilityFiltersDefinitionResourceTest extends AbstractResourceTest {
 
     @Test
     void should_return_filter_definitions() {
+        givenTheOrganizationDisplaysTheEndUser();
+
         var response = rootTarget().request().get();
 
         assertThat(response)
@@ -74,10 +79,11 @@ class ObservabilityFiltersDefinitionResourceTest extends AbstractResourceTest {
             .satisfies(filters -> {
                 // The bare count keeps every catalog addition a deliberate decision. On its own it
                 // says nothing about what broke, so the names of the last additions come with it.
-                assertThat(filters).hasSize(64);
+                assertThat(filters).hasSize(65);
                 assertThat(filters)
                     .extracting(filter -> filter.getName().getValue())
                     .contains(
+                        "USER",
                         "URI",
                         "ENTRYPOINT",
                         "NATIVE_FAILURE_SIDE",
@@ -97,6 +103,20 @@ class ObservabilityFiltersDefinitionResourceTest extends AbstractResourceTest {
                         "AUTHZ_PDP",
                         "AUTHZ_SEARCH_TYPE"
                     );
+            });
+    }
+
+    @Test
+    void should_leave_the_end_user_out_while_the_organization_does_not_display_it() {
+        var response = rootTarget().request().get();
+
+        assertThat(response)
+            .hasStatus(200)
+            .asEntity(FilterSpecsResponse.class)
+            .extracting(FilterSpecsResponse::getData)
+            .satisfies(filters -> {
+                assertThat(names(filters)).doesNotContain("USER");
+                assertThat(filters).hasSize(64);
             });
     }
 
@@ -239,6 +259,12 @@ class ObservabilityFiltersDefinitionResourceTest extends AbstractResourceTest {
         var response = rootTarget().queryParam("signal", "METRICS").request().get();
 
         assertThat(response).hasStatus(400);
+    }
+
+    private void givenTheOrganizationDisplaysTheEndUser() {
+        parametersQueryService.initWith(
+            List.of(new Parameter(Key.LOGGING_USER_DISPLAYED.key(), ORGANIZATION, ParameterReferenceType.ORGANIZATION, "true"))
+        );
     }
 
     private static FilterSpec filterNamed(List<FilterSpec> filters, String name) {

@@ -68,7 +68,7 @@ tags:
           Filter conditions reference the shared filter catalog narrowed to the `ANALYTICS` signal.
           Rows: the APIs where the caller holds `API_ANALYTICS[READ]`, or every API of the environment
           with `ENVIRONMENT_PLATFORM[READ]`. A query identifying callers — a condition or a facet on
-          `CONSUMER_IP`, `NATIVE_CLIENT_ID` or `AUTHZ_SUBJECT_ID`, or a `RECORD_TYPE` selecting
+          `CONSUMER_IP`, `USER`, `NATIVE_CLIENT_ID` or `AUTHZ_SUBJECT_ID`, or a `RECORD_TYPE` selecting
           `AUTHZ_DECISION` — counts only the APIs where the caller holds `API_LOG[READ]`, which the
           platform permission never widens. A query narrowed to one AI workspace (a single `API_PRODUCT`
           condition, `EQ` that workspace or `IN` it alone) also counts that workspace's calls for a holder of
@@ -130,8 +130,9 @@ paths:
             description: |
                 Returns the filter catalog, optionally narrowed by signal and/or API type. Both axes
                 are optional and multi-valued; omitting an axis means no constraint on it. A filter is
-                included when its declared signals/apiTypes intersect the requested values. No
-                permission is required: the catalog holds no traffic data.
+                included when its declared signals/apiTypes intersect the requested values. `USER`, the
+                end user a JWT or OAuth2 plan reports, is listed only while the organization setting
+                `logging.user.displayed` is on. No permission is required: the catalog holds no traffic data.
             operationId: getObservabilityFilterDefinitions
             parameters:
                 - name: signal
@@ -228,7 +229,7 @@ paths:
                 Paginated selectable values for one filter. ENUM filters return their static labelled
                 values (optionally filtered by a case-insensitive substring `query`). KEYWORD filters
                 return the distinct values found in the calls of the APIs whose aggregates the caller
-                reads, or whose logs they read for a field identifying callers (`CONSUMER_IP`,
+                reads, or whose logs they read for a field identifying callers (`CONSUMER_IP`, `USER`,
                 `NATIVE_CLIENT_ID`, `AUTHZ_SUBJECT_ID`) or one the logs only show; empty when they
                 read none. Searching `API` by name offers the APIs the caller reads. With `apiProduct`, only
                 the calls made through that API product count; a holder of `AI_WORKSPACE_USER[READ]` on that
@@ -362,15 +363,27 @@ paths:
                                             pageCount: 1
                                             pageItemsCount: 3
                 "400":
-                    description: The filter type does not support value listing (NUMBER / STRING).
+                    description: |
+                        The filter type does not support value listing (NUMBER / STRING), or the filter is `USER`
+                        while the organization setting `logging.user.displayed` is off
+                        (`observability.filter.end_user_not_displayed`).
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Error"
-                            example:
-                                http_status: 400
-                                message: "Filter type NUMBER does not support value listing."
-                                technicalCode: "filter.values.unsupported"
+                            examples:
+                                value-listing-not-supported:
+                                    summary: A number filter
+                                    value:
+                                        http_status: 400
+                                        message: "Filter type NUMBER does not support value listing."
+                                        technicalCode: "filter.values.unsupported"
+                                end-user-not-displayed:
+                                    summary: The end user while the organization does not display it
+                                    value:
+                                        http_status: 400
+                                        message: "Filter 'USER' needs the organization setting 'logging.user.displayed'"
+                                        technicalCode: "observability.filter.end_user_not_displayed"
                 "404":
                     description: No filter with the given name exists in the catalog.
                     content:
@@ -397,7 +410,9 @@ paths:
                 APIs. With `apiProduct`, a holder of `AI_WORKSPACE_USER[READ]` on that workspace also gets
                 the labels of the ids found in the calls made through it: the workspace, its APIs, their
                 applications and plans.
-                Other ids are left out of `labels`. Limits: at most 10 entries, at most 100 ids per entry.
+                Other ids are left out of `labels`. For `USER`, only `__no_end_user__`, the key of the calls
+                without an end user, is labelled ("No end user"): an end user has no other name than the one
+                the plan reported. Limits: at most 10 entries, at most 100 ids per entry.
             operationId: resolveObservabilityFilterLabels
             parameters:
                 - name: apiProduct
@@ -963,6 +978,7 @@ paths:
                         - Filter is valid for LOGS but not yet supported by log search (`observability.filter.search_translation_not_supported`)
                         - A decision filter (`AUTHZ_*`) sent without `RECORD_TYPE = AUTHZ_DECISION` (`observability.filter.requires_decision_record_type`)
                         - `RECORD_TYPE` with several values, or a filter the decision search cannot apply (`observability.filter.multiple_record_types`, `observability.filter.not_applicable_to_decisions`)
+                        - A `USER` condition while the organization setting `logging.user.displayed` is off (`observability.filter.end_user_not_displayed`)
                         - A time-range bound is missing, or `from` is after `to` (`observability.query.time_range_required`, `observability.query.invalid_time_range`)
                         - An array of the body holds a null entry (`observability.query.null_entry`)
                         - A key the schema does not declare, at any depth: the message names it (no technical code)
@@ -1013,6 +1029,12 @@ paths:
                                         http_status: 400
                                         message: "Filter 'AUTHZ_DECISION' applies to authorization decision records only: add the condition RECORD_TYPE = AUTHZ_DECISION"
                                         technicalCode: "observability.filter.requires_decision_record_type"
+                                end-user-not-displayed:
+                                    summary: End user condition while the organization does not display it
+                                    value:
+                                        http_status: 400
+                                        message: "Filter 'USER' needs the organization setting 'logging.user.displayed'"
+                                        technicalCode: "observability.filter.end_user_not_displayed"
                                 missing-time-range-bound:
                                     summary: Missing time-range bound
                                     value:
@@ -1851,6 +1873,7 @@ components:
                 The query is refused, whatever APIs the caller can read. Possible causes:
                 - A filter condition breaks a rule of the `FilterCondition` schema (`observability.filter.*`)
                 - A metric carries a `RECORD_TYPE` condition: a metric already fixes the kind of record it counts (`observability.filter.record_type_on_metric`)
+                - A `USER` condition, on the request or a metric, or a `USER` facet, while the organization setting `logging.user.displayed` is off (`observability.filter.end_user_not_displayed`)
                 - Some metrics carry an `id` and others do not, or an `id` is used twice, on measures (`observability.query.partial_metric_ids`, `observability.query.duplicate_metric_id`)
                 - The metrics carry more than 10 distinct sets of conditions with ids, on measures (`observability.query.too_many_metric_condition_sets`)
                 - The metrics carry different conditions, on facets and time-series (`observability.query.differing_metric_conditions`)
@@ -1885,6 +1908,12 @@ components:
                                 http_status: 400
                                 message: "Metric 'HTTP_REQUEST' is not supported"
                                 technicalCode: "observability.query.unknown_metric"
+                        end-user-not-displayed:
+                            summary: End user condition or facet while the organization does not display it
+                            value:
+                                http_status: 400
+                                message: "Filter 'USER' needs the organization setting 'logging.user.displayed'"
+                                technicalCode: "observability.filter.end_user_not_displayed"
     securitySchemes:
         CookieAuth:
             type: apiKey
@@ -2391,6 +2420,13 @@ components:
                     type: string
                     description: IP address of the client.
                     example: "203.0.113.42"
+                user:
+                    type: string
+                    description: >-
+                        End user of the call, as the JWT or OAuth2 plan reported it (the claim set as
+                        `userClaim`, `sub` by default). Absent unless the organization setting
+                        `logging.user.displayed` is on.
+                    example: "00000000-0000-0000-0000-0000000000a1"
                 requestContentLength:
                     type: integer
                     format: int64
@@ -2608,6 +2644,11 @@ components:
                 subscriptionId:
                     type: string
                     description: Identifier of the subscription the request was matched to.
+                user:
+                    type: string
+                    description: >-
+                        End user of the call, as the JWT or OAuth2 plan reported it. Absent unless the
+                        organization setting `logging.user.displayed` is on.
                 message:
                     type: string
                     description: Error or diagnostic message attached to the log entry.

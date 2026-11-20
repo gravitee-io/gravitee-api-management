@@ -44,6 +44,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
 import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
+import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.EndUserDisplayPort;
 import io.gravitee.gamma.rest.core.observability.logs.model.ApiReference;
 import io.gravitee.gamma.rest.core.observability.logs.model.AuthzDecision;
 import io.gravitee.gamma.rest.core.observability.logs.model.EntrypointScope;
@@ -128,6 +129,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
     private final InstanceQueryService instanceQueryService;
     private final ApiProductQueryService apiProductQueryService;
     private final ApiCrudService apiCrudService;
+    private final EndUserDisplayPort endUserDisplay;
 
     @Override
     public List<AccessibleApi> loadAccessibleApis(String organizationId, String environmentId) {
@@ -165,6 +167,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         }
 
         var searchFilters = buildSearchFilters(query);
+        var displaysEndUser = endUserDisplay.displaysEndUser(organizationId);
         var result = connectionLogsCrudService.searchApiConnectionLogs(
             executionContext,
             searchFilters,
@@ -176,7 +179,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
 
         var entries = rawEntries
             .stream()
-            .map(log -> mapToLogEntry(log, query.apisById()))
+            .map(log -> mapToLogEntry(log, query.apisById(), displaysEndUser))
             .toList();
         var enriched = enrichWithNames(executionContext, entries);
 
@@ -227,6 +230,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                 .applicationId(metrics.getApplicationId())
                 .gateway(metrics.getGateway())
                 .remoteAddress(metrics.getRemoteAddress())
+                .user(endUserDisplay.displaysEndUser(organizationId) ? metrics.getUser() : null)
                 .requestContentLength(metrics.getRequestContentLength())
                 .responseContentLength(metrics.getResponseContentLength())
                 .gatewayLatency(metrics.getGatewayLatency())
@@ -404,6 +408,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         Set<String> errorKeys = new HashSet<>();
         String bodyText = null;
         Set<String> apiProductIds = new HashSet<>();
+        Set<String> users = new HashSet<>();
         Set<String> llmProxyModels = new HashSet<>();
         Set<String> llmProxyProviders = new HashSet<>();
         Set<String> mcpProxyTools = new HashSet<>();
@@ -444,6 +449,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                     }
                 }
                 case "MCP_PROXY_METHOD" -> mcpMethods.addAll(values);
+                case "USER" -> users.addAll(values);
                 case "LLM_PROXY_MODEL" -> llmProxyModels.addAll(values);
                 case "LLM_PROXY_PROVIDER" -> llmProxyProviders.addAll(values);
                 case "MCP_PROXY_TOOL" -> mcpProxyTools.addAll(values);
@@ -498,6 +504,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         builder.transactionIds(transactionIds);
         builder.errorKeys(errorKeys);
         builder.apiProductIds(apiProductIds);
+        builder.users(users);
         builder.llmProxyModels(llmProxyModels);
         builder.llmProxyProviders(llmProxyProviders);
         builder.mcpProxyTools(mcpProxyTools);
@@ -631,7 +638,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .toList();
     }
 
-    private LogEntry mapToLogEntry(BaseConnectionLog log, Map<String, ApiReference> apisById) {
+    private LogEntry mapToLogEntry(BaseConnectionLog log, Map<String, ApiReference> apisById, boolean displaysEndUser) {
         var apiRef = apisById != null ? apisById.get(log.getApiId()) : null;
         var nativeMetrics = NativeMetrics.from(log.getAdditionalMetrics());
         return LogEntry.builder()
@@ -654,6 +661,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .entrypointId(log.getEntrypointId())
             .host(log.getHost())
             .subscriptionId(log.getSubscriptionId())
+            .user(displaysEndUser ? log.getUser() : null)
             .message(log.getMessage())
             .errorKey(log.getErrorKey())
             .errorComponentName(log.getErrorComponentName())

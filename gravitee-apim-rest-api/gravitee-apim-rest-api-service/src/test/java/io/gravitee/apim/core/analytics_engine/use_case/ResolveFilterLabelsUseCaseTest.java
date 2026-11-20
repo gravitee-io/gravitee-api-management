@@ -35,6 +35,7 @@ import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.query_service.FilterValuesQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.repository.analytics.engine.api.query.EndUser;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Map;
@@ -182,6 +183,36 @@ class ResolveFilterLabelsUseCaseTest {
             new ResolveFilterLabelsUseCase.ResolvedEntry("APPLICATION", Map.of())
         );
         verify(filterValueNameResolver, never()).resolveNames(any(), any(), eq(List.of("app-id")));
+    }
+
+    @Test
+    void should_label_the_no_end_user_key_without_reading_the_calls() {
+        when(filterValueNameResolver.resolveNames("env-id", FilterSpec.Name.USER, List.of(EndUser.NONE))).thenReturn(
+            Map.of(EndUser.NONE, "No end user")
+        );
+
+        var output = useCase.execute(
+            new ResolveFilterLabelsUseCase.Input(
+                AUDIT_INFO,
+                List.of(new ResolveFilterLabelsUseCase.Entry("USER", List.of(EndUser.NONE, "alice")))
+            )
+        );
+
+        assertThat(output.entries()).containsExactly(
+            new ResolveFilterLabelsUseCase.ResolvedEntry("USER", Map.of(EndUser.NONE, "No end user"))
+        );
+        verifyNoInteractions(contextLoader, filterValuesQueryService);
+    }
+
+    /** An end user is shown as the plan reported it: there is no name to look up. */
+    @Test
+    void should_leave_the_end_users_unlabelled() {
+        var output = useCase.execute(
+            new ResolveFilterLabelsUseCase.Input(AUDIT_INFO, List.of(new ResolveFilterLabelsUseCase.Entry("USER", List.of("alice"))))
+        );
+
+        assertThat(output.entries()).containsExactly(new ResolveFilterLabelsUseCase.ResolvedEntry("USER", Map.of()));
+        verifyNoInteractions(contextLoader, filterValuesQueryService, filterValueNameResolver);
     }
 
     @Test

@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.EndUserDisplayDomainService;
 import io.gravitee.gamma.rest.core.observability.filter.inmemory.InMemoryObservabilityFilterDataPort;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterValue;
 import io.gravitee.gamma.rest.core.observability.filter.use_case.GetObservabilityFilterDefinitionsUseCase;
@@ -99,6 +100,18 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
         assertThat(dataPort.lastCall()).isEmpty();
     }
 
+    /** The test organization leaves {@code logging.user.displayed} off. */
+    @Test
+    void should_answer_400_to_the_end_user_values_while_the_organization_does_not_display_it() {
+        Response response = rootTarget("USER/values").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        assertThat(response.readEntity(JsonNode.class).get("technicalCode").asText()).isEqualTo(
+            "observability.filter.end_user_not_displayed"
+        );
+        assertThat(dataPort.lastCall()).isEmpty();
+    }
+
     @Test
     void should_answer_400_for_a_page_beyond_the_maximum() {
         Response response = rootTarget("ENTRYPOINT/values").queryParam("page", 10_001).request().get();
@@ -127,7 +140,11 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
 
         @Bean
         GetObservabilityFilterValuesUseCase getObservabilityFilterValuesUseCase(InMemoryObservabilityFilterDataPort dataPort) {
-            return new GetObservabilityFilterValuesUseCase(new SpiFilterRegistry(), dataPort);
+            return new GetObservabilityFilterValuesUseCase(
+                new SpiFilterRegistry(),
+                dataPort,
+                new EndUserDisplayDomainService(organizationId -> false)
+            );
         }
     }
 }

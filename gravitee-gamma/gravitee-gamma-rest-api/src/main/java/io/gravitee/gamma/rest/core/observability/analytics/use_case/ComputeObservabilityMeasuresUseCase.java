@@ -73,7 +73,9 @@ public class ComputeObservabilityMeasuresUseCase {
         pipeline.validateMetricConditions(input.metrics.stream().map(AnalyticsMetricQuery::filters).toList());
         var applied = identified ? appliedWithIds(input.metrics) : appliedWithoutIds(input.metrics);
 
-        var kind = pipeline.dataKindOf(input.filters, input.metrics.stream().map(AnalyticsMetricQuery::filters).toList(), List.of());
+        var metricConditions = input.metrics.stream().map(AnalyticsMetricQuery::filters).toList();
+        pipeline.requireEndUserDisplayed(input.organizationId, input.filters, metricConditions, List.of());
+        var kind = pipeline.dataKindOf(input.filters, metricConditions, List.of());
         var prepared = pipeline.prepare(
             input.organizationId,
             input.environmentId,

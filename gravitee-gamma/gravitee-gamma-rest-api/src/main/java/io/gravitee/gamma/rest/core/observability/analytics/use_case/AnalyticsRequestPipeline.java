@@ -19,6 +19,7 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.gamma.rest.core.observability.analytics.model.DataKind;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.EndUserDisplayDomainService;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
@@ -80,6 +81,7 @@ public class AnalyticsRequestPipeline {
     private final ObservabilityFilterValidator filterValidator;
     private final AccessibleApiScopeDomainService accessibleApiScope;
     private final EntrypointScopeProvider entrypointScopeProvider;
+    private final EndUserDisplayDomainService endUserDisplay;
 
     /**
      * The scope of one engine query, expressed entirely in Gamma-native types. The infra adapter is
@@ -194,6 +196,21 @@ public class AnalyticsRequestPipeline {
             ) ||
             (facets != null && facets.stream().anyMatch(identifying::contains));
         return perRequest ? DataKind.PER_REQUEST : DataKind.AGGREGATES;
+    }
+
+    /** Refuses a condition or a facet on the end user while the organization does not display it. */
+    public void requireEndUserDisplayed(
+        String organizationId,
+        List<FilterCondition> rawFilters,
+        List<List<FilterCondition>> metricConditions,
+        List<String> facets
+    ) {
+        var filters = rawFilters != null ? rawFilters : List.<FilterCondition>of();
+        var conditionNames = Stream.concat(filters.stream(), metricConditions.stream().flatMap(List::stream)).map(FilterCondition::name);
+        endUserDisplay.requireDisplayedIfNamed(
+            organizationId,
+            Stream.concat(conditionNames, facets != null ? facets.stream() : Stream.empty())
+        );
     }
 
     /**

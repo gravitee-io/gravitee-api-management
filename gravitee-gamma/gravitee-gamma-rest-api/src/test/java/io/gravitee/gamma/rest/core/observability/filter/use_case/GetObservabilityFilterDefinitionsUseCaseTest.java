@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest.core.observability.filter.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.EndUserDisplayDomainService;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.ExtensibleFilters;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
@@ -27,19 +28,27 @@ import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class GetObservabilityFilterDefinitionsUseCaseTest {
 
+    private static final String ORGANIZATION = "organization-1";
+    /** Every built-in but USER, which the organization of these tests does not display. */
+    private static final int SERVED_BUILT_INS = StaticFilters.values().length - 1 + ExtensibleFilters.values().length;
+
     // Real registry → exercises the actual unified vocabulary shipped with the host catalog.
-    private final GetObservabilityFilterDefinitionsUseCase useCase = new GetObservabilityFilterDefinitionsUseCase(new SpiFilterRegistry());
+    private final GetObservabilityFilterDefinitionsUseCase useCase = new GetObservabilityFilterDefinitionsUseCase(
+        new SpiFilterRegistry(),
+        new EndUserDisplayDomainService(organizationId -> false)
+    );
 
     @Test
     void should_return_the_full_catalog_when_both_axes_are_empty() {
-        var output = useCase.execute(new GetObservabilityFilterDefinitionsUseCase.Input(Set.of(), Set.of()));
+        var output = useCase.execute(new GetObservabilityFilterDefinitionsUseCase.Input(ORGANIZATION, Set.of(), Set.of()));
 
-        assertThat(output.filters()).hasSize(StaticFilters.values().length + ExtensibleFilters.values().length);
+        assertThat(output.filters()).hasSize(SERVED_BUILT_INS);
         assertThat(output.filters())
             .extracting(FilterSpec::name)
             .contains("API", "API_TYPE", "HTTP_GATEWAY_RESPONSE_TIME", "MCP_PROXY_METHOD", "URI", "HTTP_PATH")
@@ -48,7 +57,7 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
 
     @Test
     void should_narrow_to_logs_served_filters_when_signal_is_logs() {
-        var output = useCase.execute(new GetObservabilityFilterDefinitionsUseCase.Input(Set.of(Signal.LOGS), Set.of()));
+        var output = useCase.execute(new GetObservabilityFilterDefinitionsUseCase.Input(ORGANIZATION, Set.of(Signal.LOGS), Set.of()));
 
         // Every returned spec must declare LOGS; analytics-only filters (e.g. GATEWAY) drop out.
         assertThat(output.filters()).allSatisfy(spec -> assertThat(spec.signals()).contains(Signal.LOGS));
@@ -57,7 +66,7 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
 
     @Test
     void should_narrow_to_llm_relevant_filters_when_api_type_is_llm() {
-        var output = useCase.execute(new GetObservabilityFilterDefinitionsUseCase.Input(Set.of(), Set.of(ApiType.LLM)));
+        var output = useCase.execute(new GetObservabilityFilterDefinitionsUseCase.Input(ORGANIZATION, Set.of(), Set.of(ApiType.LLM)));
 
         assertThat(output.filters()).allSatisfy(spec -> assertThat(spec.apiTypes()).contains(ApiType.LLM));
         assertThat(output.filters())
@@ -68,7 +77,9 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
 
     @Test
     void should_intersect_both_axes_independently() {
-        var output = useCase.execute(new GetObservabilityFilterDefinitionsUseCase.Input(Set.of(Signal.ANALYTICS), Set.of(ApiType.MESSAGE)));
+        var output = useCase.execute(
+            new GetObservabilityFilterDefinitionsUseCase.Input(ORGANIZATION, Set.of(Signal.ANALYTICS), Set.of(ApiType.MESSAGE))
+        );
 
         List<String> names = output.filters().stream().map(FilterSpec::name).toList();
         assertThat(names).contains("MESSAGE_OPERATION_TYPE", "MESSAGE_SIZE", "API_TYPE");
@@ -87,7 +98,9 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
      */
     @Test
     void should_serve_the_connection_document_filters_for_message_logs() {
-        var output = useCase.execute(new GetObservabilityFilterDefinitionsUseCase.Input(Set.of(Signal.LOGS), Set.of(ApiType.MESSAGE)));
+        var output = useCase.execute(
+            new GetObservabilityFilterDefinitionsUseCase.Input(ORGANIZATION, Set.of(Signal.LOGS), Set.of(ApiType.MESSAGE))
+        );
 
         List<String> names = output.filters().stream().map(FilterSpec::name).toList();
         assertThat(names).contains(
@@ -106,5 +119,34 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
         );
         // A Message API records no connection-level body, so a payload search would always be empty.
         assertThat(names).doesNotContain("PAYLOAD");
+    }
+
+    @Nested
+    class EndUser {
+
+        @Test
+        void should_leave_out_the_end_user_while_the_organization_does_not_display_it() {
+            var output = useCase.execute(
+                new GetObservabilityFilterDefinitionsUseCase.Input(ORGANIZATION, Set.of(Signal.LOGS), Set.of(ApiType.LLM))
+            );
+
+            assertThat(output.filters()).extracting(FilterSpec::name).doesNotContain("USER");
+        }
+
+        @Test
+        void should_serve_the_end_user_for_logs_and_analytics_once_the_organization_displays_it() {
+            var displaying = new GetObservabilityFilterDefinitionsUseCase(
+                new SpiFilterRegistry(),
+                new EndUserDisplayDomainService(ORGANIZATION::equals)
+            );
+
+            for (var signal : List.of(Signal.LOGS, Signal.ANALYTICS)) {
+                var output = displaying.execute(
+                    new GetObservabilityFilterDefinitionsUseCase.Input(ORGANIZATION, Set.of(signal), Set.of(ApiType.LLM))
+                );
+
+                assertThat(output.filters()).as("filters of %s", signal).extracting(FilterSpec::name).contains("USER");
+            }
+        }
     }
 }
