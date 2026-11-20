@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.google.common.collect.ImmutableMap;
+import io.gravitee.apim.core.notification.model.UserNotificationTemplateData;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.TicketRepository;
@@ -347,7 +348,12 @@ public class TicketServiceTest {
                 .params(
                     ImmutableMap.of(
                         "user",
-                        user,
+                        UserNotificationTemplateData.builder()
+                            .firstname(USER_FIRSTNAME)
+                            .lastname(USER_LASTNAME)
+                            .email(USER_EMAIL)
+                            .customFields(Map.of())
+                            .build(),
                         "api",
                         api,
                         "content",
@@ -630,7 +636,12 @@ public class TicketServiceTest {
                 .params(
                     ImmutableMap.of(
                         "user",
-                        user,
+                        UserNotificationTemplateData.builder()
+                            .firstname(USER_FIRSTNAME)
+                            .lastname(USER_LASTNAME)
+                            .email(USER_EMAIL)
+                            .customFields(Map.of())
+                            .build(),
                         "api",
                         api,
                         "content",

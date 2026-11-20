@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.notification;
 
+import io.gravitee.apim.infra.adapter.UserAdapter;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -105,7 +106,7 @@ public class NotificationParamsBuilder {
     }
 
     public NotificationParamsBuilder user(UserEntity user) {
-        this.params.put(PARAM_USER, user);
+        this.params.put(PARAM_USER, UserAdapter.INSTANCE.toUserNotificationTemplateData(user));
         this.params.put(PARAM_USERNAME, user.getDisplayName());
         return this;
     }
