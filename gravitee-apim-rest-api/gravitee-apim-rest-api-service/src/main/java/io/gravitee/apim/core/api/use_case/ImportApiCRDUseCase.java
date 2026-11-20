@@ -200,13 +200,6 @@ public class ImportApiCRDUseCase {
             String environmentId = input.auditInfo.environmentId();
             String organizationId = input.auditInfo.organizationId();
 
-            // Reject when navigation paths would collide with manually-managed content, before any API persistence.
-            portalListingSyncDomainService.validateApiFolderConflictsForApi(
-                input.auditInfo,
-                input.spec().getId(),
-                input.spec().getPortalNavigation()
-            );
-
             var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, input.auditInfo.actor().userId());
 
             var apiToCreate = ApiModelFactory.fromCrd(input.spec, environmentId);
@@ -279,12 +272,6 @@ public class ImportApiCRDUseCase {
             List<NavigationPath> previousNavigation = existingApi.getPortalNavigation() != null
                 ? existingApi.getPortalNavigation()
                 : List.of();
-            // Reject when navigation paths would collide with manually-managed content, before any API persistence.
-            portalListingSyncDomainService.validateApiFolderConflictsForApi(
-                input.auditInfo,
-                existingApi.getId(),
-                input.spec().getPortalNavigation()
-            );
             // Persist pages first so plan general-condition references are resolvable during API update.
             createOrUpdatePages(input.spec.getPages(), existingApi.getId(), input.auditInfo);
 
