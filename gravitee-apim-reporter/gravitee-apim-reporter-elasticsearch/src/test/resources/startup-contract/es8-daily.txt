@@ -461,6 +461,9 @@
     "norms": false
 }
 ,
+                        "body-truncated": {
+                            "type": "boolean"
+                        },
                         "headers":  {
                            "enabled":  false,
                            "type": "object"
@@ -477,6 +480,9 @@
     "norms": false
 }
 ,
+                        "body-truncated": {
+                            "type": "boolean"
+                        },
                         "headers":  {
                            "enabled":  false,
                            "type": "object"
@@ -493,6 +499,9 @@
     "norms": false
 }
 ,
+                        "body-truncated": {
+                            "type": "boolean"
+                        },
                         "headers":  {
                            "enabled":  false,
                            "type": "object"
@@ -509,6 +518,9 @@
     "norms": false
 }
 ,
+                        "body-truncated": {
+                            "type": "boolean"
+                        },
                         "headers": {
                             "enabled":  false,
                             "type": "object"
@@ -950,6 +962,9 @@
     "norms": false
 }
 ,
+                        "body-truncated": {
+                            "type": "boolean"
+                        },
                         "headers":  {
                            "enabled":  false,
                            "type": "object"
@@ -966,6 +981,9 @@
     "norms": false
 }
 ,
+                        "body-truncated": {
+                            "type": "boolean"
+                        },
                         "headers":  {
                            "enabled":  false,
                            "type": "object"
@@ -982,6 +1000,9 @@
     "norms": false
 }
 ,
+                        "body-truncated": {
+                            "type": "boolean"
+                        },
                         "headers":  {
                            "enabled":  false,
                            "type": "object"
@@ -998,6 +1019,9 @@
     "norms": false
 }
 ,
+                        "body-truncated": {
+                            "type": "boolean"
+                        },
                         "headers": {
                             "enabled":  false,
                             "type": "object"
