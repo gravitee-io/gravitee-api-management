@@ -40,9 +40,12 @@ jest.mock('../../../../hooks/useUserTags', () => ({ useUserTags: jest.fn(() => (
 jest.mock('../../../../hooks/useApiDetail', () => ({ useApiDetail: jest.fn(() => ({ data: undefined })) }));
 jest.mock('../../../../hooks/useApiResources', () => ({ useResourcePlugins: jest.fn(() => ({ data: [] })) }));
 jest.mock('../../../../hooks/useApiGeneralConditionsPages', () => ({ useApiGeneralConditionsPages: jest.fn(() => ({ data: [] })) }));
+jest.mock('../../../../../../shared/api/apimClient', () => ({ apimFetchJsonV2: jest.fn() }));
 
 import { PlanFormWizard } from './PlanFormWizard';
+import { apimFetchJsonV2 } from '../../../../../../shared/api/apimClient';
 import { useApiGeneralConditionsPages } from '../../../../hooks/useApiGeneralConditionsPages';
+import type * as ApiGeneralConditionsPagesModule from '../../../../hooks/useApiGeneralConditionsPages';
 import { createPlan, getPlan, updatePlan } from '../../../../services/plans';
 import type { ManagedPlan, PlanContext, PlanSecurityType } from '../../../../types/plan';
 
@@ -427,6 +430,40 @@ describe('PlanFormWizard general conditions', () => {
 
         await waitFor(() => expect(mockUpdatePlan).toHaveBeenCalled());
         expect(lastUpdatePayload()).toMatchObject({ generalConditions: 'page-sla' });
+    });
+});
+
+describe('PlanFormWizard general conditions read from the documentation endpoint', () => {
+    const mockUseGeneralConditionsPages = jest.mocked(useApiGeneralConditionsPages);
+    const mockApimFetchJsonV2 = apimFetchJsonV2 as jest.Mock;
+    const { useApiGeneralConditionsPages: realUseApiGeneralConditionsPages } = jest.requireActual<typeof ApiGeneralConditionsPagesModule>(
+        '../../../../hooks/useApiGeneralConditionsPages',
+    );
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockApimFetchJsonV2.mockResolvedValue({
+            pages: [
+                { id: 'page-terms', name: 'Terms of use', type: 'MARKDOWN', published: true },
+                { id: 'page-draft', name: 'Draft terms', type: 'MARKDOWN', published: false },
+                { id: 'page-spec', name: 'OpenAPI spec', type: 'SWAGGER', published: true },
+            ],
+        });
+        mockUseGeneralConditionsPages.mockImplementation(realUseApiGeneralConditionsPages);
+    });
+
+    afterEach(() => {
+        mockUseGeneralConditionsPages.mockReturnValue({ data: [] } as unknown as ReturnType<typeof useApiGeneralConditionsPages>);
+    });
+
+    it("shows the API's published Markdown page after None, from what the documentation endpoint answers", async () => {
+        const user = userEvent.setup();
+        renderEditWizard(V4_PLAN);
+
+        await user.click(await screen.findByRole('combobox', { name: 'Page of General Conditions' }));
+
+        await waitFor(() => expect(screen.getAllByRole('option').map(option => option.textContent)).toEqual(['None', 'Terms of use']));
+        expect(mockApimFetchJsonV2).toHaveBeenCalledWith('DEFAULT', '/apis/api-1/pages');
     });
 });
 
