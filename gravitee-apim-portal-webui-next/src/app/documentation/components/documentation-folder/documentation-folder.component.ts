@@ -15,7 +15,7 @@
  */
 import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { AsyncPipe } from '@angular/common';
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, signal, viewChild } from '@angular/core';
 import { rxResource, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -90,6 +90,7 @@ export class DocumentationFolderComponent {
 
   documentationActionContext = signal<DocumentationActionContext>({ apiId: null, subscriptionTarget: null });
   mcpDrawerOpen = signal(false);
+  private readonly sidenavLayout = viewChild(SidenavLayoutComponent);
 
   navId$ = toObservable(this.navItem).pipe(
     map(({ id }) => id),
@@ -131,6 +132,8 @@ export class DocumentationFolderComponent {
       debounceTime(0), // merge simultaneous change of navId and selectedId
       withLatestFrom(this.navId$, this.selectedId$),
       switchMap(([changedData, navId, selectedId]) => {
+        // The content scrolls inside the layout, not the window, so the router's scroll reset never reaches it.
+        this.sidenavLayout()?.scrollContentToTop();
         switch (changedData) {
           case NavParamsChange.NAV_ID:
             this.folderLoading.set(true);
