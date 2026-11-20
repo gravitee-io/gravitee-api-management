@@ -134,7 +134,7 @@ public class ApiKeyAppender {
                         if (!seenKeyIds.add(record.getId())) {
                             continue;
                         }
-                        record
+                        List<ApiKey> mappings = record
                             .getSubscriptions()
                             .stream()
                             .flatMap(subscriptionId -> {
@@ -144,7 +144,10 @@ public class ApiKeyAppender {
                                 }
                                 return subsForId.stream().map(subscription -> apiKeyMapper.to(record, subscription));
                             })
-                            .forEach(apiKey -> grouped.computeIfAbsent(apiKey.getApi(), k -> new ArrayList<>()).add(apiKey));
+                            .toList();
+                        withoutInactiveMappingsWhereActive(mappings).forEach(apiKey ->
+                            grouped.computeIfAbsent(apiKey.getApi(), k -> new ArrayList<>()).add(apiKey)
+                        );
                     }
                     if (page.size() < bulkItems) {
                         break;
@@ -156,6 +159,20 @@ public class ApiKeyAppender {
         } catch (Exception ex) {
             throw new SyncException("Error occurred when retrieving API Keys", ex);
         }
+    }
+
+    /**
+     * Drops the mappings of one key record that are inactive on a scope where the same record has an active mapping, such as
+     * a shared key that is still linked to a closed subscription of a plan it has subscribed to again. On that scope the
+     * active mapping already replaces the cached entry. Distributed sync stores one event per scope and key record, so an
+     * inactive mapping deployed after the active one would replace it on the other gateways.
+     */
+    private static List<ApiKey> withoutInactiveMappingsWhereActive(final List<ApiKey> mappings) {
+        Set<String> scopesWithActiveMapping = mappings.stream().filter(ApiKey::isActive).map(ApiKey::getApi).collect(Collectors.toSet());
+        return mappings
+            .stream()
+            .filter(apiKey -> apiKey.isActive() || !scopesWithActiveMapping.contains(apiKey.getApi()))
+            .toList();
     }
 
     private static ApiKeyCriteria buildCriteria(boolean initialSync, List<String> subscriptionIds, Set<String> environments) {
