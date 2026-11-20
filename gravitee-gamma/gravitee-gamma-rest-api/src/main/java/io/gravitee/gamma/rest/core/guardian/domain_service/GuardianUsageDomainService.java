@@ -24,9 +24,13 @@ import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardedApiPort
 import lombok.RequiredArgsConstructor;
 
 /**
- * Refuses the changes an API running a Guardian cannot follow. An API runs a Guardian as soon as its definition
- * names it: withdrawing it then stops the traffic of an API nobody touched, which is the failure this refusal exists
- * for.
+ * Refuses the changes an API running a Guardian cannot follow. An API runs a Guardian as soon as its definition names
+ * it, since turning one on is applied to the gateways by the same call: withdrawing it then stops the traffic of an
+ * API nobody touched, which is the failure this refusal exists for.
+ *
+ * <p>An API the gateways do not run — never deployed, stopped or unpublished — names the Guardian without executing
+ * it, and is counted all the same: the refusal errs towards keeping a Guardian an API will run again. Nothing is
+ * lost if it does not, since a Guardian no API names can be withdrawn at any time.
  *
  * @author GraviteeSource Team
  */
@@ -47,6 +51,29 @@ public class GuardianUsageDomainService {
         var using = apis.findByGuardian(guardian.getEnvironmentId(), guardian.getId(), 1, 1);
         if (using.getTotalElements() > 0) {
             throw new GuardianInUseException(guardian.getId(), refusedChange, using.getTotalElements());
+        }
+    }
+
+    /**
+     * Refuses a change already written when an API turned the Guardian on meanwhile, undoing the change first.
+     *
+     * <p>The check made before the write cannot see an API that turns the Guardian on between that check and the
+     * write. The API side checks the Guardian again after its own write, so whichever of the two writes lands second,
+     * its check sees the other one.
+     */
+    public void ensureStillUnused(Guardian guardian, RefusedChange refusedChange, Runnable undo) {
+        try {
+            ensureUnused(guardian, refusedChange);
+        } catch (GuardianInUseException inUse) {
+            undo.run();
+            throw inUse;
+        }
+    }
+
+    /** {@link #ensurePublishableWhereItRuns} once the publication is written, undoing it the same way. */
+    public void ensureStillPublishableWhereItRuns(Guardian guardian, GuardianDeployment.Published replaced, Runnable undo) {
+        if (!guardian.runsWhere(replaced.definition())) {
+            ensureStillUnused(guardian, RefusedChange.PUBLICATION_ELSEWHERE, undo);
         }
     }
 

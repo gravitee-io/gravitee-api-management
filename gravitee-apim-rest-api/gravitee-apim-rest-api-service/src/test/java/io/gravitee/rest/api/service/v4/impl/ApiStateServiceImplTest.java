@@ -20,6 +20,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doThrow;
@@ -84,6 +85,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -351,6 +353,85 @@ public class ApiStateServiceImplTest {
             argThat(argApi -> argApi.getId().equals(API_ID))
         );
         verify(searchEngineService, times(1)).index(eq(executionContext), argThat(argApi -> argApi.getId().equals(API_ID)), eq(false));
+    }
+
+    /**
+     * A Guardian change reaches the gateways as soon as it is written, without a deployment, so the last published
+     * definition may predate it: restarting the API from that definition alone would silently drop the Guardian.
+     */
+    @Test
+    public void should_restart_an_api_with_the_internal_flow_it_stores_rather_than_the_published_one() throws Exception {
+        givenTheStoredDefinition(guardianDefinition("guardian-2"));
+        givenTheLastPublishedDefinition(guardianDefinition("guardian-1"));
+
+        apiStateService.start(executionContext, API_ID, USER_NAME);
+
+        var started = objectMapper.readTree(definitionStartedWith());
+        assertSoftly(softly -> {
+            softly
+                .assertThat(started.at("/internalFlow/request/0/configuration/guardianId").asText())
+                .as("guardian started")
+                .isEqualTo("guardian-2");
+            softly.assertThat(started.at("/plans/0/id").asText()).as("plan of the published definition").isEqualTo("plan-published");
+        });
+    }
+
+    /** The reverse: a Guardian turned off since the last deployment must not come back on a restart. */
+    @Test
+    public void should_restart_an_api_without_the_internal_flow_it_no_longer_stores() throws Exception {
+        givenTheStoredDefinition(guardianDefinition(null));
+        givenTheLastPublishedDefinition(guardianDefinition("guardian-1"));
+
+        apiStateService.start(executionContext, API_ID, USER_NAME);
+
+        assertThat(objectMapper.readTree(definitionStartedWith()).has("internalFlow")).as("internal flow started").isFalse();
+    }
+
+    private void givenTheStoredDefinition(String definition) throws TechnicalException {
+        when(apiValidationService.canDeploy(executionContext, API_ID)).thenReturn(true);
+        api.setApiLifecycleState(ApiLifecycleState.CREATED);
+        api.setDefinition(definition);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        updatedApi.setLifecycleState(LifecycleState.STARTED);
+        when(apiRepository.update(any())).thenReturn(updatedApi);
+    }
+
+    private void givenTheLastPublishedDefinition(String definition) throws JsonProcessingException {
+        var published = new Api(api);
+        published.setDefinition(definition);
+        final EventEntity event = new EventEntity();
+        event.setType(PUBLISH_API);
+        event.setPayload(objectMapper.writeValueAsString(published));
+        final EventQuery query = new EventQuery();
+        query.setApi(API_ID);
+        query.setTypes(singleton(PUBLISH_API));
+        query.setEnvironmentIds(Set.of(executionContext.getEnvironmentId()));
+        query.setOrganizationIds(Set.of(executionContext.getOrganizationId()));
+        when(eventService.search(executionContext, query)).thenReturn(singleton(event));
+    }
+
+    private String definitionStartedWith() {
+        var started = ArgumentCaptor.forClass(Api.class);
+        verify(eventService).createApiEvent(
+            eq(executionContext),
+            eq(singleton(GraviteeContext.getCurrentEnvironment())),
+            eq(GraviteeContext.getCurrentOrganization()),
+            eq(EventType.START_API),
+            started.capture(),
+            any()
+        );
+        return started.getValue().getDefinition();
+    }
+
+    private static String guardianDefinition(String guardianId) {
+        var internalFlow = guardianId == null
+            ? ""
+            : """
+            "internalFlow": { "request": [ { "policy": "guardian-policy", "configuration": { "guardianId": "%s" } } ] },
+            """.formatted(guardianId);
+        return """
+        { "id": "%s", "definitionVersion": "4.0.0", "type": "proxy", %s "plans": [ { "id": "plan-published" } ] }
+        """.formatted(API_ID, internalFlow);
     }
 
     @Test

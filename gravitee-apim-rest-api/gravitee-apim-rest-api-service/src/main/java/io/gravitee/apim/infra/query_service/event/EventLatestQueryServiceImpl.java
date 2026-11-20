@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.query_service.event;
 
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.event.query_service.EventLatestQueryService;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.infra.adapter.EventAdapter;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
@@ -39,6 +40,15 @@ import org.springframework.stereotype.Service;
 public class EventLatestQueryServiceImpl implements EventLatestQueryService {
 
     static final int FIND_ALL_PAGE_SIZE = 100;
+
+    /**
+     * The event types that mean "the gateways run this API". {@code events_latest} holds one row per API, so the API
+     * is deployed if and only if that row is one of these.
+     */
+    private static final Set<io.gravitee.rest.api.model.EventType> DEPLOYED = Set.of(
+        io.gravitee.rest.api.model.EventType.PUBLISH_API,
+        io.gravitee.rest.api.model.EventType.START_API
+    );
 
     private final EventLatestRepository eventLatestRepository;
 
@@ -121,6 +131,40 @@ public class EventLatestQueryServiceImpl implements EventLatestQueryService {
         )
             .flatMap(page -> page.events().stream())
             .map(EventAdapter.INSTANCE::map);
+    }
+
+    @Override
+    public Optional<ApiDeployment> findRunningApiDeployment(String environmentId, String apiId) {
+        // The store call alone is guarded: the reading below answers the contract's TechnicalDomainException for a
+        // payload it cannot read, and wrapping that into a store failure would hide what actually went wrong.
+        List<io.gravitee.repository.management.model.Event> deployed;
+        try {
+            deployed = eventLatestRepository.search(
+                EventCriteria.builder()
+                    .types(
+                        DEPLOYED.stream()
+                            .map(type -> EventType.valueOf(type.name()))
+                            .toList()
+                    )
+                    .properties(Map.of(Event.EventProperties.API_ID.getLabel(), apiId))
+                    .environments(Set.of(environmentId))
+                    .build(),
+                io.gravitee.repository.management.model.Event.EventProperties.API_ID,
+                0L,
+                1L
+            );
+        } catch (Exception e) {
+            throw new TechnicalDomainException(
+                "An error occurs while trying to find the deployment the gateways run for the api " + apiId,
+                e
+            );
+        }
+        return deployed
+            .stream()
+            .map(EventAdapter.INSTANCE::map)
+            .filter(event -> event.getPayload() != null && !event.getPayload().isBlank())
+            .findFirst()
+            .map(EventAdapter.INSTANCE::toApiDeployment);
     }
 
     private EventLatestPage searchAfter(EventCriteria criteria, EventLatestCursor after) {
