@@ -87,4 +87,6 @@ export const applicationSubscriptionKeys = {
         [...applicationSubscriptionKeys.all, 'detail', envId, applicationId, subscriptionId] as const,
     apiKeys: (envId: string | undefined, applicationId: string | undefined, subscriptionId: string | undefined) =>
         [...applicationSubscriptionKeys.all, 'api-keys', envId, applicationId, subscriptionId] as const,
+    sharedApiKeys: (envId: string | undefined, applicationId: string | undefined) =>
+        [...applicationSubscriptionKeys.all, 'shared-api-keys', envId, applicationId] as const,
 } as const;
