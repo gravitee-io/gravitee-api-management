@@ -23,10 +23,17 @@ import static io.gravitee.repository.management.model.Subscription.Status.PENDIN
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
+<<<<<<< HEAD
 import io.gravitee.gateway.api.service.SubscriptionService;
+=======
+import io.gravitee.gateway.core.subscription.SubscriptionScope;
+import io.gravitee.gateway.handlers.api.services.ApiKeyCacheService;
+import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
+>>>>>>> 5547546 (fix: keep active shared key when inactive one is redeployed and skip revoked keys when attaching shared subscription)
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
+import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMappings;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
@@ -199,12 +206,35 @@ public class ApiProductSubscriptionRefresher {
         }
     }
 
+<<<<<<< HEAD
     private List<Subscription> loadSubscriptions(final Set<String> plans, final Set<String> environments) {
         List<io.gravitee.repository.management.model.Subscription> repoSubscriptions = loadSubscriptionModels(plans, environments);
         return repoSubscriptions
             .stream()
             .flatMap(subscription -> subscriptionMapper.to(subscription).stream())
             .peek(subscriptionConverted -> subscriptionConverted.setForceDispatch(true))
+=======
+    /**
+     * A refresh loads one page of the subscriptions of some plans only, so the accepted subscription of a shared key can be
+     * missing from the mappings while it is cached. Its closed mapping would then evict the live key. The subscription cache
+     * holds accepted subscriptions only, and a revoked or paused key has no active mapping through any of them.
+     */
+    private List<ApiKey> withoutInactiveMappingsWhereSubscribed(
+        final io.gravitee.repository.management.model.ApiKey record,
+        final List<ApiKey> mappings
+    ) {
+        Set<String> scopesWithCachedSubscription = record.isRevoked() || record.isPaused()
+            ? Set.of()
+            : record
+                .getSubscriptions()
+                .stream()
+                .flatMap(subscriptionId -> subscriptionService.getById(subscriptionId).stream())
+                .map(SubscriptionScope::of)
+                .collect(Collectors.toSet());
+        return ApiKeyMappings.withoutInactiveMappingsWhereActive(mappings)
+            .stream()
+            .filter(apiKey -> apiKey.isActive() || !scopesWithCachedSubscription.contains(apiKey.getApi()))
+>>>>>>> 5547546 (fix: keep active shared key when inactive one is redeployed and skip revoked keys when attaching shared subscription)
             .toList();
     }
 
@@ -251,7 +281,7 @@ public class ApiProductSubscriptionRefresher {
                         if (!seenKeyIds.add(record.getId())) {
                             continue;
                         }
-                        record
+                        List<ApiKey> mappings = record
                             .getSubscriptions()
                             .stream()
                             .flatMap(subscriptionId -> {
@@ -261,7 +291,8 @@ public class ApiProductSubscriptionRefresher {
                                 }
                                 return subsForId.stream().map(subscription -> apiKeyMapper.to(record, subscription));
                             })
-                            .forEach(result::add);
+                            .toList();
+                        result.addAll(withoutInactiveMappingsWhereSubscribed(record, mappings));
                     }
                     if (page.size() < bulkItems) {
                         break;
