@@ -53,4 +53,5 @@ public class Metrics {
     private String apiProductId;
     private String host;
     private String subscriptionId;
+    private String user;
 }

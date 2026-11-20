@@ -42,6 +42,7 @@ import io.gravitee.gamma.rest.core.observability.analytics.use_case.ComputeObser
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.ComputeObservabilityMeasuresUseCase;
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.ComputeObservabilityTimeSeriesUseCase;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.EndUserDisplayDomainService;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
@@ -326,6 +327,21 @@ class AnalyticsResourceTest extends AbstractResourceTest {
             assertBadRequest(response, "observability.filter.invalid_arity");
         }
 
+        /** The test organization leaves {@code logging.user.displayed} off. */
+        @Test
+        void should_answer_400_to_a_condition_on_the_end_user_while_the_organization_does_not_display_it() {
+            var response = post("measures", measures(List.of(filter("USER", "EQ", "alice"))));
+
+            assertBadRequest(response, "observability.filter.end_user_not_displayed");
+        }
+
+        @Test
+        void should_answer_400_to_a_breakdown_by_end_user_while_the_organization_does_not_display_it() {
+            var response = post("facets", Map.of("timeRange", TIME_RANGE, "metrics", REQUEST_COUNT, "by", List.of("USER")));
+
+            assertBadRequest(response, "observability.filter.end_user_not_displayed");
+        }
+
         private static Map<String, Object> measures(List<Map<String, Object>> filters) {
             return Map.of("timeRange", TIME_RANGE, "metrics", REQUEST_COUNT, "filters", filters);
         }
@@ -591,7 +607,8 @@ class AnalyticsResourceTest extends AbstractResourceTest {
             return new AnalyticsRequestPipeline(
                 new ObservabilityFilterValidator(new SpiFilterRegistry()),
                 new AccessibleApiScopeDomainService(),
-                new EntrypointScopeProviderAdapter()
+                new EntrypointScopeProviderAdapter(),
+                new EndUserDisplayDomainService(organizationId -> false)
             );
         }
 

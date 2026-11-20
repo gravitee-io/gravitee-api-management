@@ -33,6 +33,13 @@ public class UnsupportedObservabilityFilterException extends ValidationDomainExc
         return new UnsupportedObservabilityFilterException("The name of the filter is required", "observability.filter.name_required");
     }
 
+    public static UnsupportedObservabilityFilterException endUserNotDisplayed(String name) {
+        return new UnsupportedObservabilityFilterException(
+            "Filter '" + name + "' needs the organization setting 'logging.user.displayed'",
+            "observability.filter.end_user_not_displayed"
+        );
+    }
+
     public static UnsupportedObservabilityFilterException unknownName(String name) {
         return new UnsupportedObservabilityFilterException(
             "Filter '" + name + "' is not supported by this backend",

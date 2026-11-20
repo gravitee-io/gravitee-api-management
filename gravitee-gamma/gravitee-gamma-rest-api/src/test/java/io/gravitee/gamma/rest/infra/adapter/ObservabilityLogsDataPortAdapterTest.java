@@ -135,7 +135,8 @@ class ObservabilityLogsDataPortAdapterTest {
             instanceQueryService,
             apiProductQueryService,
             apiCrudService,
-            new AdditionalMetricGrammarPortAdapter()
+            new AdditionalMetricGrammarPortAdapter(),
+            organizationId -> false
         );
     }
 
@@ -930,6 +931,93 @@ class ObservabilityLogsDataPortAdapterTest {
             assertThatThrownBy(() -> adapter.searchLogs(ORG, ENV, query))
                 .isInstanceOf(UnsupportedObservabilityFilterException.class)
                 .hasMessageContaining("ENTRYPOINT");
+        }
+    }
+
+    @Nested
+    class EndUser {
+
+        private static final String END_USER = "idp-subject-42";
+
+        @Test
+        void should_serve_the_end_user_on_log_rows_once_the_organization_displays_it() {
+            givenALogRowOfEndUser();
+
+            var row = adapterDisplayingTheEndUser().searchLogs(ORG, ENV, queryWith()).data().getFirst();
+
+            assertThat(row.user()).isEqualTo(END_USER);
+        }
+
+        @Test
+        void should_leave_the_end_user_off_log_rows_while_the_organization_does_not_display_it() {
+            givenALogRowOfEndUser();
+
+            var row = adapter.searchLogs(ORG, ENV, queryWith()).data().getFirst();
+
+            assertThat(row.user()).isNull();
+        }
+
+        @Test
+        void should_serve_the_end_user_on_the_log_detail_once_the_organization_displays_it() {
+            givenADetailOfEndUser();
+
+            var detail = adapterDisplayingTheEndUser().getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            assertThat(detail.user()).isEqualTo(END_USER);
+        }
+
+        @Test
+        void should_leave_the_end_user_off_the_log_detail_while_the_organization_does_not_display_it() {
+            givenADetailOfEndUser();
+
+            var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            assertThat(detail.user()).isNull();
+        }
+
+        @Test
+        void should_translate_an_end_user_condition_into_the_users_of_the_search() {
+            stubEmptySearchResult();
+            var query = queryWith(new FilterCondition("USER", FilterOperator.IN, List.of(END_USER, "idp-subject-7")));
+
+            adapterDisplayingTheEndUser().searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().users()).containsExactlyInAnyOrder(END_USER, "idp-subject-7");
+        }
+
+        private void givenALogRowOfEndUser() {
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
+                new SearchLogsResponse<>(1, List.of(BaseConnectionLog.builder().apiId("api-1").user(END_USER).build()))
+            );
+        }
+
+        private void givenADetailOfEndUser() {
+            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1"))).thenReturn(
+                Optional.of(
+                    io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder()
+                        .apiId("api-1")
+                        .requestId("req-1")
+                        .user(END_USER)
+                        .build()
+                )
+            );
+        }
+
+        private ObservabilityLogsDataPortAdapter adapterDisplayingTheEndUser() {
+            return new ObservabilityLogsDataPortAdapter(
+                aggregatedMessageLogCrudService,
+                connectionLogsCrudService,
+                authzDecisionLogsCrudService,
+                analyticsQueryService,
+                userContextLoader,
+                planCrudService,
+                applicationCrudService,
+                instanceQueryService,
+                apiProductQueryService,
+                apiCrudService,
+                new AdditionalMetricGrammarPortAdapter(),
+                ORG::equals
+            );
         }
     }
 

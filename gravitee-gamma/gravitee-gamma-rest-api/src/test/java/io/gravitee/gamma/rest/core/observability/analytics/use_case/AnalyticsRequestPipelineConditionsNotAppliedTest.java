@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.apim.infra.query_service.analytics_engine.AuthzAnalyticsQueryService;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.EndUserDisplayDomainService;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
@@ -44,7 +45,8 @@ class AnalyticsRequestPipelineConditionsNotAppliedTest {
     private final AnalyticsRequestPipeline pipeline = new AnalyticsRequestPipeline(
         new ObservabilityFilterValidator(new SpiFilterRegistry()),
         new AccessibleApiScopeDomainService(),
-        new EntrypointScopeProviderAdapter()
+        new EntrypointScopeProviderAdapter(),
+        new EndUserDisplayDomainService(organizationId -> false)
     );
 
     @Test

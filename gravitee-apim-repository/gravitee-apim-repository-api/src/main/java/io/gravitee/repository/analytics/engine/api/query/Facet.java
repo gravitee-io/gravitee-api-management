@@ -38,6 +38,7 @@ public enum Facet implements FacetName {
     GEO_IP_CITY,
     GEO_IP_CONTINENT,
     CONSUMER_IP,
+    USER,
     HTTP_USER_AGENT_OS_NAME,
     HTTP_USER_AGENT_DEVICE,
     MESSAGE_CONNECTOR_ID,

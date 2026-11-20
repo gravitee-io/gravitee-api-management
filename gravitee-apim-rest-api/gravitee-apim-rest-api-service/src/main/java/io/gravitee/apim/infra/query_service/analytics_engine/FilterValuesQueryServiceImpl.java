@@ -193,6 +193,7 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
             case GEO_IP_CITY -> "geoip.city_name";
             case GEO_IP_CONTINENT -> "geoip.continent_name";
             case CONSUMER_IP -> "remote-address";
+            case USER -> "user";
             case HTTP_USER_AGENT_OS_NAME -> "user_agent.os_name";
             case HTTP_USER_AGENT_DEVICE -> "user_agent.device.name";
             case LLM_PROXY_MODEL -> "additional-metrics.keyword_llm-proxy_model";

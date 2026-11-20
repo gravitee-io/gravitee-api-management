@@ -80,6 +80,7 @@ public record FilterSpec(
         GEO_IP_CITY,
         GEO_IP_CONTINENT,
         CONSUMER_IP,
+        USER,
         HTTP_USER_AGENT_OS_NAME,
         HTTP_USER_AGENT_DEVICE,
         MESSAGE_CONNECTOR_TYPE,
@@ -140,7 +141,7 @@ public record FilterSpec(
 
         /** Holds a person or a client identifier: a query using it, as condition or facet, reads the requests themselves. */
         public boolean isIdentifying() {
-            return this == CONSUMER_IP || this == NATIVE_CLIENT_ID || this == AUTHZ_SUBJECT_ID;
+            return this == CONSUMER_IP || this == USER || this == NATIVE_CLIENT_ID || this == AUTHZ_SUBJECT_ID;
         }
     }
 
