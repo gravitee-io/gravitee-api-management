@@ -61,6 +61,9 @@
     <#if log.getEntrypointRequest().getBody()??>
     ,"body":"${log.getEntrypointRequest().getBody()?j_string}"
     </#if>
+    <#if log.getEntrypointRequest().isBodyTruncated()>
+    ,"body-truncated":true
+    </#if>
     <#if log.getEntrypointRequest().getHeaders()??>
     ,"headers":{
       <#list log.getEntrypointRequest().getHeaders() as headerKey, headerValue>
@@ -83,6 +86,9 @@
   "status":${log.getEntrypointResponse().getStatus()}
     <#if log.getEntrypointResponse().getBody()??>
     ,"body":"${log.getEntrypointResponse().getBody()?j_string}"
+    </#if>
+    <#if log.getEntrypointResponse().isBodyTruncated()>
+    ,"body-truncated":true
     </#if>
     <#if log.getEntrypointResponse().getHeaders()??>
     ,"headers":{
@@ -108,6 +114,9 @@
     <#if log.getEndpointRequest().getBody()??>
     ,"body":"${log.getEndpointRequest().getBody()?j_string}"
     </#if>
+    <#if log.getEndpointRequest().isBodyTruncated()>
+    ,"body-truncated":true
+    </#if>
     <#if log.getEndpointRequest().getHeaders()??>
     ,"headers":{
       <#list log.getEndpointRequest().getHeaders() as headerKey, headerValue>
@@ -130,6 +139,9 @@
   "status":${log.getEndpointResponse().getStatus()}
     <#if log.getEndpointResponse().getBody()??>
     ,"body":"${log.getEndpointResponse().getBody()?j_string}"
+    </#if>
+    <#if log.getEndpointResponse().isBodyTruncated()>
+    ,"body-truncated":true
     </#if>
     <#if log.getEndpointResponse().getHeaders()??>
     ,"headers":{

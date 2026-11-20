@@ -60,6 +60,9 @@
                     "type": "object",
                     "properties": {
                         "body": <@bodyField.mapping analyzer="gravitee_body_analyzer"/>,
+                        "body-truncated": {
+                            "type": "boolean"
+                        },
                         "headers":  {
                            "enabled":  false,
                            "type": "object"
@@ -70,6 +73,9 @@
                     "type": "object",
                     "properties": {
                         "body": <@bodyField.mapping analyzer="gravitee_body_analyzer"/>,
+                        "body-truncated": {
+                            "type": "boolean"
+                        },
                         "headers":  {
                            "enabled":  false,
                            "type": "object"
@@ -80,6 +86,9 @@
                     "type": "object",
                     "properties": {
                         "body": <@bodyField.mapping analyzer="gravitee_body_analyzer"/>,
+                        "body-truncated": {
+                            "type": "boolean"
+                        },
                         "headers":  {
                            "enabled":  false,
                            "type": "object"
@@ -90,6 +99,9 @@
                     "type": "object",
                     "properties": {
                         "body": <@bodyField.mapping analyzer="gravitee_body_analyzer"/>,
+                        "body-truncated": {
+                            "type": "boolean"
+                        },
                         "headers": {
                             "enabled":  false,
                             "type": "object"
