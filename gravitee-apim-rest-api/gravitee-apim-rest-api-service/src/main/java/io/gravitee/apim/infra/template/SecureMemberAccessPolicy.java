@@ -21,6 +21,7 @@ import freemarker.template.utility.ClassUtil;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashSet;
@@ -32,7 +33,8 @@ import java.util.StringTokenizer;
 /**
  * Member access policy of the FreeMarker object wrapper used to render user-written templates.
  *
- * <p>Fields and constructors are never exposed, and only {@code equals} / {@code hashCode} are exposed from {@link Object}.
+ * <p>Fields, constructors, static methods and setters are never exposed, and only {@code equals} / {@code hashCode} are exposed
+ * from {@link Object}.
  * On top of that, two deny-lists apply:</p>
  * <ul>
  *     <li><b>Unsafe methods</b> ({@value #UNSAFE_METHODS_PROPERTIES}): individual methods that are never exposed.</li>
@@ -117,6 +119,11 @@ public final class SecureMemberAccessPolicy implements MemberAccessPolicy {
         return UNSAFE_METHODS.contains(method) || isUnsafeClass(method.getDeclaringClass()) || isUnsafeClass(method.getReturnType());
     }
 
+    private static boolean isSetter(Method method) {
+        String name = method.getName();
+        return method.getParameterCount() == 1 && name.length() > 3 && name.startsWith("set") && Character.isUpperCase(name.charAt(3));
+    }
+
     private static boolean isUnsafeName(String className) {
         return UNSAFE_CLASS_NAMES.contains(className) || UNSAFE_PACKAGE_PREFIXES.stream().anyMatch(className::startsWith);
     }
@@ -165,7 +172,7 @@ public final class SecureMemberAccessPolicy implements MemberAccessPolicy {
             if (method.getDeclaringClass() == Object.class) {
                 return "equals".equals(method.getName()) || "hashCode".equals(method.getName());
             }
-            return !isUnsafeMethod(method);
+            return !Modifier.isStatic(method.getModifiers()) && !isSetter(method) && !isUnsafeMethod(method);
         }
 
         @Override
