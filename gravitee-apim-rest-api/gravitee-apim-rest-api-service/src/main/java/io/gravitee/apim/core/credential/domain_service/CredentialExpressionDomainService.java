@@ -27,10 +27,6 @@ public class CredentialExpressionDomainService {
 
     private final SecretExpressionParser secretExpressionParser;
 
-    /**
-     * An expression made only of literals names its path, so it gets every check a typed reference gets. One that reads
-     * the request can resolve to any secret of the environment, and only the gateway can check where it lands.
-     */
     public void requireValidExpressions(Credential credential) {
         credential
             .secretReferences()

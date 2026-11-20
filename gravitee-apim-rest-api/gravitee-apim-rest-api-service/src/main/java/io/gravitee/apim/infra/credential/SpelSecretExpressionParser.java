@@ -34,20 +34,12 @@ import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.stereotype.Service;
 
-/**
- * Walks the parsed expression against an allow-list, rather than matching text, so a type reference, a constructor, a
- * bean or a method call cannot hide anywhere in it.
- */
 @Service
 public class SpelSecretExpressionParser implements SecretExpressionParser {
 
     private static final int MAX_LENGTH = 2048;
     private static final String PLACEHOLDER_KEY = "key";
 
-    /**
-     * The context data an argument may read, by variable. Never {@code #request}: a caller would then pick which secret
-     * of the environment is sent upstream.
-     */
     private static final Map<String, String> READABLE = Map.of("#context", "attributes", "#api", "properties");
 
     private final SpelExpressionParser parser = new SpelExpressionParser();
@@ -61,7 +53,6 @@ public class SpelSecretExpressionParser implements SecretExpressionParser {
         var path = arguments.getFirst();
         var key = arguments.size() == 2 ? arguments.get(1) : null;
         if (!(path instanceof StringLiteral)) {
-            // The gateway refuses a reference whose path and key both come from an expression.
             if (key != null && !(key instanceof StringLiteral)) {
                 throw invalid(field);
             }
@@ -69,7 +60,6 @@ public class SpelSecretExpressionParser implements SecretExpressionParser {
         }
         var literalPath = literal(path);
         if (key == null) {
-            // A path the gateway resolves needs a key; text without one would name a SecretSpec, which APIM never has.
             if (literalPath.lastIndexOf(':') <= literalPath.lastIndexOf('/')) {
                 throw invalid(field);
             }
@@ -110,7 +100,6 @@ public class SpelSecretExpressionParser implements SecretExpressionParser {
         };
     }
 
-    /** {@code #context.attributes['name']} or {@code #api.properties['name']}, and nothing more. */
     private static boolean isContextData(CompoundExpression compound) {
         return (
             compound.getChildCount() == 3 &&

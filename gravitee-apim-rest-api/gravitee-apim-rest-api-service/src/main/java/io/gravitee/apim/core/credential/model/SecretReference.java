@@ -39,7 +39,6 @@ public record SecretReference(String reference, String secretId) {
 
     public static SecretReference external(String field, String reference) {
         if (reference != null && reference.startsWith(EXPRESSION_PREFIX)) {
-            // CredentialExpressionDomainService checks it as a whole, as only a parser can.
             return new SecretReference(reference, null);
         }
         if (
@@ -110,7 +109,6 @@ public record SecretReference(String reference, String secretId) {
         return providerEnd > 0 && reference.substring(1, providerEnd).equalsIgnoreCase(GRAVITEE_PROVIDER);
     }
 
-    /** Whether the gateway works out the secret path from the request, so saving the credential cannot check where it lands. */
     public boolean isExpression() {
         return reference.startsWith(EXPRESSION_PREFIX);
     }
