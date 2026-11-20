@@ -120,7 +120,7 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
     }
 
     @Test
-    void should_not_point_an_expression_at_the_secret_of_another_credential() {
+    void should_refuse_a_gravitee_expression_with_a_dynamic_key_since_it_cannot_name_its_environment() {
         var credential = fixture.givenACredential();
 
         assertThatThrownBy(() ->
@@ -129,7 +129,7 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
             )
         )
             .isInstanceOf(InvalidCredentialException.class)
-            .hasMessageContaining("another credential");
+            .hasMessageContaining("?envId={envId}");
         assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
     }
 
@@ -139,7 +139,7 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
 
         assertThatThrownBy(() ->
             update(fixture.admin(), credential, c ->
-                c.references(Map.of("token", "{#secrets.get('/gravitee/cred' + 'ential.other.token:value')}"))
+                c.references(Map.of("token", "{#secrets.get('/gravitee/cred' + 'ential.other.token:value?envId=" + ENV_ID + "')}"))
             )
         )
             .isInstanceOf(InvalidCredentialException.class)

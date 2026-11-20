@@ -257,7 +257,7 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
             var command = NewCredentialCommand.builder()
                 .name("OpenAI")
                 .strategy(CredentialStrategy.BEARER)
-                .references(Map.of("token", "{#secrets.get('/gravitee/credential.other.token', 'value')}"))
+                .references(Map.of("token", "{#secrets.get('/gravitee/credential.other.token', 'value?envId=" + ENV_ID + "')}"))
                 .build();
 
             assertThatThrownBy(() ->
