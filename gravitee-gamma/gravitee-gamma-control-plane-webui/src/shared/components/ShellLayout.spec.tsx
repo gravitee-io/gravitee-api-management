@@ -510,4 +510,32 @@ describe('ShellLayout document title', () => {
 
         expect(document.title).toBe('Gravitee Gamma');
     });
+
+    it('should use a custom management title as the tab suffix', async () => {
+        seedBootstrap({ managementTitle: 'ACME API Platform' });
+        renderShellAt('/environments/env-1/tasks', <PageWithBreadcrumbs labels={['Tasks']} />);
+
+        await waitFor(() => expect(document.title).toBe('Tasks · ACME API Platform'));
+    });
+
+    it('should trim a custom management title used as the tab suffix', async () => {
+        seedBootstrap({ managementTitle: '  ACME API Platform  ' });
+        renderShellAt('/environments/env-1/tasks', <PageWithBreadcrumbs labels={['Tasks']} />);
+
+        await waitFor(() => expect(document.title).toBe('Tasks · ACME API Platform'));
+    });
+
+    it.each(['', '   '])('should keep Gravitee Gamma when the management title is blank (%j)', async managementTitle => {
+        seedBootstrap({ managementTitle });
+        renderShellAt('/environments/env-1/tasks', <PageWithBreadcrumbs labels={['Tasks']} />);
+
+        await waitFor(() => expect(document.title).toBe('Tasks · Gravitee Gamma'));
+    });
+
+    it('should keep Gravitee Gamma when the management title is the backend default', async () => {
+        seedBootstrap({ managementTitle: 'Gravitee.io Management' });
+        renderShellAt('/environments/env-1/tasks', <PageWithBreadcrumbs labels={['Tasks']} />);
+
+        await waitFor(() => expect(document.title).toBe('Tasks · Gravitee Gamma'));
+    });
 });
