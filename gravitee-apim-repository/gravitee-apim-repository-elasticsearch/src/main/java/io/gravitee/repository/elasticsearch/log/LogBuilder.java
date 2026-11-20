@@ -62,6 +62,7 @@ final class LogBuilder {
     private static final String FIELD_CLIENT_RESPONSE = "client-response";
     private static final String FIELD_PROXY_RESPONSE = "proxy-response";
     private static final String FIELD_BODY = "body";
+    private static final String FIELD_BODY_TRUNCATED = "body-truncated";
     private static final String FIELD_HEADERS = "headers";
     private static final String FIELD_STATUS = "status";
     private static final String FIELD_RESPONSE_TIME = "response-time";
@@ -243,6 +244,7 @@ final class LogBuilder {
         if (node.get(FIELD_BODY) != null) {
             request.setBody(node.get(FIELD_BODY).asText());
         }
+        request.setBodyTruncated(node.path(FIELD_BODY_TRUNCATED).asBoolean());
 
         request.setHeaders(createHttpHeaders(node.get(FIELD_HEADERS)));
         return request;
@@ -258,6 +260,7 @@ final class LogBuilder {
         if (node.get(FIELD_BODY) != null) {
             response.setBody(node.get(FIELD_BODY).asText());
         }
+        response.setBodyTruncated(node.path(FIELD_BODY_TRUNCATED).asBoolean());
         response.setHeaders(createHttpHeaders(node.get(FIELD_HEADERS)));
         return response;
     }

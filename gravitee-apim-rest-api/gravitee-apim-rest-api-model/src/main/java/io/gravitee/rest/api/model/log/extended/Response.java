@@ -29,6 +29,8 @@ public class Response {
 
     private String body;
 
+    private boolean bodyTruncated;
+
     public int getStatus() {
         return status;
     }
@@ -51,5 +53,13 @@ public class Response {
 
     public void setBody(String body) {
         this.body = body;
+    }
+
+    public boolean isBodyTruncated() {
+        return bodyTruncated;
+    }
+
+    public void setBodyTruncated(boolean bodyTruncated) {
+        this.bodyTruncated = bodyTruncated;
     }
 }
