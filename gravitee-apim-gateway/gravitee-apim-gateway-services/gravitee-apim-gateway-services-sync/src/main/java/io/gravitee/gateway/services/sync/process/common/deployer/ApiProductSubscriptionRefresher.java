@@ -22,11 +22,13 @@ import static io.gravitee.repository.management.model.Subscription.Status.PENDIN
 
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.core.subscription.SubscriptionScope;
 import io.gravitee.gateway.handlers.api.services.ApiKeyCacheService;
 import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
+import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMappings;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
@@ -234,6 +236,29 @@ public class ApiProductSubscriptionRefresher {
         }
     }
 
+    /**
+     * A refresh loads one page of the subscriptions of some plans only, so the accepted subscription of a shared key can be
+     * missing from the mappings while it is cached. Its closed mapping would then evict the live key. The subscription cache
+     * holds accepted subscriptions only, and a revoked or paused key has no active mapping through any of them.
+     */
+    private List<ApiKey> withoutInactiveMappingsWhereSubscribed(
+        final io.gravitee.repository.management.model.ApiKey record,
+        final List<ApiKey> mappings
+    ) {
+        Set<String> scopesWithCachedSubscription = record.isRevoked() || record.isPaused()
+            ? Set.of()
+            : record
+                .getSubscriptions()
+                .stream()
+                .flatMap(subscriptionId -> subscriptionService.getById(subscriptionId).stream())
+                .map(SubscriptionScope::of)
+                .collect(Collectors.toSet());
+        return ApiKeyMappings.withoutInactiveMappingsWhereActive(mappings)
+            .stream()
+            .filter(apiKey -> apiKey.isActive() || !scopesWithCachedSubscription.contains(apiKey.getApi()))
+            .toList();
+    }
+
     private List<ApiKey> loadApiKeys(final List<Subscription> subscriptions, final Set<String> environments) {
         if (subscriptions.isEmpty()) {
             return List.of();
@@ -277,7 +302,7 @@ public class ApiProductSubscriptionRefresher {
                         if (!seenKeyIds.add(record.getId())) {
                             continue;
                         }
-                        record
+                        List<ApiKey> mappings = record
                             .getSubscriptions()
                             .stream()
                             .flatMap(subscriptionId -> {
@@ -287,7 +312,8 @@ public class ApiProductSubscriptionRefresher {
                                 }
                                 return subsForId.stream().map(subscription -> apiKeyMapper.to(record, subscription));
                             })
-                            .forEach(result::add);
+                            .toList();
+                        result.addAll(withoutInactiveMappingsWhereSubscribed(record, mappings));
                     }
                     if (page.size() < bulkItems) {
                         break;

@@ -197,6 +197,234 @@ public class ApiKeyCacheServiceTest {
             }
             assertThat(cacheApiKeysByScope.get("my-api")).isNull();
         }
+
+        @Test
+        void should_keep_the_active_key_when_a_revoked_key_with_another_id_shares_its_value_and_subscription() {
+            ApiKey active = buildApiKey("orders", "my-key", true, "active-key", "orders-subscription");
+            ApiKey revoked = buildRevokedApiKey("orders", "my-key", "revoked-key", "orders-subscription");
+
+            apiKeyService.register(active);
+            apiKeyService.register(revoked);
+
+            assertCached(active);
+        }
+
+        @Test
+        void should_keep_the_active_key_when_unregister_is_called_for_another_key_id_with_the_same_value() {
+            ApiKey active = buildApiKey("orders", "my-key", true, "active-key", "orders-subscription");
+            ApiKey revoked = buildRevokedApiKey("orders", "my-key", "revoked-key", "orders-subscription");
+
+            apiKeyService.register(active);
+            apiKeyService.unregister(revoked);
+
+            assertCached(active);
+        }
+
+        @Test
+        void should_keep_the_active_key_when_the_revoked_duplicate_is_loaded_first() {
+            ApiKey revoked = buildRevokedApiKey("orders", "my-key", "revoked-key", "orders-subscription");
+            ApiKey active = buildApiKey("orders", "my-key", true, "active-key", "orders-subscription");
+
+            apiKeyService.register(revoked);
+            apiKeyService.register(active);
+
+            assertCached(active);
+        }
+
+        @Test
+        void should_remove_the_key_when_its_record_is_inactive_through_another_subscription() {
+            ApiKey accepted = buildApiKey("api-1", "shared-key", true, "key-1", "accepted-subscription");
+            ApiKey closed = buildApiKey("api-1", "shared-key", false, "key-1", "closed-subscription");
+
+            apiKeyService.register(accepted);
+            apiKeyService.register(closed);
+
+            assertAbsent(accepted);
+        }
+
+        @Test
+        void should_remove_the_key_when_unregister_is_called_for_its_record_on_another_subscription() {
+            ApiKey accepted = buildApiKey("api-1", "shared-key", true, "key-1", "accepted-subscription");
+            ApiKey closed = buildApiKey("api-1", "shared-key", false, "key-1", "closed-subscription");
+
+            apiKeyService.register(accepted);
+            apiKeyService.unregister(closed);
+
+            assertAbsent(accepted);
+        }
+
+        @Test
+        void should_remove_the_key_when_its_record_is_revoked_through_another_subscription() {
+            ApiKey accepted = buildApiKey("api-1", "shared-key", true, "key-1", "accepted-subscription");
+            ApiKey revokedThroughClosed = buildRevokedApiKey("api-1", "shared-key", "key-1", "closed-subscription");
+
+            apiKeyService.register(accepted);
+            apiKeyService.register(revokedThroughClosed);
+
+            assertAbsent(accepted);
+        }
+
+        @Test
+        void should_remove_the_key_when_unregister_is_called_for_its_revoked_record_on_another_subscription() {
+            ApiKey accepted = buildApiKey("api-1", "shared-key", true, "key-1", "accepted-subscription");
+            ApiKey revokedThroughClosed = buildRevokedApiKey("api-1", "shared-key", "key-1", "closed-subscription");
+
+            apiKeyService.register(accepted);
+            apiKeyService.unregister(revokedThroughClosed);
+
+            assertAbsent(accepted);
+        }
+
+        @Test
+        void should_remove_the_key_when_its_record_is_paused_through_another_subscription() {
+            ApiKey accepted = buildApiKey("api-1", "shared-key", true, "key-1", "accepted-subscription");
+            ApiKey pausedThroughOther = buildPausedApiKey("api-1", "shared-key", "key-1", "other-subscription");
+
+            apiKeyService.register(accepted);
+            apiKeyService.register(pausedThroughOther);
+
+            assertAbsent(accepted);
+        }
+
+        @Test
+        void should_remove_the_key_when_unregister_is_called_for_its_paused_record_on_another_subscription() {
+            ApiKey accepted = buildApiKey("api-1", "shared-key", true, "key-1", "accepted-subscription");
+            ApiKey pausedThroughOther = buildPausedApiKey("api-1", "shared-key", "key-1", "other-subscription");
+
+            apiKeyService.register(accepted);
+            apiKeyService.unregister(pausedThroughOther);
+
+            assertAbsent(accepted);
+        }
+
+        @Test
+        void should_keep_the_active_key_when_a_paused_key_with_another_id_shares_its_value() {
+            ApiKey active = buildApiKey("orders", "my-key", true, "active-key", "orders-subscription");
+            ApiKey paused = buildPausedApiKey("orders", "my-key", "paused-key", "orders-subscription");
+
+            apiKeyService.register(active);
+            apiKeyService.unregister(paused);
+
+            assertCached(active);
+        }
+
+        @Test
+        void should_remove_the_key_when_the_same_record_and_subscription_are_revoked() {
+            ApiKey active = buildApiKey("orders", "my-key", true, "key-1", "orders-subscription");
+            ApiKey revoked = buildRevokedApiKey("orders", "my-key", "key-1", "orders-subscription");
+
+            apiKeyService.register(active);
+            apiKeyService.register(revoked);
+
+            assertAbsent(active);
+        }
+
+        @Test
+        void should_remove_the_key_when_unregister_is_called_for_the_same_record_and_subscription() {
+            ApiKey active = buildApiKey("orders", "my-key", true, "key-1", "orders-subscription");
+            ApiKey revoked = buildRevokedApiKey("orders", "my-key", "key-1", "orders-subscription");
+
+            apiKeyService.register(active);
+            apiKeyService.unregister(revoked);
+
+            assertAbsent(active);
+        }
+
+        @Test
+        void should_keep_a_key_on_another_api_when_the_duplicate_is_revoked() {
+            ApiKey customers = buildApiKey("customers", "my-key", true, "active-key", "customers-subscription");
+            ApiKey revokedOnOrders = buildRevokedApiKey("orders", "my-key", "revoked-key", "orders-subscription");
+
+            apiKeyService.register(customers);
+            apiKeyService.register(revokedOnOrders);
+
+            assertCached(customers);
+            assertAbsent(revokedOnOrders);
+        }
+
+        @Test
+        void should_keep_the_active_key_on_every_api_the_revoked_duplicate_does_not_own() {
+            ApiKey activeOrders = buildApiKey("orders", "my-key", true, "active-key", "orders-subscription");
+            ApiKey activeCustomers = buildApiKey("customers", "my-key", true, "active-key", "customers-subscription");
+            ApiKey activeProducts = buildApiKey("products", "my-key", true, "active-key", "products-subscription");
+            ApiKey revokedOrders = buildRevokedApiKey("orders", "my-key", "revoked-key", "orders-subscription");
+            ApiKey revokedProducts = buildRevokedApiKey("products", "my-key", "revoked-key", "products-subscription");
+
+            apiKeyService.register(activeOrders);
+            apiKeyService.register(activeCustomers);
+            apiKeyService.register(activeProducts);
+            apiKeyService.register(revokedOrders);
+            apiKeyService.register(revokedProducts);
+
+            assertCached(activeOrders);
+            assertCached(activeCustomers);
+            assertCached(activeProducts);
+        }
+
+        @Test
+        void should_keep_a_product_key_when_a_revoked_duplicate_is_loaded_for_the_same_product() {
+            when(apiProductRegistry.getApiProductIdsForApi(MEMBER_API_ID)).thenReturn(Set.of(PRODUCT_ID));
+            ApiKey active = buildApiKey(PRODUCT_ID, "my-key", true, "active-key", "product-subscription");
+            ApiKey revoked = buildRevokedApiKey(PRODUCT_ID, "my-key", "revoked-key", "product-subscription");
+
+            apiKeyService.register(active);
+            apiKeyService.register(revoked);
+
+            assertCached(active);
+            Optional<ApiKey> fromMember = apiKeyService.getByApiAndKey(MEMBER_API_ID, "my-key");
+            assertThat(fromMember).isPresent();
+            assertThat(fromMember.get()).isEqualTo(active);
+        }
+
+        @Test
+        void should_keep_the_key_that_replaced_another_active_key_with_the_same_value() {
+            ApiKey first = buildApiKey("orders", "my-key", true, "first-key", "orders-subscription");
+            ApiKey second = buildApiKey("orders", "my-key", true, "second-key", "orders-subscription");
+
+            apiKeyService.register(first);
+            apiKeyService.register(second);
+            apiKeyService.unregister(first);
+
+            assertCached(second);
+        }
+
+        @Test
+        void should_remove_the_replacement_when_that_record_is_revoked() {
+            ApiKey first = buildApiKey("orders", "my-key", true, "first-key", "orders-subscription");
+            ApiKey second = buildApiKey("orders", "my-key", true, "second-key", "orders-subscription");
+
+            apiKeyService.register(first);
+            apiKeyService.register(second);
+            apiKeyService.unregister(second);
+
+            assertAbsent(second);
+        }
+
+        @Test
+        void should_keep_the_other_values_of_the_api_when_a_duplicate_is_rejected() {
+            ApiKey kept = buildApiKey("orders", "other-key", true, "other-key", "other-subscription");
+            ApiKey active = buildApiKey("orders", "my-key", true, "active-key", "orders-subscription");
+            ApiKey revoked = buildRevokedApiKey("orders", "my-key", "revoked-key", "orders-subscription");
+
+            apiKeyService.register(kept);
+            apiKeyService.register(active);
+            apiKeyService.register(revoked);
+
+            assertCached(kept);
+            assertCached(active);
+            assertThat(cacheApiKeysByScope.get("orders").size()).isEqualTo(2);
+        }
+
+        @Test
+        void should_remove_the_key_when_its_record_is_inactive_with_no_subscription() {
+            ApiKey active = buildApiKey("orders", "my-key", true, "key-1", "orders-subscription");
+            ApiKey withoutSubscription = buildApiKey("orders", "my-key", false, "key-1", null);
+
+            apiKeyService.register(active);
+            apiKeyService.unregister(withoutSubscription);
+
+            assertAbsent(active);
+        }
     }
 
     @Nested
@@ -369,12 +597,49 @@ public class ApiKeyCacheServiceTest {
     }
 
     private ApiKey buildApiKey(String api, String key, boolean active) {
+        return buildApiKey(api, key, active, null, "subscription");
+    }
+
+    private ApiKey buildApiKey(String api, String key, boolean active, String id, String subscription) {
         ApiKey apiKey = new ApiKey();
+        apiKey.setId(id);
         apiKey.setApi(api);
         apiKey.setKey(key);
         apiKey.setActive(active);
-        apiKey.setSubscription("subscription");
+        apiKey.setSubscription(subscription);
         apiKey.setApplication("application");
         return apiKey;
+    }
+
+    private ApiKey buildRevokedApiKey(String api, String key, String id, String subscription) {
+        ApiKey apiKey = buildApiKey(api, key, false, id, subscription);
+        apiKey.setRevoked(true);
+        return apiKey;
+    }
+
+    private ApiKey buildPausedApiKey(String api, String key, String id, String subscription) {
+        ApiKey apiKey = buildApiKey(api, key, false, id, subscription);
+        apiKey.setPaused(true);
+        return apiKey;
+    }
+
+    private void assertCached(ApiKey apiKey) {
+        assertThat(cacheApiKeys.get(apiKeyService.buildCacheKey(apiKey))).isEqualTo(apiKey);
+        assertThat(cacheMd5ApiKeys.get(apiKeyService.buildMd5CacheKey(apiKey))).isEqualTo(apiKey);
+        Set<String> keys = cacheApiKeysByScope.get(apiKey.getApi());
+        assertThat(keys != null && keys.contains(apiKey.getKey())).isTrue();
+        assertThat(apiKeyService.getByApiAndKey(apiKey.getApi(), apiKey.getKey()).orElse(null)).isEqualTo(apiKey);
+        assertThat(
+            apiKeyService.getByApiAndMd5Key(apiKey.getApi(), DigestUtils.md5DigestAsHex(apiKey.getKey().getBytes())).orElse(null)
+        ).isEqualTo(apiKey);
+    }
+
+    private void assertAbsent(ApiKey apiKey) {
+        assertThat(cacheApiKeys.get(apiKeyService.buildCacheKey(apiKey))).isNull();
+        assertThat(cacheMd5ApiKeys.get(apiKeyService.buildMd5CacheKey(apiKey))).isNull();
+        Set<String> keys = cacheApiKeysByScope.get(apiKey.getApi());
+        assertThat(keys == null || !keys.contains(apiKey.getKey())).isTrue();
+        assertThat(apiKeyService.getByApiAndKey(apiKey.getApi(), apiKey.getKey())).isEmpty();
+        assertThat(apiKeyService.getByApiAndMd5Key(apiKey.getApi(), DigestUtils.md5DigestAsHex(apiKey.getKey().getBytes()))).isEmpty();
     }
 }
