@@ -125,13 +125,8 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
                     apiModelEntity.setTags(apiEntity.getTags());
                     apiModelEntity.setPicture(apiEntity.getPicture());
                     apiModelEntity.setPrimaryOwner(apiEntity.getPrimaryOwner());
-                    apiModelEntity.setProperties(apiEntity.getProperties());
                     apiModelEntity.setLifecycleState(apiEntity.getLifecycleState());
                     apiModelEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
-
-                    apiModelEntity.setServices(apiEntity.getServices());
-                    apiModelEntity.setListeners(apiEntity.getListeners());
-                    apiModelEntity.setEndpointGroups(apiEntity.getEndpointGroups());
 
                     apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, genericApiEntity));
                     yield apiModelEntity;
@@ -154,13 +149,8 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
                     apiModelEntity.setTags(apiEntity.getTags());
                     apiModelEntity.setPicture(apiEntity.getPicture());
                     apiModelEntity.setPrimaryOwner(apiEntity.getPrimaryOwner());
-                    apiModelEntity.setProperties(apiEntity.getProperties());
                     apiModelEntity.setLifecycleState(apiEntity.getLifecycleState());
                     apiModelEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
-
-                    apiModelEntity.setServices(apiEntity.getServices());
-                    apiModelEntity.setListeners(apiEntity.getListeners());
-                    apiModelEntity.setEndpointGroups(apiEntity.getEndpointGroups());
                     apiModelEntity.setEntrypoints(computeApiEntrypoints(executionContext, apiEntity));
                     apiModelEntity.setMcp(computeMcp(apiEntity));
 
@@ -187,13 +177,8 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
                 apiModelEntity.setTags(apiEntity.getTags());
                 apiModelEntity.setPicture(apiEntity.getPicture());
                 apiModelEntity.setPrimaryOwner(apiEntity.getPrimaryOwner());
-                apiModelEntity.setProperties(apiEntity.getProperties());
                 apiModelEntity.setLifecycleState(apiEntity.getLifecycleState());
                 apiModelEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
-
-                apiModelEntity.setServices(apiEntity.getServices());
-                apiModelEntity.setExecutionMode(apiEntity.getExecutionMode());
-                apiModelEntity.setProxy(apiEntity.getProxy());
 
                 apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, genericApiEntity));
                 yield apiModelEntity;
