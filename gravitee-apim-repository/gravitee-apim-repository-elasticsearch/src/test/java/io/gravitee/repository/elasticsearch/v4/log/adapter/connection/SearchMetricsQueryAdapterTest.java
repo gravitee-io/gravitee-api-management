@@ -20,6 +20,7 @@ import static net.javacrumbs.jsonunit.core.Option.IGNORING_ARRAY_ORDER;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.repository.analytics.engine.api.query.EndUser;
 import io.gravitee.repository.analytics.engine.api.query.TrafficScope;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys;
@@ -911,6 +912,55 @@ class SearchMetricsQueryAdapterTest {
                     [{"bool":{"should":[{"terms":{"entrypoint-id":["mcp"]}},{"terms":{"entrypoint-id.keyword":["mcp"]}}],"minimum_should_match":1}}]
                     """
                 );
+        }
+    }
+
+    @Nested
+    class UsersFilter {
+
+        @Test
+        void should_add_a_terms_clause_on_the_user_field_when_users_provided() {
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().apiIds(Set.of("api-1")).users(Set.of("idp-subject-42")).build())
+                .build();
+
+            var mustClauses = new JsonObject(SearchMetricsQueryAdapter.adapt(query))
+                .getJsonObject("query")
+                .getJsonObject("bool")
+                .getJsonArray("must");
+
+            assertThat(mustClauses).contains(
+                new JsonObject().put("terms", new JsonObject().put("user", new JsonArray().add("idp-subject-42")))
+            );
+        }
+
+        @Test
+        void should_select_the_calls_without_a_user_for_the_no_end_user_key() {
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().apiIds(Set.of("api-1")).users(Set.of(EndUser.NONE)).build())
+                .build();
+
+            var mustClauses = new JsonObject(SearchMetricsQueryAdapter.adapt(query))
+                .getJsonObject("query")
+                .getJsonObject("bool")
+                .getJsonArray("must");
+
+            assertThat(mustClauses).contains(
+                new JsonObject(
+                    "{\"bool\":{\"should\":[{\"bool\":{\"must_not\":{\"exists\":{\"field\":\"user\"}}}},{\"terms\":{\"user\":[\"" +
+                        EndUser.NONE +
+                        "\"]}}],\"minimum_should_match\":1}}"
+                )
+            );
+        }
+
+        @Test
+        void should_not_add_a_user_clause_when_users_empty() {
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().apiIds(Set.of("api-1")).users(Set.of()).build())
+                .build();
+
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.USER.v4Metrics())).isFalse();
         }
     }
 

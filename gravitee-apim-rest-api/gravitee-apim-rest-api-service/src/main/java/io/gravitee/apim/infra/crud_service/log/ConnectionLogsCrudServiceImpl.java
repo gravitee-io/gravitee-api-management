@@ -275,6 +275,7 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             .uri(searchLogsFilters.uri())
             .responseTimeRanges(ConnectionLogAdapter.INSTANCE.convert(searchLogsFilters.responseTimeRanges()))
             .errorKeys(searchLogsFilters.errorKeys())
+            .users(searchLogsFilters.users())
             .llmProxyModels(searchLogsFilters.llmProxyModels())
             .llmProxyProviders(searchLogsFilters.llmProxyProviders())
             .mcpProxyTools(searchLogsFilters.mcpProxyTools())

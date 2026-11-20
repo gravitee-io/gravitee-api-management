@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.core.observability.filter.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.EndUserDisplayDomainService;
 import io.gravitee.gamma.rest.core.observability.filter.exception.ObservabilityFilterNotFoundException;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
@@ -28,6 +29,7 @@ import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.Ob
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 
 /**
@@ -70,8 +72,12 @@ public class GetObservabilityFilterValuesUseCase {
 
     private final FilterRegistry filterRegistry;
     private final ObservabilityFilterDataPort filterDataPort;
+    private final EndUserDisplayDomainService endUserDisplay;
 
-    /** @param apiProduct the single API product the request is scoped to, or {@code null} */
+    /**
+     * @param apiProduct the single API product the request is scoped to, or {@code null}
+     * @param organizationId the organization whose settings decide whether the end user may be listed
+     */
     public record Input(
         String filterName,
         String query,
@@ -80,10 +86,11 @@ public class GetObservabilityFilterValuesUseCase {
         Integer page,
         Integer perPage,
         Set<ApiType> apiTypes,
-        String apiProduct
+        String apiProduct,
+        String organizationId
     ) {
         public Input(String filterName, String query, Long from, Long to, Integer page, Integer perPage, Set<ApiType> apiTypes) {
-            this(filterName, query, from, to, page, perPage, apiTypes, null);
+            this(filterName, query, from, to, page, perPage, apiTypes, null, null);
         }
 
         public Input(String filterName, String query, Long from, Long to, Integer page, Integer perPage) {
@@ -94,6 +101,7 @@ public class GetObservabilityFilterValuesUseCase {
     public record Output(FilterValuesPage values, int page, int perPage) {}
 
     public Output execute(Input input) {
+        endUserDisplay.requireDisplayedIfNamed(input.organizationId(), Stream.of(input.filterName()));
         Set<ApiType> apiTypes = input.apiTypes() != null ? input.apiTypes() : Set.of();
         FilterSpec spec = lookupFilter(input.filterName(), apiTypes);
         int page = resolvePage(input);

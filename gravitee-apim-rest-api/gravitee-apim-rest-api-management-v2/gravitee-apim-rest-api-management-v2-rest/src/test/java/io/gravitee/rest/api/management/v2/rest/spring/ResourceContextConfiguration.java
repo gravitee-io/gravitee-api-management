@@ -50,6 +50,7 @@ import io.gravitee.apim.core.analytics.domain_service.AiWorkspaceAnalyticsApisDo
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.EndUserDisplaySettingDomainService;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
@@ -1776,9 +1777,13 @@ public class ResourceContextConfiguration {
 
     @Bean
     public GetAnalyticsFilterDefinitionsUseCase getAnalyticsFilterDefinitionsUseCase(
-        AnalyticsDefinitionQueryService analyticsDefinitionQueryService
+        AnalyticsDefinitionQueryService analyticsDefinitionQueryService,
+        ParametersQueryService parametersQueryService
     ) {
-        return new GetAnalyticsFilterDefinitionsUseCase(analyticsDefinitionQueryService);
+        return new GetAnalyticsFilterDefinitionsUseCase(
+            analyticsDefinitionQueryService,
+            new EndUserDisplaySettingDomainService(parametersQueryService)
+        );
     }
 
     @Bean

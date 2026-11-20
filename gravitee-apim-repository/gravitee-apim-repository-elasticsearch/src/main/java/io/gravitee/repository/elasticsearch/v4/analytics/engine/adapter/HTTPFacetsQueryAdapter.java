@@ -17,6 +17,7 @@ package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
 import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.MessageFacetExtractor.REQUEST_ID_AGG_NAME;
 
+import io.gravitee.repository.analytics.engine.api.query.EndUser;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
@@ -156,7 +157,7 @@ public class HTTPFacetsQueryAdapter {
     }
 
     private JsonObject toTermsLeaf(Facet facet, MetricMeasuresQuery metric, Integer limit) {
-        var terms = json().put("field", fieldResolver.fromFacet(facet));
+        var terms = toTerms(facet);
         if (limit != null) {
             terms.put("size", limit);
         }
@@ -173,7 +174,11 @@ public class HTTPFacetsQueryAdapter {
     }
 
     private JsonObject toTerms(Facet facet) {
-        return json().put("field", fieldResolver.fromFacet(facet));
+        var terms = json().put("field", fieldResolver.fromFacet(facet));
+        if (facet == Facet.USER) {
+            terms.put("missing", EndUser.NONE);
+        }
+        return terms;
     }
 
     private JsonObject json() {
