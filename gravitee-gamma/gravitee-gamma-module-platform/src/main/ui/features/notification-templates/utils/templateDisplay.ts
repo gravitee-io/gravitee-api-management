@@ -32,6 +32,7 @@ const SCOPE_ORDER = [
     'API_PRODUCT',
     'APPLICATION',
     'PORTAL',
+    'HITL',
     'TEMPLATES_FOR_ACTION',
     'TEMPLATES_FOR_ALERT',
     'TEMPLATES_TO_INCLUDE',
@@ -45,6 +46,10 @@ const SCOPE_META: Record<(typeof SCOPE_ORDER)[number], { label: string; descript
     },
     APPLICATION: { label: 'Application', description: 'Sent to application members about their subscriptions and support tickets.' },
     PORTAL: { label: 'Portal', description: 'Sent for user, group and Developer Portal events.' },
+    HITL: {
+        label: 'Human in the lead',
+        description: 'Sent when a tool call needs a human decision, and when that decision is made or the window ends.',
+    },
     TEMPLATES_FOR_ACTION: {
         label: 'Templates for action',
         description: 'Emails the platform sends directly to a person, outside the notification hooks.',

@@ -1,0 +1,12 @@
+<html>
+<body style="text-align: center;">
+<header>
+	<#include "header.html" />
+</header>
+<div style="margin-top: 50px; color: #424e5a;">
+	<h3>Hi,</h3>
+	<p><code>${((hitl.tool)!'')?html}</code> was rejected at ${((hitl.decidedAt)!'')?html}.</p>
+	<p>The tool will not run.</p>
+</div>
+</body>
+</html>

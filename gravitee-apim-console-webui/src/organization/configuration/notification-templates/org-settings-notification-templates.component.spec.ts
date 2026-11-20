@@ -100,6 +100,13 @@ describe('OrgSettingsNotificationTemplatesComponent', () => {
     });
   });
 
+  it('should display the HITL scope as "Human in the lead" with a shield icon', () => {
+    const hitlComponent = TestBed.createComponent(OrgSettingsNotificationTemplatesComponent).componentInstance;
+
+    expect(hitlComponent.getHumanReadableScope('HITL')).toBe('Human in the lead');
+    expect(hitlComponent.getScopeIcon('HITL')).toBe('shield');
+  });
+
   describe('with alert service enabled', () => {
     beforeEach(() => {
       fakeConstants.org.settings.alert.enabled = true;

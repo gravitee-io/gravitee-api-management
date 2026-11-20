@@ -1,0 +1,13 @@
+<html>
+<body style="text-align: center;">
+<header>
+	<#include "header.html" />
+</header>
+<div style="margin-top: 50px; color: #424e5a;">
+	<h3>Hi,</h3>
+	<p><code>${((hitl.tool)!'')?html}</code> was approved at ${((hitl.decidedAt)!'')?html}.</p>
+	<p>Grant: ${((hitl.grant.kind)!'')?html}<#if ((hitl.grant.kind)!'') == "timed"> for ${((hitl.grant.minutes)!'')?html} minutes, until ${((hitl.grant.coversUntil)!'')?html}</#if>.</p>
+	<#if ((hitl.grant.kind)!'') == "timed"><p>The tool runs now. Identical calls run without a new approval until the grant ends.</p><#else><p>The tool runs now, once.</p></#if>
+</div>
+</body>
+</html>
