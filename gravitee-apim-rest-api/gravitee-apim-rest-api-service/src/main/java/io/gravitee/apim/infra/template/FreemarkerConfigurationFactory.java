@@ -27,9 +27,9 @@ public final class FreemarkerConfigurationFactory {
 
     public static Configuration createSecureConfiguration() {
         final Configuration configuration = new Configuration(VERSION_2_3_32);
-        configuration.setNewBuiltinClassResolver(TemplateClassResolver.SAFER_RESOLVER);
+        configuration.setNewBuiltinClassResolver(TemplateClassResolver.ALLOWS_NOTHING_RESOLVER);
         DefaultObjectWrapperBuilder objectWrapper = new DefaultObjectWrapperBuilder(VERSION_2_3_32);
-        objectWrapper.setMemberAccessPolicy(new SecureMemberAccessPolicy());
+        objectWrapper.setMemberAccessPolicy(SecureMemberAccessPolicy.INSTANCE);
         configuration.setObjectWrapper(objectWrapper.build());
         return configuration;
     }
