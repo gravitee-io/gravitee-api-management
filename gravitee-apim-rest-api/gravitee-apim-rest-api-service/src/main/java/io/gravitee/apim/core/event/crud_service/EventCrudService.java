@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.event.crud_service;
 
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.rest.api.model.EventType;
 import java.time.Duration;
@@ -28,6 +29,22 @@ public interface EventCrudService {
         Set<String> environmentIds,
         EventType eventType,
         Object content,
+        Map<Event.EventProperties, String> properties
+    );
+
+    /**
+     * Writes an event carrying an API, in the shape the gateways read a deployment in.
+     *
+     * <p>The API travels as it is given: this writes the definition the caller hands over, and not the one the store
+     * holds for that API. Turning it into the payload the gateways read belongs to this port, so a caller hands over
+     * an {@link Api} and never JSON.
+     */
+    Event createApiEvent(
+        String organizationId,
+        String environmentId,
+        Set<String> environmentIds,
+        EventType eventType,
+        Api api,
         Map<Event.EventProperties, String> properties
     );
 

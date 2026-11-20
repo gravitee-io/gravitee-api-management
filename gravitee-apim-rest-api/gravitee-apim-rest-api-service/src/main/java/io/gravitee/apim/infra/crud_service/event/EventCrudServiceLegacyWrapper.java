@@ -16,8 +16,10 @@
 package io.gravitee.apim.infra.crud_service.event;
 
 import com.google.common.util.concurrent.AtomicLongMap;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.model.Event;
+import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.EventAdapter;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.rest.api.model.EventType;
@@ -64,6 +66,27 @@ public class EventCrudServiceLegacyWrapper implements EventCrudService {
                 EventAdapter.INSTANCE.toStringEventPropertiesMap(properties)
             )
         );
+    }
+
+    /**
+     * The gateways read a deployment as a repository API whose {@code definition} is a JSON string, so the core model
+     * is mapped before it is handed over — serialized as it is, it would carry {@code apiDefinitionValue} and the
+     * gateways would find no definition.
+     *
+     * <p>Not {@code EventService.createApiEvent}, which takes the same repository API: that one rebuilds the payload
+     * from the plans and the flows the store holds for the API, and writes the latest event itself. Here the caller
+     * owns both — the definition it hands over is the one to send.
+     */
+    @Override
+    public Event createApiEvent(
+        String organizationId,
+        String environmentId,
+        Set<String> environmentIds,
+        EventType eventType,
+        Api api,
+        Map<Event.EventProperties, String> properties
+    ) {
+        return createEvent(organizationId, environmentId, environmentIds, eventType, ApiAdapter.INSTANCE.toRepository(api), properties);
     }
 
     @Override

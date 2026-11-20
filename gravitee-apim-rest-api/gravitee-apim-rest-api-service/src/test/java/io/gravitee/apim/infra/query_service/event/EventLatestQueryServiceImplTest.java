@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.query_service.event;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -26,6 +27,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.event.model.Event;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
+import io.gravitee.definition.model.ApiDefinition;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.federation.FederatedApi;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.edge.EdgeApi;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.EventLatestCursor;
@@ -33,13 +44,19 @@ import io.gravitee.repository.management.api.search.EventLatestPage;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -218,5 +235,209 @@ class EventLatestQueryServiceImplTest {
         )
             .isInstanceOf(TechnicalManagementException.class)
             .hasMessageContaining("DB error");
+    }
+
+    /**
+     * The deployment the gateways run for an API, typed. This port owns the (de)serialization of the payload, so no
+     * caller of it reads the JSON of a deployment.
+     */
+    @Nested
+    @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+    class TheApiDeploymentTheGatewaysRun {
+
+        private static final String API_ID = "api-id";
+        private static final String ENVIRONMENT_ID = "environment-id";
+
+        @Test
+        void should_read_the_deployment_of_a_published_api() {
+            givenTheGatewaysRun(deployment(EventType.PUBLISH_API, payloadOf(DefinitionVersion.V4, ApiType.PROXY, v4Definition()), "7"));
+
+            assertThat(cut.findRunningApiDeployment(ENVIRONMENT_ID, API_ID))
+                .as("the deployment the gateways run")
+                .get()
+                .satisfies(running ->
+                    assertSoftly(softly -> {
+                        softly.assertThat(running.eventId()).as("event id").isEqualTo("event-id");
+                        softly.assertThat(running.type()).as("event type").isEqualTo(io.gravitee.rest.api.model.EventType.PUBLISH_API);
+                        softly.assertThat(running.deploymentNumber()).as("deployment number").isEqualTo("7");
+                        softly.assertThat(running.api().getId()).as("api id").isEqualTo(API_ID);
+                        softly.assertThat(running.api().getName()).as("api name").isEqualTo("Support assistant");
+                        softly.assertThat(running.api().getEnvironmentId()).as("environment id").isEqualTo(ENVIRONMENT_ID);
+                        softly.assertThat(running.api().getApiDefinitionValue()).as("definition deployed").isEqualTo(v4Definition());
+                    })
+                );
+        }
+
+        @Test
+        void should_read_the_deployment_of_a_started_api() {
+            givenTheGatewaysRun(deployment(EventType.START_API, payloadOf(DefinitionVersion.V4, ApiType.PROXY, v4Definition()), null));
+
+            assertThat(cut.findRunningApiDeployment(ENVIRONMENT_ID, API_ID))
+                .as("the deployment the gateways run")
+                .get()
+                .satisfies(running ->
+                    assertSoftly(softly -> {
+                        softly.assertThat(running.type()).as("event type").isEqualTo(io.gravitee.rest.api.model.EventType.START_API);
+                        softly.assertThat(running.deploymentNumber()).as("deployment number of a deployment carrying none").isNull();
+                    })
+                );
+        }
+
+        /** Every shape {@code ApiAdapter} knows, so the typed read is not a V4-only path. */
+        @Test
+        void should_read_the_definition_of_every_shape_an_api_can_be_deployed_with() {
+            assertSoftly(softly -> {
+                softly
+                    .assertThat(definitionDeployed(DefinitionVersion.V4, ApiType.PROXY, v4Definition()))
+                    .as("V4 HTTP definition")
+                    .isInstanceOf(io.gravitee.definition.model.v4.Api.class);
+                softly
+                    .assertThat(definitionDeployed(DefinitionVersion.V4, ApiType.NATIVE, NativeApi.builder().id(API_ID).build()))
+                    .as("V4 native definition")
+                    .isInstanceOf(NativeApi.class);
+                softly
+                    .assertThat(definitionDeployed(DefinitionVersion.V4, ApiType.EDGE, EdgeApi.builder().id(API_ID).build()))
+                    .as("V4 edge definition")
+                    .isInstanceOf(EdgeApi.class);
+                softly
+                    .assertThat(definitionDeployed(DefinitionVersion.V2, ApiType.PROXY, v2Definition()))
+                    .as("V2 definition")
+                    .isInstanceOf(io.gravitee.definition.model.Api.class);
+                softly
+                    .assertThat(definitionDeployed(DefinitionVersion.FEDERATED, null, FederatedApi.builder().id(API_ID).build()))
+                    .as("federated definition")
+                    .isInstanceOf(FederatedApi.class);
+            });
+        }
+
+        @Test
+        void should_read_no_deployment_for_an_api_the_gateways_were_told_to_stop() {
+            givenTheGatewaysRun(deployment(EventType.STOP_API, payloadOf(DefinitionVersion.V4, ApiType.PROXY, v4Definition()), null));
+
+            assertThat(cut.findRunningApiDeployment(ENVIRONMENT_ID, API_ID)).as("the deployment the gateways run").isEmpty();
+        }
+
+        /**
+         * The question is asked for one environment, so another tenant's deployment of an API of the same id is not
+         * the answer: the caller would otherwise republish it into its own environment.
+         */
+        @Test
+        void should_read_no_deployment_of_another_environment() {
+            givenTheGatewaysRun(deployment(EventType.PUBLISH_API, payloadOf(DefinitionVersion.V4, ApiType.PROXY, v4Definition()), "7"));
+
+            assertThat(cut.findRunningApiDeployment("another-environment", API_ID))
+                .as("the deployment the gateways run, asked for from another environment")
+                .isEmpty();
+        }
+
+        @Test
+        void should_read_no_deployment_when_the_event_carries_no_payload() {
+            givenTheGatewaysRun(deployment(EventType.PUBLISH_API, "   ", null));
+
+            assertThat(cut.findRunningApiDeployment(ENVIRONMENT_ID, API_ID)).as("the deployment the gateways run").isEmpty();
+        }
+
+        /**
+         * The contract: nothing half read. A payload that cannot be parsed is a failure, not a deployment with its
+         * fields missing — what is read here is republished to the gateways.
+         */
+        @Test
+        void should_fail_on_a_payload_that_is_not_a_deployment() {
+            givenTheGatewaysRun(deployment(EventType.PUBLISH_API, "not json at all", null));
+
+            assertThatThrownBy(() -> cut.findRunningApiDeployment(ENVIRONMENT_ID, API_ID))
+                .as("a payload that cannot be read")
+                .isInstanceOf(TechnicalDomainException.class);
+        }
+
+        /** {@code ApiAdapter.deserialize} answers {@code null} here, which would make an API with no definition. */
+        @Test
+        void should_fail_on_a_definition_that_cannot_be_read_rather_than_answer_a_hollow_api() {
+            givenTheGatewaysRun(
+                deployment(EventType.PUBLISH_API, "{\"id\":\"api-id\",\"definitionVersion\":\"4.0.0\",\"definition\":\"not json\"}", null)
+            );
+
+            assertThatThrownBy(() -> cut.findRunningApiDeployment(ENVIRONMENT_ID, API_ID))
+                .as("a definition that cannot be read")
+                .isInstanceOf(TechnicalDomainException.class);
+        }
+
+        @Test
+        void should_fail_on_a_deployment_that_carries_no_definition() {
+            givenTheGatewaysRun(deployment(EventType.PUBLISH_API, "{\"id\":\"api-id\",\"definitionVersion\":\"4.0.0\"}", null));
+
+            assertThatThrownBy(() -> cut.findRunningApiDeployment(ENVIRONMENT_ID, API_ID))
+                .as("a deployment without a definition")
+                .isInstanceOf(TechnicalDomainException.class);
+        }
+
+        private ApiDefinition definitionDeployed(DefinitionVersion definitionVersion, ApiType type, ApiDefinition definition) {
+            givenTheGatewaysRun(deployment(EventType.PUBLISH_API, payloadOf(definitionVersion, type, definition), null));
+            return cut.findRunningApiDeployment(ENVIRONMENT_ID, API_ID).orElseThrow().api().getApiDefinitionValue();
+        }
+
+        /** A V2 definition carries a proxy or its deserializer refuses it, so the minimal one is not empty. */
+        private static io.gravitee.definition.model.Api v2Definition() {
+            return io.gravitee.definition.model.Api.builder()
+                .id(API_ID)
+                .name("Support assistant")
+                .version("1.0")
+                .definitionVersion(DefinitionVersion.V2)
+                .proxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/support"))).build())
+                .build();
+        }
+
+        private static io.gravitee.definition.model.v4.Api v4Definition() {
+            return io.gravitee.definition.model.v4.Api.builder()
+                .id(API_ID)
+                .name("Support assistant")
+                .apiVersion("1.0")
+                .definitionVersion(DefinitionVersion.V4)
+                .type(ApiType.PROXY)
+                .build();
+        }
+
+        @SneakyThrows
+        private static String payloadOf(DefinitionVersion definitionVersion, ApiType type, ApiDefinition definition) {
+            return GraviteeJacksonMapper.getInstance().writeValueAsString(
+                io.gravitee.repository.management.model.Api.builder()
+                    .id(API_ID)
+                    .name("Support assistant")
+                    .environmentId(ENVIRONMENT_ID)
+                    .definitionVersion(definitionVersion)
+                    .type(type)
+                    .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(definition))
+                    .build()
+            );
+        }
+
+        private static io.gravitee.repository.management.model.Event deployment(EventType type, String payload, String deploymentNumber) {
+            var properties = new HashMap<String, String>();
+            properties.put(Event.EventProperties.API_ID.getLabel(), API_ID);
+            if (deploymentNumber != null) {
+                properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getLabel(), deploymentNumber);
+            }
+            return io.gravitee.repository.management.model.Event.builder()
+                .id("event-id")
+                .type(type)
+                .payload(payload)
+                .properties(properties)
+                .environments(Set.of(ENVIRONMENT_ID))
+                .build();
+        }
+
+        /**
+         * {@code events_latest} holds one row per API, so only a criteria naming that row's type answers anything —
+         * and only one naming its environment, which both stores restrict the search on.
+         */
+        private void givenTheGatewaysRun(io.gravitee.repository.management.model.Event latest) {
+            when(eventLatestRepository.search(any(EventCriteria.class), any(), any(), any())).thenAnswer(invocation -> {
+                EventCriteria criteria = invocation.getArgument(0);
+                return Stream.of(latest)
+                    .filter(event -> criteria.getTypes().contains(event.getType()))
+                    .filter(event -> criteria.getEnvironments().stream().anyMatch(event.getEnvironments()::contains))
+                    .toList();
+            });
+        }
     }
 }
