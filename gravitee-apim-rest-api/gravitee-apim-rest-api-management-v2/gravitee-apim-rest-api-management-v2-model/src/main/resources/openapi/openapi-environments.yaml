@@ -1119,6 +1119,84 @@ paths:
                 $ref: "#/components/schemas/PortalsResponse"
         default:
           $ref: "#/components/responses/Error"
+    post:
+      tags:
+        - Portals
+      summary: Create a portal
+      description: |-
+        User must have the ENVIRONMENT_DOCUMENTATION[create] permission.
+        Creates a portal in the environment, served at the URL sent or at a generated URL when none is sent.
+        A new portal is never the default portal.
+      operationId: createPortal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePortal"
+            examples:
+              withoutUrl:
+                summary: A portal whose URL is generated
+                value:
+                  name: Partners Portal
+              withUrl:
+                summary: A portal served at a given URL
+                value:
+                  name: Partners Portal
+                  url: https://partners.example.com
+        required: true
+      responses:
+        "201":
+          description: The created portal, with the URL sent, or a generated URL when none was sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Portal"
+        "400":
+          description: |-
+            Invalid payload, an empty name, or a refused URL: one that is not an absolute `http` or `https` URL, or
+            that has a username or password, a query string or a fragment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: |-
+            The environment already holds as many portals as its license allows. `technicalCode` is
+            `portal.limitReached` and `parameters.limit` is the number of portals the license allows. A missing
+            permission is also answered with 403, without this `technicalCode`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                httpStatus: 403
+                message: "The license allows 10 portals in this environment"
+                technicalCode: "portal.limitReached"
+                parameters:
+                  limit: "10"
+        "409":
+          description: |-
+            Another portal of the environment already has this name, `technicalCode` `portal.name.exists`, or this
+            URL, `technicalCode` `portal.url.exists`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                nameExists:
+                  summary: The name is already used
+                  value:
+                    httpStatus: 409
+                    message: "A portal named Partners already exists in this environment"
+                    technicalCode: "portal.name.exists"
+                urlExists:
+                  summary: The URL is already used
+                  value:
+                    httpStatus: 409
+                    message: "A portal of this environment is already served at https://partners.example.com"
+                    technicalCode: "portal.url.exists"
+        default:
+          $ref: "#/components/responses/Error"
 
   /portals/_stats:
     get:
@@ -1156,6 +1234,72 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Portal"
+        "404":
+          description: The portal does not exist in this environment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+    patch:
+      tags:
+        - Portals
+      summary: Update a portal
+      description: |-
+        User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+        Changes only the fields sent; a field left out keeps its value.
+      operationId: updatePortal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePortal"
+        required: true
+      responses:
+        "200":
+          description: The updated portal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Portal"
+        "400":
+          description: Invalid payload, or an empty name
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: The portal does not exist in this environment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Another portal of the environment already has this name. `technicalCode` is `portal.name.exists`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      tags:
+        - Portals
+      summary: Delete a portal
+      description: |-
+        User must have the ENVIRONMENT_DOCUMENTATION[delete] permission.
+        Deletes the portal and its content. The default portal cannot be deleted.
+      operationId: deletePortal
+      responses:
+        "204":
+          description: Portal deleted
+        "400":
+          description: The portal is the environment's default portal. `technicalCode` is `portal.default.notDeletable`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "404":
           description: The portal does not exist in this environment
           content:
@@ -4066,6 +4210,34 @@ components:
             per-user visibility.
           example: 12
       required: [ id, name, url, default, logoUrl, publishedApisCount ]
+    CreatePortal:
+      type: object
+      description: A portal to create
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: The name of the portal, unique in the environment
+          example: Partners Portal
+        url:
+          type: string
+          description: |-
+            The absolute `http` or `https` URL the portal is served at, unique in the environment. When left out, a
+            URL is generated. It cannot be changed yet.
+
+            Refused: a scheme other than `http` or `https` (in any case), a relative URL, a username or password, a
+            query string, or a fragment.
+          example: https://partners.example.com
+      required: [ name ]
+    UpdatePortal:
+      type: object
+      description: The portal fields to change. A field left out keeps its value.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: The new name of the portal, unique in the environment
+          example: Partners Portal
     PortalQuota:
       type: object
       description: How many portals the environment holds, and how many its license allows
