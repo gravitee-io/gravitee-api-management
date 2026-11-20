@@ -17,6 +17,7 @@ package io.gravitee.apim.reporter.elasticsearch.factory;
 
 import static java.lang.String.format;
 
+import io.gravitee.apim.reporter.elasticsearch.config.BulkRules;
 import io.gravitee.apim.reporter.elasticsearch.config.DataStreamRules;
 import io.gravitee.apim.reporter.elasticsearch.config.Flavor;
 import io.gravitee.apim.reporter.elasticsearch.config.FlavorRules;
@@ -59,6 +60,12 @@ public class BeanFactoryBuilder {
             configuredFlavor = Flavor.configured(configuration.getFlavor());
         } catch (IllegalArgumentException e) {
             log.error("{} {}", e.getMessage(), REPORTER_DISABLED);
+            return null;
+        }
+
+        final Optional<String> bulkViolation = BulkRules.violation(configuration);
+        if (bulkViolation.isPresent()) {
+            log.error("{} {}", bulkViolation.get(), REPORTER_DISABLED);
             return null;
         }
 
