@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
+import java.util.Base64;
 import java.util.Collections;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
@@ -87,7 +88,11 @@ public class AuthResourceTest extends AbstractResourceTest {
         Cookie bearer = new Cookie("FOO", "BAR");
         doReturn(bearer).when(cookieGenerator).generate(any());
 
-        final Response response = target().path("login").request().post(null);
+        final Response response = target()
+            .path("login")
+            .request()
+            .header(HttpHeaders.AUTHORIZATION, "Basic " + Base64.getEncoder().encodeToString((USER_NAME + ":any").getBytes()))
+            .post(null);
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         verifyJwtToken(response);
