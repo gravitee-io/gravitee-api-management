@@ -102,12 +102,12 @@ public class ServerlessIndexPreparer extends AbstractIndexPreparer {
         }
         try {
             final ObjectNode body = (ObjectNode) JSON.readTree(template);
-            body.withObjectProperty("template").withObjectProperty("lifecycle").put("data_retention", retention.of(type));
+            body.withObjectProperty("template").withObjectProperty("lifecycle").put("data_retention", retention.retentionOf(type));
             body
                 .withObjectProperty("_meta")
                 .put("managed_by", MANAGED_BY)
                 .put("apim_version", apimVersion)
-                .put("data_retention", retention.of(type));
+                .put("data_retention", retention.retentionOf(type));
             return JSON.writeValueAsString(body);
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("The serverless template of type [" + type.getType() + "] is not valid JSON", e);
@@ -162,7 +162,7 @@ public class ServerlessIndexPreparer extends AbstractIndexPreparer {
      * keeps its retention until it is changed on the stream itself.
      */
     private Completable alignRetention(Type type, String name) {
-        final String wanted = retention.of(type);
+        final String wanted = retention.retentionOf(type);
         return client
             .getDataStreamLifecycle(name)
             .flatMapCompletable(lifecycle -> alignRetention(type, name, lifecycle.path("data_retention").asText(UNLIMITED), wanted))

@@ -32,7 +32,7 @@ class ServerlessRetentionTest {
     @ParameterizedTest(name = "{0}")
     @EnumSource(Type.class)
     void should_keep_every_type_45_days_by_default(Type type) {
-        assertThat(ServerlessRetention.of(configuration).of(type)).isEqualTo("45d");
+        assertThat(ServerlessRetention.of(configuration).retentionOf(type)).isEqualTo("45d");
     }
 
     @Test
@@ -42,13 +42,13 @@ class ServerlessRetentionTest {
 
         var retention = ServerlessRetention.of(configuration);
 
-        assertThat(retention.of(Type.REQUEST)).isEqualTo("30d");
-        assertThat(retention.of(Type.V4_METRICS)).isEqualTo("30d");
-        assertThat(retention.of(Type.V4_MESSAGE_METRICS)).isEqualTo("30d");
-        assertThat(retention.of(Type.LOG)).isEqualTo("7d");
-        assertThat(retention.of(Type.V4_LOG)).isEqualTo("7d");
-        assertThat(retention.of(Type.V4_MESSAGE_LOG)).isEqualTo("7d");
-        assertThat(retention.of(Type.MONITOR)).isEqualTo("45d");
+        assertThat(retention.retentionOf(Type.REQUEST)).isEqualTo("30d");
+        assertThat(retention.retentionOf(Type.V4_METRICS)).isEqualTo("30d");
+        assertThat(retention.retentionOf(Type.V4_MESSAGE_METRICS)).isEqualTo("30d");
+        assertThat(retention.retentionOf(Type.LOG)).isEqualTo("7d");
+        assertThat(retention.retentionOf(Type.V4_LOG)).isEqualTo("7d");
+        assertThat(retention.retentionOf(Type.V4_MESSAGE_LOG)).isEqualTo("7d");
+        assertThat(retention.retentionOf(Type.MONITOR)).isEqualTo("45d");
     }
 
     @Test
