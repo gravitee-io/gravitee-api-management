@@ -70,6 +70,7 @@ import org.springframework.context.ConfigurableApplicationContext;
         "/apis/v4/http/secrets/gravitee/api-static-ref-no-environment.json",
         "/apis/v4/http/secrets/gravitee/api-static-ref-other-environment-key.json",
         "/apis/v4/http/secrets/gravitee/api-static-ref-other-environment.json",
+        "/apis/v4/http/secrets/gravitee/api-static-ref-other-environment-secret.json",
     }
 )
 class GraviteeSecretsV4IntegrationTest extends AbstractGatewayTest {
@@ -157,7 +158,7 @@ class GraviteeSecretsV4IntegrationTest extends AbstractGatewayTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "/no-environment", "/other-environment", "/other-environment-key" })
+    @ValueSource(strings = { "/no-environment", "/other-environment", "/other-environment-key", "/other-environment-secret" })
     void should_never_hand_another_environment_s_secret_to_the_upstream(String path, HttpClient httpClient) {
         wiremock.stubFor(get("/endpoint").willReturn(ok("from backend")));
 
@@ -172,7 +173,7 @@ class GraviteeSecretsV4IntegrationTest extends AbstractGatewayTest {
             .awaitDone(10, TimeUnit.SECONDS)
             .assertComplete();
 
-        wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")).withHeader("Authorization", equalTo("ApiKey " + OTHER_VALUE)));
+        wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")));
     }
 
     private SecretRepository secretRepository() throws TechnicalException {
