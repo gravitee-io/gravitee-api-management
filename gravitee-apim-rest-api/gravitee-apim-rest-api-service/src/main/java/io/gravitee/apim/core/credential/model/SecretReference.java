@@ -116,7 +116,7 @@ public record SecretReference(String reference, String secretId) {
             .toList();
     }
 
-    // Mirrors the gateway's SecretURL.from (gravitee-secret-api 4.0.0): it trims trailing slashes, then needs a provider and a path with no empty segment.
+    // Mirrors the gateway's SecretURL.from (gravitee-secret-api 4.1.0): it trims trailing slashes, then needs a provider and a path with no empty segment.
     private static boolean isProviderAndPath(String reference) {
         var segments = TRAILING_SLASHES.matcher(withoutQueryAndKey(reference.substring(1))).replaceAll("").split("/", -1);
         return segments.length >= 2 && !Arrays.asList(segments).contains("");
