@@ -18,12 +18,25 @@ import { config } from '../config';
 import { NotifyOnFailureCommand } from '../commands';
 import { orbs } from '../orbs';
 import { CircleCIEnvironment } from '../pipelines';
-import { computeImagesTag } from '../utils';
+import { computeImagesTag, isMasterBranch, isNewestSupportBranch } from '../utils';
 import { BaseExecutor } from '../executors';
+
+const masterControlPlaneId = '5fa78f';
+const newestSupportLineControlPlaneId = '607284';
+
+export function nextGenControlPlaneId(environment: CircleCIEnvironment): string | undefined {
+  if (isMasterBranch(environment.branch)) {
+    return masterControlPlaneId;
+  }
+  if (isNewestSupportBranch(environment.branch, environment.supportBranches)) {
+    return newestSupportLineControlPlaneId;
+  }
+  return undefined;
+}
 
 export class DeployOnNextGenIntegrationJob {
   private static jobName = 'job-deploy-on-next-gen-integration';
-  public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment, integrationControlPlaneId: string): Job {
     dynamicConfig.importOrb(orbs.keeper);
 
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig, environment);
@@ -31,7 +44,6 @@ export class DeployOnNextGenIntegrationJob {
 
     const gitBranch = 'qa';
     const apimVersion = computeImagesTag(environment.branch, environment.sha1);
-    const integrationControlPlaneId = '5fa78f';
 
     const steps: Command[] = [
       new commands.workspace.Attach({ at: '.' }),
@@ -73,6 +85,7 @@ mv tmp.$$.json controlplane-${integrationControlPlaneId}.json
 git add controlplane-${integrationControlPlaneId}.json
 
 for dataplane in dataplane-${integrationControlPlaneId}-*.json; do
+  [ -e "$dataplane" ] || continue
   /tmp/jq ".appVersion = \\"${apimVersion}\\"" "$dataplane" > tmp.$$.json && \\
   mv tmp.$$.json "$dataplane"
   git add "$dataplane"

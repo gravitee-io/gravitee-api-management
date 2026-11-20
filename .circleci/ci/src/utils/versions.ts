@@ -236,12 +236,33 @@ export function triggersSaasDockerImages(branch: string, supportBranches: string
     throw new Error('triggersSaasDockerImages - the support branches are missing; index.ts reads them for support branches only');
   }
 
-  const recentLines = [...new Set([...supportBranches, branch])]
+  return newestSupportLines(branch, supportBranches, SAAS_SUPPORT_LINES).includes(branch.replace(/\.x$/, ''));
+}
+
+/**
+ * Whether `branch` is the newest support line, read from the branches the remote carries: once
+ * `4.15.x` is cut, it is the newest and `4.14.x` no longer is.
+ *
+ * @param branch the branch the pipeline runs on
+ * @param supportBranches the support branches the repository carries, which `index.ts` reads for support branches only
+ */
+export function isNewestSupportBranch(branch: string, supportBranches: string[] | undefined): boolean {
+  if (!isSupportBranch(branch)) {
+    return false;
+  }
+  if (supportBranches === undefined) {
+    throw new Error('isNewestSupportBranch - the support branches are missing; index.ts reads them for support branches only');
+  }
+
+  return newestSupportLines(branch, supportBranches, 1).includes(branch.replace(/\.x$/, ''));
+}
+
+function newestSupportLines(branch: string, supportBranches: string[], count: number): string[] {
+  return [...new Set([...supportBranches, branch])]
     .filter(isSupportBranch)
     .map((supportBranch) => supportBranch.replace(/\.x$/, ''))
     .sort(newestFirst)
-    .slice(0, SAAS_SUPPORT_LINES);
-  return recentLines.includes(branch.replace(/\.x$/, ''));
+    .slice(0, count);
 }
 
 function parsePomXml(pomXml: string) {
