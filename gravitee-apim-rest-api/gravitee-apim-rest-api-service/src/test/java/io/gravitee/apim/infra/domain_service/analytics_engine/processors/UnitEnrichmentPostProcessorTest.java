@@ -334,7 +334,7 @@ class UnitEnrichmentPostProcessorTest {
         }
     }
 
-    /** COUNT is a number of requests: it never carries the unit of the value it counts, on a built-in or an additional metric. */
+    /** COUNT is a number of documents: it never carries the unit of the value it counts, on a built-in or an additional metric. */
     @Nested
     class CountUnit {
 
@@ -361,7 +361,7 @@ class UnitEnrichmentPostProcessorTest {
             assertThat(processor.enrichUnits(response).metrics()).extracting(MetricMeasuresResponse::unit).containsExactly(NUMBER, NUMBER);
         }
 
-        /** The unit then applies to the other measures; COUNT stays a number of requests, as the API description says. */
+        /** The unit then applies to the other measures; COUNT stays a number of documents, as the API description says. */
         @Test
         void should_keep_the_unit_of_the_metric_on_an_entry_mixing_count_with_another_measure() {
             var response = new MeasuresResponse(

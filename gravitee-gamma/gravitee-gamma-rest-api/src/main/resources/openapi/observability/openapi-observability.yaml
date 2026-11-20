@@ -1666,7 +1666,7 @@ paths:
                                             label: "Total token count"
                                             unit: "TOKENS"
                                             apiTypes: ["LLM"]
-                                            measures: ["COUNT", "SUM", "AVG"]
+                                            measures: ["SUM", "COUNT", "AVG"]
                                             facets: ["API", "LLM_PROXY_MODEL"]
                                             filters: ["API", "API_TYPE", "LLM_PROXY_MODEL"]
                                             origin: "BUILT_IN"
@@ -1675,7 +1675,7 @@ paths:
                                             unit: "CURRENCY"
                                             currency: "USD"
                                             apiTypes: ["LLM"]
-                                            measures: ["COUNT", "SUM", "AVG"]
+                                            measures: ["SUM", "COUNT", "AVG"]
                                             facets: ["API", "LLM_PROXY_MODEL"]
                                             filters: ["API", "API_TYPE", "LLM_PROXY_MODEL"]
                                             origin: "BUILT_IN"
@@ -3649,8 +3649,9 @@ components:
                     description: |
                         Aggregation functions to apply. Valid values: `COUNT`, `AVG`, `MIN`, `MAX`,
                         `SUM`, `P50`, `P90`, `P95`, `P99`, `PERCENTAGE`, among those the metric's definition
-                        lists; an additional metric field takes all but `PERCENTAGE`. `COUNT` counts the requests
-                        carrying the metric's value (messages on a message metric) and `SUM` totals the value: the
+                        lists; an additional metric field takes all but `PERCENTAGE`. `COUNT` counts the documents
+                        carrying the metric's value (requests, messages on a message metric, the events of an Edge,
+                        Native or AuthZ metric) and `SUM` totals the value: the
                         token or cost total on an LLM metric (`LLM_PROMPT_TOKEN_SENT`, …), the field's total on an
                         additional metric field. `AVG`, `MIN`, `MAX` and the percentiles are computed over the
                         documents carrying the value. An LLM total (`LLM_PROMPT_TOTAL_TOKEN`,
@@ -3863,9 +3864,13 @@ components:
                     type: number
                     description: |
                         Computed value. `AVG`, `MIN`, `MAX` and the percentiles are computed over the documents
-                        carrying the metric's value. On every metric, built-in or additional, `value` is absent for
+                        carrying the metric's value. On a built-in or an additional metric, `value` is absent for
                         them over a window or bucket without any such document, while `COUNT`, `SUM` and `PERCENTAGE`
-                        are 0. Values are numbers of double precision, so a whole number above 2^53 is rounded.
+                        are 0, with three exceptions: a Native operation duration reads 0 over Native events without
+                        an operation sample; a facet ranked by `AVG`, `MIN`, `MAX` or a percentile, and any facet of an
+                        additional metric field, holds only the groups carrying the value; and an AuthZ facet or
+                        time-series group the metric never counted is left out. Values are numbers of double
+                        precision, so a whole number above 2^53 is rounded.
                     example: 42
 
         MetricResult:
@@ -3886,7 +3891,8 @@ components:
                     type: string
                     description: |
                         Unit of the metric values, one of the named units of `MetricDefinition.unit`. A `COUNT`
-                        is a number of requests (messages on a message metric) whatever the metric's unit: an
+                        is a number of documents (requests, messages on a message metric, the events of an Edge,
+                        Native or AuthZ metric) whatever the metric's unit: an
                         entry reading `COUNT` only is served `COUNT`, without `currency`, on a built-in and an
                         additional metric alike. An entry mixing `COUNT` with other measures keeps the metric's
                         unit, which applies to its measures other than `COUNT`; on an additional metric field it
@@ -3973,7 +3979,8 @@ components:
                     type: string
                     description: |
                         Unit of the metric values, one of the named units of `MetricDefinition.unit`. A `COUNT`
-                        is a number of requests (messages on a message metric) whatever the metric's unit: an
+                        is a number of documents (requests, messages on a message metric, the events of an Edge,
+                        Native or AuthZ metric) whatever the metric's unit: an
                         entry reading `COUNT` only is served `COUNT`, without `currency`, on a built-in and an
                         additional metric alike. An entry mixing `COUNT` with other measures keeps the metric's
                         unit, which applies to its measures other than `COUNT`; on an additional metric field it
@@ -4056,7 +4063,8 @@ components:
                     type: string
                     description: |
                         Unit of the metric values, one of the named units of `MetricDefinition.unit`. A `COUNT`
-                        is a number of requests (messages on a message metric) whatever the metric's unit: an
+                        is a number of documents (requests, messages on a message metric, the events of an Edge,
+                        Native or AuthZ metric) whatever the metric's unit: an
                         entry reading `COUNT` only is served `COUNT`, without `currency`, on a built-in and an
                         additional metric alike. An entry mixing `COUNT` with other measures keeps the metric's
                         unit, which applies to its measures other than `COUNT`; on an additional metric field it
