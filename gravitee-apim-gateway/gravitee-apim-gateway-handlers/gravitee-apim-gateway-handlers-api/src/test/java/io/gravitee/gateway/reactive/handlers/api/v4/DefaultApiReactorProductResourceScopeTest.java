@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -38,6 +39,7 @@ import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
+import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.ApiType;
@@ -47,6 +49,8 @@ import io.gravitee.gateway.reactive.api.apiservice.ApiServiceFactory;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.BaseEntrypointConnector;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
+import io.gravitee.gateway.reactive.api.policy.base.BasePolicy;
 import io.gravitee.gateway.reactive.core.context.DefaultDeploymentContext;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableRequest;
@@ -78,9 +82,12 @@ import io.gravitee.resource.api.ResourceManager;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -240,6 +247,10 @@ class DefaultApiReactorProductResourceScopeTest {
     private CompositeComponentProvider apiComponentProvider;
     private AtomicReference<ResourceManager> resourceManagerSeenByContext;
     private final AtomicReference<ApiProductRuntime> pinnedRuntime = new AtomicReference<>();
+    private final AtomicReference<Object> installedInvoker = new AtomicReference<>();
+    private final Map<BasePolicy, Function<HttpExecutionContext, Completable>> endpointRequestActions = new LinkedHashMap<>();
+    private final Map<BasePolicy, Function<HttpExecutionContext, Completable>> entrypointResponseActions = new LinkedHashMap<>();
+    private final Map<BasePolicy, Function<HttpExecutionContext, Completable>> terminateActions = new LinkedHashMap<>();
     private DefaultApiReactor cut;
 
     @BeforeEach
@@ -314,12 +325,34 @@ class DefaultApiReactorProductResourceScopeTest {
         ReflectionTestUtils.setField(cut, "httpSecurityChain", securityChain);
 
         when(defaultInvoker.invoke(any(HttpExecutionContext.class))).thenReturn(Completable.complete());
+        when(defaultInvoker.getId()).thenReturn("default-invoker");
+        installedInvoker.set(defaultInvoker);
+        lenient()
+            .doAnswer(invocation -> {
+                installedInvoker.set(invocation.getArgument(1));
+                return null;
+            })
+            .when(ctx)
+            .setInternalAttribute(eq(ATTR_INTERNAL_INVOKER), any());
+        lenient()
+            .doAnswer(invocation -> {
+                installedInvoker.set(invocation.getArgument(1));
+                return null;
+            })
+            .when(ctx)
+            .putInternalAttribute(eq(ATTR_INTERNAL_INVOKER), any());
+        lenient().doAnswer(storeAction(endpointRequestActions)).when(ctx).addActionOnEndpointRequest(any(), any());
+        lenient().when(ctx.drainOnEndpointRequestActions()).thenAnswer(drainAction(endpointRequestActions));
+        lenient().doAnswer(storeAction(entrypointResponseActions)).when(ctx).addActionOnEntrypointResponse(any(), any());
+        lenient().when(ctx.drainOnEntrypointResponseActions()).thenAnswer(drainAction(entrypointResponseActions));
+        lenient().doAnswer(storeAction(terminateActions)).when(ctx).addActionOnTerminate(any(), any());
+        lenient().when(ctx.drainOnTerminateActions()).thenAnswer(drainAction(terminateActions));
         when(entrypointConnector.handleRequest(any())).thenReturn(Completable.complete());
         when(entrypointConnector.handleResponse(any())).thenReturn(Completable.complete());
         when(entrypointConnectorResolver.resolve(any())).thenReturn(entrypointConnector);
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointConnector);
         when(entrypointConnector.supportedApi()).thenReturn(ApiType.PROXY);
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_INVOKER)).thenReturn(defaultInvoker);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_INVOKER)).thenAnswer(invocation -> installedInvoker.get());
         when(ctx.getInternalAttribute(ATTR_INTERNAL_INVOKER_SKIP)).thenReturn(false);
         when(securityChain.execute(any())).thenReturn(Completable.complete());
     }
@@ -484,6 +517,22 @@ class DefaultApiReactorProductResourceScopeTest {
     }
 
     @Test
+    void public_apiProduct_attribute_rewritten_after_the_invoker_is_registered_does_not_change_its_manager() {
+        AtomicReference<ResourceManager> seenByInvoker = new AtomicReference<>();
+        when(apiProductPlanFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenAnswer(
+            whenProductChainRuns(flowCtx -> {
+                flowCtx.setInternalAttribute(ATTR_INTERNAL_INVOKER, invokerThatRecords(seenByInvoker, null, Completable.complete()));
+                flowCtx.setAttribute(SubscriptionProcessor.ATTR_API_PRODUCT, OTHER_PRODUCT_ID);
+            })
+        );
+
+        cut.handle(ctx).test().assertComplete();
+
+        assertThat(seenByInvoker.get()).isSameAs(productResourceManager);
+        assertThat(ctx.getComponent(ResourceManager.class)).isSameAs(apiResourceManager);
+    }
+
+    @Test
     void held_request_keeps_v1_resources_until_released() {
         ApiProductRuntime v1 = mock(ApiProductRuntime.class);
         ApiProductRuntime v2 = mock(ApiProductRuntime.class);
@@ -532,6 +581,230 @@ class DefaultApiReactorProductResourceScopeTest {
 
         assertThat(duringApiPlanFlow.get()).isSameAs(apiResourceManager);
         verify(apiProductRuntimeRegistry, never()).acquire(any(), any());
+    }
+
+    @Test
+    void invoker_installed_by_a_product_plan_flow_resolves_the_product_manager() {
+        ApiProductRuntime runtime = mock(ApiProductRuntime.class);
+        ReactableApiProduct product = mock(ReactableApiProduct.class);
+        when(product.getId()).thenReturn(PRODUCT_ID);
+        when(runtime.product()).thenReturn(product);
+        when(runtime.servesApi(API_ID)).thenReturn(true);
+        when(runtime.flowChains(anyBoolean())).thenReturn(new ApiProductFlowChains(apiProductPlanFlowChain, apiProductFlowChain));
+        when(runtime.resourceManager()).thenReturn(productResourceManager);
+        when(apiProductRuntimeRegistry.acquire(eq(PRODUCT_ID), eq("env"))).thenReturn(runtime);
+        AtomicReference<Boolean> releasedDuringInvoke = new AtomicReference<>(false);
+        doAnswer(invocation -> {
+            releasedDuringInvoke.set(true);
+            return null;
+        })
+            .when(runtime)
+            .release();
+
+        AtomicReference<ResourceManager> seenByInvoker = new AtomicReference<>();
+        AtomicReference<ResourceManager> seenByRequest = new AtomicReference<>();
+        when(apiProductPlanFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenAnswer(
+            whenProductChainRuns(flowCtx ->
+                flowCtx.setInternalAttribute(
+                    ATTR_INTERNAL_INVOKER,
+                    invokerThatRecords(seenByInvoker, seenByRequest, Completable.complete(), null, releasedDuringInvoke)
+                )
+            )
+        );
+
+        cut.handle(ctx).test().assertComplete();
+
+        assertThat(seenByInvoker.get()).isSameAs(productResourceManager);
+        assertThat(seenByRequest.get()).isSameAs(apiResourceManager);
+        assertThat(releasedDuringInvoke.get()).isTrue();
+        assertThat(ctx.getComponent(ResourceManager.class)).isSameAs(apiResourceManager);
+    }
+
+    @Test
+    void invoker_installed_by_a_product_flow_resolves_the_product_manager() {
+        AtomicReference<ResourceManager> seenByInvoker = new AtomicReference<>();
+        when(apiProductFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenAnswer(
+            whenProductChainRuns(flowCtx ->
+                flowCtx.setInternalAttribute(ATTR_INTERNAL_INVOKER, invokerThatRecords(seenByInvoker, null, Completable.complete()))
+            )
+        );
+
+        cut.handle(ctx).test().assertComplete();
+
+        assertThat(seenByInvoker.get()).isSameAs(productResourceManager);
+        assertThat(ctx.getComponent(ResourceManager.class)).isSameAs(apiResourceManager);
+    }
+
+    @Test
+    void invoker_installed_with_put_internal_attribute_by_a_product_flow_resolves_the_product_manager() {
+        AtomicReference<ResourceManager> seenByInvoker = new AtomicReference<>();
+        when(apiProductFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenAnswer(
+            whenProductChainRuns(flowCtx ->
+                flowCtx.putInternalAttribute(ATTR_INTERNAL_INVOKER, invokerThatRecords(seenByInvoker, null, Completable.complete()))
+            )
+        );
+
+        cut.handle(ctx).test().assertComplete();
+
+        assertThat(seenByInvoker.get()).isSameAs(productResourceManager);
+        assertThat(ctx.getComponent(ResourceManager.class)).isSameAs(apiResourceManager);
+    }
+
+    @Test
+    void invoker_installed_by_an_api_flow_on_a_product_subscription_resolves_the_api_manager() {
+        AtomicReference<ResourceManager> seenByInvoker = new AtomicReference<>();
+        when(apiFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenAnswer(invocation -> {
+            ctx.setInternalAttribute(ATTR_INTERNAL_INVOKER, invokerThatRecords(seenByInvoker, null, Completable.complete()));
+            return Completable.complete();
+        });
+
+        cut.handle(ctx).test().assertComplete();
+
+        assertThat(seenByInvoker.get()).isSameAs(apiResourceManager);
+    }
+
+    @Test
+    void api_flow_invoker_replacing_a_product_flow_invoker_resolves_the_api_manager() {
+        AtomicReference<ResourceManager> seenByInvoker = new AtomicReference<>();
+        HttpInvoker productInvoker = invokerThatRecords(new AtomicReference<>(), null, Completable.complete());
+        HttpInvoker apiInvoker = invokerThatRecords(seenByInvoker, null, Completable.complete());
+        when(apiProductFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenAnswer(
+            whenProductChainRuns(flowCtx -> flowCtx.setInternalAttribute(ATTR_INTERNAL_INVOKER, productInvoker))
+        );
+        when(apiFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenAnswer(invocation ->
+            Completable.fromAction(() -> ctx.setInternalAttribute(ATTR_INTERNAL_INVOKER, apiInvoker))
+        );
+
+        cut.handle(ctx).test().assertComplete();
+
+        assertThat(seenByInvoker.get()).isSameAs(apiResourceManager);
+        assertThat(ctx.getComponent(ResourceManager.class)).isSameAs(apiResourceManager);
+    }
+
+    @Test
+    void endpoint_request_action_from_a_product_policy_resolves_the_product_manager_and_an_api_policy_resolves_the_api_manager() {
+        AtomicReference<ResourceManager> seenByProductAction = new AtomicReference<>();
+        AtomicReference<ResourceManager> seenByApiAction = new AtomicReference<>();
+        BasePolicy productPolicy = policy("product-policy");
+        BasePolicy apiPolicy = policy("api-policy");
+        when(apiProductPlanFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenAnswer(
+            whenProductChainRuns(flowCtx ->
+                flowCtx.addActionOnEndpointRequest(productPolicy, actionCtx ->
+                    Completable.fromAction(() -> seenByProductAction.set(actionCtx.getComponent(ResourceManager.class)))
+                )
+            )
+        );
+        when(apiFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenAnswer(invocation -> {
+            ctx.addActionOnEndpointRequest(apiPolicy, actionCtx ->
+                Completable.fromAction(() -> seenByApiAction.set(actionCtx.getComponent(ResourceManager.class)))
+            );
+            return Completable.complete();
+        });
+
+        cut.handle(ctx).test().assertComplete();
+
+        assertThat(seenByProductAction.get()).isSameAs(productResourceManager);
+        assertThat(seenByApiAction.get()).isSameAs(apiResourceManager);
+        assertThat(ctx.getComponent(ResourceManager.class)).isSameAs(apiResourceManager);
+    }
+
+    @Test
+    void entrypoint_response_action_from_a_product_policy_resolves_the_product_manager_and_an_api_policy_resolves_the_api_manager() {
+        assertDeferredProductAndApiActions(
+            (flowCtx, policy, action) -> flowCtx.addActionOnEntrypointResponse(policy, action),
+            (policy, action) -> ctx.addActionOnEntrypointResponse(policy, action)
+        );
+    }
+
+    @Test
+    void terminate_action_from_a_product_policy_resolves_the_product_manager_and_an_api_policy_resolves_the_api_manager() {
+        assertDeferredProductAndApiActions(
+            (flowCtx, policy, action) -> flowCtx.addActionOnTerminate(policy, action),
+            (policy, action) -> ctx.addActionOnTerminate(policy, action)
+        );
+    }
+
+    private void assertDeferredProductAndApiActions(ProductActionRegistration productRegistration, ApiActionRegistration apiRegistration) {
+        AtomicReference<ResourceManager> seenByProductAction = new AtomicReference<>();
+        AtomicReference<ResourceManager> seenByApiAction = new AtomicReference<>();
+        BasePolicy productPolicy = policy("product-policy");
+        BasePolicy apiPolicy = policy("api-policy");
+        when(apiProductPlanFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenAnswer(
+            whenProductChainRuns(flowCtx ->
+                productRegistration.register(flowCtx, productPolicy, actionCtx ->
+                    Completable.fromAction(() -> seenByProductAction.set(actionCtx.getComponent(ResourceManager.class)))
+                )
+            )
+        );
+        when(apiFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenAnswer(invocation -> {
+            apiRegistration.register(apiPolicy, actionCtx ->
+                Completable.fromAction(() -> seenByApiAction.set(actionCtx.getComponent(ResourceManager.class)))
+            );
+            return Completable.complete();
+        });
+
+        cut.handle(ctx).test().assertComplete();
+
+        assertThat(seenByProductAction.get()).isSameAs(productResourceManager);
+        assertThat(seenByApiAction.get()).isSameAs(apiResourceManager);
+        assertThat(ctx.getComponent(ResourceManager.class)).isSameAs(apiResourceManager);
+    }
+
+    @Test
+    void request_provider_stays_the_api_manager_after_a_product_invoker_completes_errors_and_is_cancelled() {
+        when(apiProductPlanFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenAnswer(
+            whenProductChainRuns(flowCtx ->
+                flowCtx.setInternalAttribute(
+                    ATTR_INTERNAL_INVOKER,
+                    invokerThatRecords(new AtomicReference<>(), null, Completable.complete())
+                )
+            )
+        );
+        cut.handle(ctx).test().assertComplete();
+        assertThat(ctx.getComponent(ResourceManager.class)).isSameAs(apiResourceManager);
+        assertThat(resourceManagerSeenByContext.get()).isSameAs(apiResourceManager);
+
+        when(apiProductPlanFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenAnswer(
+            whenProductChainRuns(flowCtx ->
+                flowCtx.setInternalAttribute(
+                    ATTR_INTERNAL_INVOKER,
+                    invokerThatRecords(new AtomicReference<>(), null, Completable.error(new IllegalStateException("backend failed")))
+                )
+            )
+        );
+        cut.handle(ctx).test().assertComplete();
+        assertThat(ctx.getComponent(ResourceManager.class)).isSameAs(apiResourceManager);
+
+        when(apiProductPlanFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenAnswer(
+            whenProductChainRuns(flowCtx ->
+                flowCtx.setInternalAttribute(ATTR_INTERNAL_INVOKER, invokerThatRecords(new AtomicReference<>(), null, Completable.never()))
+            )
+        );
+        cut.handle(ctx).test().dispose();
+        assertThat(ctx.getComponent(ResourceManager.class)).isSameAs(apiResourceManager);
+        assertThat(resourceManagerSeenByContext.get()).isSameAs(apiResourceManager);
+    }
+
+    @Test
+    void product_without_resources_exposes_an_empty_manager_to_a_product_invoker() {
+        wireProductRuntimeWithoutResources(PRODUCT_ID);
+        AtomicReference<ResourceManager> seenByInvoker = new AtomicReference<>();
+        AtomicReference<Object> resolved = new AtomicReference<>();
+        when(apiProductPlanFlowChain.execute(any(), eq(ExecutionPhase.REQUEST))).thenAnswer(
+            whenProductChainRuns(flowCtx ->
+                flowCtx.setInternalAttribute(
+                    ATTR_INTERNAL_INVOKER,
+                    invokerThatRecords(seenByInvoker, null, Completable.complete(), resolved)
+                )
+            )
+        );
+
+        cut.handle(ctx).test().assertComplete();
+
+        assertThat(seenByInvoker.get()).isNotNull().isNotSameAs(apiResourceManager);
+        assertThat(seenByInvoker.get().getResource(RESOURCE_NAME)).isNull();
+        assertThat(resolved.get()).isNull();
+        assertThat(ctx.getComponent(ResourceManager.class).getResource(RESOURCE_NAME)).isSameAs(apiResource);
     }
 
     @Nested
@@ -706,10 +979,88 @@ class DefaultApiReactorProductResourceScopeTest {
         }
     }
 
+    private HttpInvoker invokerThatRecords(
+        AtomicReference<ResourceManager> seenByInvoker,
+        AtomicReference<ResourceManager> seenByRequest,
+        Completable outcome
+    ) {
+        return invokerThatRecords(seenByInvoker, seenByRequest, outcome, null, null);
+    }
+
+    private HttpInvoker invokerThatRecords(
+        AtomicReference<ResourceManager> seenByInvoker,
+        AtomicReference<ResourceManager> seenByRequest,
+        Completable outcome,
+        AtomicReference<Object> resolvedResource
+    ) {
+        return invokerThatRecords(seenByInvoker, seenByRequest, outcome, resolvedResource, null);
+    }
+
+    private HttpInvoker invokerThatRecords(
+        AtomicReference<ResourceManager> seenByInvoker,
+        AtomicReference<ResourceManager> seenByRequest,
+        Completable outcome,
+        AtomicReference<Object> resolvedResource,
+        AtomicReference<Boolean> releasedDuringInvoke
+    ) {
+        HttpInvoker invoker = mock(HttpInvoker.class);
+        when(invoker.getId()).thenReturn("cache-endpoint-invoker");
+        when(invoker.invoke(any())).thenAnswer(invocation -> {
+            HttpExecutionContext invokeCtx = invocation.getArgument(0);
+            if (releasedDuringInvoke != null) {
+                assertThat(releasedDuringInvoke.get()).isFalse();
+            }
+            if (seenByInvoker != null) {
+                seenByInvoker.set(invokeCtx.getComponent(ResourceManager.class));
+            }
+            if (seenByRequest != null) {
+                seenByRequest.set(ctx.getComponent(ResourceManager.class));
+            }
+            if (resolvedResource != null) {
+                resolvedResource.set(invokeCtx.getComponent(ResourceManager.class).getResource(RESOURCE_NAME));
+            }
+            return outcome;
+        });
+        return invoker;
+    }
+
+    private static BasePolicy policy(String id) {
+        BasePolicy policy = mock(BasePolicy.class);
+        when(policy.id()).thenReturn(id);
+        return policy;
+    }
+
     private static Answer<Completable> whenProductChainRuns(Consumer<MutableExecutionContext> action) {
         return invocation -> {
             MutableExecutionContext flowCtx = invocation.getArgument(0);
             return Completable.fromAction(() -> action.accept(flowCtx));
         };
+    }
+
+    private static Answer<Object> storeAction(Map<BasePolicy, Function<HttpExecutionContext, Completable>> actions) {
+        return invocation -> {
+            actions.put(invocation.getArgument(0), invocation.getArgument(1));
+            return null;
+        };
+    }
+
+    private static Answer<Map<BasePolicy, Function<HttpExecutionContext, Completable>>> drainAction(
+        Map<BasePolicy, Function<HttpExecutionContext, Completable>> actions
+    ) {
+        return invocation -> {
+            Map<BasePolicy, Function<HttpExecutionContext, Completable>> drained = new LinkedHashMap<>(actions);
+            actions.clear();
+            return drained;
+        };
+    }
+
+    @FunctionalInterface
+    private interface ProductActionRegistration {
+        void register(MutableExecutionContext flowCtx, BasePolicy policy, Function<HttpExecutionContext, Completable> action);
+    }
+
+    @FunctionalInterface
+    private interface ApiActionRegistration {
+        void register(BasePolicy policy, Function<HttpExecutionContext, Completable> action);
     }
 }
