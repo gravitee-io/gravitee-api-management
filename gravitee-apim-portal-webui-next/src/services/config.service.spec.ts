@@ -15,6 +15,7 @@
  */
 import { HttpClientTestingModule, HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { firstValueFrom } from 'rxjs';
 
 import { ConfigService } from './config.service';
 import { ConfigurationPortal } from '../entities/configuration/configuration-portal';
@@ -33,6 +34,8 @@ describe('ConfigService', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
   });
 
+  afterEach(() => httpTestingController.verify());
+
   describe('initBaseURL', () => {
     it('should call base url without enforced env id', done => {
       const configJson = {
@@ -42,6 +45,7 @@ describe('ConfigService', () => {
       const configBootstrap = {
         ...configJson,
         environmentId: 'DEFAULT',
+        portalId: 'default-portal',
       };
 
       service.initBaseURL().subscribe(baseUrl => {
@@ -61,6 +65,7 @@ describe('ConfigService', () => {
       const configBootstrap = {
         baseURL: 'http://localhost:8083/portal',
         environmentId: 'DEFAULT',
+        portalId: 'default-portal',
       };
 
       service.initBaseURL().subscribe(baseUrl => {
@@ -81,6 +86,7 @@ describe('ConfigService', () => {
       const configBootstrap = {
         baseURL: 'http://localhost:8083/portal',
         environmentId: 'DEFAULT',
+        portalId: 'default-portal',
       };
 
       service.initBaseURL().subscribe(baseUrl => {
@@ -90,6 +96,92 @@ describe('ConfigService', () => {
 
       httpTestingController.expectOne('./assets/config.json').flush(configJson);
       httpTestingController.expectOne('http://localhost:8083/portal/ui/bootstrap?environmentId=DEFAULT').flush(configBootstrap);
+    });
+  });
+
+  describe('portal context', () => {
+    const bootstrapUrl = 'https://api.example.com/portal/ui/bootstrap?environmentId=OTHER';
+    const environmentBaseURL = 'https://resolved.example.com/portal/environments/OTHER';
+
+    it('rejects portalBaseURL access before bootstrap resolves the portal', () => {
+      expect(() => service.portalBaseURL).toThrow('Portal ID is required');
+    });
+
+    it.each([
+      {
+        bootstrapPortalId: 'bootstrap-portal',
+        expectedPortalId: 'bootstrap-portal',
+        expectedPortalBaseURL: 'https://resolved.example.com/portal/environments/OTHER/portal/bootstrap-portal',
+      },
+      {
+        bootstrapPortalId: '  bootstrap-portal  ',
+        expectedPortalId: 'bootstrap-portal',
+        expectedPortalBaseURL: 'https://resolved.example.com/portal/environments/OTHER/portal/bootstrap-portal',
+      },
+      {
+        bootstrapPortalId: 'folder/portal?query=value',
+        expectedPortalId: 'folder/portal?query=value',
+        expectedPortalBaseURL: 'https://resolved.example.com/portal/environments/OTHER/portal/folder%2Fportal%3Fquery%3Dvalue',
+      },
+    ])(
+      'resolves bootstrap portal $bootstrapPortalId in the bootstrap environment',
+      async ({ bootstrapPortalId, expectedPortalId, expectedPortalBaseURL }) => {
+        const initialized = firstValueFrom(service.initBaseURL());
+        httpTestingController.expectOne('./assets/config.json').flush({
+          baseURL: 'https://api.example.com/portal/environments/IGNORED/',
+          environmentId: 'OTHER',
+        });
+        httpTestingController.expectOne(bootstrapUrl).flush({
+          baseURL: 'https://resolved.example.com/portal/',
+          environmentId: 'OTHER',
+          portalId: bootstrapPortalId,
+        });
+
+        expect(await initialized).toEqual(environmentBaseURL);
+        expect(service.baseURL).toEqual(environmentBaseURL);
+        expect(service.portalId).toEqual(expectedPortalId);
+        expect(service.portalBaseURL).toEqual(expectedPortalBaseURL);
+      },
+    );
+
+    it.each([undefined, null, '', '   ', 'configured-portal', 12, true, {}, [], '.', '..'])(
+      'uses bootstrap context independently of unsupported deployment portalId %p',
+      async portalId => {
+        const initialized = firstValueFrom(service.initBaseURL());
+        httpTestingController.expectOne('./assets/config.json').flush({ baseURL: '/portal', portalId });
+        httpTestingController
+          .expectOne('/portal/ui/bootstrap')
+          .flush({ baseURL: '/portal', environmentId: 'DEFAULT', portalId: 'bootstrap-portal' });
+
+        await initialized;
+        expect(service.portalId).toEqual('bootstrap-portal');
+        expect(service.portalBaseURL).toEqual('/portal/environments/DEFAULT/portal/bootstrap-portal');
+      },
+    );
+
+    it.each([undefined, null, '', '   '])('rejects missing portal context %p', async portalId => {
+      const initialized = firstValueFrom(service.initBaseURL());
+      const rejected = expect(initialized).rejects.toThrow('Portal ID is required');
+      httpTestingController.expectOne('./assets/config.json').flush({ baseURL: '/portal', portalId: 'configured-portal' });
+      httpTestingController.expectOne('/portal/ui/bootstrap').flush({ baseURL: '/portal', environmentId: 'DEFAULT', portalId });
+      await rejected;
+      expect(service.baseURL).toEqual('');
+    });
+
+    it.each([12, true, {}, []])('rejects invalid bootstrap portal ID %p', async portalId => {
+      const initialized = firstValueFrom(service.initBaseURL());
+      const rejected = expect(initialized).rejects.toThrow('Portal ID must be a string');
+      httpTestingController.expectOne('./assets/config.json').flush({ baseURL: '/portal' });
+      httpTestingController.expectOne('/portal/ui/bootstrap').flush({ baseURL: '/portal', environmentId: 'DEFAULT', portalId });
+      await rejected;
+    });
+
+    it.each(['.', '..', ' . ', ' .. '])('rejects dot-segment portal ID %p so requests cannot escape the portal scope', async portalId => {
+      const initialized = firstValueFrom(service.initBaseURL());
+      const rejected = expect(initialized).rejects.toThrow('Portal ID must not be a dot segment');
+      httpTestingController.expectOne('./assets/config.json').flush({ baseURL: '/portal' });
+      httpTestingController.expectOne('/portal/ui/bootstrap').flush({ baseURL: '/portal', environmentId: 'DEFAULT', portalId });
+      await rejected;
     });
   });
 

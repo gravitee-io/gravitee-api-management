@@ -14,31 +14,43 @@
  * limitations under the License.
  */
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { catchError, map, Observable, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { Configuration } from '../entities/configuration/configuration';
 
-/**
- * Object used in `config.json` file and `/ui/bootstrap` response
- */
 interface Config {
   baseURL: string;
-  environmentId: string;
+  environmentId?: string;
+}
+
+interface BootstrapConfig extends Config {
+  portalId?: string | null;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class ConfigService {
+  private readonly httpClient = inject(HttpClient);
   private _baseURL: string = '';
+  private _portalId = '';
   private _configuration: Configuration = {};
-
-  constructor(private httpClient: HttpClient) {}
 
   public get baseURL(): string {
     return this._baseURL;
+  }
+
+  public get portalId(): string {
+    return this._portalId;
+  }
+
+  public get portalBaseURL(): string {
+    if (!this.portalId) {
+      throw new Error('Portal ID is required');
+    }
+    return `${this.baseURL}/portal/${encodeURIComponent(this.portalId)}`;
   }
 
   public get configuration(): Configuration {
@@ -60,11 +72,17 @@ export class ConfigService {
         const enforcedEnvironmentId = this._getEnforcedEnvironmentId(configJson);
         const bootstrapUrl = `${baseURL}/ui/bootstrap${enforcedEnvironmentId ? `?environmentId=${enforcedEnvironmentId}` : ''}`;
 
-        return this.httpClient.get<Config>(bootstrapUrl);
-      }),
-      map((bootstrapConfig: Config) => {
-        this.baseURL = `${bootstrapConfig.baseURL}/environments/${bootstrapConfig.environmentId}`;
-        return this.baseURL;
+        return this.httpClient.get<BootstrapConfig>(bootstrapUrl).pipe(
+          map(bootstrapConfig => {
+            const portalId = this.readPortalId(bootstrapConfig.portalId);
+            if (!portalId) {
+              throw new Error('Portal ID is required');
+            }
+            this._portalId = portalId;
+            this.baseURL = `${bootstrapConfig.baseURL.replace(/\/$/, '')}/environments/${bootstrapConfig.environmentId}`;
+            return this.baseURL;
+          }),
+        );
       }),
     );
   }
@@ -86,6 +104,20 @@ export class ConfigService {
    */
   stripIdpAccessTokenFromStorage(): boolean {
     return this.configuration.authentication?.exposeAccessToken?.enabled === false;
+  }
+
+  private readPortalId(value: unknown): string | undefined {
+    if (value == null) {
+      return undefined;
+    }
+    if (typeof value !== 'string') {
+      throw new Error('Portal ID must be a string');
+    }
+    const portalId = value.trim();
+    if (portalId === '.' || portalId === '..') {
+      throw new Error('Portal ID must not be a dot segment');
+    }
+    return portalId || undefined;
   }
 
   private _sanitizeBaseURLs(config: Config): string {

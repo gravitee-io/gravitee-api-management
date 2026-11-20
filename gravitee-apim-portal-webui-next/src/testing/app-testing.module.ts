@@ -29,6 +29,7 @@ import { ConfigService } from '../services/config.service';
 import { IdentityProviderService } from '../services/identity-provider.service';
 
 export const TESTING_BASE_URL = 'http://localhost:8083/portal/environments/DEFAULT';
+export const TESTING_PORTAL_BASE_URL = `${TESTING_BASE_URL}/portal/selected-portal`;
 export const TESTING_ACTIVATED_ROUTE = {
   data: { breadcrumb: { alias: 'apiName' } },
   snapshot: { data: { breadcrumb: { alias: 'apiName' } } },
@@ -58,6 +59,10 @@ export class ConfigServiceStub {
 
   get baseURL(): string {
     return TESTING_BASE_URL;
+  }
+
+  get portalBaseURL(): string {
+    return TESTING_PORTAL_BASE_URL;
   }
 
   get configuration(): Configuration {

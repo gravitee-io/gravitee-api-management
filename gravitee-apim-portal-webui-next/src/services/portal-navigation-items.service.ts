@@ -56,23 +56,30 @@ export class PortalNavigationItemsService {
       loadChildren,
     };
 
-    return this.http
-      .get<PortalNavigationItem[]>(`${this.configService.baseURL}/portal-navigation-items`, { params })
-      .pipe(catchError(_ => of([])));
+    return this.http.get<PortalNavigationItem[]>(`${this.configService.portalBaseURL}/portal-navigation-items`, { params });
   }
 
   getNavigationItem(id: string): Observable<PortalNavigationItem> {
-    return this.http.get<PortalNavigationItem>(`${this.configService.baseURL}/portal-navigation-items/${id}`).pipe(catchError(_ => of()));
+    return this.http.get<PortalNavigationItem>(`${this.configService.portalBaseURL}/portal-navigation-items/${id}`);
   }
 
   getNavigationItemContent(id: string): Observable<PortalPageContent> {
-    return this.http.get<PortalPageContent>(`${this.configService.baseURL}/portal-navigation-items/${id}/content`);
+    return this.http.get<PortalPageContent>(`${this.configService.portalBaseURL}/portal-navigation-items/${id}/content`);
   }
 
   loadTopNavBarItems(): Observable<void> {
     return this.getNavigationItems('TOP_NAVBAR', false).pipe(
       switchMap(value => {
         this.topNavbarItems.set(value);
+        return of(undefined);
+      }),
+    );
+  }
+
+  reloadTopNavBarItemsAfterAuthChange(): Observable<void> {
+    return this.loadTopNavBarItems().pipe(
+      catchError(() => {
+        this.topNavbarItems.set([]);
         return of(undefined);
       }),
     );
@@ -89,7 +96,7 @@ export class PortalNavigationItemsService {
     if (categoryId) params['categoryId'] = categoryId;
 
     return this.http
-      .get<PortalNavigationItemsSearchResponse>(`${this.configService.baseURL}/portal-navigation-items/_search`, { params })
+      .get<PortalNavigationItemsSearchResponse>(`${this.configService.portalBaseURL}/portal-navigation-items/_search`, { params })
       .pipe(map(res => this.mapToSearchResponse(res)));
   }
 
@@ -104,7 +111,7 @@ export class PortalNavigationItemsService {
     if (categoryId) params = params.set('categoryId', categoryId);
 
     return this.http
-      .get<PortalNavigationItemsSearchResponse>(`${this.configService.baseURL}/portal-navigation-items/_search`, { params })
+      .get<PortalNavigationItemsSearchResponse>(`${this.configService.portalBaseURL}/portal-navigation-items/_search`, { params })
       .pipe(map(res => this.mapToCatalogSearchResponse(res)));
   }
 

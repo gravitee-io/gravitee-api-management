@@ -20,7 +20,7 @@ import { ApiService } from './api.service';
 import { fakeApi, fakeApisResponse } from '../entities/api/api.fixtures';
 import { ApisResponse } from '../entities/api/apis-response';
 import { PortalApiViewParam } from '../entities/api/portal-api-view-param';
-import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
+import { AppTestingModule, TESTING_BASE_URL, TESTING_PORTAL_BASE_URL } from '../testing/app-testing.module';
 
 describe('ApiService', () => {
   let service: ApiService;
@@ -38,21 +38,25 @@ describe('ApiService', () => {
     httpTestingController.verify();
   });
 
-  describe('list', () => {
+  describe('search', () => {
     it('should return apis response with default page and size', done => {
       const apisResponse: ApisResponse = fakeApisResponse();
 
-      service.search(1, 'ALL', '').subscribe(response => {
+      service.search().subscribe(response => {
         expect(response).toMatchObject(apisResponse);
         done();
       });
 
       const req = httpTestingController.expectOne(
         r =>
-          r.url === `${TESTING_BASE_URL}/apis/_search` &&
-          r.params.get(PortalApiViewParam.QUERY_PARAM_NAME) === PortalApiViewParam.DOCUMENTATION,
+          r.url === `${TESTING_PORTAL_BASE_URL}/apis/_search` &&
+          r.params.get('page') === '1' &&
+          r.params.get('size') === '9' &&
+          r.params.get('q') === '',
       );
       expect(req.request.method).toEqual('POST');
+      expect(req.request.body).toBeNull();
+      expect(req.request.params.keys().sort()).toEqual(['page', 'q', 'size']);
 
       req.flush(apisResponse);
     });
@@ -60,20 +64,29 @@ describe('ApiService', () => {
     it('should return apis response with specified page and size', done => {
       const apisResponse: ApisResponse = fakeApisResponse();
 
-      service.search(2, 'ALL', '', 99).subscribe(response => {
+      service.search(2, '', 99).subscribe(response => {
         expect(response).toMatchObject(apisResponse);
         done();
       });
 
       const req = httpTestingController.expectOne(
-        r =>
-          r.url === `${TESTING_BASE_URL}/apis/_search` &&
-          r.params.get(PortalApiViewParam.QUERY_PARAM_NAME) === PortalApiViewParam.DOCUMENTATION,
+        r => r.url === `${TESTING_PORTAL_BASE_URL}/apis/_search` && r.params.get('page') === '2' && r.params.get('size') === '99',
       );
       expect(req.request.method).toEqual('POST');
 
       req.flush(apisResponse);
     });
+  });
+
+  it('should preserve search text and pagination on the selected portal', done => {
+    service.search(3, 'name:weather & city', 20).subscribe(() => done());
+    const request = httpTestingController.expectOne(request => request.url === `${TESTING_PORTAL_BASE_URL}/apis/_search`);
+    expect(request.request.method).toEqual('POST');
+    expect(request.request.body).toBeNull();
+    expect(request.request.params.get('q')).toEqual('name:weather & city');
+    expect(request.request.params.get('page')).toEqual('3');
+    expect(request.request.params.get('size')).toEqual('20');
+    request.flush({ data: [] });
   });
 
   describe('details', () => {

@@ -20,7 +20,7 @@ import { ConfigService } from './config.service';
 import { PortalNavigationItemsService } from './portal-navigation-items.service';
 import { fakeApi } from '../entities/api/api.fixtures';
 import { PortalNavigationItem } from '../entities/portal-navigation/portal-navigation-item';
-import { fakePortalNavigationApiProduct } from '../entities/portal-navigation/portal-navigation-item.fixture';
+import { fakePortalNavigationApiProduct, fakePortalNavigationLink } from '../entities/portal-navigation/portal-navigation-item.fixture';
 import { AppTestingModule } from '../testing/app-testing.module';
 
 describe('PortalNavigationItemsService', () => {
@@ -28,10 +28,12 @@ describe('PortalNavigationItemsService', () => {
   let httpMock: HttpTestingController;
   const baseURL = 'http://localhost/portal/environments/DEFAULT';
 
+  const portalBaseURL = `${baseURL}/portal/selected-portal`;
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [AppTestingModule],
-      providers: [{ provide: ConfigService, useValue: { baseURL } }],
+      providers: [{ provide: ConfigService, useValue: { baseURL, portalBaseURL } }],
     });
 
     service = TestBed.inject(PortalNavigationItemsService);
@@ -79,7 +81,7 @@ describe('PortalNavigationItemsService', () => {
     const req = httpMock.expectOne(
       r =>
         r.method === 'GET' &&
-        r.url === `${baseURL}/portal-navigation-items` &&
+        r.url === `${portalBaseURL}/portal-navigation-items` &&
         r.params.get('area') === 'TOP_NAVBAR' &&
         r.params.get('loadChildren') === 'false',
     );
@@ -87,37 +89,68 @@ describe('PortalNavigationItemsService', () => {
     req.flush(mockItems);
   });
 
-  it('should set topNavbar to empty array on HTTP error', done => {
-    // set a non-empty value first to ensure it gets replaced
-    service.topNavbarItems.set([
-      {
-        id: 'x',
-        organizationId: 'org1',
-        environmentId: 'env1',
-        title: 'old',
-        type: 'FOLDER',
-        area: 'TOP_NAVBAR',
-        order: 2,
-        published: true,
-        rootId: 'x',
-      },
-    ]);
+  it('should replace stale top navbar items after an authentication change', () => {
+    const items = [fakePortalNavigationLink({ id: 'refreshed', area: 'TOP_NAVBAR' })];
+    service.topNavbarItems.set([fakePortalNavigationLink({ id: 'stale', area: 'TOP_NAVBAR' })]);
+    const next = jest.fn();
+    const complete = jest.fn();
+    const error = jest.fn();
 
-    service.loadTopNavBarItems().subscribe(items => {
-      expect(items).toBeUndefined();
-      expect(service.topNavbarItems()).toEqual([]);
+    service.reloadTopNavBarItemsAfterAuthChange().subscribe({ next, complete, error });
+    const request = httpMock.expectOne(
+      request =>
+        request.method === 'GET' &&
+        request.url === `${portalBaseURL}/portal-navigation-items` &&
+        request.params.get('area') === 'TOP_NAVBAR' &&
+        request.params.get('loadChildren') === 'false',
+    );
+    request.flush(items);
+
+    expect(service.topNavbarItems()).toEqual(items);
+    expect(next).toHaveBeenCalledWith(undefined);
+    expect(complete).toHaveBeenCalledTimes(1);
+    expect(error).not.toHaveBeenCalled();
+  });
+
+  it.each([401, 404, 500])('should clear stale top navbar items and continue after an authentication change on HTTP %s', status => {
+    service.topNavbarItems.set([fakePortalNavigationLink({ id: 'stale', area: 'TOP_NAVBAR' })]);
+    const next = jest.fn();
+    const complete = jest.fn();
+    const error = jest.fn();
+
+    service.reloadTopNavBarItemsAfterAuthChange().subscribe({ next, complete, error });
+    httpMock.expectOne(request => request.url === `${portalBaseURL}/portal-navigation-items`).flush({}, { status, statusText: 'Failed' });
+
+    expect(service.topNavbarItems()).toEqual([]);
+    expect(next).toHaveBeenCalledWith(undefined);
+    expect(complete).toHaveBeenCalledTimes(1);
+    expect(error).not.toHaveBeenCalled();
+  });
+
+  it.each([404, 500])('should propagate a top navbar HTTP %s error', status => {
+    const error = jest.fn();
+    service.loadTopNavBarItems().subscribe({ error });
+    httpMock.expectOne(request => request.url === `${portalBaseURL}/portal-navigation-items`).flush({}, { status, statusText: 'Failed' });
+    expect(error).toHaveBeenCalledWith(expect.objectContaining({ status }));
+  });
+
+  it('should propagate a missing navigation item instead of completing silently', () => {
+    const error = jest.fn();
+    service.getNavigationItem('missing').subscribe({ error });
+    httpMock.expectOne(`${portalBaseURL}/portal-navigation-items/missing`).flush({}, { status: 404, statusText: 'Not Found' });
+    expect(error).toHaveBeenCalledWith(expect.objectContaining({ status: 404 }));
+  });
+
+  it('should accept an empty portal and preserve child-list parameters', done => {
+    service.getNavigationItems('TOP_NAVBAR', false, 'parent').subscribe(items => {
+      expect(items).toEqual([]);
       done();
     });
-
-    const req = httpMock.expectOne(
-      r =>
-        r.method === 'GET' &&
-        r.url === `${baseURL}/portal-navigation-items` &&
-        r.params.get('area') === 'TOP_NAVBAR' &&
-        r.params.get('loadChildren') === 'false',
-    );
-
-    req.flush('Server error', { status: 500, statusText: 'Server Error' });
+    const request = httpMock.expectOne(request => request.url === `${portalBaseURL}/portal-navigation-items`);
+    expect(request.request.params.get('parentId')).toEqual('parent');
+    expect(request.request.params.get('area')).toEqual('TOP_NAVBAR');
+    expect(request.request.params.get('loadChildren')).toEqual('false');
+    request.flush([]);
   });
 
   it('should get navigation item content', done => {
@@ -131,7 +164,7 @@ describe('PortalNavigationItemsService', () => {
       done();
     });
 
-    const req = httpMock.expectOne(`${baseURL}/portal-navigation-items/1/content`);
+    const req = httpMock.expectOne(`${portalBaseURL}/portal-navigation-items/1/content`);
     expect(req.request.method).toBe('GET');
     req.flush(mockContent);
   });
@@ -153,7 +186,7 @@ describe('PortalNavigationItemsService', () => {
       done();
     });
 
-    const req = httpMock.expectOne(r => r.method === 'GET' && r.url === `${baseURL}/portal-navigation-items/${id}`);
+    const req = httpMock.expectOne(r => r.method === 'GET' && r.url === `${portalBaseURL}/portal-navigation-items/${id}`);
 
     req.flush(mockItem);
   });
@@ -173,7 +206,7 @@ describe('PortalNavigationItemsService', () => {
     const req = httpMock.expectOne(
       r =>
         r.method === 'GET' &&
-        r.url === `${baseURL}/portal-navigation-items` &&
+        r.url === `${portalBaseURL}/portal-navigation-items` &&
         r.params.get('area') === 'HOMEPAGE' &&
         r.params.get('loadChildren') === 'true',
     );
@@ -220,7 +253,7 @@ describe('PortalNavigationItemsService', () => {
     const req = httpMock.expectOne(
       r =>
         r.method === 'GET' &&
-        r.url === `${baseURL}/portal-navigation-items/_search` &&
+        r.url === `${portalBaseURL}/portal-navigation-items/_search` &&
         r.params.get('type') === 'api' &&
         r.params.get('include') === 'api' &&
         r.params.get('page') === '1' &&
@@ -235,7 +268,7 @@ describe('PortalNavigationItemsService', () => {
     const req = httpMock.expectOne(
       request =>
         request.method === 'GET' &&
-        request.url === `${baseURL}/portal-navigation-items/_search` &&
+        request.url === `${portalBaseURL}/portal-navigation-items/_search` &&
         request.params.get('categoryId') === 'category-1',
     );
     req.flush({ data: [], apis: [] });
@@ -244,7 +277,9 @@ describe('PortalNavigationItemsService', () => {
   it('should not send categoryId when not provided', done => {
     service.searchNavigationItemsWithApis(1, '', 10).subscribe(() => done());
 
-    const req = httpMock.expectOne(request => request.method === 'GET' && request.url === `${baseURL}/portal-navigation-items/_search`);
+    const req = httpMock.expectOne(
+      request => request.method === 'GET' && request.url === `${portalBaseURL}/portal-navigation-items/_search`,
+    );
     expect(req.request.params.has('categoryId')).toBe(false);
     req.flush({ data: [], apis: [] });
   });
@@ -317,7 +352,7 @@ describe('PortalNavigationItemsService', () => {
     const req = httpMock.expectOne(
       r =>
         r.method === 'GET' &&
-        r.url === `${baseURL}/portal-navigation-items/_search` &&
+        r.url === `${portalBaseURL}/portal-navigation-items/_search` &&
         r.params.get('type') === 'catalog' &&
         r.params.getAll('include')?.join(',') === 'api,api_product' &&
         r.params.get('page') === '2' &&
