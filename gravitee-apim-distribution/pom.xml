@@ -271,7 +271,7 @@
     <gravitee-gamma-module-esm.version>2.0.0-alpha.6</gravitee-gamma-module-esm.version>
 
     <!-- Authz plugins -->
-    <gravitee-service-authz-pdp.version>5.1.0</gravitee-service-authz-pdp.version>
+    <gravitee-service-authz-pdp.version>5.2.0</gravitee-service-authz-pdp.version>
     <gravitee-policy-authz-pep.version>3.0.4</gravitee-policy-authz-pep.version>
     <gravitee-policy-authz-pdp-authzen.version>4.0.1</gravitee-policy-authz-pdp-authzen.version>
 
