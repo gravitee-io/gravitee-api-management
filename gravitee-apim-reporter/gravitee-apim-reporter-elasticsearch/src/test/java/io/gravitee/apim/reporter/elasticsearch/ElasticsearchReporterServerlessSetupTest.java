@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BooleanSupplier;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -79,6 +80,8 @@ class ElasticsearchReporterServerlessSetupTest {
     private static final String REQUEST_TEMPLATE_PATH = "/_index_template/gravitee-request";
     private static final String FORBIDDEN =
         "{\"error\":{\"type\":\"security_exception\",\"reason\":\"action [indices:admin/index_template/put] is unauthorized\"},\"status\":403}";
+    private static final String UNAUTHORIZED =
+        "{\"error\":{\"type\":\"security_exception\",\"reason\":\"unable to authenticate with provided credentials\"},\"status\":401}";
 
     @RegisterExtension
     static WireMockExtension elasticsearch = WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
@@ -160,12 +163,11 @@ class ElasticsearchReporterServerlessSetupTest {
 
         awaitRequestTemplateCalls(1);
         awaitReporterLog(Level.WARN, "retrying in 1 s");
-        testScheduler.advanceTimeBy(1, TimeUnit.SECONDS);
-        awaitRequestTemplateCalls(2);
+        advanceUntil(() -> requestTemplateCalls() == 2);
         awaitReporterLog(Level.WARN, "retrying in 2 s");
-        testScheduler.advanceTimeBy(1, TimeUnit.SECONDS);
+        testScheduler.advanceTimeBy(1900, TimeUnit.MILLISECONDS);
         assertThat(requestTemplateCalls()).isEqualTo(2);
-        testScheduler.advanceTimeBy(1, TimeUnit.SECONDS);
+        advanceUntil(() -> requestTemplateCalls() == 3);
         awaitReporterLog(Level.INFO, "Starting Elastic reporter engine... DONE");
 
         assertThat(requestTemplateCalls()).isEqualTo(3);
@@ -180,11 +182,13 @@ class ElasticsearchReporterServerlessSetupTest {
 
         reporter.report(metrics());
         reporter.report(metrics());
-        testScheduler.advanceTimeBy(1, TimeUnit.SECONDS);
+        advanceUntil(() -> requestTemplateCalls() == 2);
         awaitReporterLog(Level.INFO, "Starting Elastic reporter engine... DONE");
         testScheduler.advanceTimeBy(1, TimeUnit.MINUTES);
 
-        assertThat(reporterMessages(Level.WARN)).anySatisfy(message -> assertThat(message).contains("2 documents dropped"));
+        assertThat(reporterMessages(Level.WARN)).anySatisfy(message ->
+            assertThat(message).contains("2 documents dropped in the last minute while the Elasticsearch reporter was setting up")
+        );
         assertThat(
             context
                 .getBean(SimpleMeterRegistry.class)
@@ -235,12 +239,63 @@ class ElasticsearchReporterServerlessSetupTest {
 
         awaitReporterLog(Level.WARN, "manage_index_templates");
         reporter.report(metrics());
-        testScheduler.advanceTimeBy(1, TimeUnit.SECONDS);
-        awaitReporterLog(Level.WARN, "retrying in 2 s");
+        advanceUntil(() -> hasReporterLog(Level.WARN, "retrying in 2 s"));
 
         assertThat(reporter.canHandle(metrics())).isTrue();
         elasticsearch.verify(0, postRequestedFor(urlPathEqualTo("/_bulk")));
         assertThat(reporterMessages(Level.ERROR)).isEmpty();
+    }
+
+    @Test
+    void should_tell_that_elasticsearch_rejects_the_credentials_when_the_key_is_revoked_after_startup() throws Exception {
+        elasticsearch.stubFor(put(urlPathMatching("/_index_template/.*")).willReturn(aResponse().withStatus(401).withBody(UNAUTHORIZED)));
+        startReporter();
+
+        awaitReporterLog(Level.WARN, "(Elasticsearch rejects the credentials)");
+
+        assertThat(reporterMessages(Level.WARN)).noneMatch(message -> message.contains("lacks the"));
+    }
+
+    @Test
+    void should_count_the_documents_reported_after_the_setup_stopped_on_an_unmanaged_template() throws Exception {
+        elasticsearch.stubFor(
+            get(urlPathEqualTo(REQUEST_TEMPLATE_PATH)).willReturn(
+                okJson(
+                    "{\"index_templates\":[{\"name\":\"gravitee-request\",\"index_template\":" +
+                        "{\"index_patterns\":[\"gravitee-request*\"],\"data_stream\":{},\"priority\":500}}]}"
+                )
+            )
+        );
+        startReporter();
+        awaitReporterLog(Level.ERROR, "[gravitee-request]");
+
+        reporter.report(metrics());
+        testScheduler.advanceTimeBy(1, TimeUnit.MINUTES);
+
+        assertThat(droppedDocuments("setup", "request")).isEqualTo(1);
+        assertThat(reporterMessages(Level.WARN)).anySatisfy(message ->
+            assertThat(message).contains("disabled since its setup failed at startup: 1 documents dropped")
+        );
+    }
+
+    @Test
+    void should_stop_retrying_the_setup_once_the_reporter_stops() throws Exception {
+        elasticsearch.stubFor(put(urlPathMatching("/_index_template/.*")).willReturn(aResponse().withStatus(403).withBody(FORBIDDEN)));
+        startReporter();
+        awaitReporterLog(Level.WARN, "retrying in 1 s");
+
+        reporter.stop();
+        final int templateCalls = elasticsearch.findAll(putRequestedFor(urlPathMatching("/_index_template/.*"))).size();
+        await()
+            .during(Duration.ofSeconds(2))
+            .atMost(Duration.ofSeconds(5))
+            .until(() -> {
+                testScheduler.advanceTimeBy(1, TimeUnit.SECONDS);
+                return elasticsearch.findAll(putRequestedFor(urlPathMatching("/_index_template/.*"))).size() == templateCalls;
+            });
+
+        assertThat(reporterMessages(Level.WARN)).noneMatch(message -> message.contains("retrying in 2 s"));
+        assertThat(reporterMessages(Level.INFO)).noneMatch(message -> message.contains("Starting Elastic reporter engine... DONE"));
     }
 
     @Test
@@ -316,14 +371,39 @@ class ElasticsearchReporterServerlessSetupTest {
         return metrics;
     }
 
+    /**
+     * Advances the virtual clock until the condition holds: a retry is logged just before its timer is scheduled, so a single
+     * advance could land before the timer exists.
+     */
+    private void advanceUntil(BooleanSupplier condition) {
+        await()
+            .atMost(Duration.ofSeconds(10))
+            .until(() -> {
+                testScheduler.advanceTimeBy(100, TimeUnit.MILLISECONDS);
+                return condition.getAsBoolean();
+            });
+    }
+
     private void awaitReporterLog(Level level, String fragment) {
         await()
             .atMost(Duration.ofSeconds(10))
-            .until(() ->
-                reporterMessages(level)
-                    .stream()
-                    .anyMatch(message -> message.contains(fragment))
-            );
+            .until(() -> hasReporterLog(level, fragment));
+    }
+
+    private boolean hasReporterLog(Level level, String fragment) {
+        return reporterMessages(level)
+            .stream()
+            .anyMatch(message -> message.contains(fragment));
+    }
+
+    private double droppedDocuments(String reason, String type) {
+        return context
+            .getBean(SimpleMeterRegistry.class)
+            .get("reporter_elasticsearch_dropped_documents")
+            .tag("reason", reason)
+            .tag("type", type)
+            .counter()
+            .count();
     }
 
     private List<String> reporterMessages(Level level) {

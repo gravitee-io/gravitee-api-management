@@ -96,23 +96,25 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
                 freeMarkerComponent,
                 client
             );
-            preparer
-                .prepare()
-                .subscribe(
-                    () -> {
-                        setupState = SetupState.READY;
-                        log.debug("Index mapping template successfully defined");
-                        log.info("Starting Elastic reporter engine... DONE");
-                    },
-                    throwable -> {
-                        setupState = SetupState.FAILED;
-                        log.error(
-                            "{}. The Elasticsearch reporter is disabled: no analytics will be written to Elasticsearch until the gateway restarts.",
-                            throwable.getMessage(),
-                            throwable
-                        );
-                    }
-                );
+            disposables.add(
+                preparer
+                    .prepare()
+                    .subscribe(
+                        () -> {
+                            setupState = SetupState.READY;
+                            log.debug("Index mapping template successfully defined");
+                            log.info("Starting Elastic reporter engine... DONE");
+                        },
+                        throwable -> {
+                            setupState = SetupState.FAILED;
+                            log.error(
+                                "{}. The Elasticsearch reporter is disabled: no analytics will be written to Elasticsearch until the gateway restarts.",
+                                throwable.getMessage(),
+                                throwable
+                            );
+                        }
+                    )
+            );
 
             FormatterFactoryConfiguration formatterFactoryConfiguration = beanFactory.createFormatterFactoryConfiguration();
             bulkProcessor = new BulkProcessor(
