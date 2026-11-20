@@ -23,6 +23,7 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDoma
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -33,8 +34,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Lists an API in the portal and publishes its documentation with it. The documentation is not moved:
- * it stays stored against the API and is shown under the navigation entry when the tree is read.
+ * Lists an API in the portal of the chosen section and publishes its documentation with it. The documentation is not moved:
+ * it stays stored against the API and is shown under the navigation entry of every portal listing the API.
  */
 @UseCase
 @RequiredArgsConstructor
@@ -48,22 +49,24 @@ public class PublishApiToPortalUseCase {
         if (input.sectionId() == null) {
             throw InvalidPortalNavigationItemDataException.fieldIsEmpty("sectionId");
         }
-        var listings = apiOwnedNavigationDomainService.findStandaloneListings(input.environmentId(), input.apiId());
+        var section = apiOwnedNavigationDomainService.requirePublishLocation(input.environmentId(), input.sectionId());
+        var portal = (NavigationItemReference.PortalReference) section.getReference();
+        var listings = apiOwnedNavigationDomainService.findStandaloneListings(input.environmentId(), input.apiId(), portal);
         if (listings.stream().anyMatch(listing -> Boolean.TRUE.equals(listing.getPublished()))) {
             throw InvalidPortalNavigationItemDataException.apiIdAlreadyExists(input.apiId());
         }
-        var section = apiOwnedNavigationDomainService.requirePublishLocation(input.environmentId(), input.sectionId());
 
         // A hidden listing, typically one the portal editor added, means the API is not published: it is reused
-        var listing = listings.isEmpty() ? createListing(input, section) : showListing(input, listings.getFirst(), section);
+        var listing = listings.isEmpty() ? createListing(input, portal, section) : showListing(input, listings.getFirst(), section);
 
         return new Output(listing, section);
     }
 
-    private PortalNavigationApi createListing(Input input, PortalNavigationFolder section) {
+    private PortalNavigationApi createListing(Input input, NavigationItemReference.PortalReference portal, PortalNavigationFolder section) {
         var listingToCreate = CreatePortalNavigationItem.builder()
             .id(PortalNavigationItemId.random())
             .type(PortalNavigationItemType.API)
+            .reference(portal)
             .apiId(input.apiId())
             .area(PortalArea.TOP_NAVBAR)
             .parentId(section.getId())

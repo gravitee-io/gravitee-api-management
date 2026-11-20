@@ -27,6 +27,7 @@ import {
     importApiDocumentation,
     listApiDocumentation,
     listApiPublishLocations,
+    listApiPublishPortals,
     publishApiToPortal,
     saveApiDocumentationPageConfiguration,
     saveApiDocumentationPageContent,
@@ -55,14 +56,26 @@ export function useApiDocumentation(apiId: string | undefined) {
     });
 }
 
-export function useApiPublishLocations(apiId: string | undefined, enabled = true) {
+export function useApiPublishPortals(apiId: string | undefined, enabled = true) {
     const env = useEnvironment();
     const envId = env?.id ?? '';
 
     return useQuery({
-        queryKey: apiDocumentationKeys.publishLocations(envId, apiId ?? ''),
-        queryFn: () => listApiPublishLocations(envId, apiId!),
+        queryKey: apiDocumentationKeys.publishPortals(envId, apiId ?? ''),
+        queryFn: () => listApiPublishPortals(envId, apiId!),
         enabled: Boolean(env && apiId && enabled),
+    });
+}
+
+/** Waits for a portal: the sections belong to one. */
+export function useApiPublishLocations(apiId: string | undefined, portalId: string | undefined, enabled = true) {
+    const env = useEnvironment();
+    const envId = env?.id ?? '';
+
+    return useQuery({
+        queryKey: apiDocumentationKeys.publishLocations(envId, apiId ?? '', portalId ?? ''),
+        queryFn: () => listApiPublishLocations(envId, apiId!, portalId!),
+        enabled: Boolean(env && apiId && portalId && enabled),
     });
 }
 
@@ -174,7 +187,7 @@ export function useCreateApiOverviewPage(apiId: string) {
 }
 
 export function useUnpublishApiFromPortal(apiId: string) {
-    return useApiDocumentationMutation(apiId, (envId, id, _variables: void) => unpublishApiFromPortal(envId, id));
+    return useApiDocumentationMutation(apiId, (envId, id, portalId: string) => unpublishApiFromPortal(envId, id, portalId));
 }
 
 export function useSaveApiDocumentationPageContent(apiId: string) {

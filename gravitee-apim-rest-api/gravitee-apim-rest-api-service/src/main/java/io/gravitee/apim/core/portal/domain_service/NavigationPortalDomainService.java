@@ -18,14 +18,16 @@ package io.gravitee.apim.core.portal.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.exception.NavigationPortalNotResolvedException;
+import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.exception.SeveralPortalsInEnvironmentException;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import lombok.RequiredArgsConstructor;
 
 /**
- * The portal a console navigation write targets: the environment's default portal, and only it. A portal
- * created by the Automation API is never default and its navigation belongs to the Automation API.
+ * The portal a console navigation write targets: the environment's default portal, unless the write names
+ * another portal of the environment. A portal created by the Automation API is never default.
  */
 @DomainService
 @RequiredArgsConstructor
@@ -55,5 +57,13 @@ public class NavigationPortalDomainService {
 
     public NavigationItemReference.PortalReference resolveReference(String organizationId, String environmentId) {
         return new NavigationItemReference.PortalReference(resolve(organizationId, environmentId).getId());
+    }
+
+    /** @throws PortalNotFoundException when the portal is not a portal of the environment */
+    public NavigationItemReference.PortalReference requireReference(String environmentId, PortalId portalId) {
+        var portal = portalCrudService
+            .findByIdAndEnvironmentId(portalId, environmentId)
+            .orElseThrow(() -> new PortalNotFoundException(portalId.toString()));
+        return new NavigationItemReference.PortalReference(portal.getId());
     }
 }

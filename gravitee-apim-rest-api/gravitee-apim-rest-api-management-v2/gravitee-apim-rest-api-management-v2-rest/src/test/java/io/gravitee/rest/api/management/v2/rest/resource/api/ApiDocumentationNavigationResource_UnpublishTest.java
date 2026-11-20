@@ -16,16 +16,23 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static assertions.MAPIAssertions.assertThat;
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.PortalFixtures;
 import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
@@ -61,6 +68,9 @@ class ApiDocumentationNavigationResource_UnpublishTest extends AbstractResourceT
     @Autowired
     private PortalNavigationItemsCrudServiceInMemory portalNavigationItemCrudService;
 
+    @Autowired
+    private PortalCrudServiceInMemory portalCrudService;
+
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT + "/apis/" + API_ID + "/portal-navigation-items/_unpublish";
@@ -76,6 +86,18 @@ class ApiDocumentationNavigationResource_UnpublishTest extends AbstractResourceT
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
         apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("My API").environmentId(ENVIRONMENT).build()));
+        portalCrudService.create(
+            Portal.of(
+                ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId(),
+                ENVIRONMENT,
+                ORGANIZATION,
+                "Developer Portal",
+                PortalNavigationStructure.empty(),
+                null,
+                true,
+                PortalFixtures.PORTAL_URL
+            )
+        );
     }
 
     @AfterEach
@@ -83,6 +105,7 @@ class ApiDocumentationNavigationResource_UnpublishTest extends AbstractResourceT
         GraviteeContext.cleanContext();
         apiCrudService.reset();
         portalNavigationItemCrudService.reset();
+        portalCrudService.reset();
     }
 
     @Test
@@ -166,8 +189,55 @@ class ApiDocumentationNavigationResource_UnpublishTest extends AbstractResourceT
         assertThat(response).hasStatus(NO_CONTENT_204);
     }
 
+    @Test
+    void should_unpublish_from_the_named_portal_only() {
+        var otherPortalId = portalCrudService
+            .create(Portal.create(ENVIRONMENT, ORGANIZATION, "Partners Portal", PortalFixtures.PORTAL_URL))
+            .getId();
+        var section = aSection();
+        var listing = aListing(section);
+        var otherPortalSection = aSection();
+        otherPortalSection.changeOwner(new NavigationItemReference.PortalReference(otherPortalId));
+        var otherPortalListing = aListing(otherPortalSection);
+        otherPortalListing.changeOwner(new NavigationItemReference.PortalReference(otherPortalId));
+        var page = aPublishedPageOwnedByTheApi();
+        portalNavigationItemCrudService.initWith(List.of(section, listing, otherPortalSection, otherPortalListing, page));
+
+        Response response = unpublishFrom(otherPortalId.toString());
+
+        assertThat(response).hasStatus(NO_CONTENT_204);
+        assertThat(otherPortalListing.getPublished()).isFalse();
+        assertThat(listing.getPublished()).isTrue();
+        assertThat(page.getPublished()).isTrue();
+    }
+
+    @Test
+    void should_return_400_when_no_portal_is_given() {
+        var section = aSection();
+        var listing = aListing(section);
+        portalNavigationItemCrudService.initWith(List.of(section, listing));
+
+        assertThat(rootTarget().request().post(Entity.json(""))).hasStatus(BAD_REQUEST_400);
+        assertThat(listing.getPublished()).isTrue();
+    }
+
+    @Test
+    void should_return_404_for_an_unknown_portal() {
+        var section = aSection();
+        var listing = aListing(section);
+        portalNavigationItemCrudService.initWith(List.of(section, listing));
+
+        assertThat(unpublishFrom(PortalId.random().toString())).hasStatus(NOT_FOUND_404);
+        assertThat(unpublishFrom("not-a-uuid")).hasStatus(NOT_FOUND_404);
+        assertThat(listing.getPublished()).isTrue();
+    }
+
+    private Response unpublishFrom(String portalId) {
+        return rootTarget().queryParam("portalId", portalId).request().post(Entity.json(""));
+    }
+
     private Response unpublish() {
-        return rootTarget().request().post(Entity.json(""));
+        return unpublishFrom(((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId().toString());
     }
 
     private static PortalNavigationFolder aSection() {

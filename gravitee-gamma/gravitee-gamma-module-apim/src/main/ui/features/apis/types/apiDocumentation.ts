@@ -94,7 +94,19 @@ export interface ApiPortalPublishLocationsResponse {
     data: ApiPortalPublishLocation[];
 }
 
+export interface ApiPortalPublishPortal {
+    id: string;
+    name: string;
+    default: boolean;
+}
+
+export interface ApiPortalPublishPortalsResponse {
+    /** The default portal first, then by name. */
+    data: ApiPortalPublishPortal[];
+}
+
 export interface PublishApiToPortal {
+    /** The API is published to the portal the section belongs to. */
     sectionId: string;
 }
 

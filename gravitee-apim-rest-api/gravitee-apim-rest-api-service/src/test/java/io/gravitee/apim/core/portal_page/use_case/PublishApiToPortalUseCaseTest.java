@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static fixtures.core.model.PortalNavigationItemFixtures.aFolder;
 import static fixtures.core.model.PortalNavigationItemFixtures.aPage;
 import static fixtures.core.model.PortalNavigationItemFixtures.anApi;
@@ -33,6 +34,7 @@ import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
@@ -338,6 +340,72 @@ class PublishApiToPortalUseCaseTest {
         assertThat(crudService.storage()).hasSize(3);
     }
 
+    @Nested
+    class WithSeveralPortals {
+
+        private PortalId otherPortalId;
+        private PortalNavigationFolder defaultPortalSection;
+        private PortalNavigationFolder otherPortalSection;
+
+        @BeforeEach
+        void givenASecondPortalWithItsOwnSection() {
+            otherPortalId = navigationPortals.givenAutomationPortal(ORG_ID, ENV_ID);
+            defaultPortalSection = aSection("APIs");
+            otherPortalSection = aSectionOf(otherPortalId, "Partners");
+            queryService.initWith(List.of(defaultPortalSection, otherPortalSection));
+        }
+
+        @Test
+        void should_publish_to_the_portal_of_the_chosen_section_and_leave_the_default_portal_unchanged() {
+            var output = publishTo(otherPortalSection.getId());
+
+            assertThat(output.section()).isEqualTo(otherPortalSection);
+            assertThat(listingRows())
+                .singleElement()
+                .satisfies(listing -> {
+                    assertThat(listing.getParentId()).isEqualTo(otherPortalSection.getId());
+                    assertThat(listing.getReference()).isEqualTo(portal(otherPortalId));
+                    assertThat(listing.getPublished()).isTrue();
+                });
+            assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, defaultPortalSection.getId())).isEmpty();
+        }
+
+        @Test
+        void should_publish_the_same_api_to_two_portals() {
+            publishTo(defaultPortalSection.getId());
+            publishTo(otherPortalSection.getId());
+
+            assertThat(listingRows())
+                .allSatisfy(listing -> assertThat(listing.getPublished()).isTrue())
+                .extracting(PortalNavigationItem::getReference)
+                .containsExactlyInAnyOrder(PORTAL_REFERENCE, portal(otherPortalId));
+        }
+
+        @Test
+        void should_reject_publishing_again_to_the_same_portal_only() {
+            publishTo(defaultPortalSection.getId());
+
+            assertThatThrownBy(() -> publishTo(defaultPortalSection.getId())).isInstanceOf(InvalidPortalNavigationItemDataException.class);
+            publishTo(otherPortalSection.getId());
+
+            assertThat(listingRows()).hasSize(2);
+        }
+
+        @Test
+        void should_reuse_the_hidden_listing_of_the_section_portal_only() {
+            var hiddenInDefaultPortal = aHiddenListing(defaultPortalSection);
+            queryService.initWith(List.of(defaultPortalSection, otherPortalSection, hiddenInDefaultPortal));
+
+            var output = publishTo(otherPortalSection.getId());
+
+            assertThat(output.listing().getId()).isNotEqualTo(hiddenInDefaultPortal.getId());
+            assertThat(stored(hiddenInDefaultPortal.getId())).satisfies(listing -> {
+                assertThat(listing.getPublished()).isFalse();
+                assertThat(listing.getParentId()).isEqualTo(defaultPortalSection.getId());
+            });
+        }
+    }
+
     private PublishApiToPortalUseCase.Output publishTo(PortalNavigationItemId sectionId) {
         return useCase.execute(new PublishApiToPortalUseCase.Input(ORG_ID, ENV_ID, API_ID, sectionId));
     }
@@ -350,6 +418,16 @@ class PublishApiToPortalUseCaseTest {
         var section = aFolder(title);
         section.markAsRoot();
         return section;
+    }
+
+    private static PortalNavigationFolder aSectionOf(PortalId portalId, String title) {
+        var section = aFolder(title).toBuilder().reference(portal(portalId)).build();
+        section.markAsRoot();
+        return section;
+    }
+
+    private static NavigationItemReference portal(PortalId portalId) {
+        return new NavigationItemReference.PortalReference(portalId);
     }
 
     private static PortalNavigationApi aHiddenListing(PortalNavigationFolder parent) {

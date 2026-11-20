@@ -31,6 +31,7 @@ import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
@@ -246,8 +247,62 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
         assertThat(response).hasStatus(OK_200);
     }
 
+    @Test
+    void should_publish_to_the_portal_of_the_chosen_section_only() {
+        var otherPortalId = givenAnotherPortal();
+        var section = aSection("APIs");
+        var otherPortalSection = aSectionOf(otherPortalId, "Partners");
+        portalNavigationItemCrudService.initWith(List.of(section, otherPortalSection));
+
+        Response response = publishTo(otherPortalSection.getId());
+
+        assertThat(response)
+            .hasStatus(OK_200)
+            .asEntity(ApiPortalPublication.class)
+            .satisfies(publication -> {
+                assertThat(publication.getPortalId()).isEqualTo(otherPortalId.toString());
+                assertThat(publication.getSectionName()).isEqualTo("Partners");
+            });
+        assertThat(portalNavigationItemCrudService.storage())
+            .filteredOn(PortalNavigationApi.class::isInstance)
+            .singleElement()
+            .satisfies(listing -> assertThat(listing.getParentId()).isEqualTo(otherPortalSection.getId()));
+    }
+
+    @Test
+    void should_publish_to_the_default_portal_when_the_environment_has_several() {
+        givenAnotherPortal();
+        var section = aSection("APIs");
+        portalNavigationItemCrudService.initWith(List.of(section));
+
+        Response response = publishTo(section.getId());
+
+        assertThat(response)
+            .hasStatus(OK_200)
+            .asEntity(ApiPortalPublication.class)
+            .satisfies(publication ->
+                assertThat(publication.getPortalId()).isEqualTo(
+                    ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId().toString()
+                )
+            );
+    }
+
     private Response publishTo(PortalNavigationItemId sectionId) {
         return rootTarget().request().post(Entity.json(new PublishApiToPortal().sectionId(sectionId.id())));
+    }
+
+    private PortalId givenAnotherPortal() {
+        return portalCrudService.create(Portal.create(ENVIRONMENT, ORGANIZATION, "Partners Portal", PortalFixtures.PORTAL_URL)).getId();
+    }
+
+    private static PortalNavigationFolder aSectionOf(PortalId portalId, String title) {
+        var section = PortalNavigationItemFixtures.aFolder(title)
+            .toBuilder()
+            .reference(new NavigationItemReference.PortalReference(portalId))
+            .build();
+        section.setEnvironmentId(ENVIRONMENT);
+        section.markAsRoot();
+        return section;
     }
 
     private static PortalNavigationFolder aSection(String title) {

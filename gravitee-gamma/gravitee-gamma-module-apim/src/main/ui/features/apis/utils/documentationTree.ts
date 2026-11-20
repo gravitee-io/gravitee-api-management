@@ -193,9 +193,14 @@ export function allowedChanges(state: SyncState): AllowedChanges {
     };
 }
 
+/** Where the API is visible, if anywhere: a hidden listing does not make the API published. */
+export function getPublishedPublication(publications: ApiPortalPublication[]): ApiPortalPublication | undefined {
+    return publications.find(publication => publication.portalNavigationItem.published);
+}
+
 /** The section the API is visible under, if any: a hidden listing does not make the API published. */
 export function getPublishedSection(publications: ApiPortalPublication[]): string | undefined {
-    return publications.find(publication => publication.portalNavigationItem.published)?.sectionName;
+    return getPublishedPublication(publications)?.sectionName;
 }
 
 /** A listing kept hidden, typically added in the portal editor: publishing the API reuses it rather than adding another. */

@@ -25,6 +25,7 @@ import io.gravitee.apim.core.portal_page.use_case.FetchPortalNavigationItemUseCa
 import io.gravitee.apim.core.portal_page.use_case.ImportPortalNavigationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListApiDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListApiPublishLocationsUseCase;
+import io.gravitee.apim.core.portal_page.use_case.ListApiPublishPortalsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForPortalNavigationItemsUseCase;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.listener.ListenerType;
@@ -35,6 +36,8 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiPortalNavigationItemsRes
 import io.gravitee.rest.api.management.v2.rest.model.ApiPortalPublication;
 import io.gravitee.rest.api.management.v2.rest.model.ApiPortalPublishLocation;
 import io.gravitee.rest.api.management.v2.rest.model.ApiPortalPublishLocationsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiPortalPublishPortal;
+import io.gravitee.rest.api.management.v2.rest.model.ApiPortalPublishPortalsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
@@ -207,6 +210,15 @@ public interface PortalNavigationItemsMapper {
             .map(location -> new ApiPortalPublishLocation().id(location.id().id()).name(location.name()))
             .toList();
         return new ApiPortalPublishLocationsResponse().data(locations);
+    }
+
+    default ApiPortalPublishPortalsResponse map(ListApiPublishPortalsUseCase.Output output) {
+        var portals = output
+            .portals()
+            .stream()
+            .map(portal -> new ApiPortalPublishPortal().id(portal.id().id()).name(portal.name())._default(portal.isDefault()))
+            .toList();
+        return new ApiPortalPublishPortalsResponse().data(portals);
     }
 
     default ApiPortalPublication mapPublication(ListApiDocumentationUseCase.Publication publication) {
