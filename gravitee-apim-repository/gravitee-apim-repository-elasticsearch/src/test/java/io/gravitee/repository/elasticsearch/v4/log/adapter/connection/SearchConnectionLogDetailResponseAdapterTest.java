@@ -191,6 +191,39 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
     }
 
     @Nested
+    class BodyTruncated {
+
+        @Test
+        void should_read_the_truncated_bodies_of_a_v4_log() {
+            var result = SearchConnectionLogDetailResponseAdapter.adaptFirst(
+                buildSearchHit("connection-log-detail-with-truncated-bodies.json")
+            );
+
+            assertThat(result).hasValueSatisfying(log -> {
+                assertThat(log.getEntrypointRequest().isBodyTruncated()).isTrue();
+                assertThat(log.getEndpointRequest().isBodyTruncated()).isFalse();
+                assertThat(log.getEntrypointResponse().isBodyTruncated()).isFalse();
+                assertThat(log.getEndpointResponse().isBodyTruncated()).isTrue();
+            });
+        }
+
+        @Test
+        void should_read_the_truncated_bodies_of_a_v2_log() {
+            var searchResponse = buildSearchHit("v2-log-detail-with-truncated-bodies.json");
+            searchResponse.getSearchHits().getHits().getFirst().setIndex("gravitee-log-2023.10.27");
+
+            var result = SearchConnectionLogDetailResponseAdapter.adaptFirst(searchResponse);
+
+            assertThat(result).hasValueSatisfying(log -> {
+                assertThat(log.getEntrypointRequest().isBodyTruncated()).isTrue();
+                assertThat(log.getEndpointRequest().isBodyTruncated()).isFalse();
+                assertThat(log.getEntrypointResponse().isBodyTruncated()).isFalse();
+                assertThat(log.getEndpointResponse().isBodyTruncated()).isTrue();
+            });
+        }
+    }
+
+    @Nested
     class Adapt {
 
         @Test

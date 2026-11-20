@@ -54,6 +54,7 @@ public class ConnectionLogDetail {
         private String uri;
         private Map<String, List<String>> headers;
         private String body;
+        private boolean bodyTruncated;
     }
 
     @Data
@@ -65,5 +66,6 @@ public class ConnectionLogDetail {
         private int status;
         private Map<String, List<String>> headers;
         private String body;
+        private boolean bodyTruncated;
     }
 }

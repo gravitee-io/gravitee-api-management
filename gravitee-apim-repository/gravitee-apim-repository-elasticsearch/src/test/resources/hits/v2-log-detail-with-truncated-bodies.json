@@ -1,0 +1,24 @@
+{
+  "@timestamp": "2023-10-27T07:41:39.317+02:00",
+  "api": "4c3e775d-eeb5-4d6c-be77-5deeb5ed6c41",
+  "client-request": {
+    "method": "POST",
+    "uri": "/test",
+    "body": "{\"hel",
+    "body-truncated": true
+  },
+  "client-response": {
+    "status": 200,
+    "body": "{\"hello\":\"world\"}"
+  },
+  "proxy-request": {
+    "method": "POST",
+    "uri": "https://api.gravitee.io/echo",
+    "body": "{\"hello\":\"world\"}"
+  },
+  "proxy-response": {
+    "status": 200,
+    "body": "{\"hel",
+    "body-truncated": true
+  }
+}
