@@ -211,10 +211,6 @@ export class ApiService {
       }
       const contextPath = control.value;
 
-      if (contextPath.length < 3) {
-        return of({ contextPath: 'Context path has to be more than 3 characters long.' });
-      }
-
       if (params.currentContextPath === contextPath) {
         return of(null);
       }

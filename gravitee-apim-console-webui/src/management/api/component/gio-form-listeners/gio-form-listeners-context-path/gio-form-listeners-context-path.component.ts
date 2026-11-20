@@ -189,6 +189,9 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
       const listenerFormArrayControls = formArray.controls;
       const listenerValues: string[] = listenerFormArrayControls.map(listener => listener.value?.path);
 
+      if (listenerValues.includes('/') && listenerValues.length > 1) {
+        return { contextPath: 'Root context path "/" is only allowed when it is the only entrypoint' };
+      }
       if (new Set(listenerValues).size !== listenerValues.length) {
         return { contextPath: 'Duplicated context path not allowed' };
       }
