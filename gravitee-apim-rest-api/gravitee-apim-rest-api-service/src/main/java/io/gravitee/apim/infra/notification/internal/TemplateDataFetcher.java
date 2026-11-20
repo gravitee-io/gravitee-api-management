@@ -184,6 +184,7 @@ public class TemplateDataFetcher {
         return userCrudService
             .findBaseUserById(userId)
             .map(UserAdapter.INSTANCE::toUserEntity)
+            .map(UserAdapter.INSTANCE::toUserNotificationTemplateData)
             .map(user -> Map.entry("user", user));
     }
 
