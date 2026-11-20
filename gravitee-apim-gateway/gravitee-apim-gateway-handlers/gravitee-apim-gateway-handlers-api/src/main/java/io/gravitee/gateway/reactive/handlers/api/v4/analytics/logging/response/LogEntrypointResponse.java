@@ -24,6 +24,7 @@ import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.HttpResponseInternal;
 import io.gravitee.gateway.reactive.core.v4.analytics.BufferUtils;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Allows to log the response status, headers and body returned to the client depending on what is configured on the {@link LoggingContext}.
@@ -46,13 +47,21 @@ public class LogEntrypointResponse extends LogResponse {
 
         if (isLogPayload() && loggingContext.isContentTypeLoggable(response.headers().get(HttpHeaderNames.CONTENT_TYPE), ctx)) {
             final Buffer buffer = Buffer.buffer();
+            final AtomicBoolean truncated = new AtomicBoolean();
             if (loggingContext.isBodyLoggable()) {
                 response.chunks(
                     response
                         .chunks()
-                        .doOnNext(chunk -> BufferUtils.appendBuffer(buffer, chunk, loggingContext.getMaxSizeLogMessage()))
+                        .doOnNext(chunk -> {
+                            if (BufferUtils.appendBuffer(buffer, chunk, loggingContext.getMaxSizeLogMessage())) {
+                                truncated.set(true);
+                            }
+                        })
                         .doOnComplete(() -> {
-                            if (buffer.length() > 0) this.setBody(buffer.toString());
+                            if (buffer.length() > 0) {
+                                this.setBody(buffer.toString());
+                                this.setBodyTruncated(truncated.get());
+                            }
                         })
                 );
             } else {

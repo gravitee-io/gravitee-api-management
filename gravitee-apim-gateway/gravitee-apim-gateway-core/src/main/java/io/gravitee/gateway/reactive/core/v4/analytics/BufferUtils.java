@@ -26,14 +26,23 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class BufferUtils {
 
-    public static void appendBuffer(Buffer buffer, Buffer chunk, int maxLength) {
+    /**
+     * Appends the chunk to the buffer, without letting the buffer grow over <code>maxLength</code>.
+     *
+     * @param buffer the buffer to append to.
+     * @param chunk the chunk to append.
+     * @param maxLength the maximum length of the buffer, <code>-1</code> for no limit.
+     * @return <code>true</code> if some bytes of the chunk were dropped to stay within <code>maxLength</code>, <code>false</code> otherwise.
+     */
+    public static boolean appendBuffer(Buffer buffer, Buffer chunk, int maxLength) {
         if (maxLength != -1 && (buffer.length() + chunk.length()) > maxLength) {
             final int remainingSpace = maxLength - buffer.length();
             if (remainingSpace > 0) {
                 buffer.appendBuffer(chunk, remainingSpace);
             }
-        } else {
-            buffer.appendBuffer(chunk);
+            return true;
         }
+        buffer.appendBuffer(chunk);
+        return false;
     }
 }

@@ -125,6 +125,7 @@ class LogEntrypointRequestTest {
 
         assertNull(logRequest.getHeaders());
         assertThat(logRequest.getBody()).isEqualTo(BODY_CONTENT);
+        assertThat(logRequest.isBodyTruncated()).isFalse();
     }
 
     @Test
@@ -166,6 +167,7 @@ class LogEntrypointRequestTest {
 
         assertNull(logRequest.getHeaders());
         assertThat(logRequest.getBody()).isEqualTo(BODY_CONTENT.substring(0, maxPayloadSize));
+        assertThat(logRequest.isBodyTruncated()).isTrue();
     }
 
     @Test
