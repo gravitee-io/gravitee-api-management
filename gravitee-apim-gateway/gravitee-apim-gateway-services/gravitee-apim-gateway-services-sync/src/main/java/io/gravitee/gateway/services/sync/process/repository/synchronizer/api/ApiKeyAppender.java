@@ -21,6 +21,7 @@ import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
+import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMappings;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.api.search.ApiKeyCursor;
@@ -134,7 +135,7 @@ public class ApiKeyAppender {
                         if (!seenKeyIds.add(record.getId())) {
                             continue;
                         }
-                        record
+                        List<ApiKey> mappings = record
                             .getSubscriptions()
                             .stream()
                             .flatMap(subscriptionId -> {
@@ -144,7 +145,10 @@ public class ApiKeyAppender {
                                 }
                                 return subsForId.stream().map(subscription -> apiKeyMapper.to(record, subscription));
                             })
-                            .forEach(apiKey -> grouped.computeIfAbsent(apiKey.getApi(), k -> new ArrayList<>()).add(apiKey));
+                            .toList();
+                        ApiKeyMappings.withoutInactiveMappingsWhereActive(mappings).forEach(apiKey ->
+                            grouped.computeIfAbsent(apiKey.getApi(), k -> new ArrayList<>()).add(apiKey)
+                        );
                     }
                     if (page.size() < bulkItems) {
                         break;

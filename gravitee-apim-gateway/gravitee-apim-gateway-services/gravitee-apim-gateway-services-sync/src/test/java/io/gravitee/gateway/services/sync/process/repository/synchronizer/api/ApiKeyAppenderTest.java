@@ -16,6 +16,7 @@
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -211,5 +212,101 @@ class ApiKeyAppenderTest {
         assertThat(result.get(0).apiKeys())
             .extracting(io.gravitee.gateway.api.service.ApiKey::getId)
             .containsExactlyInAnyOrder("k1", "k2", "k3");
+    }
+
+    @Test
+    void should_drop_the_inactive_mapping_of_a_key_on_an_api_where_the_key_has_an_active_one() throws TechnicalException {
+        ApiReactorDeployable deployable = deployable(
+            "api1",
+            subscription("accepted-sub", "api1", "ACCEPTED"),
+            subscription("closed-sub", "api1", "CLOSED")
+        );
+        givenApiKeys(apiKeyRecord("k1", "shared-key", false, "accepted-sub", "closed-sub"));
+
+        List<ApiReactorDeployable> result = cut.appends(false, List.of(deployable), Set.of("env"));
+
+        assertThat(result.getFirst().apiKeys())
+            .singleElement()
+            .satisfies(apiKey -> {
+                assertThat(apiKey.getId()).isEqualTo("k1");
+                assertThat(apiKey.getSubscription()).isEqualTo("accepted-sub");
+                assertThat(apiKey.isActive()).isTrue();
+            });
+    }
+
+    @Test
+    void should_keep_the_inactive_mapping_of_a_key_on_an_api_where_the_key_has_no_active_one() throws TechnicalException {
+        ApiReactorDeployable api1 = deployable("api1", subscription("accepted-sub", "api1", "ACCEPTED"));
+        ApiReactorDeployable api2 = deployable("api2", subscription("closed-sub", "api2", "CLOSED"));
+        givenApiKeys(apiKeyRecord("k1", "shared-key", false, "accepted-sub", "closed-sub"));
+
+        List<ApiReactorDeployable> result = cut.appends(false, List.of(api1, api2), Set.of("env"));
+
+        assertThat(result.get(0).apiKeys())
+            .singleElement()
+            .satisfies(apiKey -> assertThat(apiKey.isActive()).isTrue());
+        assertThat(result.get(1).apiKeys())
+            .singleElement()
+            .satisfies(apiKey -> {
+                assertThat(apiKey.getSubscription()).isEqualTo("closed-sub");
+                assertThat(apiKey.isActive()).isFalse();
+            });
+    }
+
+    @Test
+    void should_keep_every_mapping_of_a_revoked_key() throws TechnicalException {
+        ApiReactorDeployable deployable = deployable(
+            "api1",
+            subscription("sub-a", "api1", "ACCEPTED"),
+            subscription("sub-b", "api1", "ACCEPTED")
+        );
+        givenApiKeys(apiKeyRecord("k1", "shared-key", true, "sub-a", "sub-b"));
+
+        List<ApiReactorDeployable> result = cut.appends(false, List.of(deployable), Set.of("env"));
+
+        assertThat(result.getFirst().apiKeys())
+            .extracting(io.gravitee.gateway.api.service.ApiKey::getSubscription, io.gravitee.gateway.api.service.ApiKey::isActive)
+            .containsExactlyInAnyOrder(tuple("sub-a", false), tuple("sub-b", false));
+    }
+
+    @Test
+    void should_keep_the_mappings_of_another_key_with_the_same_value() throws TechnicalException {
+        ApiReactorDeployable deployable = deployable("api1", subscription("accepted-sub", "api1", "ACCEPTED"));
+        givenApiKeys(
+            apiKeyRecord("active-key", "my-key", false, "accepted-sub"),
+            apiKeyRecord("revoked-key", "my-key", true, "accepted-sub")
+        );
+
+        List<ApiReactorDeployable> result = cut.appends(false, List.of(deployable), Set.of("env"));
+
+        assertThat(result.getFirst().apiKeys())
+            .extracting(io.gravitee.gateway.api.service.ApiKey::getId, io.gravitee.gateway.api.service.ApiKey::isActive)
+            .containsExactlyInAnyOrder(tuple("active-key", true), tuple("revoked-key", false));
+    }
+
+    private void givenApiKeys(ApiKey... apiKeys) throws TechnicalException {
+        when(apiKeyRepository.searchAfter(any(), any(), any(), any(int.class))).thenReturn(List.of(apiKeys));
+    }
+
+    private static ApiReactorDeployable deployable(String apiId, Subscription... subscriptions) {
+        return ApiReactorDeployable.builder()
+            .apiId(apiId)
+            .reactableApi(mock(ReactableApi.class))
+            .subscriptions(List.of(subscriptions))
+            .apiKeyPlans(Set.of("plan1"))
+            .build();
+    }
+
+    private static Subscription subscription(String id, String api, String status) {
+        return Subscription.builder().id(id).api(api).plan("plan1").status(status).build();
+    }
+
+    private static ApiKey apiKeyRecord(String id, String value, boolean revoked, String... subscriptions) {
+        ApiKey apiKey = new ApiKey();
+        apiKey.setId(id);
+        apiKey.setKey(value);
+        apiKey.setRevoked(revoked);
+        apiKey.setSubscriptions(List.of(subscriptions));
+        return apiKey;
     }
 }
