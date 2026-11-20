@@ -245,6 +245,207 @@ class GenerateApiKeyDomainServiceTest {
         }
 
         @Test
+<<<<<<< HEAD
+=======
+        void keep_subscriptions_attached_to_the_shared_key_after_it_was_read() {
+            // Given another Management API node attached SUBSCRIPTION_ID_2 after this node read the shared key
+            var sharedKey = ApiKeyFixtures.anApiKey()
+                .toBuilder()
+                .id("shared-key")
+                .applicationId(APPLICATION_ID)
+                .subscriptions(List.of("seed-subscription", SUBSCRIPTION_ID_2))
+                .key("shared-key-value")
+                .build();
+            givenApiKeys(sharedKey);
+            var keyAsReadBeforeTheOtherNodeWrote = sharedKey.toBuilder().subscriptions(List.of("seed-subscription")).build();
+            var subscription = SUBSCRIPTION_1.toBuilder().applicationId(APPLICATION_SHARED.getId()).build();
+
+            // When
+            var result = serviceReading(keyAsReadBeforeTheOtherNodeWrote).generate(subscription, AUDIT_INFO, null);
+
+            // Then the stored key and the returned one carry the link written by the other node
+            assertThat(apiKeyCrudService.storage())
+                .singleElement()
+                .satisfies(key ->
+                    assertThat(key.getSubscriptions()).containsExactlyInAnyOrder("seed-subscription", SUBSCRIPTION_ID_2, SUBSCRIPTION_ID_1)
+                );
+            assertThat(result.getId()).isEqualTo("shared-key");
+            assertThat(result.getSubscriptions()).containsExactlyInAnyOrder("seed-subscription", SUBSCRIPTION_ID_2, SUBSCRIPTION_ID_1);
+        }
+
+        @Test
+        void move_the_updatedAt_of_the_shared_key_when_attaching_a_subscription() {
+            // Given a shared key last changed long ago: gateways only fetch the keys whose updatedAt moved since their last sync
+            var sharedKey = ApiKeyFixtures.anApiKey()
+                .toBuilder()
+                .id("shared-key")
+                .applicationId(APPLICATION_ID)
+                .subscriptions(List.of(SUBSCRIPTION_ID_2))
+                .build();
+            givenApiKeys(sharedKey);
+            var subscription = SUBSCRIPTION_1.toBuilder().applicationId(APPLICATION_SHARED.getId()).build();
+
+            // When
+            var result = service.generate(subscription, AUDIT_INFO, null);
+
+            // Then
+            var now = INSTANT_NOW.atZone(ZoneId.systemDefault());
+            assertThat(sharedKey.getUpdatedAt()).isBefore(now);
+            assertThat(apiKeyCrudService.storage())
+                .singleElement()
+                .satisfies(key -> assertThat(key.getUpdatedAt()).isEqualTo(now));
+            assertThat(result.getUpdatedAt()).isEqualTo(now);
+        }
+
+        @Test
+        void attach_the_subscription_to_a_shared_key_stored_without_a_list_of_subscriptions() {
+            // Given a shared key stored with no list of subscriptions, which the repositories treat as an empty one
+            var sharedKey = ApiKeyFixtures.anApiKey()
+                .toBuilder()
+                .id("shared-key")
+                .applicationId(APPLICATION_ID)
+                .subscriptions(null)
+                .build();
+            givenApiKeys(sharedKey);
+            var subscription = SUBSCRIPTION_1.toBuilder().applicationId(APPLICATION_SHARED.getId()).build();
+
+            // When
+            var result = service.generate(subscription, AUDIT_INFO, null);
+
+            // Then
+            assertThat(result.getId()).isEqualTo("shared-key");
+            assertThat(apiKeyCrudService.storage())
+                .singleElement()
+                .satisfies(key -> assertThat(key.getSubscriptions()).containsExactly(SUBSCRIPTION_ID_1));
+        }
+
+        @Test
+        void attach_subscription_to_the_previous_and_the_renewed_key_during_the_renewal_overlap() {
+            // Given a renewed shared key: the previous key still works for 2 hours, an older one was revoked
+            var previousKey = ApiKeyFixtures.anApiKey()
+                .toBuilder()
+                .id("previous-key")
+                .applicationId(APPLICATION_ID)
+                .subscriptions(List.of(SUBSCRIPTION_ID_2))
+                .key("previous-key-value")
+                .expireAt(INSTANT_NOW.plusSeconds(7200).atZone(ZoneId.systemDefault()))
+                .build();
+            var renewedKey = previousKey.toBuilder().id("renewed-key").key("renewed-key-value").expireAt(null).build();
+            var revokedKey = previousKey.toBuilder().id("revoked-key").key("revoked-key-value").revoked(true).build();
+            givenApiKeys(previousKey, renewedKey, revokedKey);
+            var subscription = SUBSCRIPTION_1.toBuilder().applicationId(APPLICATION_SHARED.getId()).build();
+
+            // When
+            var result = service.generate(subscription, AUDIT_INFO, null);
+
+            // Then
+            assertThat(result.getId()).isEqualTo("renewed-key");
+            assertThat(apiKeyCrudService.storage()).hasSize(3);
+            assertThat(apiKeyCrudService.storage())
+                .filteredOn(key -> "revoked-key".equals(key.getId()))
+                .singleElement()
+                .satisfies(key -> assertThat(key.getSubscriptions()).containsExactly(SUBSCRIPTION_ID_2));
+            assertThat(apiKeyCrudService.storage())
+                .filteredOn(key -> !"revoked-key".equals(key.getId()))
+                .allSatisfy(key -> assertThat(key.getSubscriptions()).containsExactlyInAnyOrder(SUBSCRIPTION_ID_2, SUBSCRIPTION_ID_1));
+        }
+
+        @Test
+        void do_not_attach_subscription_to_a_revoked_key_that_shares_the_active_value() {
+            var revoked = ApiKeyFixtures.anApiKey()
+                .toBuilder()
+                .id("revoked-key")
+                .applicationId(APPLICATION_ID)
+                .subscriptions(List.of("closed-orders"))
+                .key("my-key")
+                .revoked(true)
+                .revokedAt(INSTANT_NOW.minusSeconds(3600).atZone(ZoneId.systemDefault()))
+                .build();
+            var active = revoked
+                .toBuilder()
+                .id("active-key")
+                .subscriptions(List.of("customers"))
+                .key("my-key")
+                .revoked(false)
+                .revokedAt(null)
+                .build();
+            givenApiKeys(revoked, active);
+            var subscription = SUBSCRIPTION_1.toBuilder().applicationId(APPLICATION_SHARED.getId()).build();
+
+            var result = service.generate(subscription, AUDIT_INFO, null);
+
+            assertThat(result.getId()).isEqualTo("active-key");
+            assertThat(apiKeyCrudService.storage())
+                .filteredOn(key -> "revoked-key".equals(key.getId()))
+                .singleElement()
+                .satisfies(key -> {
+                    assertThat(key.isRevoked()).isTrue();
+                    assertThat(key.getSubscriptions()).containsExactly("closed-orders");
+                });
+            assertThat(apiKeyCrudService.storage())
+                .filteredOn(key -> "active-key".equals(key.getId()))
+                .singleElement()
+                .satisfies(key -> assertThat(key.getSubscriptions()).containsExactlyInAnyOrder("customers", SUBSCRIPTION_ID_1));
+        }
+
+        @Test
+        void still_attach_subscription_to_an_expired_key_while_a_live_key_exists() {
+            var expired = ApiKeyFixtures.anApiKey()
+                .toBuilder()
+                .id("expired-key")
+                .applicationId(APPLICATION_ID)
+                .subscriptions(List.of(SUBSCRIPTION_ID_2))
+                .key("previous-key-value")
+                .revoked(false)
+                .expireAt(INSTANT_NOW.minusSeconds(60).atZone(ZoneId.systemDefault()))
+                .build();
+            var live = expired.toBuilder().id("live-key").key("live-key-value").expireAt(null).build();
+            var revoked = expired.toBuilder().id("revoked-key").key("revoked-key-value").revoked(true).expireAt(null).build();
+            givenApiKeys(expired, live, revoked);
+            var subscription = SUBSCRIPTION_1.toBuilder().applicationId(APPLICATION_SHARED.getId()).build();
+
+            var result = service.generate(subscription, AUDIT_INFO, null);
+
+            assertThat(result.getId()).isEqualTo("live-key");
+            assertThat(apiKeyCrudService.storage())
+                .filteredOn(key -> "expired-key".equals(key.getId()) || "live-key".equals(key.getId()))
+                .allSatisfy(key -> assertThat(key.getSubscriptions()).containsExactlyInAnyOrder(SUBSCRIPTION_ID_2, SUBSCRIPTION_ID_1));
+            assertThat(apiKeyCrudService.storage())
+                .filteredOn(key -> "revoked-key".equals(key.getId()))
+                .singleElement()
+                .satisfies(key -> assertThat(key.getSubscriptions()).containsExactly(SUBSCRIPTION_ID_2));
+        }
+
+        @Test
+        void attach_a_federated_subscription_to_revoked_keys_when_none_is_live() {
+            var revoked = ApiKeyFixtures.anApiKey()
+                .toBuilder()
+                .id("revoked-key")
+                .applicationId(APPLICATION_ID)
+                .subscriptions(List.of(SUBSCRIPTION_ID_2))
+                .key("old-key")
+                .revoked(true)
+                .revokedAt(INSTANT_NOW.minusSeconds(3600).atZone(ZoneId.systemDefault()))
+                .build();
+            givenApiKeys(revoked);
+            var subscription = SUBSCRIPTION_1.toBuilder()
+                .applicationId(APPLICATION_SHARED.getId())
+                .referenceId("product-1")
+                .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                .apiId(null)
+                .build();
+
+            var result = service.generateForFederated(subscription, AUDIT_INFO, "ignored-custom");
+
+            assertThat(result.getId()).isEqualTo("revoked-key");
+            assertThat(apiKeyCrudService.storage())
+                .filteredOn(key -> "revoked-key".equals(key.getId()))
+                .singleElement()
+                .satisfies(key -> assertThat(key.getSubscriptions()).containsExactlyInAnyOrder(SUBSCRIPTION_ID_2, SUBSCRIPTION_ID_1));
+        }
+
+        @Test
+>>>>>>> 5547546 (fix: keep active shared key when inactive one is redeployed and skip revoked keys when attaching shared subscription)
         void generate_new_key_when_no_key_exists() {
             // Given
             var subscription = SUBSCRIPTION_1.toBuilder().applicationId(APPLICATION_SHARED.getId()).build();
