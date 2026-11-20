@@ -15,9 +15,11 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4;
 
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -25,7 +27,10 @@ import static org.mockito.Mockito.when;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
 import io.gravitee.gateway.reactive.api.message.Message;
+import io.gravitee.gateway.reactive.api.policy.base.BasePolicy;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
@@ -36,6 +41,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.FlowableTransformer;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -157,6 +163,72 @@ class ApiProductPlanResourceScopeTest {
         assertThat(activeProvider.get()).isSameAs(apiProvider);
         assertThat(apiBefore.get()).isSameAs(apiManager);
         assertThat(apiAfter.get()).isSameAs(apiManager);
+    }
+
+    @Test
+    void invoker_registered_through_the_scoped_context_resolves_the_product_manager_when_invoked() {
+        MutableExecutionContext ctx = mock(MutableExecutionContext.class);
+        ResourceLifecycleManager apiManager = mock(ResourceLifecycleManager.class);
+        ResourceLifecycleManager productManager = mock(ResourceLifecycleManager.class);
+        when(ctx.getComponent(eq(ResourceManager.class))).thenReturn(apiManager);
+        AtomicReference<Object> stored = new AtomicReference<>();
+        doAnswer(invocation -> {
+            stored.set(invocation.getArgument(1));
+            return null;
+        })
+            .when(ctx)
+            .setInternalAttribute(eq(ATTR_INTERNAL_INVOKER), any());
+
+        HttpInvoker installed = mock(HttpInvoker.class);
+        when(installed.getId()).thenReturn("cache-endpoint-invoker");
+        AtomicReference<ResourceManager> seen = new AtomicReference<>();
+        when(installed.invoke(any())).thenAnswer(invocation -> {
+            seen.set(invocation.getArgument(0, HttpExecutionContext.class).getComponent(ResourceManager.class));
+            return Completable.complete();
+        });
+
+        ApiProductPlanResourceScope.withProductResourceManager(ctx, providerFor(apiManager), productManager, scopedCtx -> {
+            scopedCtx.setInternalAttribute(ATTR_INTERNAL_INVOKER, installed);
+            return Completable.complete();
+        }).blockingAwait();
+
+        assertThat(stored.get()).isInstanceOf(HttpInvoker.class);
+        HttpInvoker storedInvoker = (HttpInvoker) stored.get();
+        assertThat(storedInvoker.getId()).isEqualTo("cache-endpoint-invoker");
+        storedInvoker.invoke(ctx).blockingAwait();
+
+        assertThat(seen.get()).isSameAs(productManager);
+        assertThat(ctx.getComponent(ResourceManager.class)).isSameAs(apiManager);
+    }
+
+    @Test
+    void endpoint_request_action_registered_through_the_scoped_context_resolves_the_product_manager() {
+        MutableExecutionContext ctx = mock(MutableExecutionContext.class);
+        ResourceLifecycleManager apiManager = mock(ResourceLifecycleManager.class);
+        ResourceLifecycleManager productManager = mock(ResourceLifecycleManager.class);
+        when(ctx.getComponent(eq(ResourceManager.class))).thenReturn(apiManager);
+        AtomicReference<Function<HttpExecutionContext, Completable>> stored = new AtomicReference<>();
+        doAnswer(invocation -> {
+            stored.set(invocation.getArgument(1));
+            return null;
+        })
+            .when(ctx)
+            .addActionOnEndpointRequest(any(), any());
+        BasePolicy policy = mock(BasePolicy.class);
+        AtomicReference<ResourceManager> seen = new AtomicReference<>();
+
+        ApiProductPlanResourceScope.withProductResourceManager(ctx, providerFor(apiManager), productManager, scopedCtx -> {
+            scopedCtx.addActionOnEndpointRequest(policy, actionCtx -> {
+                seen.set(actionCtx.getComponent(ResourceManager.class));
+                return Completable.complete();
+            });
+            return Completable.complete();
+        }).blockingAwait();
+
+        stored.get().apply(ctx).blockingAwait();
+
+        assertThat(seen.get()).isSameAs(productManager);
+        assertThat(ctx.getComponent(ResourceManager.class)).isSameAs(apiManager);
     }
 
     private static CustomComponentProvider providerComponents(ResourceLifecycleManager manager) {
