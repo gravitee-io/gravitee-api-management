@@ -19,6 +19,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
@@ -26,6 +27,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -66,6 +68,7 @@ class ServerlessIndexPreparerTest {
     private static final String ACKNOWLEDGED = "{\"acknowledged\":true}";
     private static final String REQUEST_TEMPLATE = "/_index_template/gravitee-request";
     private static final String REQUEST_LIFECYCLE = "/_data_stream/gravitee-request/_lifecycle";
+    private static final String V4_LOG_LIFECYCLE = "/_data_stream/gravitee-v4-log/_lifecycle";
 
     @RegisterExtension
     static WireMockExtension elasticsearch = WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
@@ -123,7 +126,7 @@ class ServerlessIndexPreparerTest {
         @Test
         void should_keep_a_template_written_by_a_newer_apim_and_the_retention_of_its_data_stream() {
             stubRequestTemplate(managedTemplate("4.15.0", "90d"));
-            stubRequestLifecycle("90d");
+            stubRequestLifecycle("30d");
 
             prepare().test().awaitDone(10, SECONDS).assertComplete();
 
@@ -133,6 +136,7 @@ class ServerlessIndexPreparerTest {
             assertThat(messages(Level.INFO)).anySatisfy(message ->
                 assertThat(message).contains("[gravitee-request]").contains("4.15.0").contains(APIM_VERSION)
             );
+            assertThat(messages(Level.ERROR)).isEmpty();
         }
 
         @Test
@@ -222,6 +226,40 @@ class ServerlessIndexPreparerTest {
             prepare().test().awaitDone(10, SECONDS).assertComplete();
 
             elasticsearch.verify(0, putRequestedFor(urlEqualTo(REQUEST_LIFECYCLE)));
+            assertThat(messages(Level.ERROR)).isEmpty();
+        }
+
+        @Test
+        void should_settle_each_type_once_across_the_setup_retries() {
+            stubRequestLifecycle("90d");
+            elasticsearch.stubFor(
+                get(urlEqualTo(V4_LOG_LIFECYCLE)).willReturn(
+                    okJson(
+                        "{\"data_streams\":[{\"name\":\"gravitee-v4-log\",\"lifecycle\":{\"enabled\":true,\"data_retention\":\"30d\"}}]}"
+                    )
+                )
+            );
+            elasticsearch.stubFor(
+                put(urlEqualTo(V4_LOG_LIFECYCLE))
+                    .inScenario("v4-log lifecycle")
+                    .whenScenarioStateIs(STARTED)
+                    .willReturn(aResponse().withStatus(403).withBody("{\"error\":{\"type\":\"security_exception\"},\"status\":403}"))
+                    .willSetStateTo("granted")
+            );
+            elasticsearch.stubFor(
+                put(urlEqualTo(V4_LOG_LIFECYCLE))
+                    .inScenario("v4-log lifecycle")
+                    .whenScenarioStateIs("granted")
+                    .willReturn(okJson(ACKNOWLEDGED))
+            );
+
+            prepare().test().awaitDone(10, SECONDS).assertComplete();
+
+            elasticsearch.verify(2, putRequestedFor(urlEqualTo(V4_LOG_LIFECYCLE)));
+            elasticsearch.verify(1, getRequestedFor(urlEqualTo(REQUEST_LIFECYCLE)));
+            assertThat(messages(Level.ERROR))
+                .singleElement()
+                .satisfies(message -> assertThat(message).contains("[gravitee-request]"));
         }
 
         @Test
