@@ -25,6 +25,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.times;
 
+import io.gravitee.apim.core.template.TemplateProcessorException;
+import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
+import io.gravitee.definition.model.EndpointGroup;
+import io.gravitee.definition.model.HttpProxy;
+import io.gravitee.definition.model.Proxy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MetadataRepository;
 import io.gravitee.repository.management.model.Metadata;
@@ -39,16 +44,20 @@ import io.gravitee.rest.api.service.exceptions.DuplicateMetadataNameException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
+import java.io.Reader;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -74,6 +83,8 @@ public class ApiMetadataServiceTest {
     private static final String API_METADATA_VALUE = "APIMETVALUE";
     private static final String API_ID_NO_VALUE = "API456";
     private static final String METADATA_KEY_NO_VALUE = "MET456";
+    private static final String PROXY_PASSWORD_TEMPLATE = "${(api.proxy.groups?first.httpProxy.password)!'not-exposed'}";
+    private static final String API_DATA_TEMPLATE = "${api.id}|${api.name}|${api.version}|${api.primaryOwner.email}|${api.visibility}";
 
     @InjectMocks
     private final ApiMetadataService apiMetadataService = new ApiMetadataServiceImpl();
@@ -138,6 +149,7 @@ public class ApiMetadataServiceTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(API_ID);
         when(apiSearchService.findGenericById(any(), any(), eq(false), eq(false), eq(true))).thenReturn(apiEntity);
+        when(apiSearchService.findGenericById(any(), any(), eq(false), eq(false), eq(false))).thenReturn(apiEntity);
         GraviteeContext.setCurrentEnvironment(ENV_ID);
     }
 
@@ -441,5 +453,54 @@ public class ApiMetadataServiceTest {
             ),
             eq(API_ID)
         );
+    }
+
+    @Test
+    void should_not_expose_api_definition_to_templates_when_fetching_metadata() throws TemplateProcessorException {
+        when(notificationTemplateService.resolveInlineTemplateWithParam(any(), any(), any(Reader.class), any())).thenReturn("{}");
+
+        apiMetadataService.fetchMetadataForApi(GraviteeContext.getExecutionContext(), aV2ApiWithProxyPassword());
+
+        var params = ArgumentCaptor.forClass(Object.class);
+        verify(notificationTemplateService).resolveInlineTemplateWithParam(any(), any(), any(Reader.class), params.capture());
+        Assertions.assertThat(render(PROXY_PASSWORD_TEMPLATE, params.getValue())).isEqualTo("not-exposed");
+        Assertions.assertThat(render(API_DATA_TEMPLATE, params.getValue())).isEqualTo(API_ID + "|My API|1.0|owner@gravitee.io|PUBLIC");
+    }
+
+    @Test
+    void should_not_expose_api_definition_to_templates_when_checking_metadata_format() throws TemplateProcessorException {
+        when(apiSearchService.findGenericById(any(), eq(API_ID), eq(false), eq(false), eq(false))).thenReturn(aV2ApiWithProxyPassword());
+        final NewApiMetadataEntity newApiMetadataEntity = new NewApiMetadataEntity();
+        newApiMetadataEntity.setApiId(API_ID);
+        newApiMetadataEntity.setFormat(MetadataFormat.STRING);
+        newApiMetadataEntity.setName("proxy password");
+        newApiMetadataEntity.setValue(PROXY_PASSWORD_TEMPLATE);
+
+        apiMetadataService.create(GraviteeContext.getExecutionContext(), newApiMetadataEntity);
+
+        var api = ArgumentCaptor.forClass(Object.class);
+        verify(metadataService).checkMetadataFormat(any(), eq(MetadataFormat.STRING), eq(PROXY_PASSWORD_TEMPLATE), any(), api.capture());
+        Assertions.assertThat(render(PROXY_PASSWORD_TEMPLATE, Map.of("api", api.getValue()))).isEqualTo("not-exposed");
+        Assertions.assertThat(render(API_DATA_TEMPLATE, Map.of("api", api.getValue()))).isEqualTo(
+            API_ID + "|My API|1.0|owner@gravitee.io|PUBLIC"
+        );
+    }
+
+    private static io.gravitee.rest.api.model.api.ApiEntity aV2ApiWithProxyPassword() {
+        var httpProxy = new HttpProxy();
+        httpProxy.setPassword("proxy-secret");
+        var api = new io.gravitee.rest.api.model.api.ApiEntity();
+        api.setId(API_ID);
+        api.setName("My API");
+        api.setVersion("1.0");
+        api.setVisibility(Visibility.PUBLIC);
+        api.setPrimaryOwner(PrimaryOwnerEntity.builder().id("owner").email("owner@gravitee.io").type("USER").build());
+        api.setProxy(Proxy.builder().groups(Set.of(EndpointGroup.builder().name("default").httpProxy(httpProxy).build())).build());
+        return api;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static String render(String template, Object params) throws TemplateProcessorException {
+        return new FreemarkerTemplateProcessor().processInlineTemplate(template, (Map<String, Object>) params);
     }
 }
