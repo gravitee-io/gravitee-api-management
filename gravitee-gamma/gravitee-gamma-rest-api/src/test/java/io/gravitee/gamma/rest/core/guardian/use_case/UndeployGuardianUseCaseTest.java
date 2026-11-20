@@ -20,6 +20,7 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDIAN_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianDefinition;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianUsage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
@@ -68,7 +69,7 @@ class UndeployGuardianUseCaseTest {
     }
 
     private UndeployGuardianUseCase useCase(InMemoryGuardianRepository store, GuardianPublicationFixture events) {
-        return new UndeployGuardianUseCase(store, events.service(store), audits.service);
+        return new UndeployGuardianUseCase(store, events.service(store), audits.service, aGuardianUsage());
     }
 
     @Test

@@ -17,11 +17,9 @@ package io.gravitee.gamma.rest.infra.adapter;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
-import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianSearchQuery;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
 import io.gravitee.repository.management.api.search.GuardianCriteria;
@@ -29,11 +27,11 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
-import java.io.IOException;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
 
@@ -49,9 +47,8 @@ import org.springframework.dao.DuplicateKeyException;
  * {@code deployed_at} are carried too, but the core derives both from the Guardian's publications and
  * writes back only what it read.
  *
- * <p>Three translations the core must not know about: the serialization above, the phase enum, which
- * the SPI declares as its own, and the {@link Instant} timestamps, which it declares as
- * {@link Date}.
+ * <p>The three translations the core must not know about — the serialization above, the enums the SPI declares as its
+ * own and the {@link Instant} timestamps it declares as {@link Date} — live in {@link GuardianRepositoryMapper}.
  *
  * <p>Paging also shifts here: the core counts pages from one, the way the console does, and the SPI
  * counts from zero. The sort string arrives already validated by the use case, so this class only
@@ -68,7 +65,7 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
     public Guardian create(Guardian guardian) {
         try {
             return RepositoryCalls.wrap(
-                () -> toCore(guardianRepository.create(toRepository(guardian))),
+                () -> GuardianRepositoryMapper.toCore(guardianRepository.create(GuardianRepositoryMapper.toRepository(guardian))),
                 "Failed to create guardian '%s'".formatted(guardian.getId())
             );
         } catch (RuntimeException e) {
@@ -102,7 +99,18 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
             () -> guardianRepository.findById(guardianId),
             "Failed to fetch guardian '%s' for environment '%s'".formatted(guardianId, environmentId)
         );
-        return found.filter(guardian -> environmentId.equals(guardian.getEnvironmentId())).map(GammaGuardianRepositoryAdapter::toCore);
+        return found.filter(guardian -> environmentId.equals(guardian.getEnvironmentId())).map(GuardianRepositoryMapper::toCore);
+    }
+
+    @Override
+    public List<Guardian> findByEnvironmentIdAndIds(String environmentId, Set<String> guardianIds) {
+        return RepositoryCalls.wrap(
+            () -> guardianRepository.findByEnvironmentIdAndIds(environmentId, guardianIds),
+            "Failed to fetch Guardians for environment '%s'".formatted(environmentId)
+        )
+            .stream()
+            .map(GuardianRepositoryMapper::toCore)
+            .toList();
     }
 
     @Override
@@ -112,7 +120,7 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
             "Failed to fetch guardians named '%s' for environment '%s'".formatted(name, environmentId)
         )
             .stream()
-            .map(GammaGuardianRepositoryAdapter::toCore)
+            .map(GuardianRepositoryMapper::toCore)
             .toList();
     }
 
@@ -131,7 +139,7 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
     public Guardian update(Guardian guardian) {
         try {
             return RepositoryCalls.wrap(
-                () -> toCore(guardianRepository.update(toRepository(guardian))),
+                () -> GuardianRepositoryMapper.toCore(guardianRepository.update(GuardianRepositoryMapper.toRepository(guardian))),
                 "Failed to update guardian '%s'".formatted(guardian.getId())
             );
         } catch (RuntimeException e) {
@@ -211,7 +219,7 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
         );
 
         return new Page<>(
-            page.getContent().stream().map(GammaGuardianRepositoryAdapter::toCore).toList(),
+            page.getContent().stream().map(GuardianRepositoryMapper::toCore).toList(),
             query.pageNumber(),
             (int) page.getPageElements(),
             page.getTotalElements()
@@ -232,73 +240,5 @@ public class GammaGuardianRepositoryAdapter implements GuardianRepository {
         }
         var ascending = !sortBy.startsWith("-");
         return new SortableBuilder().field(ascending ? sortBy : sortBy.substring(1)).setAsc(ascending).build();
-    }
-
-    private static Guardian toCore(io.gravitee.repository.management.model.Guardian source) {
-        if (source == null) {
-            return null;
-        }
-        return Guardian.builder()
-            .definition(deserialize(source.getDefinition(), source.getId()))
-            .description(source.getDescription())
-            .lifecycleState(source.getLifecycleState() == null ? null : GuardianLifecycleState.valueOf(source.getLifecycleState().name()))
-            .deployedAt(toInstant(source.getDeployedAt()))
-            .createdAt(toInstant(source.getCreatedAt()))
-            .updatedAt(toInstant(source.getUpdatedAt()))
-            .build();
-    }
-
-    private static io.gravitee.repository.management.model.Guardian toRepository(Guardian source) {
-        var target = new io.gravitee.repository.management.model.Guardian();
-        target.setDefinition(serialize(source.getDefinition(), source.getId()));
-        target.setId(source.getId());
-        target.setEnvironmentId(source.getEnvironmentId());
-        target.setName(source.getName());
-        target.setDescription(source.getDescription());
-        target.setPhase(
-            source.getPhase() == null ? null : io.gravitee.repository.management.model.Guardian.Phase.valueOf(source.getPhase().name())
-        );
-        target.setLifecycleState(
-            source.getLifecycleState() == null
-                ? null
-                : io.gravitee.repository.management.model.GuardianLifecycleState.valueOf(source.getLifecycleState().name())
-        );
-        target.setDeployedAt(toDate(source.getDeployedAt()));
-        target.setCreatedAt(toDate(source.getCreatedAt()));
-        target.setUpdatedAt(toDate(source.getUpdatedAt()));
-        return target;
-    }
-
-    /**
-     * Reads the stored definition, or fails. A row whose definition cannot be read carries no name, no
-     * phase and no guardrail sequence, so returning a half-built Guardian would hand the console an
-     * entry it can neither render nor repair; the search maps every row, so one such row fails the
-     * whole page rather than itself, which is the point.
-     */
-    private static io.gravitee.definition.model.v4.guardian.Guardian deserialize(String definition, String guardianId) {
-        if (definition == null || definition.isBlank()) {
-            throw new TechnicalDomainException("Guardian '%s' has no stored definition.".formatted(guardianId));
-        }
-        try {
-            return GraviteeJacksonMapper.getInstance().readValue(definition, io.gravitee.definition.model.v4.guardian.Guardian.class);
-        } catch (IOException e) {
-            throw new TechnicalDomainException("Failed to read the definition of guardian '%s'.".formatted(guardianId), e);
-        }
-    }
-
-    private static String serialize(io.gravitee.definition.model.v4.guardian.Guardian definition, String guardianId) {
-        try {
-            return GraviteeJacksonMapper.getInstance().writeValueAsString(definition);
-        } catch (IOException e) {
-            throw new TechnicalDomainException("Failed to write the definition of guardian '%s'.".formatted(guardianId), e);
-        }
-    }
-
-    private static Instant toInstant(Date date) {
-        return date == null ? null : date.toInstant();
-    }
-
-    private static Date toDate(Instant instant) {
-        return instant == null ? null : Date.from(instant);
     }
 }

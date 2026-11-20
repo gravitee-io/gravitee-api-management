@@ -190,6 +190,7 @@ public class ApiMapper {
 
                 apiEntity.setFlowExecution(apiDefinition.getFlowExecution());
                 apiEntity.setFlows(apiDefinition.getFlows());
+                apiEntity.setInternalFlow(apiDefinition.getInternalFlow());
 
                 apiEntity.setResponseTemplates(apiDefinition.getResponseTemplates());
 

@@ -22,6 +22,7 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aDeployGuardianUseCase;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianDefinition;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianUsage;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidator;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aPolicyPluginProvider;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,6 +42,7 @@ import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
 import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDraftDomainService;
+import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianUsageDomainService;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianDeploymentNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
@@ -75,14 +77,16 @@ class RollbackGuardianUseCaseTest {
     private final InMemoryPolicyValidation policyValidation = new InMemoryPolicyValidation();
 
     private final ValidateGuardianDomainService validator = aGuardianValidator(repository, aPolicyPluginProvider(), policyValidation);
+    private final GuardianUsageDomainService usage = aGuardianUsage();
     private final GuardianDraftDomainService drafts = new GuardianDraftDomainService(
         repository,
         validator,
         audits.service,
-        deploymentService
+        deploymentService,
+        usage
     );
     private final DeployGuardianUseCase deploy = aDeployGuardianUseCase(repository, deploymentService, audits.service);
-    private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(repository, deploymentService, audits.service);
+    private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(repository, deploymentService, audits.service, usage);
     private final UpdateGuardianUseCase update = new UpdateGuardianUseCase(repository, validator, drafts);
     private final RollbackGuardianUseCase rollback = new RollbackGuardianUseCase(repository, validator, publications.store(), drafts);
     private final AuditInfo actor = AuditInfo.builder()

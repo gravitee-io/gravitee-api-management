@@ -17,8 +17,17 @@ package io.gravitee.gamma.rest.infra.config;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.crud_service.ApiDefinitionCrudService;
+import io.gravitee.apim.core.api.domain_service.DeployApiInternalFlowDomainService;
+import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.deployment.domain_service.ApiDeploymentValidator;
+import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateApiGuardiansDomainService;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
+import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardedApiPort;
 import io.gravitee.gamma.rest.infra.adapter.GammaGuardianRepositoryAdapter;
+import io.gravitee.gamma.rest.infra.adapter.GuardedApiPortAdapter;
+import io.gravitee.gamma.rest.infra.adapter.GuardiansDeploymentValidatorAdapter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -50,5 +59,21 @@ public class GammaGuardiansConfiguration {
         @Lazy io.gravitee.repository.management.api.GuardianRepository guardianRepository
     ) {
         return new GammaGuardianRepositoryAdapter(guardianRepository);
+    }
+
+    @Bean
+    public GuardedApiPort gammaGuardedApiPort(
+        ApiCrudService apiCrudService,
+        ApiQueryService apiQueryService,
+        ApiDefinitionCrudService apiDefinitionCrudService,
+        DeployApiInternalFlowDomainService deployApiInternalFlow
+    ) {
+        return new GuardedApiPortAdapter(apiCrudService, apiQueryService, apiDefinitionCrudService, deployApiInternalFlow);
+    }
+
+    /** Collected by APIM with the other {@link ApiDeploymentValidator}s, so a deployment runs it. */
+    @Bean
+    public ApiDeploymentValidator gammaGuardiansDeploymentValidator(ValidateApiGuardiansDomainService validateApiGuardians) {
+        return new GuardiansDeploymentValidatorAdapter(validateApiGuardians);
     }
 }

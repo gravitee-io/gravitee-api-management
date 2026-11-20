@@ -30,6 +30,7 @@ import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -52,7 +53,12 @@ public class GuardianDeploymentDomainService {
     private final JsonDeserializer jsonDeserializer;
 
     public GuardianDeployment current(Guardian guardian) {
-        return publications.findAll(guardian.getEnvironmentId(), Set.of(guardian.getId())).get(guardian.getId());
+        return current(guardian.getEnvironmentId(), Set.of(guardian.getId())).get(guardian.getId());
+    }
+
+    /** The latest publication or withdrawal of each Guardian, in one read, missing from the map when it has none. */
+    public Map<String, GuardianDeployment> current(String environmentId, Set<String> guardianIds) {
+        return publications.findAll(environmentId, guardianIds);
     }
 
     /**

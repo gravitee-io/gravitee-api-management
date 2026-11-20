@@ -20,12 +20,14 @@ import io.gravitee.gamma.rest.core.guardian.use_case.DeleteGuardianUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.DeployGuardianUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.GetGuardianDeploymentUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.GetGuardianUseCase;
+import io.gravitee.gamma.rest.core.guardian.use_case.ListGuardianApisUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.ListGuardianDeploymentsUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.RollbackGuardianUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.UndeployGuardianUseCase;
 import io.gravitee.gamma.rest.core.guardian.use_case.UpdateGuardianUseCase;
 import io.gravitee.gamma.rest.resources.CurrentAuditInfo;
 import io.gravitee.gamma.rest.resources.dto.PaginatedResponseDto;
+import io.gravitee.gamma.rest.resources.guardian.dto.ApiReferenceDto;
 import io.gravitee.gamma.rest.resources.guardian.dto.DeployGuardianRequestDto;
 import io.gravitee.gamma.rest.resources.guardian.dto.GuardianDeploymentDetailDto;
 import io.gravitee.gamma.rest.resources.guardian.dto.GuardianDeploymentDto;
@@ -60,19 +62,22 @@ import jakarta.ws.rs.core.Response;
  *   <li>{@code GET} — the Guardian, or {@code 404} when the id is unknown <em>or belongs to another
  *       environment</em>: the answer is the same either way, so a 404 never confirms that an id
  *       exists elsewhere.</li>
- *   <li>{@code PUT} — replaces the whole definition. A field the payload leaves out is left out of
+ *   <li>{@code PUT} — replaces the whole definition; {@code 409} when it would move a Guardian enabled on an API to
+ *       another phase or to other API types. A field the payload leaves out is left out of
  *       the stored definition too; only the identity and the deployment stamp are kept back.</li>
  *   <li>{@code POST /_deploy} — publishes the current draft with an optional deployment label.</li>
- *   <li>{@code POST /_undeploy} — withdraws the publication while preserving the draft.</li>
+ *   <li>{@code POST /_undeploy} — withdraws the publication while preserving the draft; {@code 409} while the
+ *       Guardian is enabled on an API.</li>
  *   <li>{@code GET /deployments?page=&perPage=} — the deployed revisions, newest first, paginated
  *       (1-based); withdrawals are not revisions and are left out.</li>
  *   <li>{@code GET /deployments/{deploymentId}} — one revision with the definition it deployed, or {@code 404}
  *       when the id is not a deployment of this Guardian.</li>
  *   <li>{@code POST /deployments/{deploymentId}/_rollback} — replaces the draft with the definition of that
  *       revision, keeping the description, without deploying it; the checks of a {@code PUT} apply.</li>
+ *   <li>{@code GET /apis} — the APIs of the environment running the Guardian, by name, limited to those the
+ *       caller may read.</li>
  *   <li>{@code DELETE} — {@code 204}, or {@code 409} while the Guardian has an active publication:
- *       {@code _undeploy} withdraws it first. The PRD's refusal to delete a Guardian enabled on an
- *       API waits on the API-Guardian association (AIAM-1533).</li>
+ *       {@code _undeploy} withdraws it first. {@code 409} as well while an API runs it, counting them.</li>
  * </ul>
  *
  * @author GraviteeSource Team
@@ -104,6 +109,9 @@ public class GuardianResource {
     @Inject
     private RollbackGuardianUseCase rollbackGuardianUseCase;
 
+    @Inject
+    private ListGuardianApisUseCase listGuardianApisUseCase;
+
     @POST
     @Path("/_undeploy")
     @GraviteeLicenseFeature(GuardiansResource.GUARDIANS_LICENSE_FEATURE)
@@ -123,6 +131,27 @@ public class GuardianResource {
             new DeployGuardianUseCase.Input(CurrentAuditInfo.of(), guardianId, request == null ? null : request.deploymentLabel())
         );
         return GuardianDto.from(output.guardian());
+    }
+
+    @GET
+    @Path("/apis")
+    @GraviteeLicenseFeature(GuardiansResource.GUARDIANS_LICENSE_FEATURE)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GUARDIAN, acls = { RolePermissionAction.READ }) })
+    public PaginatedResponseDto<ApiReferenceDto> listApis(
+        @PathParam("guardianId") String guardianId,
+        @QueryParam("page") Integer page,
+        @QueryParam("perPage") Integer perPage
+    ) {
+        var output = listGuardianApisUseCase.execute(
+            new ListGuardianApisUseCase.Input(CurrentAuditInfo.of(), guardianId, page == null ? 0 : page, perPage == null ? 0 : perPage)
+        );
+        var apis = output.apis();
+        return PaginatedResponseDto.of(
+            apis.getContent().stream().map(ApiReferenceDto::from).toList(),
+            apis.getTotalElements(),
+            (int) apis.getPageNumber(),
+            output.perPage()
+        );
     }
 
     @GET

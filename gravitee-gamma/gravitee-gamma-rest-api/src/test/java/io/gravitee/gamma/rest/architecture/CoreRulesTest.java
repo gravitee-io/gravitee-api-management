@@ -28,6 +28,8 @@ import com.tngtech.archunit.lang.ArchRule;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
 
@@ -87,5 +89,12 @@ class CoreRulesTest {
                     equivalentTo(InvalidDataException.class)
                 )
                 .or(equivalentTo(PluginNotFoundException.class))
+                .or(
+                    // how PermissionDomainService, an apim core service, names a permission and an action: naming
+                    // the one the Guardian domain filters API names against cannot avoid them, and a port only to
+                    // rename them would have been a pass-through.
+                    equivalentTo(RolePermission.class)
+                )
+                .or(equivalentTo(RolePermissionAction.class))
         );
 }

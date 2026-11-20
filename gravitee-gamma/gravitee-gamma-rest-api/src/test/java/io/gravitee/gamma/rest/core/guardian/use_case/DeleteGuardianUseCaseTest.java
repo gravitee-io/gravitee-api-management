@@ -21,6 +21,7 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aDeployGuardianUseCase;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianDefinition;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianUsage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
@@ -51,8 +52,18 @@ class DeleteGuardianUseCaseTest {
     private final GuardianAuditFixture audits = new GuardianAuditFixture();
     private final GuardianDeploymentDomainService deploymentService = publications.service(guardianRepository);
     private final DeployGuardianUseCase deploy = aDeployGuardianUseCase(guardianRepository, deploymentService, audits.service);
-    private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(guardianRepository, deploymentService, audits.service);
-    private final DeleteGuardianUseCase useCase = new DeleteGuardianUseCase(guardianRepository, audits.service, deploymentService);
+    private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(
+        guardianRepository,
+        deploymentService,
+        audits.service,
+        aGuardianUsage()
+    );
+    private final DeleteGuardianUseCase useCase = new DeleteGuardianUseCase(
+        guardianRepository,
+        audits.service,
+        deploymentService,
+        aGuardianUsage()
+    );
     private final AuditInfo actor = auditInfo(ENVIRONMENT_ID);
 
     @BeforeEach

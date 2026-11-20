@@ -162,6 +162,17 @@ public class Api {
      */
     private Set<String> categories;
     /**
+     * The ids of the Guardians the API runs, read from the {@code guardian-policy} steps of the internal flow of its
+     * definition. Kept apart from the definition so that the APIs running a Guardian can be searched.
+     *
+     * <p>An index of the definition, not a second source of truth, and with a single writer: the write that replaces
+     * a definition, which carries the Guardians that definition names. On every other write it travels as
+     * {@code null}, which both stores read as "not provided" and never as "no Guardian" — emptying it would stop the
+     * refusal to delete or undeploy a Guardian an API runs. It is also {@code null} when a read filtered the field
+     * out.
+     */
+    private Set<String> guardians;
+    /**
      */
     private List<String> labels;
     /**
@@ -197,6 +208,7 @@ public class Api {
         this.background = cloned.background;
         this.groups = cloned.groups != null ? new HashSet<>(cloned.groups) : null;
         this.categories = cloned.categories;
+        this.guardians = cloned.guardians;
         this.labels = cloned.labels;
         this.apiLifecycleState = cloned.apiLifecycleState;
         this.disableMembershipNotifications = cloned.disableMembershipNotifications;

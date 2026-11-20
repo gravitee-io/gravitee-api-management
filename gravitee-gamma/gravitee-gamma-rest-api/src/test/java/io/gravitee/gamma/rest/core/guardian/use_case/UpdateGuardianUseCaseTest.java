@@ -20,6 +20,7 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDIAN_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aDefinitionToSubmit;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianUsage;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidator;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.anUpdateGuardianCommand;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -77,7 +78,7 @@ class UpdateGuardianUseCaseTest {
         useCase = new UpdateGuardianUseCase(
             guardianRepository,
             validator,
-            new GuardianDraftDomainService(guardianRepository, validator, auditDomainService, deployments)
+            new GuardianDraftDomainService(guardianRepository, validator, auditDomainService, deployments, aGuardianUsage())
         );
     }
 

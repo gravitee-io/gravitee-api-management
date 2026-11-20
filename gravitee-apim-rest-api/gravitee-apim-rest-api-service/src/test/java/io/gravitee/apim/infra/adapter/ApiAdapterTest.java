@@ -23,12 +23,14 @@ import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.federation.FederatedAgent;
+import io.gravitee.definition.model.guardian.GuardianSteps;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.edge.EdgeApi;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -377,6 +379,28 @@ class ApiAdapterTest {
                 soft.assertThat(api.getVisibility()).isEqualTo(Visibility.PUBLIC);
                 soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
             });
+        }
+
+        /**
+         * The index has a single writer, the write that replaces a definition and carries the Guardians that
+         * definition names. Deriving it here would give it a second one, on a model a read may have filtered the
+         * definition out of — and the index would then be emptied by a save that never saw a Guardian.
+         */
+        @Test
+        void should_leave_the_guardian_index_alone_even_when_the_internal_flow_runs_guardians() {
+            var model = ApiFixtures.aProxyApiV4();
+            model
+                .getApiDefinitionHttpV4()
+                .setInternalFlow(
+                    Flow.builder()
+                        .request(List.of(GuardianSteps.of("guardian-1", "One")))
+                        .response(List.of(GuardianSteps.of("guardian-2", "Two")))
+                        .build()
+                );
+
+            var api = ApiAdapter.INSTANCE.toRepository(model);
+
+            assertThat(api.getGuardians()).as("indexed guardians").isNull();
         }
 
         @Test

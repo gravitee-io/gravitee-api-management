@@ -170,6 +170,24 @@ public class Guardian {
         return definition == null ? null : definition.getResources();
     }
 
+    /** Whether this Guardian runs on the same phase of the same API types as another one. */
+    public boolean runsWhere(Guardian other) {
+        return runsWhere(other.getPhase(), other.getApiTypes());
+    }
+
+    /** Whether this Guardian runs where a definition of it — a published revision, say — runs. */
+    public boolean runsWhere(io.gravitee.definition.model.v4.guardian.Guardian other) {
+        return runsWhere(other.getPhase(), other.getApiTypes());
+    }
+
+    private boolean runsWhere(Phase phase, Set<ApiType> apiTypes) {
+        return getPhase() == phase && orEmpty(getApiTypes()).equals(orEmpty(apiTypes));
+    }
+
+    private static Set<ApiType> orEmpty(Set<ApiType> apiTypes) {
+        return apiTypes == null ? Set.of() : apiTypes;
+    }
+
     public boolean isDeployed() {
         return lifecycleState == GuardianLifecycleState.DEPLOYED;
     }

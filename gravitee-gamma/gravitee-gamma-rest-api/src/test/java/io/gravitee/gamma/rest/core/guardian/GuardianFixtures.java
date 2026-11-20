@@ -34,10 +34,13 @@ import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.ResourcePluginProvider;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
+import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianUsageDomainService;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianResourcesDomainService;
+import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardedApiPort;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.CreateGuardian;
+import io.gravitee.gamma.rest.core.guardian.model.GuardedApi;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
@@ -76,6 +79,8 @@ public final class GuardianFixtures {
 
     /** The resource type the fixtures install, so a resource can name one the node has. */
     public static final String INSTALLED_RESOURCE_TYPE = "ai-model-token-classification";
+
+    public static final String API_ID = "api-id";
 
     private GuardianFixtures() {}
 
@@ -159,13 +164,28 @@ public final class GuardianFixtures {
         return provider;
     }
 
+    /** The usage service of an environment where no API runs any Guardian, so no usage rule refuses anything. */
+    public static GuardianUsageDomainService aGuardianUsage() {
+        return new GuardianUsageDomainService(new InMemoryGuardedApiPort());
+    }
+
     /** The deployment use case under the registry and the schema answers the tests install by default. */
     public static DeployGuardianUseCase aDeployGuardianUseCase(
         GuardianRepository repository,
         GuardianDeploymentDomainService deployments,
         AuditDomainService audits
     ) {
-        return new DeployGuardianUseCase(repository, deployments, audits, aGuardianValidator(repository));
+        return aDeployGuardianUseCase(repository, deployments, audits, aGuardianUsage());
+    }
+
+    /** The same, over an environment whose APIs are the ones this usage service reads. */
+    public static DeployGuardianUseCase aDeployGuardianUseCase(
+        GuardianRepository repository,
+        GuardianDeploymentDomainService deployments,
+        AuditDomainService audits,
+        GuardianUsageDomainService usage
+    ) {
+        return new DeployGuardianUseCase(repository, deployments, audits, aGuardianValidator(repository), usage);
     }
 
     /** The deployment use case under the registry the tests install by default, and these schema answers. */
@@ -175,11 +195,23 @@ public final class GuardianFixtures {
         AuditDomainService audits,
         PolicyValidationDomainService policyValidation
     ) {
+        return aDeployGuardianUseCase(repository, deployments, audits, aGuardianUsage(), policyValidation);
+    }
+
+    /** The same, over an environment whose APIs are the ones this usage service reads. */
+    public static DeployGuardianUseCase aDeployGuardianUseCase(
+        GuardianRepository repository,
+        GuardianDeploymentDomainService deployments,
+        AuditDomainService audits,
+        GuardianUsageDomainService usage,
+        PolicyValidationDomainService policyValidation
+    ) {
         return new DeployGuardianUseCase(
             repository,
             deployments,
             audits,
-            aGuardianValidator(repository, aPolicyPluginProvider(), policyValidation)
+            aGuardianValidator(repository, aPolicyPluginProvider(), policyValidation),
+            usage
         );
     }
 
@@ -287,6 +319,16 @@ public final class GuardianFixtures {
     /** An update payload: the whole definition, plus the description. */
     public static UpdateGuardianCommand.UpdateGuardianCommandBuilder anUpdateGuardianCommand() {
         return UpdateGuardianCommand.builder().definition(aDefinitionToSubmit().build()).description("Renamed description");
+    }
+
+    /** An LLM proxy of the fixtures' environment that runs no Guardian yet. */
+    public static GuardedApi.GuardedApiBuilder aGuardedApi() {
+        return GuardedApi.builder()
+            .id(API_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .name("Support assistant")
+            .type(ApiType.LLM_PROXY)
+            .supportsGuardians(true);
     }
 
     public static Guardian.GuardianBuilder aGuardian() {
