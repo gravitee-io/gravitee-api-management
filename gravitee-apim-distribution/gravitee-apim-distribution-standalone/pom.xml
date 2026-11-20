@@ -2424,7 +2424,20 @@
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-guardrail-rule</artifactId>
-                    <version>${gravitee-policy-guardrail-rule.version}</version>
+                    <version>${gravitee-policy-guardrail.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-guardrail-decision</artifactId>
+                    <version>${gravitee-policy-guardrail.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
