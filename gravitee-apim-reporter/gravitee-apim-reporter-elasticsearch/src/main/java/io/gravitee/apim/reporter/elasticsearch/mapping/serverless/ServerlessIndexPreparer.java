@@ -35,6 +35,8 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.functions.Function;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.CustomLog;
@@ -67,6 +69,12 @@ public class ServerlessIndexPreparer extends AbstractIndexPreparer {
 
     private final ServerlessRetention retention;
     private final String apimVersion;
+
+    /**
+     * The templates, and the retention of their data streams, already settled: a setup retry runs every type again, and would
+     * otherwise log their error or information again.
+     */
+    private final Set<String> settledTemplates = ConcurrentHashMap.newKeySet();
 
     public ServerlessIndexPreparer(
         final ReporterConfiguration configuration,
@@ -121,6 +129,9 @@ public class ServerlessIndexPreparer extends AbstractIndexPreparer {
         }
         return type -> {
             final String name = configuration.getIndexName() + '-' + type.getType();
+            if (settledTemplates.contains(name)) {
+                return Completable.complete();
+            }
             return client
                 .getIndexTemplate(name)
                 .onErrorResumeNext(error ->
@@ -137,9 +148,13 @@ public class ServerlessIndexPreparer extends AbstractIndexPreparer {
                     )
                 )
                 .isEmpty()
-                .flatMapCompletable(noNewerTemplate ->
-                    noNewerTemplate ? putTemplate(type, name).andThen(alignRetention(type, name)) : Completable.complete()
-                );
+                .flatMapCompletable(noNewerTemplate -> {
+                    if (!noNewerTemplate) {
+                        return Completable.complete();
+                    }
+                    return putTemplate(type, name).andThen(alignRetention(type, name));
+                })
+                .doOnComplete(() -> settledTemplates.add(name));
         };
     }
 
