@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BellIcon, LayoutDashboardIcon, PlugIcon, ShieldCheckIcon, SlidersHorizontalIcon } from '@gravitee/graphene-core/icons';
+import { BellIcon, KeyIcon, LayoutDashboardIcon, PlugIcon, ShieldCheckIcon, SlidersHorizontalIcon } from '@gravitee/graphene-core/icons';
 import type { ComponentType } from 'react';
 
 import { APPLICATION_IMPLEMENTED_DETAIL_PATHS } from './applicationDetailPages';
@@ -53,7 +53,10 @@ export const APPLICATION_NAV_GROUPS: ApplicationDetailNavGroup[] = [
     },
     {
         label: 'Access',
-        items: [{ path: 'subscriptions', label: 'Subscriptions', icon: PlugIcon, permissions: ['application-subscription-r'] }],
+        items: [
+            { path: 'subscriptions', label: 'Subscriptions', icon: PlugIcon, permissions: ['application-subscription-r'] },
+            { path: 'shared-api-keys', label: 'Shared API Keys', icon: KeyIcon, permissions: ['application-subscription-r'] },
+        ],
     },
     {
         // A notification is what the application reports to you, not a setting you tune — same place
@@ -69,6 +72,17 @@ export const APPLICATION_NAV_GROUPS: ApplicationDetailNavGroup[] = [
         ],
     },
 ];
+
+/** Shared keys exist only for an application whose API key mode is SHARED. */
+export function applicationDetailNavGroupsFor(apiKeyMode: string | undefined): ApplicationDetailNavGroup[] {
+    if (apiKeyMode === 'SHARED') {
+        return APPLICATION_NAV_GROUPS;
+    }
+    return APPLICATION_NAV_GROUPS.map(group => ({
+        ...group,
+        items: group.items.filter(item => item.path !== 'shared-api-keys'),
+    })).filter(group => group.items.length > 0);
+}
 
 export function flattenApplicationDetailNavItems(groups: ApplicationDetailNavGroup[]): ApplicationDetailNavItem[] {
     return groups.flatMap(group => group.items);
