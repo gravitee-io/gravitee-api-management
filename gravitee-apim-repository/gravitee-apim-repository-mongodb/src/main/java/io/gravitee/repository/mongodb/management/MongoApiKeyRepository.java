@@ -116,6 +116,19 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
     }
 
     @Override
+    public List<String> deleteByApplication(String applicationId) throws TechnicalException {
+        LOGGER.debug("Delete by application [{}]", applicationId);
+        try {
+            final var deletedIds = internalApiKeyRepo.deleteByApplication(applicationId).stream().map(ApiKeyMongo::getId).toList();
+            LOGGER.debug("Delete by application [{}] - Done", applicationId);
+            return deletedIds;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete api keys by application: {}", applicationId, ex);
+            throw new TechnicalException("Failed to delete api keys by application", ex);
+        }
+    }
+
+    @Override
     public Optional<ApiKey> findById(String id) throws TechnicalException {
         return internalApiKeyRepo.findById(id).map(this::toApiKey);
     }

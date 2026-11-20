@@ -491,6 +491,19 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     @Override
+    public void deleteByApplication(String applicationId) {
+        try {
+            List<String> deletedIds = apiKeyRepository.deleteByApplication(applicationId);
+            LOGGER.debug("API Keys {} of application {} deleted", deletedIds, applicationId);
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to delete API Keys of application %s", applicationId),
+                ex
+            );
+        }
+    }
+
+    @Override
     public ApiKeyEntity update(ExecutionContext executionContext, ApiKeyEntity apiKeyEntity) {
         try {
             LOGGER.debug("Update API Key with id {}", apiKeyEntity.getId());

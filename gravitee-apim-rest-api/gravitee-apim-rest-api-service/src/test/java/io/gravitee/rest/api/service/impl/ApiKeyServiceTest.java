@@ -651,6 +651,22 @@ public class ApiKeyServiceTest {
         apiKeyService.renew(GraviteeContext.getExecutionContext(), subscription, "alreadyExistingApiKey");
     }
 
+    @Test
+    public void shouldDeleteTheApiKeysOfTheApplication() throws TechnicalException {
+        when(apiKeyRepository.deleteByApplication(APPLICATION_ID)).thenReturn(List.of("key-1"));
+
+        apiKeyService.deleteByApplication(APPLICATION_ID);
+
+        verify(apiKeyRepository).deleteByApplication(APPLICATION_ID);
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldFailToDeleteTheApiKeysOfTheApplicationOnTechnicalError() throws TechnicalException {
+        when(apiKeyRepository.deleteByApplication(APPLICATION_ID)).thenThrow(new TechnicalException("boom"));
+
+        apiKeyService.deleteByApplication(APPLICATION_ID);
+    }
+
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotRenewSubscriptionWithJwtPlan() {
         SubscriptionEntity subscriptionEntity = new SubscriptionEntity();

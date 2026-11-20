@@ -494,4 +494,38 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(beforeDeletion, deleted);
         assertEquals(0, nbAfterDeletion);
     }
+
+    @Test
+    public void should_delete_by_application_and_keep_the_keys_of_other_applications() throws TechnicalException {
+        final var allBefore = apiKeyRepository.findAll().size();
+
+        var deleted = apiKeyRepository.deleteByApplication("app1");
+
+        assertEquals(Set.of("id-of-apikey-4", "id-of-apikey-5"), Set.copyOf(deleted));
+        assertTrue(apiKeyRepository.findByApplication("app1").isEmpty());
+        assertTrue(
+            apiKeyRepository
+                .findBySubscription("sub3")
+                .stream()
+                .noneMatch(key -> deleted.contains(key.getId()))
+        );
+        assertEquals(allBefore - deleted.size(), apiKeyRepository.findAll().size());
+    }
+
+    @Test
+    public void should_delete_the_subscriptions_of_the_keys_deleted_with_their_application() throws TechnicalException {
+        apiKeyRepository.deleteByApplication("app1");
+
+        ApiKey reusedKey = new ApiKey();
+        reusedKey.setId("id-of-apikey-4");
+        reusedKey.setKey("findByCriteria1");
+        reusedKey.setEnvironmentId("env4");
+        reusedKey.setApplication("app9");
+        reusedKey.setCreatedAt(new Date());
+        apiKeyRepository.create(reusedKey);
+
+        Optional<ApiKey> created = apiKeyRepository.findById("id-of-apikey-4");
+        assertTrue(created.isPresent());
+        Assertions.assertThat(created.get().getSubscriptions()).isNullOrEmpty();
+    }
 }
