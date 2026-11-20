@@ -239,14 +239,14 @@ class ApiCRDAdapterTest {
 
     @Test
     void should_give_each_plan_the_same_key_whatever_the_order_of_the_plans() {
-        var hridPlan = plan("plan-a", "jwt", "JWT (deprecated)");
-        var namePlan = plan("plan-b", null, "jwt");
+        var hridPlan = plan("plan-b", "jwt", "JWT (deprecated)");
+        var namePlan = plan("plan-a", null, "jwt");
 
         var oneOrder = keysById(toCRDSpec(hridPlan, namePlan).getPlans());
         var otherOrder = keysById(toCRDSpec(namePlan, hridPlan).getPlans());
 
         SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(oneOrder).containsEntry("plan-a", "jwt");
+            soft.assertThat(oneOrder).containsEntry("plan-b", "jwt");
             soft.assertThat(otherOrder).isEqualTo(oneOrder);
         });
     }
