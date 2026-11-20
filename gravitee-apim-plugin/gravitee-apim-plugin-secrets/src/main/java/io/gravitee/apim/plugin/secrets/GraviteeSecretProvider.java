@@ -78,12 +78,22 @@ public class GraviteeSecretProvider implements SecretProvider {
         this.environmentRepository = environmentRepository;
     }
 
+    static GraviteeSecretProvider refusing(String reason) {
+        var provider = new GraviteeSecretProvider(null, null, null, null);
+        provider.refusal = reason;
+        return provider;
+    }
+
     /**
      * Never throws: the secrets service stops, with every other secret provider, when a provider fails to start. A
      * provider that cannot serve logs why once and refuses every secret instead.
      */
     @Override
     public SecretProvider start() {
+        if (refusal != null) {
+            log.error("{}: it refuses every secret until this is fixed", refusal);
+            return this;
+        }
         try {
             dataKeys = new DataKeyResolver(verifiedKeyEncryptionKey(), this::findStoredDataKey);
         } catch (SecretManagerException e) {

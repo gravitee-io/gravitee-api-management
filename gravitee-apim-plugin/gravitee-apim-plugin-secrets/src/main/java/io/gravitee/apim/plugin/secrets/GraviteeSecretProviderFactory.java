@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.SecretRepository;
 import io.gravitee.secrets.api.errors.SecretManagerException;
 import io.gravitee.secrets.api.plugin.SecretProvider;
 import io.gravitee.secrets.api.plugin.SecretProviderFactory;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import org.springframework.beans.factory.ObjectProvider;
@@ -37,9 +38,12 @@ public class GraviteeSecretProviderFactory implements SecretProviderFactory<Grav
         ObjectProvider<SecretRepository> secretRepository,
         ObjectProvider<OrganizationKeyRepository> organizationKeyRepository,
         ObjectProvider<EnvironmentRepository> environmentRepository,
-        Supplier<String> sharedEncryptionKey
+        Supplier<String> sharedEncryptionKey,
+        Optional<String> misconfiguration
     ) {
-        connection.set(new Connection(secretRepository, organizationKeyRepository, environmentRepository, sharedEncryptionKey));
+        connection.set(
+            new Connection(secretRepository, organizationKeyRepository, environmentRepository, sharedEncryptionKey, misconfiguration)
+        );
     }
 
     @Override
@@ -47,6 +51,9 @@ public class GraviteeSecretProviderFactory implements SecretProviderFactory<Grav
         Connection connected = connection.get();
         if (connected == null) {
             throw new SecretManagerException("Secret provider [" + GraviteeSecretProvider.ID + "] is not connected to the gateway");
+        }
+        if (connected.misconfiguration().isPresent()) {
+            return GraviteeSecretProvider.refusing(connected.misconfiguration().get());
         }
         return new GraviteeSecretProvider(
             encryptionKey(configuration, connected.sharedEncryptionKey()),
@@ -65,6 +72,7 @@ public class GraviteeSecretProviderFactory implements SecretProviderFactory<Grav
         ObjectProvider<SecretRepository> secretRepository,
         ObjectProvider<OrganizationKeyRepository> organizationKeyRepository,
         ObjectProvider<EnvironmentRepository> environmentRepository,
-        Supplier<String> sharedEncryptionKey
+        Supplier<String> sharedEncryptionKey,
+        Optional<String> misconfiguration
     ) {}
 }

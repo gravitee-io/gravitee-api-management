@@ -82,6 +82,33 @@ class GraviteeSecretProviderConfigurationTest {
         }
     }
 
+    @Test
+    void should_hand_providers_the_misconfiguration_of_the_gravitee_entries() {
+        try (var context = gatewayContext()) {
+            context
+                .getEnvironment()
+                .getPropertySources()
+                .addFirst(
+                    new MapPropertySource(
+                        "gateway",
+                        Map.of("api.secrets.providers[0].plugin", "gravitee", "api.secrets.providers[0].id", "internal")
+                    )
+                );
+            context.refresh();
+            context.getBeanFactory().registerSingleton("secretRepository", mock(SecretRepository.class));
+            context.getBeanFactory().registerSingleton("organizationKeyRepository", mock(OrganizationKeyRepository.class));
+            context.getBeanFactory().registerSingleton("environmentRepository", mock(EnvironmentRepository.class));
+
+            GraviteeSecretProviderFactory factory = pluginManager.getFactoryById(GraviteeSecretProvider.ID);
+            factory
+                .create(new GraviteeSecretManagerConfiguration(Map.of()))
+                .start()
+                .resolve(SecretURL.from("/gravitee/s-1:value?envId=env-1", true))
+                .test()
+                .assertError(err -> err.getMessage().contains("api.secrets.providers[0]"));
+        }
+    }
+
     private AnnotationConfigApplicationContext gatewayContext() {
         var context = new AnnotationConfigApplicationContext();
         context.registerBean(SecretProviderPluginManager.class, () -> pluginManager);
