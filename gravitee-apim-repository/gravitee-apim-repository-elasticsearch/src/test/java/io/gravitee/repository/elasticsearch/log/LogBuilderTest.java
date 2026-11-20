@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.elasticsearch.model.SearchHit;
+import io.gravitee.repository.log.model.ExtendedLog;
 import io.gravitee.repository.log.model.Log;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -126,6 +127,25 @@ class LogBuilderTest {
         Log result = LogBuilder.createLog(hitFromJson("id-nfe", json));
 
         assertThat(result).isNull();
+    }
+
+    @Test
+    void createExtendedLog_reads_whether_the_logged_bodies_were_truncated() throws Exception {
+        JsonNode log = OBJECT_MAPPER.readTree(
+            "{" +
+                "\"client-request\":{\"method\":\"POST\",\"uri\":\"/foo\",\"body\":\"{\\\"hel\",\"body-truncated\":true}," +
+                "\"proxy-request\":{\"method\":\"POST\",\"uri\":\"/bar\",\"body\":\"{}\"}," +
+                "\"client-response\":{\"status\":200,\"body\":\"{}\"}," +
+                "\"proxy-response\":{\"status\":200,\"body\":\"{\\\"hel\",\"body-truncated\":true}" +
+                "}"
+        );
+
+        ExtendedLog result = LogBuilder.createExtendedLog(hitFromJson("id-truncated", VALID_LOG_JSON), log);
+
+        assertThat(result.getClientRequest().isBodyTruncated()).isTrue();
+        assertThat(result.getProxyRequest().isBodyTruncated()).isFalse();
+        assertThat(result.getClientResponse().isBodyTruncated()).isFalse();
+        assertThat(result.getProxyResponse().isBodyTruncated()).isTrue();
     }
 
     private static SearchHit hitFromJson(String id, String json) {

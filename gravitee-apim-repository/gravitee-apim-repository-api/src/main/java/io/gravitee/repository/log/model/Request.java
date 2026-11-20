@@ -32,6 +32,8 @@ public class Request {
 
     private String body;
 
+    private boolean bodyTruncated;
+
     public HttpMethod getMethod() {
         return method;
     }
@@ -62,5 +64,13 @@ public class Request {
 
     public void setBody(String body) {
         this.body = body;
+    }
+
+    public boolean isBodyTruncated() {
+        return bodyTruncated;
+    }
+
+    public void setBodyTruncated(boolean bodyTruncated) {
+        this.bodyTruncated = bodyTruncated;
     }
 }

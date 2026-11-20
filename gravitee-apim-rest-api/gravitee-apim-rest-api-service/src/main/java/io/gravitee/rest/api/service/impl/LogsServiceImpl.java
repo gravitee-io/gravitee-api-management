@@ -798,6 +798,7 @@ public class LogsServiceImpl implements LogsService {
         request.setMethod(repoRequest.getMethod());
         request.setHeaders(repoRequest.getHeaders());
         request.setBody(repoRequest.getBody());
+        request.setBodyTruncated(repoRequest.isBodyTruncated());
 
         return request;
     }
@@ -811,6 +812,7 @@ public class LogsServiceImpl implements LogsService {
         response.setStatus(repoResponse.getStatus());
         response.setHeaders(repoResponse.getHeaders());
         response.setBody(repoResponse.getBody());
+        response.setBodyTruncated(repoResponse.isBodyTruncated());
 
         return response;
     }
