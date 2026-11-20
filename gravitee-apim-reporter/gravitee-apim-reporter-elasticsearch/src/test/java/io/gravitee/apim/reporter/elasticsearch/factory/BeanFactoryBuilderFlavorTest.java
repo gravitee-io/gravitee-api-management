@@ -189,6 +189,21 @@ class BeanFactoryBuilderFlavorTest {
     @Nested
     class Guardrails {
 
+        @Test
+        void should_refuse_invalid_bulk_settings_on_any_cluster_before_calling_it() {
+            configuration.setBulkMaxConcurrentSend(0);
+
+            assertThat(BeanFactoryBuilder.buildFactory(client, configuration)).isNull();
+            assertThat(messages(Level.ERROR))
+                .singleElement()
+                .satisfies(message ->
+                    assertThat(message)
+                        .contains("'reporters.elasticsearch.bulk.max_concurrent_send'")
+                        .contains("The Elasticsearch reporter is disabled.")
+                );
+            verify(client, never()).getInfo();
+        }
+
         @ParameterizedTest(name = "index_mode {0}")
         @ValueSource(strings = { "ilm", "daily", "ILM" })
         void should_refuse_an_explicit_ilm_or_daily_index_mode_on_serverless(String indexMode) {

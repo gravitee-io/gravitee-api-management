@@ -786,6 +786,46 @@ public class ReporterConfiguration {
         this.dataRetentionDecisions = dataRetentionDecisions;
     }
 
+    public Integer getBulkMaxConcurrentSend() {
+        return bulkMaxConcurrentSend;
+    }
+
+    public void setBulkMaxConcurrentSend(Integer bulkMaxConcurrentSend) {
+        this.bulkMaxConcurrentSend = bulkMaxConcurrentSend;
+    }
+
+    public Long getBulkMaxMemorySize() {
+        return bulkMaxMemorySize;
+    }
+
+    public void setBulkMaxMemorySize(Long bulkMaxMemorySize) {
+        this.bulkMaxMemorySize = bulkMaxMemorySize;
+    }
+
+    public Integer getBulkMaxRetries() {
+        return bulkMaxRetries;
+    }
+
+    public void setBulkMaxRetries(Integer bulkMaxRetries) {
+        this.bulkMaxRetries = bulkMaxRetries;
+    }
+
+    public Integer getBulkRetryInitialDelay() {
+        return bulkRetryInitialDelay;
+    }
+
+    public void setBulkRetryInitialDelay(Integer bulkRetryInitialDelay) {
+        this.bulkRetryInitialDelay = bulkRetryInitialDelay;
+    }
+
+    public Integer getBulkRetryMaxDelay() {
+        return bulkRetryMaxDelay;
+    }
+
+    public void setBulkRetryMaxDelay(Integer bulkRetryMaxDelay) {
+        this.bulkRetryMaxDelay = bulkRetryMaxDelay;
+    }
+
     public boolean isDataRetentionAllowDecrease() {
         return dataRetentionAllowDecrease;
     }
