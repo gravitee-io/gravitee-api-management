@@ -130,14 +130,14 @@ public class ApiOwnedNavigationDomainService {
             .toList();
     }
 
-    /** A section of another portal exists but is not a publish location of this one. */
-    public PortalNavigationFolder requirePublishLocation(
-        String environmentId,
-        NavigationItemReference.PortalReference portal,
-        PortalNavigationItemId sectionId
-    ) {
-        if (queryService.findByIdAndEnvironmentId(environmentId, sectionId) == null) {
+    /** The section names the portal: it is a publish location of the portal it belongs to. */
+    public PortalNavigationFolder requirePublishLocation(String environmentId, PortalNavigationItemId sectionId) {
+        var item = queryService.findByIdAndEnvironmentId(environmentId, sectionId);
+        if (item == null) {
             throw new ParentNotFoundException(sectionId.json());
+        }
+        if (!(item.getReference() instanceof NavigationItemReference.PortalReference portal)) {
+            throw InvalidPortalNavigationItemDataException.notAPublishLocation(sectionId.json());
         }
         return findPublishLocations(environmentId, portal)
             .stream()

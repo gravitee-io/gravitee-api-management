@@ -3546,15 +3546,14 @@ paths:
                 - API Documentation
             summary: Publish an API to a portal
             description: |-
-                Lists the API under the chosen section of the chosen portal's main navigation and publishes every page,
-                folder and link the API owns, including those that were hidden individually. The portals an API can
-                be published to are returned by `_publish-portals`.
+                Lists the API under the chosen section of a portal's main navigation and publishes every page, folder
+                and link the API owns, including those that were hidden individually. The API is published to the
+                portal the section belongs to.
 
-                The section must be one returned by `_publish-locations` for the same portal; a section of another
-                portal is refused. When the API already has a hidden listing in the portal, for example one added in
-                the portal editor, that listing is reused: it is moved to the chosen section if it is elsewhere, and
-                made visible together with what is stored under it. An API whose listing in the portal is visible is
-                already published there and cannot be published again.
+                The section must be one returned by `_publish-locations`. When the API already has a hidden listing in
+                the section's portal, for example one added in the portal editor, that listing is reused: it is moved
+                to the chosen section if it is elsewhere, and made visible together with what is stored under it. An
+                API whose listing in the portal is visible is already published there and cannot be published again.
 
                 User must have the API_DOCUMENTATION[UPDATE] permission.
             operationId: publishApiToPortal
@@ -3573,14 +3572,14 @@ paths:
                                 $ref: "#/components/schemas/ApiPortalPublication"
                 "400":
                     description: |-
-                        No portal or section is given, the API is already published to the portal, or the section is
-                        not a publish location of the portal, including a section that belongs to another portal
+                        No section is given, the API is already published to the section's portal, or the section is
+                        not a publish location
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Error"
                 "404":
-                    description: The section does not exist, or the portal does not exist in this environment
+                    description: The section does not exist
                     content:
                         application/json:
                             schema:
@@ -4314,16 +4313,13 @@ components:
             type: object
             description: Where to publish an API.
             properties:
-                portalId:
-                    type: string
-                    format: uuid
-                    description: The id of the portal to publish the API to, as returned by `_publish-portals`.
                 sectionId:
                     type: string
                     format: uuid
-                    description: The id of the section to list the API under, as returned by `_publish-locations` for the same portal.
+                    description: |-
+                        The id of the section to list the API under, as returned by `_publish-locations`. The API is
+                        published to the portal the section belongs to.
             required:
-                - portalId
                 - sectionId
         ApiPortalPublication:
             type: object

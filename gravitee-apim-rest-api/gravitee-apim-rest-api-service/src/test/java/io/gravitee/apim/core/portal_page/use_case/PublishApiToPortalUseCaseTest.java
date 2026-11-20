@@ -34,7 +34,6 @@ import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
@@ -59,7 +58,6 @@ class PublishApiToPortalUseCaseTest {
 
     private static final String API_ID = "api-a";
     private static final String OTHER_API_ID = "api-b";
-    private static final PortalId DEFAULT_PORTAL_ID = ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId();
 
     private PortalNavigationItemId failingUpdateOf;
 
@@ -104,8 +102,7 @@ class PublishApiToPortalUseCaseTest {
                 sourceDomainService,
                 apiOwnedNavigationDomainService,
                 navigationPortals
-            ),
-            navigationPortals
+            )
         );
         apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("Api A").environmentId(ENV_ID).build()));
     }
@@ -343,26 +340,6 @@ class PublishApiToPortalUseCaseTest {
         assertThat(crudService.storage()).hasSize(3);
     }
 
-    @Test
-    void should_reject_when_no_portal_is_given() {
-        var section = aSection("APIs");
-        queryService.initWith(List.of(section));
-
-        assertThatThrownBy(() -> publishTo(section.getId(), null)).isInstanceOf(InvalidPortalNavigationItemDataException.class);
-
-        assertThat(listingRows()).isEmpty();
-    }
-
-    @Test
-    void should_reject_an_unknown_portal_without_creating_anything() {
-        var section = aSection("APIs");
-        queryService.initWith(List.of(section));
-
-        assertThatThrownBy(() -> publishTo(section.getId(), PortalId.random())).isInstanceOf(PortalNotFoundException.class);
-
-        assertThat(listingRows()).isEmpty();
-    }
-
     @Nested
     class WithSeveralPortals {
 
@@ -379,8 +356,8 @@ class PublishApiToPortalUseCaseTest {
         }
 
         @Test
-        void should_publish_to_a_portal_that_is_not_the_default_one_and_leave_the_default_portal_unchanged() {
-            var output = publishTo(otherPortalSection.getId(), otherPortalId);
+        void should_publish_to_the_portal_of_the_chosen_section_and_leave_the_default_portal_unchanged() {
+            var output = publishTo(otherPortalSection.getId());
 
             assertThat(output.section()).isEqualTo(otherPortalSection);
             assertThat(listingRows())
@@ -396,7 +373,7 @@ class PublishApiToPortalUseCaseTest {
         @Test
         void should_publish_the_same_api_to_two_portals() {
             publishTo(defaultPortalSection.getId());
-            publishTo(otherPortalSection.getId(), otherPortalId);
+            publishTo(otherPortalSection.getId());
 
             assertThat(listingRows())
                 .allSatisfy(listing -> assertThat(listing.getPublished()).isTrue())
@@ -405,31 +382,21 @@ class PublishApiToPortalUseCaseTest {
         }
 
         @Test
-        void should_reject_a_section_of_another_portal() {
-            assertThatThrownBy(() -> publishTo(otherPortalSection.getId())).isInstanceOf(InvalidPortalNavigationItemDataException.class);
-            assertThatThrownBy(() -> publishTo(defaultPortalSection.getId(), otherPortalId)).isInstanceOf(
-                InvalidPortalNavigationItemDataException.class
-            );
-
-            assertThat(listingRows()).isEmpty();
-        }
-
-        @Test
         void should_reject_publishing_again_to_the_same_portal_only() {
             publishTo(defaultPortalSection.getId());
 
             assertThatThrownBy(() -> publishTo(defaultPortalSection.getId())).isInstanceOf(InvalidPortalNavigationItemDataException.class);
-            publishTo(otherPortalSection.getId(), otherPortalId);
+            publishTo(otherPortalSection.getId());
 
             assertThat(listingRows()).hasSize(2);
         }
 
         @Test
-        void should_reuse_the_hidden_listing_of_the_named_portal_only() {
+        void should_reuse_the_hidden_listing_of_the_section_portal_only() {
             var hiddenInDefaultPortal = aHiddenListing(defaultPortalSection);
             queryService.initWith(List.of(defaultPortalSection, otherPortalSection, hiddenInDefaultPortal));
 
-            var output = publishTo(otherPortalSection.getId(), otherPortalId);
+            var output = publishTo(otherPortalSection.getId());
 
             assertThat(output.listing().getId()).isNotEqualTo(hiddenInDefaultPortal.getId());
             assertThat(stored(hiddenInDefaultPortal.getId())).satisfies(listing -> {
@@ -440,11 +407,7 @@ class PublishApiToPortalUseCaseTest {
     }
 
     private PublishApiToPortalUseCase.Output publishTo(PortalNavigationItemId sectionId) {
-        return publishTo(sectionId, DEFAULT_PORTAL_ID);
-    }
-
-    private PublishApiToPortalUseCase.Output publishTo(PortalNavigationItemId sectionId, PortalId portalId) {
-        return useCase.execute(new PublishApiToPortalUseCase.Input(ORG_ID, ENV_ID, API_ID, sectionId, portalId));
+        return useCase.execute(new PublishApiToPortalUseCase.Input(ORG_ID, ENV_ID, API_ID, sectionId));
     }
 
     private List<PortalNavigationItem> listingRows() {

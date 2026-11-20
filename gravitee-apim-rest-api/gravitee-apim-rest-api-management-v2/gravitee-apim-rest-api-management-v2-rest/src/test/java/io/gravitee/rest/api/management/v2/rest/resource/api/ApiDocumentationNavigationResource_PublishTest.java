@@ -248,13 +248,13 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
     }
 
     @Test
-    void should_publish_to_the_named_portal_only() {
+    void should_publish_to_the_portal_of_the_chosen_section_only() {
         var otherPortalId = givenAnotherPortal();
         var section = aSection("APIs");
         var otherPortalSection = aSectionOf(otherPortalId, "Partners");
         portalNavigationItemCrudService.initWith(List.of(section, otherPortalSection));
 
-        Response response = publishTo(otherPortalSection.getId(), otherPortalId);
+        Response response = publishTo(otherPortalSection.getId());
 
         assertThat(response)
             .hasStatus(OK_200)
@@ -287,45 +287,8 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
             );
     }
 
-    @Test
-    void should_return_400_for_a_section_of_another_portal() {
-        var otherPortalId = givenAnotherPortal();
-        var otherPortalSection = aSectionOf(otherPortalId, "Partners");
-        portalNavigationItemCrudService.initWith(List.of(otherPortalSection));
-
-        Response response = publishTo(otherPortalSection.getId());
-
-        assertThat(response).hasStatus(BAD_REQUEST_400);
-        assertThat(portalNavigationItemCrudService.storage()).containsExactly(otherPortalSection);
-    }
-
-    @Test
-    void should_return_404_for_an_unknown_portal() {
-        var section = aSection("APIs");
-        portalNavigationItemCrudService.initWith(List.of(section));
-
-        assertThat(publishTo(section.getId(), PortalId.random())).hasStatus(NOT_FOUND_404);
-        assertThat(portalNavigationItemCrudService.storage()).containsExactly(section);
-    }
-
-    @Test
-    void should_return_400_when_no_portal_or_an_invalid_one_is_given() {
-        var section = aSection("APIs");
-        portalNavigationItemCrudService.initWith(List.of(section));
-
-        assertThat(rootTarget().request().post(Entity.json(Map.of("sectionId", section.getId().json())))).hasStatus(BAD_REQUEST_400);
-        assertThat(
-            rootTarget().request().post(Entity.json(Map.of("sectionId", section.getId().json(), "portalId", "not-a-uuid")))
-        ).hasStatus(BAD_REQUEST_400);
-        assertThat(portalNavigationItemCrudService.storage()).containsExactly(section);
-    }
-
     private Response publishTo(PortalNavigationItemId sectionId) {
-        return publishTo(sectionId, ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId());
-    }
-
-    private Response publishTo(PortalNavigationItemId sectionId, PortalId portalId) {
-        return rootTarget().request().post(Entity.json(new PublishApiToPortal().portalId(portalId.id()).sectionId(sectionId.id())));
+        return rootTarget().request().post(Entity.json(new PublishApiToPortal().sectionId(sectionId.id())));
     }
 
     private PortalId givenAnotherPortal() {

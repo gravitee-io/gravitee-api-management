@@ -234,9 +234,9 @@ describe('useApiDocumentation hooks', () => {
         {
             name: 'usePublishApiToPortal',
             render: () => renderWithQueryClient(() => usePublishApiToPortal('api-1')),
-            variables: { portalId: 'portal-1', sectionId: 'section-1' },
+            variables: { sectionId: 'section-1' },
             service: mockPublishApiToPortal,
-            expectedCall: ['env-1', 'api-1', { portalId: 'portal-1', sectionId: 'section-1' }],
+            expectedCall: ['env-1', 'api-1', { sectionId: 'section-1' }],
         },
         {
             name: 'useUnpublishApiFromPortal',

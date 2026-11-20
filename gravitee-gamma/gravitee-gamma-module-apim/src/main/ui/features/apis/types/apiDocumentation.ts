@@ -106,7 +106,7 @@ export interface ApiPortalPublishPortalsResponse {
 }
 
 export interface PublishApiToPortal {
-    portalId: string;
+    /** The API is published to the portal the section belongs to. */
     sectionId: string;
 }
 

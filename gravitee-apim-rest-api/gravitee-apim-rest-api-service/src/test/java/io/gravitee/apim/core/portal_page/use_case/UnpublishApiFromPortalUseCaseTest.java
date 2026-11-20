@@ -103,7 +103,7 @@ class UnpublishApiFromPortalUseCaseTest {
             apiCrudService
         );
         useCase = new UnpublishApiFromPortalUseCase(apiOwnedNavigationDomainService, validatorService, domainService, navigationPortals);
-        publishUseCase = new PublishApiToPortalUseCase(apiOwnedNavigationDomainService, validatorService, domainService, navigationPortals);
+        publishUseCase = new PublishApiToPortalUseCase(apiOwnedNavigationDomainService, validatorService, domainService);
         apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("Api A").environmentId(ENV_ID).build()));
     }
 
@@ -239,7 +239,7 @@ class UnpublishApiFromPortalUseCaseTest {
         var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).published(false).build();
         page.markAsRoot();
         queryService.initWith(List.of(section, page));
-        var input = new PublishApiToPortalUseCase.Input(ORG_ID, ENV_ID, API_ID, section.getId(), DEFAULT_PORTAL_ID);
+        var input = new PublishApiToPortalUseCase.Input(ORG_ID, ENV_ID, API_ID, section.getId());
 
         var published = publishUseCase.execute(input);
         unpublish();

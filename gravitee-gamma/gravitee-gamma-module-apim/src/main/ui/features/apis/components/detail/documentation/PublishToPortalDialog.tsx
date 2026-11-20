@@ -204,9 +204,9 @@ function PublishToPortalForm({
 
     async function handleSubmit(event: FormEvent) {
         event.preventDefault();
-        if (!canPublish || portal === undefined || selectedSectionId === undefined) return;
+        if (!canPublish || selectedSectionId === undefined) return;
         try {
-            const published = await publishApi({ portalId: portal.id, sectionId: selectedSectionId });
+            const published = await publishApi({ sectionId: selectedSectionId });
             notify.success(`Published in '${published.sectionName}'`);
             onClose();
         } catch (error) {
