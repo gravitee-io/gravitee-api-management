@@ -107,6 +107,7 @@ public class SearchConnectionLogDetailResponseAdapter {
                 .method(asTextOrNull(json.get("method")))
                 .headers(buildHeaders(json.get("headers")))
                 .body(asTextOrNull(json.get("body")))
+                .bodyTruncated(asBooleanOrFalse(json.get("body-truncated")))
                 .build()
             : null;
     }
@@ -117,6 +118,7 @@ public class SearchConnectionLogDetailResponseAdapter {
                 .status(asIntOr(json.get("status"), 0))
                 .headers(buildHeaders(json.get("headers")))
                 .body(asTextOrNull(json.get("body")))
+                .bodyTruncated(asBooleanOrFalse(json.get("body-truncated")))
                 .build()
             : null;
     }
