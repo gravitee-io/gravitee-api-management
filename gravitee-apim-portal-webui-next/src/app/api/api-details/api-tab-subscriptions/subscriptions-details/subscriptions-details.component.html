@@ -22,6 +22,11 @@
     </div>
   } @else if (detailsVM.result) {
     <div class="subscriptions-details__container">
+      @if (hasCloseSubscriptionFailed()) {
+        <app-banner type="error" role="alert" data-testid="close-subscription-error" i18n="@@subscriptionDetailsCloseError">
+          The subscription could not be closed. Try again later or contact your Portal administrator.
+        </app-banner>
+      }
       <app-subscription-info
         class="subscriptions-details__subscription-info"
         [application]="detailsVM.result.application"
@@ -37,6 +42,7 @@
         [createdAt]="detailsVM.result.createdAt"
         [updatedAt]="detailsVM.result.updatedAt"
         [isLoadingStatus]="isLoadingStatus"
+        [canClose]="detailsVM.result.canCloseSubscription"
         (resumeConsumerStatus)="resumeConsumerStatus()"
         (closeSubscription)="closeSubscription()"
       />

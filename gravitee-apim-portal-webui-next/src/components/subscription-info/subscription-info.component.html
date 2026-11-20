@@ -17,7 +17,7 @@
 -->
 <div class="subscription-info__header">
   <h1 class="next-gen-h3" i18n="@@subscriptionDetailsHeader">Subscription Details</h1>
-  @if (subscription?.status === 'ACCEPTED' || subscription?.status === 'PAUSED') {
+  @if (canClose() && (subscription?.status === 'ACCEPTED' || subscription?.status === 'PAUSED')) {
     <button mat-stroked-button color="warn" (click)="closeSubscription.emit()" data-testid="close-subscription-button">
       <span class="next-gen-small-bold" i18n="@@subscriptionDetailsCloseSubscription">Close subscription</span>
     </button>
