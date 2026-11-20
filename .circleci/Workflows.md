@@ -65,6 +65,19 @@ It's the same as the standard workflow, but with the addition of:
 -   the community build
 -   the E2E tests
 -   the Cypress UI tests
+-   the platform CUJs the pull request names
+
+To run platform critical user journeys (gravitee-platform-e2e) on the images this build pushes, add
+to the pull request description:
+
+```
+CUJ: CUJ-72, CUJ-161
+CUJ-branch: feat/my-journey   # optional: a gravitee-platform-e2e branch, main by default
+```
+
+`Run platform CUJs` starts the run once every image is built and reports it as the `e2e/CUJ`
+commit status. The status is advisory: a failing journey does not fail the workflow. Without a
+`CUJ:` line the job does nothing.
 
 ```mermaid
 stateDiagram-v2
