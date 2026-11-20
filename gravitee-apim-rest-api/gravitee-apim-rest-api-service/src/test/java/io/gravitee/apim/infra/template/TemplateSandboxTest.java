@@ -86,6 +86,30 @@ class TemplateSandboxTest {
         }
     }
 
+    /** Mimics a static setter reachable from a model object, e.g. a definition class holding a process-wide default. */
+    public static class Settings {
+
+        private static int defaultStatus = 400;
+
+        private int status = 400;
+
+        public static void setDefaultStatus(int status) {
+            defaultStatus = status;
+        }
+
+        public static int defaultStatus() {
+            return defaultStatus;
+        }
+
+        public int getStatus() {
+            return status;
+        }
+
+        public void setStatus(int status) {
+            this.status = status;
+        }
+    }
+
     public enum Visibility {
         PUBLIC,
         PRIVATE,
@@ -99,6 +123,8 @@ class TemplateSandboxTest {
     }
 
     public static class Api {
+
+        private final Settings settings = new Settings();
 
         public String getName() {
             return "My API";
@@ -126,6 +152,10 @@ class TemplateSandboxTest {
 
         public Date getDeployedAt() {
             return new Date(0);
+        }
+
+        public Settings getSettings() {
+            return settings;
         }
 
         @Override
@@ -244,6 +274,24 @@ class TemplateSandboxTest {
     )
     void should_block_reflection_gadgets(String template) {
         assertThatThrownBy(() -> render(template)).isInstanceOf(TemplateProcessorException.class);
+    }
+
+    @Test
+    void should_not_allow_templates_to_change_process_wide_state_through_static_methods() {
+        assertThatThrownBy(() -> render("<#assign x = api.settings.setDefaultStatus(299)>")).isInstanceOf(TemplateProcessorException.class);
+        assertThat(Settings.defaultStatus()).isEqualTo(400);
+    }
+
+    @Test
+    void should_not_allow_templates_to_modify_model_objects() throws Exception {
+        var model = model();
+        var api = (Api) model.get("api");
+
+        assertThatThrownBy(() -> processor.processInlineTemplate("<#assign x = api.settings.setStatus(299)>", model)).isInstanceOf(
+            TemplateProcessorException.class
+        );
+        assertThat(api.getSettings().getStatus()).isEqualTo(400);
+        assertThat(processor.processInlineTemplate("${api.settings.status}", model)).isEqualTo("400");
     }
 
     @Test
