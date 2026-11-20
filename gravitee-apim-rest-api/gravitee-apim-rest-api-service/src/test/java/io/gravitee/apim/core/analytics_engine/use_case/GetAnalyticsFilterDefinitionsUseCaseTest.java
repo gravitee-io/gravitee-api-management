@@ -17,10 +17,17 @@ package io.gravitee.apim.core.analytics_engine.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import inmemory.ParametersQueryServiceInMemory;
+import io.gravitee.apim.core.analytics_engine.domain_service.EndUserDisplaySettingDomainService;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.observability.model.Signal;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
+import io.gravitee.repository.management.model.Parameter;
+import io.gravitee.repository.management.model.ParameterReferenceType;
+import io.gravitee.rest.api.model.parameters.Key;
+import java.util.List;
 import java.util.Set;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -31,20 +38,55 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class GetAnalyticsFilterDefinitionsUseCaseTest {
 
+    private static final String ORGANIZATION_ID = "org-id";
+    private static final GetAnalyticsFilterDefinitionsUseCase.Input ALL = new GetAnalyticsFilterDefinitionsUseCase.Input(
+        ORGANIZATION_ID,
+        Set.of()
+    );
+
     private final AnalyticsDefinitionYAMLQueryService catalog = new AnalyticsDefinitionYAMLQueryService();
 
-    private final GetAnalyticsFilterDefinitionsUseCase useCase = new GetAnalyticsFilterDefinitionsUseCase(catalog);
+    private final ParametersQueryServiceInMemory parameters = new ParametersQueryServiceInMemory();
+
+    private final GetAnalyticsFilterDefinitionsUseCase useCase = new GetAnalyticsFilterDefinitionsUseCase(
+        catalog,
+        new EndUserDisplaySettingDomainService(parameters)
+    );
+
+    @AfterEach
+    void tearDown() {
+        parameters.reset();
+    }
 
     @Test
-    void should_return_the_whole_catalog_when_no_signal_is_requested() {
-        var specs = useCase.execute(GetAnalyticsFilterDefinitionsUseCase.Input.ALL).specs();
+    void should_return_the_whole_catalog_when_no_signal_is_requested_and_the_organization_displays_the_end_user() {
+        givenTheOrganizationDisplaysTheEndUser();
+
+        var specs = useCase.execute(ALL).specs();
 
         assertThat(specs).isEqualTo(catalog.getAllFilters());
     }
 
     @Test
+    void should_leave_the_end_user_out_while_the_organization_does_not_display_it() {
+        var specs = useCase.execute(ALL).specs();
+
+        assertThat(specs).extracting(FilterSpec::name).doesNotContain(FilterSpec.Name.USER);
+        assertThat(specs).hasSize(catalog.getAllFilters().size() - 1);
+    }
+
+    @Test
+    void should_offer_the_end_user_while_the_organization_displays_it() {
+        givenTheOrganizationDisplaysTheEndUser();
+
+        var specs = useCase.execute(ALL).specs();
+
+        assertThat(specs).extracting(FilterSpec::name).contains(FilterSpec.Name.USER);
+    }
+
+    @Test
     void should_narrow_to_the_requested_signal() {
-        var specs = useCase.execute(new GetAnalyticsFilterDefinitionsUseCase.Input(Set.of(Signal.LOGS))).specs();
+        var specs = useCase.execute(new GetAnalyticsFilterDefinitionsUseCase.Input(ORGANIZATION_ID, Set.of(Signal.LOGS))).specs();
 
         assertThat(specs)
             .isNotEmpty()
@@ -54,7 +96,7 @@ class GetAnalyticsFilterDefinitionsUseCaseTest {
 
     @Test
     void should_advertise_authz_reason_as_applicable_to_authz() {
-        var specs = useCase.execute(GetAnalyticsFilterDefinitionsUseCase.Input.ALL).specs();
+        var specs = useCase.execute(ALL).specs();
 
         var authzReason = specs
             .stream()
@@ -63,6 +105,12 @@ class GetAnalyticsFilterDefinitionsUseCaseTest {
             .orElseThrow();
 
         assertThat(authzReason.apis()).isNotEmpty();
+    }
+
+    private void givenTheOrganizationDisplaysTheEndUser() {
+        parameters.initWith(
+            List.of(new Parameter(Key.LOGGING_USER_DISPLAYED.key(), ORGANIZATION_ID, ParameterReferenceType.ORGANIZATION, "true"))
+        );
     }
 
     /**

@@ -250,6 +250,9 @@ paths:
                 example `?signal=LOGS` on the logs table. Without it, the whole catalog is returned, which
                 includes filters no single query path supports end to end.
 
+                `USER`, the end user a JWT or OAuth2 plan reports, is listed only while the organization setting
+                `logging.user.displayed` is on.
+
                 No permission is required: the catalog holds no traffic data.
             tags:
                 - definition
@@ -310,7 +313,9 @@ paths:
                 Resolves stable filter value identifiers (for example API, APPLICATION, or PLAN ids) into display labels.
                 This endpoint is used when hydrating dashboard filters from the URL, where labels are intentionally not stored.
                 Only ids the caller's rows hold are labelled: an API whose aggregates the caller reads, or an APPLICATION,
-                PLAN or API_PRODUCT id found in the calls of those APIs. Other ids are left out of `labels`.
+                PLAN or API_PRODUCT id found in the calls of those APIs. Other ids are left out of `labels`. For `USER`,
+                only `__no_end_user__`, the key of the calls without an end user, is labelled ("No end user"): an end
+                user has no other name than the one the plan reported.
             tags:
                 - definition
             parameters:
@@ -357,8 +362,8 @@ paths:
                 Returns a paginated list of distinct values for a given filter within an optional time range.
                 - ENUM filters return their static enum values.
                 - KEYWORD filters return the distinct values found in the calls of the APIs whose aggregates the caller
-                  reads, or whose logs they read for a field identifying callers (`CONSUMER_IP`, `NATIVE_CLIENT_ID`,
-                  `AUTHZ_SUBJECT_ID`) or one the logs only show. Empty when they read none. Searching `API` by name
+                  reads, or whose logs they read for a field identifying callers (`CONSUMER_IP`, `USER`,
+                  `NATIVE_CLIENT_ID`, `AUTHZ_SUBJECT_ID`) or one the logs only show. Empty when they read none. Searching `API` by name
                   offers the APIs the caller reads. Values are read from the request documents only:
                   `MESSAGE_CONNECTOR_TYPE` and `MESSAGE_CONNECTOR_ID`, whose field is on message documents, return
                   no values.
@@ -475,7 +480,7 @@ paths:
 
                 Only the APIs whose aggregates the caller reads are counted: `API_ANALYTICS[READ]` on the API, or every
                 API of the environment with `ENVIRONMENT_PLATFORM[READ]`. A query using a field identifying callers
-                (`CONSUMER_IP`, `NATIVE_CLIENT_ID`, `AUTHZ_SUBJECT_ID`) as filter or facet counts only the APIs where the
+                (`CONSUMER_IP`, `USER`, `NATIVE_CLIENT_ID`, `AUTHZ_SUBJECT_ID`) as filter or facet counts only the APIs where the
                 caller holds `API_LOG[READ]`. A caller who reads no API gets empty results, not 403.
 
             tags:
@@ -575,7 +580,7 @@ paths:
 
                 Only the APIs whose aggregates the caller reads are counted: `API_ANALYTICS[READ]` on the API, or every
                 API of the environment with `ENVIRONMENT_PLATFORM[READ]`. A query using a field identifying callers
-                (`CONSUMER_IP`, `NATIVE_CLIENT_ID`, `AUTHZ_SUBJECT_ID`) as filter or facet counts only the APIs where the
+                (`CONSUMER_IP`, `USER`, `NATIVE_CLIENT_ID`, `AUTHZ_SUBJECT_ID`) as filter or facet counts only the APIs where the
                 caller holds `API_LOG[READ]`. A caller who reads no API gets empty results, not 403.
 
             tags:
@@ -760,7 +765,7 @@ paths:
 
                 Only the APIs whose aggregates the caller reads are counted: `API_ANALYTICS[READ]` on the API, or every
                 API of the environment with `ENVIRONMENT_PLATFORM[READ]`. A query using a field identifying callers
-                (`CONSUMER_IP`, `NATIVE_CLIENT_ID`, `AUTHZ_SUBJECT_ID`) as filter or facet counts only the APIs where the
+                (`CONSUMER_IP`, `USER`, `NATIVE_CLIENT_ID`, `AUTHZ_SUBJECT_ID`) as filter or facet counts only the APIs where the
                 caller holds `API_LOG[READ]`. A caller who reads no API gets empty results, not 403.
 
             tags:
@@ -1447,6 +1452,7 @@ components:
                 - GEO_IP_CITY
                 - GEO_IP_CONTINENT
                 - CONSUMER_IP
+                - USER
                 - HTTP_USER_AGENT_OS_NAME
                 - HTTP_USER_AGENT_DEVICE
                 - MESSAGE_CONNECTOR_TYPE
@@ -1504,6 +1510,7 @@ components:
                 - GEO_IP_CITY
                 - GEO_IP_CONTINENT
                 - CONSUMER_IP
+                - USER
                 - HTTP_USER_AGENT_OS_NAME
                 - HTTP_USER_AGENT_DEVICE
                 - MESSAGE_CONNECTOR_TYPE
@@ -1575,6 +1582,7 @@ components:
                 - GEO_IP_CITY
                 - GEO_IP_CONTINENT
                 - CONSUMER_IP
+                - USER
                 - HTTP_USER_AGENT_OS_NAME
                 - HTTP_USER_AGENT_DEVICE
                 - MESSAGE_CONNECTOR_TYPE

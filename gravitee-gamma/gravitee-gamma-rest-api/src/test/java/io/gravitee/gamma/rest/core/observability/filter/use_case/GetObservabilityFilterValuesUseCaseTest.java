@@ -16,9 +16,11 @@
 package io.gravitee.gamma.rest.core.observability.filter.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.EndUserDisplayDomainService;
 import io.gravitee.gamma.rest.core.observability.filter.exception.ObservabilityFilterNotFoundException;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.inmemory.InMemoryObservabilityFilterDataPort;
@@ -40,7 +42,13 @@ import org.junit.jupiter.api.Test;
 class GetObservabilityFilterValuesUseCaseTest {
 
     private final InMemoryObservabilityFilterDataPort dataPort = new InMemoryObservabilityFilterDataPort();
-    private final GetObservabilityFilterValuesUseCase useCase = new GetObservabilityFilterValuesUseCase(new SpiFilterRegistry(), dataPort);
+    private static final String DISPLAYING_ORG = "org-displaying-end-users";
+
+    private final GetObservabilityFilterValuesUseCase useCase = new GetObservabilityFilterValuesUseCase(
+        new SpiFilterRegistry(),
+        dataPort,
+        new EndUserDisplayDomainService(DISPLAYING_ORG::equals)
+    );
 
     @Test
     void should_return_enum_values_with_labels_for_an_enum_filter() {
@@ -259,7 +267,7 @@ class GetObservabilityFilterValuesUseCaseTest {
         dataPort.givenKeywordValues("APPLICATION", List.of(new FilterValue("app-1", "Mobile")));
 
         useCase.execute(
-            new GetObservabilityFilterValuesUseCase.Input("APPLICATION", null, null, null, null, null, Set.of(), "workspace-1")
+            new GetObservabilityFilterValuesUseCase.Input("APPLICATION", null, null, null, null, null, Set.of(), "workspace-1", null)
         );
 
         assertThat(dataPort.lastCall()).hasValueSatisfying(call -> assertThat(call.apiProduct()).isEqualTo("workspace-1"));
@@ -330,11 +338,28 @@ class GetObservabilityFilterValuesUseCaseTest {
                     }
                 )
             ),
-            dataPort
+            dataPort,
+            new EndUserDisplayDomainService(DISPLAYING_ORG::equals)
         );
 
         assertThatThrownBy(() ->
             withContributor.execute(new GetObservabilityFilterValuesUseCase.Input("TENANT_FLAG", null, null, null, null, null))
         ).isInstanceOf(UnsupportedObservabilityFilterException.class);
+    }
+
+    @Test
+    void should_refuse_listing_end_users_while_the_organization_does_not_display_them() {
+        var input = new GetObservabilityFilterValuesUseCase.Input("USER", null, null, null, null, null, Set.of(), null, "another-org");
+
+        assertThatThrownBy(() -> useCase.execute(input))
+            .isInstanceOf(UnsupportedObservabilityFilterException.class)
+            .hasMessageContaining("logging.user.displayed");
+    }
+
+    @Test
+    void should_list_end_users_when_the_organization_displays_them() {
+        var input = new GetObservabilityFilterValuesUseCase.Input("USER", null, null, null, null, null, Set.of(), null, DISPLAYING_ORG);
+
+        assertThatCode(() -> useCase.execute(input)).doesNotThrowAnyException();
     }
 }

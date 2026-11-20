@@ -19,6 +19,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
 import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query;
 import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Tokens;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.EndUserClause;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.HTTPFieldResolver;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
 import io.gravitee.repository.elasticsearch.v4.shared.ConnectionEndFirst;
@@ -127,6 +128,7 @@ public class SearchMetricsQueryAdapter {
 
         addResponseTimeRangesFilter(filter, mustFilterList);
 
+        addUsersFilter(filter, mustFilterList);
         addLlmProxyModelsFilter(filter, mustFilterList);
 
         addLlmProxyProvidersFilter(filter, mustFilterList);
@@ -343,6 +345,12 @@ public class SearchMetricsQueryAdapter {
     private static void addStatusCodeGroupsFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getStatusCodeGroups())) {
             mustFilterList.add(StatusCodeGroups.shouldForGroups(RequestV2MetricsV4Fields.STATUS, filter.getStatusCodeGroups()));
+        }
+    }
+
+    private static void addUsersFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getUsers())) {
+            mustFilterList.add(EndUserClause.of(RequestV2MetricsV4Fields.USER.v4Metrics(), filter.getUsers()));
         }
     }
 

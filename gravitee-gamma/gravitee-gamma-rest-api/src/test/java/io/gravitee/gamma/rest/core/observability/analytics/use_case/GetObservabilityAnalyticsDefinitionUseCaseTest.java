@@ -33,6 +33,7 @@ import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricV
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.catalog.model.DiscoveredAdditionalMetric;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.EndUserDisplayDomainService;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -79,7 +80,8 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
             fixture.ports,
             fixture.ports,
             fixture.ports,
-            fixture.catalog
+            fixture.catalog,
+            new EndUserDisplayDomainService(organizationId -> false)
         );
     }
 
@@ -797,6 +799,69 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
 
             assertThat(definition.families()).isEmpty();
             assertThat(definition.dimensions()).isEmpty();
+        }
+    }
+
+    @Nested
+    class EndUser {
+
+        @BeforeEach
+        void givenAnLlmMetricByEndUser() {
+            fixture.ports.givenBuiltInMetric(
+                new MetricDefinition(
+                    "LLM_PROMPT_TOTAL_TOKEN",
+                    "Total tokens",
+                    "TOKENS",
+                    List.of(ApiType.LLM),
+                    List.of("SUM"),
+                    List.of(
+                        DimensionDefinition.builtIn("API", "API", List.of(ApiType.LLM)),
+                        DimensionDefinition.builtIn("USER", "End user", List.of(ApiType.LLM))
+                    ),
+                    List.of("API", "USER"),
+                    CatalogOrigin.BUILT_IN
+                )
+            );
+        }
+
+        @Test
+        void should_leave_the_end_user_out_of_the_facets_and_filters_while_the_organization_does_not_display_it() {
+            var metric = metricOf(execute(Set.of(ApiType.LLM)));
+
+            assertThat(metric.facets()).extracting(DimensionDefinition::name).containsExactly("API");
+            assertThat(metric.filters()).containsExactly("API");
+        }
+
+        @Test
+        void should_serve_the_end_user_as_facet_and_filter_once_the_organization_displays_it() {
+            var displaying = new GetObservabilityAnalyticsDefinitionUseCase(
+                fixture.ports,
+                fixture.repository,
+                fixture.ports,
+                fixture.ports,
+                fixture.ports,
+                fixture.catalog,
+                new EndUserDisplayDomainService(ORGANIZATION::equals)
+            );
+
+            var metric = metricOf(
+                displaying
+                    .execute(new GetObservabilityAnalyticsDefinitionUseCase.Input(ORGANIZATION, ENVIRONMENT, Set.of(ApiType.LLM)))
+                    .definition()
+            );
+
+            assertThat(metric.facets()).extracting(DimensionDefinition::name).containsExactly("API", "USER");
+            assertThat(metric.filters()).containsExactly("API", "USER");
+        }
+
+        private static MetricDefinition metricOf(AnalyticsDefinition definition) {
+            return definition
+                .families()
+                .stream()
+                .flatMap(family -> family.metrics().stream())
+                .filter(metric -> metric.name().equals("LLM_PROMPT_TOTAL_TOKEN"))
+                .findFirst()
+                .orElseThrow();
         }
     }
 

@@ -42,6 +42,7 @@ import io.gravitee.gamma.rest.core.observability.catalog.domain_service.MetricDe
 import io.gravitee.gamma.rest.core.observability.catalog.inmemory.InMemoryAdditionalMetricDefinitionRepository;
 import io.gravitee.gamma.rest.core.observability.catalog.inmemory.InMemoryCatalogPorts;
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.EndUserDisplayDomainService;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
@@ -84,7 +85,8 @@ class AnalyticsDefinitionPortAdapterTest extends AnalyticsDefinitionPortContract
         platform,
         platform,
         platform,
-        new AdditionalMetricCatalogDomainService(new MetricDefinitionKeyDomainService(new AdditionalMetricGrammarPortAdapter(), platform))
+        new AdditionalMetricCatalogDomainService(new MetricDefinitionKeyDomainService(new AdditionalMetricGrammarPortAdapter(), platform)),
+        new EndUserDisplayDomainService(organizationId -> false)
     );
 
     @Override

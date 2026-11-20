@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest.core.observability.filter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
@@ -30,9 +31,11 @@ import io.gravitee.repository.analytics.engine.api.query.FilterOutcome;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FilterAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.HTTPFieldResolver;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.MessageFieldResolver;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -131,6 +134,22 @@ class FilterCatalogParityTest {
             .toList();
 
         assertThat(StaticFilters.identifying()).containsExactlyInAnyOrderElementsOf(platformIdentifying);
+    }
+
+    /**
+     * The read scope follows {@link StaticFilters#identifying()}: a platform field identifying callers that Gamma left
+     * out would open per-request data to a reader of aggregates, as a condition or as a facet, whether or not Gamma
+     * lists it as a filter.
+     */
+    @Test
+    void gamma_should_classify_as_identifying_every_platform_field_identifying_callers() {
+        var platformIdentifying = Stream.concat(
+            Arrays.stream(FilterSpec.Name.values()).filter(FilterSpec.Name::isIdentifying).map(Enum::name),
+            Arrays.stream(FacetSpec.Name.values()).filter(FacetSpec.Name::isIdentifying).map(Enum::name)
+        ).toList();
+
+        assertThat(platformIdentifying).isNotEmpty();
+        assertThat(StaticFilters.identifying()).containsAll(platformIdentifying);
     }
 
     /** Two catalogs, two {@code Signal} enums: the platform one is spelled out here, once. */

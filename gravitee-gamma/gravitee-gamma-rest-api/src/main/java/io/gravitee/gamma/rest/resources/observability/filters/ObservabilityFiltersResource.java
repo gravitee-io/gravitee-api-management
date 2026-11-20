@@ -158,7 +158,8 @@ public class ObservabilityFiltersResource {
                 page,
                 perPage,
                 EnumQueryParam.parse(apiTypes, ApiType.class, "apiType"),
-                presentOrNull(apiProduct)
+                presentOrNull(apiProduct),
+                GraviteeContext.getExecutionContext().getOrganizationId()
             )
         );
         List<FilterValueDto> data = output.values().data().stream().map(FilterValueDto::from).toList();

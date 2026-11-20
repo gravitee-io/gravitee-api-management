@@ -28,6 +28,7 @@ import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.AdditionalMetricGrammarPort;
+import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.EndUserDisplayPort;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort;
 import io.gravitee.gamma.rest.infra.adapter.ObservabilityLogsDataPortAdapter;
 import org.springframework.context.annotation.Bean;
@@ -63,7 +64,8 @@ public class GammaLogsConfiguration {
         InstanceQueryService instanceQueryService,
         ApiProductQueryService apiProductQueryService,
         ApiCrudService apiCrudService,
-        AdditionalMetricGrammarPort additionalMetricGrammar
+        AdditionalMetricGrammarPort additionalMetricGrammar,
+        EndUserDisplayPort endUserDisplay
     ) {
         return new ObservabilityLogsDataPortAdapter(
             aggregatedMessageLogCrudService,
@@ -76,7 +78,8 @@ public class GammaLogsConfiguration {
             instanceQueryService,
             apiProductQueryService,
             apiCrudService,
-            additionalMetricGrammar
+            additionalMetricGrammar,
+            endUserDisplay
         );
     }
 }

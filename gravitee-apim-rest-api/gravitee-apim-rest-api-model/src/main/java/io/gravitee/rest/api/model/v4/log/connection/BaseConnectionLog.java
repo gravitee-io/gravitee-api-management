@@ -57,6 +57,7 @@ public class BaseConnectionLog {
     private String mcpMethod;
     private String host;
     private String subscriptionId;
+    private String user;
     /** The ID of the API Product associated with this connection log entry. Null when no product is associated. */
     private String apiProductId;
 

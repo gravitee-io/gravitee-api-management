@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.analytics_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics_engine.domain_service.EndUserDisplaySettingDomainService;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.observability.model.Signal;
@@ -26,19 +27,34 @@ import java.util.Set;
 public class GetAnalyticsFilterDefinitionsUseCase {
 
     private final AnalyticsDefinitionQueryService definition;
+    private final EndUserDisplaySettingDomainService endUserDisplaySetting;
 
-    public GetAnalyticsFilterDefinitionsUseCase(AnalyticsDefinitionQueryService definition) {
+    public GetAnalyticsFilterDefinitionsUseCase(
+        AnalyticsDefinitionQueryService definition,
+        EndUserDisplaySettingDomainService endUserDisplaySetting
+    ) {
         this.definition = definition;
+        this.endUserDisplaySetting = endUserDisplaySetting;
     }
 
-    /** @param signals signals to narrow the catalog to; empty returns the whole catalog. */
-    public record Input(Set<Signal> signals) {
-        public static final Input ALL = new Input(Set.of());
-    }
+    /**
+     * @param organizationId the organization whose settings decide whether the end user is offered
+     * @param signals signals to narrow the catalog to; empty returns the whole catalog.
+     */
+    public record Input(String organizationId, Set<Signal> signals) {}
 
     public record Output(List<FilterSpec> specs) {}
 
     public Output execute(Input input) {
-        return new Output(definition.getFilters(input.signals()));
+        var specs = definition.getFilters(input.signals());
+        if (endUserDisplaySetting.isDisplayed(input.organizationId())) {
+            return new Output(specs);
+        }
+        return new Output(
+            specs
+                .stream()
+                .filter(spec -> spec.name() != FilterSpec.Name.USER)
+                .toList()
+        );
     }
 }
