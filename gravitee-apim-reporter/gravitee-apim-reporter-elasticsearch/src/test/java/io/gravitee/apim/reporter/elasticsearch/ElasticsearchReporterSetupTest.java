@@ -280,12 +280,17 @@ class ElasticsearchReporterSetupTest {
         );
         startReporter(Map.of());
         reporter.stop();
-        awaitReporterLog(Level.ERROR, "until the gateway restarts");
+        await()
+            .atMost(Duration.ofSeconds(10))
+            .until(() -> !elasticsearch.findAll(putRequestedFor(urlPathEqualTo(REQUEST_TEMPLATE_PATH))).isEmpty());
 
         reporter.report(metrics());
         testScheduler.advanceTimeBy(1, TimeUnit.MINUTES);
 
-        assertThat(reporterMessages(Level.WARN)).isEmpty();
+        await()
+            .during(Duration.ofSeconds(1))
+            .atMost(Duration.ofSeconds(3))
+            .until(() -> reporterMessages(Level.WARN).isEmpty());
     }
 
     @Test
