@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import io.gravitee.apim.core.notification.model.UserNotificationTemplateData;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.rest.api.model.UserEntity;
@@ -31,4 +32,6 @@ public interface UserAdapter {
 
     BaseUserEntity fromUser(User user);
     BaseUserEntity fromUser(UserEntity user);
+
+    UserNotificationTemplateData toUserNotificationTemplateData(UserEntity user);
 }
