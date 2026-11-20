@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.cluster.security;
+package io.gravitee.apim.common.cluster;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,7 +40,8 @@ import java.util.function.Supplier;
 
 /**
  * Evaluates every string of a cluster connection's security that holds an expression, with a template engine that only
- * knows the gateway-wide variables (the secrets among them) and none of an API or a request.
+ * knows the node-wide variables of the gateway or the management API (the secrets among them) and none of an API or a
+ * request.
  *
  * <p>Each field is evaluated with the field kind the SSL options of the plugins give the same field with {@code @Secret}
  * ({@code PASSWORD} for passwords, {@code PRIVATE_KEY} and {@code PUBLIC_KEY} for PEM contents, {@code GENERIC} otherwise)
