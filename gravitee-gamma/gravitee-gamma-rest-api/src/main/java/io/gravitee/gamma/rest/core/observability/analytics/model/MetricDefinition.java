@@ -89,6 +89,30 @@ public record MetricDefinition(
         return origin == CatalogOrigin.BUILT_IN ? MetricFamily.of(apiTypes) : MetricFamily.ADDITIONAL;
     }
 
+    /** This metric without the field {@code fieldName}, as a facet and as a filter. */
+    public MetricDefinition without(String fieldName) {
+        return new MetricDefinition(
+            name,
+            label,
+            description,
+            namespace,
+            unit,
+            apiTypes,
+            measures,
+            facets
+                .stream()
+                .filter(facet -> !facet.name().equals(fieldName))
+                .toList(),
+            filters
+                .stream()
+                .filter(filter -> !filter.equals(fieldName))
+                .toList(),
+            origin,
+            currency,
+            lastSeen
+        );
+    }
+
     /** This metric grouped by {@code more} facets as well, after its own. */
     public MetricDefinition groupedAlsoBy(List<DimensionDefinition> more) {
         if (more.isEmpty()) {

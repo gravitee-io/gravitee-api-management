@@ -77,6 +77,7 @@ public record LogDetail(
     String gatewayHostname,
     String gatewayIp,
     String remoteAddress,
+    String user,
     Long requestContentLength,
     Long responseContentLength,
     Long gatewayLatency,

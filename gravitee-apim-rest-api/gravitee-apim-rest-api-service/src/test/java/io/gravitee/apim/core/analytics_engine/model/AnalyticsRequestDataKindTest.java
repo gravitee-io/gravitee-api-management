@@ -32,6 +32,7 @@ class AnalyticsRequestDataKindTest {
     private static final TimeRange TIME_RANGE = new TimeRange(Instant.parse("2026-01-01T00:00:00Z"), Instant.parse("2026-01-02T00:00:00Z"));
     private static final Filter BY_METHOD = new Filter(FilterSpec.Name.HTTP_METHOD, FilterOperator.EQ, "GET");
     private static final Filter BY_CONSUMER_IP = new Filter(FilterSpec.Name.CONSUMER_IP, FilterOperator.EQ, "10.0.0.1");
+    private static final Filter BY_END_USER = new Filter(FilterSpec.Name.USER, FilterOperator.EQ, "alice");
 
     @Nested
     class Measures {
@@ -58,6 +59,13 @@ class AnalyticsRequestDataKindTest {
         }
 
         @Test
+        void should_read_the_requests_when_a_condition_names_the_end_user() {
+            var request = new MeasuresRequest(TIME_RANGE, List.of(BY_END_USER), List.of(requests(List.of())));
+
+            assertThat(request.dataKind(_ -> false)).isEqualTo(ApiDataKind.PER_REQUEST);
+        }
+
+        @Test
         void should_read_the_aggregates_when_the_request_carries_no_condition_at_all() {
             var request = new MeasuresRequest(TIME_RANGE, null, null);
 
@@ -78,6 +86,13 @@ class AnalyticsRequestDataKindTest {
         @Test
         void should_read_the_requests_when_a_facet_identifies_a_caller() {
             var request = new FacetsRequest(TIME_RANGE, List.of(), List.of(), List.of(FacetSpec.Name.AUTHZ_SUBJECT_ID), 10, List.of());
+
+            assertThat(request.dataKind(_ -> false)).isEqualTo(ApiDataKind.PER_REQUEST);
+        }
+
+        @Test
+        void should_read_the_requests_when_the_facet_is_the_end_user() {
+            var request = new FacetsRequest(TIME_RANGE, List.of(), List.of(), List.of(FacetSpec.Name.USER), 10, List.of());
 
             assertThat(request.dataKind(_ -> false)).isEqualTo(ApiDataKind.PER_REQUEST);
         }

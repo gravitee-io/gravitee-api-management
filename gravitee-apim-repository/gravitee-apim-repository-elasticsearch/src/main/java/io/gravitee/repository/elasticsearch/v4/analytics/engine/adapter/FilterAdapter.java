@@ -62,6 +62,7 @@ public class FilterAdapter {
         Filter.Name.GEO_IP_COUNTRY,
         Filter.Name.GEO_IP_CONTINENT,
         Filter.Name.CONSUMER_IP,
+        Filter.Name.USER,
         Filter.Name.HTTP_USER_AGENT_OS_NAME,
         Filter.Name.HTTP_USER_AGENT_DEVICE,
         Filter.Name.HTTP_ENDPOINT_RESPONSE_TIME,
@@ -527,6 +528,10 @@ public class FilterAdapter {
         }
         if (filter.name() == Filter.Name.HTTP_METHOD) {
             return httpMethodFilter(filter);
+        }
+        boolean isEqualityOperator = filter.operator() == Filter.Operator.EQ || filter.operator() == Filter.Operator.IN;
+        if (filter.name() == Filter.Name.USER && isEqualityOperator) {
+            return EndUserClause.of(fieldResolver.fromFilter(filter), values(filter.value()).map(String::valueOf).toList());
         }
         if (
             filter.name() == Filter.Name.ENTRYPOINT && (filter.operator() == Filter.Operator.EQ || filter.operator() == Filter.Operator.IN)

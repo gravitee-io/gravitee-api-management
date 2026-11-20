@@ -42,6 +42,7 @@ public class ApiMetricsDetail {
     long requestContentLength;
     long responseContentLength;
     String remoteAddress;
+    String user;
     long gatewayLatency;
     long gatewayResponseTime;
     long endpointResponseTime;

@@ -24,9 +24,11 @@ import io.gravitee.gamma.rest.core.observability.catalog.port.repository.Additio
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.AdditionalMetricDiscoveryPort;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.BuiltInAdditionalMetricsPort;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.TrafficReadPermissionPort;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.EndUserDisplayDomainService;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
+import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import java.util.List;
 import java.util.Optional;
@@ -67,6 +69,7 @@ public class GetObservabilityFilterDefinitionsUseCase {
     private final TrafficReadPermissionPort trafficReadPermission;
     private final AnalyticsDefinitionPort analyticsDefinition;
     private final AdditionalMetricCatalogDomainService catalog;
+    private final EndUserDisplayDomainService endUserDisplay;
 
     public record Input(
         String organizationId,
@@ -112,7 +115,12 @@ public class GetObservabilityFilterDefinitionsUseCase {
         var truncated =
             discovered.map(AdditionalMetricDiscovery::truncated).orElse(false) &&
             catalog.admitsDynamicEntries(input.signals(), input.apiTypes());
-        return new Output(narrowedTo(filters, input.origins()), truncated);
+        var displaysEndUser = endUserDisplay.displaysEndUser(input.organizationId());
+        var served = filters
+            .stream()
+            .filter(spec -> displaysEndUser || !StaticFilters.isEndUser(spec.name()))
+            .toList();
+        return new Output(narrowedTo(served, input.origins()), truncated);
     }
 
     /** The entries of the asked origins; every entry when none is asked. */

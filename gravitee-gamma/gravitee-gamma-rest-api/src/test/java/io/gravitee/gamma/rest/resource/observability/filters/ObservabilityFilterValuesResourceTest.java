@@ -24,6 +24,7 @@ import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gamma.rest.core.observability.catalog.inmemory.InMemoryAdditionalMetricDefinitionRepository;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricDefinition;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.EndUserDisplayDomainService;
 import io.gravitee.gamma.rest.core.observability.filter.inmemory.InMemoryObservabilityFilterDataPort;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterValue;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
@@ -160,6 +161,29 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
         );
     }
 
+    /** The test organization leaves {@code logging.user.displayed} off. */
+    @Test
+    void should_answer_400_to_the_end_user_values_while_the_organization_does_not_display_it() {
+        Response response = rootTarget("USER/values").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        assertThat(response.readEntity(JsonNode.class).get("technicalCode").asText()).isEqualTo(
+            "observability.filter.end_user_not_displayed"
+        );
+        assertThat(dataPort.lastCall()).isEmpty();
+    }
+
+    @Test
+    void should_answer_400_to_the_end_user_values_by_name_while_the_organization_does_not_display_it() {
+        Response response = rootTarget("values").queryParam("name", "USER").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        assertThat(response.readEntity(JsonNode.class).get("technicalCode").asText()).isEqualTo(
+            "observability.filter.end_user_not_displayed"
+        );
+        assertThat(dataPort.lastCall()).isEmpty();
+    }
+
     @Test
     void should_still_answer_404_for_a_name_under_no_dynamic_root() {
         Response response = rootTarget("UNKNOWN/values").request().get();
@@ -206,6 +230,11 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
         @Bean
         FilterRegistry filterRegistry() {
             return new SpiFilterRegistry();
+        }
+
+        @Bean
+        EndUserDisplayDomainService endUserDisplayDomainService() {
+            return new EndUserDisplayDomainService(organizationId -> false);
         }
     }
 }

@@ -60,6 +60,7 @@ public record LogEntry(
     String entrypointId,
     String host,
     String subscriptionId,
+    String user,
     String message,
     String errorKey,
     String errorComponentName,

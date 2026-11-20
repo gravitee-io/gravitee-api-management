@@ -160,6 +160,12 @@ class HTTPFieldResolverTest {
     }
 
     @Test
+    void should_resolve_the_end_user_filter_and_facet_to_the_root_user_field() {
+        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.USER, Filter.Operator.IN, List.of("alice")))).isEqualTo("user");
+        assertThat(fieldResolver.fromFacet(Facet.USER)).isEqualTo("user");
+    }
+
+    @Test
     void should_resolve_api_product_facet_to_api_product_id_es_field() {
         assertThat(fieldResolver.fromFacet(Facet.API_PRODUCT)).isEqualTo("api-product-id");
     }

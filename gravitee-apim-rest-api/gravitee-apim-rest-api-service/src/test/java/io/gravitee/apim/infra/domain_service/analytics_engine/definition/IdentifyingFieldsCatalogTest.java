@@ -39,7 +39,7 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class IdentifyingFieldsCatalogTest {
 
-    private static final Set<FilterSpec.Name> IDENTIFYING = EnumSet.of(CONSUMER_IP, NATIVE_CLIENT_ID, AUTHZ_SUBJECT_ID);
+    private static final Set<FilterSpec.Name> IDENTIFYING = EnumSet.of(CONSUMER_IP, USER, NATIVE_CLIENT_ID, AUTHZ_SUBJECT_ID);
 
     /** A device identifier read by EDGE_MANAGER for Edge governance: counted with the aggregates by decision. */
     private static final Set<FilterSpec.Name> AGGREGATES_BY_DECISION = EnumSet.of(EDGE_CLIENT);

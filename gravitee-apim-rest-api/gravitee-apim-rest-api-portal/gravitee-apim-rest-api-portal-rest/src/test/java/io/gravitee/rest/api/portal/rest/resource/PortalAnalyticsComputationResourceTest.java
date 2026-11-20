@@ -319,6 +319,42 @@ public class PortalAnalyticsComputationResourceTest extends AbstractResourceTest
         verify(computeMeasuresUseCase, never()).execute(any());
     }
 
+    /**
+     * The Portal scopes analytics by visibility and application, not by API_LOG nor by the organization setting
+     * {@code logging.user.displayed}: serving the end user here would expose identities whatever that setting says.
+     */
+    @Test
+    void post_facets_returns_400_for_a_facet_by_end_user() {
+        final var json = """
+            {
+              "timeRange": {"from": "2026-01-01T00:00:00Z", "to": "2026-01-02T00:00:00Z"},
+              "by": ["USER"],
+              "metrics": [{"name": "HTTP_REQUESTS", "measures": ["COUNT"]}]
+            }
+            """;
+
+        final var response = target().path("facets").request().post(Entity.json(json));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        verify(computeFacetsUseCase, never()).execute(any());
+    }
+
+    @Test
+    void post_measures_returns_400_for_a_filter_on_end_user() {
+        final var json = """
+            {
+              "timeRange": {"from": "2026-01-01T00:00:00Z", "to": "2026-01-02T00:00:00Z"},
+              "filters": [{"name": "USER", "operator": "EQ", "value": "alice"}],
+              "metrics": [{"name": "HTTP_REQUESTS", "measures": ["COUNT"]}]
+            }
+            """;
+
+        final var response = target().path("measures").request().post(Entity.json(json));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        verify(computeMeasuresUseCase, never()).execute(any());
+    }
+
     @Test
     void post_time_series_accepts_interval_as_milliseconds() {
         when(computeTimeSeriesUseCase.execute(any())).thenReturn(new ComputeTimeSeriesUseCase.Output(new TimeSeriesResponse(List.of())));
