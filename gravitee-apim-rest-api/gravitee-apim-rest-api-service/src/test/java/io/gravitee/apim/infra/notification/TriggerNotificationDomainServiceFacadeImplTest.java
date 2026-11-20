@@ -49,6 +49,7 @@ import io.gravitee.apim.core.notification.model.PlanNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.PrimaryOwnerNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.SubscriptionNotificationTemplateData;
+import io.gravitee.apim.core.notification.model.UserNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.hook.ApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.ApplicationHookContext;
 import io.gravitee.apim.core.notification.model.hook.HookContextEntry;
@@ -1006,6 +1007,30 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                     .id(INTEGRATION_ID)
                     .name(integration.getName())
                     .provider(integration.getProvider())
+                    .build()
+            );
+        }
+
+        @Test
+        public void should_fetch_user_notification_data() {
+            // When
+            var portalHookContext = new SimplePortalHookContextForTest(Map.of(HookContextEntry.USER_ID, USER_ID));
+            service.triggerPortalNotification(ORGANIZATION_ID, ENVIRONMENT_ID, portalHookContext);
+
+            // Then
+            verify(notifierService).trigger(
+                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                eq(PortalHook.FEDERATED_APIS_INGESTION_COMPLETE),
+                paramsCaptor.capture()
+            );
+            assertThat(paramsCaptor.getValue()).containsEntry(
+                "user",
+                UserNotificationTemplateData.builder()
+                    .id(USER_ID)
+                    .firstname("Jane")
+                    .lastname("Doe")
+                    .displayName("Jane Doe")
+                    .email("jane.doe@gravitee.io")
                     .build()
             );
         }

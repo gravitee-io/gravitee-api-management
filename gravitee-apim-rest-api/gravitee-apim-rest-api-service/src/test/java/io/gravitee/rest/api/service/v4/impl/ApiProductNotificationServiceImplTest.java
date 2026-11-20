@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.notification.model.UserNotificationTemplateData;
 import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.UserEntity;
@@ -154,7 +155,9 @@ class ApiProductNotificationServiceImplTest {
         assertThat(model.getPrimaryOwner()).isNotNull();
         assertThat(model.getPrimaryOwner().getId()).isEqualTo("po-1");
 
-        assertThat(paramsCaptor.getValue().get(NotificationParamsBuilder.PARAM_USER)).isSameAs(loadedActor);
+        assertThat(paramsCaptor.getValue().get(NotificationParamsBuilder.PARAM_USER)).isEqualTo(
+            UserNotificationTemplateData.builder().id("actor-1").email("actor@example.com").displayName("actor@example.com").build()
+        );
     }
 
     @Test
@@ -206,6 +209,8 @@ class ApiProductNotificationServiceImplTest {
         assertThat(model.getName()).isEqualTo("Deploy Product");
         assertThat(model.getVersion()).isEqualTo("3.0");
         assertThat(model.getPrimaryOwner()).isNull();
-        assertThat(paramsCaptor.getValue().get(NotificationParamsBuilder.PARAM_USER)).isSameAs(actor);
+        assertThat(paramsCaptor.getValue().get(NotificationParamsBuilder.PARAM_USER)).isEqualTo(
+            UserNotificationTemplateData.builder().id("actor-1").email("actor@example.com").displayName("actor@example.com").build()
+        );
     }
 }
