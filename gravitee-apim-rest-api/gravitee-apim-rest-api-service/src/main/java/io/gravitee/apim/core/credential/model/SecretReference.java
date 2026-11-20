@@ -18,6 +18,7 @@ package io.gravitee.apim.core.credential.model;
 import io.gravitee.apim.core.credential.exception.InvalidCredentialException;
 import io.gravitee.apim.core.secret.model.Secret;
 import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -28,10 +29,11 @@ import java.util.regex.Pattern;
  */
 public record SecretReference(String reference, String secretId) {
     /** Lets the gateway pick up a rotated value without a redeploy. */
-    static final String MANAGED_FLAGS = "?renewable=true&reloadOnChange=true";
+    static final String MANAGED_FLAGS = "&renewable=true&reloadOnChange=true";
 
     private static final String GRAVITEE_PROVIDER = "gravitee";
     private static final String EXPRESSION_PREFIX = "{#";
+    private static final String ENV_ID = "envId=";
     private static final int MAX_LENGTH = 2048;
     // The gateway's SecretURL trims every character up to U+0020, so a control character could hide a credential key from the check below.
     private static final Pattern WHITESPACE = Pattern.compile("[\\s\\p{Cc}\\p{Z}]");
@@ -56,17 +58,31 @@ public record SecretReference(String reference, String secretId) {
             );
         }
         var external = new SecretReference(reference, null);
-        if (external.isInGraviteeStore() && !isPlainKey(external.graviteeKey())) {
+        if (external.isInGraviteeStore()) {
+            requireStoreForm(field, external);
+        }
+        return external;
+    }
+
+    private static void requireStoreForm(String field, SecretReference reference) {
+        var key = reference.graviteeKey();
+        if (!isPlainKey(key)) {
             throw invalidPath(field);
         }
-        if (external.isInGraviteeStore() && external.graviteeKey().startsWith(Secret.CREDENTIAL_KEY_PREFIX)) {
+        if (key.contains("/") || reference.envIdParameters().size() != 1 || reference.graviteeEnvironmentId().isEmpty()) {
+            throw new InvalidCredentialException(
+                "The reference of " +
+                    field +
+                    " must have the form /gravitee/{key}:value?envId={envId}, such as /gravitee/my-secret:value?envId=my-env."
+            );
+        }
+        if (Secret.isCredentialKey(key)) {
             throw new InvalidCredentialException(
                 "The reference of " +
                     field +
                     " points at a secret that another credential holds. Reference a secret of your own or give the value."
             );
         }
-        return external;
     }
 
     private static InvalidCredentialException invalidPath(String field) {
@@ -80,12 +96,27 @@ public record SecretReference(String reference, String secretId) {
         return !key.contains("%") && Arrays.stream(key.split("/", -1)).noneMatch(segment -> segment.equals(".") || segment.equals(".."));
     }
 
-    /** The secret key, read the way the gateway reads it: the path after the provider, before any query or {@code :key}. */
     private String graviteeKey() {
-        return withoutQueryAndKey(reference.substring(reference.indexOf('/', 1) + 1));
+        return TRAILING_SLASHES.matcher(withoutQueryAndKey(reference.substring(reference.indexOf('/', 1) + 1))).replaceAll("");
     }
 
-    // Mirrors the gateway's SecretURL.from (gravitee-secret-api 4.0.0): it trims trailing slashes, then needs a provider and a path with no empty segment.
+    String graviteeEnvironmentId() {
+        var envIds = envIdParameters();
+        return envIds.isEmpty() ? null : envIds.getFirst();
+    }
+
+    private List<String> envIdParameters() {
+        var query = reference.indexOf('?');
+        if (query < 0) {
+            return List.of();
+        }
+        return Arrays.stream(reference.substring(query + 1).split("&"))
+            .filter(parameter -> parameter.startsWith(ENV_ID))
+            .map(parameter -> parameter.substring(ENV_ID.length()))
+            .toList();
+    }
+
+    // Mirrors the gateway's SecretURL.from (gravitee-secret-api 4.1.0): it trims trailing slashes, then needs a provider and a path with no empty segment.
     private static boolean isProviderAndPath(String reference) {
         var segments = TRAILING_SLASHES.matcher(withoutQueryAndKey(reference.substring(1))).replaceAll("").split("/", -1);
         return segments.length >= 2 && !Arrays.asList(segments).contains("");

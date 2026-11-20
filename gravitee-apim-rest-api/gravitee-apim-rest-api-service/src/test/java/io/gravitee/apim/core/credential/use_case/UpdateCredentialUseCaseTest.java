@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.credential.use_case;
 
+import static io.gravitee.apim.core.credential.use_case.CredentialFixture.ENV_ID;
 import static io.gravitee.apim.core.credential.use_case.CredentialFixture.FOREIGN_USER_ID;
 import static io.gravitee.apim.core.credential.use_case.CredentialFixture.NEXT_YEAR;
 import static io.gravitee.apim.core.credential.use_case.CredentialFixture.OTHER_USER_ID;
@@ -119,7 +120,7 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
     }
 
     @Test
-    void should_not_point_an_expression_at_the_secret_of_another_credential() {
+    void should_refuse_a_gravitee_expression_with_a_dynamic_key_since_it_cannot_name_its_environment() {
         var credential = fixture.givenACredential();
 
         assertThatThrownBy(() ->
@@ -128,7 +129,7 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
             )
         )
             .isInstanceOf(InvalidCredentialException.class)
-            .hasMessageContaining("another credential");
+            .hasMessageContaining("?envId={envId}");
         assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
     }
 
@@ -138,7 +139,7 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
 
         assertThatThrownBy(() ->
             update(fixture.admin(), credential, c ->
-                c.references(Map.of("token", "{#secrets.get('/gravitee/cred' + 'ential.other.token:value')}"))
+                c.references(Map.of("token", "{#secrets.get('/gravitee/cred' + 'ential.other.token:value?envId=" + ENV_ID + "')}"))
             )
         )
             .isInstanceOf(InvalidCredentialException.class)
@@ -162,15 +163,29 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
         var credential = fixture.givenACredential();
         var withoutRead = fixture.ownerWithSecretAccess(SecretAccess.CREATE, SecretAccess.UPDATE, SecretAccess.DELETE);
 
-        assertThatThrownBy(() -> update(withoutRead, credential, c -> c.references(Map.of("token", "/gravitee/other-secret:value"))))
+        assertThatThrownBy(() ->
+            update(withoutRead, credential, c -> c.references(Map.of("token", "/gravitee/other-secret:value?envId=" + ENV_ID)))
+        )
             .isInstanceOf(SecretPermissionRequiredException.class)
             .hasMessageContaining("read");
         assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
     }
 
     @Test
+    void should_not_point_at_a_secret_of_another_environment() {
+        var credential = fixture.givenACredential();
+
+        assertThatThrownBy(() ->
+            update(fixture.owner(), credential, c -> c.references(Map.of("token", "/gravitee/my-secret:value?envId=other-env")))
+        )
+            .isInstanceOf(InvalidCredentialException.class)
+            .hasMessageContaining("another environment");
+        assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
+    }
+
+    @Test
     void should_not_need_the_secret_read_permission_when_the_references_do_not_change() {
-        var credential = fixture.givenACredential(c -> c.references(Map.of("token", "/gravitee/my-secret:value")));
+        var credential = fixture.givenACredential(c -> c.references(Map.of("token", "/gravitee/my-secret:value?envId=" + ENV_ID)));
 
         var updated = update(fixture.ownerWithSecretAccess(), credential, c -> c.name("Renamed"));
 
@@ -183,7 +198,14 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
             c
                 .strategy(CredentialStrategy.OAUTH2)
                 .configuration(Map.of("tokenUrl", "https://idp.example.com/token"))
-                .references(Map.of("clientId", "/gravitee/my-client:value", "clientSecret", "/gravitee/my-secret:value"))
+                .references(
+                    Map.of(
+                        "clientId",
+                        "/gravitee/my-client:value?envId=" + ENV_ID,
+                        "clientSecret",
+                        "/gravitee/my-secret:value?envId=" + ENV_ID
+                    )
+                )
         );
 
         assertThatThrownBy(() ->
@@ -196,7 +218,7 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
 
     @Test
     void should_require_the_secret_read_permission_to_hand_over_a_credential_pointing_at_gravitee_secrets() {
-        var credential = fixture.givenACredential(c -> c.references(Map.of("token", "/gravitee/my-secret:value")));
+        var credential = fixture.givenACredential(c -> c.references(Map.of("token", "/gravitee/my-secret:value?envId=" + ENV_ID)));
 
         assertThatThrownBy(() -> update(fixture.ownerWithSecretAccess(), credential, c -> c.ownerId(OTHER_USER_ID))).isInstanceOf(
             SecretPermissionRequiredException.class
@@ -224,7 +246,7 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
 
     @Test
     void should_not_need_the_secret_read_permission_to_send_unchanged_references_back() {
-        var credential = fixture.givenACredential(c -> c.references(Map.of("token", "/gravitee/my-secret:value")));
+        var credential = fixture.givenACredential(c -> c.references(Map.of("token", "/gravitee/my-secret:value?envId=" + ENV_ID)));
 
         var updated = update(fixture.ownerWithSecretAccess(), credential, c -> c.name("Renamed").references(referencesOf(credential)));
 
