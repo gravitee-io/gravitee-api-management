@@ -56,6 +56,37 @@ class SpelSecretExpressionParserTest {
         ).hasValueSatisfying(path -> assertThat(path).startsWith("/gravitee/credential.other.token:"));
     }
 
+    @Test
+    void should_read_the_path_of_text_joined_with_plus() {
+        assertThat(parser.literalPath("token", "{#secrets.get('/gravitee/cred' + 'ential.other.token:value')}")).contains(
+            "/gravitee/credential.other.token:value"
+        );
+        assertThat(parser.literalPath("token", "{#secrets.get('/vault/secret/' + 'openai', 'to' + 'ken')}")).contains(
+            "/vault/secret/openai:token"
+        );
+    }
+
+    @Test
+    void should_accept_a_key_of_text_joined_with_plus_when_the_path_reads_context_data() {
+        assertThat(parser.literalPath("token", "{#secrets.get(#context.attributes['uri'], 'to' + 'ken')}")).isEmpty();
+    }
+
+    @Test
+    void should_say_the_key_must_be_text_when_the_path_reads_context_data() {
+        assertThatThrownBy(() -> parser.literalPath("token", "{#secrets.get(#context.attributes['uri'], #context.attributes['key'])}"))
+            .isInstanceOf(InvalidCredentialException.class)
+            .hasMessageContaining("token")
+            .hasMessageContaining("key must be text");
+    }
+
+    @Test
+    void should_say_a_path_of_text_must_name_a_key() {
+        assertThatThrownBy(() -> parser.literalPath("token", "{#secrets.get('/vault/secret/openai')}"))
+            .isInstanceOf(InvalidCredentialException.class)
+            .hasMessageContaining("token")
+            .hasMessageContaining("must name a key");
+    }
+
     @ParameterizedTest
     @ValueSource(
         strings = {

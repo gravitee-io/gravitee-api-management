@@ -133,6 +133,20 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
     }
 
     @Test
+    void should_not_point_an_expression_of_joined_text_at_the_secret_of_another_credential() {
+        var credential = fixture.givenACredential();
+
+        assertThatThrownBy(() ->
+            update(fixture.admin(), credential, c ->
+                c.references(Map.of("token", "{#secrets.get('/gravitee/cred' + 'ential.other.token:value')}"))
+            )
+        )
+            .isInstanceOf(InvalidCredentialException.class)
+            .hasMessageContaining("another credential");
+        assertThat(fixture.credentialCrudService.storage()).containsExactly(credential);
+    }
+
+    @Test
     void should_reject_an_expression_reading_the_request() {
         var credential = fixture.givenACredential();
 

@@ -50,22 +50,34 @@ public class SpelSecretExpressionParser implements SecretExpressionParser {
         if (!arguments.stream().allMatch(SpelSecretExpressionParser::isAllowedArgument)) {
             throw invalid(field);
         }
-        var path = arguments.getFirst();
-        var key = arguments.size() == 2 ? arguments.get(1) : null;
-        if (!(path instanceof StringLiteral)) {
-            if (key != null && !(key instanceof StringLiteral)) {
-                throw invalid(field);
+        var path = text(arguments.getFirst());
+        var key = arguments.size() == 2 ? Optional.of(arguments.get(1)) : Optional.<SpelNode>empty();
+        if (path.isEmpty()) {
+            if (key.isPresent() && text(key.get()).isEmpty()) {
+                throw new InvalidCredentialException(
+                    "The expression of " + field + " reads its path from context data, so its key must be text."
+                );
             }
             return Optional.empty();
         }
-        var literalPath = literal(path);
-        if (key == null) {
-            if (literalPath.lastIndexOf(':') <= literalPath.lastIndexOf('/')) {
-                throw invalid(field);
+        if (key.isEmpty()) {
+            if (path.get().lastIndexOf(':') <= path.get().lastIndexOf('/')) {
+                throw new InvalidCredentialException(
+                    "The expression of " + field + " must name a key, as /vault/secret/name:key or as a second argument."
+                );
             }
-            return Optional.of(literalPath);
+            return path;
         }
-        return Optional.of(literalPath + ":" + (key instanceof StringLiteral ? literal(key) : PLACEHOLDER_KEY));
+        return Optional.of(path.get() + ":" + text(key.get()).orElse(PLACEHOLDER_KEY));
+    }
+
+    // Text joined with + folds into one string, so the plain-path checks see the path the gateway resolves.
+    private static Optional<String> text(SpelNode node) {
+        return switch (node) {
+            case StringLiteral literal -> Optional.of((String) literal.getLiteralValue().getValue());
+            case OpPlus plus -> text(plus.getChild(0)).flatMap(left -> text(plus.getChild(1)).map(right -> left + right));
+            default -> Optional.empty();
+        };
     }
 
     private List<SpelNode> argumentsOfSecretsGet(String field, String expression) {
@@ -110,10 +122,6 @@ public class SpelSecretExpressionParser implements SecretExpressionParser {
             indexer.getChildCount() == 1 &&
             indexer.getChild(0) instanceof StringLiteral
         );
-    }
-
-    private static String literal(SpelNode node) {
-        return (String) ((StringLiteral) node).getLiteralValue().getValue();
     }
 
     private static InvalidCredentialException invalid(String field) {
