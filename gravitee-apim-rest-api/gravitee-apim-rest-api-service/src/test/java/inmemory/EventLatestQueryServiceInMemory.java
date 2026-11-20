@@ -17,6 +17,7 @@ package inmemory;
 
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.event.query_service.EventLatestQueryService;
+import io.gravitee.apim.infra.adapter.EventAdapter;
 import io.gravitee.rest.api.model.EventType;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -50,6 +51,22 @@ public class EventLatestQueryServiceInMemory implements EventLatestQueryService,
             )
             .flatMap(Optional::stream)
             .collect(Collectors.toList());
+    }
+
+    /**
+     * Scoped on the environment and read through the implementation's own reading of a payload, so a caller's tests
+     * see both the tenant check and the typed read the real store does.
+     */
+    @Override
+    public Optional<ApiDeployment> findRunningApiDeployment(String environmentId, String apiId) {
+        return storage
+            .stream()
+            .filter(event -> event.getType() == EventType.PUBLISH_API || event.getType() == EventType.START_API)
+            .filter(event -> event.getEnvironments() != null && event.getEnvironments().contains(environmentId))
+            .filter(event -> apiId.equals(event.getProperties().get(Event.EventProperties.API_ID)))
+            .filter(event -> event.getPayload() != null && !event.getPayload().isBlank())
+            .findFirst()
+            .map(EventAdapter.INSTANCE::toApiDeployment);
     }
 
     @Override

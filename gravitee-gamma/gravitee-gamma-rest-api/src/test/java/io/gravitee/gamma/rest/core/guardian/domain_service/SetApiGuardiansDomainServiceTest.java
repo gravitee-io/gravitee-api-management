@@ -367,13 +367,13 @@ class SetApiGuardiansDomainServiceTest {
 
             @Override
             public io.gravitee.gamma.rest.core.guardian.model.GuardedApi updateInternalFlow(
-                String environmentId,
+                AuditInfo auditInfo,
                 String apiId,
                 Flow expectedInternalFlow,
                 Flow internalFlow
             ) {
                 expected = expectedInternalFlow;
-                return super.updateInternalFlow(environmentId, apiId, expectedInternalFlow, internalFlow);
+                return super.updateInternalFlow(auditInfo, apiId, expectedInternalFlow, internalFlow);
             }
         };
         recorder.givenApi(aGuardedApi().internalFlow(ran).build());
@@ -389,7 +389,7 @@ class SetApiGuardiansDomainServiceTest {
         var movedMeanwhile = new InMemoryGuardedApiPort() {
             @Override
             public io.gravitee.gamma.rest.core.guardian.model.GuardedApi updateInternalFlow(
-                String environmentId,
+                AuditInfo auditInfo,
                 String apiId,
                 Flow expectedInternalFlow,
                 Flow internalFlow
@@ -406,6 +406,25 @@ class SetApiGuardiansDomainServiceTest {
                 .isInstanceOf(ApiInternalFlowChangedException.class);
             softly.assertThat(audits.storage()).as("nothing audited").isEmpty();
         });
+    }
+
+    /**
+     * An undeployment landing between the validation and the write: the undeployment checks the APIs after its own
+     * write, but it may have checked before this write landed, so this side has to look again too.
+     */
+    @Test
+    void should_turn_off_again_a_guardian_undeployed_while_it_was_turned_on() {
+        givenDeployedGuardian(d -> d);
+        apis.givenApi(aGuardedApi().build());
+        apis.beforeNextUpdate = () ->
+            publications.givenWithdrawal(aGuardian().build().getDefinition(), DEPLOYED_AT, DEPLOYED_AT.plusSeconds(60));
+
+        assertThatThrownBy(() -> service.set(API_ID, List.of(GUARDIAN_ID), List.of(), actor))
+            .as("turning on a guardian undeployed meanwhile")
+            .isInstanceOf(GuardianNotDeployedException.class);
+        assertThat(apis.findById(ENVIRONMENT_ID, API_ID).orElseThrow().guardians().list())
+            .as("guardians the API runs once the change is undone")
+            .isEmpty();
     }
 
     private SetApiGuardiansDomainService serviceOn(InMemoryGuardedApiPort port) {

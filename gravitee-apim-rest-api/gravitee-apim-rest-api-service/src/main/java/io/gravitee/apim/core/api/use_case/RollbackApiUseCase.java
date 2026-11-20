@@ -24,6 +24,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
+import io.gravitee.apim.core.api.domain_service.DeployApiInternalFlowDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateNativeApiDomainService;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
@@ -45,6 +46,7 @@ import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.AbstractPlan;
@@ -88,6 +90,7 @@ public class RollbackApiUseCase {
     private final UpdateNativeApiDomainService updateNativeApiDomainService;
     private final PropertyDomainService propertyDomainService;
     private final ClusterBindingPermissionDomainService clusterBindingPermissionDomainService;
+    private final DeployApiInternalFlowDomainService deployApiInternalFlow;
 
     public void execute(Input input) {
         Api api = eventQueryService
@@ -106,9 +109,11 @@ public class RollbackApiUseCase {
                 keepStoredEncryption(toRollback.getApiDefinitionHttpV4(), rollbackedApi.getApiDefinitionHttpV4());
 
                 var apiUpdatedV4 = updateApiDomainService.updateV4(rollbackedApi, input.auditInfo);
+                restoreInternalFlow(input.auditInfo, apiUpdatedV4, apiDefinition.getInternalFlow());
 
                 // Rollback plans from API definition plans
                 rollbackPlansV4(apiDefinition.getPlans(), apiUpdatedV4, input.auditInfo);
+
                 yield apiUpdatedV4;
             }
             case io.gravitee.definition.model.Api apiDefinition -> {
@@ -135,6 +140,10 @@ public class RollbackApiUseCase {
                 apiIndexerDomainService.index(indexerContext, rollbackedApi, apiPrimaryOwner);
 
                 var apiUpdatedV2 = apiCrudService.update(rollbackedApi);
+                // The Guardian index is a projection of the definition, and the V2 one names none. A full save of an
+                // API carries no index, so it is emptied here, by the write that owns it — which also tells the
+                // gateways to stop running the steps the V4 definition had.
+                deployApiInternalFlow.replaceInternalFlow(input.auditInfo, apiUpdatedV2, apiUpdatedV2.getUpdatedAt());
 
                 // Rollback plans from API definition plans
                 var plans = rollbackPlansV2(apiDefinition.getPlans(), existingPlans, input.auditInfo);
@@ -197,6 +206,29 @@ public class RollbackApiUseCase {
         };
 
         createAuditLog(input.auditInfo, apiUpdated.getId(), apiUpdated.getUpdatedAt());
+    }
+
+    /**
+     * Writes the internal flow the rollback restores, the Guardian index that projects it, and hands it to the
+     * gateways — a Guardian applies as soon as it is written, so a rollback that takes one away must take it away
+     * from what they run too.
+     *
+     * <p>Two reasons the API update above does not do it. It takes the internal flow from the API <em>as stored</em>
+     * rather than from the definition it is handed — the field is managed by the platform and travels in no
+     * payload — so the restored one would be dropped on the way. And the Guardian index travels with the definition
+     * it projects in this targeted write only: a full save of an API carries no index, by design, so nothing else
+     * would bring the index back in step with the restored definition.
+     *
+     * <p>The write is conditioned on the update date the rollback just stamped: if another writer moved the API in
+     * between, their definition stands and the index that goes with it is theirs to carry. The gateways are then
+     * sent nothing, which is why the result is not acted on here.
+     */
+    private void restoreInternalFlow(AuditInfo auditInfo, Api rolledBack, Flow internalFlow) {
+        var restored = rolledBack
+            .toBuilder()
+            .apiDefinitionValue(rolledBack.getApiDefinitionHttpV4().toBuilder().internalFlow(internalFlow).build())
+            .build();
+        deployApiInternalFlow.replaceInternalFlow(auditInfo, restored, rolledBack.getUpdatedAt());
     }
 
     private void keepStoredEncryption(AbstractApi storedDefinition, AbstractApi restoredDefinition) {

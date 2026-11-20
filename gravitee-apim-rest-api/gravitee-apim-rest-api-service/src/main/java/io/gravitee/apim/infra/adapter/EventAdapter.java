@@ -15,7 +15,11 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.event.model.Event;
+import io.gravitee.apim.core.event.query_service.EventLatestQueryService.ApiDeployment;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.rest.api.model.EventEntity;
 import java.util.EnumMap;
 import java.util.Map;
@@ -52,6 +56,28 @@ public interface EventAdapter {
                     () -> new EnumMap<>(Event.EventProperties.class)
                 )
             );
+    }
+
+    /**
+     * An event read as the deployment it carries, or a failure. {@code ApiAdapter} answers an API whose definition is
+     * {@code null} when it cannot deserialize it — right for a read that only displays the API, wrong here, where the
+     * API read is handed back to the gateways.
+     *
+     * @throws TechnicalDomainException when the payload carries no API, or no definition that can be read.
+     */
+    default ApiDeployment toApiDeployment(Event event) {
+        Api api;
+        try {
+            api = ApiAdapter.INSTANCE.toCoreModel(
+                GraviteeJacksonMapper.getInstance().readValue(event.getPayload(), io.gravitee.repository.management.model.Api.class)
+            );
+        } catch (JsonProcessingException e) {
+            throw new TechnicalDomainException("Unable to read the api the deployment " + event.getId() + " carries", e);
+        }
+        if (api.getApiDefinitionValue() == null) {
+            throw new TechnicalDomainException("The deployment " + event.getId() + " carries no definition that can be read");
+        }
+        return new ApiDeployment(event.getId(), event.getType(), event.getProperties().get(Event.EventProperties.DEPLOYMENT_NUMBER), api);
     }
 
     default Map<String, String> toStringEventPropertiesMap(Map<Event.EventProperties, String> source) {

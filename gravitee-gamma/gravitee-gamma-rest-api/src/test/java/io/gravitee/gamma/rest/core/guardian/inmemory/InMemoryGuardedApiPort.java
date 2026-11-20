@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.core.guardian.inmemory;
 
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gamma.rest.core.guardian.exception.ApiInternalFlowChangedException;
@@ -41,6 +42,9 @@ import java.util.Optional;
 public class InMemoryGuardedApiPort implements GuardedApiPort {
 
     private final List<GuardedApi> apis = new ArrayList<>();
+
+    /** Runs once, right before the next internal flow write: what a concurrent caller does in that window. */
+    public Runnable beforeNextUpdate = () -> {};
 
     public void givenApi(GuardedApi api) {
         apis.add(api);
@@ -72,8 +76,11 @@ public class InMemoryGuardedApiPort implements GuardedApiPort {
     }
 
     @Override
-    public GuardedApi updateInternalFlow(String environmentId, String apiId, Flow expectedInternalFlow, Flow internalFlow) {
-        var stored = findById(environmentId, apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
+    public GuardedApi updateInternalFlow(AuditInfo auditInfo, String apiId, Flow expectedInternalFlow, Flow internalFlow) {
+        var concurrently = beforeNextUpdate;
+        beforeNextUpdate = () -> {};
+        concurrently.run();
+        var stored = findById(auditInfo.environmentId(), apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
         if (!stored.supportsGuardians()) {
             throw new ApiNotFoundException(apiId);
         }

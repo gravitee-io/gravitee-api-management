@@ -22,10 +22,12 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.singleton;
 import static java.util.Comparator.comparing;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.api.model.property.EncryptedPropertyAuditMarker;
-import io.gravitee.apim.core.deployment.domain_service.ApiDeploymentValidator;
+import io.gravitee.apim.core.deployment.service_provider.ApiDeploymentValidator;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.json.jackson.EncryptedPropertyAccessPatch;
@@ -90,6 +92,8 @@ import org.springframework.stereotype.Component;
 @CustomLog
 @Component
 public class ApiStateServiceImpl implements ApiStateService {
+
+    private static final String INTERNAL_FLOW = "internalFlow";
 
     private final ApiSearchService apiSearchService;
     private final ApiRepository apiRepository;
@@ -504,7 +508,7 @@ public class ApiStateServiceImpl implements ApiStateService {
                     break;
             }
 
-            final GenericApiEntity deployedApi = deployLastPublishedAPI(executionContext, apiId, username, eventType);
+            final GenericApiEntity deployedApi = deployLastPublishedAPI(executionContext, apiId, username, eventType, api);
             if (deployedApi != null) {
                 return deployedApi;
             }
@@ -523,11 +527,17 @@ public class ApiStateServiceImpl implements ApiStateService {
      * @param apiId the API id
      * @param userId the user id
      * @param eventType the event type
+     * @param storedApi the API as stored, whose internal flow is the one republished
      * @return The persisted API or null
      * @throws TechnicalException if an exception occurs while saving the API
      */
-    private GenericApiEntity deployLastPublishedAPI(ExecutionContext executionContext, String apiId, String userId, EventType eventType)
-        throws TechnicalException {
+    private GenericApiEntity deployLastPublishedAPI(
+        ExecutionContext executionContext,
+        String apiId,
+        String userId,
+        EventType eventType,
+        Api storedApi
+    ) throws TechnicalException {
         final EventQuery query = new EventQuery();
         query.setApi(apiId);
         query.setTypes(singleton(EventType.PUBLISH_API));
@@ -548,6 +558,7 @@ public class ApiStateServiceImpl implements ApiStateService {
                 EventEntity event = optEvent.get();
                 JsonNode node = objectMapper.readTree(event.getPayload());
                 Api lastPublishedAPI = objectMapper.convertValue(node, Api.class);
+                lastPublishedAPI.setDefinition(withStoredInternalFlow(lastPublishedAPI, storedApi));
                 lastPublishedAPI.setLifecycleState(convert(eventType));
                 lastPublishedAPI.setUpdatedAt(new Date());
                 lastPublishedAPI.setDeployedAt(new Date());
@@ -584,6 +595,29 @@ public class ApiStateServiceImpl implements ApiStateService {
             log.error("An error occurs while trying to deploy last published API {}", apiId, e);
             throw new TechnicalException("An error occurs while trying to deploy last published API " + apiId, e);
         }
+    }
+
+    /**
+     * The published definition with the internal flow of the stored one. The internal flow reaches the gateways as
+     * soon as it is written, without a deployment, so the last published definition may predate it: republishing that
+     * one as it is would bring back a Guardian turned off since, or drop one turned on.
+     */
+    private String withStoredInternalFlow(Api published, Api stored) throws JsonProcessingException {
+        if (
+            published.getDefinitionVersion() != DefinitionVersion.V4 || published.getDefinition() == null || stored.getDefinition() == null
+        ) {
+            return published.getDefinition();
+        }
+        if (!(objectMapper.readTree(published.getDefinition()) instanceof ObjectNode definition)) {
+            return published.getDefinition();
+        }
+        JsonNode storedInternalFlow = objectMapper.readTree(stored.getDefinition()).get(INTERNAL_FLOW);
+        if (storedInternalFlow == null || storedInternalFlow.isNull()) {
+            definition.remove(INTERNAL_FLOW);
+        } else {
+            definition.set(INTERNAL_FLOW, storedInternalFlow);
+        }
+        return objectMapper.writeValueAsString(definition);
     }
 
     private LifecycleState convert(EventType eventType) {

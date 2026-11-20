@@ -21,19 +21,26 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
+import io.gravitee.apim.core.exception.NotFoundDomainException;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.gamma.rest.core.guardian.exception.ApiCannotRunGuardiansException;
 import io.gravitee.gamma.rest.core.guardian.exception.ApiInternalFlowChangedException;
 import io.gravitee.gamma.rest.core.guardian.model.ApiGuardian;
+import io.gravitee.gamma.rest.core.guardian.model.GuardedApi;
 import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardedApiPort;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Sets the Guardians an API runs, per phase and in execution order. The API runs them once redeployed; until then it
- * is out of sync.
+ * Sets the Guardians an API runs, per phase and in execution order, and applies that change to the gateways by the
+ * same call: a Guardian turned on starts judging traffic, one turned off stops, without a deployment of the API. Only
+ * the Guardians travel — a plan or a flow saved on the API without being deployed stays undeployed.
+ *
+ * <p>An API the gateways do not run — never deployed, stopped or unpublished — is written and nothing is sent: it
+ * stays out of sync, and its publisher's next deployment is what carries the Guardians over.
  *
  * <p>The whole list of each phase travels, so a Guardian the API ran and the list leaves out is turned off by the
  * same call. Nothing is written unless every listed Guardian passes
@@ -67,25 +74,24 @@ public class SetApiGuardiansDomainService {
      * @throws ApiNotFoundException when the environment holds no such API.
      * @throws ApiCannotRunGuardiansException when the API holds no internal flow to put the steps in.
      * @throws ApiInternalFlowChangedException when the API's internal flow moved while the call was computing one.
+     * @throws io.gravitee.apim.core.exception.TechnicalDomainException when the change cannot be sent to the gateways
+     *     because what they run cannot be read. Nothing is written then: the API keeps the Guardians it ran.
      */
     public List<ApiGuardian> set(String apiId, List<String> requestGuardianIds, List<String> responseGuardianIds, AuditInfo auditInfo) {
         var environmentId = auditInfo.environmentId();
         var api = apis.findById(environmentId, apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
-        if (!api.supportsGuardians()) {
-            throw new ApiCannotRunGuardiansException(api.id());
-        }
+        // Read first: an API holding no internal flow is refused as such, before its Guardians are judged.
+        var guardians = api.guardians();
         // Both phases in one call: the request is one sequence, so a fault on either phase is part of one answer.
-        var validated = validateApiGuardians.validate(
-            api,
-            Map.of(Phase.REQUEST, orEmpty(requestGuardianIds), Phase.RESPONSE, orEmpty(responseGuardianIds))
-        );
+        var requested = Map.of(Phase.REQUEST, orEmpty(requestGuardianIds), Phase.RESPONSE, orEmpty(responseGuardianIds));
+        var validated = validateApiGuardians.validate(api, requested);
 
-        var internalFlow = api
-            .guardians()
+        var internalFlow = guardians
             .replace(Phase.REQUEST, validated.get(Phase.REQUEST))
             .replace(Phase.RESPONSE, validated.get(Phase.RESPONSE))
             .internalFlow();
-        var updated = apis.updateInternalFlow(environmentId, api.id(), api.internalFlow(), internalFlow);
+        var updated = apis.updateInternalFlow(auditInfo, api.id(), api.internalFlow(), internalFlow);
+        ensureStillValid(auditInfo, api, updated, requested);
         auditDomainService.createApiAuditLog(
             ApiAuditLogEntity.builder()
                 .apiId(api.id())
@@ -100,6 +106,22 @@ public class SetApiGuardiansDomainService {
                 .build()
         );
         return describeApiGuardians.describe(environmentId, updated.guardians());
+    }
+
+    /**
+     * Validates the Guardians again once written, putting back the internal flow the API ran when one is refused.
+     *
+     * <p>The validation made before the write cannot see a Guardian undeployed, deleted or published elsewhere
+     * between that validation and the write. Those changes check the APIs again after their own write, so whichever of
+     * the two writes lands second, its check sees the other one.
+     */
+    private void ensureStillValid(AuditInfo auditInfo, GuardedApi before, GuardedApi updated, Map<Phase, List<String>> requested) {
+        try {
+            validateApiGuardians.validate(before, requested);
+        } catch (ValidationDomainException | NotFoundDomainException refused) {
+            apis.updateInternalFlow(auditInfo, before.id(), updated.internalFlow(), before.internalFlow());
+            throw refused;
+        }
     }
 
     private static List<String> orEmpty(List<String> guardianIds) {

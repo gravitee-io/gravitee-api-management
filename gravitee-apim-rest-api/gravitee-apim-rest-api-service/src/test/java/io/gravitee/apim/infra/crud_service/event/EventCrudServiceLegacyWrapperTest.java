@@ -16,21 +16,37 @@
 package io.gravitee.apim.infra.crud_service.event;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.event.model.Event;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.service.EventService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -352,6 +368,74 @@ class EventCrudServiceLegacyWrapperTest {
             // Verify that no delete was called
             verify(eventRepository, never()).delete(anyString());
             verify(eventRepository, never()).delete(anyCollection());
+        }
+    }
+
+    /**
+     * The gateways read a deployment as a repository API whose {@code definition} is a JSON string. Handing the core
+     * model over as it is would serialize {@code apiDefinitionValue}, which they cannot read — so the mapping belongs
+     * here, at the boundary that knows both shapes.
+     */
+    @Nested
+    @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+    class CreateApiEvent {
+
+        @Captor
+        ArgumentCaptor<Object> content;
+
+        @Test
+        void should_hand_the_legacy_service_a_repository_api_carrying_the_serialized_definition() throws Exception {
+            var definition = io.gravitee.definition.model.v4.Api.builder()
+                .id("api-id")
+                .name("Support assistant")
+                .apiVersion("1.0")
+                .definitionVersion(DefinitionVersion.V4)
+                .type(ApiType.PROXY)
+                .internalFlow(Flow.builder().name("internal").build())
+                .build();
+            var definitionAsTheGatewaysReadIt = GraviteeJacksonMapper.getInstance().writeValueAsString(definition);
+
+            sut.createApiEvent(
+                "organization-id",
+                "environment-id",
+                Set.of("environment-id"),
+                EventType.PUBLISH_API,
+                io.gravitee.apim.core.api.model.Api.builder()
+                    .id("api-id")
+                    .name("Support assistant")
+                    .environmentId("environment-id")
+                    .definitionVersion(DefinitionVersion.V4)
+                    .type(ApiType.PROXY)
+                    .lifecycleState(io.gravitee.apim.core.api.model.Api.LifecycleState.STARTED)
+                    .apiDefinitionValue(definition)
+                    .build(),
+                Map.of(Event.EventProperties.API_ID, "api-id")
+            );
+
+            verify(eventService).createEvent(
+                any(ExecutionContext.class),
+                eq(Set.of("environment-id")),
+                eq("organization-id"),
+                eq(EventType.PUBLISH_API),
+                content.capture(),
+                eq(Map.of("api_id", "api-id"))
+            );
+            assertThat(content.getValue())
+                .as("what the legacy service serializes")
+                .asInstanceOf(InstanceOfAssertFactories.type(io.gravitee.repository.management.model.Api.class))
+                .satisfies(payload ->
+                    assertSoftly(softly -> {
+                        softly.assertThat(payload.getId()).as("api id").isEqualTo("api-id");
+                        softly
+                            .assertThat(payload.getDefinition())
+                            .as("definition, as the gateways read it")
+                            .isEqualTo(definitionAsTheGatewaysReadIt);
+                        softly.assertThat(payload.getDefinitionVersion()).as("definition version").isEqualTo(DefinitionVersion.V4);
+                        softly.assertThat(payload.getType()).as("api type").isEqualTo(ApiType.PROXY);
+                        softly.assertThat(payload.getLifecycleState()).as("lifecycle state").isEqualTo(LifecycleState.STARTED);
+                        softly.assertThat(payload.getEnvironmentId()).as("environment id").isEqualTo("environment-id");
+                    })
+                );
         }
     }
 }

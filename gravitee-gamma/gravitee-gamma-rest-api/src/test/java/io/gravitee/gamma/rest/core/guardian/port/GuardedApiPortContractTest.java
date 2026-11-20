@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.definition.model.guardian.GuardianSteps;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gamma.rest.core.guardian.exception.ApiInternalFlowChangedException;
@@ -44,8 +46,16 @@ public abstract class GuardedApiPortContractTest {
 
     protected static final String ENVIRONMENT_ID = "environment-id";
     protected static final String OTHER_ENVIRONMENT_ID = "other-environment";
+    protected static final String ORGANIZATION_ID = "organization-id";
     protected static final String API_ID = "api-1";
     protected static final String API_NAME = "Support assistant";
+
+    /** Every write is scoped by the environment of its caller, so the write takes the caller rather than an id. */
+    protected static final AuditInfo CALLER = AuditInfo.builder()
+        .organizationId(ORGANIZATION_ID)
+        .environmentId(ENVIRONMENT_ID)
+        .actor(AuditActor.builder().userId("publisher").build())
+        .build();
 
     protected abstract GuardedApiPort port();
 
@@ -105,7 +115,7 @@ public abstract class GuardedApiPortContractTest {
     void should_stop_listing_an_api_the_port_itself_turned_the_guardian_off_on() {
         givenApi(ENVIRONMENT_ID, API_ID, API_NAME, running("guardian-1"));
 
-        port().updateInternalFlow(ENVIRONMENT_ID, API_ID, running("guardian-1"), null);
+        port().updateInternalFlow(CALLER, API_ID, running("guardian-1"), null);
 
         assertThat(port().findByGuardian(ENVIRONMENT_ID, "guardian-1", 1, 10).getContent())
             .as("APIs running guardian-1 after it was turned off")
@@ -132,7 +142,7 @@ public abstract class GuardedApiPortContractTest {
         givenApi(ENVIRONMENT_ID, API_ID, API_NAME, stored);
         var replacement = running("guardian-2");
 
-        var updated = port().updateInternalFlow(ENVIRONMENT_ID, API_ID, stored, replacement);
+        var updated = port().updateInternalFlow(CALLER, API_ID, stored, replacement);
 
         assertSoftly(softly -> {
             softly.assertThat(updated.internalFlow()).as("internal flow returned").isEqualTo(replacement);
@@ -149,7 +159,7 @@ public abstract class GuardedApiPortContractTest {
     void should_list_the_api_running_a_guardian_the_port_itself_turned_on() {
         givenApi(ENVIRONMENT_ID, API_ID, API_NAME, null);
 
-        port().updateInternalFlow(ENVIRONMENT_ID, API_ID, null, running("guardian-1"));
+        port().updateInternalFlow(CALLER, API_ID, null, running("guardian-1"));
 
         assertThat(port().findByGuardian(ENVIRONMENT_ID, "guardian-1", 1, 10).getContent())
             .as("APIs running the Guardian just turned on")
@@ -160,7 +170,7 @@ public abstract class GuardedApiPortContractTest {
     void should_refuse_to_replace_an_internal_flow_the_api_no_longer_holds() {
         givenApi(ENVIRONMENT_ID, API_ID, API_NAME, running("guardian-1"));
 
-        assertThatThrownBy(() -> port().updateInternalFlow(ENVIRONMENT_ID, API_ID, running("guardian-3"), running("guardian-2")))
+        assertThatThrownBy(() -> port().updateInternalFlow(CALLER, API_ID, running("guardian-3"), running("guardian-2")))
             .as("write from a stale read")
             .isInstanceOf(ApiInternalFlowChangedException.class);
     }
@@ -170,7 +180,7 @@ public abstract class GuardedApiPortContractTest {
         var stored = running("guardian-1");
         givenApi(OTHER_ENVIRONMENT_ID, API_ID, API_NAME, stored);
 
-        assertThatThrownBy(() -> port().updateInternalFlow(ENVIRONMENT_ID, API_ID, stored, running("guardian-2")))
+        assertThatThrownBy(() -> port().updateInternalFlow(CALLER, API_ID, stored, running("guardian-2")))
             .as("write on an API of another environment")
             .isInstanceOf(ApiNotFoundException.class);
     }
