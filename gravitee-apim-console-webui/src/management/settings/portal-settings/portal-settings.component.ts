@@ -27,7 +27,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { BrandedSender } from '../../../entities/brandedSender';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
-import { CorsUtil } from '../../../shared/utils';
+import { CorsUtil, toPortalRedirectUrl } from '../../../shared/utils';
 import { Constants } from '../../../entities/Constants';
 
 interface PortalForm {
@@ -231,13 +231,7 @@ export class PortalSettingsComponent implements OnInit {
           this.settings = portalSettings;
           this.initialPortalForm();
           this.isPortalNextEnabled = portalSettings?.portalNext?.access?.enabled;
-          this.portalUrl = isEmpty(portalSettings.portal.url)
-            ? undefined
-            : this.constants.env.baseURL.replace('{:envId}', this.constants.org.currentEnv.id) +
-              '/portal/redirect' +
-              (this.isPortalNextEnabled && (!this.constants.defaultPortal || this.constants.defaultPortal === 'classic')
-                ? '?version=next'
-                : '');
+          this.portalUrl = isEmpty(portalSettings.portal.url) ? undefined : toPortalRedirectUrl(this.constants, this.isPortalNextEnabled);
         }),
         takeUntilDestroyed(this.destroyRef),
       )

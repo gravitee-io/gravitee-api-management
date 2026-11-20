@@ -38,6 +38,7 @@ import { GioNotificationMenuModule } from '../../components/gio-notification-men
 import { GioTopNavModule } from '../../components/gio-top-nav/gio-top-nav.module';
 import { GioSideNavModule } from '../../components/gio-side-nav/gio-side-nav.module';
 import { PortalSettingsService } from '../../services-ngx/portal-settings.service';
+import { toPortalRedirectUrl } from '../../shared/utils';
 
 @Component({
   selector: 'portal-navigation',
@@ -89,12 +90,6 @@ export class PortalNavigationComponent implements OnInit {
 
     this.portalUrl$ = this.portalSettingsService
       .get()
-      .pipe(
-        map(settings =>
-          isEmpty(settings?.portal?.url)
-            ? undefined
-            : this.constants.env.baseURL.replace('{:envId}', this.constants.org.currentEnv.id) + '/portal/redirect?version=next',
-        ),
-      );
+      .pipe(map(settings => (isEmpty(settings?.portal?.url) ? undefined : toPortalRedirectUrl(this.constants, true))));
   }
 }
