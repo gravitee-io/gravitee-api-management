@@ -103,15 +103,26 @@ public class ApiOwnedNavigationDomainService {
             .toList();
     }
 
+    /** {@link #findStandaloneListings(String, String)} in one portal only. */
+    public List<PortalNavigationApi> findStandaloneListings(
+        String environmentId,
+        String apiId,
+        NavigationItemReference.PortalReference portal
+    ) {
+        return findStandaloneListings(environmentId, apiId)
+            .stream()
+            .filter(listing -> portal.equals(listing.getReference()))
+            .toList();
+    }
+
     /**
-     * The sections an API can be listed under: the published top-level folders of the portal's main
+     * The sections an API can be listed under in a portal: the published top-level folders of its main
      * navigation. An unpublished section cannot hold a published listing.
      */
-    public List<PortalNavigationFolder> findPublishLocations(String environmentId) {
+    public List<PortalNavigationFolder> findPublishLocations(String environmentId, NavigationItemReference.PortalReference portal) {
         return queryService
-            .findTopLevelItemsByEnvironmentIdAndPortalArea(environmentId, PortalArea.TOP_NAVBAR)
+            .findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(environmentId, PortalArea.TOP_NAVBAR, portal)
             .stream()
-            .filter(item -> !(item.getReference() instanceof NavigationItemReference.ApiReference))
             .filter(PortalNavigationFolder.class::isInstance)
             .map(PortalNavigationFolder.class::cast)
             .filter(section -> Boolean.TRUE.equals(section.getPublished()))
@@ -119,11 +130,16 @@ public class ApiOwnedNavigationDomainService {
             .toList();
     }
 
-    public PortalNavigationFolder requirePublishLocation(String environmentId, PortalNavigationItemId sectionId) {
+    /** A section of another portal exists but is not a publish location of this one. */
+    public PortalNavigationFolder requirePublishLocation(
+        String environmentId,
+        NavigationItemReference.PortalReference portal,
+        PortalNavigationItemId sectionId
+    ) {
         if (queryService.findByIdAndEnvironmentId(environmentId, sectionId) == null) {
             throw new ParentNotFoundException(sectionId.json());
         }
-        return findPublishLocations(environmentId)
+        return findPublishLocations(environmentId, portal)
             .stream()
             .filter(section -> section.getId().equals(sectionId))
             .findFirst()

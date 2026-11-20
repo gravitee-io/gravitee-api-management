@@ -33,6 +33,8 @@ import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
@@ -46,6 +48,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -69,6 +72,7 @@ class UnpublishApiFromPortalUseCaseTest {
         crudService.storage()
     );
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+    private final NavigationPortalDomainServiceInMemory navigationPortals = new NavigationPortalDomainServiceInMemory();
     private UnpublishApiFromPortalUseCase useCase;
     private PublishApiToPortalUseCase publishUseCase;
 
@@ -78,7 +82,6 @@ class UnpublishApiFromPortalUseCaseTest {
         var pageContentQueryService = PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage());
         var sourceDomainService = new PortalNavigationItemSourceDomainServiceInMemory();
         var apiOwnedNavigationDomainService = new ApiOwnedNavigationDomainService(queryService, crudService);
-        var navigationPortals = new NavigationPortalDomainServiceInMemory();
         navigationPortals.givenDefaultPortalForNavigationFixtures();
         var domainService = new PortalNavigationItemDomainService(
             crudService,
@@ -97,8 +100,8 @@ class UnpublishApiFromPortalUseCaseTest {
             sourceDomainService,
             apiCrudService
         );
-        useCase = new UnpublishApiFromPortalUseCase(apiOwnedNavigationDomainService, validatorService, domainService);
-        publishUseCase = new PublishApiToPortalUseCase(apiOwnedNavigationDomainService, validatorService, domainService);
+        useCase = new UnpublishApiFromPortalUseCase(apiOwnedNavigationDomainService, validatorService, domainService, navigationPortals);
+        publishUseCase = new PublishApiToPortalUseCase(apiOwnedNavigationDomainService, validatorService, domainService, navigationPortals);
         apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("Api A").environmentId(ENV_ID).build()));
     }
 
@@ -234,7 +237,7 @@ class UnpublishApiFromPortalUseCaseTest {
         var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).published(false).build();
         page.markAsRoot();
         queryService.initWith(List.of(section, page));
-        var input = new PublishApiToPortalUseCase.Input(ORG_ID, ENV_ID, API_ID, section.getId());
+        var input = new PublishApiToPortalUseCase.Input(ORG_ID, ENV_ID, API_ID, section.getId(), null);
 
         var published = publishUseCase.execute(input);
         unpublish();
@@ -269,8 +272,106 @@ class UnpublishApiFromPortalUseCaseTest {
         assertThat(stored(page.getId()).getPublished()).isFalse();
     }
 
+    @Test
+    void should_reject_an_unknown_portal_and_leave_the_api_published() {
+        var section = aSection();
+        var listing = aListing(section, API_ID);
+        queryService.initWith(List.of(section, listing));
+
+        assertThatThrownBy(() -> unpublishFrom(PortalId.random())).isInstanceOf(PortalNotFoundException.class);
+
+        assertThat(stored(listing.getId()).getPublished()).isTrue();
+    }
+
+    @Test
+    void should_unpublish_from_the_only_portal_when_it_is_not_the_default_one() {
+        navigationPortals.portalCrudService().delete(navigationPortals.defaultPortalIdOf(ENV_ID));
+        var automationPortal = portal(navigationPortals.givenAutomationPortal(ORG_ID, ENV_ID));
+        var section = aSection();
+        section.changeOwner(automationPortal);
+        var listing = aListing(section, API_ID);
+        listing.changeOwner(automationPortal);
+        queryService.initWith(List.of(section, listing));
+
+        unpublish();
+
+        assertThat(stored(listing.getId()).getPublished()).isFalse();
+    }
+
+    @Nested
+    class WithSeveralPortals {
+
+        private PortalId otherPortalId;
+        private PortalNavigationApi defaultPortalListing;
+        private PortalNavigationApi otherPortalListing;
+        private PortalNavigationItem page;
+
+        @BeforeEach
+        void givenTheApiPublishedToTwoPortals() {
+            otherPortalId = navigationPortals.givenAutomationPortal(ORG_ID, ENV_ID);
+            var defaultPortalSection = aSection();
+            var otherPortalSection = aFolder("Partners").toBuilder().reference(portal(otherPortalId)).build();
+            otherPortalSection.markAsRoot();
+            defaultPortalListing = aListing(defaultPortalSection, API_ID);
+            otherPortalListing = aListing(otherPortalSection, API_ID);
+            otherPortalListing.changeOwner(portal(otherPortalId));
+            page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).build();
+            page.markAsRoot();
+            queryService.initWith(List.of(defaultPortalSection, otherPortalSection, defaultPortalListing, otherPortalListing, page));
+        }
+
+        @Test
+        void should_unpublish_from_the_named_portal_and_leave_the_api_on_the_other() {
+            unpublishFrom(otherPortalId);
+
+            assertThat(stored(otherPortalListing.getId()).getPublished()).isFalse();
+            assertThat(stored(defaultPortalListing.getId()).getPublished()).isTrue();
+        }
+
+        @Test
+        void should_unpublish_from_the_default_portal_when_no_portal_is_named() {
+            unpublish();
+
+            assertThat(stored(defaultPortalListing.getId()).getPublished()).isFalse();
+            assertThat(stored(otherPortalListing.getId()).getPublished()).isTrue();
+        }
+
+        @Test
+        void should_keep_the_documentation_published_while_another_portal_lists_the_api() {
+            unpublishFrom(otherPortalId);
+
+            assertThat(stored(page.getId()).getPublished()).isTrue();
+        }
+
+        @Test
+        void should_unpublish_the_documentation_when_the_last_visible_listing_is_hidden() {
+            unpublishFrom(otherPortalId);
+            unpublish();
+
+            assertThat(stored(page.getId()).getPublished()).isFalse();
+        }
+
+        @Test
+        void should_reject_when_not_published_to_the_named_portal() {
+            unpublishFrom(otherPortalId);
+
+            assertThatThrownBy(() -> unpublishFrom(otherPortalId)).isInstanceOf(InvalidPortalNavigationItemDataException.class);
+
+            assertThat(stored(defaultPortalListing.getId()).getPublished()).isTrue();
+            assertThat(stored(page.getId()).getPublished()).isTrue();
+        }
+    }
+
     private void unpublish() {
-        useCase.execute(new UnpublishApiFromPortalUseCase.Input(ENV_ID, API_ID));
+        unpublishFrom(null);
+    }
+
+    private void unpublishFrom(PortalId portalId) {
+        useCase.execute(new UnpublishApiFromPortalUseCase.Input(ENV_ID, API_ID, portalId));
+    }
+
+    private static NavigationItemReference portal(PortalId portalId) {
+        return new NavigationItemReference.PortalReference(portalId);
     }
 
     private PortalNavigationItem stored(PortalNavigationItemId id) {

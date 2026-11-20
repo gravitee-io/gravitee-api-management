@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.domain_service;
 
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static fixtures.core.model.PortalNavigationItemFixtures.aFolder;
 import static fixtures.core.model.PortalNavigationItemFixtures.aPage;
 import static fixtures.core.model.PortalNavigationItemFixtures.anApi;
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
@@ -198,6 +200,20 @@ class ApiOwnedNavigationDomainServiceTest {
             queryService.initWith(List.of(product, folderInProduct, listing));
 
             assertThat(service.findStandaloneListings(ENV_ID, API_ID)).isEmpty();
+        }
+
+        @Test
+        void should_find_only_the_listing_row_of_the_given_portal() {
+            var otherPortal = new NavigationItemReference.PortalReference(PortalId.random());
+            var section = aFolder("APIs");
+            var otherPortalSection = aFolder("Partners").toBuilder().reference(otherPortal).build();
+            var listing = anApi(PortalNavigationItemId.random().json(), "Api A", section.getId(), API_ID);
+            var otherPortalListing = anApi(PortalNavigationItemId.random().json(), "Api A", otherPortalSection.getId(), API_ID);
+            otherPortalListing.changeOwner(otherPortal);
+            queryService.initWith(List.of(section, otherPortalSection, listing, otherPortalListing));
+
+            assertThat(service.findStandaloneListings(ENV_ID, API_ID, otherPortal)).containsExactly(otherPortalListing);
+            assertThat(service.findStandaloneListings(ENV_ID, API_ID, defaultPortal())).containsExactly(listing);
         }
 
         @Test
@@ -610,14 +626,16 @@ class ApiOwnedNavigationDomainServiceTest {
             var section = aFolder("APIs");
             queryService.initWith(List.of(section));
 
-            assertThat(service.requirePublishLocation(ENV_ID, section.getId())).isEqualTo(section);
+            assertThat(service.requirePublishLocation(ENV_ID, defaultPortal(), section.getId())).isEqualTo(section);
         }
 
         @Test
         void should_reject_an_unknown_section() {
             var unknownId = PortalNavigationItemId.random();
 
-            assertThatThrownBy(() -> service.requirePublishLocation(ENV_ID, unknownId)).isInstanceOf(ParentNotFoundException.class);
+            assertThatThrownBy(() -> service.requirePublishLocation(ENV_ID, defaultPortal(), unknownId)).isInstanceOf(
+                ParentNotFoundException.class
+            );
         }
 
         @Test
@@ -656,6 +674,17 @@ class ApiOwnedNavigationDomainServiceTest {
         }
 
         @Test
+        void should_reject_a_section_of_another_portal() {
+            var otherPortalSection = aFolder("Partners")
+                .toBuilder()
+                .reference(new NavigationItemReference.PortalReference(PortalId.random()))
+                .build();
+            queryService.initWith(List.of(otherPortalSection));
+
+            assertNotAPublishLocation(otherPortalSection.getId());
+        }
+
+        @Test
         void should_reject_an_unpublished_section() {
             var draft = aFolder("Draft").toBuilder().published(false).build();
             queryService.initWith(List.of(draft));
@@ -664,7 +693,7 @@ class ApiOwnedNavigationDomainServiceTest {
         }
 
         private void assertNotAPublishLocation(PortalNavigationItemId id) {
-            assertThatThrownBy(() -> service.requirePublishLocation(ENV_ID, id)).isInstanceOf(
+            assertThatThrownBy(() -> service.requirePublishLocation(ENV_ID, defaultPortal(), id)).isInstanceOf(
                 InvalidPortalNavigationItemDataException.class
             );
         }
@@ -739,5 +768,9 @@ class ApiOwnedNavigationDomainServiceTest {
 
     private static NavigationItemReference ownedBy(String apiId) {
         return new NavigationItemReference.ApiReference(apiId);
+    }
+
+    private static NavigationItemReference.PortalReference defaultPortal() {
+        return (NavigationItemReference.PortalReference) PORTAL_REFERENCE;
     }
 }

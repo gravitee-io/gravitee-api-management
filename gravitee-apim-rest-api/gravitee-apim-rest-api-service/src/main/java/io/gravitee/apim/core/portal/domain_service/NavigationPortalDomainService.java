@@ -18,14 +18,18 @@ package io.gravitee.apim.core.portal.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.exception.NavigationPortalNotResolvedException;
+import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.exception.SeveralPortalsInEnvironmentException;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
+import jakarta.annotation.Nullable;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 /**
- * The portal a console navigation write targets: the environment's default portal, and only it. A portal
- * created by the Automation API is never default and its navigation belongs to the Automation API.
+ * The portal a console navigation write targets: the environment's default portal, unless the write names
+ * another portal of the environment. A portal created by the Automation API is never default.
  */
 @DomainService
 @RequiredArgsConstructor
@@ -55,5 +59,42 @@ public class NavigationPortalDomainService {
 
     public NavigationItemReference.PortalReference resolveReference(String organizationId, String environmentId) {
         return new NavigationItemReference.PortalReference(resolve(organizationId, environmentId).getId());
+    }
+
+    /**
+     * {@link #resolve(String, String)}, except that a named portal is used as it is, and that the default portal
+     * is found even when the environment has several portals.
+     *
+     * @throws PortalNotFoundException when the named portal is not a portal of the environment
+     */
+    public NavigationItemReference.PortalReference resolveReference(
+        String organizationId,
+        String environmentId,
+        @Nullable PortalId portalId
+    ) {
+        var portal = portalId != null
+            ? require(environmentId, portalId)
+            : defaultPortalDomainService.findDefault(environmentId).orElseGet(() -> resolve(organizationId, environmentId));
+        return new NavigationItemReference.PortalReference(portal.getId());
+    }
+
+    /**
+     * The portal a read, or a write that only hides content, targets: never created by the call.
+     *
+     * @return the named portal, else the environment's default portal, else its only portal, which the
+     *     Automation API created; empty when there is none of them
+     * @throws PortalNotFoundException when the named portal is not a portal of the environment
+     */
+    public Optional<NavigationItemReference.PortalReference> findReference(String environmentId, @Nullable PortalId portalId) {
+        var portal = portalId != null
+            ? Optional.of(require(environmentId, portalId))
+            : defaultPortalDomainService.findDefaultOrOnly(environmentId);
+        return portal.map(found -> new NavigationItemReference.PortalReference(found.getId()));
+    }
+
+    private Portal require(String environmentId, PortalId portalId) {
+        return portalCrudService
+            .findByIdAndEnvironmentId(portalId, environmentId)
+            .orElseThrow(() -> new PortalNotFoundException(portalId.toString()));
     }
 }
