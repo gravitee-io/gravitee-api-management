@@ -19,6 +19,7 @@ import {
   corePin,
   distributionVersion,
   isLatestRelease,
+  isNewestSupportBranch,
   nextDevelopmentVersion,
   parse,
   supportLineOf,
@@ -391,5 +392,27 @@ describe('triggersSaasDockerImages', () => {
 
   it('refuses to decide for a support branch without the list of support branches', () => {
     expect(() => triggersSaasDockerImages('4.12.x', undefined)).toThrow(/support branches are missing/);
+  });
+});
+
+describe('isNewestSupportBranch', () => {
+  const today = ['4.12.x', '4.13.x', '4.14.x'];
+
+  it.each`
+    branch                          | supportBranches         | expected
+    ${'master'}                     | ${undefined}            | ${false}
+    ${'4.14.x'}                     | ${today}                | ${true}
+    ${'4.13.x'}                     | ${today}                | ${false}
+    ${'4.15.x'}                     | ${[...today, '4.15.x']} | ${true}
+    ${'4.14.x'}                     | ${[...today, '4.15.x']} | ${false}
+    ${'4.14.x'}                     | ${[...today, '5.0.x']}  | ${false}
+    ${'4.14.x'}                     | ${['4.13.x']}           | ${true}
+    ${'APIM-1234-my-custom-branch'} | ${undefined}            | ${false}
+  `('$branch among $supportBranches is the newest: $expected', ({ branch, supportBranches, expected }) => {
+    expect(isNewestSupportBranch(branch, supportBranches)).toEqual(expected);
+  });
+
+  it('refuses to decide for a support branch without the list of support branches', () => {
+    expect(() => isNewestSupportBranch('4.14.x', undefined)).toThrow(/support branches are missing/);
   });
 });
