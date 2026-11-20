@@ -18,7 +18,6 @@ package io.gravitee.apim.core.documentation.model;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.v4.ApiType;
 import java.util.*;
 import lombok.*;
@@ -61,9 +60,6 @@ public class ApiFreemarkerTemplate {
     private Date createdAt;
     private Date updatedAt;
 
-    // V2 Attributes
-    private Proxy proxy;
-
     public ApiFreemarkerTemplate(Api api, Map<String, String> metadata, PrimaryOwnerEntity primaryOwner) {
         if (api == null) {
             return;
@@ -74,7 +70,6 @@ public class ApiFreemarkerTemplate {
             }
         } else if (api.getApiDefinition() != null) {
             this.tags = api.getApiDefinition().getTags();
-            this.proxy = api.getApiDefinition().getProxy();
         }
 
         this.state = api.getLifecycleState();

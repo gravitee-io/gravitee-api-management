@@ -18,15 +18,13 @@ package io.gravitee.apim.infra.domain_service.documentation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+import fixtures.core.model.ApiFixtures;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.documentation.exception.InvalidPageContentException;
 import io.gravitee.apim.core.documentation.model.ApiFreemarkerTemplate;
 import io.gravitee.apim.core.documentation.model.PrimaryOwnerApiTemplateData;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Proxy;
-import io.gravitee.definition.model.VirtualHost;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
@@ -83,19 +81,16 @@ class FreemarkerTemplateResolverTest {
     }
 
     @Test
-    void should_resolve_valid_v2_context_path() {
-        var virtualHost = new VirtualHost();
-        virtualHost.setPath("my-path");
+    void should_not_expose_the_v2_proxy_definition() {
+        var api = new ApiFreemarkerTemplate(
+            ApiFixtures.aProxyApiV2(),
+            Map.of(),
+            new PrimaryOwnerEntity("id", "po email", "po display name", PrimaryOwnerEntity.Type.USER)
+        );
 
-        var virtualHosts = new ArrayList<VirtualHost>();
-        virtualHosts.add(virtualHost);
+        var throwable = catchThrowable(() -> resolver.resolveTemplate("Call me at ${api.proxy.contextPath}", Map.of("api", api)));
 
-        var proxy = new Proxy();
-        proxy.setVirtualHosts(virtualHosts);
-
-        var api = ApiFreemarkerTemplate.builder().id("id").definitionVersion(DefinitionVersion.V2).proxy(proxy).build();
-
-        assertThat(resolver.resolveTemplate("Call me at ${api.proxy.contextPath}", Map.of("api", api))).isEqualTo("Call me at my-path");
+        assertThat(throwable).isInstanceOf(InvalidPageContentException.class);
     }
 
     @Test
