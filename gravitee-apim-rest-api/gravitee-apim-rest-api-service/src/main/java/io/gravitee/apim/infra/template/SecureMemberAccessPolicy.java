@@ -48,19 +48,21 @@ public final class SecureMemberAccessPolicy implements MemberAccessPolicy {
     static final String UNSAFE_CLASSES_PROPERTIES = "extendedUnsafeClasses.properties";
 
     private static final Set<Method> UNSAFE_METHODS = loadUnsafeMethods();
-    private static final Set<String> UNSAFE_CLASS_NAMES = new HashSet<>();
+    private static final Set<String> UNSAFE_CLASS_NAMES;
     private static final List<String> UNSAFE_PACKAGE_PREFIXES;
 
     static {
+        Set<String> classNames = new HashSet<>();
         Set<String> packagePrefixes = new HashSet<>();
         for (String entry : loadProperties(UNSAFE_CLASSES_PROPERTIES).stringPropertyNames()) {
             String trimmed = entry.trim();
             if (trimmed.endsWith(".*")) {
                 packagePrefixes.add(trimmed.substring(0, trimmed.length() - 1));
             } else if (!trimmed.isEmpty()) {
-                UNSAFE_CLASS_NAMES.add(trimmed);
+                classNames.add(trimmed);
             }
         }
+        UNSAFE_CLASS_NAMES = Set.copyOf(classNames);
         UNSAFE_PACKAGE_PREFIXES = List.copyOf(packagePrefixes);
     }
 
@@ -128,7 +130,7 @@ public final class SecureMemberAccessPolicy implements MemberAccessPolicy {
                 // Method removed from the running JDK: nothing to deny. Typos are caught by SecureMemberAccessPolicyTest.
             }
         }
-        return methods;
+        return Set.copyOf(methods);
     }
 
     private static Properties loadProperties(String resource) {
