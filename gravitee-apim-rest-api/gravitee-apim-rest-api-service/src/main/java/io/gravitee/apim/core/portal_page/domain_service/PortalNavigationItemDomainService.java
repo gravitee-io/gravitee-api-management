@@ -662,7 +662,12 @@ public class PortalNavigationItemDomainService {
         }
 
         final var children = new ArrayList<>(queryService.findByParentIdAndEnvironmentId(parent.getEnvironmentId(), parent.getId()));
-        if (changedPublished != null && parent instanceof PortalNavigationApi api && !inApiProductContext) {
+        if (
+            changedPublished != null &&
+            parent instanceof PortalNavigationApi api &&
+            !inApiProductContext &&
+            (changedPublished || !isShownByAnotherListing(api))
+        ) {
             children.addAll(
                 queryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
                     parent.getEnvironmentId(),
@@ -703,6 +708,17 @@ public class PortalNavigationItemDomainService {
                 currentNestingLevel + 1
             );
         }
+    }
+
+    /**
+     * The API's documentation is shared by every portal listing the API: hiding one listing leaves it to the
+     * listings that still show the API.
+     */
+    private boolean isShownByAnotherListing(PortalNavigationApi listing) {
+        return apiOwnedNavigationDomainService
+            .findStandaloneListings(listing.getEnvironmentId(), listing.getApiId())
+            .stream()
+            .anyMatch(other -> !other.getId().equals(listing.getId()) && Boolean.TRUE.equals(other.getPublished()));
     }
 
     private int sanitizeOrderForReordering(
