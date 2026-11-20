@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.core.guardian.inmemory;
 
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gamma.rest.core.guardian.exception.ApiInternalFlowChangedException;
@@ -72,8 +73,8 @@ public class InMemoryGuardedApiPort implements GuardedApiPort {
     }
 
     @Override
-    public GuardedApi updateInternalFlow(String environmentId, String apiId, Flow expectedInternalFlow, Flow internalFlow) {
-        var stored = findById(environmentId, apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
+    public GuardedApi updateInternalFlow(AuditInfo auditInfo, String apiId, Flow expectedInternalFlow, Flow internalFlow) {
+        var stored = findById(auditInfo.environmentId(), apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
         if (!stored.supportsGuardians()) {
             throw new ApiNotFoundException(apiId);
         }

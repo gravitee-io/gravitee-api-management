@@ -22,14 +22,27 @@ import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiDefinitionCrudServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
+import inmemory.EventCrudInMemory;
+import inmemory.EventLatestCrudInMemory;
+import inmemory.EventLatestQueryServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.DeployApiInternalFlowDomainService;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.event.model.Event;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.guardian.GuardianSteps;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gamma.rest.core.guardian.exception.ApiInternalFlowChangedException;
 import io.gravitee.gamma.rest.core.guardian.port.GuardedApiPortContractTest;
 import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardedApiPort;
+import io.gravitee.rest.api.model.EventType;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import lombok.SneakyThrows;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class GuardedApiPortAdapterTest extends GuardedApiPortContractTest {
@@ -37,7 +50,21 @@ class GuardedApiPortAdapterTest extends GuardedApiPortContractTest {
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
     private final ApiDefinitionCrudServiceInMemory apiDefinitionCrudService = new ApiDefinitionCrudServiceInMemory(apiCrudService);
-    private final GuardedApiPortAdapter adapter = new GuardedApiPortAdapter(apiCrudService, apiQueryService, apiDefinitionCrudService);
+    private final EventCrudInMemory events = new EventCrudInMemory();
+    private final EventLatestCrudInMemory latestEvents = new EventLatestCrudInMemory();
+    private final EventLatestQueryServiceInMemory deployments = new EventLatestQueryServiceInMemory();
+    private final DeployApiInternalFlowDomainService deployApiInternalFlow = new DeployApiInternalFlowDomainService(
+        events,
+        latestEvents,
+        deployments,
+        GraviteeJacksonMapper.getInstance()
+    );
+    private final GuardedApiPortAdapter adapter = new GuardedApiPortAdapter(
+        apiCrudService,
+        apiQueryService,
+        apiDefinitionCrudService,
+        deployApiInternalFlow
+    );
 
     @Override
     protected GuardedApiPort port() {
@@ -67,7 +94,7 @@ class GuardedApiPortAdapterTest extends GuardedApiPortContractTest {
         apiCrudService.initWith(List.of(api));
         var internalFlow = Flow.builder().response(List.of(GuardianSteps.of("guardian-1", "One"))).build();
 
-        adapter.updateInternalFlow(ENVIRONMENT_ID, api.getId(), api.getApiDefinitionHttpV4().getInternalFlow(), internalFlow);
+        adapter.updateInternalFlow(CALLER, api.getId(), api.getApiDefinitionHttpV4().getInternalFlow(), internalFlow);
 
         var stored = apiCrudService.get(api.getId());
         assertSoftly(softly -> {
@@ -98,10 +125,15 @@ class GuardedApiPortAdapterTest extends GuardedApiPortContractTest {
             }
         };
         racing.initWith(List.of(api));
-        var adapterOnRacingStore = new GuardedApiPortAdapter(racing, apiQueryService, new ApiDefinitionCrudServiceInMemory(racing));
+        var adapterOnRacingStore = new GuardedApiPortAdapter(
+            racing,
+            apiQueryService,
+            new ApiDefinitionCrudServiceInMemory(racing),
+            deployApiInternalFlow
+        );
         var internalFlow = Flow.builder().response(List.of(GuardianSteps.of("guardian-1", "One"))).build();
 
-        adapterOnRacingStore.updateInternalFlow(ENVIRONMENT_ID, api.getId(), api.getApiDefinitionHttpV4().getInternalFlow(), internalFlow);
+        adapterOnRacingStore.updateInternalFlow(CALLER, api.getId(), api.getApiDefinitionHttpV4().getInternalFlow(), internalFlow);
 
         var stored = racing.get(api.getId());
         assertSoftly(softly -> {
@@ -131,14 +163,19 @@ class GuardedApiPortAdapterTest extends GuardedApiPortContractTest {
             }
         };
         racing.initWith(List.of(api));
-        var adapterOnRacingStore = new GuardedApiPortAdapter(racing, apiQueryService, new ApiDefinitionCrudServiceInMemory(racing));
+        var adapterOnRacingStore = new GuardedApiPortAdapter(
+            racing,
+            apiQueryService,
+            new ApiDefinitionCrudServiceInMemory(racing),
+            deployApiInternalFlow
+        );
         var readFlow = api.getApiDefinitionHttpV4().getInternalFlow();
 
         assertSoftly(softly -> {
             softly
                 .assertThatThrownBy(() ->
                     adapterOnRacingStore.updateInternalFlow(
-                        ENVIRONMENT_ID,
+                        CALLER,
                         api.getId(),
                         readFlow,
                         Flow.builder().response(List.of(GuardianSteps.of("guardian-1", "One"))).build()
@@ -150,5 +187,127 @@ class GuardedApiPortAdapterTest extends GuardedApiPortContractTest {
             softly.assertThat(stored.getDescription()).as("the field written in between").isEqualTo("Changed by someone else");
             softly.assertThat(stored.getApiDefinitionHttpV4().getInternalFlow()).as("stored internal flow").isEqualTo(readFlow);
         });
+    }
+
+    /**
+     * The write applies the change: the gateways are given the deployment they already run with the new internal
+     * flow, and nothing else of the API travels with it.
+     */
+    @Nested
+    class SendingTheChangeToTheGateways {
+
+        @Test
+        void should_send_the_guardian_turned_on_to_the_gateways() {
+            var api = ApiFixtures.aLLMProxyApiV4();
+            apiCrudService.initWith(List.of(api));
+            givenTheGatewaysRun(api, EventType.PUBLISH_API);
+            var internalFlow = Flow.builder().request(List.of(GuardianSteps.of("guardian-1", "One"))).build();
+
+            adapter.updateInternalFlow(CALLER, api.getId(), api.getApiDefinitionHttpV4().getInternalFlow(), internalFlow);
+
+            assertSoftly(softly -> {
+                softly
+                    .assertThat(events.storage())
+                    .as("events written")
+                    .singleElement()
+                    .satisfies(event -> {
+                        softly.assertThat(event.getType()).as("event type").isEqualTo(EventType.PUBLISH_API);
+                        softly.assertThat(event.getPayload()).as("payload sent").contains("guardian-1");
+                    });
+                softly.assertThat(latestEvents.storage()).as("latest events").hasSize(1);
+            });
+        }
+
+        @Test
+        void should_send_the_guardian_turned_off_to_the_gateways() {
+            var ran = Flow.builder().request(List.of(GuardianSteps.of("guardian-1", "One"))).build();
+            var api = ApiFixtures.aLLMProxyApiV4();
+            api.getApiDefinitionHttpV4().setInternalFlow(ran);
+            apiCrudService.initWith(List.of(api));
+            givenTheGatewaysRun(api, EventType.PUBLISH_API);
+
+            adapter.updateInternalFlow(CALLER, api.getId(), ran, null);
+
+            assertThat(events.storage())
+                .as("events written")
+                .singleElement()
+                .satisfies(event -> assertThat(event.getPayload()).as("payload sent").doesNotContain("guardian-1"));
+        }
+
+        /** E1: nothing runs, so nothing is applied. The definition is written and the API reads as out of sync. */
+        @Test
+        void should_send_nothing_for_an_api_the_gateways_do_not_run() {
+            var api = ApiFixtures.aLLMProxyApiV4();
+            apiCrudService.initWith(List.of(api));
+            var internalFlow = Flow.builder().request(List.of(GuardianSteps.of("guardian-1", "One"))).build();
+
+            adapter.updateInternalFlow(CALLER, api.getId(), api.getApiDefinitionHttpV4().getInternalFlow(), internalFlow);
+
+            assertSoftly(softly -> {
+                softly
+                    .assertThat(apiCrudService.get(api.getId()).getApiDefinitionHttpV4().getInternalFlow())
+                    .as("stored internal flow")
+                    .isEqualTo(internalFlow);
+                softly.assertThat(events.storage()).as("events written").isEmpty();
+            });
+        }
+
+        /** E3: the order of the writes is what makes this possible — the payload is built before anything is written. */
+        @Test
+        void should_write_nothing_at_all_when_what_the_gateways_run_cannot_be_read() {
+            var api = ApiFixtures.aLLMProxyApiV4();
+            apiCrudService.initWith(List.of(api));
+            deployments.initWith(
+                List.of(
+                    Event.builder()
+                        .id("event-id")
+                        .type(EventType.PUBLISH_API)
+                        .payload("not a deployment")
+                        .properties(new EnumMap<>(Map.of(Event.EventProperties.API_ID, api.getId())))
+                        .build()
+                )
+            );
+            var readFlow = api.getApiDefinitionHttpV4().getInternalFlow();
+
+            assertSoftly(softly -> {
+                softly
+                    .assertThatThrownBy(() ->
+                        adapter.updateInternalFlow(
+                            CALLER,
+                            api.getId(),
+                            readFlow,
+                            Flow.builder().request(List.of(GuardianSteps.of("guardian-1", "One"))).build()
+                        )
+                    )
+                    .as("a deployment that cannot be read")
+                    .isInstanceOf(TechnicalDomainException.class);
+                softly
+                    .assertThat(apiCrudService.get(api.getId()).getApiDefinitionHttpV4().getInternalFlow())
+                    .as("stored internal flow")
+                    .isEqualTo(readFlow);
+                softly.assertThat(events.storage()).as("events written").isEmpty();
+            });
+        }
+
+        @SneakyThrows
+        private void givenTheGatewaysRun(Api api, EventType type) {
+            var payload = io.gravitee.repository.management.model.Api.builder()
+                .id(api.getId())
+                .name(api.getName())
+                .environmentId(api.getEnvironmentId())
+                .definitionVersion(DefinitionVersion.V4)
+                .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(api.getApiDefinitionHttpV4()))
+                .build();
+            deployments.initWith(
+                List.of(
+                    Event.builder()
+                        .id("event-id")
+                        .type(type)
+                        .payload(GraviteeJacksonMapper.getInstance().writeValueAsString(payload))
+                        .properties(new EnumMap<>(Map.of(Event.EventProperties.API_ID, api.getId())))
+                        .build()
+                )
+            );
+        }
     }
 }

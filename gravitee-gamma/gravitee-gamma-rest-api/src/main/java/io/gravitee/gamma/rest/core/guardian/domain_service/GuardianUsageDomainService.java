@@ -24,9 +24,13 @@ import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardedApiPort
 import lombok.RequiredArgsConstructor;
 
 /**
- * Refuses the changes an API running a Guardian cannot follow. An API runs a Guardian as soon as its definition
- * names it: withdrawing it then stops the traffic of an API nobody touched, which is the failure this refusal exists
- * for.
+ * Refuses the changes an API running a Guardian cannot follow. An API runs a Guardian as soon as its definition names
+ * it, since turning one on is applied to the gateways by the same call: withdrawing it then stops the traffic of an
+ * API nobody touched, which is the failure this refusal exists for.
+ *
+ * <p>An API the gateways do not run — never deployed, stopped or unpublished — names the Guardian without executing
+ * it, and is counted all the same: the refusal errs towards keeping a Guardian an API will run again. Nothing is
+ * lost if it does not, since a Guardian no API names can be withdrawn at any time.
  *
  * @author GraviteeSource Team
  */

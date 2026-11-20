@@ -24,6 +24,7 @@ import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.EventCrudInMemory;
@@ -33,6 +34,7 @@ import inmemory.EventQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.crud_service.ApiDefinitionCrudService;
+import io.gravitee.apim.core.api.domain_service.DeployApiInternalFlowDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -88,6 +90,7 @@ class GammaGuardiansConfigurationTest {
             parent.registerBean(JsonDeserializer.class, () -> new JacksonJsonDeserializer());
             parent.registerBean(PermissionDomainService.class, () -> mock(PermissionDomainService.class));
             parent.registerBean(ApiDefinitionCrudService.class, () -> mock(ApiDefinitionCrudService.class));
+            parent.registerBean(DeployApiInternalFlowDomainService.class, () -> deployApiInternalFlow(mapper));
             parent.registerBean(ApiCrudService.class, ApiCrudServiceInMemory::new);
             parent.registerBean(ApiQueryService.class, () -> new ApiQueryServiceInMemory());
             parent.refresh();
@@ -126,6 +129,7 @@ class GammaGuardiansConfigurationTest {
             parent.registerBean(JsonDeserializer.class, () -> new JacksonJsonDeserializer());
             parent.registerBean(PermissionDomainService.class, () -> mock(PermissionDomainService.class));
             parent.registerBean(ApiDefinitionCrudService.class, () -> mock(ApiDefinitionCrudService.class));
+            parent.registerBean(DeployApiInternalFlowDomainService.class, () -> deployApiInternalFlow(mapper));
             parent.registerBean(EventLatestQueryService.class, EventLatestQueryServiceInMemory::new);
             parent.registerBean(EventQueryService.class, EventQueryServiceInMemory::new);
             parent.registerBean(UserCrudService.class, UserCrudServiceInMemory::new);
@@ -177,6 +181,7 @@ class GammaGuardiansConfigurationTest {
             parent.registerBean(JsonDeserializer.class, () -> new JacksonJsonDeserializer());
             parent.registerBean(PermissionDomainService.class, () -> mock(PermissionDomainService.class));
             parent.registerBean(ApiDefinitionCrudService.class, () -> mock(ApiDefinitionCrudService.class));
+            parent.registerBean(DeployApiInternalFlowDomainService.class, () -> deployApiInternalFlow(mapper));
             parent.registerBean(EventLatestQueryService.class, EventLatestQueryServiceInMemory::new);
             parent.registerBean(EventQueryService.class, EventQueryServiceInMemory::new);
             parent.registerBean(UserCrudService.class, UserCrudServiceInMemory::new);
@@ -198,5 +203,15 @@ class GammaGuardiansConfigurationTest {
                 .as("validators the parent context hands over after its refresh")
                 .hasSize(1);
         }
+    }
+
+    /** The rest-api context owns it; here it only has to be resolvable. */
+    private static DeployApiInternalFlowDomainService deployApiInternalFlow(ObjectMapper mapper) {
+        return new DeployApiInternalFlowDomainService(
+            new EventCrudInMemory(),
+            new EventLatestCrudInMemory(),
+            new EventLatestQueryServiceInMemory(),
+            mapper
+        );
     }
 }

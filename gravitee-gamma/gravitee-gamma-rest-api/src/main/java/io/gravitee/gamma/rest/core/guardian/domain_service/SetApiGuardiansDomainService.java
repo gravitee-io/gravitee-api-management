@@ -32,8 +32,12 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Sets the Guardians an API runs, per phase and in execution order. The API runs them once redeployed; until then it
- * is out of sync.
+ * Sets the Guardians an API runs, per phase and in execution order, and applies that change to the gateways by the
+ * same call: a Guardian turned on starts judging traffic, one turned off stops, without a deployment of the API. Only
+ * the Guardians travel — a plan or a flow saved on the API without being deployed stays undeployed.
+ *
+ * <p>An API the gateways do not run — never deployed, stopped or unpublished — is written and nothing is sent: it
+ * stays out of sync, and its publisher's next deployment is what carries the Guardians over.
  *
  * <p>The whole list of each phase travels, so a Guardian the API ran and the list leaves out is turned off by the
  * same call. Nothing is written unless every listed Guardian passes
@@ -67,6 +71,8 @@ public class SetApiGuardiansDomainService {
      * @throws ApiNotFoundException when the environment holds no such API.
      * @throws ApiCannotRunGuardiansException when the API holds no internal flow to put the steps in.
      * @throws ApiInternalFlowChangedException when the API's internal flow moved while the call was computing one.
+     * @throws io.gravitee.apim.core.exception.TechnicalDomainException when the change cannot be sent to the gateways
+     *     because what they run cannot be read. Nothing is written then: the API keeps the Guardians it ran.
      */
     public List<ApiGuardian> set(String apiId, List<String> requestGuardianIds, List<String> responseGuardianIds, AuditInfo auditInfo) {
         var environmentId = auditInfo.environmentId();
@@ -85,7 +91,7 @@ public class SetApiGuardiansDomainService {
             .replace(Phase.REQUEST, validated.get(Phase.REQUEST))
             .replace(Phase.RESPONSE, validated.get(Phase.RESPONSE))
             .internalFlow();
-        var updated = apis.updateInternalFlow(environmentId, api.id(), api.internalFlow(), internalFlow);
+        var updated = apis.updateInternalFlow(auditInfo, api.id(), api.internalFlow(), internalFlow);
         auditDomainService.createApiAuditLog(
             ApiAuditLogEntity.builder()
                 .apiId(api.id())

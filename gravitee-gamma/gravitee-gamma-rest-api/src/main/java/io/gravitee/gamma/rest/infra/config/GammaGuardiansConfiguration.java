@@ -19,6 +19,7 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.crud_service.ApiDefinitionCrudService;
+import io.gravitee.apim.core.api.domain_service.DeployApiInternalFlowDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.deployment.domain_service.ApiDeploymentValidator;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateApiGuardiansDomainService;
@@ -64,9 +65,10 @@ public class GammaGuardiansConfiguration {
     public GuardedApiPort gammaGuardedApiPort(
         ApiCrudService apiCrudService,
         ApiQueryService apiQueryService,
-        ApiDefinitionCrudService apiDefinitionCrudService
+        ApiDefinitionCrudService apiDefinitionCrudService,
+        DeployApiInternalFlowDomainService deployApiInternalFlow
     ) {
-        return new GuardedApiPortAdapter(apiCrudService, apiQueryService, apiDefinitionCrudService);
+        return new GuardedApiPortAdapter(apiCrudService, apiQueryService, apiDefinitionCrudService, deployApiInternalFlow);
     }
 
     /** Collected by APIM with the other {@link ApiDeploymentValidator}s, so a deployment runs it. */

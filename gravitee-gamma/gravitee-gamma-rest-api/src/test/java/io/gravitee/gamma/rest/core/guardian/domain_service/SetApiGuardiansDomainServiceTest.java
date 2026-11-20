@@ -367,13 +367,13 @@ class SetApiGuardiansDomainServiceTest {
 
             @Override
             public io.gravitee.gamma.rest.core.guardian.model.GuardedApi updateInternalFlow(
-                String environmentId,
+                AuditInfo auditInfo,
                 String apiId,
                 Flow expectedInternalFlow,
                 Flow internalFlow
             ) {
                 expected = expectedInternalFlow;
-                return super.updateInternalFlow(environmentId, apiId, expectedInternalFlow, internalFlow);
+                return super.updateInternalFlow(auditInfo, apiId, expectedInternalFlow, internalFlow);
             }
         };
         recorder.givenApi(aGuardedApi().internalFlow(ran).build());
@@ -389,7 +389,7 @@ class SetApiGuardiansDomainServiceTest {
         var movedMeanwhile = new InMemoryGuardedApiPort() {
             @Override
             public io.gravitee.gamma.rest.core.guardian.model.GuardedApi updateInternalFlow(
-                String environmentId,
+                AuditInfo auditInfo,
                 String apiId,
                 Flow expectedInternalFlow,
                 Flow internalFlow

@@ -17,12 +17,14 @@ package io.gravitee.gamma.rest.infra.adapter;
 
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.crud_service.ApiDefinitionCrudService;
+import io.gravitee.apim.core.api.domain_service.DeployApiInternalFlowDomainService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.model.Sortable;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -47,6 +49,7 @@ public class GuardedApiPortAdapter implements GuardedApiPort {
     private final ApiCrudService apiCrudService;
     private final ApiQueryService apiQueryService;
     private final ApiDefinitionCrudService apiDefinitionCrudService;
+    private final DeployApiInternalFlowDomainService deployApiInternalFlow;
 
     @Override
     public Optional<GuardedApi> findById(String environmentId, String apiId) {
@@ -65,21 +68,26 @@ public class GuardedApiPortAdapter implements GuardedApiPort {
     }
 
     /**
-     * Two guards, closing two windows. The flow comparison closes the one between the caller's read and this call:
-     * it names the conflict before anything is written. The conditional write closes the one between the read below
-     * and the write itself, and it writes the definition alone — so a {@code PUT} that changed another field of the
-     * same API in that window is neither rolled back nor silently overwritten.
+     * Two guards and an order. The flow comparison closes the window between the caller's read and this call: it
+     * names the conflict before anything is written. The conditional write closes the one between the read below and
+     * the write itself, and it writes the definition alone — so a {@code PUT} that changed another field of the same
+     * API in that window is neither rolled back nor silently overwritten.
+     *
+     * <p>The order is the one {@link DeployApiInternalFlowDomainService} documents: the deployment to send is built
+     * first, because that is what fails on a payload that cannot be read and it fails before any write; then the
+     * definition; then the event. A write that does not happen sends nothing.
      */
     @Override
-    public GuardedApi updateInternalFlow(String environmentId, String apiId, Flow expectedInternalFlow, Flow internalFlow) {
+    public GuardedApi updateInternalFlow(AuditInfo auditInfo, String apiId, Flow expectedInternalFlow, Flow internalFlow) {
         var api = apiCrudService
             .findById(apiId)
-            .filter(inEnvironment(environmentId))
+            .filter(inEnvironment(auditInfo.environmentId()))
             .orElseThrow(() -> new ApiNotFoundException(apiId));
         var definition = v4DefinitionOf(api).orElseThrow(() -> new ApiNotFoundException(apiId));
         if (!Objects.equals(definition.getInternalFlow(), expectedInternalFlow)) {
             throw new ApiInternalFlowChangedException(apiId);
         }
+        var deployment = deployApiInternalFlow.prepare(apiId, internalFlow);
         var updated = api
             .toBuilder()
             .apiDefinitionValue(definition.toBuilder().internalFlow(internalFlow).build())
@@ -88,6 +96,7 @@ public class GuardedApiPortAdapter implements GuardedApiPort {
         if (!apiDefinitionCrudService.replaceDefinition(updated, api.getUpdatedAt())) {
             throw new ApiInternalFlowChangedException(apiId);
         }
+        deployment.ifPresent(patched -> deployApiInternalFlow.deploy(auditInfo, patched));
         return toGuardedApi(updated);
     }
 

@@ -22,8 +22,10 @@ import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.crud_service.ApiDefinitionCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
+import io.gravitee.apim.core.api.domain_service.DeployApiInternalFlowDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateNativeApiDomainService;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
@@ -45,6 +47,7 @@ import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.AbstractPlan;
@@ -88,6 +91,8 @@ public class RollbackApiUseCase {
     private final UpdateNativeApiDomainService updateNativeApiDomainService;
     private final PropertyDomainService propertyDomainService;
     private final ClusterBindingPermissionDomainService clusterBindingPermissionDomainService;
+    private final ApiDefinitionCrudService apiDefinitionCrudService;
+    private final DeployApiInternalFlowDomainService deployApiInternalFlow;
 
     public void execute(Input input) {
         Api api = eventQueryService
@@ -105,10 +110,17 @@ public class RollbackApiUseCase {
 
                 keepStoredEncryption(toRollback.getApiDefinitionHttpV4(), rollbackedApi.getApiDefinitionHttpV4());
 
+                // Built before the first write: this is what fails on a deployment that cannot be read, and the
+                // rollback must then leave the API as it is rather than half rolled back.
+                var deployment = deployApiInternalFlow.prepare(apiDefinition.getId(), apiDefinition.getInternalFlow());
+
                 var apiUpdatedV4 = updateApiDomainService.updateV4(rollbackedApi, input.auditInfo);
+                restoreInternalFlow(apiUpdatedV4, apiDefinition.getInternalFlow());
 
                 // Rollback plans from API definition plans
                 rollbackPlansV4(apiDefinition.getPlans(), apiUpdatedV4, input.auditInfo);
+
+                deployment.ifPresent(patched -> deployApiInternalFlow.deploy(input.auditInfo, patched));
                 yield apiUpdatedV4;
             }
             case io.gravitee.definition.model.Api apiDefinition -> {
@@ -121,6 +133,9 @@ public class RollbackApiUseCase {
                 // flows and search entry) instead of being persisted as a half-converted V2 API.
                 var existingPlans = planQueryService.findAllByApiId(toRollback.getId());
                 validatePlansCanBeRolledBack(apiDefinition.getPlans(), existingPlans);
+                // A V2 definition holds no internal flow, so the API runs no Guardian once rolled back: the
+                // gateways are told to stop running the steps, by the same patch, before anything is written.
+                var withoutGuardians = deployApiInternalFlow.prepare(api.getId(), null);
                 if (
                     apiDefinition.getServices().getDynamicPropertyService() != null &&
                     apiDefinition.getServices().getDynamicPropertyService().isEnabled()
@@ -135,6 +150,9 @@ public class RollbackApiUseCase {
                 apiIndexerDomainService.index(indexerContext, rollbackedApi, apiPrimaryOwner);
 
                 var apiUpdatedV2 = apiCrudService.update(rollbackedApi);
+                // The Guardian index is a projection of the definition, and the V2 one names none. A full save of an
+                // API carries no index, so it is emptied here, by the write that owns it.
+                apiDefinitionCrudService.replaceDefinition(apiUpdatedV2, apiUpdatedV2.getUpdatedAt());
 
                 // Rollback plans from API definition plans
                 var plans = rollbackPlansV2(apiDefinition.getPlans(), existingPlans, input.auditInfo);
@@ -151,6 +169,7 @@ public class RollbackApiUseCase {
                 ) {
                     apiStateService.startV2DynamicProperties(rollbackedApi.getId());
                 }
+                withoutGuardians.ifPresent(patched -> deployApiInternalFlow.deploy(input.auditInfo, patched));
                 yield apiUpdatedV2;
             }
             case NativeApi apiDefinition -> {
@@ -197,6 +216,26 @@ public class RollbackApiUseCase {
         };
 
         createAuditLog(input.auditInfo, apiUpdated.getId(), apiUpdated.getUpdatedAt());
+    }
+
+    /**
+     * Writes the internal flow the rollback restores, and the Guardian index that projects it.
+     *
+     * <p>Two reasons the API update above does not do it. It takes the internal flow from the API <em>as stored</em>
+     * rather than from the definition it is handed — the field is managed by the platform and travels in no
+     * payload — so the restored one would be dropped on the way. And the Guardian index travels with the definition
+     * it projects in this targeted write only: a full save of an API carries no index, by design, so nothing else
+     * would bring the index back in step with the restored definition.
+     *
+     * <p>The write is conditioned on the update date the rollback just stamped: if another writer moved the API in
+     * between, their definition stands and the index that goes with it is theirs to carry.
+     */
+    private void restoreInternalFlow(Api rolledBack, Flow internalFlow) {
+        var restored = rolledBack
+            .toBuilder()
+            .apiDefinitionValue(rolledBack.getApiDefinitionHttpV4().toBuilder().internalFlow(internalFlow).build())
+            .build();
+        apiDefinitionCrudService.replaceDefinition(restored, rolledBack.getUpdatedAt());
     }
 
     private void keepStoredEncryption(AbstractApi storedDefinition, AbstractApi restoredDefinition) {

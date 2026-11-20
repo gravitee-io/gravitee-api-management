@@ -47,6 +47,7 @@ import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
+import io.gravitee.apim.core.api.domain_service.DeployApiInternalFlowDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateNativeApiDomainService;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
@@ -85,6 +86,7 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.guardian.GuardianSteps;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
@@ -134,12 +136,15 @@ class RollbackApiUseCaseTest {
 
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     private final EventCrudInMemory eventCrudService = new EventCrudInMemory();
+    private final EventLatestCrudInMemory eventLatestCrudService = new EventLatestCrudInMemory();
+    private final EventLatestQueryServiceInMemory deployments = new EventLatestQueryServiceInMemory();
     private final EventQueryServiceInMemory eventQueryService = new EventQueryServiceInMemory();
     private final PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     private final SubscriptionQueryServiceInMemory subscriptionCrudService = new SubscriptionQueryServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+    private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
     private final SubscriptionQueryServiceInMemory subscriptionQueryService = new SubscriptionQueryServiceInMemory();
     private final FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
     private final ApiStateDomainService apiStateDomainService = mock(ApiStateDomainServiceLegacyWrapper.class);
@@ -232,7 +237,14 @@ class RollbackApiUseCaseTest {
             apiStateDomainService,
             updateNativeApiDomainService,
             new PropertyDomainService(dataEncryptor),
-            new ClusterBindingPermissionDomainService(clusterQueryService, permissionDomainService, GraviteeJacksonMapper.getInstance())
+            new ClusterBindingPermissionDomainService(clusterQueryService, permissionDomainService, GraviteeJacksonMapper.getInstance()),
+            new ApiDefinitionCrudServiceInMemory(apiCrudService),
+            new DeployApiInternalFlowDomainService(
+                eventCrudService,
+                eventLatestCrudService,
+                deployments,
+                GraviteeJacksonMapper.getInstance()
+            )
         );
 
         this.initializePrimaryOwnerData();
@@ -247,6 +259,8 @@ class RollbackApiUseCaseTest {
         Stream.of(
             auditCrudService,
             eventCrudService,
+            eventLatestCrudService,
+            deployments,
             eventQueryService,
             planCrudService,
             planQueryService,
@@ -920,6 +934,77 @@ class RollbackApiUseCaseTest {
 
     @Nested
     class RollbackApiV4toV2Proxy {
+
+        /**
+         * A V2 definition holds no internal flow, so the rolled-back API runs no Guardian: the index must say so,
+         * and the gateways must stop running the steps instead of keeping them until someone deploys the API.
+         */
+        @Test
+        void should_stop_running_the_guardians_of_the_v4_definition() throws JsonProcessingException {
+            apiCrudService.update(ApiAdapter.INSTANCE.toCoreModel(apiV4().build()));
+            givenTheStoredApiRuns(guardians("guardian-1"));
+            givenTheGatewaysRun(EventType.PUBLISH_API);
+            var event = givenAV2Revision();
+
+            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+
+            assertSoftly(softly -> {
+                // the index is written from this definition, by the same targeted write; what it then answers is
+                // ApiRepositoryTest's subject, on both stores
+                softly
+                    .assertThat(apiCrudService.get(API_ID).getApiDefinitionHttpV4())
+                    .as("v4 definition the index would project, gone with the rollback")
+                    .isNull();
+                softly
+                    .assertThat(eventCrudService.storage())
+                    .as("events written")
+                    .singleElement()
+                    .satisfies(written -> assertThat(written.getPayload()).as("guardian sent").doesNotContain("guardian-1"));
+            });
+        }
+
+        private Event givenAV2Revision() throws JsonProcessingException {
+            var revision = io.gravitee.definition.model.Api.builder()
+                .id(API_ID)
+                .name("api-previous-name")
+                .version("api-previous-version")
+                .definitionVersion(DefinitionVersion.V2)
+                .proxy(
+                    io.gravitee.definition.model.Proxy.builder()
+                        .virtualHosts(List.of(new io.gravitee.definition.model.VirtualHost("/api-previous-path")))
+                        .groups(
+                            Set.of(
+                                EndpointGroup.builder()
+                                    .name("default-endpoint")
+                                    .endpoints(Set.of(Endpoint.builder().target("https://api.gravitee.io/echo-v2").build()))
+                                    .build()
+                            )
+                        )
+                        .build()
+                )
+                .plans(Map.of())
+                .flows(List.of())
+                .flowMode(FlowMode.BEST_MATCH)
+                .build();
+            var event = Event.builder()
+                .id("rollback-event-id")
+                .type(EventType.PUBLISH_API)
+                .environments(Set.of(ENVIRONMENT_ID))
+                .payload(
+                    GraviteeJacksonMapper.getInstance().writeValueAsString(
+                        Api.builder()
+                            .id(API_ID)
+                            .name(revision.getName())
+                            .version(revision.getVersion())
+                            .definitionVersion(DefinitionVersion.V2)
+                            .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(revision))
+                            .build()
+                    )
+                )
+                .build();
+            eventQueryService.initWith(List.of(event));
+            return event;
+        }
 
         @Test
         void should_rollback_api() throws JsonProcessingException {
@@ -1620,6 +1705,211 @@ class RollbackApiUseCaseTest {
                     ""
                 )
             );
+    }
+
+    /**
+     * A rollback restores the internal flow, which is where the Guardians an API runs live. Two things must follow
+     * it: the index that answers "which APIs run this Guardian?", and the gateways — a Guardian applies as soon as it
+     * is written, so a rollback that takes one away must take it away from what they run too.
+     */
+    @Nested
+    class RestoringTheGuardians {
+
+        @Test
+        void should_restore_the_guardians_the_revision_ran_in_the_index() throws JsonProcessingException {
+            var event = givenARevisionRunning(guardians("guardian-1"));
+            givenTheApiUpdateKeepsTheStoredDefinition();
+
+            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+
+            assertSoftly(softly -> {
+                softly
+                    .assertThat(apiCrudService.get(API_ID).getApiDefinitionHttpV4().getInternalFlow())
+                    .as("internal flow of the stored definition")
+                    .isEqualTo(guardians("guardian-1"));
+                softly.assertThat(apisRunning("guardian-1")).as("APIs the index answers for guardian-1").containsExactly(API_ID);
+            });
+        }
+
+        @Test
+        void should_empty_the_index_when_the_revision_ran_no_guardian() throws JsonProcessingException {
+            givenTheStoredApiRuns(guardians("guardian-1"));
+            var event = givenARevisionRunning(null);
+            givenTheApiUpdateKeepsTheStoredDefinition();
+
+            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+
+            assertSoftly(softly -> {
+                softly
+                    .assertThat(apiCrudService.get(API_ID).getApiDefinitionHttpV4().getInternalFlow())
+                    .as("internal flow of the stored definition")
+                    .isNull();
+                softly.assertThat(apisRunning("guardian-1")).as("APIs the index answers for guardian-1").isEmpty();
+            });
+        }
+
+        /**
+         * The same guard as a Guardian write: what the gateways are given is their own deployment with the internal
+         * flow replaced, so a plan the rollback restores in the store does not reach them before its publisher
+         * deploys the API.
+         */
+        @Test
+        void should_send_the_restored_internal_flow_to_the_gateways_and_nothing_else() throws JsonProcessingException {
+            var event = givenARevisionRunning(guardians("guardian-1"));
+            givenTheGatewaysRun(EventType.PUBLISH_API);
+            givenTheApiUpdateKeepsTheStoredDefinition();
+
+            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+
+            assertThat(eventCrudService.storage())
+                .as("events written")
+                .singleElement()
+                .satisfies(written ->
+                    assertSoftly(softly -> {
+                        softly.assertThat(written.getType()).as("event type").isEqualTo(EventType.PUBLISH_API);
+                        softly.assertThat(written.getPayload()).as("guardian sent").contains("guardian-1");
+                        softly.assertThat(written.getPayload()).as("plan of the deployment kept").contains("plan-deployed");
+                        softly.assertThat(written.getPayload()).as("plan saved without being deployed").doesNotContain("plan-saved");
+                    })
+                );
+        }
+
+        @Test
+        void should_send_nothing_for_an_api_the_gateways_do_not_run() throws JsonProcessingException {
+            var event = givenARevisionRunning(guardians("guardian-1"));
+            givenTheApiUpdateKeepsTheStoredDefinition();
+
+            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+
+            assertSoftly(softly -> {
+                softly.assertThat(eventCrudService.storage()).as("events written").isEmpty();
+                softly
+                    .assertThat(apiCrudService.get(API_ID).getApiDefinitionHttpV4().getInternalFlow())
+                    .as("internal flow of the stored definition")
+                    .isEqualTo(guardians("guardian-1"));
+            });
+        }
+
+        @Test
+        void should_send_nothing_for_a_stopped_api() throws JsonProcessingException {
+            var event = givenARevisionRunning(guardians("guardian-1"));
+            givenTheGatewaysRun(EventType.STOP_API);
+            givenTheApiUpdateKeepsTheStoredDefinition();
+
+            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+
+            assertThat(eventCrudService.storage()).as("events written, a stopped API being restarted by none").isEmpty();
+        }
+
+        /** The deployment to roll back to, which ran {@code internalFlow}. */
+        private Event givenARevisionRunning(io.gravitee.definition.model.v4.flow.Flow internalFlow) throws JsonProcessingException {
+            var revision = io.gravitee.definition.model.v4.Api.builder()
+                .id(API_ID)
+                .name("api-previous-name")
+                .apiVersion("api-previous-version")
+                .definitionVersion(DefinitionVersion.V4)
+                .internalFlow(internalFlow)
+                .build();
+            var event = Event.builder()
+                .id("event-id")
+                .type(EventType.PUBLISH_API)
+                .environments(Set.of(ENVIRONMENT_ID))
+                .payload(
+                    GraviteeJacksonMapper.getInstance().writeValueAsString(
+                        Api.builder()
+                            .id(API_ID)
+                            .name(revision.getName())
+                            .version(revision.getApiVersion())
+                            .definitionVersion(DefinitionVersion.V4)
+                            .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(revision))
+                            .build()
+                    )
+                )
+                .build();
+            eventQueryService.initWith(List.of(event));
+            return event;
+        }
+
+        /**
+         * The v4 update path takes the internal flow from the API as stored rather than from the payload it is
+         * handed, so the double does what the real one does: it keeps the stored definition and advances the date.
+         */
+        private void givenTheApiUpdateKeepsTheStoredDefinition() {
+            when(delegateApiService.update(any(), eq(API_ID), any(), eq(false), eq(USER_ID))).thenAnswer(invocation -> {
+                var stored = apiCrudService.get(API_ID);
+                stored.setUpdatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()));
+                apiCrudService.update(stored);
+                return ApiModelFixtures.aModelHttpApiV4().toBuilder().id(API_ID).build();
+            });
+        }
+    }
+
+    private static io.gravitee.definition.model.v4.flow.Flow guardians(String... guardianIds) {
+        return io.gravitee.definition.model.v4.flow.Flow.builder()
+            .request(
+                java.util.Arrays.stream(guardianIds)
+                    .map(id -> GuardianSteps.of(id, id))
+                    .toList()
+            )
+            .build();
+    }
+
+    private void givenTheStoredApiRuns(io.gravitee.definition.model.v4.flow.Flow internalFlow) {
+        var stored = apiCrudService.get(API_ID);
+        stored.getApiDefinitionHttpV4().setInternalFlow(internalFlow);
+        apiCrudService.update(stored);
+    }
+
+    /** What the gateways are running: a deployment holding a plan the store does not have any more. */
+    private void givenTheGatewaysRun(EventType type) throws JsonProcessingException {
+        var deployed = io.gravitee.definition.model.v4.Api.builder()
+            .id(API_ID)
+            .name("api-name")
+            .apiVersion("1.0.0")
+            .definitionVersion(DefinitionVersion.V4)
+            .plans(
+                Map.of(
+                    "plan-deployed",
+                    io.gravitee.definition.model.v4.plan.Plan.builder()
+                        .id("plan-deployed")
+                        .name("Deployed plan")
+                        .mode(io.gravitee.definition.model.v4.plan.PlanMode.STANDARD)
+                        .status(PlanStatus.PUBLISHED)
+                        .security(io.gravitee.definition.model.v4.plan.PlanSecurity.builder().type("key-less").build())
+                        .build()
+                )
+            )
+            .build();
+        deployments.initWith(
+            List.of(
+                Event.builder()
+                    .id("latest-event-id")
+                    .type(type)
+                    .properties(new java.util.EnumMap<>(Map.of(Event.EventProperties.API_ID, API_ID)))
+                    .payload(
+                        GraviteeJacksonMapper.getInstance().writeValueAsString(
+                            Api.builder()
+                                .id(API_ID)
+                                .name(deployed.getName())
+                                .definitionVersion(DefinitionVersion.V4)
+                                .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(deployed))
+                                .build()
+                        )
+                    )
+                    .build()
+            )
+        );
+    }
+
+    private List<String> apisRunning(String guardianId) {
+        return apiQueryService
+            .search(
+                io.gravitee.apim.core.api.model.ApiSearchCriteria.builder().guardian(guardianId).build(),
+                null,
+                io.gravitee.apim.core.api.model.ApiFieldFilter.builder().build()
+            )
+            .map(io.gravitee.apim.core.api.model.Api::getId)
+            .toList();
     }
 
     private Api.ApiBuilder apiV4() {
