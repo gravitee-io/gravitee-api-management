@@ -17,7 +17,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import * as Highcharts from 'highcharts';
 
-import { GioChartAbstractComponent } from '../gio-chart-abstract/gio-chart-abstract.component';
+import { GioChartAbstractComponent, LIGHT_CHART_PALETTE } from '../gio-chart-abstract/gio-chart-abstract.component';
 
 const defaultLabelFormatter = function () {
   const name = this.point.name;
@@ -93,6 +93,7 @@ export class GioChartPieComponent extends GioChartAbstractComponent implements O
         text: '',
       },
       credits: { enabled: false },
+      palette: LIGHT_CHART_PALETTE,
       chart: {
         height: this.height,
         plotBackgroundColor: '#F7F7F8',
