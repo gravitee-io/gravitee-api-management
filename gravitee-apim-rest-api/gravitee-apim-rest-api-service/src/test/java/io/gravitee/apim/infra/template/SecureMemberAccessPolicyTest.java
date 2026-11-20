@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -174,7 +175,8 @@ class SecureMemberAccessPolicyTest {
         "java.lang.Thread.resume()",
         "java.lang.Thread.suspend()",
         "java.lang.ThreadGroup.resume()",
-        "java.lang.ThreadGroup.stop()"
+        "java.lang.ThreadGroup.stop()",
+        "java.lang.ThreadGroup.suspend()"
     );
 
     /**
@@ -212,6 +214,19 @@ class SecureMemberAccessPolicyTest {
     void should_only_tolerate_known_removed_jdk_methods_that_are_listed() throws Exception {
         Properties props = ClassUtil.loadProperties(SecureMemberAccessPolicy.class, SecureMemberAccessPolicy.UNSAFE_METHODS_PROPERTIES);
         assertThat(props.stringPropertyNames()).containsAll(KNOWN_REMOVED_JDK_METHODS);
+    }
+
+    @Test
+    void should_list_each_unsafe_method_once() throws Exception {
+        List<String> entries;
+        try (var stream = SecureMemberAccessPolicy.class.getResourceAsStream(SecureMemberAccessPolicy.UNSAFE_METHODS_PROPERTIES)) {
+            entries = new String(stream.readAllBytes(), StandardCharsets.UTF_8)
+                .lines()
+                .map(String::trim)
+                .filter(line -> !line.isEmpty() && !line.startsWith("#"))
+                .toList();
+        }
+        assertThat(entries).doesNotHaveDuplicates();
     }
 
     @Test
