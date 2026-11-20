@@ -728,6 +728,32 @@ class ApiLogsResourceTest extends ApiResourceTest {
         }
 
         @Test
+        void should_return_whether_the_logged_bodies_were_truncated() {
+            final ConnectionLogDetail fixture = new ConnectionLogDetailFixtures(API, REQUEST_ID).aConnectionLogDetail();
+            connectionLogStorageService.initWithConnectionLogDetails(
+                List.of(
+                    fixture
+                        .toBuilder()
+                        .entrypointRequest(fixture.getEntrypointRequest().toBuilder().body("{\"hel").bodyTruncated(true).build())
+                        .endpointResponse(fixture.getEndpointResponse().toBuilder().body("{\"hel").bodyTruncated(true).build())
+                        .build()
+                )
+            );
+
+            final Response response = connectionLogTarget.request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiLogResponse.class)
+                .satisfies(log -> {
+                    assertThat(log.getEntrypointRequest().getBodyTruncated()).isTrue();
+                    assertThat(log.getEndpointRequest().getBodyTruncated()).isFalse();
+                    assertThat(log.getEntrypointResponse().getBodyTruncated()).isFalse();
+                    assertThat(log.getEndpointResponse().getBodyTruncated()).isTrue();
+                });
+        }
+
+        @Test
         void should_return_404_if_no_connection_log_and_no_metrics_detail() {
             final ConnectionLogDetail connectionLogDetail = new ConnectionLogDetailFixtures(API, "other-request-id").aConnectionLogDetail();
             connectionLogStorageService.initWithConnectionLogDetails(List.of(connectionLogDetail));

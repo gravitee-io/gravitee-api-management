@@ -8449,6 +8449,10 @@ components:
                     type: string
                     description: The request's body.
                     example: my body
+                bodyTruncated:
+                    type: boolean
+                    description: Whether the logged body was cut because it exceeded the maximum size of a logged body.
+                    default: false
         ApiMessageLog:
             type: object
             description: Metrics data for a sampled message.
@@ -8549,6 +8553,10 @@ components:
                     type: string
                     description: The response's body.
                     example: my body
+                bodyTruncated:
+                    type: boolean
+                    description: Whether the logged body was cut because it exceeded the maximum size of a logged body.
+                    default: false
 
         ApiMessageLogContent:
             type: object
