@@ -17,12 +17,15 @@ package io.gravitee.apim.core.api.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import fixtures.core.model.ApiFixtures;
 import inmemory.ApiMetadataQueryServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService.ApiMetadataDecodeContext;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.documentation.model.PrimaryOwnerApiTemplateData;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
+import io.gravitee.definition.model.HttpProxy;
 import java.sql.Date;
 import java.time.Instant;
 import java.util.List;
@@ -41,6 +44,13 @@ class ApiMetadataDecoderDomainServiceTest {
         .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
         .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
         .primaryOwner(PrimaryOwnerApiTemplateData.builder().displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build())
+        .build();
+
+    private static final PrimaryOwnerEntity PRIMARY_OWNER = PrimaryOwnerEntity.builder()
+        .id("user-id")
+        .displayName("Jane Doe")
+        .email("jane.doe@gravitee.io")
+        .type(PrimaryOwnerEntity.Type.USER)
         .build();
 
     ApiMetadataQueryServiceInMemory apiMetadataQueryService = new ApiMetadataQueryServiceInMemory();
@@ -142,6 +152,41 @@ class ApiMetadataDecoderDomainServiceTest {
 
         // Then
         assertThat(result).isEqualTo(Map.ofEntries(Map.entry("key1", "value1"), Map.entry("apiVersion", "${api.version}")));
+    }
+
+    @Test
+    void should_not_expose_v2_proxy_definition_to_metadata_templates() {
+        // Given
+        var api = ApiFixtures.aProxyApiV2();
+        var httpProxy = new HttpProxy();
+        httpProxy.setPassword("proxy-secret");
+        api
+            .getApiDefinition()
+            .getProxy()
+            .getGroups()
+            .forEach(group -> group.setHttpProxy(httpProxy));
+        var context = new ApiMetadataDecodeContext(api, Map.of(), PRIMARY_OWNER);
+
+        // When
+        var result = service.decodeMetadataValue("<#list api.proxy.groups as group>${group.httpProxy.password}</#list>", context);
+
+        // Then
+        assertThat(result).doesNotContain("proxy-secret");
+    }
+
+    @Test
+    void should_decode_metadata_value_with_api_properties() {
+        // Given
+        var context = new ApiMetadataDecodeContext(ApiFixtures.aProxyApiV2(), Map.of("team", "core"), PRIMARY_OWNER);
+
+        // When
+        var result = service.decodeMetadataValue(
+            "${api.name}|${api.version}|${api.visibility}|${api.primaryOwner.email}|${api.metadata['team']}",
+            context
+        );
+
+        // Then
+        assertThat(result).isEqualTo("My Api|1.0.0|PUBLIC|jane.doe@gravitee.io|core");
     }
 
     private void givenExistingApiMetadata(List<ApiMetadata> metadata) {
