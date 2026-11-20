@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl;
 import static io.gravitee.rest.api.service.builder.EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_SUPPORT_TICKET;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import io.gravitee.apim.infra.adapter.UserAdapter;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.TicketRepository;
@@ -139,7 +140,7 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
             if (user.getEmail() == null) {
                 throw new EmailRequiredException(userId);
             }
-            parameters.put("user", user);
+            parameters.put("user", UserAdapter.INSTANCE.toUserNotificationTemplateData(user));
 
             final String emailTo;
             final GenericApiModel api;

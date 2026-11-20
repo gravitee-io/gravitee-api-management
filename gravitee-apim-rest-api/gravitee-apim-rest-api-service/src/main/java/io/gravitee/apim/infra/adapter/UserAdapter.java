@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import io.gravitee.apim.core.notification.model.UserNotificationTemplateData;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.core.user.model.IdpSource;
 import io.gravitee.repository.management.model.User;
@@ -65,6 +66,8 @@ public interface UserAdapter {
     @Mapping(target = "isServiceAccount", ignore = true)
     @Mapping(target = "source", source = "source", qualifiedByName = "idpSourceToString")
     User toUser(BaseUserEntity base);
+
+    UserNotificationTemplateData toUserNotificationTemplateData(UserEntity user);
 
     @Named("stringToIdpSource")
     default IdpSource stringToIdpSource(String source) {
