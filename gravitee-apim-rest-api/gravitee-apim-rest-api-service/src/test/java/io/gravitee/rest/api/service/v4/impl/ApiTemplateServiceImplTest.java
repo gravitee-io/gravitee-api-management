@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -28,12 +29,16 @@ import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.EndpointGroup;
+import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.HttpProxy;
+import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.property.Property;
+import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.ApiModel;
@@ -183,6 +188,88 @@ public class ApiTemplateServiceImplTest {
     }
 
     @Test
+    public void shouldNotExposeV2ApiDefinitionToTemplates() {
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId("api");
+        apiEntity.setGraviteeDefinitionVersion("2.0.0");
+        apiEntity.setProxy(
+            Proxy.builder().groups(Set.of(EndpointGroup.builder().name("default").httpProxy(new HttpProxy()).build())).build()
+        );
+        apiEntity.setServices(new Services());
+        apiEntity.setProperties(new Properties());
+        apiEntity.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), "api", false, false, false)).thenReturn(apiEntity);
+
+        var apiModel = (ApiModel) apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), "api");
+
+        assertThat(apiModel.getId()).isEqualTo("api");
+        assertThat(apiModel.getProxy()).isNull();
+        assertThat(apiModel.getServices()).isNull();
+        assertThat(apiModel.getProperties()).isNull();
+        assertThat(apiModel.getExecutionMode()).isNull();
+    }
+
+    @Test
+    public void shouldNotExposeV4ApiDefinitionToTemplates() {
+        io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity = new io.gravitee.rest.api.model.v4.api.ApiEntity();
+        apiEntity.setId("api");
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setListeners(
+            List.of(
+                HttpListener.builder()
+                    .entrypoints(List.of(Entrypoint.builder().type("mcp-proxy").configuration("{\"mcpPath\":\"/mcp\"}").build()))
+                    .build()
+            )
+        );
+        apiEntity.setEndpointGroups(
+            List.of(
+                io.gravitee.definition.model.v4.endpointgroup.EndpointGroup.builder()
+                    .name("default")
+                    .sharedConfiguration("{\"proxy\":{\"password\":\"secret\"}}")
+                    .build()
+            )
+        );
+        apiEntity.setServices(new ApiServices());
+        apiEntity.setProperties(List.of(new Property("key", "value")));
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), "api", false, false, false)).thenReturn(apiEntity);
+
+        var apiModel = (io.gravitee.rest.api.model.v4.api.ApiModel) apiTemplateService.findByIdForTemplates(
+            GraviteeContext.getExecutionContext(),
+            "api"
+        );
+
+        assertThat(apiModel.getId()).isEqualTo("api");
+        assertThat(apiModel.getEndpointGroups()).isNull();
+        assertThat(apiModel.getListeners()).isNull();
+        assertThat(apiModel.getServices()).isNull();
+        assertThat(apiModel.getProperties()).isNullOrEmpty();
+        assertThat(apiModel.getMcp()).containsEntry("mcpPath", "/mcp");
+    }
+
+    @Test
+    public void shouldNotRenderEndpointConfigurationFromDocumentationTemplates() {
+        io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity = new io.gravitee.rest.api.model.v4.api.ApiEntity();
+        apiEntity.setId("api");
+        apiEntity.setName("My API");
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setEndpointGroups(
+            List.of(
+                io.gravitee.definition.model.v4.endpointgroup.EndpointGroup.builder()
+                    .name("default")
+                    .sharedConfiguration("{\"proxy\":{\"password\":\"secret\"}}")
+                    .build()
+            )
+        );
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), "api", false, false, false)).thenReturn(apiEntity);
+        var apiModel = apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), "api");
+        var processor = new FreemarkerTemplateProcessor();
+
+        assertThat(
+            catchThrowable(() -> processor.processInlineTemplate("${api.endpointGroups[0].sharedConfiguration}", Map.of("api", apiModel)))
+        ).isInstanceOf(TemplateProcessorException.class);
+    }
+
+    @Test
     public void shouldReturnNativeApiModelWithV4DefinitionVersion() {
         NativeApiEntity apiEntity = new NativeApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
@@ -227,12 +314,12 @@ public class ApiTemplateServiceImplTest {
         assertEquals(apiEntity.getTags(), apiModel.getTags());
         assertEquals(apiEntity.getPicture(), apiModel.getPicture());
         assertEquals(apiEntity.getPrimaryOwner(), apiModel.getPrimaryOwner());
-        assertEquals(apiEntity.getProperties(), apiModel.getProperties());
         assertEquals(apiEntity.getLifecycleState(), apiModel.getLifecycleState());
         assertEquals(apiEntity.isDisableMembershipNotifications(), apiModel.isDisableMembershipNotifications());
-        assertEquals(apiEntity.getServices(), apiModel.getServices());
-        assertEquals(apiEntity.getListeners(), apiModel.getListeners());
-        assertEquals(apiEntity.getEndpointGroups(), apiModel.getEndpointGroups());
+        assertThat(apiModel.getProperties()).isNullOrEmpty();
+        assertThat(apiModel.getServices()).isNull();
+        assertThat(apiModel.getListeners()).isNull();
+        assertThat(apiModel.getEndpointGroups()).isNull();
     }
 
     @Test

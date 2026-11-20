@@ -77,7 +77,6 @@ public class ApiFreemarkerTemplateTest {
             soft.assertThat(api.getName()).isEqualTo("My Api");
             soft.assertThat(api.getPicture()).isEqualTo("api-picture");
             soft.assertThat(api.getType()).isEqualTo(ApiType.PROXY);
-            soft.assertThat(api.getProxy()).isEqualTo(model.getApiDefinition().getProxy());
             soft.assertThat(api.getUpdatedAt()).isEqualTo(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")));
             soft.assertThat(api.getDeployedAt()).isEqualTo(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")));
             soft.assertThat(api.getVisibility().toString()).isEqualTo(Visibility.PUBLIC.toString());
