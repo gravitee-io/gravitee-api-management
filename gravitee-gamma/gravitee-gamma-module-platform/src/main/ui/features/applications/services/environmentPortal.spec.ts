@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getEnvironmentPortalConfiguration, isSharedApiKeyEnabled } from './environmentPortal';
+import { getEnvironmentPortalConfiguration, isCustomApiKeyEnabled, isSharedApiKeyEnabled } from './environmentPortal';
 import { apimFetchJsonV1Env } from '../../../shared/api/apimClient';
 
 jest.mock('../../../shared/api/apimClient', () => ({
@@ -32,6 +32,12 @@ describe('environmentPortal', () => {
         expect(isSharedApiKeyEnabled({ plan: { security: { sharedApiKey: { enabled: true } } } })).toBe(true);
         expect(isSharedApiKeyEnabled({ plan: { security: { sharedApiKey: { enabled: false } } } })).toBe(false);
         expect(isSharedApiKeyEnabled(null)).toBe(false);
+    });
+
+    it('detects custom API keys only when the setting is explicitly enabled', () => {
+        expect(isCustomApiKeyEnabled({ plan: { security: { customApiKey: { enabled: true } } } })).toBe(true);
+        expect(isCustomApiKeyEnabled({ plan: { security: { customApiKey: { enabled: false } } } })).toBe(false);
+        expect(isCustomApiKeyEnabled(null)).toBe(false);
     });
 
     it('loads apiScore.enabled from GET /portal', async () => {

@@ -35,6 +35,7 @@ import { ApplicationSubscriptionDetailsTable } from './ApplicationSubscriptionDe
 import { ApplicationSubscriptionEditRequestSheet } from './ApplicationSubscriptionEditRequestSheet';
 import { ApplicationSubscriptionExpireApiKeySheet } from './ApplicationSubscriptionExpireApiKeySheet';
 import { ApplicationSubscriptionRevokeApiKeyDialog } from './ApplicationSubscriptionRevokeApiKeyDialog';
+import { SharedApplicationApiKeysHint } from './SharedApplicationApiKeysHint';
 import { SubscriptionStatusLabel } from './SubscriptionStatusLabel';
 import { notify } from '../../../../shared/notify';
 import { useDetailBasePath } from '../../../shared/hooks/useDetailBasePath';
@@ -81,7 +82,9 @@ export function ApplicationSubscriptionDetailView({
     const showApiKeys = Boolean(
         detail && detail.securityType === 'API Key' && detail.status === 'ACCEPTED' && application.api_key_mode !== 'SHARED',
     );
-    const showSharedKeysHint = Boolean(detail && detail.securityType === 'API Key' && application.api_key_mode === 'SHARED');
+    const showSharedKeysHint = Boolean(
+        detail && detail.securityType === 'API Key' && detail.status === 'ACCEPTED' && application.api_key_mode === 'SHARED',
+    );
 
     const apiKeysQuery = useApplicationSubscriptionApiKeys(application.id, subscriptionId, showApiKeys);
     const renewMutation = useRenewSubscriptionApiKey(application.id, subscriptionId);
@@ -231,14 +234,7 @@ export function ApplicationSubscriptionDetailView({
                 ) : null}
             </Card>
 
-            {showSharedKeysHint ? (
-                <Card className="border-dashed">
-                    <CardContent className="pt-6 text-sm text-muted-foreground">
-                        This application uses <strong className="text-foreground">shared API keys</strong>. Manage keys at the application
-                        level from User Permissions.
-                    </CardContent>
-                </Card>
-            ) : null}
+            {showSharedKeysHint ? <SharedApplicationApiKeysHint to={`${basePath}/shared-api-keys`} /> : null}
 
             {showApiKeys ? (
                 <ApplicationSubscriptionApiKeysCard
