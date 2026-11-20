@@ -22,6 +22,9 @@
     <#if log.getClientRequest().getBody()??>
     ,"body":"${log.getClientRequest().getBody()?j_string}"
     </#if>
+    <#if log.getClientRequest().isBodyTruncated()>
+    ,"body-truncated":true
+    </#if>
     <#if log.getClientRequest().getHeaders()??>
     ,"headers":{
       <#--noinspection FtlTypesInspection-->
@@ -45,6 +48,9 @@
   "status":${log.getClientResponse().getStatus()}
     <#if log.getClientResponse().getBody()??>
     ,"body":"${log.getClientResponse().getBody()?j_string}"
+    </#if>
+    <#if log.getClientResponse().isBodyTruncated()>
+    ,"body-truncated":true
     </#if>
     <#if log.getClientResponse().getHeaders()??>
     ,"headers":{
@@ -70,6 +76,9 @@
     <#if log.getProxyRequest().getBody()??>
     ,"body":"${log.getProxyRequest().getBody()?j_string}"
     </#if>
+    <#if log.getProxyRequest().isBodyTruncated()>
+    ,"body-truncated":true
+    </#if>
     <#if log.getProxyRequest().getHeaders()??>
     ,"headers":{
       <#list log.getProxyRequest().getHeaders() as headerKey, headerValue>
@@ -92,6 +101,9 @@
   "status":${log.getProxyResponse().getStatus()}
     <#if log.getProxyResponse().getBody()??>
     ,"body":"${log.getProxyResponse().getBody()?j_string}"
+    </#if>
+    <#if log.getProxyResponse().isBodyTruncated()>
+    ,"body-truncated":true
     </#if>
     <#if log.getProxyResponse().getHeaders()??>
     ,"headers":{

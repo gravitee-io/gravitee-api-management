@@ -18,12 +18,16 @@ package io.gravitee.apim.reporter.common.formatter.elasticsearch;
 import static io.gravitee.apim.reporter.common.formatter.Mappers.JSON;
 import static io.gravitee.apim.reporter.common.formatter.Mappers.JSON_LINES;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.reporter.common.formatter.AbstractFormatterTest;
 import io.gravitee.apim.reporter.common.formatter.Type;
+import io.gravitee.node.api.Node;
+import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.monitor.Monitor;
 import java.io.IOException;
 import java.time.ZoneId;
@@ -93,6 +97,33 @@ class ElasticsearchFormatterTest extends AbstractFormatterTest {
             acceptGeneratedId((ObjectNode) actual, (ObjectNode) expectedTree);
 
             assertThat(actual).usingRecursiveComparison().isEqualTo(expectedTree);
+        }
+    }
+
+    /** Each Elasticsearch version renders logs with its own template tree, and OpenSearch uses the es7x one. */
+    @CsvSource(
+        {
+            "7, log.Log, log-with-truncated-bodies.json, elasticsearch/log-with-truncated-bodies.json",
+            "8, log.Log, log-with-truncated-bodies.json, elasticsearch/log-with-truncated-bodies.json",
+            "9, log.Log, log-with-truncated-bodies.json, elasticsearch/log-with-truncated-bodies.json",
+            "7, v4.log.Log, v4/log-with-truncated-bodies.json, elasticsearch/v4/log-with-truncated-bodies.json",
+            "8, v4.log.Log, v4/log-with-truncated-bodies.json, elasticsearch/v4/log-with-truncated-bodies.json",
+            "9, v4.log.Log, v4/log-with-truncated-bodies.json, elasticsearch/v4/log-with-truncated-bodies.json",
+        }
+    )
+    @ParameterizedTest(name = "es{0}x {1}")
+    void should_format_truncated_bodies(int elasticsearchVersion, String className, String input, String output) throws IOException {
+        var utcZone = ZoneId.of("UTC");
+
+        try (var javaTime = mockStatic(ZoneId.class)) {
+            javaTime.when(ZoneId::systemDefault).thenReturn(utcZone);
+
+            Node node = when(mock(Node.class).id()).thenReturn("gateway-id").getMock();
+            var versionedFormatter = new ElasticsearchFormatter<Reportable>(node, elasticsearchVersion);
+
+            var actual = JSON.readTree(versionedFormatter.format(readGiven(input, className)).getBytes());
+
+            assertThat(actual).usingRecursiveComparison().isEqualTo(JSON.readTree(readExpected(output)));
         }
     }
 

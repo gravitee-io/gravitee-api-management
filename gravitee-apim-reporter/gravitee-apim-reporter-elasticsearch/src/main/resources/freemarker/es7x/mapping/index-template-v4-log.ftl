@@ -46,6 +46,9 @@
                 "type": "object",
                 "properties": {
                     "body": <@bodyField.mapping/>,
+                    "body-truncated": {
+                        "type": "boolean"
+                    },
                     "headers":  {
                        "enabled":  false,
                        "type": "object"
@@ -56,6 +59,9 @@
                 "type": "object",
                 "properties": {
                     "body": <@bodyField.mapping/>,
+                    "body-truncated": {
+                        "type": "boolean"
+                    },
                     "headers":  {
                        "enabled":  false,
                        "type": "object"
@@ -66,6 +72,9 @@
                 "type": "object",
                 "properties": {
                     "body": <@bodyField.mapping/>,
+                    "body-truncated": {
+                        "type": "boolean"
+                    },
                     "headers":  {
                        "enabled":  false,
                        "type": "object"
@@ -76,6 +85,9 @@
                 "type": "object",
                 "properties": {
                     "body": <@bodyField.mapping/>,
+                    "body-truncated": {
+                        "type": "boolean"
+                    },
                     "headers": {
                         "enabled":  false,
                         "type": "object"
