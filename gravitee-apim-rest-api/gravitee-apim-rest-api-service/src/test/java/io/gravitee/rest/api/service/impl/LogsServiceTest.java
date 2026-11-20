@@ -131,6 +131,32 @@ class LogsServiceTest {
     }
 
     @Test
+    void findApiLogShouldTellWhetherTheLoggedBodiesWereTruncated() throws Exception {
+        ExtendedLog log = newLog(KEY_LESS);
+        Request truncatedRequest = newRequest();
+        truncatedRequest.setBodyTruncated(true);
+        log.setClientRequest(truncatedRequest);
+        log.setProxyRequest(newRequest());
+        Response completeResponse = new Response();
+        completeResponse.setStatus(200);
+        log.setClientResponse(completeResponse);
+        Response truncatedResponse = new Response();
+        truncatedResponse.setStatus(200);
+        truncatedResponse.setBodyTruncated(true);
+        log.setProxyResponse(truncatedResponse);
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(log);
+        when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
+        when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlan(KEY_LESS));
+
+        ApiRequest apiLog = logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP);
+
+        assertThat(apiLog.getClientRequest().isBodyTruncated()).isTrue();
+        assertThat(apiLog.getProxyRequest().isBodyTruncated()).isFalse();
+        assertThat(apiLog.getClientResponse().isBodyTruncated()).isFalse();
+        assertThat(apiLog.getProxyResponse().isBodyTruncated()).isTrue();
+    }
+
+    @Test
     void findApiLogShouldFindWithApiKeyPlan() throws Exception {
         when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(newLog(API_KEY));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
