@@ -18,7 +18,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import * as Highcharts from 'highcharts';
 import { round } from 'lodash';
 
-import { GioChartAbstractComponent } from '../gio-chart-abstract/gio-chart-abstract.component';
+import { GioChartAbstractComponent, LIGHT_CHART_PALETTE } from '../gio-chart-abstract/gio-chart-abstract.component';
 
 export interface GioChartLineData {
   name: string;
@@ -57,6 +57,7 @@ export class GioChartLineComponent extends GioChartAbstractComponent implements 
 
     this.chartOptions = {
       credits: { enabled: false },
+      palette: LIGHT_CHART_PALETTE,
       // Highcharts 12 deprecated useUTC: `false` is now an undefined timezone, i.e. the local one.
       time: { timezone: undefined },
       chart: {

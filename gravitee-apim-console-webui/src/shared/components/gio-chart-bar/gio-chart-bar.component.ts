@@ -19,7 +19,7 @@ import { HighchartsChartComponent } from 'highcharts-angular';
 import * as Highcharts from 'highcharts';
 import { round } from 'lodash';
 
-import { GioChartAbstractComponent } from '../gio-chart-abstract/gio-chart-abstract.component';
+import { GioChartAbstractComponent, LIGHT_CHART_PALETTE } from '../gio-chart-abstract/gio-chart-abstract.component';
 
 export interface GioChartBarData {
   name: string;
@@ -62,6 +62,7 @@ export class GioChartBarComponent extends GioChartAbstractComponent implements O
   ngOnInit() {
     this.chartOptions = {
       credits: { enabled: false },
+      palette: LIGHT_CHART_PALETTE,
       chart: {
         plotBackgroundColor: '#F7F7F8',
         type: 'column',

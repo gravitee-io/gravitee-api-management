@@ -19,6 +19,13 @@ import { GioMenuService } from '@gravitee/ui-particles-angular';
 import { tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
+/**
+ * The Console has a light theme only, while Highcharts 13 resolves its default colors from
+ * `light-dark()` CSS variables under a `light dark` color scheme: left to that default, chart
+ * backgrounds, borders, grid lines and subtitles follow the browser or OS dark appearance.
+ */
+export const LIGHT_CHART_PALETTE: Highcharts.PaletteOptions = { colorScheme: 'light' };
+
 @Directive()
 export abstract class GioChartAbstractComponent {
   Highcharts: typeof Highcharts = Highcharts;
