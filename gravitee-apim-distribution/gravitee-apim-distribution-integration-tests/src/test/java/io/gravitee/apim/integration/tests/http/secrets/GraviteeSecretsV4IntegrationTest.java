@@ -21,7 +21,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -37,10 +36,7 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
-import io.gravitee.apim.gateway.tests.sdk.converters.V4ApiDeploymentPreparer;
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.v4.Api;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
@@ -55,7 +51,6 @@ import io.gravitee.repository.management.model.Secret;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
-import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Map;
@@ -74,6 +69,7 @@ import org.springframework.context.ConfigurableApplicationContext;
         "/apis/v4/http/secrets/gravitee/api-static-ref.json",
         "/apis/v4/http/secrets/gravitee/api-static-ref-no-environment.json",
         "/apis/v4/http/secrets/gravitee/api-static-ref-other-environment-key.json",
+        "/apis/v4/http/secrets/gravitee/api-static-ref-other-environment.json",
     }
 )
 class GraviteeSecretsV4IntegrationTest extends AbstractGatewayTest {
@@ -161,7 +157,7 @@ class GraviteeSecretsV4IntegrationTest extends AbstractGatewayTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "/no-environment", "/other-environment-key" })
+    @ValueSource(strings = { "/no-environment", "/other-environment", "/other-environment-key" })
     void should_never_hand_another_environment_s_secret_to_the_upstream(String path, HttpClient httpClient) {
         wiremock.stubFor(get("/endpoint").willReturn(ok("from backend")));
 
@@ -179,26 +175,17 @@ class GraviteeSecretsV4IntegrationTest extends AbstractGatewayTest {
         wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")).withHeader("Authorization", equalTo("ApiKey " + OTHER_VALUE)));
     }
 
-    @Test
-    void should_refuse_to_deploy_an_api_whose_reference_is_bound_to_another_environment() throws IOException {
-        Api definition;
-        try (var json = getClass().getResourceAsStream("/apis/v4/http/secrets/gravitee/api-static-ref-other-environment.json")) {
-            definition = new GraviteeMapper().readValue(json, Api.class);
-        }
-        var api = new V4ApiDeploymentPreparer().toReactable(definition, ENVIRONMENT);
-
-        assertThatThrownBy(() -> deploy(api)).hasStackTraceContaining(
-            "Secret reference is bound to environment [other-environment] and cannot be used in environment [DEFAULT]"
-        );
-        wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")));
-    }
-
     private SecretRepository secretRepository() throws TechnicalException {
         var secret = Secret.builder().id("secret-1").organizationId(ORGANIZATION).environmentId(ENVIRONMENT).key(KEY).build();
         secret.setEncryptedValue(SecretEnvelope.seal(dataKey, new SecretScope(ORGANIZATION, ENVIRONMENT, secret.getId()), VALUE));
         lenient().when(secrets.findByKey(anyString(), anyString(), anyString())).thenReturn(Optional.empty());
         lenient().when(secrets.findByKey(ORGANIZATION, ENVIRONMENT, secret.getKey())).thenReturn(Optional.of(secret));
-        var other = Secret.builder().id("secret-2").organizationId(ORGANIZATION).environmentId(OTHER_ENVIRONMENT).key("other-llm-key").build();
+        var other = Secret.builder()
+            .id("secret-2")
+            .organizationId(ORGANIZATION)
+            .environmentId(OTHER_ENVIRONMENT)
+            .key("other-llm-key")
+            .build();
         other.setEncryptedValue(SecretEnvelope.seal(dataKey, new SecretScope(ORGANIZATION, OTHER_ENVIRONMENT, other.getId()), OTHER_VALUE));
         lenient().when(secrets.findByKey(ORGANIZATION, OTHER_ENVIRONMENT, other.getKey())).thenReturn(Optional.of(other));
         return secrets;
