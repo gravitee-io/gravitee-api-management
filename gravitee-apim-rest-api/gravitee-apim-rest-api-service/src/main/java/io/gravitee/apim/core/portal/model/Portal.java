@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal.model;
 
 import jakarta.annotation.Nonnull;
 import java.net.URL;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -27,6 +28,11 @@ import lombok.Getter;
 
 @Getter
 public class Portal {
+
+    /** The order the environment's portals are offered in. */
+    public static final Comparator<Portal> DEFAULT_FIRST_THEN_BY_NAME = Comparator.comparing((Portal portal) -> !portal.isDefault())
+        .thenComparing(Portal::getName, String.CASE_INSENSITIVE_ORDER)
+        .thenComparing(portal -> portal.getId().toString());
 
     @Nonnull
     private final PortalId id;

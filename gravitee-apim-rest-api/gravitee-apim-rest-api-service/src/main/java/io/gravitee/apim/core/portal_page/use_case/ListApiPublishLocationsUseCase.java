@@ -19,8 +19,8 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
+import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
-import jakarta.annotation.Nullable;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
@@ -36,18 +36,19 @@ public class ListApiPublishLocationsUseCase {
     private final NavigationPortalDomainService navigationPortalDomainService;
 
     public Output execute(Input input) {
-        var locations = navigationPortalDomainService
-            .findReference(input.environmentId(), input.portalId())
-            .map(portal -> apiOwnedNavigationDomainService.findPublishLocations(input.environmentId(), portal))
-            .orElse(List.of())
+        if (input.portalId() == null) {
+            throw InvalidPortalNavigationItemDataException.fieldIsEmpty("portalId");
+        }
+        var portal = navigationPortalDomainService.requireReference(input.environmentId(), input.portalId());
+        var locations = apiOwnedNavigationDomainService
+            .findPublishLocations(input.environmentId(), portal)
             .stream()
             .map(section -> new PublishLocation(section.getId(), section.getTitle()))
             .toList();
         return new Output(locations);
     }
 
-    /** @param portalId the portal to publish in; when null, the environment's default portal, else its only one */
-    public record Input(String environmentId, @Nullable PortalId portalId) {}
+    public record Input(String environmentId, PortalId portalId) {}
 
     public record Output(List<PublishLocation> locations) {}
 

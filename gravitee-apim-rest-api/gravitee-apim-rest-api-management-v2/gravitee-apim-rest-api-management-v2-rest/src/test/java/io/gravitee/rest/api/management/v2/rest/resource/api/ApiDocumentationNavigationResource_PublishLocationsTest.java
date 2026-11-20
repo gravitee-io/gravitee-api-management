@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static assertions.MAPIAssertions.assertThat;
 import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
@@ -113,7 +114,7 @@ class ApiDocumentationNavigationResource_PublishLocationsTest extends AbstractRe
         nested.setEnvironmentId(ENVIRONMENT);
         portalNavigationItemsQueryService.initWith(List.of(section, nested));
 
-        Response response = rootTarget().request().get();
+        Response response = locations();
 
         assertThat(response)
             .hasStatus(OK_200)
@@ -129,7 +130,7 @@ class ApiDocumentationNavigationResource_PublishLocationsTest extends AbstractRe
         section.setEnvironmentId(ENVIRONMENT);
         portalNavigationItemsQueryService.initWith(List.of(section));
 
-        Response response = rootTarget().request().get();
+        Response response = locations();
 
         assertThat(response.readEntity(new GenericType<Map<String, List<Map<String, Object>>>>() {}).get("data"))
             .singleElement()
@@ -138,7 +139,7 @@ class ApiDocumentationNavigationResource_PublishLocationsTest extends AbstractRe
 
     @Test
     void should_return_an_empty_list_when_no_sections_exist() {
-        Response response = rootTarget().request().get();
+        Response response = locations();
 
         assertThat(response)
             .hasStatus(OK_200)
@@ -147,7 +148,7 @@ class ApiDocumentationNavigationResource_PublishLocationsTest extends AbstractRe
     }
 
     @Test
-    void should_list_only_the_sections_of_the_named_portal_or_of_the_default_one() {
+    void should_list_only_the_sections_of_the_given_portal() {
         var otherPortalId = portalCrudService
             .create(Portal.create(ENVIRONMENT, ORGANIZATION, "Partners Portal", PortalFixtures.PORTAL_URL))
             .getId();
@@ -168,12 +169,17 @@ class ApiDocumentationNavigationResource_PublishLocationsTest extends AbstractRe
                     new ApiPortalPublishLocation().id(otherPortalSection.getId().id()).name("Partners")
                 )
             );
-        assertThat(rootTarget().request().get())
+        assertThat(locations())
             .hasStatus(OK_200)
             .asEntity(ApiPortalPublishLocationsResponse.class)
             .satisfies(entity ->
                 assertThat(entity.getData()).containsExactly(new ApiPortalPublishLocation().id(section.getId().id()).name("APIs"))
             );
+    }
+
+    @Test
+    void should_return_400_when_no_portal_is_given() {
+        assertThat(rootTarget().request().get()).hasStatus(BAD_REQUEST_400);
     }
 
     @Test
@@ -193,7 +199,7 @@ class ApiDocumentationNavigationResource_PublishLocationsTest extends AbstractRe
             )
         ).thenReturn(false);
 
-        Response response = rootTarget().request().get();
+        Response response = locations();
 
         assertThat(response).hasStatus(FORBIDDEN_403);
     }
@@ -210,8 +216,15 @@ class ApiDocumentationNavigationResource_PublishLocationsTest extends AbstractRe
             )
         ).thenReturn(true);
 
-        Response response = rootTarget().request().get();
+        Response response = locations();
 
         assertThat(response).hasStatus(OK_200);
+    }
+
+    private Response locations() {
+        return rootTarget()
+            .queryParam("portalId", ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId().toString())
+            .request()
+            .get();
     }
 }

@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static fixtures.core.model.PortalNavigationItemFixtures.aFolder;
 import static fixtures.core.model.PortalNavigationItemFixtures.aLink;
 import static fixtures.core.model.PortalNavigationItemFixtures.aPage;
@@ -31,6 +32,7 @@ import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
+import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.use_case.ListApiPublishLocationsUseCase.PublishLocation;
@@ -126,45 +128,8 @@ class ListApiPublishLocationsUseCaseTest {
     }
 
     @Test
-    void should_return_only_the_default_portal_sections_when_no_portal_is_named_and_the_environment_has_several() {
-        var otherPortalId = navigationPortals.givenAutomationPortal(ORG_ID, ENV_ID);
-        var defaultPortalSection = aFolder("APIs");
-        var otherPortalSection = aFolder("Partners")
-            .toBuilder()
-            .reference(new NavigationItemReference.PortalReference(otherPortalId))
-            .build();
-        queryService.initWith(List.of(defaultPortalSection, otherPortalSection));
-
-        assertThat(locations()).containsExactly(new PublishLocation(defaultPortalSection.getId(), "APIs"));
-    }
-
-    @Test
-    void should_return_empty_without_creating_a_portal_when_the_environment_has_no_default_portal() {
-        var noPortal = new NavigationPortalDomainServiceInMemory();
-        var useCaseWithoutPortal = new ListApiPublishLocationsUseCase(
-            new ApiOwnedNavigationDomainService(queryService, new PortalNavigationItemsCrudServiceInMemory()),
-            noPortal
-        );
-        queryService.initWith(List.of(aFolder("APIs")));
-
-        assertThat(useCaseWithoutPortal.execute(new ListApiPublishLocationsUseCase.Input(ENV_ID, null)).locations()).isEmpty();
-        assertThat(noPortal.portalCrudService().findByEnvironmentId(ENV_ID)).isEmpty();
-    }
-
-    @Test
-    void should_return_the_sections_of_the_only_portal_when_it_is_not_the_default_one() {
-        var automationOnly = new NavigationPortalDomainServiceInMemory();
-        var automationPortalId = automationOnly.givenAutomationPortal(ORG_ID, ENV_ID);
-        var useCaseOfAutomationOnly = new ListApiPublishLocationsUseCase(
-            new ApiOwnedNavigationDomainService(queryService, new PortalNavigationItemsCrudServiceInMemory()),
-            automationOnly
-        );
-        var section = aFolder("APIs").toBuilder().reference(new NavigationItemReference.PortalReference(automationPortalId)).build();
-        queryService.initWith(List.of(section));
-
-        assertThat(useCaseOfAutomationOnly.execute(new ListApiPublishLocationsUseCase.Input(ENV_ID, null)).locations())
-            .extracting(PublishLocation::id)
-            .containsExactly(section.getId());
+    void should_reject_when_no_portal_is_given() {
+        assertThatThrownBy(() -> locationsOf(null)).isInstanceOf(InvalidPortalNavigationItemDataException.class);
     }
 
     @Test
@@ -173,7 +138,7 @@ class ListApiPublishLocationsUseCaseTest {
     }
 
     private List<PublishLocation> locations() {
-        return locationsOf(null);
+        return locationsOf(((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId());
     }
 
     private List<PublishLocation> locationsOf(PortalId portalId) {

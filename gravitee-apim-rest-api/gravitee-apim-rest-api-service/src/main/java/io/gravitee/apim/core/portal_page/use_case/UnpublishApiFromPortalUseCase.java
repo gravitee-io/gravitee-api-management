@@ -25,7 +25,6 @@ import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDa
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
-import jakarta.annotation.Nullable;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
@@ -44,10 +43,10 @@ public class UnpublishApiFromPortalUseCase {
     private final NavigationPortalDomainService navigationPortalDomainService;
 
     public void execute(Input input) {
-        // Without a portal, nothing is published
-        var portal = navigationPortalDomainService
-            .findReference(input.environmentId(), input.portalId())
-            .orElseThrow(() -> InvalidPortalNavigationItemDataException.apiIsNotPublished(input.apiId()));
+        if (input.portalId() == null) {
+            throw InvalidPortalNavigationItemDataException.fieldIsEmpty("portalId");
+        }
+        var portal = navigationPortalDomainService.requireReference(input.environmentId(), input.portalId());
         // A hidden listing means the API is not published, so only the visible ones count
         var visibleListings = visible(apiOwnedNavigationDomainService.findStandaloneListings(input.environmentId(), input.apiId()));
         var visibleInPortal = visibleListings
@@ -89,6 +88,5 @@ public class UnpublishApiFromPortalUseCase {
         domainService.update(listingToUpdate, listing);
     }
 
-    /** @param portalId the portal to unpublish from; when null, the environment's default portal, else its only one */
-    public record Input(String environmentId, String apiId, @Nullable PortalId portalId) {}
+    public record Input(String environmentId, String apiId, PortalId portalId) {}
 }

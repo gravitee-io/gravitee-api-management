@@ -3544,11 +3544,11 @@ paths:
         post:
             tags:
                 - API Documentation
-            summary: Publish an API to the portal
+            summary: Publish an API to a portal
             description: |-
-                Lists the API under the chosen section of the named portal's main navigation and publishes every page,
-                folder and link the API owns, including those that were hidden individually. Without `portalId`, the
-                environment's default portal is used.
+                Lists the API under the chosen section of the chosen portal's main navigation and publishes every page,
+                folder and link the API owns, including those that were hidden individually. The portals an API can
+                be published to are returned by `_publish-portals`.
 
                 The section must be one returned by `_publish-locations` for the same portal; a section of another
                 portal is refused. When the API already has a hidden listing in the portal, for example one added in
@@ -3558,8 +3558,6 @@ paths:
 
                 User must have the API_DOCUMENTATION[UPDATE] permission.
             operationId: publishApiToPortal
-            parameters:
-                - $ref: "#/components/parameters/portalIdQueryParam"
             requestBody:
                 content:
                     application/json:
@@ -3575,8 +3573,8 @@ paths:
                                 $ref: "#/components/schemas/ApiPortalPublication"
                 "400":
                     description: |-
-                        The API is already published to the portal, or the section is not a publish location of the
-                        portal, including a section that belongs to another portal
+                        No portal or section is given, the API is already published to the portal, or the section is
+                        not a publish location of the portal, including a section that belongs to another portal
                     content:
                         application/json:
                             schema:
@@ -3597,11 +3595,12 @@ paths:
         post:
             tags:
                 - API Documentation
-            summary: Unpublish an API from the portal
+            summary: Unpublish an API from a portal
             description: |-
-                Hides every navigation item listing the API in the named portal, with what is stored under it, and
-                unpublishes every page, folder and link the API owns. Without `portalId`, the environment's default
-                portal is used. Nothing is deleted: publishing the API again shows the same navigation item.
+                Hides every navigation item listing the API in the given portal, with what is stored under it. The
+                pages, folders and links the API owns are shared by every portal listing the API: they are unpublished
+                once no portal shows the API anymore. Nothing is deleted: publishing the API again shows the same
+                navigation item.
 
                 A listing under an API product is left untouched. An API with no visible listing in the portal is not
                 published there, and the request is rejected.
@@ -3614,7 +3613,7 @@ paths:
                 "204":
                     description: The API is no longer visible in the portal
                 "400":
-                    description: The API is not published to the portal
+                    description: No portal is given, or the API is not published to the portal
                     content:
                         application/json:
                             schema:
@@ -3653,6 +3652,30 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/portal-navigation-items/_publish-portals:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - API Documentation
+            summary: Get the portals an API can be published to
+            description: |-
+                Get the portals of the environment, the default portal first and then by name.
+                Only their id, name and whether they are the default portal are returned.
+
+                User must have the API_DOCUMENTATION[READ] permission.
+            operationId: getApiPortalPublishPortals
+            responses:
+                "200":
+                    description: The portals the API can be published to
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiPortalPublishPortalsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/{apiId}/portal-navigation-items/_publish-locations:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -3662,8 +3685,7 @@ paths:
                 - API Documentation
             summary: Get the portal sections an API can be published to
             description: |-
-                Get the published top-level folders of the named portal's main navigation, in display order.
-                Without `portalId`, the environment's default portal is used.
+                Get the published top-level folders of the given portal's main navigation, in display order.
                 Only their id and name are returned, never the portal tree.
 
                 User must have the API_DOCUMENTATION[READ] permission.
@@ -3677,6 +3699,12 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ApiPortalPublishLocationsResponse"
+                "400":
+                    description: No portal is given
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
                 "404":
                     description: The portal does not exist in this environment
                     content:
@@ -4254,15 +4282,48 @@ components:
             required:
                 - id
                 - name
+        ApiPortalPublishPortalsResponse:
+            type: object
+            description: The portals an API can be published to.
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ApiPortalPublishPortal"
+            required:
+                - data
+        ApiPortalPublishPortal:
+            type: object
+            description: A portal an API can be published to.
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                    description: The id of the portal.
+                name:
+                    type: string
+                    description: The name of the portal.
+                default:
+                    type: boolean
+                    description: Whether the portal is the environment's default portal.
+            required:
+                - id
+                - name
+                - default
         PublishApiToPortal:
             type: object
-            description: Where to publish an API in the portal.
+            description: Where to publish an API.
             properties:
+                portalId:
+                    type: string
+                    format: uuid
+                    description: The id of the portal to publish the API to, as returned by `_publish-portals`.
                 sectionId:
                     type: string
                     format: uuid
-                    description: The id of the section to list the API under, as returned by `_publish-locations`.
+                    description: The id of the section to list the API under, as returned by `_publish-locations` for the same portal.
             required:
+                - portalId
                 - sectionId
         ApiPortalPublication:
             type: object
@@ -10147,8 +10208,8 @@ components:
         portalIdQueryParam:
             name: portalId
             in: query
-            required: false
-            description: The portal to target. Without it, the environment's default portal is used.
+            required: true
+            description: The portal to target, as returned by `_publish-portals`.
             schema:
                 type: string
                 format: uuid

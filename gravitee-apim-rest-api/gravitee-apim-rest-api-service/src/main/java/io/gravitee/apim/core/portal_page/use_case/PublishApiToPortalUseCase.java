@@ -32,7 +32,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
-import jakarta.annotation.Nullable;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
@@ -53,7 +52,10 @@ public class PublishApiToPortalUseCase {
         if (input.sectionId() == null) {
             throw InvalidPortalNavigationItemDataException.fieldIsEmpty("sectionId");
         }
-        var portal = navigationPortalDomainService.resolveReference(input.organizationId(), input.environmentId(), input.portalId());
+        if (input.portalId() == null) {
+            throw InvalidPortalNavigationItemDataException.fieldIsEmpty("portalId");
+        }
+        var portal = navigationPortalDomainService.requireReference(input.environmentId(), input.portalId());
         var listings = apiOwnedNavigationDomainService.findStandaloneListings(input.environmentId(), input.apiId(), portal);
         if (listings.stream().anyMatch(listing -> Boolean.TRUE.equals(listing.getPublished()))) {
             throw InvalidPortalNavigationItemDataException.apiIdAlreadyExists(input.apiId());
@@ -114,14 +116,7 @@ public class PublishApiToPortalUseCase {
         apiOwnedNavigationDomainService.setPublished(input.environmentId(), input.apiId(), true);
     }
 
-    /** @param portalId the portal to publish in; the environment's default portal when null */
-    public record Input(
-        String organizationId,
-        String environmentId,
-        String apiId,
-        PortalNavigationItemId sectionId,
-        @Nullable PortalId portalId
-    ) {}
+    public record Input(String organizationId, String environmentId, String apiId, PortalNavigationItemId sectionId, PortalId portalId) {}
 
     public record Output(PortalNavigationApi listing, PortalNavigationFolder section) {}
 }

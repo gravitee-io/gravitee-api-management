@@ -26,6 +26,7 @@ import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseC
 import io.gravitee.apim.core.portal_page.use_case.ImportPortalNavigationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListApiDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListApiPublishLocationsUseCase;
+import io.gravitee.apim.core.portal_page.use_case.ListApiPublishPortalsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.PublishApiToPortalUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UnpublishApiFromPortalUseCase;
 import io.gravitee.common.http.MediaType;
@@ -34,6 +35,7 @@ import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMappe
 import io.gravitee.rest.api.management.v2.rest.model.ApiPortalNavigationItemsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiPortalPublication;
 import io.gravitee.rest.api.management.v2.rest.model.ApiPortalPublishLocationsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiPortalPublishPortalsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.ImportPortalNavigationRequest;
 import io.gravitee.rest.api.management.v2.rest.model.PublishApiToPortal;
@@ -69,6 +71,9 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
     private ListApiPublishLocationsUseCase listApiPublishLocationsUseCase;
 
     @Inject
+    private ListApiPublishPortalsUseCase listApiPublishPortalsUseCase;
+
+    @Inject
     private CreatePortalNavigationItemUseCase createPortalNavigationItemUseCase;
 
     @Inject
@@ -99,6 +104,16 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
         var output = listApiDocumentationUseCase.execute(
             new ListApiDocumentationUseCase.Input(GraviteeContext.getCurrentEnvironment(), apiId)
         );
+        return mapper.map(output);
+    }
+
+    @Path("_publish-portals")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
+    public ApiPortalPublishPortalsResponse getApiPortalPublishPortals(@PathParam("apiId") String apiId) {
+        requireApi(apiId);
+        var output = listApiPublishPortalsUseCase.execute(new ListApiPublishPortalsUseCase.Input(GraviteeContext.getCurrentEnvironment()));
         return mapper.map(output);
     }
 
@@ -152,7 +167,6 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
     public ApiPortalPublication publishApiToPortal(
         @PathParam("apiId") String apiId,
-        @QueryParam("portalId") String portalId,
         @Valid @NotNull final PublishApiToPortal publishApiToPortal
     ) {
         requireApi(apiId);
@@ -163,7 +177,7 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
                 executionContext.getEnvironmentId(),
                 apiId,
                 PortalNavigationItemId.of(publishApiToPortal.getSectionId().toString()),
-                toPortalId(portalId)
+                publishApiToPortal.getPortalId() == null ? null : new PortalId(publishApiToPortal.getPortalId())
             )
         );
         return mapper.mapPublication(new ListApiDocumentationUseCase.Publication(output.listing(), output.section()));
