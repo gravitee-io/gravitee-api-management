@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.14.0
-appVersion: 4.14.0
+version: 4.15.0
+appVersion: 4.15.0
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -29,48 +29,4 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: |
-    - kind: added
-      description: "Add `api.analytics.elasticsearch.index_mode`, rendered as the management API analytics index mode instead of `es.index_mode`, which the gateway reporter also reads; set it to `data_stream` to read analytics from data streams"
-      links:
-        - name: Github PR
-          url: https://github.com/gravitee-io/gravitee-api-management/pull/22639
-    - kind: added
-      description: "Add `gateway.kafka.backendLogin.threads` and `gateway.kafka.backendLogin.queueCapacity`, rendered as `kafka.backendLogin.*` in the gateway gravitee.yml"
-      links:
-        - name: Github PR
-          url: https://github.com/gravitee-io/gravitee-api-management/pull/22482
-    - kind: changed
-      description: "The gateway readiness probe includes `kafka-readiness` only when `gateway.kafka.enabled` and `gateway.kafka.readiness.enabled` are true; liveness and startup probes are unchanged"
-      links:
-        - name: Github PR
-          url: https://github.com/gravitee-io/gravitee-api-management/pull/22223
-    - kind: added
-      description: "`gateway.kafka.routingPortMode.secured` serves TLS on the Kafka listener in `port` routing mode (APIM 4.14 and later); `gateway.kafka.secured` is deprecated for it, and `gateway.kafka.probe.secured` is deprecated too (still rendered as `kafka.secured`, with a warning in the release notes)"
-      links:
-        - name: Github PR
-          url: https://github.com/gravitee-io/gravitee-api-management/pull/22250
-    - kind: added
-      description: "`ldap.lookup.activations` restricts where the LDAP user search of the Management API is allowed: a list of organization ids or `organization id:environment id` pairs, empty by default"
-      links:
-        - name: Github PR
-          url: https://github.com/gravitee-io/gravitee-api-management/pull/21733
-    - kind: deprecated
-      description: "The `mongodb` and `elasticsearch` subcharts are deprecated and will be removed in 4.15: they run Bitnami images that no longer receive security updates"
-      links:
-        - name: Github PR
-          url: https://github.com/gravitee-io/gravitee-api-management/pull/20497
-    - kind: fixed
-      description: "The Management API gravitee.yml now always declares the otel-traces and otel-logs repository types, so the Gamma trace explorer answers empty results instead of a 500 when OpenTelemetry tracing is not configured"
-      links:
-        - name: Github PR
-          url: https://github.com/gravitee-io/gravitee-api-management/pull/19977
-    - kind: changed
-      description: "Additional and cluster plugins can be given by name: they are installed from the release manifest of the component image, at the version that image ships with. With federation enabled, the Hazelcast cache and cluster plugins are installed that way instead of from URLs pinned in values.yaml"
-      links:
-        - name: Github PR
-          url: https://github.com/gravitee-io/gravitee-api-management/pull/21756
-    - kind: added
-      description: "Add `gateway.kafka.maxConnections`, `gateway.kafka.maxConnectionsPerGiB` and `gateway.kafka.readiness` to cap the client connections of a gateway instance and report it not ready near the cap"
-    - kind: added
-      description: "Add `gateway.kafka.backendMetadataMaxAge` and `gateway.kafka.mesh.refreshConnectionReuse` to bound the gateway's own all-topics METADATA requests to Kafka backends"
+  artifacthub.io/changes:
