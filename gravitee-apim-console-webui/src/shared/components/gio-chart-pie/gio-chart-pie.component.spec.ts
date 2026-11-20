@@ -22,6 +22,8 @@ import { GioChartPieModule } from './gio-chart-pie.module';
 import { GioChartPieComponent } from './gio-chart-pie.component';
 import { GioChartPieHarness } from './gio-chart-pie.harness';
 
+import { provideHighchartsTesting } from '../../testing';
+
 describe('GioChartPieComponent', () => {
   let fixture: ComponentFixture<GioChartPieComponent>;
   let loader: HarnessLoader;
@@ -29,7 +31,7 @@ describe('GioChartPieComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioChartPieModule],
-      providers: [],
+      providers: [provideHighchartsTesting()],
     });
     fixture = TestBed.createComponent(GioChartPieComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
@@ -39,5 +41,14 @@ describe('GioChartPieComponent', () => {
     const pieChart = await loader.getHarness(GioChartPieHarness);
     expect(await pieChart.hasNoData()).toBeTruthy();
     expect(await pieChart.displaysChart()).toBeFalsy();
+  });
+
+  it('should render chart with the light color scheme, not the one of the browser or OS', async () => {
+    fixture.componentInstance.input = [{ label: '2xx', value: 27567, color: '#30ab61' }];
+    fixture.detectChanges();
+
+    const pieChart = await loader.getHarness(GioChartPieHarness);
+    expect(await pieChart.displaysChart()).toBeTruthy();
+    expect(await pieChart.getChartColorScheme()).toBe('light');
   });
 });

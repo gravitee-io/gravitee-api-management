@@ -70,4 +70,22 @@ describe('HealthAvailabilityTimeFrameComponent', () => {
     expect(await pieChartHarness.hasNoData()).toBeFalsy();
     expect(await pieChartHarness.displaysChart()).toBeTruthy();
   });
+
+  it('should render chart with the light color scheme, not the one of the browser or OS', async () => {
+    fixture.componentInstance.option = {
+      timestamp: {
+        start: 1679900320000,
+        interval: 2000,
+      },
+      data: [100.0, 80.0],
+    };
+
+    fixture.componentInstance.ngOnChanges({
+      option: new SimpleChange(null, fixture.componentInstance.option, false),
+    });
+    fixture.detectChanges();
+
+    expect(await pieChartHarness.displaysChart()).toBeTruthy();
+    expect(await pieChartHarness.getChartColorScheme()).toBe('light');
+  });
 });

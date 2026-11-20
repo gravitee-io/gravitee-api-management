@@ -20,6 +20,7 @@ export class GioChartPieHarness extends ComponentHarness {
 
   protected getPieChart = this.locatorForOptional('.gio-chart-pie__chart');
   protected getNoDataDisplayed = this.locatorForOptional('.gio-chart-pie__no-data');
+  protected getChartContainer = this.locatorForOptional('.highcharts-container');
 
   async hasNoData(): Promise<boolean> {
     return this.getNoDataDisplayed()
@@ -31,5 +32,11 @@ export class GioChartPieHarness extends ComponentHarness {
     return this.getPieChart()
       .then((v) => !!v)
       .catch((_) => false);
+  }
+
+  async getChartColorScheme(): Promise<string | undefined> {
+    const container = await this.getChartContainer();
+    const style = await container?.getProperty<CSSStyleDeclaration>('style');
+    return style?.getPropertyValue('color-scheme');
   }
 }
