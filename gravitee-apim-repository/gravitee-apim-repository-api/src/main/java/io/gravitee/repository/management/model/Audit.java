@@ -50,6 +50,40 @@ public class Audit {
 
     public interface ApiAuditEvent extends AuditEvent {}
 
+    public enum AuthorizationAuditEvent implements AuditEvent {
+        PDP_CREATED,
+        PDP_UPDATED,
+        PDP_DELETED,
+        SCHEMA_CREATED,
+        SCHEMA_UPDATED,
+        SCHEMA_DELETED,
+        ENTITY_CREATED,
+        ENTITY_UPDATED,
+        ENTITY_DELETED,
+        POLICY_CREATED,
+        POLICY_UPDATED,
+        POLICY_DEPLOYED,
+        POLICY_DISABLED,
+        POLICY_DELETED,
+        SCIM_CONNECTION_CREATED,
+        SCIM_CONNECTION_UPDATED,
+        SCIM_CONNECTION_DELETED,
+        SCIM_CONNECTION_TOKEN_ROTATED,
+        SCIM_CONNECTION_CAPABILITIES_REFRESHED,
+        SCIM_SYNC_STARTED,
+        SCIM_SYNC_SUCCEEDED,
+        SCIM_SYNC_FAILED,
+        SCIM_SYNC_TIMED_OUT,
+        SCIM_SYNC_CANCELED,
+        SCIM_SYNC_CANCEL_REQUESTED,
+        SCIM_PURGE_STARTED,
+        SCIM_PURGE_SUCCEEDED,
+        SCIM_PURGE_FAILED,
+        SCIM_PURGE_TIMED_OUT,
+        SCIM_PURGE_CANCELED,
+        SCIM_PURGE_CANCEL_REQUESTED,
+    }
+
     public enum AuditProperties {
         PLAN,
         PAGE,
