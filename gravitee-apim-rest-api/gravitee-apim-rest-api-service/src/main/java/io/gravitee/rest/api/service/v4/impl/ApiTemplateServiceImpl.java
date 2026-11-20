@@ -15,9 +15,12 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.rest.api.service.v4.mapper.ApiMetadataDecodeContextMapper.toApiMetadataDecodeContext;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService.ApiMetadataDecodeContext;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.ApiModel;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -101,7 +104,7 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
                 apiModelEntity.setLifecycleState(genericApiEntity.getLifecycleState());
                 apiModelEntity.setDisableMembershipNotifications(genericApiEntity.isDisableMembershipNotifications());
 
-                apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, apiModelEntity));
+                apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, genericApiEntity));
                 yield apiModelEntity;
             }
             case V4 -> {
@@ -130,7 +133,7 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
                     apiModelEntity.setListeners(apiEntity.getListeners());
                     apiModelEntity.setEndpointGroups(apiEntity.getEndpointGroups());
 
-                    apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, apiModelEntity));
+                    apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, genericApiEntity));
                     yield apiModelEntity;
                 } else {
                     io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity = (io.gravitee.rest.api.model.v4.api.ApiEntity) genericApiEntity;
@@ -161,7 +164,7 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
                     apiModelEntity.setEntrypoints(computeApiEntrypoints(executionContext, apiEntity));
                     apiModelEntity.setMcp(computeMcp(apiEntity));
 
-                    apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, apiModelEntity));
+                    apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, genericApiEntity));
                     yield apiModelEntity;
                 }
             }
@@ -192,7 +195,7 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
                 apiModelEntity.setExecutionMode(apiEntity.getExecutionMode());
                 apiModelEntity.setProxy(apiEntity.getProxy());
 
-                apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, apiModelEntity));
+                apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, genericApiEntity));
                 yield apiModelEntity;
             }
         };
@@ -202,7 +205,7 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
         final ExecutionContext executionContext,
         final String apiId,
         final boolean decodeTemplate,
-        final GenericApiModel genericApiModel
+        final GenericApiEntity genericApiEntity
     ) {
         final List<ApiMetadataEntity> metadataList = apiMetadataService.findAllByApi(executionContext, apiId);
 
@@ -216,7 +219,9 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
         );
 
         try {
-            return decodeTemplate ? decodeMetadata(executionContext, genericApiModel, mapMetadata) : mapMetadata;
+            return decodeTemplate
+                ? decodeMetadata(executionContext, toApiMetadataDecodeContext(genericApiEntity), mapMetadata)
+                : mapMetadata;
         } catch (Exception ex) {
             throw new TechnicalManagementException("An error occurs while evaluating API metadata", ex);
         }
@@ -224,15 +229,15 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
 
     private Map<String, String> decodeMetadata(
         ExecutionContext executionContext,
-        GenericApiModel genericApiModel,
+        ApiMetadataDecodeContext apiTemplateData,
         Map<String, String> metadata
     ) {
         try {
             String decodedValue = this.notificationTemplateService.resolveInlineTemplateWithParam(
                 executionContext.getOrganizationId(),
-                genericApiModel.getId(),
+                apiTemplateData.getId(),
                 new StringReader(metadata.toString()),
-                Collections.singletonMap("api", genericApiModel)
+                Collections.singletonMap("api", apiTemplateData)
             );
 
             Map<String, String> decodedMetadata = Arrays.stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
@@ -243,7 +248,7 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
             if (supportEmail.isBlank()) {
                 decodedMetadata.put(
                     MetadataService.METADATA_EMAIL_SUPPORT_KEY,
-                    primaryOwnerService.getPrimaryOwnerEmail(executionContext.getOrganizationId(), genericApiModel.getId())
+                    primaryOwnerService.getPrimaryOwnerEmail(executionContext.getOrganizationId(), apiTemplateData.getId())
                 );
             }
 
