@@ -94,16 +94,6 @@ class BulkDropperTest {
         assertThat(dropped).containsExactly("REJECTED request 2");
     }
 
-    @Test
-    void should_fall_back_to_the_counted_types_when_a_compressed_bulk_keeps_no_reports() {
-        final List<String> dropped = new ArrayList<>();
-        final BulkDropper dropper = new BulkDropper((reason, type, count) -> dropped.add(reason + " " + type + " " + count));
-
-        dropper.drop(new CompressedBulk(Buffer.buffer(), Map.of("metrics", 3)), BulkDropper.Reason.ERROR);
-
-        assertThat(dropped).containsExactly("ERROR metrics 3");
-    }
-
     private String lastWarning() {
         return logs.list
             .stream()

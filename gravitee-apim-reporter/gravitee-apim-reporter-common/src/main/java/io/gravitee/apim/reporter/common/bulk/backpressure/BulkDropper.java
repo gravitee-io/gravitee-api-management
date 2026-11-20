@@ -47,11 +47,7 @@ public class BulkDropper {
 
     public void drop(CompressedBulk bulk, Reason reason) {
         count(bulk.countPerType());
-        if (bulk.reports().isEmpty()) {
-            bulk.countPerType().forEach((type, count) -> listener.dropped(reason, type, count));
-        } else {
-            reportDropped(reason, bulk.reports());
-        }
+        reportDropped(reason, bulk.reports());
 
         if (reason == Reason.OVERFLOW) {
             log.warn(

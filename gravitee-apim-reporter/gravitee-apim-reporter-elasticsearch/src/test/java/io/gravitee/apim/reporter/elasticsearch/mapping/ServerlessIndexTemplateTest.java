@@ -92,7 +92,7 @@ class ServerlessIndexTemplateTest {
 
         JsonNode template = parse(preparer.generateIndexTemplate(type));
 
-        assertThat(template.at("/template/lifecycle/data_retention").asText()).isEqualTo(retention.of(type));
+        assertThat(template.at("/template/lifecycle/data_retention").asText()).isEqualTo(retention.retentionOf(type));
         assertThat(template.at("/template/mappings").isObject()).isTrue();
     }
 

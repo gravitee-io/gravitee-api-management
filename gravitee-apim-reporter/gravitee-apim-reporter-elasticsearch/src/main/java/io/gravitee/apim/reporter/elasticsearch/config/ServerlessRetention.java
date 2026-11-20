@@ -117,7 +117,7 @@ public final class ServerlessRetention {
         }
     }
 
-    public String of(Type type) {
+    public String retentionOf(Type type) {
         return retentions.get(LifecycleGroup.of(type));
     }
 
