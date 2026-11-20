@@ -38,11 +38,6 @@ class GraviteeSecretManagerConfigurationTest {
     }
 
     @Test
-    void should_read_the_environment_it_serves() {
-        assertThat(new GraviteeSecretManagerConfiguration(Map.of("environment", "prod-env")).environment()).isEqualTo("prod-env");
-    }
-
-    @Test
     void should_have_no_key_encryption_key_when_none_is_configured() {
         assertThat(new GraviteeSecretManagerConfiguration(Map.of()).encryptionKey()).isNull();
     }

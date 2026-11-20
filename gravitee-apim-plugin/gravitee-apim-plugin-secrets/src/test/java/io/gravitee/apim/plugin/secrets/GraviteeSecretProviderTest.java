@@ -57,7 +57,8 @@ class GraviteeSecretProviderTest {
 
     private static final String ORG = "org-1";
     private static final String ENV = "env-1";
-    private static final SecretURL LLM_KEY = SecretURL.from("/gravitee/" + ENV + "/llm-key:value", true);
+    private static final String KEY = "llm-key";
+    private static final SecretURL LLM_KEY = SecretURL.from("/gravitee/" + KEY + ":value?envId=" + ENV, true);
 
     private final String base64Kek = randomKek();
     private final StaticKeyEncryptionKeyProvider kek = StaticKeyEncryptionKeyProvider.fromBase64(base64Kek);
@@ -95,7 +96,7 @@ class GraviteeSecretProviderTest {
 
         @Test
         void should_resolve_the_decrypted_value_of_a_secret_of_the_environment() throws TechnicalException {
-            givenSecret(ENV, "llm-key", "sk-live-123");
+            givenSecret(ENV, KEY, "sk-live-123");
 
             var secrets = started().resolve(LLM_KEY).blockingGet();
 
@@ -103,8 +104,8 @@ class GraviteeSecretProviderTest {
         }
 
         @Test
-        void should_resolve_nothing_when_the_environment_has_no_secret_with_that_key() throws TechnicalException {
-            when(secretRepository.findByKey(ORG, ENV, "llm-key")).thenReturn(Optional.empty());
+        void should_resolve_nothing_when_the_environment_has_no_secret_with_that_id() throws TechnicalException {
+            when(secretRepository.findByKey(ORG, ENV, KEY)).thenReturn(Optional.empty());
 
             started().resolve(LLM_KEY).test().assertComplete().assertNoValues();
         }
@@ -112,55 +113,43 @@ class GraviteeSecretProviderTest {
         @Test
         void should_resolve_nothing_for_an_environment_that_does_not_exist() throws TechnicalException {
             when(environmentRepository.findById("unknown")).thenReturn(Optional.empty());
-            var provider = new GraviteeSecretProvider(
-                base64Kek,
-                "unknown",
-                secretRepository,
-                organizationKeyRepository,
-                environmentRepository
-            );
 
-            provider.start().resolve(SecretURL.from("/gravitee/unknown/llm-key:value", true)).test().assertComplete().assertNoValues();
+            started().resolve(SecretURL.from("/gravitee/llm-key:value?envId=unknown", true)).test().assertComplete().assertNoValues();
         }
 
         @Test
-        void should_refuse_a_reference_to_another_environment_without_reading_the_repository() {
-            started()
-                .resolve(SecretURL.from("/gravitee/env-2/llm-key:value", true))
-                .test()
-                .assertError(
-                    err ->
-                        err instanceof SecretManagerException &&
-                        err.getMessage().contains("[env-2]") &&
-                        err.getMessage().contains("[" + ENV + "]")
-                );
-
-            verifyNoInteractions(secretRepository, environmentRepository);
-        }
-
-        @Test
-        void should_fail_when_the_reference_does_not_name_an_environment() {
+        void should_refuse_a_reference_that_names_no_environment_without_reading_the_repository() {
             started()
                 .resolve(SecretURL.from("/gravitee/llm-key:value", true))
                 .test()
-                .assertError(err -> err instanceof SecretManagerException && err.getMessage().contains("/gravitee/{envId}/{key}"));
+                .assertError(err -> err instanceof SecretManagerException && err.getMessage().contains("?envId={envId}"));
 
             verifyNoInteractions(secretRepository, environmentRepository);
         }
 
         @Test
-        void should_read_the_secret_only_in_the_environment_of_the_reference() throws TechnicalException {
-            when(secretRepository.findByKey(ORG, ENV, "llm-key")).thenReturn(Optional.empty());
+        void should_refuse_a_reference_whose_path_is_not_a_secret_id() {
+            started()
+                .resolve(SecretURL.from("/gravitee/env-1/llm-key:value?envId=env-1", true))
+                .test()
+                .assertError(err -> err instanceof SecretManagerException && err.getMessage().contains("/gravitee/{key}:value"));
+
+            verifyNoInteractions(secretRepository, environmentRepository);
+        }
+
+        @Test
+        void should_read_the_secret_only_in_the_environment_the_reference_names() throws TechnicalException {
+            when(secretRepository.findByKey(ORG, ENV, KEY)).thenReturn(Optional.empty());
 
             started().resolve(LLM_KEY).test().assertNoValues();
 
-            verify(secretRepository).findByKey(ORG, ENV, "llm-key");
+            verify(secretRepository).findByKey(ORG, ENV, KEY);
             verifyNoMoreInteractions(secretRepository);
         }
 
         @Test
         void should_look_up_the_organization_of_an_environment_once() throws TechnicalException {
-            givenSecret(ENV, "llm-key", "sk-live-123");
+            givenSecret(ENV, KEY, "sk-live-123");
             var provider = started();
 
             provider.resolve(LLM_KEY).blockingGet();
@@ -178,7 +167,7 @@ class GraviteeSecretProviderTest {
 
         @Test
         void should_fail_without_the_value_when_the_secret_cannot_be_decrypted() throws TechnicalException {
-            when(secretRepository.findByKey(ORG, ENV, "llm-key")).thenReturn(
+            when(secretRepository.findByKey(ORG, ENV, KEY)).thenReturn(
                 Optional.of(
                     Secret.builder().id("s-1").organizationId(ORG).environmentId(ENV).key("llm-key").encryptedValue("v1:x:AAAA").build()
                 )
@@ -192,7 +181,7 @@ class GraviteeSecretProviderTest {
 
         @Test
         void should_fail_when_the_organization_has_no_data_key() throws TechnicalException {
-            givenSecret(ENV, "llm-key", "sk-live-123");
+            givenSecret(ENV, KEY, "sk-live-123");
             when(organizationKeyRepository.findByOrganizationId(ORG)).thenReturn(Optional.empty());
 
             started()
@@ -203,7 +192,7 @@ class GraviteeSecretProviderTest {
 
         @Test
         void should_fail_when_the_data_key_of_the_organization_cannot_be_read() throws TechnicalException {
-            givenSecret(ENV, "llm-key", "sk-live-123");
+            givenSecret(ENV, KEY, "sk-live-123");
             when(organizationKeyRepository.findByOrganizationId(ORG)).thenThrow(new TechnicalException("down"));
 
             started().resolve(LLM_KEY).test().assertError(SecretManagerException.class);
@@ -211,7 +200,7 @@ class GraviteeSecretProviderTest {
 
         @Test
         void should_fail_when_another_key_encryption_key_wrapped_the_data_key_of_the_organization() throws TechnicalException {
-            givenSecret(ENV, "llm-key", "sk-live-123");
+            givenSecret(ENV, KEY, "sk-live-123");
             var otherKek = StaticKeyEncryptionKeyProvider.fromBase64(randomKek());
             when(organizationKeyRepository.findByOrganizationId(ORG)).thenReturn(
                 Optional.of(
@@ -292,26 +281,16 @@ class GraviteeSecretProviderTest {
 
         @Test
         void should_refuse_every_secret_when_the_management_repository_has_no_environments() {
-            var provider = new GraviteeSecretProvider(base64Kek, ENV, secretRepository, organizationKeyRepository, null).start();
+            var provider = new GraviteeSecretProvider(base64Kek, secretRepository, organizationKeyRepository, null).start();
 
             assertRefusesEverySecret(provider, "does not store secrets");
         }
 
         @Test
         void should_refuse_every_secret_when_the_management_repository_does_not_store_secrets() {
-            var provider = new GraviteeSecretProvider(base64Kek, ENV, null, null, environmentRepository).start();
+            var provider = new GraviteeSecretProvider(base64Kek, null, null, environmentRepository).start();
 
             assertRefusesEverySecret(provider, "does not store secrets");
-        }
-
-        @Test
-        void should_refuse_every_secret_when_its_provider_entry_is_misconfigured() {
-            var provider = GraviteeSecretProvider.refusing(
-                "Secret provider entry api.secrets.providers[1] must list exactly one environment id"
-            ).start();
-
-            assertRefusesEverySecret(provider, "api.secrets.providers[1]");
-            verifyNoInteractions(secretRepository, organizationKeyRepository, environmentRepository);
         }
 
         private void assertRefusesEverySecret(SecretProvider provider, String reason) {
@@ -369,7 +348,7 @@ class GraviteeSecretProviderTest {
     }
 
     private GraviteeSecretProvider provider(String base64Kek) {
-        return new GraviteeSecretProvider(base64Kek, ENV, secretRepository, organizationKeyRepository, environmentRepository);
+        return new GraviteeSecretProvider(base64Kek, secretRepository, organizationKeyRepository, environmentRepository);
     }
 
     private static String randomKek() {

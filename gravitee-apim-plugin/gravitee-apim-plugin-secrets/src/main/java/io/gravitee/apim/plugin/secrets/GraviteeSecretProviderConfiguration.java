@@ -44,12 +44,8 @@ public class GraviteeSecretProviderConfiguration {
     ) {
         pluginManager.register(new GraviteeSecretProviderPlugin());
         GraviteeSecretProviderFactory factory = pluginManager.getFactoryById(GraviteeSecretProvider.ID);
-        factory.connect(
-            secretRepository,
-            organizationKeyRepository,
-            environmentRepository,
-            () -> environment.getProperty(StaticKeyEncryptionKeyProvider.KEY_PROPERTY),
-            GraviteeSecretProviderEntries.misconfiguration(environment)
+        factory.connect(secretRepository, organizationKeyRepository, environmentRepository, () ->
+            environment.getProperty(StaticKeyEncryptionKeyProvider.KEY_PROPERTY)
         );
         log.info("Gravitee secret provider [{}]: REGISTERED", GraviteeSecretProvider.ID);
         return factory;

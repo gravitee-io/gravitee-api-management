@@ -1069,20 +1069,15 @@ api:
 #    encryption:
 #      key: <base64 of 32 random bytes>
 #    providers:
-#      # gravitee provider: reads the secrets stored through the Management API, as /gravitee/{envId}/{key}.
-#      # Add one entry per environment, listing its environment id (not its name) in both environments and
-#      # configuration.environment: the provider then refuses a reference to any other environment. An entry with no
-#      # environments, several, or a configuration.environment that differs makes it refuse every secret.
-#      # Keep the id gravitee. Set environments in this file: the secrets service ignores it when set by environment variable.
+#      # gravitee provider: reads the secrets stored through the Management API, as /gravitee/{key}:value?envId={envId}.
+#      # The secrets service refuses a reference whose envId is not the environment of the API, and the provider reads
+#      # the secret of that environment only. Keep the id gravitee.
 #      # Any gateway holding the KEK can decrypt the secrets of every environment, so give it only to gateways that
 #      # serve environments allowed to read them.
 #      - id: gravitee
 #        plugin: gravitee
-#        environments:
-#          - <environment id>
 #        configuration:
 #          enabled: true
-#          environment: <environment id>
 #          # encryption:
 #          #   key: <base64 of 32 random bytes>   # defaults to api.secrets.encryption.key
 #      # exists on all environments
