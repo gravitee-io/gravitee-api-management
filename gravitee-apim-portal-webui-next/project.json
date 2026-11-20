@@ -28,7 +28,7 @@
             "output": "assets/"
           },
           {
-            "glob": "oauth2-redirect.html",
+            "glob": "oauth2-redirect.*",
             "input": "node_modules/swagger-ui/dist",
             "output": "/"
           },
