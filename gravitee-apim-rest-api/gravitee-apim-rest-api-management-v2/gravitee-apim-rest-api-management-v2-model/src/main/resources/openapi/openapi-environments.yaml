@@ -1125,7 +1125,7 @@ paths:
       summary: Create a portal
       description: |-
         User must have the ENVIRONMENT_DOCUMENTATION[create] permission.
-        Creates a portal in the environment, served at the base URL sent or at a generated URL when none is sent.
+        Creates a portal in the environment, served at the URL sent or at a generated URL when none is sent.
         A new portal is never the default portal.
       operationId: createPortal
       requestBody:
@@ -1134,25 +1134,27 @@ paths:
             schema:
               $ref: "#/components/schemas/CreatePortal"
             examples:
-              withoutBaseUrl:
+              withoutUrl:
                 summary: A portal whose URL is generated
                 value:
                   name: Partners Portal
-              withBaseUrl:
-                summary: A portal served at a given base URL
+              withUrl:
+                summary: A portal served at a given URL
                 value:
                   name: Partners Portal
-                  baseUrl: https://partners.example.com
+                  url: https://partners.example.com
         required: true
       responses:
         "201":
-          description: The created portal, with the base URL sent, or a generated URL when none was sent
+          description: The created portal, with the URL sent, or a generated URL when none was sent
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Portal"
         "400":
-          description: Invalid payload, an empty name, or a base URL that is not an absolute `http` or `https` URL
+          description: |-
+            Invalid payload, an empty name, or a refused URL: one that is not an absolute `http` or `https` URL, or
+            that has a username or password, a query string or a fragment
           content:
             application/json:
               schema:
@@ -1173,15 +1175,26 @@ paths:
                 parameters:
                   limit: "10"
         "409":
-          description: Another portal of the environment already has this name. `technicalCode` is `portal.name.exists`.
+          description: |-
+            Another portal of the environment already has this name, `technicalCode` `portal.name.exists`, or this
+            URL, `technicalCode` `portal.url.exists`.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-              example:
-                httpStatus: 409
-                message: "A portal named Partners already exists in this environment"
-                technicalCode: "portal.name.exists"
+              examples:
+                nameExists:
+                  summary: The name is already used
+                  value:
+                    httpStatus: 409
+                    message: "A portal named Partners already exists in this environment"
+                    technicalCode: "portal.name.exists"
+                urlExists:
+                  summary: The URL is already used
+                  value:
+                    httpStatus: 409
+                    message: "A portal of this environment is already served at https://partners.example.com"
+                    technicalCode: "portal.url.exists"
         default:
           $ref: "#/components/responses/Error"
 
@@ -4206,12 +4219,14 @@ components:
           minLength: 1
           description: The name of the portal, unique in the environment
           example: Partners Portal
-        baseUrl:
+        url:
           type: string
-          pattern: '^https?://\S+$'
           description: |-
-            The absolute `http` or `https` URL the portal is served at. When left out, a URL is generated. It cannot
-            be changed after creation.
+            The absolute `http` or `https` URL the portal is served at, unique in the environment. When left out, a
+            URL is generated. It cannot be changed yet.
+
+            Refused: a scheme other than `http` or `https` (in any case), a relative URL, a username or password, a
+            query string, or a fragment.
           example: https://partners.example.com
       required: [ name ]
     UpdatePortal:
