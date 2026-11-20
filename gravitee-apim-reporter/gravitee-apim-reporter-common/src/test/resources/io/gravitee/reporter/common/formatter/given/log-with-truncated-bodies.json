@@ -1,0 +1,54 @@
+{
+  "timestamp": 1692357451748,
+  "api": "ff3c6c48-53e0-41d6-bc6c-4853e011d656",
+  "apiName": "API Name",
+  "requestId": "a01b8b77-ccd6-4dd7-9b8b-77ccd6fdd7e2",
+  "clientRequest": {
+    "method": "GET",
+    "headers": {
+      "Accept": ["*/*"],
+      "Host": ["localhost:8082"],
+      "User-Agent": ["curl/7.88.1"],
+      "X-Gravitee-Request-Id": ["a01b8b77-ccd6-4dd7-9b8b-77ccd6fdd7e2"],
+      "X-Gravitee-Transaction-Id": ["a01b8b77-ccd6-4dd7-9b8b-77ccd6fdd7e2"]
+    },
+    "uri": "/test",
+    "body": "{\"hel",
+    "bodyTruncated": true
+  },
+  "proxyRequest": {
+    "method": "GET",
+    "headers": {
+      "Accept": ["*/*"],
+      "User-Agent": ["curl/7.88.1"],
+      "Host": ["api.gravitee.io"],
+      "X-Gravitee-Transaction-Id": ["a01b8b77-ccd6-4dd7-9b8b-77ccd6fdd7e2"],
+      "X-Gravitee-Request-Id": ["a01b8b77-ccd6-4dd7-9b8b-77ccd6fdd7e2"]
+    },
+    "uri": "https://api.gravitee.io/echo",
+    "body": "{\"hello\":\"world\"}"
+  },
+  "clientResponse": {
+    "status": 200,
+    "headers": {
+      "Sozu-Id": ["01H845TR2G8XRS2E0AMCH3B31C"],
+      "Content-Length": ["275"],
+      "Content-Type": ["application/json"],
+      "X-Gravitee-Transaction-Id": ["a01b8b77-ccd6-4dd7-9b8b-77ccd6fdd7e2"],
+      "X-Gravitee-Request-Id": ["a01b8b77-ccd6-4dd7-9b8b-77ccd6fdd7e2"]
+    },
+    "body": "{\"hello\":\"world\"}"
+  },
+  "proxyResponse": {
+    "status": 200,
+    "headers": {
+      "Sozu-Id": ["01H845TR2G8XRS2E0AMCH3B31C"],
+      "Content-Length": ["275"],
+      "Content-Type": ["application/json"],
+      "X-Gravitee-Transaction-Id": ["a01b8b77-ccd6-4dd7-9b8b-77ccd6fdd7e2"],
+      "X-Gravitee-Request-Id": ["44dce1dd-b94b-4e30-9ce1-ddb94b0e3036"]
+    },
+    "body": "{\"hel",
+    "bodyTruncated": true
+  }
+}
