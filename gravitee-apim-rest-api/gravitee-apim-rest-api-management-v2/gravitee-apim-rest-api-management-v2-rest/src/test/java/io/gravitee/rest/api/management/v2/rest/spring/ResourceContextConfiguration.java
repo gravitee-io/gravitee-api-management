@@ -1581,12 +1581,14 @@ public class ResourceContextConfiguration {
     public UnpublishApiFromPortalUseCase unpublishApiFromPortalUseCase(
         ApiOwnedNavigationDomainService apiOwnedNavigationDomainService,
         PortalNavigationItemValidatorService portalNavigationItemValidatorService,
-        PortalNavigationItemDomainService portalNavigationItemDomainService
+        PortalNavigationItemDomainService portalNavigationItemDomainService,
+        NavigationPortalDomainService navigationPortalDomainService
     ) {
         return new UnpublishApiFromPortalUseCase(
             apiOwnedNavigationDomainService,
             portalNavigationItemValidatorService,
-            portalNavigationItemDomainService
+            portalNavigationItemDomainService,
+            navigationPortalDomainService
         );
     }
 
@@ -1594,18 +1596,23 @@ public class ResourceContextConfiguration {
     public PublishApiToPortalUseCase publishApiToPortalUseCase(
         ApiOwnedNavigationDomainService apiOwnedNavigationDomainService,
         PortalNavigationItemValidatorService portalNavigationItemValidatorService,
-        PortalNavigationItemDomainService portalNavigationItemDomainService
+        PortalNavigationItemDomainService portalNavigationItemDomainService,
+        NavigationPortalDomainService navigationPortalDomainService
     ) {
         return new PublishApiToPortalUseCase(
             apiOwnedNavigationDomainService,
             portalNavigationItemValidatorService,
-            portalNavigationItemDomainService
+            portalNavigationItemDomainService,
+            navigationPortalDomainService
         );
     }
 
     @Bean
-    public ListApiPublishLocationsUseCase listApiPublishLocationsUseCase(ApiOwnedNavigationDomainService apiOwnedNavigationDomainService) {
-        return new ListApiPublishLocationsUseCase(apiOwnedNavigationDomainService);
+    public ListApiPublishLocationsUseCase listApiPublishLocationsUseCase(
+        ApiOwnedNavigationDomainService apiOwnedNavigationDomainService,
+        NavigationPortalDomainService navigationPortalDomainService
+    ) {
+        return new ListApiPublishLocationsUseCase(apiOwnedNavigationDomainService, navigationPortalDomainService);
     }
 
     @Bean

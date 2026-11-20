@@ -16,25 +16,29 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
+import jakarta.annotation.Nullable;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Lists an API in the portal and publishes its documentation with it. The documentation is not moved:
- * it stays stored against the API and is shown under the navigation entry when the tree is read.
+ * Lists an API in one portal and publishes its documentation with it. The documentation is not moved:
+ * it stays stored against the API and is shown under the navigation entry of every portal listing the API.
  */
 @UseCase
 @RequiredArgsConstructor
@@ -43,27 +47,30 @@ public class PublishApiToPortalUseCase {
     private final ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
     private final PortalNavigationItemValidatorService validatorService;
     private final PortalNavigationItemDomainService domainService;
+    private final NavigationPortalDomainService navigationPortalDomainService;
 
     public Output execute(Input input) {
         if (input.sectionId() == null) {
             throw InvalidPortalNavigationItemDataException.fieldIsEmpty("sectionId");
         }
-        var listings = apiOwnedNavigationDomainService.findStandaloneListings(input.environmentId(), input.apiId());
+        var portal = navigationPortalDomainService.resolveReference(input.organizationId(), input.environmentId(), input.portalId());
+        var listings = apiOwnedNavigationDomainService.findStandaloneListings(input.environmentId(), input.apiId(), portal);
         if (listings.stream().anyMatch(listing -> Boolean.TRUE.equals(listing.getPublished()))) {
             throw InvalidPortalNavigationItemDataException.apiIdAlreadyExists(input.apiId());
         }
-        var section = apiOwnedNavigationDomainService.requirePublishLocation(input.environmentId(), input.sectionId());
+        var section = apiOwnedNavigationDomainService.requirePublishLocation(input.environmentId(), portal, input.sectionId());
 
         // A hidden listing, typically one the portal editor added, means the API is not published: it is reused
-        var listing = listings.isEmpty() ? createListing(input, section) : showListing(input, listings.getFirst(), section);
+        var listing = listings.isEmpty() ? createListing(input, portal, section) : showListing(input, listings.getFirst(), section);
 
         return new Output(listing, section);
     }
 
-    private PortalNavigationApi createListing(Input input, PortalNavigationFolder section) {
+    private PortalNavigationApi createListing(Input input, NavigationItemReference.PortalReference portal, PortalNavigationFolder section) {
         var listingToCreate = CreatePortalNavigationItem.builder()
             .id(PortalNavigationItemId.random())
             .type(PortalNavigationItemType.API)
+            .reference(portal)
             .apiId(input.apiId())
             .area(PortalArea.TOP_NAVBAR)
             .parentId(section.getId())
@@ -107,7 +114,14 @@ public class PublishApiToPortalUseCase {
         apiOwnedNavigationDomainService.setPublished(input.environmentId(), input.apiId(), true);
     }
 
-    public record Input(String organizationId, String environmentId, String apiId, PortalNavigationItemId sectionId) {}
+    /** @param portalId the portal to publish in; the environment's default portal when null */
+    public record Input(
+        String organizationId,
+        String environmentId,
+        String apiId,
+        PortalNavigationItemId sectionId,
+        @Nullable PortalId portalId
+    ) {}
 
     public record Output(PortalNavigationApi listing, PortalNavigationFolder section) {}
 }

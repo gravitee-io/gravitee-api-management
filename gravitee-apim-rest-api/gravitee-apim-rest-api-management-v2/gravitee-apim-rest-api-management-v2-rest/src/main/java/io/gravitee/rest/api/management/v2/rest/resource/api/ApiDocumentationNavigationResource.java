@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -28,6 +29,7 @@ import io.gravitee.apim.core.portal_page.use_case.ListApiPublishLocationsUseCase
 import io.gravitee.apim.core.portal_page.use_case.PublishApiToPortalUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UnpublishApiFromPortalUseCase;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.v2.rest.mapper.PortalMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiPortalNavigationItemsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiPortalPublication;
@@ -50,6 +52,7 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
@@ -103,10 +106,13 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
-    public ApiPortalPublishLocationsResponse getApiPortalPublishLocations(@PathParam("apiId") String apiId) {
+    public ApiPortalPublishLocationsResponse getApiPortalPublishLocations(
+        @PathParam("apiId") String apiId,
+        @QueryParam("portalId") String portalId
+    ) {
         requireApi(apiId);
         var output = listApiPublishLocationsUseCase.execute(
-            new ListApiPublishLocationsUseCase.Input(GraviteeContext.getCurrentEnvironment())
+            new ListApiPublishLocationsUseCase.Input(GraviteeContext.getCurrentEnvironment(), toPortalId(portalId))
         );
         return mapper.map(output);
     }
@@ -146,6 +152,7 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
     public ApiPortalPublication publishApiToPortal(
         @PathParam("apiId") String apiId,
+        @QueryParam("portalId") String portalId,
         @Valid @NotNull final PublishApiToPortal publishApiToPortal
     ) {
         requireApi(apiId);
@@ -155,7 +162,8 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
                 apiId,
-                PortalNavigationItemId.of(publishApiToPortal.getSectionId().toString())
+                PortalNavigationItemId.of(publishApiToPortal.getSectionId().toString()),
+                toPortalId(portalId)
             )
         );
         return mapper.mapPublication(new ListApiDocumentationUseCase.Publication(output.listing(), output.section()));
@@ -164,9 +172,11 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
     @Path("_unpublish")
     @POST
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
-    public Response unpublishApiFromPortal(@PathParam("apiId") String apiId) {
+    public Response unpublishApiFromPortal(@PathParam("apiId") String apiId, @QueryParam("portalId") String portalId) {
         requireApi(apiId);
-        unpublishApiFromPortalUseCase.execute(new UnpublishApiFromPortalUseCase.Input(GraviteeContext.getCurrentEnvironment(), apiId));
+        unpublishApiFromPortalUseCase.execute(
+            new UnpublishApiFromPortalUseCase.Input(GraviteeContext.getCurrentEnvironment(), apiId, toPortalId(portalId))
+        );
         return Response.noContent().build();
     }
 
@@ -220,6 +230,10 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
             .findById(apiId)
             .filter(api -> api.belongsToEnvironment(GraviteeContext.getCurrentEnvironment()))
             .orElseThrow(() -> new ApiNotFoundException(apiId));
+    }
+
+    private static PortalId toPortalId(String portalId) {
+        return portalId == null ? null : PortalMapper.INSTANCE.toPortalId(portalId);
     }
 
     @Path("{navId}")

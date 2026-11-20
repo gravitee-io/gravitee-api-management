@@ -388,7 +388,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
     void should_offer_the_apis_section_as_a_publish_location() {
         useCase.execute(ORG_ID, ENV_ID);
 
-        assertThat(new ApiOwnedNavigationDomainService(queryService, crudService).findPublishLocations(ENV_ID))
+        assertThat(new ApiOwnedNavigationDomainService(queryService, crudService).findPublishLocations(ENV_ID, consolePortal()))
             .extracting(PortalNavigationItem::getTitle)
             .contains("APIs");
     }
@@ -480,7 +480,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
     }
 
     /** The portal a console write stores an item on, created by the first such write. */
-    private NavigationItemReference consolePortal() {
+    private NavigationItemReference.PortalReference consolePortal() {
         return new NavigationItemReference.PortalReference(navigationPortals.defaultPortalIdOf(ENV_ID));
     }
 }
