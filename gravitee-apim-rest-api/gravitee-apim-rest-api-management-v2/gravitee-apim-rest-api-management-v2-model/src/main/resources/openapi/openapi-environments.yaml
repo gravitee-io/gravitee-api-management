@@ -1125,23 +1125,34 @@ paths:
       summary: Create a portal
       description: |-
         User must have the ENVIRONMENT_DOCUMENTATION[create] permission.
-        Creates a portal in the environment. A new portal is never the default portal.
+        Creates a portal in the environment, served at the base URL sent or at a generated URL when none is sent.
+        A new portal is never the default portal.
       operationId: createPortal
       requestBody:
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/CreatePortal"
+            examples:
+              withoutBaseUrl:
+                summary: A portal whose URL is generated
+                value:
+                  name: Partners Portal
+              withBaseUrl:
+                summary: A portal served at a given base URL
+                value:
+                  name: Partners Portal
+                  baseUrl: https://partners.example.com
         required: true
       responses:
         "201":
-          description: The created portal, with its generated URL
+          description: The created portal, with the base URL sent, or a generated URL when none was sent
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Portal"
         "400":
-          description: Invalid payload, or an empty name
+          description: Invalid payload, an empty name, or a base URL that is not an absolute `http` or `https` URL
           content:
             application/json:
               schema:
@@ -4195,6 +4206,13 @@ components:
           minLength: 1
           description: The name of the portal, unique in the environment
           example: Partners Portal
+        baseUrl:
+          type: string
+          pattern: '^https?://\S+$'
+          description: |-
+            The absolute `http` or `https` URL the portal is served at. When left out, a URL is generated. It cannot
+            be changed after creation.
+          example: https://partners.example.com
       required: [ name ]
     UpdatePortal:
       type: object
