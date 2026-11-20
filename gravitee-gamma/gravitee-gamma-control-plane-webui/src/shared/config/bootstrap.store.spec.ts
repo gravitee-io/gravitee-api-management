@@ -156,6 +156,56 @@ describe('bootstrapStore', () => {
         expect(useBootstrapStore.getState().loginMethodsFetchedAt).toBeNull();
     });
 
+    it('should store the management title from console settings', async () => {
+        respondWith('get', `${TEST_MANAGEMENT_BASE}/console`, { management: { title: 'ACME' } });
+
+        await useBootstrapStore.getState().initialize();
+
+        expect(useBootstrapStore.getState().config?.managementTitle).toBe('ACME');
+    });
+
+    it.each([
+        ['no title', { reCaptcha: { enabled: false } }],
+        ['a null body', null],
+        ['a non-string title', { management: { title: 12 } }],
+    ])('should leave the management title unset when console settings have %s', async (_label, body) => {
+        respondWith('get', `${TEST_MANAGEMENT_BASE}/console`, body);
+
+        await useBootstrapStore.getState().initialize();
+
+        expect(useBootstrapStore.getState().config?.managementTitle).toBeUndefined();
+    });
+
+    it('should leave the management title unset when the console fetch fails', async () => {
+        respondWithError('get', `${TEST_MANAGEMENT_BASE}/console`, 500);
+
+        await useBootstrapStore.getState().initialize();
+
+        expect(useBootstrapStore.getState().config?.managementTitle).toBeUndefined();
+    });
+
+    it('should update the management title when a refresh returns a new one', async () => {
+        respondWith('get', `${TEST_MANAGEMENT_BASE}/console`, { management: { title: 'ACME' } });
+        await useBootstrapStore.getState().initialize();
+        useBootstrapStore.setState({ loginMethodsFetchedAt: 0 });
+        respondWith('get', `${TEST_MANAGEMENT_BASE}/console`, { management: { title: 'Renamed' } });
+
+        await useBootstrapStore.getState().refreshLoginMethods();
+
+        expect(useBootstrapStore.getState().config?.managementTitle).toBe('Renamed');
+    });
+
+    it('should keep the previous management title when a refresh fails', async () => {
+        respondWith('get', `${TEST_MANAGEMENT_BASE}/console`, { management: { title: 'ACME' } });
+        await useBootstrapStore.getState().initialize();
+        useBootstrapStore.setState({ loginMethodsFetchedAt: 0 });
+        respondWithError('get', `${TEST_MANAGEMENT_BASE}/console`, 500);
+
+        await useBootstrapStore.getState().refreshLoginMethods();
+
+        expect(useBootstrapStore.getState().config?.managementTitle).toBe('ACME');
+    });
+
     it('should refresh the registration settings without a full reload', async () => {
         await useBootstrapStore.getState().initialize();
         useBootstrapStore.setState({ loginMethodsFetchedAt: 0 });

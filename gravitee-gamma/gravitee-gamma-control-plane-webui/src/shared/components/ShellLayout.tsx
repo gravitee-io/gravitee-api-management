@@ -42,7 +42,6 @@ import { useBootstrapStore } from '../config/bootstrap.store';
 import { buildPathnameAfterEnvironmentChange, pathSegmentsAfterEnvironment } from '../config/routes';
 
 const GAMMA_APP_KEY = 'gamma-console';
-const DOCUMENT_TITLE_SUFFIX = 'Gravitee Gamma';
 
 const hostAppDefinition = {
     key: GAMMA_APP_KEY,
@@ -115,12 +114,21 @@ function resolveActiveAppKey(pathname: string, envHrid: string, modules: readonl
 }
 
 /** Most specific first, so a tab truncated by the browser still shows which page it holds. */
-function buildDocumentTitle(breadcrumbLabels: readonly string[], appLabel: string | undefined): string {
+function buildDocumentTitle(breadcrumbLabels: readonly string[], appLabel: string | undefined, suffix: string): string {
     const segments = [...breadcrumbLabels].reverse();
     if (appLabel) {
         segments.push(appLabel);
     }
-    return [...segments, DOCUMENT_TITLE_SUFFIX].join(' · ');
+    return [...segments, suffix].join(' · ');
+}
+
+function documentTitleSuffix(managementTitle: string | undefined): string {
+    const trimmed = managementTitle?.trim();
+    // 'Gravitee.io Management' mirrors the backend default Key.MANAGEMENT_TITLE.
+    if (!trimmed || trimmed === 'Gravitee.io Management') {
+        return 'Gravitee Gamma';
+    }
+    return trimmed;
 }
 
 function useDocumentTitle(title: string) {
@@ -159,6 +167,7 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
         buildDocumentTitle(
             slots.breadcrumbs.map(crumb => crumb.label),
             activeAppLabel,
+            documentTitleSuffix(config?.managementTitle),
         ),
     );
 
