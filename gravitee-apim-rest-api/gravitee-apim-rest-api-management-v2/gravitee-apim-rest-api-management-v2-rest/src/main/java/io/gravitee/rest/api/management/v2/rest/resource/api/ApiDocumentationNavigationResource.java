@@ -176,8 +176,7 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
                 apiId,
-                PortalNavigationItemId.of(publishApiToPortal.getSectionId().toString()),
-                publishApiToPortal.getPortalId() == null ? null : new PortalId(publishApiToPortal.getPortalId())
+                PortalNavigationItemId.of(publishApiToPortal.getSectionId().toString())
             )
         );
         return mapper.mapPublication(new ListApiDocumentationUseCase.Publication(output.listing(), output.section()));

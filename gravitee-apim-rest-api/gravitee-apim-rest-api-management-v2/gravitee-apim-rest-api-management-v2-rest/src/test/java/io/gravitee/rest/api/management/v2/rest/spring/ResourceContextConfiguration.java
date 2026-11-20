@@ -1597,14 +1597,12 @@ public class ResourceContextConfiguration {
     public PublishApiToPortalUseCase publishApiToPortalUseCase(
         ApiOwnedNavigationDomainService apiOwnedNavigationDomainService,
         PortalNavigationItemValidatorService portalNavigationItemValidatorService,
-        PortalNavigationItemDomainService portalNavigationItemDomainService,
-        NavigationPortalDomainService navigationPortalDomainService
+        PortalNavigationItemDomainService portalNavigationItemDomainService
     ) {
         return new PublishApiToPortalUseCase(
             apiOwnedNavigationDomainService,
             portalNavigationItemValidatorService,
-            portalNavigationItemDomainService,
-            navigationPortalDomainService
+            portalNavigationItemDomainService
         );
     }
 

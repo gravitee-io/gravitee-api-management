@@ -156,7 +156,7 @@ describe('PublishToPortalDialog', () => {
 
         await waitFor(() => expect(onClose).toHaveBeenCalled());
         expect(mockLocations).toHaveBeenCalledWith('env-1', 'api-1', 'DEFAULT');
-        expect(mockPublish).toHaveBeenCalledWith('env-1', 'api-1', { portalId: 'DEFAULT', sectionId: 'apis' });
+        expect(mockPublish).toHaveBeenCalledWith('env-1', 'api-1', { sectionId: 'apis' });
         expect(notify.success).toHaveBeenCalledWith("Published in 'APIs'");
     });
 
@@ -169,7 +169,7 @@ describe('PublishToPortalDialog', () => {
         await user.click(publishButton());
 
         await waitFor(() => expect(onClose).toHaveBeenCalled());
-        expect(mockPublish).toHaveBeenCalledWith('env-1', 'api-1', { portalId: 'DEFAULT', sectionId: 'guides' });
+        expect(mockPublish).toHaveBeenCalledWith('env-1', 'api-1', { sectionId: 'guides' });
         expect(notify.success).toHaveBeenCalledWith("Published in 'Guides'");
     });
 

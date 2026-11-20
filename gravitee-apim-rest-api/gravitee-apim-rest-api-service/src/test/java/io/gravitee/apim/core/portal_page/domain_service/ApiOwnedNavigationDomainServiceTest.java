@@ -626,16 +626,14 @@ class ApiOwnedNavigationDomainServiceTest {
             var section = aFolder("APIs");
             queryService.initWith(List.of(section));
 
-            assertThat(service.requirePublishLocation(ENV_ID, defaultPortal(), section.getId())).isEqualTo(section);
+            assertThat(service.requirePublishLocation(ENV_ID, section.getId())).isEqualTo(section);
         }
 
         @Test
         void should_reject_an_unknown_section() {
             var unknownId = PortalNavigationItemId.random();
 
-            assertThatThrownBy(() -> service.requirePublishLocation(ENV_ID, defaultPortal(), unknownId)).isInstanceOf(
-                ParentNotFoundException.class
-            );
+            assertThatThrownBy(() -> service.requirePublishLocation(ENV_ID, unknownId)).isInstanceOf(ParentNotFoundException.class);
         }
 
         @Test
@@ -674,14 +672,14 @@ class ApiOwnedNavigationDomainServiceTest {
         }
 
         @Test
-        void should_reject_a_section_of_another_portal() {
+        void should_return_a_published_top_level_section_of_any_portal() {
             var otherPortalSection = aFolder("Partners")
                 .toBuilder()
                 .reference(new NavigationItemReference.PortalReference(PortalId.random()))
                 .build();
             queryService.initWith(List.of(otherPortalSection));
 
-            assertNotAPublishLocation(otherPortalSection.getId());
+            assertThat(service.requirePublishLocation(ENV_ID, otherPortalSection.getId())).isEqualTo(otherPortalSection);
         }
 
         @Test
@@ -693,7 +691,7 @@ class ApiOwnedNavigationDomainServiceTest {
         }
 
         private void assertNotAPublishLocation(PortalNavigationItemId id) {
-            assertThatThrownBy(() -> service.requirePublishLocation(ENV_ID, defaultPortal(), id)).isInstanceOf(
+            assertThatThrownBy(() -> service.requirePublishLocation(ENV_ID, id)).isInstanceOf(
                 InvalidPortalNavigationItemDataException.class
             );
         }

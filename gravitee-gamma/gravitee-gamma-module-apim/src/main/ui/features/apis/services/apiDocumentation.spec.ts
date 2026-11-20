@@ -170,11 +170,11 @@ describe('apiDocumentation service', () => {
     });
 
     describe('publishApiToPortal', () => {
-        it('POSTs the chosen portal and section', async () => {
-            await publishApiToPortal('env-1', 'api-1', { portalId: 'portal-1', sectionId: 'section-1' });
+        it('POSTs the chosen section', async () => {
+            await publishApiToPortal('env-1', 'api-1', { sectionId: 'section-1' });
             expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', `${BASE_PATH}/_publish`, {
                 method: 'POST',
-                body: JSON.stringify({ portalId: 'portal-1', sectionId: 'section-1' }),
+                body: JSON.stringify({ sectionId: 'section-1' }),
             });
         });
     });
