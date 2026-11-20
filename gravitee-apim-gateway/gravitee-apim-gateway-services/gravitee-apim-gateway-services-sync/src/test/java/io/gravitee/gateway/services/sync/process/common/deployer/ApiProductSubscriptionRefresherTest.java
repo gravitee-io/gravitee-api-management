@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -36,14 +37,17 @@ import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -168,6 +172,87 @@ class ApiProductSubscriptionRefresherTest {
 
             verify(subscriptionService).register(gatewaySub);
             verify(apiKeyService).register(gatewayKey);
+        }
+
+        @Test
+        void registers_only_the_active_mapping_of_a_shared_key_still_linked_to_a_closed_subscription() throws TechnicalException {
+            var localCut = refresherWithRealApiKeyMapper();
+            givenProductSubscriptions(gatewaySubscription("accepted-sub", "ACCEPTED"), gatewaySubscription("closed-sub", "CLOSED"));
+            var sharedKey = productApiKey(KEY_ID, ENV_1, "accepted-sub");
+            sharedKey.setSubscriptions(List.of("accepted-sub", "closed-sub"));
+            when(apiKeyRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(sharedKey));
+
+            localCut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
+
+            ArgumentCaptor<ApiKey> registered = ArgumentCaptor.forClass(ApiKey.class);
+            verify(apiKeyService).register(registered.capture());
+            assertThat(registered.getValue().getSubscription()).isEqualTo("accepted-sub");
+            assertThat(registered.getValue().isActive()).isTrue();
+        }
+
+        @Test
+        void registers_the_inactive_mapping_of_a_key_with_no_active_one() throws TechnicalException {
+            var localCut = refresherWithRealApiKeyMapper();
+            givenProductSubscriptions(gatewaySubscription("paused-sub", "PAUSED"));
+            var pausedKey = productApiKey(KEY_ID, ENV_1, "paused-sub");
+            when(apiKeyRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(pausedKey));
+
+            localCut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
+
+            ArgumentCaptor<ApiKey> registered = ArgumentCaptor.forClass(ApiKey.class);
+            verify(apiKeyService).register(registered.capture());
+            assertThat(registered.getValue().getSubscription()).isEqualTo("paused-sub");
+            assertThat(registered.getValue().isActive()).isFalse();
+        }
+
+        @Test
+        void does_not_register_the_closed_mapping_of_a_shared_key_whose_accepted_subscription_is_not_reloaded() throws TechnicalException {
+            var localCut = refresherWithRealApiKeyMapper();
+            givenProductSubscriptions(gatewaySubscription("closed-sub", "CLOSED"));
+            when(subscriptionService.getById("accepted-sub")).thenReturn(Optional.of(gatewaySubscription("accepted-sub", "ACCEPTED")));
+            var sharedKey = productApiKey(KEY_ID, ENV_1, "accepted-sub");
+            sharedKey.setSubscriptions(List.of("accepted-sub", "closed-sub"));
+            when(apiKeyRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(sharedKey));
+
+            localCut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
+
+            verify(apiKeyService, never()).register(any());
+        }
+
+        @Test
+        void registers_the_closed_mapping_of_a_revoked_shared_key_whose_accepted_subscription_is_not_reloaded() throws TechnicalException {
+            var localCut = refresherWithRealApiKeyMapper();
+            givenProductSubscriptions(gatewaySubscription("closed-sub", "CLOSED"));
+            lenient()
+                .when(subscriptionService.getById("accepted-sub"))
+                .thenReturn(Optional.of(gatewaySubscription("accepted-sub", "ACCEPTED")));
+            var revokedKey = productApiKey(KEY_ID, ENV_1, "accepted-sub");
+            revokedKey.setSubscriptions(List.of("accepted-sub", "closed-sub"));
+            revokedKey.setRevoked(true);
+            when(apiKeyRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(revokedKey));
+
+            localCut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
+
+            ArgumentCaptor<ApiKey> registered = ArgumentCaptor.forClass(ApiKey.class);
+            verify(apiKeyService).register(registered.capture());
+            assertThat(registered.getValue().getSubscription()).isEqualTo("closed-sub");
+            assertThat(registered.getValue().isRevoked()).isTrue();
+        }
+
+        @Test
+        void registers_the_closed_mapping_of_a_shared_key_whose_other_subscription_is_not_cached() throws TechnicalException {
+            var localCut = refresherWithRealApiKeyMapper();
+            givenProductSubscriptions(gatewaySubscription("closed-sub", "CLOSED"));
+            var sharedKey = productApiKey(KEY_ID, ENV_1, "paused-sub");
+            sharedKey.setSubscriptions(List.of("paused-sub", "closed-sub"));
+            when(apiKeyRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(sharedKey));
+
+            localCut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
+
+            ArgumentCaptor<ApiKey> registered = ArgumentCaptor.forClass(ApiKey.class);
+            verify(apiKeyService).register(registered.capture());
+            assertThat(registered.getValue().getSubscription()).isEqualTo("closed-sub");
+            assertThat(registered.getValue().isActive()).isFalse();
         }
 
         @Test
@@ -343,6 +428,33 @@ class ApiProductSubscriptionRefresherTest {
             assertThat(thrown).isInstanceOf(SyncException.class).hasMessageContaining(PRODUCT_1).hasCause(linkageError);
             verify(apiKeyService, never()).unregisterByApiProductPlans(any(), any());
         }
+    }
+
+    private ApiProductSubscriptionRefresher refresherWithRealApiKeyMapper() {
+        return new ApiProductSubscriptionRefresher(
+            subscriptionRepository,
+            apiKeyRepository,
+            subscriptionMapper,
+            new ApiKeyMapper(),
+            subscriptionService,
+            apiKeyService,
+            BULK_ITEMS,
+            CHUNK_SIZE
+        );
+    }
+
+    private void givenProductSubscriptions(Subscription... gatewaySubscriptions) throws TechnicalException {
+        List<io.gravitee.repository.management.model.Subscription> repoSubscriptions = Stream.of(gatewaySubscriptions)
+            .map(subscription -> productSubscription(subscription.getId(), PLAN_1, ENV_1))
+            .toList();
+        when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(repoSubscriptions);
+        for (int i = 0; i < gatewaySubscriptions.length; i++) {
+            when(subscriptionMapper.to(repoSubscriptions.get(i))).thenReturn(List.of(gatewaySubscriptions[i]));
+        }
+    }
+
+    private static Subscription gatewaySubscription(String id, String status) {
+        return Subscription.builder().id(id).api(API_1).apiProductId(PRODUCT_1).plan(PLAN_1).status(status).build();
     }
 
     private static io.gravitee.repository.management.model.Subscription productSubscription(String id, String plan, String env) {
