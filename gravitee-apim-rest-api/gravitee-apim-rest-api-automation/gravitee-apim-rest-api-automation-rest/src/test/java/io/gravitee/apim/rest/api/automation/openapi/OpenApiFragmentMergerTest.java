@@ -109,6 +109,17 @@ class OpenApiFragmentMergerTest {
         }
 
         @Test
+        void should_reject_a_module_given_twice() throws Exception {
+            Path base = write("open-api.yaml", BASE);
+            Path aim = write("aim.yaml", AIM_FRAGMENT);
+            Path other = write("other.yaml", AIM_FRAGMENT);
+
+            assertThatThrownBy(() -> OpenApiFragmentMerger.main(new String[] { base.toString(), "aim=" + aim, "aim=" + other }))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("[aim]");
+        }
+
+        @Test
         void should_reject_a_call_without_a_base_document() {
             assertThatThrownBy(() -> OpenApiFragmentMerger.main(new String[0]))
                 .isInstanceOf(IllegalArgumentException.class)

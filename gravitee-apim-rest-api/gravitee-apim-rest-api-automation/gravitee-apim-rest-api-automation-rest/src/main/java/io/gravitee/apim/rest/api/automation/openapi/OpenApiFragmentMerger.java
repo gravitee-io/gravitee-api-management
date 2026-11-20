@@ -50,10 +50,11 @@ public final class OpenApiFragmentMerger {
 
     /**
      * Merges fragment files the way a running instance merges the fragments of its modules, so the API docs
-     * site publishes the document an instance serves.
+     * site publishes the same content an instance serves.
      *
      * <p>Usage: {@code OpenApiFragmentMerger <base.yaml> [<module>=<fragment.yaml>...]}. The merged document
-     * goes to standard output, in UTF-8. Fragments merge in argument order.
+     * goes to standard output, in UTF-8. Fragments merge in argument order, so paths and tags may come out in
+     * another order than an instance's, which follows the order its modules load in.
      */
     public static void main(String[] args) throws IOException {
         if (args.length == 0) {
@@ -65,7 +66,9 @@ public final class OpenApiFragmentMerger {
             if (moduleAndPath.length != 2 || moduleAndPath[0].isEmpty()) {
                 throw new IllegalArgumentException("Expected <module>=<fragment.yaml>, got [" + args[i] + "]");
             }
-            fragmentsByModule.put(moduleAndPath[0], Files.readString(Path.of(moduleAndPath[1]), UTF_8));
+            if (fragmentsByModule.put(moduleAndPath[0], Files.readString(Path.of(moduleAndPath[1]), UTF_8)) != null) {
+                throw new IllegalArgumentException("Module [" + moduleAndPath[0] + "] is given more than one fragment");
+            }
         }
         String merged;
         try (InputStream base = Files.newInputStream(Path.of(args[0]))) {
