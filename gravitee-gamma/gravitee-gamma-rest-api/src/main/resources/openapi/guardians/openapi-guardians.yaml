@@ -966,9 +966,11 @@ components:
                 organization —, and its `configuration` must match the schema that plugin declares;
                 `GET /organizations/{orgId}/plugins/resources` lists the types. A type listed with
                 `deployed: false` is refused. A guardrail refers to a resource by its name, so no two enabled resources may
-                share one. Nothing checks that a name a guardrail refers to is held by the Guardian, nor
-                follows a rename: which property of a step configuration holds a resource name is the
-                policy's own business, as it is for an API.
+                share one. A step whose policy schema marks a property as a resource picker
+                (`gioConfig.uiType: resource-type`) must name there an enabled resource of the Guardian,
+                of a type listed in `gioConfig.uiTypeProps.resourceType` (matched by prefix), or the
+                write is refused with a message naming the step. Nothing follows a rename: renaming a
+                resource leaves the steps naming the old name refused until they are edited.
 
                 **Secrets.** A `configuration` is stored and returned as it was sent, to any caller
                 allowed to read the Guardian: nothing in it is masked. A secret therefore has to be given

@@ -31,6 +31,7 @@ import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyValidation;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.DeclaredFlows;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.ResourceReference;
 import io.gravitee.gamma.rest.core.guardian.GuardianFixtures;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
@@ -45,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
@@ -226,5 +228,78 @@ class DefaultPolicyPluginProviderTest {
             softly.assertThat(policies).containsEntry("transform-headers", new PolicyCapabilities(false, new DeclaredFlows(Map.of())));
             softly.assertThat(policies).containsEntry("rule-guardrail", new PolicyCapabilities(true, new DeclaredFlows(Map.of())));
         });
+    }
+
+    @Nested
+    class ResourceReferences {
+
+        private void given_the_schema(String schema) throws Exception {
+            a_policy("guardrail-decision", GuardrailPolicy.class, "guardrail", Map.of());
+            when(pluginManager.getSchema("guardrail-decision", true)).thenReturn(schema);
+        }
+
+        @Test
+        void should_read_a_property_the_schema_marks_as_a_resource_picker() throws Exception {
+            given_the_schema(
+                """
+                {"type":"object","properties":{
+                  "resource":{"type":"string","gioConfig":{"uiType":"resource-type","uiTypeProps":{"resourceType":"ai-model-decision"}}},
+                  "scope":{"type":"object","properties":{"protocol":{"type":"string"}}}
+                }}
+                """
+            );
+
+            assertThat(provider.findResourceReferences("guardrail-decision")).containsExactly(
+                new ResourceReference("/resource", List.of("ai-model-decision"))
+            );
+        }
+
+        @Test
+        void should_read_a_nested_property_accepting_several_types() throws Exception {
+            given_the_schema(
+                """
+                {"type":"object","properties":{"model":{"type":"object","properties":{
+                  "name":{"type":"string","gioConfig":{"uiType":"resource-type","uiTypeProps":{"resourceType":["ai-model-decision","ai-model-text-classification"]}}}
+                }}}}
+                """
+            );
+
+            assertThat(provider.findResourceReferences("guardrail-decision")).containsExactly(
+                new ResourceReference("/model/name", List.of("ai-model-decision", "ai-model-text-classification"))
+            );
+        }
+
+        /** No picker means any resource, but still a resource of the Guardian. */
+        @Test
+        void should_accept_any_type_when_the_picker_names_none() throws Exception {
+            given_the_schema(
+                """
+                {"type":"object","properties":{"resource":{"type":"string","gioConfig":{"uiType":"resource-type"}}}}
+                """
+            );
+
+            assertThat(provider.findResourceReferences("guardrail-decision")).containsExactly(
+                new ResourceReference("/resource", List.of())
+            );
+        }
+
+        /** The console only offers a picker for {@code uiType: resource-type}: the validation reads the same marker. */
+        @Test
+        void should_ignore_a_resource_type_declared_without_the_picker() throws Exception {
+            given_the_schema(
+                """
+                {"type":"object","properties":{"resource":{"type":"string","gioConfig":{"resourceType":"ai-model-decision"}}}}
+                """
+            );
+
+            assertThat(provider.findResourceReferences("guardrail-decision")).isEmpty();
+        }
+
+        @Test
+        void should_find_nothing_in_a_policy_without_schema() throws Exception {
+            given_the_schema(null);
+
+            assertThat(provider.findResourceReferences("guardrail-decision")).isEmpty();
+        }
     }
 }

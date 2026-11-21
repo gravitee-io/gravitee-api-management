@@ -31,6 +31,7 @@ import io.gravitee.gamma.rest.core.gravitee_plugin.model.DeclaredFlows;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PlatformPlugin;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.ResourceReference;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.ResourcePluginProvider;
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDeploymentDomainService;
@@ -77,10 +78,16 @@ public final class GuardianFixtures {
     /** The resource type the fixtures install, so a resource can name one the node has. */
     public static final String INSTALLED_RESOURCE_TYPE = "ai-model-token-classification";
 
+    /** An installed guardrail whose configuration names a resource, in its {@code resource} property. */
+    public static final String DECISION_POLICY = "guardrail-decision";
+
+    /** The only resource type {@link #DECISION_POLICY} accepts in that property, installed too. */
+    public static final String DECISION_RESOURCE_TYPE = "ai-model-decision";
+
     private GuardianFixtures() {}
 
     public static ResourcePluginProvider aResourcePluginProvider() {
-        return aResourcePluginProvider(() -> Set.of(INSTALLED_RESOURCE_TYPE));
+        return aResourcePluginProvider(() -> Set.of(INSTALLED_RESOURCE_TYPE, DECISION_RESOURCE_TYPE));
     }
 
     /** A catalog holding these types, each deployed by the node and enabled by the license. */
@@ -126,6 +133,11 @@ public final class GuardianFixtures {
                 new PolicyCapabilities(
                     true,
                     flows(PolicyFlowType.LLM_PROXY, "REQUEST,RESPONSE", PolicyFlowType.GUARDIAN, "REQUEST,RESPONSE")
+                ),
+                DECISION_POLICY,
+                new PolicyCapabilities(
+                    true,
+                    flows(PolicyFlowType.LLM_PROXY, "REQUEST,RESPONSE", PolicyFlowType.GUARDIAN, "REQUEST,RESPONSE")
                 )
             )
         );
@@ -156,6 +168,9 @@ public final class GuardianFixtures {
     public static PolicyPluginProvider aPolicyPluginProvider(Supplier<Map<String, PolicyCapabilities>> policies) {
         var provider = Mockito.mock(PolicyPluginProvider.class);
         Mockito.when(provider.findAllCapabilities()).thenAnswer(call -> policies.get());
+        Mockito.when(provider.findResourceReferences(DECISION_POLICY)).thenReturn(
+            List.of(new ResourceReference("/resource", List.of(DECISION_RESOURCE_TYPE)))
+        );
         return provider;
     }
 
