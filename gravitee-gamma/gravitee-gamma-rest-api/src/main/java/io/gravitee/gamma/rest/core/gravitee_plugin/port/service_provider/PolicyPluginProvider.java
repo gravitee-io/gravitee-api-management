@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.DeclaredFlows;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PlatformPolicyPlugin;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.ResourceReference;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -29,4 +30,10 @@ public interface PolicyPluginProvider extends PluginProvider {
     List<PlatformPolicyPlugin> findAllPolicies(String organizationId, Predicate<DeclaredFlows> filter);
 
     PlatformPolicyPlugin findPolicyById(String organizationId, String policyId);
+
+    /**
+     * The properties of the policy configuration that name a resource, as its schema declares them; empty when none
+     * does, or when no policy has this id.
+     */
+    List<ResourceReference> findResourceReferences(String policyId);
 }

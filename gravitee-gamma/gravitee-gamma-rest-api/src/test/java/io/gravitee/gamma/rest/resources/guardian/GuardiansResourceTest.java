@@ -37,6 +37,7 @@ import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyValidation;
 import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryResourceValidation;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
@@ -174,6 +175,20 @@ class GuardiansResourceTest extends AbstractResourceTest {
 
     private static Guardian guardian(String id, String environmentId, String name) {
         return GuardianFixtures.aGuardian(d -> d.id(id).environmentId(environmentId).name(name)).build();
+    }
+
+    /** A guardrail-decision step whose configuration names this resource. */
+    private static Map<String, Object> aDecisionStepNaming(String resource) {
+        return Map.of(
+            "name",
+            "Ask the judge",
+            "policy",
+            GuardianFixtures.DECISION_POLICY,
+            "enabled",
+            true,
+            "configuration",
+            Map.of("resource", resource)
+        );
     }
 
     private static Map<String, Object> payloadWith(String key, Object value) {
@@ -458,6 +473,54 @@ class GuardiansResourceTest extends AbstractResourceTest {
                     .as("the step and the schema error, readable")
                     .contains("Detect credentials", "$.rules: is missing but it is required");
             });
+        }
+
+        @Test
+        void should_refuse_a_guardrail_naming_a_resource_the_guardian_does_not_hold_with_400_naming_the_step() {
+            var response = post(payloadWith("policies", List.of(aDecisionStepNaming("missing"))));
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(response.getStatus()).as("creation response").isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+                softly
+                    .assertThat(response.readEntity(JsonNode.class).at("/message").asText())
+                    .isEqualTo("Step [Ask the judge] references resource [missing], which the Guardian does not hold.");
+                softly.assertThat(guardianRepository.storedGuardians()).as("nothing stored").isEmpty();
+            });
+        }
+
+        @Test
+        void should_refuse_a_guardrail_naming_a_resource_of_the_wrong_type_with_400_naming_the_step() {
+            var payload = payloadWith("policies", List.of(aDecisionStepNaming("classifier")));
+            payload.put(
+                "resources",
+                List.of(Map.of("name", "classifier", "type", GuardianFixtures.INSTALLED_RESOURCE_TYPE, "configuration", Map.of()))
+            );
+
+            var response = post(payload);
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(response.getStatus()).as("creation response").isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+                softly
+                    .assertThat(response.readEntity(JsonNode.class).at("/message").asText())
+                    .isEqualTo(
+                        "Step [Ask the judge] references a resource of the wrong type: [classifier] is of type [" +
+                            GuardianFixtures.INSTALLED_RESOURCE_TYPE +
+                            "], where the policy accepts [" +
+                            GuardianFixtures.DECISION_RESOURCE_TYPE +
+                            "]."
+                    );
+            });
+        }
+
+        @Test
+        void should_create_a_guardrail_naming_an_enabled_resource_of_the_accepted_type() {
+            var payload = payloadWith("policies", List.of(aDecisionStepNaming("judge")));
+            payload.put(
+                "resources",
+                List.of(Map.of("name", "judge", "type", GuardianFixtures.DECISION_RESOURCE_TYPE, "configuration", Map.of()))
+            );
+
+            assertThat(post(payload).getStatus()).as("creation response").isEqualTo(HttpStatusCode.CREATED_201);
         }
 
         @Test
@@ -784,6 +847,40 @@ class GuardiansResourceTest extends AbstractResourceTest {
                     .assertThat(response.readEntity(JsonNode.class).at("/message").asText())
                     .as("the step and the schema error, readable")
                     .contains("Detect credentials", "$.rules: is missing but it is required");
+                softly.assertThat(guardianPublications.publications()).as("no revision is published").isZero();
+            });
+        }
+
+        /** A draft stored before the rule existed is refused rather than published broken. */
+        @Test
+        void should_return_400_naming_the_step_when_the_stored_draft_names_a_resource_the_guardian_does_not_hold() {
+            guardianRepository.reset();
+            guardianRepository.givenGuardian(
+                GuardianFixtures.aGuardian(d ->
+                    d
+                        .id(GUARDIAN_ID)
+                        .environmentId(ENVIRONMENT)
+                        .name("Credential leakage")
+                        .policies(
+                            List.of(
+                                Step.builder()
+                                    .name("Ask the judge")
+                                    .policy(GuardianFixtures.DECISION_POLICY)
+                                    .enabled(true)
+                                    .configuration("{\"resource\":\"missing\"}")
+                                    .build()
+                            )
+                        )
+                ).build()
+            );
+
+            var response = deploy(Map.of());
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(response.getStatus()).as("deployment response").isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+                softly
+                    .assertThat(response.readEntity(JsonNode.class).at("/message").asText())
+                    .isEqualTo("Step [Ask the judge] references resource [missing], which the Guardian does not hold.");
                 softly.assertThat(guardianPublications.publications()).as("no revision is published").isZero();
             });
         }
@@ -1339,7 +1436,10 @@ class GuardiansResourceTest extends AbstractResourceTest {
         ResourcePluginProvider resourcePluginProvider() {
             var provider = mock(ResourcePluginProvider.class);
             when(provider.findAll(ORGANIZATION)).thenReturn(
-                Set.of(GuardianFixtures.aResourceType(GuardianFixtures.INSTALLED_RESOURCE_TYPE, true))
+                Set.of(
+                    GuardianFixtures.aResourceType(GuardianFixtures.INSTALLED_RESOURCE_TYPE, true),
+                    GuardianFixtures.aResourceType(GuardianFixtures.DECISION_RESOURCE_TYPE, true)
+                )
             );
             return provider;
         }

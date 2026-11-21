@@ -169,8 +169,10 @@ paths:
                         against an empty object, so a schema that requires a property refuses it; and
                         for a guardrail, one whose plugin does not declare the Guardian API types,
                         whatever phases it lists for them, or that declares an incompatible
-                        `scope.protocol`. Every refused step is named in the message, with the schema
-                        error when there is one.
+                        `scope.protocol`; and one naming, in a property its policy schema marks as a
+                        resource picker, a resource the Guardian does not hold, holds disabled, or holds
+                        of a type that property does not accept. Every refused step is named in the
+                        message, with the schema error when there is one.
 
                         A resource is refused too: an enabled resource that carries no type, or whose
                         type the catalog does not list as `deployed` — not installed, not deployed by
@@ -273,8 +275,10 @@ paths:
                         against an empty object, so a schema that requires a property refuses it; and
                         for a guardrail, one whose plugin does not declare the Guardian API types,
                         whatever phases it lists for them, or that declares an incompatible
-                        `scope.protocol`. Every refused step is named in the message, with the schema
-                        error when there is one.
+                        `scope.protocol`; and one naming, in a property its policy schema marks as a
+                        resource picker, a resource the Guardian does not hold, holds disabled, or holds
+                        of a type that property does not accept. Every refused step is named in the
+                        message, with the schema error when there is one.
 
                         A resource is refused too: an enabled resource that carries no type, or whose
                         type the catalog does not list as `deployed` — not installed, not deployed by
@@ -947,6 +951,13 @@ components:
                 the Guardian phase in its `guardian` flow (`guardian=REQUEST,RESPONSE` in its
                 manifest); `GET /organizations/{orgId}/plugins/policies?flow=guardian&phase=` lists
                 them.
+
+                A property the policy schema marks as a resource picker (`gioConfig.uiType:
+                resource-type`) must name an enabled resource of the Guardian, of a type listed in
+                `gioConfig.uiTypeProps.resourceType` — matched by prefix, as the console picker offers
+                them —, or the step is refused with a message naming it. Only a property holding a
+                single name is checked. The check runs on a deployment and a rollback too: a draft,
+                or a revision, naming a resource the Guardian no longer holds is refused until edited.
             items:
                 type: object
                 additionalProperties: true
@@ -966,9 +977,9 @@ components:
                 organization —, and its `configuration` must match the schema that plugin declares;
                 `GET /organizations/{orgId}/plugins/resources` lists the types. A type listed with
                 `deployed: false` is refused. A guardrail refers to a resource by its name, so no two enabled resources may
-                share one. Nothing checks that a name a guardrail refers to is held by the Guardian, nor
-                follows a rename: which property of a step configuration holds a resource name is the
-                policy's own business, as it is for an API.
+                share one. The steps naming a resource are judged against these: see `policies`.
+                Nothing follows a rename, and an update renaming a resource a step still names is
+                refused as a whole.
 
                 **Secrets.** A `configuration` is stored and returned as it was sent, to any caller
                 allowed to read the Guardian: nothing in it is masked. A secret therefore has to be given
