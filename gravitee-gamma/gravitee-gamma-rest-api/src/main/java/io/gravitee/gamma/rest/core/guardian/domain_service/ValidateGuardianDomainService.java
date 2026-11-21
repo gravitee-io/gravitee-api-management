@@ -24,8 +24,10 @@ import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.ResourceReference;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianWithoutEnabledGuardrailException;
@@ -67,7 +69,9 @@ import lombok.RequiredArgsConstructor;
  * policy whose plugin declares the Guardian phase in its {@code guardian} flow, and carry a
  * configuration that policy's schema accepts. A guardrail must also support the Guardian API types, in
  * its plugin metadata and in any explicit scope protocol: the {@code guardian} flow says where it
- * runs, its API type flows only which API types it applies to.
+ * runs, its API type flows only which API types it applies to. A property its schema marks as a resource
+ * picker ({@code gioConfig.uiType: resource-type}) must name an enabled resource of the Guardian, of a type
+ * the picker accepts.
  *
  * <p><strong>The resources</strong> — judged by {@link ValidateGuardianResourcesDomainService}: every
  * enabled resource must be of a type the node installed, carry a configuration that plugin's schema
@@ -255,12 +259,20 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
                 Error.severe("Only %s guardians are supported, not %s.", SUPPORTED_API_TYPE.getLabel(), String.join(", ", unsupported))
             );
         }
-        var errors = new ArrayList<>(validateSteps(guardian.getPolicies(), apiTypes, guardian.getPhase(), correction));
+        var errors = new ArrayList<>(
+            validateSteps(guardian.getPolicies(), guardian.getResources(), apiTypes, guardian.getPhase(), correction)
+        );
         errors.addAll(resources.validate(guardian.getResources(), guardian.getEnvironmentId(), correction));
         return errors;
     }
 
-    private List<Error> validateSteps(List<Step> steps, Set<ApiType> apiTypes, Phase phase, Correction correction) {
+    private List<Error> validateSteps(
+        List<Step> steps,
+        List<Resource> resources,
+        Set<ApiType> apiTypes,
+        Phase phase,
+        Correction correction
+    ) {
         if (steps != null && steps.stream().anyMatch(Objects::isNull)) {
             return List.of(Error.severe("Guardian policies must not contain null steps."));
         }
@@ -292,9 +304,63 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
                     continue;
                 }
             }
-            validateConfigurationSchema(step, errors, correction);
+            if (validateConfigurationSchema(step, errors, correction)) {
+                validateResourceReferences(step, resources, errors);
+            }
         }
         return errors;
+    }
+
+    /**
+     * Refuses a step whose configuration names a resource the gateway would not hand it: one the Guardian
+     * does not hold, holds disabled, or holds of a type the policy does not accept in that property.
+     *
+     * <p>Which property names a resource is read from the policy schema, the one the console builds its
+     * picker from ({@code gioConfig.uiType: resource-type}), so the validation accepts what the picker
+     * offers. A property left empty is the schema's business, judged just before.
+     */
+    private void validateResourceReferences(Step step, List<Resource> resources, List<Error> errors) {
+        var references = policyPluginProvider.findResourceReferences(step.getPolicy());
+        if (references.isEmpty()) {
+            return;
+        }
+        var configuration = configurationAsObject(step).orElseThrow();
+        for (var reference : references) {
+            var named = configuration.at(reference.property());
+            if (!named.isTextual() || named.textValue().isBlank()) {
+                continue;
+            }
+            resourceReferenceError(step, reference, named.textValue(), resources).ifPresent(errors::add);
+        }
+    }
+
+    private static Optional<Error> resourceReferenceError(Step step, ResourceReference reference, String name, List<Resource> resources) {
+        var held = Optional.ofNullable(resources)
+            .stream()
+            .flatMap(List::stream)
+            .filter(resource -> name.equals(resource.getName()))
+            .toList();
+        var enabled = held.stream().filter(Resource::isEnabled).findFirst();
+        if (enabled.isEmpty()) {
+            return Optional.of(
+                held.isEmpty()
+                    ? Error.severe("Step [%s] references resource [%s], which the Guardian does not hold.", step.getName(), name)
+                    : Error.severe("Step [%s] references resource [%s], which is disabled.", step.getName(), name)
+            );
+        }
+        var type = enabled.get().getType();
+        if (reference.accepts(type)) {
+            return Optional.empty();
+        }
+        return Optional.of(
+            Error.severe(
+                "Step [%s] references a resource of the wrong type: [%s] is of type [%s], where the policy accepts [%s].",
+                step.getName(),
+                name,
+                type,
+                String.join(", ", reference.acceptedTypes())
+            )
+        );
     }
 
     /**
@@ -313,14 +379,16 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
      * would build the policy from anyway. A schema requiring a property therefore refuses it, where
      * skipping the check would accept exactly the Guardian this is about, and a schema that completes
      * the empty object with defaults has its completed configuration stored like any other.
+     *
+     * @return whether the configuration stands as the step now carries it, so is worth reading further
      */
-    private void validateConfigurationSchema(Step step, List<Error> errors, Correction correction) {
+    private boolean validateConfigurationSchema(Step step, List<Error> errors, Correction correction) {
         var judged = configurationAsObject(step);
         if (judged.isEmpty()) {
             // refused here rather than by the shared service, which would answer the parser message: it
             // quotes the configuration it could not read, and that may carry a credential
             errors.add(Error.severe("Step [%s] has an invalid configuration: it must be a JSON object.", step.getName()));
-            return;
+            return false;
         }
         String accepted;
         try {
@@ -341,15 +409,15 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
                     )
                 )
             );
-            return;
+            return false;
         } catch (PluginNotFoundException e) {
             // the registry read above is a snapshot, and this service resolves the plugin again: a policy
             // uninstalled in between is a refused step, not the 404 this exception would answer
             errors.add(Error.severe("Step [%s] has an invalid configuration: the policy is not installed.", step.getName()));
-            return;
+            return false;
         }
         if (ConfigurationDocuments.isSame(jsonDeserializer, accepted, judged.get())) {
-            return;
+            return true;
         }
         switch (correction) {
             case STORE -> step.setConfiguration(accepted);
@@ -360,6 +428,7 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
                 )
             );
         }
+        return correction == Correction.STORE;
     }
 
     /** The configuration of the step as a JSON object, or nothing when it is not one. */

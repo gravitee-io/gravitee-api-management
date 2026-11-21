@@ -138,7 +138,7 @@ public abstract class AbstractPluginProvider<T extends ConfigurablePlugin> imple
         }
     }
 
-    private TechnicalDomainException technicalError(String what, String pluginId, IOException cause) {
+    protected TechnicalDomainException technicalError(String what, String pluginId, IOException cause) {
         log.error("Unable to read the {} of plugin {}", what, pluginId, cause);
         return new TechnicalDomainException("An error occurs while trying to get plugin " + what + " for plugin " + pluginId, cause);
     }

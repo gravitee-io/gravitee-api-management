@@ -17,10 +17,14 @@ package io.gravitee.gamma.rest.infra.service_provider.gravitee_plugin;
 
 import static java.util.stream.Collectors.toMap;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.DeclaredFlows;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PlatformPolicyPlugin;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.ResourceReference;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gateway.reactive.api.policy.guardrail.GuardrailPolicy;
 import io.gravitee.node.api.license.License;
@@ -37,6 +41,11 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public class DefaultPolicyPluginProvider extends AbstractPluginProvider<PolicyPlugin<?>> implements PolicyPluginProvider {
+
+    /** The {@code gioConfig.uiType} with which a policy schema marks a property holding a resource name. */
+    private static final String RESOURCE_PICKER = "resource-type";
+
+    private static final ObjectMapper SCHEMA_MAPPER = new ObjectMapper();
 
     public DefaultPolicyPluginProvider(ConfigurablePluginManager<PolicyPlugin<?>> pluginManager, LicenseManager licenseManager) {
         super(pluginManager, licenseManager);
@@ -72,6 +81,56 @@ public class DefaultPolicyPluginProvider extends AbstractPluginProvider<PolicyPl
     public PlatformPolicyPlugin findPolicyById(String organizationId, String policyId) {
         var plugin = getPlugin(policyId);
         return toPolicy(plugin, flows(plugin.manifest().properties()), license(organizationId));
+    }
+
+    @Override
+    public List<ResourceReference> findResourceReferences(String policyId) {
+        if (pluginManager.get(policyId, true) == null) {
+            return List.of();
+        }
+        var schema = getSchema(policyId);
+        if (schema == null || schema.isBlank()) {
+            return List.of();
+        }
+        JsonNode root;
+        try {
+            root = SCHEMA_MAPPER.readTree(schema);
+        } catch (JsonProcessingException e) {
+            throw technicalError("schema", policyId, e);
+        }
+        var references = new ArrayList<ResourceReference>();
+        collectResourceReferences(root, "", references);
+        return references;
+    }
+
+    /**
+     * Walks the nested {@code properties} of an object schema. Composed branches ({@code oneOf}, {@code items}, ...)
+     * are not entered: no policy declares a resource picker there, and the console would not offer one.
+     */
+    private static void collectResourceReferences(JsonNode schema, String pointer, List<ResourceReference> references) {
+        for (var property : schema.path("properties").properties()) {
+            var path = pointer + "/" + property.getKey().replace("~", "~0").replace("/", "~1");
+            var gioConfig = property.getValue().path("gioConfig");
+            if (RESOURCE_PICKER.equals(gioConfig.path("uiType").asText())) {
+                references.add(new ResourceReference(path, acceptedTypes(gioConfig.path("uiTypeProps").path("resourceType"))));
+            } else {
+                collectResourceReferences(property.getValue(), path, references);
+            }
+        }
+    }
+
+    /** A single type or a list of them, as the console pickers read {@code uiTypeProps.resourceType}. */
+    private static List<String> acceptedTypes(JsonNode resourceType) {
+        if (resourceType.isTextual()) {
+            return List.of(resourceType.textValue());
+        }
+        var types = new ArrayList<String>();
+        resourceType.forEach(type -> {
+            if (type.isTextual()) {
+                types.add(type.textValue());
+            }
+        });
+        return types;
     }
 
     private PlatformPolicyPlugin toPolicy(PolicyPlugin<?> plugin, DeclaredFlows flows, License license) {
