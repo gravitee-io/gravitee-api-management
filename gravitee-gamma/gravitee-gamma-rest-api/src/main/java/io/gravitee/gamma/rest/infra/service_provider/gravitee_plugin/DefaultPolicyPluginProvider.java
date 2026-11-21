@@ -47,11 +47,7 @@ public class DefaultPolicyPluginProvider extends AbstractPluginProvider<PolicyPl
         return pluginManager
             .findAll(true)
             .stream()
-            .collect(
-                toMap(PolicyPlugin::id, plugin ->
-                    new PolicyCapabilities(GuardrailPolicy.class.isAssignableFrom(plugin.policy()), flows(plugin.manifest().properties()))
-                )
-            );
+            .collect(toMap(PolicyPlugin::id, plugin -> new PolicyCapabilities(isGuardrail(plugin), flows(plugin.manifest().properties()))));
     }
 
     /** Filters before converting: the policies left out are not converted, their icon not read. */
@@ -75,7 +71,11 @@ public class DefaultPolicyPluginProvider extends AbstractPluginProvider<PolicyPl
     }
 
     private PlatformPolicyPlugin toPolicy(PolicyPlugin<?> plugin, DeclaredFlows flows, License license) {
-        return new PlatformPolicyPlugin(convert(plugin, license), flows);
+        return new PlatformPolicyPlugin(convert(plugin, license), isGuardrail(plugin), flows);
+    }
+
+    private static boolean isGuardrail(PolicyPlugin<?> plugin) {
+        return GuardrailPolicy.class.isAssignableFrom(plugin.policy());
     }
 
     /** The phases of each flow the manifest declares ({@code llm_proxy=REQUEST,RESPONSE}), trimmed but neither validated nor reduced. */

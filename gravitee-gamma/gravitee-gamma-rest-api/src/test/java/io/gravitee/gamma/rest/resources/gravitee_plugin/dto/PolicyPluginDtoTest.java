@@ -39,7 +39,7 @@ class PolicyPluginDtoTest {
         for (var flow : PolicyFlowType.values()) {
             flows.put(flow, List.of("REQUEST"));
         }
-        var policy = new PlatformPolicyPlugin(PlatformPlugin.builder().id("policy").build(), new DeclaredFlows(flows));
+        var policy = new PlatformPolicyPlugin(PlatformPlugin.builder().id("policy").build(), false, new DeclaredFlows(flows));
 
         JsonNode flow = new ObjectMapper().valueToTree(PolicyPluginDto.from(policy)).get("flow");
 
