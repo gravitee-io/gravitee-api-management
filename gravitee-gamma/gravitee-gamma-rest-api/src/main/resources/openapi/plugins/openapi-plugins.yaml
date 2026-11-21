@@ -400,6 +400,12 @@ components:
                     description: The license feature the plugin requires.
                 deployed:
                     type: boolean
+                guardrail:
+                    type: boolean
+                    description: |
+                        Whether the policy is a guardrail. A Guardian deploys only when at least one
+                        of its enabled steps runs a guardrail: a policy declaring the `guardian` flow
+                        can run in a Guardian without being one.
                 flow:
                     type: object
                     description: |
@@ -416,6 +422,7 @@ components:
             required:
                 - id
                 - deployed
+                - guardrail
                 - flow
             example:
                 id: guardrail-rule
@@ -424,6 +431,7 @@ components:
                 version: 1.0.0
                 feature: apim-guardian-policy-rule
                 deployed: true
+                guardrail: true
                 flow:
                     llm-proxy: [REQUEST, RESPONSE]
                     guardian: [REQUEST, RESPONSE]
