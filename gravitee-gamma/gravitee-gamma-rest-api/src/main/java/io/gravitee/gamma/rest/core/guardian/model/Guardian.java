@@ -23,6 +23,7 @@ import io.gravitee.definition.model.v4.resource.Resource;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -192,5 +193,22 @@ public class Guardian {
      */
     public boolean hasEnabledGuardrail(Predicate<String> isGuardrail) {
         return enabledPolicies().anyMatch(step -> isGuardrail.test(step.getPolicy()));
+    }
+
+    /** The enabled resource of this name, the one the gateway would hand a policy naming it. */
+    public Optional<Resource> enabledResourceNamed(String name) {
+        return resourcesNamed(name).filter(Resource::isEnabled).findFirst();
+    }
+
+    /** Whether the Guardian holds a resource of this name, enabled or not. */
+    public boolean holdsResourceNamed(String name) {
+        return resourcesNamed(name).findAny().isPresent();
+    }
+
+    private Stream<Resource> resourcesNamed(String name) {
+        return Objects.requireNonNullElse(getResources(), List.<Resource>of())
+            .stream()
+            .filter(Objects::nonNull)
+            .filter(resource -> name.equals(resource.getName()));
     }
 }
