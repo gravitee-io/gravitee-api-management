@@ -49,8 +49,8 @@ import lombok.RequiredArgsConstructor;
  *       would be handed whichever loaded last.</li>
  * </ul>
  *
- * <p>Nothing here checks that a guardrail names a resource the Guardian holds: which field of a
- * configuration holds a resource name is the policy's own business, as it is for an API.
+ * <p>That a step names a resource the Guardian holds is judged with the step, by
+ * {@link ValidateGuardianDomainService}: the policy schema says which property holds the name.
  *
  * @author GraviteeSource Team
  */
