@@ -59,6 +59,7 @@ describe('Pull requests workflow tests', () => {
         graviteeioVersion: '',
         isDryRun: false,
         // 4.1.x is one of the two newest lines in the first fixture, and the third in the other.
+        releasedTags: expectedFileName === 'pull-requests-4-1-x-outdated.yml' ? ['4.3.0', '4.2.0', '4.1.0'] : ['4.1.0', '4.0.0'],
         supportBranches: expectedFileName === 'pull-requests-4-1-x-outdated.yml' ? ['4.3.x', '4.2.x', '4.1.x'] : ['4.1.x', '4.0.x'],
       });
 
@@ -80,6 +81,7 @@ describe('Pull requests workflow tests', () => {
         buildId: '1234',
         graviteeioVersion: '',
         isDryRun: false,
+        releasedTags: [],
         supportBranches,
       }).stringify();
 
