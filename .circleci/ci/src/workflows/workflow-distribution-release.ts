@@ -108,8 +108,8 @@ export class DistributionReleaseWorkflow {
     const releaseNoteApimJob = ReleaseNotesApimJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(releaseNoteApimJob);
 
-    // The two newest lines only: an older one is not deployed on SaaS any more.
-    const triggerSaas = triggersSaasDockerImages(environment.branch, environment.supportBranches);
+    // The two newest released lines only: an older one is not deployed on SaaS any more.
+    const triggerSaas = triggersSaasDockerImages(environment.branch, environment.releasedTags);
     const runTriggerSaasDockerImagesJob = TriggerSaasDockerImagesJob.create(environment, 'prod');
     if (triggerSaas) {
       dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
