@@ -53,10 +53,10 @@ const action = CI_ACTION ?? 'pull_requests';
  * action only.
  */
 const isBridgeRun = action === 'bridge_compatibility_tests';
-/** Only the newest lines trigger the SaaS Docker images pipeline, and which ones those are is a question for the remote. */
+/** Only the newest released lines trigger the SaaS Docker images pipeline, and which ones those are is a question for the remote. */
 const triggersSaas = (action === 'pull_requests' && isSupportBranch(CIRCLE_BRANCH)) || action === 'full_release';
-const releasedTags = isBridgeRun ? remoteTags() : Promise.resolve(undefined);
-const supportBranches = isBridgeRun || triggersSaas ? remoteSupportBranches() : Promise.resolve(undefined);
+const releasedTags = isBridgeRun || triggersSaas ? remoteTags() : Promise.resolve(undefined);
+const supportBranches = isBridgeRun ? remoteSupportBranches() : Promise.resolve(undefined);
 
 Promise.all([changed, releasedTags, supportBranches])
   .then(

@@ -85,7 +85,7 @@ describe('Azure Artifacts token', () => {
         changedFiles: [],
         graviteeioVersion: '4.2.0',
         dockerTagAsLatest: false,
-        supportBranches: ['4.2.x', '4.1.x'],
+        releasedTags: ['4.2.0', '4.1.0'],
       }),
       'maven-release': generateMavenReleaseConfig({
         ...baseEnvironment,
