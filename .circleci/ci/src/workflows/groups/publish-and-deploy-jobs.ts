@@ -50,8 +50,8 @@ export function publishAndDeployJobs(dynamicConfig: Config, environment: CircleC
     dynamicConfig.addJob(deployOnNextGenIntegrationJob);
   }
 
-  // Master and the two newest support lines only: nothing deploys an older line on SaaS.
-  const triggerSaas = triggersSaasDockerImages(environment.branch, environment.supportBranches);
+  // Master and the two newest released lines only: nothing deploys an older line on SaaS.
+  const triggerSaas = triggersSaasDockerImages(environment.branch, environment.releasedTags);
   const runTriggerSaasDockerImagesJob = TriggerSaasDockerImagesJob.create({ ...environment, isDryRun: false }, 'dev');
   if (triggerSaas) {
     dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
