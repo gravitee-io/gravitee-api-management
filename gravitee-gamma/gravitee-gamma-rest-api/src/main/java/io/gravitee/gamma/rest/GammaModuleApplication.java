@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest;
 
 import com.fasterxml.jackson.core.util.JacksonFeature;
 import io.gravitee.gamma.rest.resources.GammaRootResource;
+import io.gravitee.gamma.rest.resources.GammaTechnicalDomainExceptionMapper;
 import io.gravitee.gamma.rest.resources.GammaUIResource;
 import io.gravitee.gamma.rest.resources.OpenAPIResource;
 import io.gravitee.gamma.rest.resources.ParamExceptionMapper;
@@ -53,7 +54,6 @@ import io.gravitee.rest.api.management.rest.provider.NotAllowedExceptionMapper;
 import io.gravitee.rest.api.management.rest.provider.NotFoundDomainExceptionMapper;
 import io.gravitee.rest.api.management.rest.provider.NotFoundExceptionMapper;
 import io.gravitee.rest.api.management.rest.provider.PayloadInputBodyReader;
-import io.gravitee.rest.api.management.rest.provider.TechnicalDomainExceptionMapper;
 import io.gravitee.rest.api.management.rest.provider.ThrowableMapper;
 import io.gravitee.rest.api.management.rest.provider.ValidationDomainExceptionMapper;
 import io.gravitee.rest.api.rest.filter.GraviteeContextResponseFilter;
@@ -111,7 +111,7 @@ public class GammaModuleApplication extends ResourceConfig {
         register(ConflictDomainExceptionMapper.class);
         register(NotAllowedDomainExceptionMapper.class);
         register(NotFoundDomainExceptionMapper.class);
-        register(TechnicalDomainExceptionMapper.class);
+        register(GammaTechnicalDomainExceptionMapper.class);
         register(JsonMappingExceptionMapper.class);
         register(DashboardVersionConflictExceptionMapper.class);
 

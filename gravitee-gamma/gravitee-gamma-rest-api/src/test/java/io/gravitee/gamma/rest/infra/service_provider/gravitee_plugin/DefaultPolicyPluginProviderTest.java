@@ -26,6 +26,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.core.JsonPointer;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.definition.model.v4.ApiType;
@@ -55,6 +58,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.slf4j.LoggerFactory;
 
 class DefaultPolicyPluginProviderTest {
 
@@ -353,11 +357,22 @@ class DefaultPolicyPluginProviderTest {
             assertThat(provider.findResourceReferences("uninstalled")).isEmpty();
         }
 
+        /** Rethrown without logging: the REST layer answering the 500 logs it, once. */
         @Test
         void should_fail_on_a_schema_that_is_no_json() throws Exception {
             given_the_schema("not json");
-
-            assertThatThrownBy(() -> provider.findResourceReferences("guardrail-decision")).isInstanceOf(TechnicalDomainException.class);
+            var logger = (Logger) LoggerFactory.getLogger(DefaultPolicyPluginProvider.class);
+            var logs = new ListAppender<ILoggingEvent>();
+            logs.start();
+            logger.addAppender(logs);
+            try {
+                assertThatThrownBy(() -> provider.findResourceReferences("guardrail-decision")).isInstanceOf(
+                    TechnicalDomainException.class
+                );
+                assertThat(logs.list).as("logged by the provider").isEmpty();
+            } finally {
+                logger.detachAppender(logs);
+            }
         }
 
         @Test
