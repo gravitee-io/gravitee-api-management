@@ -93,10 +93,10 @@ export class FullReleaseWorkflow {
     const publishReleaseJob = PublishReleaseJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(publishReleaseJob);
 
-    // The two newest lines only: an older one is not deployed on SaaS any more. The line comes from
-    // the version, since a release can be started from any branch.
+    // Until two newer lines are released: an older one is not deployed on SaaS any more. The line comes
+    // from the version, since a release can be started from any branch.
     const { major, minor } = parse(environment.graviteeioVersion).version;
-    const triggerSaas = triggersSaasDockerImages(`${major}.${minor}.x`, environment.supportBranches);
+    const triggerSaas = triggersSaasDockerImages(`${major}.${minor}.x`, environment.releasedTags);
     const runTriggerSaasDockerImagesJob = TriggerSaasDockerImagesJob.create(environment, 'prod');
     if (triggerSaas) {
       dynamicConfig.addJob(runTriggerSaasDockerImagesJob);

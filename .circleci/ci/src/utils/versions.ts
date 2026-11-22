@@ -162,37 +162,34 @@ export function bridgeClientTags(version: string, supportBranches: string[] | un
   });
 }
 
-/** How many support lines, beside master, hand their images to the SaaS pipeline: the two newest. */
+/** How many newer released lines retire a support line from the SaaS pipeline. */
 const SAAS_SUPPORT_LINES = 2;
 
 /**
- * Whether a push to `branch` triggers the SaaS Docker images pipeline.
+ * Whether a pipeline for `branch` triggers the SaaS Docker images pipeline, for a push (dev) as for
+ * a release (prod).
  *
- * Master always does, and so do the two newest support lines; an older line still builds and
- * publishes, but nothing deploys it on SaaS any more. Read from the branches the remote carries
- * rather than from the tags, because a line counts from the moment its branch is cut: once
- * `4.14.x` exists, it and `4.13.x` trigger, and `4.12.x` stops — before `4.14.0` is released.
+ * Master always does. A support line does until two newer lines have been released; an older line
+ * still builds and publishes, but nothing deploys it on SaaS any more. Read from the tags rather than
+ * from the branches, because SaaS follows the public releases: cutting `4.14.x` at code freeze does
+ * not retire `4.12.x`, the `4.14.0` release does, and `4.14.x` triggers from its cut on.
  *
  * @param branch the branch the pipeline runs on
- * @param supportBranches the support branches the repository carries, which `index.ts` reads for the actions that need them
+ * @param releasedTags every tag the repository carries, which `index.ts` reads for the actions that need them
  */
-export function triggersSaasDockerImages(branch: string, supportBranches: string[] | undefined): boolean {
+export function triggersSaasDockerImages(branch: string, releasedTags: string[] | undefined): boolean {
   if (isMasterBranch(branch)) {
     return true;
   }
   if (!isSupportBranch(branch)) {
     return false;
   }
-  if (supportBranches === undefined) {
-    throw new Error('triggersSaasDockerImages - the support branches are missing; index.ts reads them for the actions that need them');
+  if (releasedTags === undefined) {
+    throw new Error('triggersSaasDockerImages - the released tags are missing; index.ts reads them for the actions that need them');
   }
 
-  const recentLines = [...new Set([...supportBranches, branch])]
-    .filter(isSupportBranch)
-    .map((supportBranch) => supportBranch.replace(/\.x$/, ''))
-    .sort(newestFirst)
-    .slice(0, SAAS_SUPPORT_LINES);
-  return recentLines.includes(branch.replace(/\.x$/, ''));
+  const line = branch.replace(/\.x$/, '');
+  return releasedLines(releasedTags).filter((released) => newestFirst(released, line) < 0).length < SAAS_SUPPORT_LINES;
 }
 
 export function validateGraviteeioVersion(graviteeioVersion: string) {
