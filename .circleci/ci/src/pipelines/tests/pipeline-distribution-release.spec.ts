@@ -31,7 +31,7 @@ describe('Distribution release tests', () => {
       tag: version,
       isDryRun: false,
       apimVersionPath: './src/pipelines/tests/resources/common/pom.xml',
-      supportBranches: ['4.13.x', '4.12.x'],
+      releasedTags: ['4.13.0', '4.12.0'],
     }).stringify();
 
   it('should refuse a core pin that is a SNAPSHOT', () => {
@@ -110,7 +110,7 @@ describe('Distribution release tests', () => {
         branch: '',
         isDryRun,
         dockerTagAsLatest,
-        supportBranches: ['4.2.x', '4.1.x'],
+        releasedTags: ['4.2.0', '4.1.0'],
       });
 
       const expected = fs.readFileSync(`./src/pipelines/tests/resources/distribution-release/${expectedResult}`, 'utf-8');
@@ -132,7 +132,7 @@ describe('Distribution release tests', () => {
         baseBranch: '4.2.x',
         isDryRun: false,
         apimVersionPath: './src/pipelines/tests/resources/common/pom-snapshot.xml',
-        supportBranches: ['4.2.x', '4.1.x'],
+        releasedTags: ['4.2.0', '4.1.0'],
       }).stringify();
 
     const scannedImagesOf = (version: string): string[] =>
@@ -178,7 +178,7 @@ describe('Distribution release tests', () => {
       baseBranch: '4.2.x',
       isDryRun: false,
       apimVersionPath: './src/pipelines/tests/resources/common/pom-snapshot.xml',
-      supportBranches: ['4.2.x', '4.1.x'],
+      releasedTags: ['4.2.0', '4.1.0'],
     }).stringify();
 
     expect(generated).toContain('"version":"4.2.3", "core_version":"4.2.0"');
@@ -197,7 +197,7 @@ describe('Distribution release tests', () => {
       baseBranch: 'master',
       isDryRun: false,
       apimVersionPath: './src/pipelines/tests/resources/common/pom-snapshot.xml',
-      supportBranches: ['4.2.x', '4.1.x'],
+      releasedTags: ['4.2.0', '4.1.0'],
     });
 
     const stringified = result.stringify();
@@ -208,7 +208,7 @@ describe('Distribution release tests', () => {
   });
 
   describe('SaaS triggers', () => {
-    const releaseConfigOf = (version: string, supportBranches: string[]): string =>
+    const releaseConfigOf = (version: string, releasedTags: string[]): string =>
       generateDistributionReleaseConfig({
         action: 'distribution_release',
         sha1: '784ff35ca',
@@ -221,11 +221,11 @@ describe('Distribution release tests', () => {
         baseBranch: 'master',
         isDryRun: false,
         apimVersionPath: './src/pipelines/tests/resources/common/pom-snapshot.xml',
-        supportBranches,
+        releasedTags,
       }).stringify();
 
     it('should trigger the SaaS pipeline for the chainguard flavor alone, on one of the two newest lines', () => {
-      const generated = releaseConfigOf('4.2.3', ['4.2.x', '4.1.x']);
+      const generated = releaseConfigOf('4.2.3', ['4.2.0', '4.1.0']);
 
       expect(generated.match(/os-distribution/g)).toHaveLength(1);
       expect(generated).toContain('"os-distribution":"chainguard"');
@@ -233,7 +233,11 @@ describe('Distribution release tests', () => {
     });
 
     it('should neither trigger nor wait on the SaaS pipelines for an older line', () => {
-      expect(releaseConfigOf('4.1.5', ['4.3.x', '4.2.x', '4.1.x'])).not.toContain('SaaS');
+      expect(releaseConfigOf('4.1.5', ['4.3.0', '4.2.0', '4.1.0'])).not.toContain('SaaS');
+    });
+
+    it('should keep triggering the SaaS pipeline for a line while the newer one has a branch but no release', () => {
+      expect(releaseConfigOf('4.1.5', ['4.2.0', '4.1.0', 'core_4.3.0'])).toContain('name: Trigger SaaS Chainguard Docker images creation');
     });
   });
 });
