@@ -29,11 +29,12 @@ import java.util.regex.Pattern;
  */
 public record SecretReference(String reference, String secretId) {
     /** Lets the gateway pick up a rotated value without a redeploy. */
-    static final String MANAGED_FLAGS = "&renewable=true&reloadOnChange=true";
+    private static final String MANAGED_FLAGS = "renewable=true&reloadOnChange=true";
 
     private static final String GRAVITEE_PROVIDER = "gravitee";
     private static final String EXPRESSION_PREFIX = "{#";
     private static final String ENV_ID = "envId=";
+    private static final String STORE_VALUE_KEY = "value";
     private static final int MAX_LENGTH = 2048;
     // The gateway's SecretURL trims every character up to U+0020, so a control character could hide a credential key from the check below.
     private static final Pattern WHITESPACE = Pattern.compile("[\\s\\p{Cc}\\p{Z}]");
@@ -69,7 +70,12 @@ public record SecretReference(String reference, String secretId) {
         if (!isPlainKey(key)) {
             throw invalidPath(field);
         }
-        if (key.contains("/") || reference.envIdParameters().size() != 1 || reference.graviteeEnvironmentId().isEmpty()) {
+        if (
+            key.contains("/") ||
+            !STORE_VALUE_KEY.equals(reference.secretKey()) ||
+            reference.envIdParameters().size() != 1 ||
+            reference.graviteeEnvironmentId().isEmpty()
+        ) {
             throw new InvalidCredentialException(
                 "The reference of " +
                     field +
@@ -98,6 +104,13 @@ public record SecretReference(String reference, String secretId) {
 
     private String graviteeKey() {
         return TRAILING_SLASHES.matcher(withoutQueryAndKey(reference.substring(reference.indexOf('/', 1) + 1))).replaceAll("");
+    }
+
+    private String secretKey() {
+        var query = reference.indexOf('?');
+        var path = query < 0 ? reference : reference.substring(0, query);
+        var key = path.lastIndexOf(':');
+        return key > path.lastIndexOf('/') ? path.substring(key + 1) : null;
     }
 
     String graviteeEnvironmentId() {
@@ -144,8 +157,10 @@ public record SecretReference(String reference, String secretId) {
         return reference.startsWith(EXPRESSION_PREFIX);
     }
 
+    /** Puts the flags first, in the order gravitee-service-secrets formats a spec: it looks an expression up by that exact text. */
     public static SecretReference managed(String path, String secretId) {
-        return new SecretReference(path + MANAGED_FLAGS, secretId);
+        var query = path.indexOf('?');
+        return new SecretReference(path.substring(0, query + 1) + MANAGED_FLAGS + "&" + path.substring(query + 1), secretId);
     }
 
     public boolean isManaged() {

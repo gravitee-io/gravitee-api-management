@@ -307,14 +307,14 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
                 Map.entry(
                     "clientId",
                     new SecretReference(
-                        "/gravitee/credential.credential-1.clientId:value?envId=" + ENV_ID + "&renewable=true&reloadOnChange=true",
+                        "/gravitee/credential.credential-1.clientId:value?renewable=true&reloadOnChange=true&envId=" + ENV_ID,
                         "secret-1"
                     )
                 ),
                 Map.entry(
                     "clientSecret",
                     new SecretReference(
-                        "/gravitee/credential.credential-1.clientSecret:value?envId=" + ENV_ID + "&renewable=true&reloadOnChange=true",
+                        "/gravitee/credential.credential-1.clientSecret:value?renewable=true&reloadOnChange=true&envId=" + ENV_ID,
                         "secret-2"
                     )
                 )
