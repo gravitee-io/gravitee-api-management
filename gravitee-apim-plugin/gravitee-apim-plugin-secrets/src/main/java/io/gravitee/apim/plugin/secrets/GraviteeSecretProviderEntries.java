@@ -36,8 +36,20 @@ final class GraviteeSecretProviderEntries {
         Map<String, Object> secrets = ConfigHelper.removePrefix(EnvironmentUtils.getAllProperties(environment), SECRETS);
         for (int index = 0; secrets.containsKey(entry(index) + ".plugin"); index++) {
             Map<String, Object> entry = ConfigHelper.removePrefix(secrets, entry(index));
-            String id = ConfigHelper.getProperty(entry, "id", String.class, GraviteeSecretProvider.ID);
-            if (isEnabledGraviteeEntry(entry) && !GraviteeSecretProvider.ID.equals(id)) {
+            if (!isGraviteeEntry(entry)) {
+                continue;
+            }
+            String id;
+            try {
+                if (!isEnabled(entry)) {
+                    continue;
+                }
+                id = ConfigHelper.getProperty(entry, "id", String.class, GraviteeSecretProvider.ID);
+            } catch (RuntimeException e) {
+                // A bean that throws here stops the gateway from booting, so an unreadable entry only refuses the provider.
+                return Optional.of("Secret provider entry " + SECRETS + "." + entry(index) + " cannot be read: " + e.getMessage());
+            }
+            if (!GraviteeSecretProvider.ID.equals(id)) {
                 return Optional.of(
                     "Secret provider entry " +
                         SECRETS +
@@ -54,11 +66,12 @@ final class GraviteeSecretProviderEntries {
         return Optional.empty();
     }
 
-    private static boolean isEnabledGraviteeEntry(Map<String, Object> entry) {
-        return (
-            GraviteeSecretProvider.ID.equals(ConfigHelper.getProperty(entry, "plugin", String.class, null)) &&
-            ConfigHelper.getProperty(entry, "configuration." + GraviteeSecretManagerConfiguration.ENABLED_PROPERTY, Boolean.class, true)
-        );
+    private static boolean isGraviteeEntry(Map<String, Object> entry) {
+        return GraviteeSecretProvider.ID.equals(String.valueOf(entry.get("plugin")));
+    }
+
+    private static boolean isEnabled(Map<String, Object> entry) {
+        return ConfigHelper.getProperty(entry, "configuration." + GraviteeSecretManagerConfiguration.ENABLED_PROPERTY, Boolean.class, true);
     }
 
     private static String entry(int index) {

@@ -79,6 +79,22 @@ class GraviteeSecretProviderEntriesTest {
         assertThat(misconfiguration()).isEmpty();
     }
 
+    @Test
+    void should_ignore_the_id_of_an_entry_of_another_plugin_whatever_its_type() {
+        gravitee.put("api.secrets.providers[0].plugin", "vault");
+        gravitee.put("api.secrets.providers[0].id", 2024);
+
+        assertThat(misconfiguration()).isEmpty();
+    }
+
+    @Test
+    void should_refuse_a_gravitee_entry_it_cannot_read_rather_than_throw() {
+        gravitee.put("api.secrets.providers[0].plugin", "gravitee");
+        gravitee.put("api.secrets.providers[0].id", 2024);
+
+        assertThat(misconfiguration()).hasValueSatisfying(reason -> assertThat(reason).contains("api.secrets.providers[0]"));
+    }
+
     private Optional<String> misconfiguration() {
         var environment = new StandardEnvironment();
         environment.getPropertySources().addFirst(new MapPropertySource("gravitee", gravitee));
