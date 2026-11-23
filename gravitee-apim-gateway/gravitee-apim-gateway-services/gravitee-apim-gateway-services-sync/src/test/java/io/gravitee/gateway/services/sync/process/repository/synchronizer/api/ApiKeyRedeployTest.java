@@ -22,7 +22,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.api.service.Subscription;
-import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.handlers.api.services.ApiKeyCacheService;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiKeyDeployer;
@@ -65,7 +64,7 @@ class ApiKeyRedeployTest {
     @BeforeEach
     void setUp() {
         appender = new ApiKeyAppender(apiKeyRepository, new ApiKeyMapper(), 100, 900);
-        apiKeyService = new ApiKeyCacheService(mock(ApiProductRegistry.class));
+        apiKeyService = new ApiKeyCacheService();
         deployer = new ApiKeyDeployer(apiKeyService, new NoopDistributedSyncService());
     }
 

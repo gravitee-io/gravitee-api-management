@@ -245,81 +245,6 @@ class GenerateApiKeyDomainServiceTest {
         }
 
         @Test
-<<<<<<< HEAD
-=======
-        void keep_subscriptions_attached_to_the_shared_key_after_it_was_read() {
-            // Given another Management API node attached SUBSCRIPTION_ID_2 after this node read the shared key
-            var sharedKey = ApiKeyFixtures.anApiKey()
-                .toBuilder()
-                .id("shared-key")
-                .applicationId(APPLICATION_ID)
-                .subscriptions(List.of("seed-subscription", SUBSCRIPTION_ID_2))
-                .key("shared-key-value")
-                .build();
-            givenApiKeys(sharedKey);
-            var keyAsReadBeforeTheOtherNodeWrote = sharedKey.toBuilder().subscriptions(List.of("seed-subscription")).build();
-            var subscription = SUBSCRIPTION_1.toBuilder().applicationId(APPLICATION_SHARED.getId()).build();
-
-            // When
-            var result = serviceReading(keyAsReadBeforeTheOtherNodeWrote).generate(subscription, AUDIT_INFO, null);
-
-            // Then the stored key and the returned one carry the link written by the other node
-            assertThat(apiKeyCrudService.storage())
-                .singleElement()
-                .satisfies(key ->
-                    assertThat(key.getSubscriptions()).containsExactlyInAnyOrder("seed-subscription", SUBSCRIPTION_ID_2, SUBSCRIPTION_ID_1)
-                );
-            assertThat(result.getId()).isEqualTo("shared-key");
-            assertThat(result.getSubscriptions()).containsExactlyInAnyOrder("seed-subscription", SUBSCRIPTION_ID_2, SUBSCRIPTION_ID_1);
-        }
-
-        @Test
-        void move_the_updatedAt_of_the_shared_key_when_attaching_a_subscription() {
-            // Given a shared key last changed long ago: gateways only fetch the keys whose updatedAt moved since their last sync
-            var sharedKey = ApiKeyFixtures.anApiKey()
-                .toBuilder()
-                .id("shared-key")
-                .applicationId(APPLICATION_ID)
-                .subscriptions(List.of(SUBSCRIPTION_ID_2))
-                .build();
-            givenApiKeys(sharedKey);
-            var subscription = SUBSCRIPTION_1.toBuilder().applicationId(APPLICATION_SHARED.getId()).build();
-
-            // When
-            var result = service.generate(subscription, AUDIT_INFO, null);
-
-            // Then
-            var now = INSTANT_NOW.atZone(ZoneId.systemDefault());
-            assertThat(sharedKey.getUpdatedAt()).isBefore(now);
-            assertThat(apiKeyCrudService.storage())
-                .singleElement()
-                .satisfies(key -> assertThat(key.getUpdatedAt()).isEqualTo(now));
-            assertThat(result.getUpdatedAt()).isEqualTo(now);
-        }
-
-        @Test
-        void attach_the_subscription_to_a_shared_key_stored_without_a_list_of_subscriptions() {
-            // Given a shared key stored with no list of subscriptions, which the repositories treat as an empty one
-            var sharedKey = ApiKeyFixtures.anApiKey()
-                .toBuilder()
-                .id("shared-key")
-                .applicationId(APPLICATION_ID)
-                .subscriptions(null)
-                .build();
-            givenApiKeys(sharedKey);
-            var subscription = SUBSCRIPTION_1.toBuilder().applicationId(APPLICATION_SHARED.getId()).build();
-
-            // When
-            var result = service.generate(subscription, AUDIT_INFO, null);
-
-            // Then
-            assertThat(result.getId()).isEqualTo("shared-key");
-            assertThat(apiKeyCrudService.storage())
-                .singleElement()
-                .satisfies(key -> assertThat(key.getSubscriptions()).containsExactly(SUBSCRIPTION_ID_1));
-        }
-
-        @Test
         void attach_subscription_to_the_previous_and_the_renewed_key_during_the_renewal_overlap() {
             // Given a renewed shared key: the previous key still works for 2 hours, an older one was revoked
             var previousKey = ApiKeyFixtures.anApiKey()
@@ -445,7 +370,6 @@ class GenerateApiKeyDomainServiceTest {
         }
 
         @Test
->>>>>>> 5547546 (fix: keep active shared key when inactive one is redeployed and skip revoked keys when attaching shared subscription)
         void generate_new_key_when_no_key_exists() {
             // Given
             var subscription = SUBSCRIPTION_1.toBuilder().applicationId(APPLICATION_SHARED.getId()).build();

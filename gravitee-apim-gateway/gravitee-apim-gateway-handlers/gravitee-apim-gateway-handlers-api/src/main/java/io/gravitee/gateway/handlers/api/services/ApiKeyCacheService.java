@@ -80,41 +80,30 @@ public class ApiKeyCacheService implements ApiKeyService {
     @Override
     public void unregister(final ApiKey apiKey) {
         CacheKey cacheKey = buildCacheKey(apiKey);
-<<<<<<< HEAD
-        log.debug(
-            "Unload inactive api-key [id: {}] [api: {}] [plan: {}] [app: {}]",
-            apiKey.getId(),
-            apiKey.getApi(),
-            apiKey.getPlan(),
-            apiKey.getApplication()
-        );
-        if (cacheApiKeys.remove(cacheKey) != null) {
-=======
-        // The cache is keyed by scope and key value, so two records can share an entry, and a revoked duplicate must leave
+        // The cache is keyed by API and key value, so two records can share an entry, and a revoked duplicate must leave
         // the active one in place. The cached record itself is evicted through any of its subscriptions: a revoke or pause
         // belongs to the record and may reach this gateway through a subscription other than the cached one. The
-        // synchronizers drop a record's inactive mapping on a scope where it has an active one. A null id matches a null id.
+        // synchronizers drop a record's inactive mapping on an API where it has an active one. A null id matches a null id.
         // Checked and removed together so a concurrent register is not lost.
         cacheApiKeys.computeIfPresent(cacheKey, (key, cached) -> {
             if (!Objects.equals(cached.getId(), apiKey.getId())) {
                 log.debug(
-                    "Keep api-key [id: {}] [subscription: {}] [scope: {}]: not evicted by [id: {}] [subscription: {}]",
+                    "Keep api-key [id: {}] [subscription: {}] [api: {}]: not evicted by [id: {}] [subscription: {}]",
                     cached.getId(),
                     cached.getSubscription(),
-                    scopeOf(cached),
+                    cached.getApi(),
                     apiKey.getId(),
                     apiKey.getSubscription()
                 );
                 return cached;
             }
             log.debug(
-                "Unload inactive api-key [id: {}] [scope: {}] [plan: {}] [app: {}]",
+                "Unload inactive api-key [id: {}] [api: {}] [plan: {}] [app: {}]",
                 apiKey.getId(),
-                scopeOf(apiKey),
+                apiKey.getApi(),
                 apiKey.getPlan(),
                 apiKey.getApplication()
             );
->>>>>>> 5547546 (fix: keep active shared key when inactive one is redeployed and skip revoked keys when attaching shared subscription)
             cacheMd5ApiKeys.remove(buildMd5CacheKey(apiKey));
             cacheApiKeysByApi.computeIfPresent(apiKey.getApi(), (api, keysByApi) -> {
                 keysByApi.remove(apiKey.getKey());

@@ -354,21 +354,6 @@ public class ApiKeyCacheServiceTest {
         }
 
         @Test
-        void should_keep_a_product_key_when_a_revoked_duplicate_is_loaded_for_the_same_product() {
-            when(apiProductRegistry.getApiProductIdsForApi(MEMBER_API_ID)).thenReturn(Set.of(PRODUCT_ID));
-            ApiKey active = buildApiKey(PRODUCT_ID, "my-key", true, "active-key", "product-subscription");
-            ApiKey revoked = buildRevokedApiKey(PRODUCT_ID, "my-key", "revoked-key", "product-subscription");
-
-            apiKeyService.register(active);
-            apiKeyService.register(revoked);
-
-            assertCached(active);
-            Optional<ApiKey> fromMember = apiKeyService.getByApiAndKey(MEMBER_API_ID, "my-key");
-            assertThat(fromMember).isPresent();
-            assertThat(fromMember.get()).isEqualTo(active);
-        }
-
-        @Test
         void should_keep_the_key_that_replaced_another_active_key_with_the_same_value() {
             ApiKey first = buildApiKey("orders", "my-key", true, "first-key", "orders-subscription");
             ApiKey second = buildApiKey("orders", "my-key", true, "second-key", "orders-subscription");
@@ -404,7 +389,7 @@ public class ApiKeyCacheServiceTest {
 
             assertCached(kept);
             assertCached(active);
-            assertThat(cacheApiKeysByScope.get("orders").size()).isEqualTo(2);
+            assertThat(cacheApiKeysByApi.get("orders").size()).isEqualTo(2);
         }
 
         @Test
@@ -534,7 +519,7 @@ public class ApiKeyCacheServiceTest {
     private void assertCached(ApiKey apiKey) {
         assertThat(cacheApiKeys.get(apiKeyService.buildCacheKey(apiKey))).isEqualTo(apiKey);
         assertThat(cacheMd5ApiKeys.get(apiKeyService.buildMd5CacheKey(apiKey))).isEqualTo(apiKey);
-        Set<String> keys = cacheApiKeysByScope.get(apiKey.getApi());
+        Set<String> keys = cacheApiKeysByApi.get(apiKey.getApi());
         assertThat(keys != null && keys.contains(apiKey.getKey())).isTrue();
         assertThat(apiKeyService.getByApiAndKey(apiKey.getApi(), apiKey.getKey()).orElse(null)).isEqualTo(apiKey);
         assertThat(
@@ -545,7 +530,7 @@ public class ApiKeyCacheServiceTest {
     private void assertAbsent(ApiKey apiKey) {
         assertThat(cacheApiKeys.get(apiKeyService.buildCacheKey(apiKey))).isNull();
         assertThat(cacheMd5ApiKeys.get(apiKeyService.buildMd5CacheKey(apiKey))).isNull();
-        Set<String> keys = cacheApiKeysByScope.get(apiKey.getApi());
+        Set<String> keys = cacheApiKeysByApi.get(apiKey.getApi());
         assertThat(keys == null || !keys.contains(apiKey.getKey())).isTrue();
         assertThat(apiKeyService.getByApiAndKey(apiKey.getApi(), apiKey.getKey())).isEmpty();
         assertThat(apiKeyService.getByApiAndMd5Key(apiKey.getApi(), DigestUtils.md5DigestAsHex(apiKey.getKey().getBytes()))).isEmpty();
