@@ -26,11 +26,11 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalFixtures;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
-import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.infra.adapter.PortalAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalRepository;
+import io.gravitee.repository.management.model.Portal;
 import java.util.Optional;
 import lombok.SneakyThrows;
 import org.assertj.core.api.SoftAssertions;
@@ -93,7 +93,7 @@ class PortalCrudServiceImplTest {
             var environmentId = "environment-id";
             when(repository.findByIdAndEnvironmentId(portalId.toString(), environmentId)).thenReturn(
                 Optional.of(
-                    io.gravitee.repository.management.model.Portal.builder()
+                    Portal.builder()
                         .id(portalId.toString())
                         .environmentId(environmentId)
                         .organizationId("organization-id")
@@ -140,13 +140,13 @@ class PortalCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_update_existing_portal() {
-            Portal base = PortalFixtures.aPortal();
-            Portal portal = PortalFixtures.aPortal(base.getId(), base.getEnvironmentId(), base.getOrganizationId(), "Renamed");
+            var base = PortalFixtures.aPortal();
+            var portal = PortalFixtures.aPortal(base.getId(), base.getEnvironmentId(), base.getOrganizationId(), "Renamed");
             when(repository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
             service.update(portal);
 
-            var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.Portal.class);
+            var captor = ArgumentCaptor.forClass(Portal.class);
             verify(repository).update(captor.capture());
             assertThat(captor.getValue()).isEqualTo(PortalAdapter.INSTANCE.toRepository(portal));
             assertThat(captor.getValue().getName()).isEqualTo("Renamed");
@@ -173,6 +173,56 @@ class PortalCrudServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalDomainException.class)
                 .hasMessage("An error occurred while trying to update a Portal with id: " + portal.getId());
+        }
+    }
+
+    @Nested
+    class UpdateName {
+
+        private static final String ENVIRONMENT = "environment-id";
+        private static final String NAME = "Renamed";
+
+        @Test
+        void should_return_the_updated_portal_as_a_domain_model() throws TechnicalException {
+            var portalId = PortalFixtures.PORTAL_ID;
+            var stored = Portal.builder()
+                .id(portalId.toString())
+                .environmentId(ENVIRONMENT)
+                .organizationId("organization-id")
+                .name(NAME)
+                .url("https://portal.example.com/next")
+                .defaultPortal(true)
+                .activeThemeId("theme-id")
+                .build();
+            when(repository.updateName(portalId.toString(), ENVIRONMENT, NAME)).thenReturn(Optional.of(stored));
+
+            assertThat(service.updateName(portalId, ENVIRONMENT, NAME)).hasValueSatisfying(result -> {
+                assertThat(result.getId()).isEqualTo(portalId);
+                assertThat(result.getEnvironmentId()).isEqualTo(ENVIRONMENT);
+                assertThat(result.getName()).isEqualTo(NAME);
+                assertThat(result.getUrl().toString()).isEqualTo(stored.getUrl());
+                assertThat(result.isDefault()).isTrue();
+                assertThat(result.getActiveThemeId()).isEqualTo("theme-id");
+            });
+        }
+
+        @Test
+        void should_return_empty_when_the_portal_no_longer_exists() throws TechnicalException {
+            var portalId = PortalFixtures.PORTAL_ID;
+            when(repository.updateName(portalId.toString(), ENVIRONMENT, NAME)).thenReturn(Optional.empty());
+
+            assertThat(service.updateName(portalId, ENVIRONMENT, NAME)).isEmpty();
+        }
+
+        @Test
+        void should_translate_a_repository_failure_and_keep_the_cause() throws TechnicalException {
+            var portalId = PortalFixtures.PORTAL_ID;
+            var failure = new TechnicalException("Database unavailable");
+            when(repository.updateName(portalId.toString(), ENVIRONMENT, NAME)).thenThrow(failure);
+
+            assertThatThrownBy(() -> service.updateName(portalId, ENVIRONMENT, NAME))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasCause(failure);
         }
     }
 
@@ -208,7 +258,7 @@ class PortalCrudServiceImplTest {
         void should_return_the_default_portal_and_adapt_it() {
             when(repository.findDefaultByEnvironmentId("environment-id")).thenReturn(
                 Optional.of(
-                    io.gravitee.repository.management.model.Portal.builder()
+                    Portal.builder()
                         .id(PortalFixtures.PORTAL_ID.toString())
                         .environmentId("environment-id")
                         .organizationId("organization-id")

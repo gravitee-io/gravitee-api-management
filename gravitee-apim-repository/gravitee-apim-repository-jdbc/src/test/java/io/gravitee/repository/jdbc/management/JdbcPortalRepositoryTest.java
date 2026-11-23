@@ -16,9 +16,11 @@
 package io.gravitee.repository.jdbc.management;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -27,6 +29,7 @@ import java.lang.reflect.Field;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -43,6 +46,16 @@ class JdbcPortalRepositoryTest {
         field.setAccessible(true);
         field.set(repository, jdbcTemplate);
         field.setAccessible(false);
+    }
+
+    @Test
+    void should_wrap_a_name_update_failure_and_keep_the_cause() {
+        var failure = new DataAccessResourceFailureException("Database unavailable");
+        when(jdbcTemplate.update(anyString(), eq("Renamed"), eq("portal1"), eq("env1"))).thenThrow(failure);
+
+        assertThatThrownBy(() -> repository.updateName("portal1", "env1", "Renamed"))
+            .isInstanceOf(TechnicalException.class)
+            .hasCause(failure);
     }
 
     @Test

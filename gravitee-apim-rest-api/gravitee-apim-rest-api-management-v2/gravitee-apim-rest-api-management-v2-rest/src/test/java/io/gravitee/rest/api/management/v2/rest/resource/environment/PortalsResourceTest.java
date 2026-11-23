@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
+import static io.gravitee.apim.core.portal.model.Portal.of;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static io.gravitee.common.http.HttpStatusCode.TEMPORARY_REDIRECT_307;
@@ -26,7 +27,6 @@ import fixtures.core.model.LicenseFixtures;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
-import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
@@ -37,6 +37,8 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.core.theme.model.ThemeType;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.Portal;
 import io.gravitee.rest.api.management.v2.rest.model.PortalQuota;
 import io.gravitee.rest.api.management.v2.rest.model.PortalsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.PortalsStats;
@@ -46,6 +48,8 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Base64;
 import java.util.List;
@@ -55,6 +59,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class PortalsResourceTest extends AbstractResourceTest {
 
@@ -148,9 +155,7 @@ class PortalsResourceTest extends AbstractResourceTest {
 
             assertThat(response.getStatus()).isEqualTo(OK_200);
             var body = response.readEntity(PortalsResponse.class);
-            assertThat(body.getData())
-                .extracting(io.gravitee.rest.api.management.v2.rest.model.Portal::getName)
-                .containsExactly("Partners");
+            assertThat(body.getData()).extracting(Portal::getName).containsExactly("Partners");
             assertThat(body.getPagination().getTotalCount()).isEqualTo(1);
         }
 
@@ -160,9 +165,7 @@ class PortalsResourceTest extends AbstractResourceTest {
 
             assertThat(response.getStatus()).isEqualTo(OK_200);
             var body = response.readEntity(PortalsResponse.class);
-            assertThat(body.getData())
-                .extracting(io.gravitee.rest.api.management.v2.rest.model.Portal::getName)
-                .containsExactly("Partners");
+            assertThat(body.getData()).extracting(Portal::getName).containsExactly("Partners");
             assertThat(body.getPagination().getTotalCount()).isEqualTo(2);
             assertThat(body.getLinks()).isNotNull();
         }
@@ -196,7 +199,7 @@ class PortalsResourceTest extends AbstractResourceTest {
             var response = rootTarget(PARTNERS_PORTAL_ID.toString()).request().get();
 
             assertThat(response.getStatus()).isEqualTo(OK_200);
-            var body = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Portal.class);
+            var body = response.readEntity(Portal.class);
             assertThat(body.getId()).isEqualTo(PARTNERS_PORTAL_ID.id());
             assertThat(body.getName()).isEqualTo("Partners");
             assertThat(body.getUrl()).isEqualTo("https://partners.acme.io");
@@ -238,6 +241,147 @@ class PortalsResourceTest extends AbstractResourceTest {
             shouldReturn403(RolePermission.ENVIRONMENT_DOCUMENTATION, ENVIRONMENT, RolePermissionAction.READ, () ->
                 rootTarget(PARTNERS_PORTAL_ID.toString()).request().get()
             );
+        }
+    }
+
+    @Nested
+    class RenamePortal {
+
+        @Test
+        void should_rename_the_default_portal_and_return_the_new_name_on_read() {
+            try (
+                var response = patch(
+                    DEFAULT_PORTAL_ID,
+                    """
+                    {"name":"Developer Hub"}
+                    """
+                )
+            ) {
+                assertThat(response.getStatus()).isEqualTo(OK_200);
+                var renamed = response.readEntity(Portal.class);
+                assertThat(renamed.getId()).isEqualTo(DEFAULT_PORTAL_ID.id());
+                assertThat(renamed.getName()).isEqualTo("Developer Hub");
+                assertThat(renamed.getDefault()).isTrue();
+                assertThat(renamed.getUrl()).isEqualTo("https://portal.acme.io/next");
+            }
+
+            var detail = rootTarget(DEFAULT_PORTAL_ID.toString()).request().get(Portal.class);
+            assertThat(detail.getName()).isEqualTo("Developer Hub");
+            var list = rootTarget().queryParam("q", "developer hub").request().get(PortalsResponse.class);
+            assertThat(list.getData()).extracting(Portal::getName).containsExactly("Developer Hub");
+        }
+
+        @Test
+        void should_trim_the_name_and_allow_the_same_name_in_another_environment() {
+            try (
+                var response = patch(
+                    PARTNERS_PORTAL_ID,
+                    """
+                    {"name":"\\u00A0Elsewhere\\u200B"}
+                    """
+                )
+            ) {
+                assertThat(response.getStatus()).isEqualTo(OK_200);
+                var renamed = response.readEntity(Portal.class);
+                assertThat(renamed.getName()).isEqualTo("Elsewhere");
+                assertThat(renamed.getDefault()).isFalse();
+                assertThat(renamed.getUrl()).isEqualTo("https://partners.acme.io");
+                assertThat(renamed.getPublishedApisCount()).isEqualTo(2);
+            }
+        }
+
+        @ParameterizedTest
+        @CsvSource(delimiter = '|', value = { "{}|Partners", "{\"name\":\"Partners\"}|Partners", "{\"name\":\"PARTNERS\"}|PARTNERS" })
+        void should_allow_an_omitted_name_or_the_portals_own_name(String body, String expectedName) {
+            try (var response = patch(PARTNERS_PORTAL_ID, body)) {
+                assertThat(response.getStatus()).isEqualTo(OK_200);
+                var portal = response.readEntity(Portal.class);
+                assertThat(portal.getName()).isEqualTo(expectedName);
+            }
+        }
+
+        @ParameterizedTest
+        @ValueSource(
+            strings = {
+                "",
+                "null",
+                "[]",
+                "{\"name\":null}",
+                "{\"name\":\"\"}",
+                "{\"name\":\"   \"}",
+                "{\"name\":\"\\u00A0\\u200B\"}",
+                "{\"name\":7}",
+                "{\"url\":\"https://example.org\"}",
+                "{\"name\":\"Renamed\",\"url\":\"https://example.org\"}",
+            }
+        )
+        void should_reject_invalid_payloads(String body) {
+            try (var response = patch(PARTNERS_PORTAL_ID, body)) {
+                assertThat(response.getStatus()).isEqualTo(400);
+            }
+            var unchanged = portalCrudService.findByIdAndEnvironmentId(PARTNERS_PORTAL_ID, ENVIRONMENT).orElseThrow();
+            assertThat(unchanged.getName()).isEqualTo("Partners");
+        }
+
+        @ParameterizedTest
+        @CsvSource(
+            delimiter = '|',
+            value = {
+                "Developer Portal|DEVELOPER PORTAL",
+                "Developer Portal|' DEVELOPER PORTAL '",
+                "' Developer Portal '|DEVELOPER PORTAL",
+                "Developer Portal|'DEVELOPER PORTAL\u00A0'",
+                "'Developer Portal\u00A0'|DEVELOPER PORTAL",
+                "Developer Portal|'\u200BDEVELOPER PORTAL'",
+                "'\u200BDeveloper Portal'|DEVELOPER PORTAL",
+            }
+        )
+        void should_return_the_name_conflict_code_ignoring_case_and_surrounding_whitespace(String existingName, String requestedName) {
+            portalCrudService.updateName(DEFAULT_PORTAL_ID, ENVIRONMENT, existingName);
+            try (
+                var response = patch(
+                    PARTNERS_PORTAL_ID,
+                    """
+                    {"name":"%s"}
+                    """.formatted(requestedName)
+                )
+            ) {
+                assertThat(response.getStatus()).isEqualTo(409);
+                assertThat(response.readEntity(Error.class).getTechnicalCode()).isEqualTo("portal.name.exists");
+            }
+        }
+
+        @Test
+        void should_return_404_for_unknown_and_foreign_portals() {
+            var foreignId = portalCrudService.findByEnvironmentId("other-env").getFirst().getId();
+            for (var id : List.of(foreignId, PortalId.random())) {
+                try (
+                    var response = patch(
+                        id,
+                        """
+                        {"name":"New name"}
+                        """
+                    )
+                ) {
+                    assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+                }
+            }
+        }
+
+        @Test
+        void should_require_update_permission() {
+            shouldReturn403(RolePermission.ENVIRONMENT_DOCUMENTATION, ENVIRONMENT, RolePermissionAction.UPDATE, () ->
+                patch(
+                    PARTNERS_PORTAL_ID,
+                    """
+                    {"name":"New name"}
+                    """
+                )
+            );
+        }
+
+        private Response patch(PortalId portalId, String body) {
+            return rootTarget(portalId.toString()).request().method("PATCH", Entity.json(body));
         }
     }
 
@@ -368,16 +512,13 @@ class PortalsResourceTest extends AbstractResourceTest {
     }
 
     @SneakyThrows
-    private static Portal portal(PortalId id, String environmentId, String name, boolean defaultPortal, String url) {
-        return Portal.of(
-            id,
-            environmentId,
-            ORGANIZATION,
-            name,
-            PortalNavigationStructure.empty(),
-            null,
-            defaultPortal,
-            URI.create(url).toURL()
-        );
+    private static io.gravitee.apim.core.portal.model.Portal portal(
+        PortalId id,
+        String environmentId,
+        String name,
+        boolean defaultPortal,
+        String url
+    ) {
+        return of(id, environmentId, ORGANIZATION, name, PortalNavigationStructure.empty(), null, defaultPortal, URI.create(url).toURL());
     }
 }

@@ -64,6 +64,15 @@ public class PortalCrudServiceImpl implements PortalCrudService {
     }
 
     @Override
+    public Optional<Portal> updateName(PortalId portalId, String environmentId, String name) {
+        try {
+            return portalRepository.updateName(portalId.toString(), environmentId, name).map(portalAdapter::toEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("Failed to update the name of portal " + portalId, e);
+        }
+    }
+
+    @Override
     public Optional<Portal> findByIdAndEnvironmentId(PortalId portalId, String environmentId) {
         try {
             return portalRepository.findByIdAndEnvironmentId(portalId.toString(), environmentId).map(portalAdapter::toEntity);

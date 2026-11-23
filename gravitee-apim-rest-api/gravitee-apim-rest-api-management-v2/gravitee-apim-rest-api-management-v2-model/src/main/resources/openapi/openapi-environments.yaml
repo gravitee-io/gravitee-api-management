@@ -1248,7 +1248,11 @@ paths:
       summary: Update a portal
       description: |-
         User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
-        Changes only the fields sent; a field left out keeps its value.
+        Changes the name without changing the portal URL. Omitting the name or submitting the same valid name
+        leaves the portal unchanged. Only the name field is accepted in the request body.
+
+        This operation checks for duplicate names before saving. Concurrent writes can still create duplicates.
+        For a portal managed by the Automation API, a later apply can restore the name from its declaration.
       operationId: updatePortal
       requestBody:
         content:
@@ -1276,7 +1280,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "409":
-          description: Another portal of the environment already has this name. `technicalCode` is `portal.name.exists`.
+          description: |-
+            The requested change conflicts with another portal in the same environment. The comparison ignores
+            case and strips surrounding whitespace, Unicode separators, and Unicode format characters from both names.
+            The technical code is portal.name.exists.
           content:
             application/json:
               schema:
@@ -4217,7 +4224,11 @@ components:
         name:
           type: string
           minLength: 1
-          description: The name of the portal, unique in the environment
+          maxLength: 256
+          description: |-
+            The portal display name. It must contain a character other than whitespace, a Unicode separator,
+            or a Unicode format character. The supplied value cannot exceed 256 UTF-16 code units.
+            Surrounding whitespace, Unicode separators, and Unicode format characters are removed before saving.
           example: Partners Portal
         url:
           type: string
@@ -4231,12 +4242,17 @@ components:
       required: [ name ]
     UpdatePortal:
       type: object
-      description: The portal fields to change. A field left out keeps its value.
+      description: The portal fields to change. An empty object leaves the portal unchanged.
+      additionalProperties: false
       properties:
         name:
           type: string
           minLength: 1
-          description: The new name of the portal, unique in the environment
+          maxLength: 256
+          description: |-
+            The portal display name. It must contain a character other than whitespace, a Unicode separator,
+            or a Unicode format character. The supplied value cannot exceed 256 UTF-16 code units.
+            Surrounding whitespace, Unicode separators, and Unicode format characters are removed before saving.
           example: Partners Portal
     PortalQuota:
       type: object

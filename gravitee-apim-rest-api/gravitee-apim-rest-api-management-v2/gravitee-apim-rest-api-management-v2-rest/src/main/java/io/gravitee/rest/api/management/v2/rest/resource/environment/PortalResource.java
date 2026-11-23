@@ -15,12 +15,16 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal.model.PortalLogo;
 import io.gravitee.apim.core.portal.use_case.GetPortalLogoUseCase;
 import io.gravitee.apim.core.portal.use_case.GetPortalSummaryUseCase;
+import io.gravitee.apim.core.portal.use_case.RenamePortalUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalMapper;
 import io.gravitee.rest.api.management.v2.rest.model.Portal;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePortal;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -28,7 +32,9 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -57,6 +63,9 @@ public class PortalResource extends AbstractResource {
     @Inject
     private GetPortalLogoUseCase getPortalLogoUseCase;
 
+    @Inject
+    private RenamePortalUseCase renamePortalUseCase;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ) })
@@ -65,6 +74,37 @@ public class PortalResource extends AbstractResource {
             new GetPortalSummaryUseCase.Input(GraviteeContext.getCurrentEnvironment(), PortalMapper.INSTANCE.toPortalId(portalId))
         );
         return PortalMapper.INSTANCE.map(output.portal(), uriInfo);
+    }
+
+    @PATCH
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+    public Portal updatePortal(@PathParam("portalId") String portalId, JsonNode body) {
+        var update = parsePortalUpdate(body);
+        var summary = renamePortalUseCase.execute(
+            new RenamePortalUseCase.Input(
+                GraviteeContext.getCurrentEnvironment(),
+                PortalMapper.INSTANCE.toPortalId(portalId),
+                update.getName()
+            )
+        );
+        return PortalMapper.INSTANCE.map(summary, uriInfo);
+    }
+
+    private static UpdatePortal parsePortalUpdate(JsonNode body) {
+        if (body == null || !body.isObject()) {
+            throw new ValidationDomainException("A portal update body must be a JSON object");
+        }
+        var update = new UpdatePortal();
+        if (body.isEmpty()) {
+            return update;
+        }
+        var name = body.get("name");
+        if (body.size() != 1 || name == null || !name.isTextual()) {
+            throw new ValidationDomainException("Only a string name may be supplied");
+        }
+        return update.name(name.textValue());
     }
 
     @GET
