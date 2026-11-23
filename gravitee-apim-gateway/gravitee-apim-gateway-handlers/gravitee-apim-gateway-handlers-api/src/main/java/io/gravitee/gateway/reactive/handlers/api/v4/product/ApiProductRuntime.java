@@ -19,6 +19,7 @@ import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.handlers.api.security.plan.HttpSecurityPlan;
+import io.gravitee.gateway.reactive.handlers.api.v4.ProductResourceScopedHttpSecurityPlan;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.pathparameters.PathParametersExtractor;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
@@ -169,7 +170,15 @@ public class ApiProductRuntime {
         for (LifecycleComponent<?> component : components) {
             component.start();
         }
-        securityPlans = List.copyOf(securityPlansBuilder.get());
+        securityPlans = securityPlansBuilder
+            .get()
+            .stream()
+            .map(plan ->
+                plan instanceof ProductResourceScopedHttpSecurityPlan
+                    ? plan
+                    : new ProductResourceScopedHttpSecurityPlan(plan, resourceManager)
+            )
+            .toList();
     }
 
     /** Stops every component, even after one fails to stop, then throws the first failure. */
