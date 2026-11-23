@@ -17,7 +17,21 @@ import { AbstractControl } from '@angular/forms';
 
 export interface GroupMapping {
   condition?: string;
+  /**
+   * Each value is either a group id or an expression resolving to group names at login time
+   * (see {@link isGroupMappingExpression}).
+   */
   groups?: string[];
+}
+
+// A template the Gravitee EL engine evaluates, anywhere in the value: `{#`, `{ #`, `{T(` or `{(`.
+const GROUP_MAPPING_EXPRESSION_PATTERN = /\{ *(?:#|T\(|\()/;
+
+/**
+ * Whether a group mapping value is an expression resolving to group names, rather than a group id.
+ */
+export function isGroupMappingExpression(value: string | null | undefined): boolean {
+  return !!value && GROUP_MAPPING_EXPRESSION_PATTERN.test(value);
 }
 
 export interface RoleMapping {
