@@ -29,7 +29,7 @@ public class GraviteeSecretManagerConfiguration implements SecretManagerConfigur
 
     public GraviteeSecretManagerConfiguration(Map<String, Object> properties) {
         this.enabled = ConfigHelper.getProperty(properties, ENABLED_PROPERTY, Boolean.class, true);
-        this.encryptionKey = ConfigHelper.getProperty(properties, ENCRYPTION_KEY_PROPERTY, String.class, null);
+        this.encryptionKey = ConfigHelper.getSecretAsString(properties, ENCRYPTION_KEY_PROPERTY, null);
     }
 
     @Override

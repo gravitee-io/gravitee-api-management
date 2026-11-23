@@ -17,6 +17,7 @@ package io.gravitee.apim.plugin.secrets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.secrets.api.core.Secret;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -35,6 +36,13 @@ class GraviteeSecretManagerConfigurationTest {
     @Test
     void should_read_the_key_encryption_key() {
         assertThat(new GraviteeSecretManagerConfiguration(Map.of("encryption.key", "a-key")).encryptionKey()).isEqualTo("a-key");
+    }
+
+    @Test
+    void should_read_a_key_encryption_key_given_as_a_secret_reference() {
+        var properties = Map.<String, Object>of("encryption.key", new Secret("a-key"));
+
+        assertThat(new GraviteeSecretManagerConfiguration(properties).encryptionKey()).isEqualTo("a-key");
     }
 
     @Test
