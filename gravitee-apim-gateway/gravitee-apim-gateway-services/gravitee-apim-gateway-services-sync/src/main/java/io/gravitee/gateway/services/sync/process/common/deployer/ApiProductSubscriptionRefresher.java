@@ -23,7 +23,7 @@ import static io.gravitee.repository.management.model.Subscription.Status.PENDIN
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
-import io.gravitee.gateway.api.service.SubscriptionService;
+import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
@@ -54,7 +54,7 @@ public class ApiProductSubscriptionRefresher {
     private final ApiKeyRepository apiKeyRepository;
     private final SubscriptionMapper subscriptionMapper;
     private final ApiKeyMapper apiKeyMapper;
-    private final SubscriptionService subscriptionService;
+    private final SubscriptionCacheService subscriptionService;
     private final ApiKeyService apiKeyService;
     private final int bulkItems;
     private final int subscriptionsChunkSize;
@@ -64,7 +64,7 @@ public class ApiProductSubscriptionRefresher {
         ApiKeyRepository apiKeyRepository,
         SubscriptionMapper subscriptionMapper,
         ApiKeyMapper apiKeyMapper,
-        SubscriptionService subscriptionService,
+        SubscriptionCacheService subscriptionService,
         ApiKeyService apiKeyService,
         int bulkItems,
         int subscriptionsChunkSize
@@ -213,7 +213,8 @@ public class ApiProductSubscriptionRefresher {
      * A refresh can load the subscriptions of some plans only, so the accepted subscription of a shared key can be missing
      * from the mappings while it is cached. Its closed mapping would then evict the live key. The subscription cache holds
      * accepted subscriptions only, and a revoked or paused key has no active mapping through any of them. On this branch the
-     * cache indexes a key by the API of its subscription.
+     * cache indexes a key by the API of its subscription, and holds a product subscription once per member API: getById
+     * returns only one of them, so every one is read.
      */
     private List<ApiKey> withoutInactiveMappingsWhereSubscribed(
         final io.gravitee.repository.management.model.ApiKey record,
@@ -224,7 +225,7 @@ public class ApiProductSubscriptionRefresher {
             : record
                 .getSubscriptions()
                 .stream()
-                .flatMap(subscriptionId -> subscriptionService.getById(subscriptionId).stream())
+                .flatMap(subscriptionId -> subscriptionService.getAllById(subscriptionId).stream())
                 .map(Subscription::getApi)
                 .collect(Collectors.toSet());
         return ApiKeyMappings.withoutInactiveMappingsWhereActive(mappings)

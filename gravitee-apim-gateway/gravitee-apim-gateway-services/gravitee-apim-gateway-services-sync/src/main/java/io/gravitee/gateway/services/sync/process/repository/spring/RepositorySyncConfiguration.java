@@ -19,7 +19,6 @@ import static io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_BULK_I
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.api.service.ApiKeyService;
-import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
@@ -348,7 +347,7 @@ public class RepositorySyncConfiguration {
         ApiKeyRepository apiKeyRepository,
         SubscriptionMapper subscriptionMapper,
         ApiKeyMapper apiKeyMapper,
-        SubscriptionService subscriptionService,
+        SubscriptionCacheService subscriptionService,
         ApiKeyService apiKeyService,
         @Value(
             "${services.sync.apikey.bulk_items:" + io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_APIKEY_BULK_ITEMS + "}"

@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
-import io.gravitee.gateway.api.service.SubscriptionService;
+import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
@@ -36,7 +36,6 @@ import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -62,6 +61,7 @@ class ApiProductSubscriptionRefresherTest {
     private static final String ENV_1 = "env-1";
     private static final String SUB_1 = "sub-1";
     private static final String API_1 = "api-1";
+    private static final String API_2 = "api-2";
     private static final String PRODUCT_1 = "product-1";
     private static final String KEY_ID = "key-id";
 
@@ -78,7 +78,7 @@ class ApiProductSubscriptionRefresherTest {
     private ApiKeyMapper apiKeyMapper;
 
     @Mock
-    private SubscriptionService subscriptionService;
+    private SubscriptionCacheService subscriptionService;
 
     @Mock
     private ApiKeyService apiKeyService;
@@ -176,7 +176,28 @@ class ApiProductSubscriptionRefresherTest {
         void does_not_register_the_closed_mapping_of_a_shared_key_whose_accepted_subscription_is_not_reloaded() throws TechnicalException {
             var localCut = refresherWithRealApiKeyMapper();
             givenProductSubscriptions(gatewaySubscription("closed-sub", "CLOSED"));
-            when(subscriptionService.getById("accepted-sub")).thenReturn(Optional.of(gatewaySubscription("accepted-sub", "ACCEPTED")));
+            when(subscriptionService.getAllById("accepted-sub")).thenReturn(List.of(gatewaySubscription("accepted-sub", "ACCEPTED")));
+            var sharedKey = productApiKey(KEY_ID, ENV_1, "accepted-sub");
+            sharedKey.setSubscriptions(List.of("accepted-sub", "closed-sub"));
+            when(apiKeyRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(sharedKey));
+
+            localCut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
+
+            verify(apiKeyService, never()).register(any());
+        }
+
+        @Test
+        void does_not_register_the_closed_mapping_on_any_member_api_when_the_accepted_subscription_is_not_reloaded()
+            throws TechnicalException {
+            var localCut = refresherWithRealApiKeyMapper();
+            var closedSubscription = productSubscription("closed-sub", PLAN_1, ENV_1);
+            when(subscriptionRepository.search(any(), any())).thenReturn(List.of(closedSubscription));
+            when(subscriptionMapper.to(closedSubscription)).thenReturn(
+                List.of(gatewaySubscription("closed-sub", "CLOSED", API_1), gatewaySubscription("closed-sub", "CLOSED", API_2))
+            );
+            when(subscriptionService.getAllById("accepted-sub")).thenReturn(
+                List.of(gatewaySubscription("accepted-sub", "ACCEPTED", API_1), gatewaySubscription("accepted-sub", "ACCEPTED", API_2))
+            );
             var sharedKey = productApiKey(KEY_ID, ENV_1, "accepted-sub");
             sharedKey.setSubscriptions(List.of("accepted-sub", "closed-sub"));
             when(apiKeyRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(sharedKey));
@@ -191,8 +212,8 @@ class ApiProductSubscriptionRefresherTest {
             var localCut = refresherWithRealApiKeyMapper();
             givenProductSubscriptions(gatewaySubscription("closed-sub", "CLOSED"));
             lenient()
-                .when(subscriptionService.getById("accepted-sub"))
-                .thenReturn(Optional.of(gatewaySubscription("accepted-sub", "ACCEPTED")));
+                .when(subscriptionService.getAllById("accepted-sub"))
+                .thenReturn(List.of(gatewaySubscription("accepted-sub", "ACCEPTED")));
             var revokedKey = productApiKey(KEY_ID, ENV_1, "accepted-sub");
             revokedKey.setSubscriptions(List.of("accepted-sub", "closed-sub"));
             revokedKey.setRevoked(true);
@@ -365,7 +386,11 @@ class ApiProductSubscriptionRefresherTest {
     }
 
     private static Subscription gatewaySubscription(String id, String status) {
-        return Subscription.builder().id(id).api(API_1).apiProductId(PRODUCT_1).plan(PLAN_1).status(status).build();
+        return gatewaySubscription(id, status, API_1);
+    }
+
+    private static Subscription gatewaySubscription(String id, String status, String api) {
+        return Subscription.builder().id(id).api(api).apiProductId(PRODUCT_1).plan(PLAN_1).status(status).build();
     }
 
     private static io.gravitee.repository.management.model.Subscription productSubscription(String id, String plan, String env) {
