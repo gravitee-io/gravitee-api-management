@@ -19,6 +19,7 @@ import io.gravitee.apim.core.credential.exception.InvalidCredentialException;
 import io.gravitee.apim.core.secret.model.Secret;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -41,6 +42,19 @@ public record SecretReference(String reference, String secretId) {
     private static final Pattern TRAILING_SLASHES = Pattern.compile("/+$");
 
     public static SecretReference external(String field, String reference) {
+        var external = parse(field, reference);
+        if (external.credentialId().isPresent()) {
+            throw new InvalidCredentialException(
+                "The reference of " +
+                    field +
+                    " points at a secret that another credential holds. Reference a secret of your own or give the value."
+            );
+        }
+        return external;
+    }
+
+    /** Checks the reference the way {@link #external} does, but accepts the secrets that credentials hold. */
+    public static SecretReference parse(String field, String reference) {
         if (reference != null && reference.startsWith(EXPRESSION_PREFIX)) {
             return new SecretReference(reference, null);
         }
@@ -82,13 +96,6 @@ public record SecretReference(String reference, String secretId) {
                     " must have the form /gravitee/{key}:value?envId={envId}, such as /gravitee/my-secret:value?envId=my-env."
             );
         }
-        if (Secret.isCredentialKey(key)) {
-            throw new InvalidCredentialException(
-                "The reference of " +
-                    field +
-                    " points at a secret that another credential holds. Reference a secret of your own or give the value."
-            );
-        }
     }
 
     private static InvalidCredentialException invalidPath(String field) {
@@ -113,7 +120,7 @@ public record SecretReference(String reference, String secretId) {
         return key > path.lastIndexOf('/') ? path.substring(key + 1) : null;
     }
 
-    String graviteeEnvironmentId() {
+    public String graviteeEnvironmentId() {
         var envIds = envIdParameters();
         return envIds.isEmpty() ? null : envIds.getFirst();
     }
@@ -146,11 +153,26 @@ public record SecretReference(String reference, String secretId) {
 
     /** Whether the reference names Gravitee's own secret store, the provider the gateway reads from its first path segment. */
     public boolean isInGraviteeStore() {
-        if (isExpression()) {
-            return false;
+        return !isExpression() && namesGraviteeStore(reference);
+    }
+
+    public static boolean namesGraviteeStore(String path) {
+        var providerEnd = path.indexOf('/', 1);
+        return path.startsWith("/") && providerEnd > 0 && path.substring(1, providerEnd).equalsIgnoreCase(GRAVITEE_PROVIDER);
+    }
+
+    /** The credential whose secret a store reference names, keyed {@code credential.<credentialId>.<field>}. */
+    public Optional<String> credentialId() {
+        if (!isInGraviteeStore()) {
+            return Optional.empty();
         }
-        var providerEnd = reference.indexOf('/', 1);
-        return providerEnd > 0 && reference.substring(1, providerEnd).equalsIgnoreCase(GRAVITEE_PROVIDER);
+        var key = graviteeKey();
+        if (!Secret.isCredentialKey(key)) {
+            return Optional.empty();
+        }
+        var idAndField = key.substring(Secret.CREDENTIAL_KEY_PREFIX.length());
+        var fieldStart = idAndField.lastIndexOf('.');
+        return Optional.of(fieldStart < 0 ? idAndField : idAndField.substring(0, fieldStart));
     }
 
     public boolean isExpression() {

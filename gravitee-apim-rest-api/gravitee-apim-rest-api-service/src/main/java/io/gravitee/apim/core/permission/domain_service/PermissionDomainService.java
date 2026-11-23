@@ -38,6 +38,9 @@ public interface PermissionDomainService {
         RolePermissionAction... acls
     );
 
+    /** Whether {@code userId} administers the organization or the environment. */
+    boolean isAdmin(String organizationId, String environmentId, String userId);
+
     default boolean checkForExactPermissions(Map<String, char[]> userPermissions, Permission permission, RolePermissionAction... acls) {
         if (userPermissions == null) {
             return false;
