@@ -26,6 +26,7 @@ import io.gravitee.apim.core.cluster.domain_service.ClusterBoundApisQueryService
 import io.gravitee.apim.core.cluster.domain_service.ValidateKafkaClusterBindingDomainService;
 import io.gravitee.apim.core.flow.domain_service.ApiResourceNames;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -92,6 +93,7 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
     private final ApiProductQueryService apiProductQueryService;
     private final ValidateKafkaClusterBindingDomainService validateKafkaClusterBindingDomainService;
     private final ClusterBindingPermissionDomainService clusterBindingPermissionDomainService;
+    private final SecretReferencePermissionDomainService secretReferencePermissionDomainService;
     private final ObjectMapper objectMapper;
 
     public ApiValidationServiceImpl(
@@ -109,6 +111,7 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
         ApiProductQueryService apiProductQueryService,
         @Lazy ValidateKafkaClusterBindingDomainService validateKafkaClusterBindingDomainService,
         @Lazy ClusterBindingPermissionDomainService clusterBindingPermissionDomainService,
+        @Lazy SecretReferencePermissionDomainService secretReferencePermissionDomainService,
         ObjectMapper objectMapper
     ) {
         this.tagsValidationService = tagsValidationService;
@@ -125,6 +128,7 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
         this.apiProductQueryService = apiProductQueryService;
         this.validateKafkaClusterBindingDomainService = validateKafkaClusterBindingDomainService;
         this.clusterBindingPermissionDomainService = clusterBindingPermissionDomainService;
+        this.secretReferencePermissionDomainService = secretReferencePermissionDomainService;
         this.objectMapper = objectMapper;
     }
 
@@ -160,6 +164,7 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
         );
         // Permission first, so a caller who cannot bind a cluster learns nothing of its connections
         validateClusterBindingPermission(executionContext, null, newApiEntity.getEndpointGroups());
+        validateSecretReferences(executionContext, null, newApiEntity);
         validateKafkaClusterBindingDomainService.validate(executionContext.getEnvironmentId(), newApiEntity.getEndpointGroups());
         // Validate and clean logging
         newApiEntity.setAnalytics(
@@ -220,6 +225,7 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
             endpointGroupsValidationService.validateAndSanitizeHttpV4(updateApiEntity.getType(), updateApiEntity.getEndpointGroups())
         );
         validateClusterBindingPermission(executionContext, existingApiEntity.getEndpointGroups(), updateApiEntity.getEndpointGroups());
+        validateSecretReferences(executionContext, existingApiEntity, updateApiEntity);
         validateKafkaClusterBindingDomainService.validate(
             executionContext.getEnvironmentId(),
             existingApiEntity.getEndpointGroups(),
@@ -298,6 +304,7 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
             endpointGroupsValidationService.validateAndSanitizeHttpV4(apiEntity.getType(), apiEntity.getEndpointGroups())
         );
         validateClusterBindingPermission(executionContext, null, apiEntity.getEndpointGroups());
+        validateSecretReferences(executionContext, null, apiEntity);
         validateKafkaClusterBindingDomainService.validate(executionContext.getEnvironmentId(), apiEntity.getEndpointGroups());
         // Validate and clean logging
         apiEntity.setAnalytics(
@@ -379,6 +386,16 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
             getAuthenticatedUsername(),
             ClusterBoundApisQueryService.messageClusterUses(previousEndpointGroups, objectMapper),
             ClusterBoundApisQueryService.messageClusterUses(endpointGroups, objectMapper)
+        );
+    }
+
+    private void validateSecretReferences(ExecutionContext executionContext, Object previousApi, Object api) {
+        secretReferencePermissionDomainService.validate(
+            executionContext.getOrganizationId(),
+            executionContext.getEnvironmentId(),
+            getAuthenticatedUsername(),
+            previousApi,
+            api
         );
     }
 

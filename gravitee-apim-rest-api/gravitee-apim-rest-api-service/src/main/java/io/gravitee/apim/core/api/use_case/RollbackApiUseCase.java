@@ -46,6 +46,7 @@ import io.gravitee.apim.core.plan.domain_service.ClosePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -97,6 +98,18 @@ public class RollbackApiUseCase {
     private final ClusterBindingPermissionDomainService clusterBindingPermissionDomainService;
     private final DeployApiInternalFlowDomainService deployApiInternalFlow;
     private final ApiDeploymentGate apiDeploymentValidator;
+    private final SecretReferencePermissionDomainService secretReferencePermissionDomainService;
+
+    // A rollback can bring back references that a later save removed, so it needs the rights a save that adds them needs.
+    private void validateSecretReferences(Input input, Object current, Object rolledBack) {
+        secretReferencePermissionDomainService.validate(
+            input.auditInfo().organizationId(),
+            input.auditInfo().environmentId(),
+            input.auditInfo().actor().userId(),
+            current,
+            rolledBack
+        );
+    }
 
     public void execute(Input input) {
         // The caller was authorized on the API of the URL, and the deployment to restore is named by an id it hands
@@ -110,6 +123,7 @@ public class RollbackApiUseCase {
         var apiUpdated = switch (api.getApiDefinitionValue()) {
             case io.gravitee.definition.model.v4.Api apiDefinition -> {
                 var toRollback = apiCrudService.get(apiDefinition.getId());
+                validateSecretReferences(input, toRollback.getApiDefinitionHttpV4(), apiDefinition);
 
                 // Rollback API from API definition without plans
                 var rollbackedApi = toRollback.rollbackTo(apiDefinition);
@@ -213,6 +227,7 @@ public class RollbackApiUseCase {
                             existing.getApiDefinitionNativeV4(),
                             updated.getApiDefinitionNativeV4()
                         );
+                        validateSecretReferences(input, existing.getApiDefinitionNativeV4(), updated.getApiDefinitionNativeV4());
                         return updated;
                     },
                     input.auditInfo,

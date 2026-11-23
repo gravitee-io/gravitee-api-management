@@ -46,6 +46,7 @@ import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
 import io.gravitee.apim.core.plugin.query_service.EntrypointPluginQueryService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
@@ -152,6 +153,9 @@ public class ApiValidationServiceImplTest {
     @Mock
     private ClusterBindingPermissionDomainService clusterBindingPermissionDomainService;
 
+    @Mock
+    private SecretReferencePermissionDomainService secretReferencePermissionDomainService;
+
     @BeforeEach
     public void setUp() throws Exception {
         apiValidationService = new ApiValidationServiceImpl(
@@ -169,6 +173,7 @@ public class ApiValidationServiceImplTest {
             apiProductQueryService,
             validateKafkaClusterBindingDomainService,
             clusterBindingPermissionDomainService,
+            secretReferencePermissionDomainService,
             new ObjectMapper()
         );
     }
@@ -619,6 +624,85 @@ public class ApiValidationServiceImplTest {
     }
 
     @Test
+    public void should_check_the_secret_references_of_a_new_api_against_the_authenticated_user() {
+        authenticateAs("user-id");
+        try {
+            NewApiEntity newApiEntity = new NewApiEntity();
+            newApiEntity.setType(ApiType.PROXY);
+
+            apiValidationService.validateAndSanitizeNewApi(GraviteeContext.getExecutionContext(), newApiEntity, new PrimaryOwnerEntity());
+
+            verify(secretReferencePermissionDomainService).validate(
+                GraviteeContext.getExecutionContext().getOrganizationId(),
+                GraviteeContext.getExecutionContext().getEnvironmentId(),
+                "user-id",
+                null,
+                newApiEntity
+            );
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
+    }
+
+    @Test
+    public void should_check_the_secret_references_an_update_adds_against_the_authenticated_user() {
+        authenticateAs("user-id");
+        try {
+            ApiEntity existingApiEntity = new ApiEntity();
+            existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+            existingApiEntity.setType(ApiType.PROXY);
+            UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+            updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+            updateApiEntity.setType(ApiType.PROXY);
+            updateApiEntity.setListeners(List.of(new HttpListener()));
+
+            apiValidationService.validateAndSanitizeUpdateApi(
+                GraviteeContext.getExecutionContext(),
+                updateApiEntity,
+                new PrimaryOwnerEntity(),
+                existingApiEntity
+            );
+
+            verify(secretReferencePermissionDomainService).validate(
+                GraviteeContext.getExecutionContext().getOrganizationId(),
+                GraviteeContext.getExecutionContext().getEnvironmentId(),
+                "user-id",
+                existingApiEntity,
+                updateApiEntity
+            );
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
+    }
+
+    @Test
+    public void should_check_the_secret_references_of_an_imported_api_against_the_authenticated_user() {
+        authenticateAs("user-id");
+        try {
+            ApiEntity apiEntity = new ApiEntity();
+            apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+            apiEntity.setType(ApiType.PROXY);
+            apiEntity.setListeners(List.of(new HttpListener()));
+
+            apiValidationService.validateAndSanitizeImportApiForCreation(
+                GraviteeContext.getExecutionContext(),
+                apiEntity,
+                new PrimaryOwnerEntity()
+            );
+
+            verify(secretReferencePermissionDomainService).validate(
+                GraviteeContext.getExecutionContext().getOrganizationId(),
+                GraviteeContext.getExecutionContext().getEnvironmentId(),
+                "user-id",
+                null,
+                apiEntity
+            );
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
+    }
+
+    @Test
     public void shouldCheckTheClusterBindingsOfANewApiAgainstTheAuthenticatedUser() {
         authenticateAs("user-id");
         try {
@@ -780,6 +864,7 @@ public class ApiValidationServiceImplTest {
             apiProductQueryService,
             validateKafkaClusterBindingDomainService,
             clusterBindingPermissionDomainService,
+            secretReferencePermissionDomainService,
             new ObjectMapper()
         );
 
@@ -823,6 +908,7 @@ public class ApiValidationServiceImplTest {
             apiProductQueryService,
             validateKafkaClusterBindingDomainService,
             clusterBindingPermissionDomainService,
+            secretReferencePermissionDomainService,
             new ObjectMapper()
         );
 
