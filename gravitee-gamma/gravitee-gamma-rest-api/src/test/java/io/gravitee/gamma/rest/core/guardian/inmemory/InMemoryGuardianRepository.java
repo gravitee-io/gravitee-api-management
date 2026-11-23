@@ -34,7 +34,9 @@ import java.util.function.UnaryOperator;
  *
  * <p>Scopes every read on the environment and answers empty the way the real adapter does, so
  * use-case tests exercise the environment-isolation contract rather than mocking it away. Search
- * applies the name filter, the sort and the paging for the same reason.
+ * applies the name filter, the sort and the paging for the same reason, and answers the order the
+ * Mongo and the JDBC backend answer: {@code createdAt} ascending when the query carries no sort, and
+ * the id as the tie-breaker in every case.
  *
  * @author GraviteeSource Team
  */
@@ -180,11 +182,12 @@ public class InMemoryGuardianRepository implements GuardianRepository {
 
     private static Comparator<Guardian> comparator(String sortBy) {
         var ascending = sortBy == null || !sortBy.startsWith("-");
-        var field = sortBy == null ? "updatedAt" : (ascending ? sortBy : sortBy.substring(1));
+        // No sort asked for: both real backends order by created_at ascending, so this one does too.
+        var field = sortBy == null ? "createdAt" : (ascending ? sortBy : sortBy.substring(1));
 
-        // Every field SearchGuardianUseCase accepts has a case here. A missing one used to fall
-        // through to updatedAt, which would let a test asserting that order pass against this double
-        // while the real backends ordered by another column.
+        // Every field SearchGuardianUseCase accepts has a case here. An unknown one is refused rather
+        // than ordered on something else, which would let a test asserting that order pass against this
+        // double while the real backends sorted by another column.
         Comparator<Guardian> comparator = switch (field) {
             case "name" -> Comparator.comparing(Guardian::getName, Comparator.nullsLast(Comparator.naturalOrder()));
             case "phase" -> Comparator.comparing(
@@ -196,6 +199,10 @@ public class InMemoryGuardianRepository implements GuardianRepository {
             case "deployedAt" -> Comparator.comparing(Guardian::getDeployedAt, Comparator.nullsLast(Comparator.naturalOrder()));
             default -> throw new IllegalArgumentException("This double does not sort on '" + field + "'");
         };
-        return ascending ? comparator : comparator.reversed();
+        // The id breaks ties, ascending whatever the main order asks for, as both real backends do: a
+        // Guardian's phase takes one of two values and its deployedAt is null until something deploys it,
+        // so a single sort key leaves the order undefined and offset paging could then repeat or skip
+        // rows between two pages.
+        return (ascending ? comparator : comparator.reversed()).thenComparing(Guardian::getId);
     }
 }
