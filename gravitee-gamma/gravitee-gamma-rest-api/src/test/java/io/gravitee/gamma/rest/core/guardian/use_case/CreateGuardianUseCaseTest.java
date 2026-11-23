@@ -22,7 +22,7 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aCreateGuardian;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidator;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aPolicy;
-import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aSecretReferenceValidator;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aSecretReferenceValidatorWithoutPermissions;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
@@ -68,7 +68,7 @@ class CreateGuardianUseCaseTest {
             guardianRepository,
             aGuardianValidator(guardianRepository),
             auditDomainService,
-            aSecretReferenceValidator()
+            aSecretReferenceValidatorWithoutPermissions()
         );
     }
 

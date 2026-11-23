@@ -311,10 +311,8 @@ public final class GuardianFixtures {
         return new ValidateGuardianResourcesDomainService(installed, theEnvironments(), resourceValidation, new JacksonJsonDeserializer());
     }
 
-    /** A reference to a secret of Gravitee's store, in this environment, which only a user who may read secrets can add. */
     public static final String A_STORE_SECRET_REFERENCE = "{#secrets.get('/gravitee/db-password:value?envId=" + ENVIRONMENT_ID + "')}";
 
-    /** Judges the secret references a save adds, against what these permissions answer. */
     public static SecretReferencePermissionDomainService aSecretReferenceValidator(PermissionDomainService permissions) {
         return new SecretReferencePermissionDomainService(
             new SpelSecretExpressionParser(),
@@ -324,8 +322,7 @@ public final class GuardianFixtures {
         );
     }
 
-    /** The same, for a user who holds no permission. */
-    public static SecretReferencePermissionDomainService aSecretReferenceValidator() {
+    public static SecretReferencePermissionDomainService aSecretReferenceValidatorWithoutPermissions() {
         return aSecretReferenceValidator(Mockito.mock(PermissionDomainService.class));
     }
 

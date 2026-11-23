@@ -29,7 +29,7 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianUsa
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidator;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidatorAgainst;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aPolicy;
-import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aSecretReferenceValidator;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aSecretReferenceValidatorWithoutPermissions;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.flows;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.theInstalledPolicies;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -115,7 +115,7 @@ class GuardianDeploymentUseCasesTest {
             audits.service,
             deploymentService,
             aGuardianUsage(),
-            aSecretReferenceValidator()
+            aSecretReferenceValidatorWithoutPermissions()
         )
     );
     private final AuditInfo actor = AuditInfo.builder()

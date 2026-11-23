@@ -24,7 +24,7 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianUsage;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianUsageRunning;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidator;
-import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aSecretReferenceValidator;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aSecretReferenceValidatorWithoutPermissions;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.anUpdateGuardianCommand;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -97,7 +97,7 @@ class UpdateGuardianUseCaseTest {
                 auditDomainService,
                 deployments,
                 aGuardianUsage(),
-                aSecretReferenceValidator()
+                aSecretReferenceValidatorWithoutPermissions()
             )
         );
         runByAnApi = new UpdateGuardianUseCase(
@@ -109,7 +109,7 @@ class UpdateGuardianUseCaseTest {
                 auditDomainService,
                 deployments,
                 aGuardianUsageRunning(GUARDIAN_ID),
-                aSecretReferenceValidator()
+                aSecretReferenceValidatorWithoutPermissions()
             )
         );
     }

@@ -68,7 +68,7 @@ public class SecretReferencePermissionDomainService {
         added.removeAll(references(previous));
         var needsSecretRead = false;
         for (String expression : added) {
-            var path = literalPath(expression);
+            var path = pathUnlessDynamic(expression);
             if (path.isPresent() && !SecretReference.namesGraviteeStore(path.get())) {
                 continue;
             }
@@ -126,11 +126,10 @@ public class SecretReferencePermissionDomainService {
         );
     }
 
-    private Optional<String> literalPath(String expression) {
+    private Optional<String> pathUnlessDynamic(String expression) {
         try {
             return expressionParser.literalPath(expression, expression);
         } catch (InvalidCredentialException e) {
-            // Any other expression is evaluated per request, like a path read from context data.
             return Optional.empty();
         }
     }

@@ -100,8 +100,7 @@ public class RollbackApiUseCase {
     private final ApiDeploymentGate apiDeploymentValidator;
     private final SecretReferencePermissionDomainService secretReferencePermissionDomainService;
 
-    // A rollback can bring back references that a later save removed, so it needs the rights a save that adds them needs.
-    private void validateSecretReferences(Input input, Object current, Object rolledBack) {
+    private void requireRightsForAddedSecretReferences(Input input, Object current, Object rolledBack) {
         secretReferencePermissionDomainService.validate(
             input.auditInfo().organizationId(),
             input.auditInfo().environmentId(),
@@ -123,7 +122,7 @@ public class RollbackApiUseCase {
         var apiUpdated = switch (api.getApiDefinitionValue()) {
             case io.gravitee.definition.model.v4.Api apiDefinition -> {
                 var toRollback = apiCrudService.get(apiDefinition.getId());
-                validateSecretReferences(input, toRollback.getApiDefinitionHttpV4(), apiDefinition);
+                requireRightsForAddedSecretReferences(input, toRollback.getApiDefinitionHttpV4(), apiDefinition);
 
                 // Rollback API from API definition without plans
                 var rollbackedApi = toRollback.rollbackTo(apiDefinition);
@@ -227,7 +226,11 @@ public class RollbackApiUseCase {
                             existing.getApiDefinitionNativeV4(),
                             updated.getApiDefinitionNativeV4()
                         );
-                        validateSecretReferences(input, existing.getApiDefinitionNativeV4(), updated.getApiDefinitionNativeV4());
+                        requireRightsForAddedSecretReferences(
+                            input,
+                            existing.getApiDefinitionNativeV4(),
+                            updated.getApiDefinitionNativeV4()
+                        );
                         return updated;
                     },
                     input.auditInfo,

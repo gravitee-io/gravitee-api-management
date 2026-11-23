@@ -491,7 +491,6 @@ class RollbackGuardianUseCaseTest {
         );
     }
 
-    /** A revision that held a store secret reference, put there by a user who could read secrets, is not restored by one who cannot. */
     @Test
     void should_refuse_a_rollback_bringing_back_a_store_secret_reference_without_the_secret_read_permission() {
         when(permissions.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
