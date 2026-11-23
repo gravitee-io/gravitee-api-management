@@ -947,7 +947,6 @@ workflows:
           context:
             - cicd-orchestrator
           requires:
-            - Trigger SaaS Chainguard Docker images creation
             - Publish Helm chart (internal repo)
       - job-aikido-scan-docker-images:
           context:

@@ -104,7 +104,7 @@ export function publishAndDeployJobs(dynamicConfig: Config, environment: CircleC
           new workflow.WorkflowJob(deployOnNextGenIntegrationJob, {
             name: 'Deploy on NextGen Integration environment',
             context: config.jobContext,
-            requires: [...(triggerSaas ? ['Trigger SaaS Chainguard Docker images creation'] : []), 'Publish Helm chart (internal repo)'],
+            requires: ['Publish Helm chart (internal repo)'],
           }),
         ]
       : []),
