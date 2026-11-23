@@ -113,4 +113,15 @@ describe('AuthService when APIM rejects the authorization code exchange', () => 
       error: '&lt;a href=&quot;https://example.test&quot;&gt;reset&lt;/a&gt;&amp;',
     });
   });
+
+  it('should notify the user while loading, before any page is shown', async () => {
+    tryLoginCodeFlow.mockRejectedValue(new HttpErrorResponse({ status: 401, error: { error: 'invalid_client' } }));
+
+    await spectator.inject(AuthService).load();
+
+    expect(spectator.inject(NotificationService).error).toHaveBeenCalledWith('login.notification.identityProviderError', {
+      provider: 'Gravitee AM',
+      error: 'invalid_client',
+    });
+  });
 });

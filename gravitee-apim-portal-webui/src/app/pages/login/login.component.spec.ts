@@ -157,10 +157,11 @@ describe('LoginComponent identity provider code exchange failure', () => {
   it('should show the failure only once', async () => {
     tryLoginCodeFlow.mockRejectedValue(new HttpErrorResponse({ status: 401, error: { error: 'invalid_client' } }));
     await loadThenOpenSignInPage();
+    spectator.inject(NotificationService).error.mockClear();
 
     spectator.component.ngOnInit();
 
-    expect(spectator.inject(NotificationService).error).toHaveBeenCalledTimes(1);
+    expect(spectator.inject(NotificationService).error).not.toHaveBeenCalled();
   });
 
   it('should not notify when the code flow fails before reaching APIM', async () => {

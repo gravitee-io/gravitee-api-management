@@ -77,6 +77,7 @@ export class AuthService {
                   provider: escapeHtml(identityProvider?.name ?? this.getProviderId()),
                   error: escapeHtml(describeCodeExchangeError(error)),
                 };
+                this.notificationService.error('login.notification.identityProviderError', this.codeExchangeFailure);
               }
             })
             .finally(() => resolve(true));
