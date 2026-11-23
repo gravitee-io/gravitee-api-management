@@ -23,6 +23,7 @@ import {
     IDENTITY_PROVIDER_NAME_MAX,
     IDENTITY_PROVIDER_NAME_MIN,
     identityProviderToForm,
+    isGroupMappingExpression,
     isIdentityProviderFormDirty,
     validateIdentityProviderForm,
 } from './identityProviderForm';
@@ -131,7 +132,11 @@ describe('identityProviderForm', () => {
     });
 
     it('requires condition and groups once a group mapping is added', () => {
-        const form = { ...emptyIdentityProviderForm(), name: 'AM', groupMappings: [{ condition: '', groups: [] }] };
+        const form = {
+            ...emptyIdentityProviderForm(),
+            name: 'AM',
+            groupMappings: [{ condition: '', groups: [], groupExpressions: ' \n ' }],
+        };
         form.configuration.clientId = 'id';
         form.configuration.clientSecret = 'secret';
         form.configuration.serverURL = 'https://am.example';
@@ -139,9 +144,118 @@ describe('identityProviderForm', () => {
         expect(validateIdentityProviderForm(form)).toEqual(
             expect.objectContaining({
                 'groupMappings.0.condition': 'Condition is required.',
-                'groupMappings.0.groups': 'At least one group is required.',
+                'groupMappings.0.groups': 'At least one group or one expression is required.',
             }),
         );
+    });
+
+    it('accepts a group mapping with only expressions or only groups', () => {
+        const form = emptyIdentityProviderForm();
+        form.name = 'AM';
+        form.configuration.clientId = 'id';
+        form.configuration.clientSecret = 'secret';
+        form.configuration.serverURL = 'https://am.example';
+        form.configuration.domain = 'auth';
+        form.groupMappings = [
+            { condition: 'true', groups: [], groupExpressions: "{#jsonPath(#profile, '$.groups')}" },
+            { condition: 'false', groups: ['group-a'], groupExpressions: '' },
+        ];
+        expect(validateIdentityProviderForm(form)).toEqual({});
+    });
+
+    it('rejects an expression line that is not an expression', () => {
+        const form = emptyIdentityProviderForm();
+        form.name = 'AM';
+        form.configuration.clientId = 'id';
+        form.configuration.clientSecret = 'secret';
+        form.configuration.serverURL = 'https://am.example';
+        form.configuration.domain = 'auth';
+        form.groupMappings = [{ condition: 'true', groups: [], groupExpressions: "{#jsonPath(#profile, '$.groups')}\nplatform-admin" }];
+        expect(validateIdentityProviderForm(form)).toEqual({
+            'groupMappings.0.groupExpressions': '"platform-admin" is not an expression. Select groups by id in the Group field.',
+        });
+    });
+
+    it.each([
+        ["{#jsonPath(#profile, '$.groups')}", true],
+        ["{ #jsonPath(#profile, '$.groups')}", true],
+        ["{T(java.lang.String).valueOf('admins')}", true],
+        ["{('admins')}", true],
+        ['prefix-{#profile.team}', true],
+        ['3f1b2c4d-0000-4000-8000-000000000000', false],
+        ['{group}', false],
+        ['{Tech}', false],
+        ['', false],
+    ])('detects %p as a group mapping expression: %p', (value, expected) => {
+        expect(isGroupMappingExpression(value)).toBe(expected);
+    });
+
+    it('splits stored group values into ids and expressions and merges them back losslessly', () => {
+        const provider: IdentityProvider = {
+            id: 'am-idp',
+            name: 'AM',
+            type: 'GRAVITEEIO_AM',
+            enabled: true,
+            configuration: { clientId: 'id', clientSecret: 'secret', serverURL: 'https://am.example', domain: 'auth', scopes: [] },
+            groupMappings: [
+                {
+                    condition: 'true',
+                    groups: ["{#jsonPath(#profile, '$.groups')}", 'group-a', "{ #jsonPath(#profile, '$.teams')}", 'group-b'],
+                },
+                { condition: 'false', groups: ["{ #jsonPath(#profile, '$.groups')}"] },
+            ],
+            roleMappings: [],
+        };
+
+        const form = identityProviderToForm(provider);
+
+        expect(form.groupMappings).toEqual([
+            {
+                condition: 'true',
+                groups: ['group-a', 'group-b'],
+                groupExpressions: "{#jsonPath(#profile, '$.groups')}\n{ #jsonPath(#profile, '$.teams')}",
+            },
+            { condition: 'false', groups: [], groupExpressions: "{ #jsonPath(#profile, '$.groups')}" },
+        ]);
+        expect(formToUpdatePayload(form).groupMappings).toEqual([
+            {
+                condition: 'true',
+                groups: ['group-a', 'group-b', "{#jsonPath(#profile, '$.groups')}", "{ #jsonPath(#profile, '$.teams')}"],
+            },
+            { condition: 'false', groups: ["{ #jsonPath(#profile, '$.groups')}"] },
+        ]);
+        expect(
+            isIdentityProviderFormDirty(
+                identityProviderToForm({ ...provider, groupMappings: formToUpdatePayload(form).groupMappings }),
+                form,
+            ),
+        ).toBe(false);
+    });
+
+    it('trims expression lines and drops blank ones in the payload', () => {
+        const form = emptyIdentityProviderForm();
+        form.groupMappings = [
+            {
+                condition: ' true ',
+                groups: ['group-a'],
+                groupExpressions: "  {#jsonPath(#profile, '$.groups')}  \n\n   \n{#profile.team}\n",
+            },
+        ];
+        expect(formToUpdatePayload(form).groupMappings).toEqual([
+            { condition: 'true', groups: ['group-a', "{#jsonPath(#profile, '$.groups')}", '{#profile.team}'] },
+        ]);
+    });
+
+    it('tracks expression edits in the dirty state', () => {
+        const form = emptyIdentityProviderForm();
+        form.groupMappings = [{ condition: 'true', groups: ['group-a'], groupExpressions: '{#profile.team}' }];
+        const withBlankLine = { ...form, groupMappings: [{ ...form.groupMappings[0]!, groupExpressions: '{#profile.team}\n  ' }] };
+        const edited = { ...form, groupMappings: [{ ...form.groupMappings[0]!, groupExpressions: '{#profile.teams}' }] };
+        const cleared = { ...form, groupMappings: [{ ...form.groupMappings[0]!, groupExpressions: '' }] };
+
+        expect(isIdentityProviderFormDirty(withBlankLine, form)).toBe(false);
+        expect(isIdentityProviderFormDirty(edited, form)).toBe(true);
+        expect(isIdentityProviderFormDirty(cleared, form)).toBe(true);
     });
 
     it('requires condition and organization roles once a role mapping is added', () => {
@@ -246,7 +360,7 @@ describe('identityProviderForm', () => {
         );
         const reordered: typeof form = {
             ...form,
-            groupMappings: [{ condition: form.groupMappings[0]!.condition, groups: ['group-b', 'group-a'] }],
+            groupMappings: [{ condition: form.groupMappings[0]!.condition, groups: ['group-b', 'group-a'], groupExpressions: '' }],
             roleMappings: [
                 {
                     condition: form.roleMappings[0]!.condition,
@@ -287,8 +401,8 @@ describe('identityProviderForm', () => {
         form.configuration.serverURL = 'https://am.example';
         form.configuration.domain = 'auth';
         form.groupMappings = [
-            { condition: "{#jsonPath(#profile, '$.email')}", groups: ['group-a'] },
-            { condition: "{#jsonPath(#profile, '$.email')}", groups: ['group-b'] },
+            { condition: "{#jsonPath(#profile, '$.email')}", groups: ['group-a'], groupExpressions: '' },
+            { condition: "{#jsonPath(#profile, '$.email')}", groups: [], groupExpressions: '{#profile.team}' },
         ];
         form.roleMappings = [
             { condition: "{#jsonPath(#profile, '$.job')}", organizations: ['ADMIN'], environments: { DEFAULT: [] } },
