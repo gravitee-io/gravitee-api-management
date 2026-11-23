@@ -134,6 +134,7 @@ class AuthzDecisionLogsCrudServiceImpl implements AuthzDecisionLogsCrudService {
             .batchSize(decision.batchSize())
             .durationNanos(decision.durationNanos())
             .errorType(decision.errorType())
+            .additionalMetrics(decision.additionalMetrics())
             .build();
     }
 

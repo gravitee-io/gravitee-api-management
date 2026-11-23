@@ -56,8 +56,9 @@ public final class AuthzDecisionLogFields {
     static final String TARGET_PDP_ID = "decision-point-id";
     static final String POLICY_GENERATION = "decision-point-version";
     static final String MATCHED_RULES = "matched-rules";
-    public static final String BATCH_INDEX = "additional-metrics.int_authz_batch-index";
-    public static final String BATCH_SIZE = "additional-metrics.int_authz_batch-size";
+    static final String ADDITIONAL_METRICS = "additional-metrics";
+    public static final String BATCH_INDEX = ADDITIONAL_METRICS + ".int_authz_batch-index";
+    public static final String BATCH_SIZE = ADDITIONAL_METRICS + ".int_authz_batch-size";
 
     private AuthzDecisionLogFields() {}
 }

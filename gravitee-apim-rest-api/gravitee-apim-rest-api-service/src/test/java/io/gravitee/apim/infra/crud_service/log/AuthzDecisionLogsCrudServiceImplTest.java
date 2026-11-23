@@ -36,6 +36,7 @@ import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
@@ -131,6 +132,7 @@ class AuthzDecisionLogsCrudServiceImplTest {
                         .batchSize(2)
                         .durationNanos(4200L)
                         .errorType("TimeoutException")
+                        .additionalMetrics(Map.of("json_authz_request", "{\"context\":{}}"))
                         .build()
                 )
             )
@@ -170,6 +172,7 @@ class AuthzDecisionLogsCrudServiceImplTest {
             soft.assertThat(decision.batchSize()).isEqualTo(2);
             soft.assertThat(decision.durationNanos()).isEqualTo(4200L);
             soft.assertThat(decision.errorType()).isEqualTo("TimeoutException");
+            soft.assertThat(decision.additionalMetrics()).containsExactlyEntriesOf(Map.of("json_authz_request", "{\"context\":{}}"));
         });
     }
 

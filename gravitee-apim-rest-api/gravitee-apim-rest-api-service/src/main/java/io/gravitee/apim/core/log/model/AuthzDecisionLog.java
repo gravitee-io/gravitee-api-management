@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.log.model;
 
 import java.util.List;
+import java.util.Map;
 import lombok.Builder;
 
 @Builder
@@ -46,7 +47,8 @@ public record AuthzDecisionLog(
     Integer batchIndex,
     Integer batchSize,
     Long durationNanos,
-    String errorType
+    String errorType,
+    Map<String, Object> additionalMetrics
 ) {
     public record MatchedRule(String id, String name, String version, String effect) {}
 }
