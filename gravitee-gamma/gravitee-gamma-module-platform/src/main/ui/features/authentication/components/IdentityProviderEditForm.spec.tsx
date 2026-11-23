@@ -57,6 +57,11 @@ const ROLE_MAPPED_PROVIDER: IdentityProvider = {
     ],
 };
 
+const GROUP_MAPPED_PROVIDER: IdentityProvider = {
+    ...PROVIDER,
+    groupMappings: [{ condition: 'true', groups: ["{ #jsonPath(#profile, '$.groups')}", 'group-a'] }],
+};
+
 function renderForm({
     canUpdate = true,
     mappingsDisabled = false,
@@ -208,6 +213,61 @@ describe('IdentityProviderEditForm', () => {
         await buttonHarness({ name: 'Update' }).click();
         expect(await screen.findByText('Condition is required.')).not.toBeNull();
         expect(mutateAsync).not.toHaveBeenCalled();
+    });
+
+    it('requires a group or an expression in a group mapping', async () => {
+        renderForm();
+        await buttonHarness({ name: 'Add group mapping' }).click();
+        await inputHarness({ name: /^Condition/ }).type('true');
+        await buttonHarness({ name: 'Update' }).click();
+        expect(await screen.findByText('At least one group or one expression is required.')).not.toBeNull();
+        expect(screen.getByLabelText('Group name expressions').getAttribute('aria-invalid')).toBe('true');
+        expect(mutateAsync).not.toHaveBeenCalled();
+    });
+
+    it('rejects a line of the expressions field that is not an expression', async () => {
+        const user = userEvent.setup();
+        renderForm();
+        await buttonHarness({ name: 'Add group mapping' }).click();
+        await inputHarness({ name: /^Condition/ }).type('true');
+        await user.click(screen.getByLabelText('Group name expressions'));
+        await user.paste('platform-admin');
+        await buttonHarness({ name: 'Update' }).click();
+        expect(await screen.findByText('"platform-admin" is not an expression. Select groups by id in the Group field.')).not.toBeNull();
+        expect(screen.getByLabelText('Group name expressions').getAttribute('aria-invalid')).toBe('true');
+        expect(mutateAsync).not.toHaveBeenCalled();
+    });
+
+    it('shows stored expressions in the expressions field and keeps them on save', async () => {
+        renderForm({ provider: GROUP_MAPPED_PROVIDER });
+        expect(screen.getByLabelText('Group name expressions')).toHaveProperty('value', "{ #jsonPath(#profile, '$.groups')}");
+        expect(screen.getByRole('button', { name: 'Group: Group A' })).not.toBeNull();
+        await inputHarness({ name: /^Name/ }).type(' SSO');
+        await buttonHarness({ name: 'Update' }).click();
+        await waitFor(() => {
+            expect(mutateAsync).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    groupMappings: [{ condition: 'true', groups: ['group-a', "{ #jsonPath(#profile, '$.groups')}"] }],
+                }),
+            );
+        });
+    });
+
+    it('saves a newly added group mapping with only expressions', async () => {
+        const user = userEvent.setup();
+        renderForm();
+        await buttonHarness({ name: 'Add group mapping' }).click();
+        await inputHarness({ name: /^Condition/ }).type('true');
+        await user.click(screen.getByLabelText('Group name expressions'));
+        await user.paste("{#jsonPath(#profile, '$.groups')}\n\n{#profile.team}");
+        await buttonHarness({ name: 'Update' }).click();
+        await waitFor(() => {
+            expect(mutateAsync).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    groupMappings: [{ condition: 'true', groups: ["{#jsonPath(#profile, '$.groups')}", '{#profile.team}'] }],
+                }),
+            );
+        });
     });
 
     it('keeps in-progress edits when the provider object is replaced with the same data', async () => {

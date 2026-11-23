@@ -31,7 +31,24 @@ export const IDENTITY_PROVIDER_NAME_MAX = 50;
 
 export interface IdentityProviderGroupMappingForm {
     condition: string;
+    /** Ids of the groups selected in the multi-select. */
     groups: string[];
+    /** Expressions resolving to group names at login time, one per line. */
+    groupExpressions: string;
+}
+
+/** A template the Gravitee EL engine evaluates, anywhere in the value: `{#`, `{ #`, `{T(` or `{(`. */
+const GROUP_MAPPING_EXPRESSION = /\{ *(?:#|T\(|\()/;
+
+export function isGroupMappingExpression(value: string): boolean {
+    return GROUP_MAPPING_EXPRESSION.test(value);
+}
+
+function groupExpressionLines(groupExpressions: string): string[] {
+    return groupExpressions
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line !== '');
 }
 
 export interface IdentityProviderRoleMappingForm {
@@ -74,7 +91,7 @@ export function emptyConfiguration(type: IdentityProviderType): IdentityProvider
 }
 
 export function emptyGroupMapping(): IdentityProviderGroupMappingForm {
-    return { condition: '', groups: [] };
+    return { condition: '', groups: [], groupExpressions: '' };
 }
 
 export function emptyRoleMapping(environmentIds: readonly string[]): IdentityProviderRoleMappingForm {
@@ -139,7 +156,15 @@ export function validateIdentityProviderForm(form: IdentityProviderFormState): R
 
     form.groupMappings.forEach((mapping, index) => {
         if (!mapping.condition.trim()) errors[`groupMappings.${index}.condition`] = 'Condition is required.';
-        if (mapping.groups.length === 0) errors[`groupMappings.${index}.groups`] = 'At least one group is required.';
+        if (mapping.groups.length === 0 && groupExpressionLines(mapping.groupExpressions).length === 0) {
+            errors[`groupMappings.${index}.groups`] = 'At least one group or one expression is required.';
+        }
+        // A line that is not an expression would be saved as a group id matching no group, and ignored at login
+        const notAnExpression = groupExpressionLines(mapping.groupExpressions).find(line => !isGroupMappingExpression(line));
+        if (notAnExpression !== undefined) {
+            errors[`groupMappings.${index}.groupExpressions`] =
+                `"${notAnExpression}" is not an expression. Select groups by id in the Group field.`;
+        }
     });
     addDuplicateConditionErrors(form.groupMappings, 'groupMappings', errors);
 
@@ -250,7 +275,7 @@ function compactUserProfileMapping(form: IdentityProviderFormState): IdentityPro
 function compactGroupMappings(form: IdentityProviderFormState): GroupMapping[] {
     return form.groupMappings.map(mapping => ({
         condition: mapping.condition.trim(),
-        groups: [...mapping.groups],
+        groups: [...mapping.groups, ...groupExpressionLines(mapping.groupExpressions)],
     }));
 }
 
@@ -290,6 +315,7 @@ function normalizeMappingsForCompare(payload: UpdateIdentityProviderPayload): Up
         ...payload,
         groupMappings: payload.groupMappings.map(mapping => ({
             condition: mapping.condition,
+            // Group ids and expressions are both order-insensitive: each value adds groups independently.
             groups: sortedIds(mapping.groups),
         })),
         roleMappings: payload.roleMappings.map(mapping => ({
@@ -349,10 +375,14 @@ export function identityProviderToForm(provider: IdentityProvider, environmentId
             email: provider.userProfileMapping?.email ?? '',
             picture: provider.userProfileMapping?.picture ?? '',
         },
-        groupMappings: provider.groupMappings.map(mapping => ({
-            condition: mapping.condition ?? '',
-            groups: [...(mapping.groups ?? [])],
-        })),
+        groupMappings: provider.groupMappings.map(mapping => {
+            const values = mapping.groups ?? [];
+            return {
+                condition: mapping.condition ?? '',
+                groups: values.filter(value => !isGroupMappingExpression(value)),
+                groupExpressions: values.filter(isGroupMappingExpression).join('\n'),
+            };
+        }),
         roleMappings: provider.roleMappings.map(mapping => ({
             condition: mapping.condition ?? '',
             organizations: [...(mapping.organizations ?? [])],
