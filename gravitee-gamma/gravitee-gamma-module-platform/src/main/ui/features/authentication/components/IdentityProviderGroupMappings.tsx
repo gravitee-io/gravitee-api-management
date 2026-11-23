@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Button, Card, CardContent, Field, FieldDescription, FieldError, FieldLabel, Input } from '@gravitee/graphene-core';
+import { Button, Card, CardContent, Field, FieldDescription, FieldError, FieldLabel, Input, Textarea } from '@gravitee/graphene-core';
 import { PlusIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 
 import { IdentityProviderMappingMultiSelect, type IdentityProviderMappingOption } from './IdentityProviderMappingMultiSelect';
@@ -47,6 +47,10 @@ export function IdentityProviderGroupMappings({
                 {mappings.map((mapping, index) => {
                     const conditionError = errors[`groupMappings.${index}.condition`];
                     const groupsError = errors[`groupMappings.${index}.groups`];
+                    const groupsInvalid = showErrors && !!groupsError;
+                    const expressionsError = errors[`groupMappings.${index}.groupExpressions`];
+                    const expressionsInvalid = showErrors && !!expressionsError;
+                    const expressionsId = `idp-group-expressions-${index}`;
                     return (
                         <Card key={`group-mapping-${index}`}>
                             <CardContent className="space-y-4 pt-6">
@@ -79,14 +83,35 @@ export function IdentityProviderGroupMappings({
                                     label="Group"
                                     values={mapping.groups}
                                     options={groups}
-                                    required
-                                    invalid={showErrors && !!groupsError}
+                                    invalid={groupsInvalid}
                                     error={groupsError}
                                     disabled={disabled}
                                     placeholder="Select groups"
                                     emptyMessage="No groups available"
                                     onChange={selected => patchMapping(index, { groups: selected })}
                                 />
+                                <Field>
+                                    <FieldLabel htmlFor={expressionsId}>Group name expressions</FieldLabel>
+                                    <Textarea
+                                        id={expressionsId}
+                                        value={mapping.groupExpressions}
+                                        disabled={disabled}
+                                        rows={3}
+                                        className="font-mono"
+                                        aria-invalid={groupsInvalid || expressionsInvalid}
+                                        aria-describedby={
+                                            expressionsInvalid ? `${expressionsId}-hint ${expressionsId}-error` : `${expressionsId}-hint`
+                                        }
+                                        onChange={event => patchMapping(index, { groupExpressions: event.target.value })}
+                                    />
+                                    <FieldDescription id={`${expressionsId}-hint`}>
+                                        One single-line expression per line, e.g. {"{#jsonPath(#profile, '$.groups')}"}. Each line must
+                                        resolve to group names, matched exactly against existing group names. Text around an expression, or
+                                        several expressions on one line, make up a single name, e.g. {"team-{#profile['department']}"}. The
+                                        syntax is checked on save.
+                                    </FieldDescription>
+                                    {expressionsInvalid ? <FieldError id={`${expressionsId}-error`}>{expressionsError}</FieldError> : null}
+                                </Field>
                                 <div className="flex justify-end">
                                     <Button
                                         type="button"
