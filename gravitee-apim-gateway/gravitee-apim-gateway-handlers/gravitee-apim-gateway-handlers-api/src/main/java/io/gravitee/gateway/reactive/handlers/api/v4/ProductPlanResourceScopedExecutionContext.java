@@ -24,6 +24,7 @@ import io.gravitee.gateway.reactive.api.policy.base.BasePolicy;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.context.WrappedExecutionContext;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
+import io.gravitee.resource.api.ResourceManager;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
@@ -63,6 +64,9 @@ final class ProductPlanResourceScopedExecutionContext implements MutableExecutio
 
     @Override
     public <T> T getComponent(Class<T> type) {
+        if (type == ResourceManager.class) {
+            return type.cast(productResourceManager);
+        }
         T scoped = productScopedProvider.getComponent(type);
         if (scoped != null) {
             return scoped;
