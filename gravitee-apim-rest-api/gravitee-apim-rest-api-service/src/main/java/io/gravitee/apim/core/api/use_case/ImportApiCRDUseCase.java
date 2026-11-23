@@ -65,6 +65,7 @@ import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Date;
 import java.util.HashMap;
@@ -257,10 +258,8 @@ public class ImportApiCRDUseCase {
                 .state(createdApi.getLifecycleState().name())
                 .plans(planNameIdMapping)
                 .build();
-        } catch (AbstractDomainException e) {
-            throw e;
         } catch (Exception e) {
-            throw new TechnicalManagementException(e);
+            throw importFailure(e);
         }
     }
 
@@ -337,8 +336,19 @@ public class ImportApiCRDUseCase {
                 .plans(planKeyIdMapping)
                 .build();
         } catch (Exception e) {
-            throw new TechnicalManagementException(e);
+            throw importFailure(e);
         }
+    }
+
+    // A refusal keeps its declared 4xx status; anything else is a technical failure
+    private static RuntimeException importFailure(Exception e) {
+        if (e instanceof AbstractDomainException domainException) {
+            return domainException;
+        }
+        if (e instanceof AbstractManagementException managementException && managementException.getHttpStatusCode() < 500) {
+            return managementException;
+        }
+        return new TechnicalManagementException(e);
     }
 
     private void handleLifeCycle(Input input, Api existingApi, Api api) {
