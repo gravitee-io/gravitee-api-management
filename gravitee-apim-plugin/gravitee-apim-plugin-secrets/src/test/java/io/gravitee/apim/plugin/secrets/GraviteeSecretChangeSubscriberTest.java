@@ -49,6 +49,6 @@ class GraviteeSecretChangeSubscriberTest {
     }
 
     private static GenericEvent changed(String environmentId, String key) {
-        return new GenericEvent("secret.changed", key, environmentId, "org-1", null, Instant.now(), "{\"key\":\"" + key + "\"}");
+        return new GenericEvent("secret.changed", key, environmentId, "org-1", null, Instant.now(), "{}");
     }
 }

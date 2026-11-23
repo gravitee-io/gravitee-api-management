@@ -159,7 +159,7 @@ class SecretDomainServiceTest extends AbstractUseCaseTest {
             .satisfies(event -> {
                 assertThat(event.getId()).isEqualTo(GenericEvent.latestEventId(ENV_ID, SecretChangedEvent.KIND, key));
                 assertThat(event.getExpiresAt()).isNotNull();
-                assertThat(event.getPayload()).contains("\"key\":\"" + key + "\"").doesNotContain("s3cret");
+                assertThat(event.getPayload()).doesNotContain("s3cret");
             });
     }
 

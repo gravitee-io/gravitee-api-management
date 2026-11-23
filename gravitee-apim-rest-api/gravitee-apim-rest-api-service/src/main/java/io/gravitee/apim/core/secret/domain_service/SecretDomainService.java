@@ -46,8 +46,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecretDomainService {
 
-    // A gateway reads the events of the last few seconds; one that starts later has no cached value to refresh.
-    private static final Duration CHANGED_EVENT_LIFETIME = Duration.ofDays(1);
+    private static final Duration CHANGED_EVENT_OUTLIVES_ANY_GATEWAY_SYNC = Duration.ofDays(1);
 
     private final SecretCrudService secretCrudService;
     private final SecretValueEncryptor secretValueEncryptor;
@@ -104,14 +103,13 @@ public class SecretDomainService {
         tellGateways(secret, auditInfo);
     }
 
-    // The key matches the key pattern of Secret, so it needs no JSON escaping.
     private void tellGateways(Secret secret, AuditInfo auditInfo) {
         genericEventPublicationDomainService.publish(
             GenericEvent.builder()
                 .kind(SecretChangedEvent.KIND)
                 .id(secret.key())
-                .expiresAt(TimeProvider.instantNow().plus(CHANGED_EVENT_LIFETIME))
-                .payload("{\"key\":\"" + secret.key() + "\"}")
+                .expiresAt(TimeProvider.instantNow().plus(CHANGED_EVENT_OUTLIVES_ANY_GATEWAY_SYNC))
+                .payload("{}")
                 .build(),
             PublicationOptions.latestOnly(),
             auditInfo

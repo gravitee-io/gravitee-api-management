@@ -21,10 +21,6 @@ import io.gravitee.gateway.api.genericevent.GenericEventSubscriber;
 import io.gravitee.secrets.api.event.SecretInvalidationEvent;
 import io.gravitee.secrets.api.event.SecretInvalidationEventType;
 
-/**
- * Turns the change events of the Management API secret store into invalidations, so that the secrets service resolves
- * the cached references to that secret again and redeploys what uses them.
- */
 class GraviteeSecretChangeSubscriber implements GenericEventSubscriber {
 
     private final EventManager eventManager;
@@ -41,7 +37,6 @@ class GraviteeSecretChangeSubscriber implements GenericEventSubscriber {
         );
     }
 
-    // A change event only expires: the change it reported is already applied.
     @Override
     public void onRemove(GenericEvent event) {}
 }
