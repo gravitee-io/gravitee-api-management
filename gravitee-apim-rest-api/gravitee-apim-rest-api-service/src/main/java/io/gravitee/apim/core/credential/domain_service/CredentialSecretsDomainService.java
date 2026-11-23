@@ -82,7 +82,7 @@ public class CredentialSecretsDomainService {
             var secretId = credential.secretReferences().get(field).secretId();
             var secret = secretCrudService
                 .findById(auditInfo.organizationId(), auditInfo.environmentId(), secretId)
-                .orElseThrow(() -> new CredentialSecretMissingException(credential.id(), field));
+                .orElseThrow(() -> CredentialSecretMissingException.whenRotated(credential.id(), field));
             snapshots.put(field, secretDomainService.snapshot(secret));
         }
         var rotation = new Rotation(credential.id(), new LinkedHashMap<>());

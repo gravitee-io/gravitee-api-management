@@ -25,7 +25,6 @@ import io.gravitee.apim.core.secret.service_provider.SecretValueEncryptor;
 import java.util.LinkedHashMap;
 import lombok.RequiredArgsConstructor;
 
-/** Hands a Gamma module the plain values of a credential whose values Gravitee stores. No REST endpoint may return them. */
 @DomainService
 @RequiredArgsConstructor
 public class CredentialResolverDomainService {

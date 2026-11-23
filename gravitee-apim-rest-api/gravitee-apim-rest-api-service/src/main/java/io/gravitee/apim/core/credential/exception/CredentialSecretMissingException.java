@@ -17,21 +17,20 @@ package io.gravitee.apim.core.credential.exception;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 
-/** A secret that Gravitee stores for a credential is gone. */
 public class CredentialSecretMissingException extends TechnicalDomainException {
 
-    public CredentialSecretMissingException(String credentialId, String field) {
-        this(
+    private CredentialSecretMissingException(String message) {
+        super(message);
+    }
+
+    public static CredentialSecretMissingException whenRotated(String credentialId, String field) {
+        return new CredentialSecretMissingException(
             "Credential " +
                 credentialId +
                 " cannot be rotated: the secret of " +
                 field +
                 " no longer exists. Delete the credential and create it again."
         );
-    }
-
-    private CredentialSecretMissingException(String message) {
-        super(message);
     }
 
     public static CredentialSecretMissingException whenRead(String credentialId, String field) {

@@ -17,7 +17,6 @@ package io.gravitee.apim.core.credential.model;
 
 import java.util.Map;
 
-/** The plain values of a credential, for a module that calls the service itself. */
 public record ResolvedCredential(CredentialStrategy strategy, Map<String, Object> configuration, Map<String, String> secrets) {
     @Override
     public String toString() {
