@@ -31,6 +31,17 @@ import { useEnvironmentPermissionsReady } from '../shared/hooks/useEnvironmentPe
 import { markNavItemDenied, resetDeniedNavItemsForEnvironment } from '../shared/nav/deniedNavItems';
 import { notify } from '../shared/notify/notify';
 
+interface MetricsConfigurationPageLoads {
+    metricsConfigurationPageLoads?: number;
+}
+
+function mockMetricsConfigurationPageLoads(): number {
+    return (globalThis as MetricsConfigurationPageLoads).metricsConfigurationPageLoads ?? 0;
+}
+
+// Read once AppRoutes is imported and before any route renders.
+const metricsConfigurationPageLoadsAtImport = mockMetricsConfigurationPageLoads();
+
 const mockUseModuleRouting = jest.fn(() => ({
     activeNavKey: 'applications',
     navigateToKey: jest.fn(),
@@ -286,9 +297,10 @@ jest.mock('../pages/EnvironmentCorsSettingsPage', () => ({
     EnvironmentCorsSettingsPage: () => <div data-testid="environment-cors-settings-page" />,
 }));
 
-jest.mock('../pages/MetricsConfigurationPage', () => ({
-    MetricsConfigurationPage: () => <div data-testid="metrics-configuration-page" />,
-}));
+jest.mock('../pages/MetricsConfigurationPage', () => {
+    (globalThis as MetricsConfigurationPageLoads).metricsConfigurationPageLoads = mockMetricsConfigurationPageLoads() + 1;
+    return { MetricsConfigurationPage: () => <div data-testid="metrics-configuration-page" /> };
+});
 
 jest.mock('../pages/PrimaryOwnerModePage', () => ({
     PrimaryOwnerModePage: () => <div data-testid="primary-owner-mode-page" />,
@@ -2318,9 +2330,11 @@ describe('AppRoutes', () => {
         expect(screen.getByTestId('environment-cors-settings-page')).not.toBeNull();
     });
 
-    it('routes to the environment Metrics configuration', () => {
+    it('routes to the environment Metrics configuration, loading its page on that route only', async () => {
+        expect(metricsConfigurationPageLoadsAtImport).toBe(0);
         renderPlatform('/environment/metrics-configuration');
-        expect(screen.getByTestId('metrics-configuration-page')).not.toBeNull();
+        expect(await screen.findByTestId('metrics-configuration-page')).not.toBeNull();
+        expect(mockMetricsConfigurationPageLoads()).toBe(1);
     });
 
     it('blocks Metrics configuration without environment-settings-r', () => {
@@ -2330,13 +2344,14 @@ describe('AppRoutes', () => {
         expect(screen.getByTestId('applications-page')).not.toBeNull();
     });
 
-    it('shows Metrics configuration in the Environment nav section, after API Logging', () => {
+    it('shows Metrics configuration in the Environment nav section, after API Logging', async () => {
         mockUseModuleRouting.mockReturnValue({
             activeNavKey: 'environment-metrics-configuration',
             navigateToKey: jest.fn(),
             rootPath: '/platform',
         });
         renderPlatform('/environment/metrics-configuration');
+        await screen.findByTestId('metrics-configuration-page');
 
         const keys = navGroupItemKeys('System & Security');
         expect(keys).toContain('environment-metrics-configuration');

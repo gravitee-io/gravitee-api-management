@@ -15,6 +15,7 @@
  */
 import { createHttpMetricDefinitionsSource, type MetricDefinitionEntry, ObservabilityHttpError } from '@gravitee/gamma-lib-observability';
 import type * as ObservabilityLib from '@gravitee/gamma-lib-observability';
+import { createInMemoryMetricDefinitionsSource } from '@gravitee/gamma-lib-observability/testing';
 import { gammaConsoleHttpOptions } from '@gravitee/gamma-ui-shared/api';
 import { useObservabilityBaseUrl } from '@gravitee/gamma-ui-shared/observability';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -26,9 +27,9 @@ import { MemoryRouter } from 'react-router-dom';
 import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { MetricsConfigurationPage } from './MetricsConfigurationPage';
-import { createInMemoryMetricDefinitionsSource } from '../features/metrics-configuration/testing/inMemoryMetricDefinitionsSource';
 import { retryTransientRequest } from '../shared/api/queryRetry';
 import { installFormActionTestEnvironment } from '../shared/testing/formAction';
+import { READ_ONLY_SETTINGS_MESSAGE } from '../shared/utils/readOnlySettings';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     useEnvironment: jest.fn(),
@@ -109,7 +110,7 @@ function renderPage() {
 
 function neverAnswering(): ReturnType<typeof createInMemoryMetricDefinitionsSource> {
     return {
-        ...createInMemoryMetricDefinitionsSource([]),
+        ...createInMemoryMetricDefinitionsSource({ entries: [] }),
         list: () => new Promise(() => undefined),
     };
 }
@@ -141,7 +142,7 @@ describe('MetricsConfigurationPage', () => {
         mockUseHasPermission.mockReturnValue(true);
         mockUseObservabilityBaseUrl.mockReturnValue(baseUrlKnown());
         mockCreateHttpMetricDefinitionsSource.mockImplementation(() =>
-            createInMemoryMetricDefinitionsSource([BUILT_IN, DECLARED, DISCOVERED]),
+            createInMemoryMetricDefinitionsSource({ entries: [BUILT_IN, DECLARED, DISCOVERED] }),
         );
     });
 
@@ -188,7 +189,9 @@ describe('MetricsConfigurationPage', () => {
         mockUseEnvironment.mockImplementation(() => ({ id: 'env-1' }));
         mockUseObservabilityBaseUrl.mockImplementation(() => ({ ...baseUrlKnown(), baseUrl: baseUrlOf('env-1') }));
         mockCreateHttpMetricDefinitionsSource.mockImplementation(baseUrl =>
-            baseUrl === baseUrlOf('env-1') ? createInMemoryMetricDefinitionsSource([BUILT_IN, DECLARED, DISCOVERED]) : neverAnswering(),
+            baseUrl === baseUrlOf('env-1')
+                ? createInMemoryMetricDefinitionsSource({ entries: [BUILT_IN, DECLARED, DISCOVERED] })
+                : neverAnswering(),
         );
         const { rerender } = renderPage();
         await screen.findByText('Basket value');
@@ -223,10 +226,21 @@ describe('MetricsConfigurationPage', () => {
         await screen.findByText('Basket value');
         expect(screen.queryByRole('button', { name: 'Declare a metric' })).toBeNull();
         expect(screen.queryByRole('button', { name: /^Edit / })).toBeNull();
+        // The reader is on the page that edits the catalog: the note names the missing right, not another place.
+        expect(screen.getByText(READ_ONLY_SETTINGS_MESSAGE)).not.toBeNull();
+        expect(screen.queryByText(/go to Platform/)).toBeNull();
+    });
+
+    it('shows no read-only note to a holder of environment-settings-u', async () => {
+        renderPage();
+        await screen.findByText('Basket value');
+        expect(screen.queryByText(READ_ONLY_SETTINGS_MESSAGE)).toBeNull();
     });
 
     it('declares a decimal metric with a description and a custom unit, and lists it as declared without data', async () => {
-        mockCreateHttpMetricDefinitionsSource.mockImplementation(() => createInMemoryMetricDefinitionsSource([BUILT_IN, DISCOVERED]));
+        mockCreateHttpMetricDefinitionsSource.mockImplementation(() =>
+            createInMemoryMetricDefinitionsSource({ entries: [BUILT_IN, DISCOVERED] }),
+        );
         const user = userEvent.setup();
         renderPage();
         await screen.findByText('Checkout channel');
@@ -255,7 +269,7 @@ describe('MetricsConfigurationPage', () => {
         const failed = new ObservabilityHttpError(503, 'HTTP 503 on POST metric-definitions', 'POST metric-definitions');
         const declare = jest.fn().mockRejectedValue(failed);
         mockCreateHttpMetricDefinitionsSource.mockImplementation(() => ({
-            ...createInMemoryMetricDefinitionsSource([BUILT_IN]),
+            ...createInMemoryMetricDefinitionsSource({ entries: [BUILT_IN] }),
             declare,
         }));
         const user = userEvent.setup();
@@ -274,7 +288,7 @@ describe('MetricsConfigurationPage', () => {
     });
 
     it('retries a transient list failure: a hiccup never leaves the catalog empty', async () => {
-        const source = createInMemoryMetricDefinitionsSource([BUILT_IN, DECLARED, DISCOVERED]);
+        const source = createInMemoryMetricDefinitionsSource({ entries: [BUILT_IN, DECLARED, DISCOVERED] });
         const list = jest
             .fn()
             .mockRejectedValueOnce(new ObservabilityHttpError(503, 'HTTP 503 on GET metric-definitions', 'GET metric-definitions'))
@@ -291,7 +305,10 @@ describe('MetricsConfigurationPage', () => {
         const list = jest
             .fn()
             .mockRejectedValue(new ObservabilityHttpError(503, 'HTTP 503 on GET metric-definitions', 'GET metric-definitions'));
-        mockCreateHttpMetricDefinitionsSource.mockImplementation(() => ({ ...createInMemoryMetricDefinitionsSource([]), list }));
+        mockCreateHttpMetricDefinitionsSource.mockImplementation(() => ({
+            ...createInMemoryMetricDefinitionsSource({ entries: [] }),
+            list,
+        }));
         renderPage();
 
         // Two retries, a second then two seconds later; react-query's defaults would ask a third time and report after seven.

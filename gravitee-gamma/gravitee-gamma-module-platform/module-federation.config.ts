@@ -37,7 +37,7 @@ const config: ModuleFederationConfig = {
     // run on that module's react-query and never see this module's QueryClientProvider ("No QueryClient
     // set"). Bundling the library keeps it on this module's react-query whatever the load order. Share
     // them again once @tanstack/react-query is a shared singleton in the shell and in every module that
-    // mounts the library (AIM included): OBS-191.
+    // mounts the library (AIM included): FOUND-471.
     shared: (libraryName, sharedConfig) => {
         if (['react', 'react-dom', 'react-router-dom', '@gravitee/graphene-core', '@monaco-editor/react'].includes(libraryName)) {
             return {
