@@ -31,20 +31,8 @@ public class MutableObjectProvider<T> implements ObjectProvider<T> {
 
     private final List<T> beans = new ArrayList<>();
 
-    @SafeVarargs
-    public static <T> MutableObjectProvider<T> of(T... beans) {
-        var provider = new MutableObjectProvider<T>();
-        provider.beans.addAll(List.of(beans));
-        return provider;
-    }
-
     public MutableObjectProvider<T> add(T bean) {
         beans.add(bean);
-        return this;
-    }
-
-    public MutableObjectProvider<T> clear() {
-        beans.clear();
         return this;
     }
 

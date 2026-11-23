@@ -35,6 +35,7 @@ import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
+import io.gravitee.apim.core.deployment.service_provider.ApiDeploymentGate;
 import io.gravitee.apim.core.event.query_service.EventQueryService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
@@ -91,6 +92,7 @@ public class RollbackApiUseCase {
     private final PropertyDomainService propertyDomainService;
     private final ClusterBindingPermissionDomainService clusterBindingPermissionDomainService;
     private final DeployApiInternalFlowDomainService deployApiInternalFlow;
+    private final ApiDeploymentGate apiDeploymentValidator;
 
     public void execute(Input input) {
         Api api = eventQueryService
@@ -107,6 +109,11 @@ public class RollbackApiUseCase {
                 rollbackedApi.setDescription(api.getDescription());
 
                 keepStoredEncryption(toRollback.getApiDefinitionHttpV4(), rollbackedApi.getApiDefinitionHttpV4());
+
+                // What this rollback republishes is the internal flow of the revision and nothing else, so that is
+                // what is judged — and before anything is written, so an API whose revision names a Guardian that is
+                // gone stays exactly as it is, definition, index and gateways alike.
+                apiDeploymentValidator.validateInternalFlowDeployable(rollbackedApi);
 
                 var apiUpdatedV4 = updateApiDomainService.updateV4(rollbackedApi, input.auditInfo);
                 restoreInternalFlow(input.auditInfo, apiUpdatedV4, apiDefinition.getInternalFlow());
@@ -142,7 +149,8 @@ public class RollbackApiUseCase {
                 var apiUpdatedV2 = apiCrudService.update(rollbackedApi);
                 // The Guardian index is a projection of the definition, and the V2 one names none. A full save of an
                 // API carries no index, so it is emptied here, by the write that owns it — which also tells the
-                // gateways to stop running the steps the V4 definition had.
+                // gateways to stop running the steps the V4 definition had. The internal flow it republishes is
+                // empty, which is why this branch asks no module to judge it: there is nothing left to refuse.
                 deployApiInternalFlow.replaceInternalFlow(input.auditInfo, apiUpdatedV2, apiUpdatedV2.getUpdatedAt());
 
                 // Rollback plans from API definition plans
@@ -179,8 +187,10 @@ public class RollbackApiUseCase {
                         return rollbackedApi;
                     },
                     // no sanitizing: a rollback restores a definition that was already validated when it was deployed,
-                    // which is what the HTTP branch gets too. Moving back to a cluster binding still needs its membership,
-                    // as the update of a Message API checks.
+                    // which is what the HTTP branch gets too. Moving back to a cluster binding still needs its
+                    // membership, as the update of a Message API checks. No module is asked to judge the definition
+                    // either: this branch republishes nothing, the restored definition only reaching the gateways
+                    // when someone deploys the API, which is where the gate already is.
                     (existing, updated) -> {
                         clusterBindingPermissionDomainService.validate(
                             input.auditInfo().organizationId(),

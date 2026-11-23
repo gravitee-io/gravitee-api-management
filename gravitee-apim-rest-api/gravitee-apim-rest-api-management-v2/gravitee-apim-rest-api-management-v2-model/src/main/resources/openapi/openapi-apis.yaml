@@ -1036,6 +1036,17 @@ paths:
             description: |-
                 Rollback an API to a previous version.
 
+                The whole definition is restored in the store. Of it, only the internal flow — the Guardians the API
+                runs — is republished at once, and only to the gateways already running the API, since a Guardian
+                applies as soon as it is written. The rest of the restored definition reaches them when the API is
+                deployed, and so does the whole of it for an API no gateway runs yet. The restored Guardians are
+                checked before anything is written.
+
+                Return a 400 HTTP Error:
+                 - when the internal flow of the version rolled back to names a Guardian that is no longer deployed,
+                   has been withdrawn, or no longer runs on the API's type or phase
+                 - when a plan of the version rolled back to no longer exists
+
                 User must have the API_DEFINITION[UPDATE] permission.
             operationId: rollbackApi
             requestBody:
@@ -1047,6 +1058,12 @@ paths:
             responses:
                 "204":
                     description: API successfully rollbacked
+                "400":
+                    description: The restored internal flow cannot be run, and nothing has been written
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
