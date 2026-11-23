@@ -639,6 +639,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                     .errorType(decision.errorType())
                     .build()
             )
+            .additionalMetrics(decision.additionalMetrics() != null ? decision.additionalMetrics() : Map.of())
             .build();
     }
 
