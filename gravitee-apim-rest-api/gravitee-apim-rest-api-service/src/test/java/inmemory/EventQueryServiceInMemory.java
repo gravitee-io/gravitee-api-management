@@ -112,10 +112,11 @@ public class EventQueryServiceInMemory implements EventQueryService, InMemoryAlt
     }
 
     @Override
-    public Optional<Api> findApiFromPublishApiEvent(String eventId) {
+    public Optional<Api> findApiFromPublishApiEvent(String environmentId, String eventId) {
         return storage()
             .stream()
             .filter(event -> event.getId().equals(eventId) && event.getType() == EventType.PUBLISH_API && event.getPayload() != null)
+            .filter(event -> event.getEnvironments() != null && event.getEnvironments().contains(environmentId))
             .findFirst()
             .map(EventQueryServiceImpl::extractApiFromEvent);
     }

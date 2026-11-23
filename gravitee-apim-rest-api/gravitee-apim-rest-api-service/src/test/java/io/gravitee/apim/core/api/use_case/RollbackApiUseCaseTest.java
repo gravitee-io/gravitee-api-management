@@ -63,6 +63,8 @@ import io.gravitee.apim.core.cluster.exception.ClusterBindingNotAllowedException
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.deployment.service_provider.ApiDeploymentGate;
 import io.gravitee.apim.core.event.model.Event;
+import io.gravitee.apim.core.exception.ConflictDomainException;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
@@ -148,6 +150,7 @@ class RollbackApiUseCaseTest {
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     private final SubscriptionQueryServiceInMemory subscriptionCrudService = new SubscriptionQueryServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+    private final ApiDefinitionCrudServiceInMemory definitions = new ApiDefinitionCrudServiceInMemory(apiCrudService);
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
     private final SubscriptionQueryServiceInMemory subscriptionQueryService = new SubscriptionQueryServiceInMemory();
     private final FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
@@ -243,12 +246,7 @@ class RollbackApiUseCaseTest {
             updateNativeApiDomainService,
             new PropertyDomainService(dataEncryptor),
             new ClusterBindingPermissionDomainService(clusterQueryService, permissionDomainService, GraviteeJacksonMapper.getInstance()),
-            new DeployApiInternalFlowDomainService(
-                new ApiDefinitionCrudServiceInMemory(apiCrudService),
-                eventCrudService,
-                eventLatestCrudService,
-                deployments
-            ),
+            new DeployApiInternalFlowDomainService(definitions, eventCrudService, eventLatestCrudService, deployments),
             apiDeploymentValidator
         );
 
@@ -285,10 +283,10 @@ class RollbackApiUseCaseTest {
         var eventId = "event-not-found-id";
 
         // When
-        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(eventId, AUDIT_INFO)));
+        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(API_ID, eventId, AUDIT_INFO)));
 
         // Then
-        assertThat(throwable).isInstanceOf(IllegalStateException.class).hasMessage("Cannot rollback an event that is not a publish event!");
+        assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining("is not a deployment of the api");
     }
 
     @Test
@@ -298,10 +296,42 @@ class RollbackApiUseCaseTest {
         eventQueryService.initWith(List.of(event));
 
         // When
-        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO)));
+        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO)));
 
         // Then
-        assertThat(throwable).isInstanceOf(IllegalStateException.class).hasMessage("Cannot rollback an event that is not a publish event!");
+        assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining("is not a deployment of the api");
+    }
+
+    /**
+     * The caller hands over an event id, and the permission filter checked the API of the URL: a deployment of
+     * another environment is another tenant's, and restoring it here would spend this authorization on it.
+     */
+    @Test
+    void should_not_rollback_api_from_an_event_of_another_environment() throws JsonProcessingException {
+        var event = givenARevisionRunning(null);
+        eventQueryService.initWith(List.of(event.toBuilder().environments(Set.of("another-environment")).build()));
+
+        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO)));
+
+        assertSoftly(softly -> {
+            softly.assertThat(throwable).as("an event of another environment").isInstanceOf(ValidationDomainException.class);
+            softly.assertThat(eventCrudService.storage()).as("events written").isEmpty();
+            softly.assertThat(apiCrudService.get(API_ID).getName()).as("stored api name").isEqualTo("api-name");
+        });
+    }
+
+    /** The event names the API to restore, and the permission filter checked another one: the two must be the same. */
+    @Test
+    void should_not_rollback_api_from_an_event_of_another_api() throws JsonProcessingException {
+        var event = givenARevisionRunning(null);
+
+        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input("another-api", event.getId(), AUDIT_INFO)));
+
+        assertSoftly(softly -> {
+            softly.assertThat(throwable).as("an event of another api").isInstanceOf(ValidationDomainException.class);
+            softly.assertThat(eventCrudService.storage()).as("events written").isEmpty();
+            softly.assertThat(apiCrudService.get(API_ID).getName()).as("stored api name").isEqualTo("api-name");
+        });
     }
 
     @Test
@@ -311,20 +341,25 @@ class RollbackApiUseCaseTest {
         eventQueryService.initWith(List.of(event));
 
         // When
-        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO)));
+        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO)));
 
         // Then
-        assertThat(throwable).isInstanceOf(IllegalStateException.class).hasMessage("Cannot rollback an event that is not a publish event!");
+        assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining("is not a deployment of the api");
     }
 
     @Test
     void should_not_rollback_api_when_api_definition_version_is_null() {
         // Given
-        var event = Event.builder().id("event-id").type(EventType.PUBLISH_API).environments(Set.of(ENVIRONMENT_ID)).payload("{}").build();
+        var event = Event.builder()
+            .id("event-id")
+            .type(EventType.PUBLISH_API)
+            .environments(Set.of(ENVIRONMENT_ID))
+            .payload("{\"id\":\"" + API_ID + "\"}")
+            .build();
         eventQueryService.initWith(List.of(event));
 
         // Whenx
-        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO)));
+        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO)));
 
         // Then
         assertThat(throwable)
@@ -339,12 +374,12 @@ class RollbackApiUseCaseTest {
             .id("event-id")
             .type(EventType.PUBLISH_API)
             .environments(Set.of(ENVIRONMENT_ID))
-            .payload("{\"definitionVersion\":\"FEDERATED\"}")
+            .payload("{\"id\":\"" + API_ID + "\",\"definitionVersion\":\"FEDERATED\"}")
             .build();
         eventQueryService.initWith(List.of(event));
 
         // When
-        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO)));
+        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO)));
 
         // Then
         assertThat(throwable)
@@ -425,7 +460,7 @@ class RollbackApiUseCaseTest {
         eventQueryService.initWith(List.of(event));
 
         // When
-        useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+        useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
         // Then the stored definition carries the deployed one again
         var rolledBack = apiCrudService.get(API_ID);
@@ -496,7 +531,7 @@ class RollbackApiUseCaseTest {
             .build();
         eventQueryService.initWith(List.of(event));
 
-        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO)));
+        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO)));
 
         assertThat(throwable).isInstanceOf(ClusterBindingNotAllowedException.class).hasMessageContaining("[Production]");
         assertThat(
@@ -543,7 +578,7 @@ class RollbackApiUseCaseTest {
             .build();
         eventQueryService.initWith(List.of(event));
 
-        useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+        useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
         assertThat(apiCrudService.get(API_ID).getApiDefinitionNativeV4().getProperties())
             .extracting(Property::getKey, Property::getValue, Property::isEncrypted)
@@ -557,12 +592,12 @@ class RollbackApiUseCaseTest {
             .id("event-id")
             .type(EventType.PUBLISH_API)
             .environments(Set.of(ENVIRONMENT_ID))
-            .payload("{\"definitionVersion\":\"1.0.0\"}")
+            .payload("{\"id\":\"" + API_ID + "\",\"definitionVersion\":\"1.0.0\"}")
             .build();
         eventQueryService.initWith(List.of(event));
 
         // When
-        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO)));
+        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO)));
 
         // Then
         assertThat(throwable)
@@ -631,7 +666,7 @@ class RollbackApiUseCaseTest {
         });
 
         // When
-        useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+        useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
         // Then
         verify(delegateApiService).update(
@@ -697,7 +732,7 @@ class RollbackApiUseCaseTest {
             ApiModelFixtures.aModelHttpApiV4().toBuilder().id(existingApi.getId()).build()
         );
 
-        useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+        useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
         var updateApiEntity = ArgumentCaptor.forClass(UpdateApiEntity.class);
         verify(delegateApiService).update(any(), eq(existingApi.getId()), updateApiEntity.capture(), eq(false), eq(USER_ID));
@@ -761,7 +796,7 @@ class RollbackApiUseCaseTest {
         });
 
         // When
-        useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+        useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
         // Then — null must be propagated, not replaced by empty-collection defaults
         verify(delegateApiService).update(
@@ -890,7 +925,7 @@ class RollbackApiUseCaseTest {
         });
 
         // When
-        useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+        useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
         // Then
         verify(delegateApiService).update(
@@ -951,7 +986,7 @@ class RollbackApiUseCaseTest {
             givenTheGatewaysRun(EventType.PUBLISH_API);
             var event = givenAV2Revision();
 
-            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+            useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
             assertSoftly(softly -> {
                 // the index is written from this definition, by the same targeted write; what it then answers is
@@ -980,7 +1015,7 @@ class RollbackApiUseCaseTest {
             var event = givenAV2Revision();
             givenEveryValidatorRefuses();
 
-            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+            useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
             assertSoftly(softly -> {
                 softly
@@ -1121,7 +1156,7 @@ class RollbackApiUseCaseTest {
             eventQueryService.initWith(List.of(event));
 
             // When
-            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+            useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
             // Then
             var rolledBackApi = apiCrudService.get(existingV4Api.getId());
@@ -1129,7 +1164,10 @@ class RollbackApiUseCaseTest {
                 softly.assertThat(rolledBackApi.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
                 softly.assertThat(rolledBackApi.getName()).isEqualTo("api-previous-name");
                 softly.assertThat(rolledBackApi.getVersion()).isEqualTo("api-previous-version");
-                softly.assertThat(rolledBackApi.getUpdatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
+                softly
+                    .assertThat(rolledBackApi.getUpdatedAt())
+                    .as("update date, moved past the one of the definition write by the internal flow write")
+                    .isEqualTo(INSTANT_NOW.plusMillis(1).atZone(ZoneId.systemDefault()));
             });
 
             var apiDefinition = rolledBackApi.getApiDefinition();
@@ -1241,7 +1279,7 @@ class RollbackApiUseCaseTest {
             eventQueryService.initWith(List.of(event));
 
             // When
-            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+            useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
             // Then
             var rolledBackApi = apiCrudService.get(existingV4Api.getId());
@@ -1249,7 +1287,10 @@ class RollbackApiUseCaseTest {
                 softly.assertThat(rolledBackApi.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
                 softly.assertThat(rolledBackApi.getName()).isEqualTo("api-previous-name");
                 softly.assertThat(rolledBackApi.getVersion()).isEqualTo("api-previous-version");
-                softly.assertThat(rolledBackApi.getUpdatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
+                softly
+                    .assertThat(rolledBackApi.getUpdatedAt())
+                    .as("update date, moved past the one of the definition write by the internal flow write")
+                    .isEqualTo(INSTANT_NOW.plusMillis(1).atZone(ZoneId.systemDefault()));
             });
 
             var apiDefinition = rolledBackApi.getApiDefinition();
@@ -1342,7 +1383,7 @@ class RollbackApiUseCaseTest {
             eventQueryService.initWith(List.of(event));
 
             // When
-            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+            useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
             // Then
             var rolledBackApi = apiCrudService.get(existingV4Api.getId());
@@ -1350,7 +1391,10 @@ class RollbackApiUseCaseTest {
                 softly.assertThat(rolledBackApi.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
                 softly.assertThat(rolledBackApi.getName()).isEqualTo("api-previous-name");
                 softly.assertThat(rolledBackApi.getVersion()).isEqualTo("api-previous-version");
-                softly.assertThat(rolledBackApi.getUpdatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
+                softly
+                    .assertThat(rolledBackApi.getUpdatedAt())
+                    .as("update date, moved past the one of the definition write by the internal flow write")
+                    .isEqualTo(INSTANT_NOW.plusMillis(1).atZone(ZoneId.systemDefault()));
             });
 
             var apiDefinition = rolledBackApi.getApiDefinition();
@@ -1467,7 +1511,7 @@ class RollbackApiUseCaseTest {
             eventQueryService.initWith(List.of(event));
 
             // When
-            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+            useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
             // Then
             var rolledBackApi = apiCrudService.get(existingV4Api.getId());
@@ -1475,7 +1519,10 @@ class RollbackApiUseCaseTest {
                 softly.assertThat(rolledBackApi.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
                 softly.assertThat(rolledBackApi.getName()).isEqualTo("api-previous-name");
                 softly.assertThat(rolledBackApi.getVersion()).isEqualTo("api-previous-version");
-                softly.assertThat(rolledBackApi.getUpdatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
+                softly
+                    .assertThat(rolledBackApi.getUpdatedAt())
+                    .as("update date, moved past the one of the definition write by the internal flow write")
+                    .isEqualTo(INSTANT_NOW.plusMillis(1).atZone(ZoneId.systemDefault()));
             });
 
             var apiDefinition = rolledBackApi.getApiDefinition();
@@ -1592,7 +1639,7 @@ class RollbackApiUseCaseTest {
             eventQueryService.initWith(List.of(event));
 
             // When
-            var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO)));
+            var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO)));
 
             // Then: the rollback is refused and the message names the plans that were removed
             // ValidationDomainException maps to a 400 - a deleted plan is a normal user-correctable condition,
@@ -1675,7 +1722,7 @@ class RollbackApiUseCaseTest {
             eventQueryService.initWith(List.of(event));
 
             // When
-            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+            useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
             // Then
             assertThat(indexer.storage()).hasSize(1);
@@ -1748,7 +1795,7 @@ class RollbackApiUseCaseTest {
             var event = givenARevisionRunning(guardians("guardian-1"));
             givenTheApiUpdateKeepsTheStoredDefinition();
 
-            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+            useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
             assertSoftly(softly -> {
                 softly
@@ -1765,7 +1812,7 @@ class RollbackApiUseCaseTest {
             var event = givenARevisionRunning(null);
             givenTheApiUpdateKeepsTheStoredDefinition();
 
-            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+            useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
             assertSoftly(softly -> {
                 softly
@@ -1787,7 +1834,7 @@ class RollbackApiUseCaseTest {
             givenTheGatewaysRun(EventType.PUBLISH_API);
             givenTheApiUpdateKeepsTheStoredDefinition();
 
-            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+            useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
             assertThat(eventCrudService.storage())
                 .as("events written")
@@ -1807,7 +1854,7 @@ class RollbackApiUseCaseTest {
             var event = givenARevisionRunning(guardians("guardian-1"));
             givenTheApiUpdateKeepsTheStoredDefinition();
 
-            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+            useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
             assertSoftly(softly -> {
                 softly.assertThat(eventCrudService.storage()).as("events written").isEmpty();
@@ -1824,10 +1871,62 @@ class RollbackApiUseCaseTest {
             givenTheGatewaysRun(EventType.STOP_API);
             givenTheApiUpdateKeepsTheStoredDefinition();
 
-            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+            useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
             assertThat(eventCrudService.storage()).as("events written, a stopped API being restarted by none").isEmpty();
         }
+
+        /** What the gateways run is read before anything is written, so a deployment that cannot be read stops it all. */
+        @Test
+        void should_write_nothing_when_the_deployment_the_gateways_run_cannot_be_read() throws JsonProcessingException {
+            var event = givenARevisionRunning(guardians("guardian-1"));
+            givenTheGatewaysRunAnUnreadableDeployment();
+
+            var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO)));
+
+            assertSoftly(softly -> {
+                softly.assertThat(throwable).isInstanceOf(TechnicalDomainException.class);
+                softly.assertThat(apiCrudService.get(API_ID).getName()).as("name of the stored API").isEqualTo("api-name");
+                softly.assertThat(eventCrudService.storage()).as("events written").isEmpty();
+            });
+            verifyNoInteractions(delegateApiService);
+        }
+
+        /**
+         * Another writer moving the API between the rollback's two writes: the rollback answers so rather than
+         * reporting a success that lost the Guardians it restored.
+         */
+        @Test
+        void should_fail_a_rollback_whose_internal_flow_another_writer_got_ahead_of() throws JsonProcessingException {
+            var event = givenARevisionRunning(guardians("guardian-1"));
+            givenTheApiUpdateKeepsTheStoredDefinition();
+            definitions.beforeNextReplace = () -> {
+                var stored = apiCrudService.get(API_ID);
+                stored.setUpdatedAt(INSTANT_NOW.plusSeconds(60).atZone(ZoneId.systemDefault()));
+                apiCrudService.update(stored);
+            };
+
+            var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO)));
+
+            assertSoftly(softly -> {
+                softly.assertThat(throwable).isInstanceOf(ConflictDomainException.class);
+                softly.assertThat(eventCrudService.storage()).as("events written").isEmpty();
+            });
+        }
+    }
+
+    private void givenTheGatewaysRunAnUnreadableDeployment() {
+        deployments.initWith(
+            List.of(
+                Event.builder()
+                    .id("latest-event-id")
+                    .type(EventType.PUBLISH_API)
+                    .environments(Set.of(ENVIRONMENT_ID))
+                    .properties(new java.util.EnumMap<>(Map.of(Event.EventProperties.API_ID, API_ID)))
+                    .payload("not a deployment")
+                    .build()
+            )
+        );
     }
 
     /**
@@ -1843,7 +1942,7 @@ class RollbackApiUseCaseTest {
             var event = givenARevisionRunning(guardians("guardian-1"));
             givenTheApiUpdateKeepsTheStoredDefinition();
 
-            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+            useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
             var validated = ArgumentCaptor.forClass(io.gravitee.apim.core.api.model.Api.class);
             verify(apiDeploymentValidator).validateInternalFlowDeployable(validated.capture());
@@ -1864,7 +1963,7 @@ class RollbackApiUseCaseTest {
                 .when(apiDeploymentValidator)
                 .validateInternalFlowDeployable(any());
 
-            var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO)));
+            var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO)));
 
             var stored = apiCrudService.get(API_ID);
             assertSoftly(softly -> {
@@ -1892,7 +1991,7 @@ class RollbackApiUseCaseTest {
                 .when(apiDeploymentValidator)
                 .validateDeployable(any());
 
-            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+            useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
             assertThat(apiCrudService.get(API_ID).getApiDefinitionHttpV4().getInternalFlow())
                 .as("internal flow of the stored definition")
@@ -1908,7 +2007,7 @@ class RollbackApiUseCaseTest {
             var event = givenANativeRevision();
             givenEveryValidatorRefuses();
 
-            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+            useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
             assertSoftly(softly -> {
                 softly
