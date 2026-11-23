@@ -101,8 +101,8 @@ class SearchGuardianUseCaseTest {
 
         var output = search(SearchGuardianUseCase.Input.builder().sortBy("phase"));
 
-        // REQUEST before RESPONSE: sorted on the phase, not on the name and not on the updatedAt the
-        // double used to fall back to
+        // REQUEST before RESPONSE: sorted on the phase, not on the name and not on the id the double
+        // breaks ties with
         assertThat(output.guardians().getContent()).extracting(Guardian::getId).containsExactly("in", "out");
     }
 

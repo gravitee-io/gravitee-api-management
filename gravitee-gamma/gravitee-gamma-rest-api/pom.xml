@@ -162,6 +162,38 @@
             </resource>
         </resources>
         <plugins>
+            <!-- test-jar: the in-memory doubles of this module's Guardian ports and the fixtures that
+                 build the entities they take, reused by the gravitee-gamma-module-aim repository — an
+                 external one, not a module of this tree.
+                 Every package this include list names becomes a contract this module owes its
+                 consumers, so it names only what a consumer has: the Guardian doubles, the Guardian
+                 fixtures (AGENTS.md §10 asks every `// Given` to go through them, and
+                 InMemoryGuardedApiPort.givenApi takes a GuardedApi only GuardianFixtures builds with
+                 valid defaults), and the gravitee_plugin doubles GuardianFixtures itself needs. The six
+                 other core/**/inmemory packages stay unpublished until something consumes them.
+                 The exclude drops the doubles' own tests: InMemoryGuardedApiPortTest extends a port
+                 contract test that is not published, and nested classes would carry the same risk. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                        <configuration>
+                            <includes>
+                                <include>io/gravitee/gamma/rest/core/guardian/inmemory/**</include>
+                                <include>io/gravitee/gamma/rest/core/guardian/*Fixture*.class</include>
+                                <include>io/gravitee/gamma/rest/core/gravitee_plugin/inmemory/**</include>
+                            </includes>
+                            <excludes>
+                                <exclude>**/*Test*.class</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>
