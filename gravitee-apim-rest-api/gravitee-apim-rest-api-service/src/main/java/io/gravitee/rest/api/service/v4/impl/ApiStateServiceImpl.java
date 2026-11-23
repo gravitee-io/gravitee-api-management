@@ -27,7 +27,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.api.model.property.EncryptedPropertyAuditMarker;
-import io.gravitee.apim.core.deployment.service_provider.ApiDeploymentValidator;
+import io.gravitee.apim.core.deployment.service_provider.ApiDeploymentGate;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.json.jackson.EncryptedPropertyAccessPatch;
@@ -81,7 +81,6 @@ import java.util.Set;
 import java.util.function.Supplier;
 import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -112,13 +111,7 @@ public class ApiStateServiceImpl implements ApiStateService {
     private final SynchronizationService synchronizationService;
     private final EventManager eventManager;
     private final SearchEngineService searchEngineService;
-    /**
-     * An {@link ObjectProvider} and not a collection: a Gamma module registers its validator as a singleton in this
-     * context after the context is refreshed, and a provider resolves the beans on every call. An injected collection
-     * would not — not even a {@code @Lazy} one, whose proxy caches the beans it resolved the first time as soon as
-     * they are all singletons, so the Guardian check would silently stop running until the next restart.
-     */
-    private final ObjectProvider<ApiDeploymentValidator> deploymentValidators;
+    private final ApiDeploymentGate deploymentValidator;
 
     public ApiStateServiceImpl(
         @Lazy final ApiSearchService apiSearchService,
@@ -138,7 +131,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         final SynchronizationService synchronizationService,
         final EventManager eventManager,
         final SearchEngineService searchEngineService,
-        final ObjectProvider<ApiDeploymentValidator> deploymentValidators
+        final ApiDeploymentGate deploymentValidator
     ) {
         this.apiSearchService = apiSearchService;
         this.apiRepository = apiRepository;
@@ -157,7 +150,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         this.synchronizationService = synchronizationService;
         this.eventManager = eventManager;
         this.searchEngineService = searchEngineService;
-        this.deploymentValidators = deploymentValidators;
+        this.deploymentValidator = deploymentValidator;
     }
 
     @Override
@@ -454,14 +447,8 @@ public class ApiStateServiceImpl implements ApiStateService {
         }
     }
 
-    /**
-     * Runs every {@link ApiDeploymentValidator} the context holds, so what a module owns inside the definition — the
-     * Guardians of an API, the cluster its endpoints bind to — is checked before the gateways are given it. The
-     * definition is parsed once here, so no validator reads the API back and judges another one than the one deployed.
-     */
     private void validateDeployable(Api api) {
-        var deployed = ApiAdapter.INSTANCE.toCoreModel(api);
-        deploymentValidators.orderedStream().forEach(validator -> validator.validateDeployable(deployed));
+        deploymentValidator.validateDeployable(ApiAdapter.INSTANCE.toCoreModel(api));
     }
 
     private GenericApiEntity updateLifecycle(
