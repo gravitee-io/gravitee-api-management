@@ -87,7 +87,9 @@ public class SearchObservabilityLogsUseCase {
         var effectiveConditions = removeScopeConditions(conditions);
         EntrypointScope entrypointScope = null;
         if (recordType == RecordType.AUTHZ_DECISION) {
-            rejectConditionsTheDecisionSearchCannotApply(effectiveConditions);
+            rejectConditionsTheDecisionSearchCannotApply(effectiveConditions, recordType, DECISION_SUPPORTED_FILTERS);
+        } else if (recordType == RecordType.GUARDIAN_DECISION) {
+            rejectConditionsTheDecisionSearchCannotApply(effectiveConditions, recordType, GUARDIAN_DECISION_SUPPORTED_FILTERS);
         } else {
             rejectDecisionFiltersOnTheRequestSearch(effectiveConditions);
             // Entrypoints only exist on request documents: a decision search carries no scope.
@@ -100,7 +102,7 @@ public class SearchObservabilityLogsUseCase {
         var userApiFilter = extractApiFilter(conditions);
         var effectiveApiTypes = narrowApiTypes(conditions);
         // Only a request scoped by kind reads calls by entrypoint; decisions carry none.
-        var addingEntrypoints = recordType == RecordType.AUTHZ_DECISION || !hasApiTypeCondition(conditions)
+        var addingEntrypoints = recordType != RecordType.REQUEST || !hasApiTypeCondition(conditions)
             ? Set.<String>of()
             : entrypointScopeProvider.entrypointsAdding(effectiveApiTypes);
         var scope = accessibleApiScope.computeScope(accessibleApis, effectiveApiTypes, userApiFilter, addingEntrypoints);
@@ -206,11 +208,15 @@ public class SearchObservabilityLogsUseCase {
      * Anything the decision search cannot express would be accepted and then dropped —
      * indistinguishable, to the caller, from a filter that matched everything.
      */
-    private static void rejectConditionsTheDecisionSearchCannotApply(List<FilterCondition> conditions) {
+    private static void rejectConditionsTheDecisionSearchCannotApply(
+        List<FilterCondition> conditions,
+        RecordType recordType,
+        Set<String> supported
+    ) {
         var unsupported = conditions
             .stream()
             .map(FilterCondition::name)
-            .filter(name -> !DECISION_SUPPORTED_FILTERS.contains(name))
+            .filter(name -> !supported.contains(name))
             .distinct()
             .sorted()
             .toList();
@@ -218,13 +224,23 @@ public class SearchObservabilityLogsUseCase {
             throw new ValidationDomainException(
                 "Filters " +
                     unsupported +
-                    " do not apply to RECORD_TYPE=AUTHZ_DECISION. Supported: API, API_TYPE, " +
-                    DECISION_SUPPORTED_FILTERS.stream().sorted().collect(Collectors.joining(", ")) +
+                    " do not apply to RECORD_TYPE=" +
+                    recordType.name() +
+                    ". Supported: API, API_TYPE, " +
+                    supported.stream().sorted().collect(Collectors.joining(", ")) +
                     " and the time range.",
                 "observability.filter.not_applicable_to_decisions"
             );
         }
     }
+
+    /** The predicates the Guardian decision search can express, on top of the api scope and the time range. */
+    // Package-private so a test can assert set equality against the catalog, like the allowlist above.
+    static final Set<String> GUARDIAN_DECISION_SUPPORTED_FILTERS = Set.of(
+        StaticFilters.GUARDIAN.filterName(),
+        StaticFilters.GUARDIAN_OUTCOME.filterName(),
+        StaticFilters.GUARDIAN_SEARCH.filterName()
+    );
 
     /** Filters only decision records carry; {@code REQUEST_ID} is the one the request search reads too. */
     // Package-private so a test can assert set equality against the catalog, like the allowlist above.
@@ -244,6 +260,14 @@ public class SearchObservabilityLogsUseCase {
             .findFirst()
             .ifPresent(name -> {
                 throw UnsupportedObservabilityFilterException.requiresDecisionRecordType(name);
+            });
+        conditions
+            .stream()
+            .map(FilterCondition::name)
+            .filter(GUARDIAN_DECISION_SUPPORTED_FILTERS::contains)
+            .findFirst()
+            .ifPresent(name -> {
+                throw UnsupportedObservabilityFilterException.requiresGuardianDecisionRecordType(name);
             });
     }
 

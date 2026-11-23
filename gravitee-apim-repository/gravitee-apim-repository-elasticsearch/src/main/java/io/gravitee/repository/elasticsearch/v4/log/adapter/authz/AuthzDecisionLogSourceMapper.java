@@ -15,13 +15,14 @@
  */
 package io.gravitee.repository.elasticsearch.v4.log.adapter.authz;
 
+import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asLongOrNull;
 import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asMapOrNull;
+import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asTextList;
 import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asTextOrNull;
+import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.epochMillisOrNull;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.repository.log.v4.model.authz.AuthzDecisionLog;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,7 +36,7 @@ final class AuthzDecisionLogSourceMapper {
     static AuthzDecisionLog from(JsonNode source) {
         return AuthzDecisionLog.builder()
             .eventId(asTextOrNull(source.get(AuthzDecisionLogFields.EVENT_ID)))
-            .timestamp(epochMillis(asTextOrNull(source.get(AuthzDecisionLogFields.TIMESTAMP))))
+            .timestamp(epochMillisOrNull(asTextOrNull(source.get(AuthzDecisionLogFields.TIMESTAMP))))
             .apiId(asTextOrNull(source.get(AuthzDecisionLogFields.API_ID)))
             .organizationId(asTextOrNull(source.get(AuthzDecisionLogFields.ORG_ID)))
             .environmentId(asTextOrNull(source.get(AuthzDecisionLogFields.ENV_ID)))
@@ -88,35 +89,6 @@ final class AuthzDecisionLogSourceMapper {
             }
         });
         return rules;
-    }
-
-    private static List<String> asTextList(JsonNode node) {
-        if (node == null || !node.isArray()) {
-            return List.of();
-        }
-        var values = new ArrayList<String>(node.size());
-        node.forEach(value -> {
-            if (!value.isNull()) {
-                values.add(value.asText());
-            }
-        });
-        return values;
-    }
-
-    private static Long epochMillis(String timestamp) {
-        if (timestamp == null) {
-            return null;
-        }
-        try {
-            // the reporter writes an offset date-time ("…+02:00"), not a bare instant
-            return OffsetDateTime.parse(timestamp).toInstant().toEpochMilli();
-        } catch (DateTimeParseException e) {
-            return null;
-        }
-    }
-
-    private static Long asLongOrNull(JsonNode node) {
-        return node == null || node.isNull() ? null : node.asLong();
     }
 
     private static Integer asIntOrNull(JsonNode node) {

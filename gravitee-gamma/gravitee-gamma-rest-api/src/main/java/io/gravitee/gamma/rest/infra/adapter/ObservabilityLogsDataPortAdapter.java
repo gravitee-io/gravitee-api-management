@@ -28,9 +28,12 @@ import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.log.crud_service.AggregatedMessageLogCrudService;
 import io.gravitee.apim.core.log.crud_service.AuthzDecisionLogsCrudService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
+import io.gravitee.apim.core.log.crud_service.GuardianDecisionLogsCrudService;
 import io.gravitee.apim.core.log.model.AggregatedMessageLog;
 import io.gravitee.apim.core.log.model.AuthzDecisionLog;
 import io.gravitee.apim.core.log.model.AuthzDecisionLogFilters;
+import io.gravitee.apim.core.log.model.GuardianDecisionLog;
+import io.gravitee.apim.core.log.model.GuardianDecisionLogFilters;
 import io.gravitee.apim.core.log.model.SecurityTokenProjection;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
@@ -48,6 +51,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.logs.model.ApiReference;
 import io.gravitee.gamma.rest.core.observability.logs.model.AuthzDecision;
 import io.gravitee.gamma.rest.core.observability.logs.model.EntrypointScope;
+import io.gravitee.gamma.rest.core.observability.logs.model.GuardianDecision;
 import io.gravitee.gamma.rest.core.observability.logs.model.HttpPayload;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogDetail;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
@@ -81,6 +85,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -122,6 +127,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
     private final AggregatedMessageLogCrudService aggregatedMessageLogCrudService;
     private final ConnectionLogsCrudService connectionLogsCrudService;
     private final AuthzDecisionLogsCrudService authzDecisionLogsCrudService;
+    private final GuardianDecisionLogsCrudService guardianDecisionLogsCrudService;
     private final AnalyticsQueryService analyticsQueryService;
     private final UserContextLoader userContextLoader;
     private final PlanCrudService planCrudService;
@@ -164,6 +170,9 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
 
         if (query.recordType() == RecordType.AUTHZ_DECISION) {
             return searchDecisionLogs(executionContext, query, pageable);
+        }
+        if (query.recordType() == RecordType.GUARDIAN_DECISION) {
+            return searchGuardianDecisionLogs(executionContext, query, pageable);
         }
 
         var searchFilters = buildSearchFilters(query);
@@ -580,6 +589,80 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                     )
                 )
         );
+    }
+
+    private LogsPage searchGuardianDecisionLogs(ExecutionContext executionContext, LogsSearchQuery query, PageableImpl pageable) {
+        var text = firstValueOf(query.conditions(), StaticFilters.GUARDIAN_SEARCH.filterName());
+        var filters = GuardianDecisionLogFilters.builder()
+            .apiIds(query.apiIds())
+            .from(query.from())
+            .to(query.to())
+            .guardianIds(valuesOf(query.conditions(), StaticFilters.GUARDIAN.filterName()))
+            .outcomes(valuesOf(query.conditions(), StaticFilters.GUARDIAN_OUTCOME.filterName()))
+            .text(text)
+            .textApiIds(apisNamed(text, query.apisById()))
+            .build();
+        var result = guardianDecisionLogsCrudService.searchDecisionLogs(executionContext, filters, pageable);
+        var entries = result
+            .logs()
+            .stream()
+            .map(decision -> mapGuardianDecisionToLogEntry(decision, query.apisById()))
+            .toList();
+        return new LogsPage(entries, result.total());
+    }
+
+    /**
+     * The apis in scope whose name holds the text, in any case: a decision carries the id of its api, not its name, so
+     * a search on the proxy a row shows is a search on these ids.
+     */
+    private static Set<String> apisNamed(String text, Map<String, ApiReference> apisById) {
+        if (text == null || text.isBlank() || apisById == null) {
+            return Set.of();
+        }
+        var needle = text.trim().toLowerCase(Locale.ROOT);
+        return apisById
+            .entrySet()
+            .stream()
+            .filter(entry -> entry.getValue() != null && entry.getValue().name() != null)
+            .filter(entry -> entry.getValue().name().toLowerCase(Locale.ROOT).contains(needle))
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toSet());
+    }
+
+    private LogEntry mapGuardianDecisionToLogEntry(GuardianDecisionLog decision, Map<String, ApiReference> apisById) {
+        var apiRef = apisById != null ? apisById.get(decision.apiId()) : null;
+        return LogEntry.builder()
+            .apiId(decision.apiId())
+            .apiName(apiRef != null ? apiRef.name() : null)
+            .apiType(apiRef != null ? apiRef.apiType() : null)
+            .timestamp(decision.timestamp() == null ? null : Instant.ofEpochMilli(decision.timestamp()))
+            .requestId(decision.requestId())
+            .guardian(
+                GuardianDecision.builder()
+                    .eventId(decision.eventId())
+                    .guardianId(decision.guardianId())
+                    .revision(decision.revision())
+                    .checkpoint(decision.checkpoint())
+                    .outcome(decision.outcome())
+                    .enforced(decision.enforced())
+                    .transformationType(decision.transformationType())
+                    .verdict(decision.verdict())
+                    .reasons(decision.reasons())
+                    .findings(findingsOf(decision.findings()))
+                    .durationNanos(decision.durationNanos())
+                    .build()
+            )
+            .build();
+    }
+
+    private static List<GuardianDecision.Finding> findingsOf(List<GuardianDecisionLog.Finding> findings) {
+        if (findings == null) {
+            return List.of();
+        }
+        return findings
+            .stream()
+            .map(finding -> new GuardianDecision.Finding(finding.guardrail(), finding.rule(), finding.location(), finding.effect()))
+            .toList();
     }
 
     private static Set<String> valuesOf(List<FilterCondition> conditions, String filterName) {
