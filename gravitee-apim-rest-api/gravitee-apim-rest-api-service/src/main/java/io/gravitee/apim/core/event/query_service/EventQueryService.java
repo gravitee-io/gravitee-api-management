@@ -43,5 +43,14 @@ public interface EventQueryService {
 
     record SearchResponse(long total, List<Event> events) {}
 
-    Optional<Api> findApiFromPublishApiEvent(String eventId);
+    /**
+     * The API a {@code PUBLISH_API} event of this environment carries, typed.
+     *
+     * <p>Scoped on the environment, as {@link #findByIdForEnvironment(String, String)} is: an event id is the only
+     * thing a caller hands over, and a caller authorized on its own environment must not reach the deployment history
+     * of another one.
+     *
+     * @return empty when no event of this environment has this id, or when that event did not publish an API.
+     */
+    Optional<Api> findApiFromPublishApiEvent(String environmentId, String eventId);
 }
