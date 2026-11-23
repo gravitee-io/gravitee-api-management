@@ -160,7 +160,8 @@ class AnalyticsElasticsearchRepositoryBuiltInMeasuresTest extends AbstractElasti
         assertThat(measures.get(Measure.AVG).doubleValue()).isCloseTo(250.0, within(1e-9));
         assertThat(measures.get(Measure.MIN).doubleValue()).isEqualTo(100.0);
         assertThat(measures.get(Measure.MAX).doubleValue()).isEqualTo(400.0);
-        assertThat(measures.get(Measure.P50).doubleValue()).isCloseTo(250.0, within(1.0));
+        // OpenSearch 3+ (t-digest 3.3) picks 300 instead of interpolating 250; lp-004 read as 0 would give 200
+        assertThat(measures.get(Measure.P50).doubleValue()).isBetween(250.0, 300.0);
     }
 
     @ParameterizedTest
