@@ -19,6 +19,7 @@ package io.gravitee.plugin.endpoint.http.proxy.client;
 import io.gravitee.apim.common.lifecycle.LazyCloseable;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.node.vertx.client.http.VertxWebSocketClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
@@ -53,13 +54,16 @@ public class WebSocketClientFactory {
         final HttpProxyEndpointConnectorConfiguration configuration,
         final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration
     ) {
+        final WebSocketSizeLimits sizeLimits = WebSocketSizeLimits.from(ctx.getComponent(ServerManager.class));
         return VertxWebSocketClientFactory.builder()
             .vertx(ctx.getComponent(Vertx.class))
             .nodeConfiguration(ctx.getComponent(Configuration.class))
             .defaultTarget(configuration.getTarget())
             .httpOptions(HttpClientOptionsMapper.INSTANCE.map(sharedConfiguration.getHttpOptions()))
             .sslOptions(SslOptionsMapper.INSTANCE.map(sharedConfiguration.getSslOptions()))
-            .proxyOptions(HttpProxyOptionsMapper.INSTANCE.map(sharedConfiguration.getProxyOptions()));
+            .proxyOptions(HttpProxyOptionsMapper.INSTANCE.map(sharedConfiguration.getProxyOptions()))
+            .maxFrameSize(sizeLimits.maxFrameSize())
+            .maxMessageSize(sizeLimits.maxMessageSize());
     }
 
     public void close() {
