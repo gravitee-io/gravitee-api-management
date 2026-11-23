@@ -15,9 +15,16 @@
  */
 package io.gravitee.apim.core.credential.model;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public record ResolvedCredential(CredentialStrategy strategy, Map<String, Object> configuration, Map<String, String> secrets) {
+    public ResolvedCredential {
+        configuration = configuration == null ? Map.of() : Collections.unmodifiableMap(new LinkedHashMap<>(configuration));
+        secrets = Collections.unmodifiableMap(new LinkedHashMap<>(secrets));
+    }
+
     @Override
     public String toString() {
         return "ResolvedCredential[strategy=" + strategy + ", configuration=" + configuration + ", secrets=" + secrets.keySet() + "]";

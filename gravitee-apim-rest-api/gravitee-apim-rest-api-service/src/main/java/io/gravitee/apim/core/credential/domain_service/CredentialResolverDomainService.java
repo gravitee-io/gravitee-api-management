@@ -21,6 +21,8 @@ import io.gravitee.apim.core.credential.exception.CredentialNotResolvableExcepti
 import io.gravitee.apim.core.credential.exception.CredentialSecretMissingException;
 import io.gravitee.apim.core.credential.model.ResolvedCredential;
 import io.gravitee.apim.core.secret.crud_service.SecretCrudService;
+import io.gravitee.apim.core.secret.exception.SecretNotFoundException;
+import io.gravitee.apim.core.secret.model.Secret;
 import io.gravitee.apim.core.secret.service_provider.SecretValueEncryptor;
 import java.util.LinkedHashMap;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +35,7 @@ public class CredentialResolverDomainService {
     private final SecretCrudService secretCrudService;
     private final SecretValueEncryptor secretValueEncryptor;
 
+    /** Checks no permission and writes no audit: the caller must have checked that its user may use the credential. */
     public ResolvedCredential resolve(String organizationId, String environmentId, String credentialId) {
         var credential = credentialCrudService.get(organizationId, environmentId, credentialId);
         var values = new LinkedHashMap<String, String>();
@@ -44,9 +47,18 @@ public class CredentialResolverDomainService {
                 }
                 var secret = secretCrudService
                     .findById(organizationId, environmentId, reference.secretId())
+                    .filter(found -> found.key().equals(Secret.CREDENTIAL_KEY_PREFIX + credentialId + "." + field))
                     .orElseThrow(() -> CredentialSecretMissingException.whenRead(credentialId, field));
-                values.put(field, secretValueEncryptor.decrypt(secret, secretCrudService.getEncryptedValue(secret)));
+                values.put(field, decrypt(secret, credentialId, field));
             });
         return new ResolvedCredential(credential.strategy(), credential.configuration(), values);
+    }
+
+    private String decrypt(Secret secret, String credentialId, String field) {
+        try {
+            return secretValueEncryptor.decrypt(secret, secretCrudService.getEncryptedValue(secret));
+        } catch (SecretNotFoundException e) {
+            throw CredentialSecretMissingException.whenRead(credentialId, field);
+        }
     }
 }

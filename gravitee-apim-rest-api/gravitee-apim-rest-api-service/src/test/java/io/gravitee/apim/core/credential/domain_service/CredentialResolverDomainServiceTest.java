@@ -26,8 +26,10 @@ import io.gravitee.apim.core.credential.exception.CredentialSecretMissingExcepti
 import io.gravitee.apim.core.credential.model.Credential;
 import io.gravitee.apim.core.credential.model.CredentialStrategy;
 import io.gravitee.apim.core.credential.model.SecretReference;
+import io.gravitee.apim.core.secret.exception.SecretNotFoundException;
 import io.gravitee.apim.core.secret.model.Secret;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,7 +79,7 @@ class CredentialResolverDomainServiceTest {
     )
     void should_refuse_a_secret_that_only_the_gateway_can_resolve(String reference) {
         var references = new LinkedHashMap<String, SecretReference>();
-        references.put("clientId", storedReference("client-id"));
+        references.put("clientId", storedReference("clientId", "client-id"));
         references.put("clientSecret", new SecretReference(reference, null));
         credentialCrudService.initWith(List.of(credential(CredentialStrategy.OAUTH2, Map.of(), references)));
 
@@ -107,6 +109,51 @@ class CredentialResolverDomainServiceTest {
     }
 
     @Test
+    void should_not_read_a_secret_that_another_credential_holds() {
+        var references = new LinkedHashMap<String, SecretReference>();
+        references.put("token", storedSecret("credential.other.token", "other-token"));
+        credentialCrudService.initWith(List.of(credential(CredentialStrategy.BEARER, Map.of(), references)));
+
+        assertThatThrownBy(() -> service.resolve(ORG_ID, ENV_ID, CREDENTIAL_ID))
+            .isInstanceOf(CredentialSecretMissingException.class)
+            .hasMessageContaining("token")
+            .hasMessageNotContaining("other-token");
+    }
+
+    @Test
+    void should_name_the_field_whose_secret_goes_while_it_is_read() {
+        var vanishing = new CredentialSecretsInMemory() {
+            @Override
+            public String getEncryptedValue(Secret secret) {
+                throw new SecretNotFoundException(secret.id());
+            }
+        };
+        service = new CredentialResolverDomainService(credentialCrudService, vanishing, vanishing.encryptor);
+        var secret = Secret.create(null, ORG_ID, ENV_ID, "credential." + CREDENTIAL_ID + ".token", NOW);
+        var stored = vanishing.create(secret, vanishing.encryptor.encrypt(secret, "plain-token"));
+        credentialCrudService.initWith(
+            List.of(credential(CredentialStrategy.BEARER, Map.of(), Map.of("token", SecretReference.managed(stored.path(), stored.id()))))
+        );
+
+        assertThatThrownBy(() -> service.resolve(ORG_ID, ENV_ID, CREDENTIAL_ID))
+            .isInstanceOf(CredentialSecretMissingException.class)
+            .hasMessageContaining("token");
+    }
+
+    @Test
+    void should_not_let_the_caller_change_the_values() {
+        Map<String, Object> configuration = new HashMap<>(Map.of("tokenUrl", "https://login.example.com/token"));
+        credentialCrudService.initWith(
+            List.of(managedCredential(CredentialStrategy.BEARER, configuration, Map.of("token", "plain-token")))
+        );
+
+        var resolved = service.resolve(ORG_ID, ENV_ID, CREDENTIAL_ID);
+
+        assertThatThrownBy(() -> resolved.secrets().put("token", "changed")).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> resolved.configuration().put("tokenUrl", "changed")).isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
     void should_not_print_the_values() {
         credentialCrudService.initWith(List.of(managedCredential(CredentialStrategy.BEARER, Map.of(), Map.of("token", "plain-token"))));
 
@@ -119,12 +166,12 @@ class CredentialResolverDomainServiceTest {
         return credential(strategy, configuration, references);
     }
 
-    private SecretReference storedReference(String value) {
-        return storedReference(value, value);
+    private SecretReference storedReference(String field, String value) {
+        return storedSecret(Secret.CREDENTIAL_KEY_PREFIX + CREDENTIAL_ID + "." + field, value);
     }
 
-    private SecretReference storedReference(String field, String value) {
-        var secret = Secret.create(null, ORG_ID, ENV_ID, Secret.CREDENTIAL_KEY_PREFIX + CREDENTIAL_ID + "." + field, NOW);
+    private SecretReference storedSecret(String key, String value) {
+        var secret = Secret.create(null, ORG_ID, ENV_ID, key, NOW);
         var stored = secrets.create(secret, secrets.encryptor.encrypt(secret, value));
         return SecretReference.managed(stored.path(), stored.id());
     }
