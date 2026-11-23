@@ -45,7 +45,10 @@ public enum ApiType {
     // field named by its scopeFilterField, which on the decisions screen is RECORD_TYPE. A filter is
     // only offered there if this token is among its apiTypes, so carrying it is how a filter opts in
     // to that screen. Declare {@link #API_KINDS} instead of {@link #ALL} to stay out of it.
-    AUTHZ_DECISION("Authz decision record");
+    AUTHZ_DECISION("Authz decision record"),
+    // Not an API kind either: the scope token of the Guardian decisions, as AUTHZ_DECISION is the one of the
+    // authorization decisions. A Guardian runs in front of an API of any kind.
+    GUARDIAN_DECISION("Guardian decision record");
 
     private final String label;
 
@@ -67,11 +70,11 @@ public enum ApiType {
     public static final Set<ApiType> ALL = Set.of(values());
 
     /**
-     * Every real API kind, i.e. {@link #ALL} minus {@link #AUTHZ_DECISION}. Use for anything that
+     * Every real API kind, i.e. {@link #ALL} minus the two decision record tokens. Use for anything that
      * only makes sense against an API: the values a user may pick in the {@code API_TYPE} filter, and
      * filters carried solely by request documents.
      */
-    public static final Set<ApiType> API_KINDS = Set.copyOf(EnumSet.complementOf(EnumSet.of(AUTHZ_DECISION)));
+    public static final Set<ApiType> API_KINDS = Set.copyOf(EnumSet.complementOf(EnumSet.of(AUTHZ_DECISION, GUARDIAN_DECISION)));
 
     /**
      * The kinds whose rows the logs search serves: every API kind but {@link #EDGE}, which writes no log row. The logs
@@ -82,7 +85,7 @@ public enum ApiType {
 
     /**
      * Whether an entry tied to no API kind answers a narrowing on {@code requested}: it applies to the requests of every
-     * API kind and never to the decisions screen, so it passes unless only {@link #AUTHZ_DECISION} is asked (OBS-70, §8).
+     * API kind and never to a decisions screen, so it passes unless only decision records are asked (OBS-70, §8).
      */
     public static boolean admitsUnscoped(Set<ApiType> requested) {
         return requested == null || requested.isEmpty() || requested.stream().anyMatch(API_KINDS::contains);

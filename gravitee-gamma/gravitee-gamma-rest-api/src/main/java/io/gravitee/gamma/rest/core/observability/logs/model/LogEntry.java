@@ -83,7 +83,8 @@ public record LogEntry(
     String clientSoftwareVersion,
     String brokerId,
     Long connectionDurationMs,
-    AuthzDecision authz
+    AuthzDecision authz,
+    GuardianDecision guardian
 ) {
     public LogEntry {
         additionalMetrics = additionalMetrics == null ? Map.of() : additionalMetrics;
