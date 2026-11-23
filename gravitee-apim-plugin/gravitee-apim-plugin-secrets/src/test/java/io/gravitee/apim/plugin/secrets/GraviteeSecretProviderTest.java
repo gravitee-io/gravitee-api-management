@@ -266,17 +266,54 @@ class GraviteeSecretProviderTest {
         }
 
         @Test
-        void should_refuse_every_secret_when_the_stored_data_keys_cannot_be_read() throws TechnicalException {
-            when(organizationKeyRepository.findKekIds()).thenThrow(new TechnicalException("down"));
+        void should_check_the_stored_data_keys_again_on_the_next_secret_when_they_cannot_be_read_at_start() throws TechnicalException {
+            givenSecret(ENV, KEY, "sk-live-123");
+            when(organizationKeyRepository.findKekIds()).thenThrow(new TechnicalException("down")).thenReturn(Set.of(kek.id()));
 
-            assertRefusesEverySecret(provider(base64Kek).start(), "failed to read the stored data keys");
+            var provider = provider(base64Kek).start();
+
+            assertThat(logs.list)
+                .singleElement()
+                .satisfies(event -> {
+                    assertThat(event.getLevel()).isEqualTo(Level.WARN);
+                    assertThat(event.getFormattedMessage()).contains("failed to read the stored data keys");
+                });
+            assertThat(provider.resolve(LLM_KEY).blockingGet().asMap().get("value").asString()).isEqualTo("sk-live-123");
         }
 
         @Test
-        void should_refuse_every_secret_when_the_repository_fails_unexpectedly_while_starting() throws TechnicalException {
+        void should_fail_each_secret_but_keep_checking_while_the_stored_data_keys_cannot_be_read() throws TechnicalException {
             when(organizationKeyRepository.findKekIds()).thenThrow(new IllegalStateException("connection refused"));
+            var provider = provider(base64Kek).start();
 
-            assertRefusesEverySecret(provider(base64Kek).start(), "failed to read the stored data keys");
+            provider.resolve(LLM_KEY).test().assertError(SecretManagerException.class);
+            provider.resolve(LLM_KEY).test().assertError(SecretManagerException.class);
+
+            verify(organizationKeyRepository, times(3)).findKekIds();
+        }
+
+        @Test
+        void should_refuse_every_secret_when_a_data_key_stored_after_start_was_wrapped_by_another_key_encryption_key()
+            throws TechnicalException {
+            givenSecret(ENV, KEY, "sk-live-123");
+            var otherKek = StaticKeyEncryptionKeyProvider.fromBase64(randomKek());
+            when(organizationKeyRepository.findKekIds()).thenReturn(Set.of()).thenReturn(Set.of(otherKek.id()));
+            when(organizationKeyRepository.findByOrganizationId(ORG)).thenReturn(
+                Optional.of(
+                    OrganizationKey.builder()
+                        .id(dataKey.id())
+                        .organizationId(ORG)
+                        .kekId(otherKek.id())
+                        .wrappedKey(Base64.getEncoder().encodeToString(otherKek.wrap(ORG, dataKey.material())))
+                        .build()
+                )
+            );
+            var provider = provider(base64Kek).start();
+
+            provider.resolve(LLM_KEY).test().assertError(SecretManagerException.class);
+
+            assertRefusesEverySecret(provider, "does not match");
+            verify(organizationKeyRepository, times(2)).findKekIds();
         }
 
         @Test

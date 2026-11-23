@@ -17,6 +17,7 @@ package io.gravitee.apim.plugin.secrets;
 
 import io.gravitee.apim.common.secret.DataKeyResolver;
 import io.gravitee.apim.common.secret.InvalidKeyEncryptionKeyException;
+import io.gravitee.apim.common.secret.KeyEncryptionKeyMismatchException;
 import io.gravitee.apim.common.secret.KeyEncryptionKeyProvider;
 import io.gravitee.apim.common.secret.SecretCryptoException;
 import io.gravitee.apim.common.secret.SecretEnvelope;
@@ -63,7 +64,9 @@ public class GraviteeSecretProvider implements SecretProvider {
     private final OrganizationKeyRepository organizationKeyRepository;
     private final EnvironmentRepository environmentRepository;
     private final Map<String, String> organizationOfEnvironment = new ConcurrentHashMap<>();
+    private volatile KeyEncryptionKeyProvider kek;
     private volatile DataKeyResolver dataKeys;
+    private volatile boolean storedDataKeysVerified;
     private volatile String refusal;
 
     public GraviteeSecretProvider(
@@ -86,7 +89,8 @@ public class GraviteeSecretProvider implements SecretProvider {
 
     /**
      * Never throws: the secrets service stops, with every other secret provider, when a provider fails to start. A
-     * provider that cannot serve logs why once and refuses every secret instead.
+     * misconfigured provider logs why once and refuses every secret instead. A provider that cannot read the stored data
+     * keys yet checks them again on the next secret, as the repository may only be briefly unavailable.
      */
     @Override
     public SecretProvider start() {
@@ -95,42 +99,68 @@ public class GraviteeSecretProvider implements SecretProvider {
             return this;
         }
         try {
-            dataKeys = new DataKeyResolver(verifiedKeyEncryptionKey(), this::findStoredDataKey);
+            kek = configuredKeyEncryptionKey();
+            dataKeys = new DataKeyResolver(kek, this::findStoredDataKey);
+            verifyStoredDataKeys();
         } catch (SecretManagerException e) {
-            refusal = e.getMessage();
-            log.error("{}: it refuses every secret until this is fixed", refusal, e.getCause());
+            if (refusal == null) {
+                log.warn("{}: it checks them again on the next secret", e.getMessage(), e.getCause());
+            }
         }
         return this;
     }
 
-    private KeyEncryptionKeyProvider verifiedKeyEncryptionKey() {
+    private KeyEncryptionKeyProvider configuredKeyEncryptionKey() {
         if (secretRepository == null || organizationKeyRepository == null || environmentRepository == null) {
-            throw new SecretManagerException(
-                "Secret provider [" + ID + "] cannot read secrets: the management repository does not store secrets"
-            );
+            throw refuse("Secret provider [" + ID + "] cannot read secrets: the management repository does not store secrets");
         }
-        KeyEncryptionKeyProvider kek;
         try {
-            kek = StaticKeyEncryptionKeyProvider.fromBase64(base64Kek);
+            return StaticKeyEncryptionKeyProvider.fromBase64(base64Kek);
         } catch (InvalidKeyEncryptionKeyException e) {
-            throw new SecretManagerException(KEY_SETTING + " " + e.getMessage());
+            throw refuse(KEY_SETTING + " " + e.getMessage());
         }
-        Set<String> storedKekIds;
-        try {
-            storedKekIds = organizationKeyRepository.findKekIds();
-        } catch (TechnicalException | RuntimeException e) {
-            throw new SecretManagerException("Secret provider [" + ID + "] failed to read the stored data keys", e);
+    }
+
+    private synchronized void verifyStoredDataKeys() {
+        if (storedDataKeysVerified) {
+            return;
         }
-        if (!storedKekIds.isEmpty() && storedKekIds.stream().noneMatch(kek::canUnwrap)) {
-            throw new SecretManagerException(KEY_SETTING + " does not match the key that encrypted the stored secrets");
-        }
+        Set<String> storedKekIds = findKekIds();
+        refuseIfNoneMatches(storedKekIds);
         if (!storedKekIds.stream().allMatch(kek::canUnwrap)) {
             log.warn(
                 "{} did not wrap the data key of every organization: the organizations it did not wrap cannot read their secrets",
                 KEY_SETTING
             );
         }
-        return kek;
+        storedDataKeysVerified = true;
+    }
+
+    // The Management API stores a data key on the first secret write, so the gateway may start before any data key exists.
+    private synchronized void refuseIfNoStoredDataKeyMatches() {
+        if (refusal == null) {
+            refuseIfNoneMatches(findKekIds());
+        }
+    }
+
+    private void refuseIfNoneMatches(Set<String> storedKekIds) {
+        if (!storedKekIds.isEmpty() && storedKekIds.stream().noneMatch(kek::canUnwrap)) {
+            throw refuse(KEY_SETTING + " does not match the key that encrypted the stored secrets");
+        }
+    }
+
+    private Set<String> findKekIds() {
+        try {
+            return organizationKeyRepository.findKekIds();
+        } catch (TechnicalException | RuntimeException e) {
+            throw new SecretManagerException("Secret provider [" + ID + "] failed to read the stored data keys", e);
+        }
+    }
+
+    private SecretManagerException refuse(String reason) {
+        refusal = reason;
+        log.error("{}: it refuses every secret until this is fixed", reason);
+        return new SecretManagerException(reason);
     }
 
     @Override
@@ -140,6 +170,7 @@ public class GraviteeSecretProvider implements SecretProvider {
             return Maybe.error(new SecretManagerException(reason));
         }
         return Maybe.fromCallable(() -> {
+            verifyStoredDataKeys();
             String key = secretURL.path();
             if (key.isEmpty() || key.contains("/")) {
                 throw new SecretManagerException(
@@ -189,6 +220,9 @@ public class GraviteeSecretProvider implements SecretProvider {
                 );
             var scope = new SecretScope(secret.getOrganizationId(), secret.getEnvironmentId(), secret.getId());
             return SecretEnvelope.open(dataKey, scope, secret.getEncryptedValue());
+        } catch (KeyEncryptionKeyMismatchException e) {
+            refuseIfNoStoredDataKeyMatches();
+            throw new SecretManagerException(e.getMessage(), e);
         } catch (SecretCryptoException e) {
             throw new SecretManagerException(e.getMessage(), e);
         }
