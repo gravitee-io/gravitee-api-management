@@ -28,6 +28,7 @@ import io.gravitee.apim.core.api.domain_service.DeployApiInternalFlowDomainServi
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateNativeApiDomainService;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
+import io.gravitee.apim.core.api.exception.ApiChangedConcurrentlyException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.mapper.V4toV2RollbackOperator;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -75,6 +76,9 @@ public class RollbackApiUseCase {
     private static final String CLOSE = "close";
     private static final String REOPEN = "reopen";
 
+    /** Shown in the API's deployment history, on the entry republishing the internal flow the rollback restores. */
+    private static final String DEPLOYMENT_LABEL = "Internal flow restored by a rollback";
+
     private final EventQueryService eventQueryService;
     private final ApiCrudService apiCrudService;
     private final UpdateApiDomainService updateApiDomainService;
@@ -95,9 +99,14 @@ public class RollbackApiUseCase {
     private final ApiDeploymentGate apiDeploymentValidator;
 
     public void execute(Input input) {
+        // The caller was authorized on the API of the URL, and the deployment to restore is named by an id it hands
+        // over in the body: without this, the authorization proved on one API would be spent on another one.
         Api api = eventQueryService
-            .findApiFromPublishApiEvent(input.eventId)
-            .orElseThrow(() -> new IllegalStateException("Cannot rollback an event that is not a publish event!"));
+            .findApiFromPublishApiEvent(input.auditInfo.environmentId(), input.eventId)
+            .filter(deployed -> input.apiId.equals(deployed.getId()))
+            .orElseThrow(() ->
+                new ValidationDomainException("The event %s is not a deployment of the api %s".formatted(input.eventId, input.apiId))
+            );
         var apiUpdated = switch (api.getApiDefinitionValue()) {
             case io.gravitee.definition.model.v4.Api apiDefinition -> {
                 var toRollback = apiCrudService.get(apiDefinition.getId());
@@ -114,6 +123,7 @@ public class RollbackApiUseCase {
                 // what is judged — and before anything is written, so an API whose revision names a Guardian that is
                 // gone stays exactly as it is, definition, index and gateways alike.
                 apiDeploymentValidator.validateInternalFlowDeployable(rollbackedApi);
+                deployApiInternalFlow.ensureRunningDeploymentReadable(input.auditInfo.environmentId(), toRollback.getId());
 
                 var apiUpdatedV4 = updateApiDomainService.updateV4(rollbackedApi, input.auditInfo);
                 restoreInternalFlow(input.auditInfo, apiUpdatedV4, apiDefinition.getInternalFlow());
@@ -133,6 +143,7 @@ public class RollbackApiUseCase {
                 // flows and search entry) instead of being persisted as a half-converted V2 API.
                 var existingPlans = planQueryService.findAllByApiId(toRollback.getId());
                 validatePlansCanBeRolledBack(apiDefinition.getPlans(), existingPlans);
+                deployApiInternalFlow.ensureRunningDeploymentReadable(input.auditInfo.environmentId(), toRollback.getId());
                 if (
                     apiDefinition.getServices().getDynamicPropertyService() != null &&
                     apiDefinition.getServices().getDynamicPropertyService().isEnabled()
@@ -147,11 +158,14 @@ public class RollbackApiUseCase {
                 apiIndexerDomainService.index(indexerContext, rollbackedApi, apiPrimaryOwner);
 
                 var apiUpdatedV2 = apiCrudService.update(rollbackedApi);
-                // The Guardian index is a projection of the definition, and the V2 one names none. A full save of an
-                // API carries no index, so it is emptied here, by the write that owns it — which also tells the
-                // gateways to stop running the steps the V4 definition had. The internal flow it republishes is
-                // empty, which is why this branch asks no module to judge it: there is nothing left to refuse.
-                deployApiInternalFlow.replaceInternalFlow(input.auditInfo, apiUpdatedV2, apiUpdatedV2.getUpdatedAt());
+                // The V2 definition names no Guardian, and a full save of an API carries no index, so the index is
+                // emptied here by the write that owns it — which also stops the gateways running the steps the V4
+                // definition had. Nothing is left to refuse, which is why this branch asks no module to judge it.
+                if (
+                    !deployApiInternalFlow.clearInternalFlow(input.auditInfo, apiUpdatedV2, apiUpdatedV2.getUpdatedAt(), DEPLOYMENT_LABEL)
+                ) {
+                    throw new ApiChangedConcurrentlyException(api.getId());
+                }
 
                 // Rollback plans from API definition plans
                 var plans = rollbackPlansV2(apiDefinition.getPlans(), existingPlans, input.auditInfo);
@@ -230,15 +244,13 @@ public class RollbackApiUseCase {
      * would bring the index back in step with the restored definition.
      *
      * <p>The write is conditioned on the update date the rollback just stamped: if another writer moved the API in
-     * between, their definition stands and the index that goes with it is theirs to carry. The gateways are then
-     * sent nothing, which is why the result is not acted on here.
+     * between, the rollback fails rather than reporting a success that lost the internal flow it restores.
      */
     private void restoreInternalFlow(AuditInfo auditInfo, Api rolledBack, Flow internalFlow) {
-        var restored = rolledBack
-            .toBuilder()
-            .apiDefinitionValue(rolledBack.getApiDefinitionHttpV4().toBuilder().internalFlow(internalFlow).build())
-            .build();
-        deployApiInternalFlow.replaceInternalFlow(auditInfo, restored, rolledBack.getUpdatedAt());
+        var restored = rolledBack.withInternalFlow(internalFlow);
+        if (!deployApiInternalFlow.replaceInternalFlow(auditInfo, restored, rolledBack.getUpdatedAt(), DEPLOYMENT_LABEL)) {
+            throw new ApiChangedConcurrentlyException(rolledBack.getId());
+        }
     }
 
     private void keepStoredEncryption(AbstractApi storedDefinition, AbstractApi restoredDefinition) {
@@ -247,7 +259,11 @@ public class RollbackApiUseCase {
         );
     }
 
-    public record Input(String eventId, AuditInfo auditInfo) {}
+    /**
+     * @param apiId the API the caller was authorized on, which the deployment named by {@code eventId} must be a
+     *     deployment of.
+     */
+    public record Input(String apiId, String eventId, AuditInfo auditInfo) {}
 
     /**
      * Rolls plans back for both V4 API types: the plan domain services already dispatch on {@code api.isNative()}, so
