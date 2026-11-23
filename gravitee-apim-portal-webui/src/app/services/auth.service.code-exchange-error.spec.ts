@@ -16,7 +16,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { of } from 'rxjs';
@@ -59,7 +59,8 @@ describe('AuthService when APIM rejects the authorization code exchange', () => 
         getPortalIdentityProvider: () => of(provider),
         getPortalIdentityProviders: () => of({ data: [provider] }),
       }),
-      { provide: OAuthService, useValue: { configure: jest.fn(), tryLoginCodeFlow } },
+      // state holds the redirect URL saved by the code flow; left unset, a redirect would hand the URL parser a non-string.
+      { provide: OAuthService, useValue: { configure: jest.fn(), tryLoginCodeFlow, state: '' } },
     ],
   });
 
@@ -68,6 +69,10 @@ describe('AuthService when APIM rejects the authorization code exchange', () => 
   beforeEach(() => {
     localStorage.setItem('user-provider-id', provider.id);
     spectator = createSignInPage();
+    // Only the notification is under test: a redirect after the failed exchange must not reach the URL parser.
+    const router = spectator.inject(Router);
+    jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    jest.spyOn(router, 'navigate').mockResolvedValue(true);
   });
 
   afterEach(() => {
