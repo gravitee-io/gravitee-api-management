@@ -4,6 +4,9 @@
         "outDir": "../../dist/out-tsc",
         "module": "commonjs",
         "moduleResolution": "node10",
+        "paths": {
+            "@gravitee/gamma-lib-observability/testing": ["../../node_modules/@gravitee/gamma-lib-observability/dist/testing/index.d.ts"]
+        },
         "jsx": "react-jsx",
         "types": ["jest", "node", "@nx/react/typings/cssmodule.d.ts", "@nx/react/typings/image.d.ts"]
     },
