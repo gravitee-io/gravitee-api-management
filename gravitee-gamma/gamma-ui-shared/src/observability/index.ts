@@ -14,5 +14,6 @@
  * limitations under the License.
  */
 
+export { METRICS_CONFIGURATION_LOCATION, METRICS_CONFIGURATION_PATH } from './metricsConfigurationLocation';
 export { useEnvironmentId } from './useEnvironmentId';
 export { useObservabilityBaseUrl } from './useObservabilityBaseUrl';

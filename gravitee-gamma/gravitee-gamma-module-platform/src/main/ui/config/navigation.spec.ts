@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { METRICS_CONFIGURATION_LOCATION } from '@gravitee/gamma-ui-shared/observability';
 import {
     ActivityIcon,
     BarChart3Icon,
@@ -328,5 +329,16 @@ describe('platform navigation config', () => {
         expect(sectionKeys('Environment', 'System & Security')).not.toContain('no-access');
         expect(sectionKeys('Team', 'Team')).not.toContain('no-access');
         expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('no-access');
+    });
+});
+
+describe('Metrics configuration location', () => {
+    // Other modules send their readers here by this location (the APIM module's Observability › Settings hint).
+    it('is where the shared location says, by the labels this navigation renders', () => {
+        const section = NAV_SECTIONS.find(candidate => candidate.title === METRICS_CONFIGURATION_LOCATION.section);
+        const group = section?.groups.find(candidate => candidate.label === METRICS_CONFIGURATION_LOCATION.group);
+
+        expect(group?.items.map(item => item.key)).toContain('environment-metrics-configuration');
+        expect(ROUTES['environment-metrics-configuration'].label).toBe(METRICS_CONFIGURATION_LOCATION.page);
     });
 });

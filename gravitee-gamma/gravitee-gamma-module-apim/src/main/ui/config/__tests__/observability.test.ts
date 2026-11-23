@@ -24,7 +24,7 @@ import {
     type ObservabilityFeaturesConfig,
 } from '@gravitee/gamma-lib-observability';
 
-import { PERMISSIVE_CAPABILITIES } from '../observability';
+import { PERMISSIVE_CAPABILITIES, SETTINGS_READ_MODE_HINT } from '../observability';
 
 jest.mock('@gravitee/gamma-lib-observability', () => {
     const actual = jest.requireActual('@gravitee/gamma-lib-observability');
@@ -66,6 +66,18 @@ describe('observability module scope', () => {
     it('scopes custom dashboards and trace filters to the id this plugin is installed under', () => {
         expect(pluginId()).toBe('apim');
         expect(declaredConfig().module).toBe(pluginId());
+    });
+});
+
+describe('observability settings', () => {
+    it("lists the additional metrics catalog read-only, with this module's hint", () => {
+        expect(declaredConfig().features.settings).toEqual({ enabled: true, readModeHint: SETTINGS_READ_MODE_HINT });
+    });
+
+    it('sends the reader to the Platform page that edits the catalog, by the labels the shell and Platform show', () => {
+        expect(SETTINGS_READ_MODE_HINT).toBe(
+            'To declare a metric or change its label, unit or visibility, go to Platform Management › Environment › System & Security › Metrics configuration.',
+        );
     });
 });
 

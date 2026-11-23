@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 import { HTTP_PROXY_DASHBOARD } from '../http-proxy.dashboard';
+import { observabilityTemplates } from '../index';
 import { cartesianSeriesSupportRequestTotal, doughnutStatesItsScopeInTitle } from '../shared';
 
 const widgets = HTTP_PROXY_DASHBOARD.widgets;
+
+const templateWidgets = observabilityTemplates.flatMap(template => template.dashboard.widgets);
 
 describe('HTTP Proxy dashboard template coherence', () => {
     it('cartesian widgets never showTotal on mixed-unit or dual-axis series', () => {
@@ -64,6 +67,15 @@ describe('HTTP Proxy dashboard template coherence', () => {
         for (const widget of widgets) {
             const scopeFilter = widget.filters?.find(f => f.field === 'API_TYPE');
             expect(scopeFilter).toEqual(expect.objectContaining({ operator: 'in', value: ['HTTP_PROXY'] }));
+        }
+    });
+
+    it('sorts by COUNT only the facet widgets that rank by request count, in every template', () => {
+        for (const widget of templateWidgets) {
+            if (!('sorts' in widget) || !widget.sorts?.some(sort => sort.measure === 'COUNT')) continue;
+
+            expect('metric' in widget ? widget.metric : undefined).toBeUndefined();
+            expect('valueLabel' in widget ? widget.valueLabel : undefined).toBe('Requests');
         }
     });
 
