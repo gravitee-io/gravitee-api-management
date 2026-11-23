@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest.resources.observability.logs.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.gravitee.gamma.rest.core.observability.logs.model.AuthzDecision;
+import io.gravitee.gamma.rest.core.observability.logs.model.GuardianDecision;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntryWarning;
 import java.util.List;
@@ -77,12 +78,51 @@ public record LogEntryDto(
     String clientSoftwareVersion,
     String brokerId,
     Long connectionDurationMs,
-    AuthzDecisionDto authz
+    AuthzDecisionDto authz,
+    GuardianDecisionDto guardian
 ) {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record WarningDto(String componentType, String componentName, String key, String message) {
         public static WarningDto from(LogEntryWarning w) {
             return new WarningDto(w.componentType(), w.componentName(), w.key(), w.message());
+        }
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record GuardianDecisionDto(
+        String eventId,
+        String guardianId,
+        String revision,
+        String checkpoint,
+        String outcome,
+        String enforced,
+        String transformationType,
+        String verdict,
+        List<String> reasons,
+        List<FindingDto> findings,
+        Long durationNanos
+    ) {
+        public static GuardianDecisionDto from(GuardianDecision guardian) {
+            return new GuardianDecisionDto(
+                guardian.eventId(),
+                guardian.guardianId(),
+                guardian.revision(),
+                guardian.checkpoint(),
+                guardian.outcome(),
+                guardian.enforced(),
+                guardian.transformationType(),
+                guardian.verdict(),
+                guardian.reasons(),
+                guardian.findings() != null ? guardian.findings().stream().map(FindingDto::from).toList() : null,
+                guardian.durationNanos()
+            );
+        }
+
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        public record FindingDto(String guardrail, String rule, String location, String effect) {
+            public static FindingDto from(GuardianDecision.Finding finding) {
+                return new FindingDto(finding.guardrail(), finding.rule(), finding.location(), finding.effect());
+            }
         }
     }
 
@@ -186,7 +226,8 @@ public record LogEntryDto(
             entry.clientSoftwareVersion(),
             entry.brokerId(),
             entry.connectionDurationMs(),
-            entry.authz() != null ? AuthzDecisionDto.from(entry.authz()) : null
+            entry.authz() != null ? AuthzDecisionDto.from(entry.authz()) : null,
+            entry.guardian() != null ? GuardianDecisionDto.from(entry.guardian()) : null
         );
     }
 }

@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -172,13 +173,20 @@ class SearchObservabilityLogsUseCaseTest {
                     "Record Type",
                     FilterType.ENUM,
                     List.of(FilterOperator.EQ, FilterOperator.IN),
-                    List.of(new FilterSpec.EnumValue("REQUEST", "Request"), new FilterSpec.EnumValue("AUTHZ_DECISION", "Authz decision")),
+                    List.of(
+                        new FilterSpec.EnumValue("REQUEST", "Request"),
+                        new FilterSpec.EnumValue("AUTHZ_DECISION", "Authz decision"),
+                        new FilterSpec.EnumValue("GUARDIAN_DECISION", "Guardian decision")
+                    ),
                     null,
                     Set.of(Signal.LOGS),
                     io.gravitee.gamma.rest.core.observability.filter.model.ApiType.ALL
                 ),
                 StaticFilters.AUTHZ_OPERATION.toSpec(),
                 StaticFilters.AUTHZ_INDETERMINATE_CAUSE.toSpec(),
+                StaticFilters.GUARDIAN.toSpec(),
+                StaticFilters.GUARDIAN_SEARCH.toSpec(),
+                StaticFilters.GUARDIAN_OUTCOME.toSpec(),
                 StaticFilters.URI.toSpec()
             )
         );
@@ -415,6 +423,135 @@ class SearchObservabilityLogsUseCaseTest {
             verify(logsDataPort).searchLogs(any(), any(), captor.capture());
             assertThat(captor.getValue().recordType()).isEqualTo(RecordType.AUTHZ_DECISION);
             assertThat(captor.getValue().conditions()).isEmpty();
+        }
+    }
+
+    @Nested
+    class GuardianDecisionRecordType {
+
+        @Test
+        void should_search_guardian_decisions_narrowed_on_the_guardian() {
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(List.of(new AccessibleApi("api-1", "API One", ApiType.LLM)));
+            when(logsDataPort.searchLogs(any(), any(), any())).thenReturn(new LogsPage(List.of(), 0));
+
+            useCase.execute(
+                input(
+                    new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("GUARDIAN_DECISION")),
+                    new FilterCondition("GUARDIAN", FilterOperator.IN, List.of("guardian-a")),
+                    new FilterCondition("GUARDIAN_OUTCOME", FilterOperator.IN, List.of("DENY", "TRANSFORM"))
+                )
+            );
+
+            var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
+            verify(logsDataPort).searchLogs(any(), any(), captor.capture());
+            assertThat(captor.getValue().recordType()).isEqualTo(RecordType.GUARDIAN_DECISION);
+            assertThat(captor.getValue().apiIds()).containsExactly("api-1");
+            assertThat(captor.getValue().conditions()).extracting(FilterCondition::name).containsExactly("GUARDIAN", "GUARDIAN_OUTCOME");
+            // Entrypoints only exist on request documents.
+            assertThat(captor.getValue().entrypointScope()).isNull();
+        }
+
+        @Test
+        void should_carry_the_search_text_to_the_data_port() {
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(List.of(new AccessibleApi("api-1", "API One", ApiType.LLM)));
+            when(logsDataPort.searchLogs(any(), any(), any())).thenReturn(new LogsPage(List.of(), 0));
+
+            useCase.execute(
+                input(
+                    new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("GUARDIAN_DECISION")),
+                    new FilterCondition("GUARDIAN_SEARCH", FilterOperator.CONTAINS, List.of("aws"))
+                )
+            );
+
+            var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
+            verify(logsDataPort).searchLogs(any(), any(), captor.capture());
+            assertThat(captor.getValue().conditions()).extracting(FilterCondition::name).containsExactly("GUARDIAN_SEARCH");
+            assertThat(captor.getValue().apisById()).containsKey("api-1");
+        }
+
+        @Test
+        void should_answer_an_empty_page_without_searching_when_the_caller_reads_no_api() {
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(List.of());
+
+            var output = useCase.execute(input(new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("GUARDIAN_DECISION"))));
+
+            assertThat(output.data().data()).isEmpty();
+            assertThat(output.data().totalCount()).isZero();
+            verify(logsDataPort, never()).searchLogs(any(), any(), any());
+        }
+
+        @Test
+        void should_refuse_a_guardian_filter_on_a_request_search_naming_the_record_type_to_ask_for() {
+            assertThatThrownBy(() -> useCase.execute(input(new FilterCondition("GUARDIAN", FilterOperator.EQ, List.of("guardian-a")))))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .hasMessageContaining("GUARDIAN")
+                .hasMessageContaining("RECORD_TYPE = GUARDIAN_DECISION")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.requires_guardian_decision_record_type");
+        }
+
+        @Test
+        void should_refuse_a_filter_the_guardian_decision_search_cannot_apply() {
+            assertThatThrownBy(() ->
+                useCase.execute(
+                    input(
+                        new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("GUARDIAN_DECISION")),
+                        new FilterCondition("AUTHZ_DECISION", FilterOperator.EQ, List.of("FORBID"))
+                    )
+                )
+            )
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageStartingWith("Filters [AUTHZ_DECISION] do not apply to RECORD_TYPE=GUARDIAN_DECISION")
+                .hasMessageContaining("Supported: API, API_TYPE, GUARDIAN, GUARDIAN_OUTCOME, GUARDIAN_SEARCH and the time range")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.not_applicable_to_decisions");
+        }
+
+        /** The validator refuses any repeated filter, so a second search is never read as nothing. */
+        @Test
+        void should_refuse_a_second_search_rather_than_read_the_first_one_alone() {
+            assertThatThrownBy(() ->
+                useCase.execute(
+                    input(
+                        new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("GUARDIAN_DECISION")),
+                        new FilterCondition("GUARDIAN_SEARCH", FilterOperator.CONTAINS, List.of("aws")),
+                        new FilterCondition("GUARDIAN_SEARCH", FilterOperator.CONTAINS, List.of("pii"))
+                    )
+                )
+            )
+                .isInstanceOf(ValidationDomainException.class)
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.repeated");
+        }
+
+        @Test
+        void should_refuse_a_guardian_filter_on_an_authorization_decision_search() {
+            assertThatThrownBy(() ->
+                useCase.execute(
+                    input(
+                        new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
+                        new FilterCondition("GUARDIAN", FilterOperator.EQ, List.of("guardian-a"))
+                    )
+                )
+            )
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageStartingWith("Filters [GUARDIAN] do not apply to RECORD_TYPE=AUTHZ_DECISION");
+        }
+
+        @Test
+        void should_refuse_to_search_both_kinds_of_decision_at_once() {
+            assertThatThrownBy(() ->
+                useCase.execute(
+                    input(new FilterCondition("RECORD_TYPE", FilterOperator.IN, List.of("AUTHZ_DECISION", "GUARDIAN_DECISION")))
+                )
+            )
+                .isInstanceOf(ValidationDomainException.class)
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.multiple_record_types");
+        }
+
+        private SearchObservabilityLogsUseCase.Input input(FilterCondition... conditions) {
+            return new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(conditions), FROM, TO, 1, 20);
         }
     }
 

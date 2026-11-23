@@ -174,6 +174,12 @@ public enum StaticFilters {
 
     AUTHZ_REASON("Reason", FilterType.STRING, Defs.CONTAINS_ONLY, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
 
+    // --- Guardian decisions ---------------------------------------------------------------------
+    GUARDIAN("Guardian", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS, Defs.GUARDIAN_DECISION_RECORDS),
+    GUARDIAN_OUTCOME("Decision", FilterType.ENUM, Defs.EQ_IN, Defs.GUARDIAN_OUTCOMES, null, Defs.LOGS, Defs.GUARDIAN_DECISION_RECORDS),
+    // One box over what a row shows: the request id, the guardrail and its rules, the proxy.
+    GUARDIAN_SEARCH("Search", FilterType.STRING, Defs.CONTAINS_ONLY, null, null, Defs.LOGS, Defs.GUARDIAN_DECISION_RECORDS),
+
     // --- LLM ------------------------------------------------------------------------------------
     LLM_PROXY_MODEL("LLM Model", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.LLM)),
     LLM_PROXY_PROVIDER("LLM Provider", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.LLM)),
@@ -441,6 +447,7 @@ public enum StaticFilters {
             ApiType.EDGE
         );
         private static final Set<ApiType> DECISION_RECORDS = Set.of(ApiType.AUTHZ_DECISION);
+        private static final Set<ApiType> GUARDIAN_DECISION_RECORDS = Set.of(ApiType.GUARDIAN_DECISION);
 
         /**
          * Every kind whose rows carry a request id, decisions included. Named rather than
@@ -548,6 +555,14 @@ public enum StaticFilters {
             new EnumValue("subject", "Subject"),
             new EnumValue("resource", "Resource"),
             new EnumValue("action", "Action")
+        );
+
+        /** What a Guardian run concluded, as the gateway writes it. */
+        private static final List<EnumValue> GUARDIAN_OUTCOMES = List.of(
+            new EnumValue("ALLOW", "Allow"),
+            new EnumValue("DENY", "Deny"),
+            new EnumValue("TRANSFORM", "Transform"),
+            new EnumValue("INDETERMINATE", "Indeterminate")
         );
 
         private static final List<EnumValue> DECISIONS = List.of(

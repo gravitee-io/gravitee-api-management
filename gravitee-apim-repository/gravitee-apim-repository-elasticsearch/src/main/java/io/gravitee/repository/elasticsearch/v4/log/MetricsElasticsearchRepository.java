@@ -31,6 +31,8 @@ import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchConn
 import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchConnectionLogErrorKeysResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchMetricsQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchMetricsResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.log.adapter.guardian.SearchGuardianDecisionLogsQueryAdapter;
+import io.gravitee.repository.elasticsearch.v4.log.adapter.guardian.SearchGuardianDecisionLogsResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.message.SearchMessageMetricsQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.message.SearchMessageMetricsResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.nativeapi.NativeApiMetricsFindQueryAdapter;
@@ -42,6 +44,8 @@ import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.authz.AuthzDecisionLog;
 import io.gravitee.repository.log.v4.model.authz.AuthzDecisionLogQuery;
 import io.gravitee.repository.log.v4.model.connection.*;
+import io.gravitee.repository.log.v4.model.guardian.GuardianDecisionLog;
+import io.gravitee.repository.log.v4.model.guardian.GuardianDecisionLogQuery;
 import io.gravitee.repository.log.v4.model.message.MessageMetrics;
 import io.gravitee.repository.log.v4.model.message.MessageMetricsQuery;
 import io.reactivex.rxjava3.core.Single;
@@ -238,6 +242,22 @@ public class MetricsElasticsearchRepository extends AbstractElasticsearchReposit
                 .blockingGet();
         } catch (RuntimeException e) {
             throw new AnalyticsException("Failed to find authz decision " + eventId + " for api " + apiId, e);
+        }
+    }
+
+    @Override
+    public LogResponse<GuardianDecisionLog> searchGuardianDecisionLogs(QueryContext queryContext, GuardianDecisionLogQuery query)
+        throws AnalyticsException {
+        query.validate();
+        var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.DECISIONS, clusters);
+
+        try {
+            return this.client.search(index, null, SearchGuardianDecisionLogsQueryAdapter.adapt(queryContext, query))
+                .map(SearchGuardianDecisionLogsResponseAdapter::adapt)
+                .blockingGet();
+        } catch (RuntimeException e) {
+            throw new AnalyticsException("Failed to search Guardian decision logs for apis " + query.getApiIds(), e);
         }
     }
 }

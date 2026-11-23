@@ -34,6 +34,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
 import io.gravitee.gamma.rest.core.observability.logs.model.AuthzDecision;
+import io.gravitee.gamma.rest.core.observability.logs.model.GuardianDecision;
 import io.gravitee.gamma.rest.core.observability.logs.model.HttpPayload;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogDetail;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
@@ -151,6 +152,57 @@ class LogsResourceTest extends AbstractResourceTest {
             );
             assertThat(body.get("pagination").get("totalCount").asLong()).isEqualTo(1L);
             assertThat(body.get("pagination").get("page").asInt()).isEqualTo(1);
+        }
+
+        @Test
+        void should_return_what_a_guardian_decided_on_a_guardian_decision_row() {
+            var entry = LogEntry.builder()
+                .apiId("api-1")
+                .apiName("Support assistant")
+                .requestId("req-1")
+                .timestamp(Instant.parse("2026-06-10T10:00:00Z"))
+                .guardian(
+                    GuardianDecision.builder()
+                        .eventId("evt-1")
+                        .guardianId("guardian-a")
+                        .revision("3")
+                        .checkpoint("response.llm-proxy")
+                        .outcome("TRANSFORM")
+                        .enforced("TRANSFORM")
+                        .transformationType("REDACT")
+                        .verdict("REDACT")
+                        .reasons(List.of("Redact PII: REDACT — 1 passage"))
+                        .findings(List.of(new GuardianDecision.Finding("Redact PII", "EMAIL", "$.messages[0].content", "TRANSFORM")))
+                        .durationNanos(4_200L)
+                        .build()
+                )
+                .build();
+            when(searchLogsUseCase.execute(any())).thenReturn(
+                new SearchObservabilityLogsUseCase.Output(new LogsPage(List.of(entry), 1), 1, 20)
+            );
+
+            Response response = rootTarget("search").request().post(Entity.entity(Map.of(), MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            JsonNode row = response.readEntity(JsonNode.class).get("data").get(0);
+            assertThat(row.get("apiName").asText()).isEqualTo("Support assistant");
+            assertThat(row.get("requestId").asText()).isEqualTo("req-1");
+            assertThat(row.has("authz")).isFalse();
+            JsonNode guardian = row.get("guardian");
+            assertThat(guardian.get("eventId").asText()).isEqualTo("evt-1");
+            assertThat(guardian.get("guardianId").asText()).isEqualTo("guardian-a");
+            assertThat(guardian.get("revision").asText()).isEqualTo("3");
+            assertThat(guardian.get("checkpoint").asText()).isEqualTo("response.llm-proxy");
+            assertThat(guardian.get("outcome").asText()).isEqualTo("TRANSFORM");
+            assertThat(guardian.get("enforced").asText()).isEqualTo("TRANSFORM");
+            assertThat(guardian.get("transformationType").asText()).isEqualTo("REDACT");
+            assertThat(guardian.get("verdict").asText()).isEqualTo("REDACT");
+            assertThat(guardian.get("reasons").get(0).asText()).isEqualTo("Redact PII: REDACT — 1 passage");
+            assertThat(guardian.get("findings").get(0).get("guardrail").asText()).isEqualTo("Redact PII");
+            assertThat(guardian.get("findings").get(0).get("rule").asText()).isEqualTo("EMAIL");
+            assertThat(guardian.get("findings").get(0).get("location").asText()).isEqualTo("$.messages[0].content");
+            assertThat(guardian.get("findings").get(0).get("effect").asText()).isEqualTo("TRANSFORM");
+            assertThat(guardian.get("durationNanos").asLong()).isEqualTo(4_200L);
         }
 
         @Test

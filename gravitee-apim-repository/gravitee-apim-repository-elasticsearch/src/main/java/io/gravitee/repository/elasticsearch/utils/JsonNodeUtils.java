@@ -18,6 +18,8 @@ package io.gravitee.repository.elasticsearch.utils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -116,5 +118,38 @@ public class JsonNodeUtils {
 
     public static boolean asBooleanOrFalse(JsonNode jsonNode) {
         return jsonNode != null && jsonNode.asBoolean();
+    }
+
+    public static Long asLongOrNull(JsonNode jsonNode) {
+        return jsonNode == null || jsonNode.isNull() ? null : jsonNode.asLong();
+    }
+
+    /** The text of each non-null entry of an array; empty for anything that is not one. */
+    public static List<String> asTextList(JsonNode jsonNode) {
+        if (jsonNode == null || !jsonNode.isArray()) {
+            return List.of();
+        }
+        var values = new ArrayList<String>(jsonNode.size());
+        jsonNode.forEach(value -> {
+            if (!value.isNull()) {
+                values.add(value.asText());
+            }
+        });
+        return values;
+    }
+
+    /**
+     * The epoch milliseconds of an offset date-time, as the reporters write it ("…+02:00", not a bare instant);
+     * null when absent or unreadable.
+     */
+    public static Long epochMillisOrNull(String offsetDateTime) {
+        if (offsetDateTime == null) {
+            return null;
+        }
+        try {
+            return OffsetDateTime.parse(offsetDateTime).toInstant().toEpochMilli();
+        } catch (DateTimeParseException e) {
+            return null;
+        }
     }
 }

@@ -154,6 +154,13 @@ public class UnsupportedObservabilityFilterException extends ValidationDomainExc
         );
     }
 
+    public static UnsupportedObservabilityFilterException requiresGuardianDecisionRecordType(String filterName) {
+        return new UnsupportedObservabilityFilterException(
+            "Filter '" + filterName + "' applies to Guardian decision records only: add the condition RECORD_TYPE = GUARDIAN_DECISION",
+            "observability.filter.requires_guardian_decision_record_type"
+        );
+    }
+
     public static UnsupportedObservabilityFilterException valueListingNotSupported(String filterName, String type) {
         return new UnsupportedObservabilityFilterException(
             "Filter '" + filterName + "' of type " + type + " does not support value listing",

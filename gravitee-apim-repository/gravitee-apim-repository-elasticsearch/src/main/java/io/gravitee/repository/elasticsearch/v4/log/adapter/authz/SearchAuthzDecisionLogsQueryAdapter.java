@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.util.RawValue;
 import io.gravitee.repository.common.query.QueryContext;
+import io.gravitee.repository.elasticsearch.utils.WildcardValues;
 import io.gravitee.repository.elasticsearch.v4.shared.AuthzEntityRefClauses;
 import io.gravitee.repository.log.v4.model.authz.AuthzDecisionLogQuery;
 import java.util.Set;
@@ -129,14 +130,9 @@ public final class SearchAuthzDecisionLogsQueryAdapter {
             return;
         }
         ObjectNode wildcard = MAPPER.createObjectNode();
-        wildcard.put(VALUE, "*" + escapeWildcard(needle) + "*");
+        wildcard.put(VALUE, WildcardValues.containing(needle));
         wildcard.put(CASE_INSENSITIVE, true);
         filters.add(MAPPER.createObjectNode().set(WILDCARD, MAPPER.createObjectNode().set(field, wildcard)));
-    }
-
-    /** Backslash first, or the escapes inserted below would be escaped in turn. */
-    private static String escapeWildcard(String needle) {
-        return needle.replace("\\", "\\\\").replace("*", "\\*").replace("?", "\\?");
     }
 
     private static void addTerm(ArrayNode filters, String field, String value) {
