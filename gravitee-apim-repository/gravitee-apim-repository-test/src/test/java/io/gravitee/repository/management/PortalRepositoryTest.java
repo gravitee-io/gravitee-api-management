@@ -136,6 +136,30 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void should_update_only_the_name_in_the_target_environment() throws Exception {
+        var original = portalRepository.findById("portal3").orElseThrow();
+
+        var updated = portalRepository.updateName("portal3", "environment2", "Renamed").orElseThrow();
+
+        assertThat(updated.getName()).isEqualTo("Renamed");
+        assertThat(updated).usingRecursiveComparison().ignoringFields("name").isEqualTo(original);
+        assertThat(portalRepository.findById("portal3")).hasValueSatisfying(found ->
+            assertThat(found).usingRecursiveComparison().isEqualTo(updated)
+        );
+    }
+
+    @Test
+    public void should_not_update_a_missing_portal_or_a_portal_in_another_environment() throws Exception {
+        var original = portalRepository.findById("portal3").orElseThrow();
+
+        assertThat(portalRepository.updateName("missing", "environment1", "Renamed")).isEmpty();
+        assertThat(portalRepository.updateName("portal3", "environment1", "Renamed")).isEmpty();
+        assertThat(portalRepository.findById("portal3")).hasValueSatisfying(found ->
+            assertThat(found).usingRecursiveComparison().isEqualTo(original)
+        );
+    }
+
+    @Test
     public void should_find_default_by_environment() throws Exception {
         Optional<Portal> portal = portalRepository.findDefaultByEnvironmentId("environment2");
 

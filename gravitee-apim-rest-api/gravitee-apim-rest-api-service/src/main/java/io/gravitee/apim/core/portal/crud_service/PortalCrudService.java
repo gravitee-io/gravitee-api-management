@@ -25,6 +25,8 @@ public interface PortalCrudService {
 
     Portal update(Portal portal);
 
+    Optional<Portal> updateName(PortalId portalId, String environmentId, String name);
+
     Optional<Portal> findByIdAndEnvironmentId(PortalId portalId, String environmentId);
 
     List<Portal> findByEnvironmentId(String environmentId);

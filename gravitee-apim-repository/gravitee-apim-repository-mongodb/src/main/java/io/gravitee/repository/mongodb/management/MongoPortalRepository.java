@@ -27,6 +27,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 /**
@@ -40,7 +46,27 @@ public class MongoPortalRepository implements PortalRepository {
     private PortalMongoRepository internalPortalRepo;
 
     @Autowired
+    private MongoTemplate mongoTemplate;
+
+    @Autowired
     private GraviteeMapper mapper;
+
+    @Override
+    public Optional<Portal> updateName(String portalId, String environmentId, String name) throws TechnicalException {
+        var query = Query.query(Criteria.where("_id").is(portalId).and("environmentId").is(environmentId));
+        try {
+            return Optional.ofNullable(
+                mongoTemplate.findAndModify(
+                    query,
+                    Update.update("name", name),
+                    FindAndModifyOptions.options().returnNew(true),
+                    PortalMongo.class
+                )
+            ).map(mapper::map);
+        } catch (DataAccessException e) {
+            throw new TechnicalException("Failed to update the name of portal " + portalId, e);
+        }
+    }
 
     @Override
     public Optional<Portal> findByIdAndEnvironmentId(String portalId, String environmentId) throws TechnicalException {

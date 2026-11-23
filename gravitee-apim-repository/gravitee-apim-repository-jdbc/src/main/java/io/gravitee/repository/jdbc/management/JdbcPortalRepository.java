@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -54,6 +55,16 @@ public class JdbcPortalRepository extends JdbcAbstractCrudRepository<Portal, Str
     @Override
     protected String getId(final Portal item) {
         return item.getId();
+    }
+
+    @Override
+    public Optional<Portal> updateName(String portalId, String environmentId, String name) throws TechnicalException {
+        try {
+            jdbcTemplate.update("UPDATE " + tableName + " SET name = ? WHERE id = ? AND environment_id = ?", name, portalId, environmentId);
+            return findByIdAndEnvironmentId(portalId, environmentId);
+        } catch (DataAccessException e) {
+            throw new TechnicalException("Failed to update the name of portal " + portalId, e);
+        }
     }
 
     @Override
