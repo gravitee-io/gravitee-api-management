@@ -46,6 +46,7 @@ import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -292,6 +293,32 @@ class ApisResourceTest extends AbstractResourceTest {
             ) {
                 assertThat(response.getStatus()).isEqualTo(400);
             }
+        }
+
+        @ParameterizedTest
+        @ValueSource(ints = { 257, 4000 })
+        void should_accept_a_step_description_up_to_4000_characters(int length) {
+            try (var response = putWithStepDescription(length)) {
+                assertThat(response.getStatus()).isEqualTo(200);
+            }
+        }
+
+        @Test
+        void should_reject_a_step_description_over_4000_characters() {
+            try (var response = putWithStepDescription(4001)) {
+                assertThat(response.getStatus()).isEqualTo(400);
+            }
+        }
+
+        private Response putWithStepDescription(int length) {
+            var flow = """
+                { "enabled": true, "request": [ { "enabled": true, "policy": "transform-headers", "description": "%s" } ] }
+                """.formatted("d".repeat(length));
+            return rootTarget()
+                .queryParam("dryRun", false)
+                .request()
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .put(Entity.json(readJSON("api-with-hrid.json").replaceFirst("\"flows\": \\[]", "\"flows\": [" + flow + "]")));
         }
 
         @ParameterizedTest
