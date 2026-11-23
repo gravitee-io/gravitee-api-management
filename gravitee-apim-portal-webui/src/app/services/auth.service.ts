@@ -38,6 +38,10 @@ const describeCodeExchangeError = (response: HttpErrorResponse): string => {
   return hint ? `${code} - ${hint}` : code;
 };
 
+// The notification banner renders its message through [innerHtml], and APIM relays the identity provider's error code as is.
+const escapeHtml = (text: string): string =>
+  text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
 @Injectable({
   providedIn: 'root',
 })
@@ -70,8 +74,8 @@ export class AuthService {
             .catch(error => {
               if (error instanceof HttpErrorResponse) {
                 this.codeExchangeFailure = {
-                  provider: identityProvider?.name ?? this.getProviderId(),
-                  error: describeCodeExchangeError(error),
+                  provider: escapeHtml(identityProvider?.name ?? this.getProviderId()),
+                  error: escapeHtml(describeCodeExchangeError(error)),
                 };
               }
             })

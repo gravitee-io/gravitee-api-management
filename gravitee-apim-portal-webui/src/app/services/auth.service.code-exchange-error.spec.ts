@@ -93,4 +93,24 @@ describe('AuthService when APIM rejects the authorization code exchange', () => 
       error: `invalid_client - ${clientAuthenticationHint}`,
     });
   });
+
+  // The notification is rendered through [innerHtml], and APIM relays the identity provider's error code verbatim.
+  it('should escape markup in the error relayed from the identity provider', async () => {
+    tryLoginCodeFlow.mockRejectedValue(
+      new HttpErrorResponse({
+        status: 401,
+        statusText: 'Unauthorized',
+        url: `/portal/environments/DEFAULT/auth/oauth2/${provider.id}`,
+        error: { error: '<a href="https://example.test">reset</a>&' },
+      }),
+    );
+
+    await spectator.inject(AuthService).load();
+    spectator.detectChanges();
+
+    expect(spectator.inject(NotificationService).error).toHaveBeenCalledWith('login.notification.identityProviderError', {
+      provider: 'Gravitee AM',
+      error: '&lt;a href=&quot;https://example.test&quot;&gt;reset&lt;/a&gt;&amp;',
+    });
+  });
 });
