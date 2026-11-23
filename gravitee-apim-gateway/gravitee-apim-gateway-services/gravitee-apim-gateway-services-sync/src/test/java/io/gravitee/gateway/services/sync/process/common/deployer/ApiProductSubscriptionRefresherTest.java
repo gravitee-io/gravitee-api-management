@@ -19,11 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-<<<<<<< HEAD
-=======
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
->>>>>>> 5547546 (fix: keep active shared key when inactive one is redeployed and skip revoked keys when attaching shared subscription)
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -66,6 +62,7 @@ class ApiProductSubscriptionRefresherTest {
     private static final String ENV_1 = "env-1";
     private static final String SUB_1 = "sub-1";
     private static final String API_1 = "api-1";
+    private static final String PRODUCT_1 = "product-1";
     private static final String KEY_ID = "key-id";
 
     @Mock
@@ -361,7 +358,7 @@ class ApiProductSubscriptionRefresherTest {
         List<io.gravitee.repository.management.model.Subscription> repoSubscriptions = Stream.of(gatewaySubscriptions)
             .map(subscription -> productSubscription(subscription.getId(), PLAN_1, ENV_1))
             .toList();
-        when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(repoSubscriptions);
+        when(subscriptionRepository.search(any(), any())).thenReturn(repoSubscriptions);
         for (int i = 0; i < gatewaySubscriptions.length; i++) {
             when(subscriptionMapper.to(repoSubscriptions.get(i))).thenReturn(List.of(gatewaySubscriptions[i]));
         }
