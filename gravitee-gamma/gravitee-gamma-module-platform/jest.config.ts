@@ -35,6 +35,7 @@ export default {
         '^@gravitee/graphene-charts$': '<rootDir>/../../node_modules/@gravitee/graphene-charts/dist/index.js',
         '^@gravitee/graphene-charts/(.*)$': '<rootDir>/../../node_modules/@gravitee/graphene-charts/dist/$1',
         '^@gravitee/gamma-lib-observability$': '<rootDir>/../../node_modules/@gravitee/gamma-lib-observability/dist/index.js',
+        '^@gravitee/gamma-lib-observability/testing$': '<rootDir>/../../node_modules/@gravitee/gamma-lib-observability/dist/testing.js',
         '^@gravitee/gamma-lib-observability/styles$': '<rootDir>/src/main/ui/shared/testing/stylesheet.stub.ts',
         '^@gravitee/gamma-modules-sdk$': '<rootDir>/src/main/ui/shared/gamma-modules-sdk.ts',
         '^@gravitee/gamma-modules-sdk/routing$': '<rootDir>/../../node_modules/@gravitee/gamma-modules-sdk/dist/routing.js',

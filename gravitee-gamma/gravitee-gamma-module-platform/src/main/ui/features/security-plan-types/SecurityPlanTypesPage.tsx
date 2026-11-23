@@ -35,6 +35,7 @@ import type { PortalSettings } from './services/portalSettings';
 import type { SecurityState } from './utils/buildPortalSettingsSavePayload';
 import { buildPortalSettingsSavePayload } from './utils/buildPortalSettingsSavePayload';
 import { applyReadonlySecurityState, getSecurityReadonlyState, type SecurityKey } from './utils/securityPlanReadonly';
+import { READ_ONLY_SETTINGS_MESSAGE } from '../../shared/utils/readOnlySettings';
 
 const SYSTEM_READONLY_TOOLTIP = 'Configuration provided by the system';
 
@@ -206,9 +207,7 @@ export function SecurityPlanTypesPage() {
             {!canEdit && (
                 <Alert>
                     <InfoIcon className="size-4" />
-                    <AlertDescription>
-                        You do not have permission to modify these settings. Contact your administrator for access.
-                    </AlertDescription>
+                    <AlertDescription>{READ_ONLY_SETTINGS_MESSAGE}</AlertDescription>
                 </Alert>
             )}
 

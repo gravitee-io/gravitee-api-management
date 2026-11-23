@@ -112,7 +112,6 @@ import { IntegrationOverviewPage } from '../pages/IntegrationOverviewPage';
 import { IntegrationsPage } from '../pages/IntegrationsPage';
 import { ManagementAndSchedulersPage } from '../pages/ManagementAndSchedulersPage';
 import { MetadataPage } from '../pages/MetadataPage';
-import { MetricsConfigurationPage } from '../pages/MetricsConfigurationPage';
 import { NotificationTemplateDetailPage } from '../pages/NotificationTemplateDetailPage';
 import { NotificationTemplatesPage } from '../pages/NotificationTemplatesPage';
 import { OrganizationPolicyStudioPage } from '../pages/OrganizationPolicyStudioPage';
@@ -132,6 +131,7 @@ import { UserDetailPage } from '../pages/UserDetailPage';
 import { UserFieldsPage } from '../pages/UserFieldsPage';
 import { UsersPage } from '../pages/UsersPage';
 import { retryTransientRequest } from '../shared/api/queryRetry';
+import { LazyPage } from '../shared/components/LazyPage';
 import { ConsoleSettingsProvider } from '../shared/console-settings';
 import {
     useEnvironmentPermissionGrant,
@@ -140,6 +140,10 @@ import {
 } from '../shared/hooks/useEnvironmentPermissions';
 import { resetDeniedNavItemsForEnvironment, useDeniedNavItemKeys } from '../shared/nav/deniedNavItems';
 import { isForbiddenApiError } from '../shared/utils/apiErrors';
+
+// The page bundles the observability library (module-federation.config.ts): loaded on its route only.
+const loadMetricsConfigurationPage = () =>
+    import('../pages/MetricsConfigurationPage').then(({ MetricsConfigurationPage }) => ({ default: MetricsConfigurationPage }));
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -622,7 +626,7 @@ export function AppRoutes() {
                                 path="environment/metrics-configuration"
                                 element={
                                     <NavPermissionGuard itemKey="environment-metrics-configuration">
-                                        <MetricsConfigurationPage />
+                                        <LazyPage load={loadMetricsConfigurationPage} />
                                     </NavPermissionGuard>
                                 }
                             />

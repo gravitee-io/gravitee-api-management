@@ -18,6 +18,8 @@ import { Alert, AlertDescription, Button, Skeleton, TooltipProvider } from '@gra
 import { CheckIcon, InfoIcon } from '@gravitee/graphene-core/icons';
 import type { ReactNode } from 'react';
 
+import { READ_ONLY_SETTINGS_MESSAGE } from '../../../shared/utils/readOnlySettings';
+
 export function OrgSettingsFormShell({
     title,
     description,
@@ -90,9 +92,7 @@ export function OrgSettingsFormShell({
                 {!canEdit ? (
                     <Alert>
                         <InfoIcon className="size-4" />
-                        <AlertDescription>
-                            You do not have permission to modify these settings. Contact your administrator for access.
-                        </AlertDescription>
+                        <AlertDescription>{READ_ONLY_SETTINGS_MESSAGE}</AlertDescription>
                     </Alert>
                 ) : null}
 
