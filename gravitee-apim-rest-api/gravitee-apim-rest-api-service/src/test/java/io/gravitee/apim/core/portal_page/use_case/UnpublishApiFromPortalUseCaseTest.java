@@ -380,6 +380,17 @@ class UnpublishApiFromPortalUseCaseTest {
         }
 
         @Test
+        void should_unpublish_the_documentation_when_the_other_portal_unpublishes_the_api_during_the_unpublish() {
+            beforeNextUpdate = () -> unpublish();
+
+            unpublishFrom(otherPortalId);
+
+            assertThat(stored(defaultPortalListing.getId()).getPublished()).isFalse();
+            assertThat(stored(otherPortalListing.getId()).getPublished()).isFalse();
+            assertThat(stored(page.getId()).getPublished()).isFalse();
+        }
+
+        @Test
         void should_reject_when_not_published_to_the_named_portal() {
             unpublishFrom(otherPortalId);
 
