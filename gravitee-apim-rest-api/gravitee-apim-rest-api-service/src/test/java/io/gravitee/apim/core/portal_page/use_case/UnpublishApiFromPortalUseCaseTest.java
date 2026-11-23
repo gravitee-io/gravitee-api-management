@@ -46,6 +46,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -60,10 +61,16 @@ class UnpublishApiFromPortalUseCaseTest {
     private static final PortalId DEFAULT_PORTAL_ID = ((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId();
 
     private PortalNavigationItemId failingUpdateOf;
+    private Runnable beforeNextUpdate;
 
     private final PortalNavigationItemsCrudServiceInMemory crudService = new PortalNavigationItemsCrudServiceInMemory() {
         @Override
         public PortalNavigationItem update(PortalNavigationItem portalNavigationItem) {
+            if (beforeNextUpdate != null) {
+                var concurrentWrite = beforeNextUpdate;
+                beforeNextUpdate = null;
+                concurrentWrite.run();
+            }
             if (portalNavigationItem.getId().equals(failingUpdateOf)) {
                 throw new IllegalStateException("update failed");
             }
@@ -272,6 +279,29 @@ class UnpublishApiFromPortalUseCaseTest {
 
         assertThat(stored(listing.getId()).getPublished()).isFalse();
         assertThat(stored(page.getId()).getPublished()).isFalse();
+    }
+
+    @Test
+    void should_keep_the_documentation_published_when_another_portal_publishes_the_api_during_the_unpublish() {
+        var otherPortalId = navigationPortals.givenAutomationPortal(ORG_ID, ENV_ID);
+        var section = aSection();
+        var otherPortalSection = aFolder("Partners").toBuilder().reference(portal(otherPortalId)).build();
+        otherPortalSection.markAsRoot();
+        var listing = aListing(section, API_ID);
+        var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).build();
+        page.markAsRoot();
+        queryService.initWith(List.of(section, otherPortalSection, listing, page));
+        var publishedToOtherPortal = new AtomicReference<PortalNavigationApi>();
+        beforeNextUpdate = () ->
+            publishedToOtherPortal.set(
+                publishUseCase.execute(new PublishApiToPortalUseCase.Input(ORG_ID, ENV_ID, API_ID, otherPortalSection.getId())).listing()
+            );
+
+        unpublish();
+
+        assertThat(stored(listing.getId()).getPublished()).isFalse();
+        assertThat(stored(publishedToOtherPortal.get().getId()).getPublished()).isTrue();
+        assertThat(stored(page.getId()).getPublished()).isTrue();
     }
 
     @Test

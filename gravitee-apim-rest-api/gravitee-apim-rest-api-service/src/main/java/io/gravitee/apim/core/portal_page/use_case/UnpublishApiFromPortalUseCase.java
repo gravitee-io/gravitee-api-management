@@ -59,10 +59,19 @@ public class UnpublishApiFromPortalUseCase {
 
         // Nothing here is transactional. The items are hidden before the listings, so that a failure leaves the
         // API still published and unpublishing again finishes the job.
-        if (visibleInPortal.size() == visibleListings.size()) {
+        boolean hidesLastListing = visibleInPortal.size() == visibleListings.size();
+        if (hidesLastListing) {
             apiOwnedNavigationDomainService.setPublished(input.environmentId(), input.apiId(), false);
         }
         visibleInPortal.forEach(this::hide);
+        // Without a transaction, another portal may have published the API since the check above and must not
+        // be left showing it with hidden documentation
+        if (
+            hidesLastListing &&
+            !visible(apiOwnedNavigationDomainService.findStandaloneListings(input.environmentId(), input.apiId())).isEmpty()
+        ) {
+            apiOwnedNavigationDomainService.setPublished(input.environmentId(), input.apiId(), true);
+        }
     }
 
     private static List<PortalNavigationApi> visible(List<PortalNavigationApi> listings) {

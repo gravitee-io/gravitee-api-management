@@ -58,6 +58,8 @@ public class PublishApiToPortalUseCase {
 
         // A hidden listing, typically one the portal editor added, means the API is not published: it is reused
         var listing = listings.isEmpty() ? createListing(input, portal, section) : showListing(input, listings.getFirst(), section);
+        // Another portal may have unpublished the API, and its documentation, since the check before the write
+        publishOwnedItemsUnlessShownElsewhere(input, listing.getId());
 
         return new Output(listing, section);
     }

@@ -60,8 +60,19 @@ class PublishApiToPortalUseCaseTest {
     private static final String OTHER_API_ID = "api-b";
 
     private PortalNavigationItemId failingUpdateOf;
+    private Runnable beforeNextCreate;
 
     private final PortalNavigationItemsCrudServiceInMemory crudService = new PortalNavigationItemsCrudServiceInMemory() {
+        @Override
+        public PortalNavigationItem create(PortalNavigationItem portalNavigationItem) {
+            if (beforeNextCreate != null) {
+                var concurrentWrite = beforeNextCreate;
+                beforeNextCreate = null;
+                concurrentWrite.run();
+            }
+            return super.create(portalNavigationItem);
+        }
+
         @Override
         public PortalNavigationItem update(PortalNavigationItem portalNavigationItem) {
             if (portalNavigationItem.getId().equals(failingUpdateOf)) {
@@ -428,6 +439,24 @@ class PublishApiToPortalUseCaseTest {
 
             assertThat(stored(hiddenListing.getId()).getPublished()).isTrue();
             assertThat(stored(hiddenPage.getId()).getPublished()).isFalse();
+        }
+
+        @Test
+        void should_publish_the_documentation_when_the_other_portal_unpublishes_the_api_during_the_publish() {
+            var page = aHiddenPage();
+            page.setPublished(true);
+            var otherListing = aVisibleListing(defaultPortalSection);
+            queryService.initWith(List.of(defaultPortalSection, otherPortalSection, otherListing, page));
+            beforeNextCreate = () -> {
+                otherListing.setPublished(false);
+                crudService.update(otherListing);
+                page.setPublished(false);
+                crudService.update(page);
+            };
+
+            publishTo(otherPortalSection.getId());
+
+            assertThat(stored(page.getId()).getPublished()).isTrue();
         }
     }
 
