@@ -50,6 +50,7 @@ import io.gravitee.apim.core.json.JsonSerializer;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.apim.infra.deployment.CompositeApiDeploymentValidator;
@@ -83,6 +84,7 @@ class GammaGuardiansConfigurationTest {
             parent.registerBean(GuardianRepository.class, () -> repository);
             parent.registerBean(GenericEventWriterDomainService.class, () -> writer);
             parent.registerBean(AuditDomainService.class, () -> mock(AuditDomainService.class));
+            parent.registerBean(SecretReferencePermissionDomainService.class, () -> mock(SecretReferencePermissionDomainService.class));
             parent.registerBean(PolicyPluginProvider.class, () -> mock(PolicyPluginProvider.class));
             // the shared service the API flows validate their own steps with, owned by the rest-api
             // context: the Guardian validator is injected with it directly
