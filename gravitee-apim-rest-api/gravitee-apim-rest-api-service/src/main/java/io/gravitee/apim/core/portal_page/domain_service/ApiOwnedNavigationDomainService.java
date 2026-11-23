@@ -116,6 +116,16 @@ public class ApiOwnedNavigationDomainService {
     }
 
     /**
+     * The API's documentation is shared by every portal listing the API: while another listing shows the API,
+     * the documentation keeps the publication its owner gave it.
+     */
+    public boolean isShownByAnotherListing(String environmentId, String apiId, PortalNavigationItemId listingId) {
+        return findStandaloneListings(environmentId, apiId)
+            .stream()
+            .anyMatch(other -> !other.getId().equals(listingId) && Boolean.TRUE.equals(other.getPublished()));
+    }
+
+    /**
      * The sections an API can be listed under in a portal: the published top-level folders of its main
      * navigation. An unpublished section cannot hold a published listing.
      */

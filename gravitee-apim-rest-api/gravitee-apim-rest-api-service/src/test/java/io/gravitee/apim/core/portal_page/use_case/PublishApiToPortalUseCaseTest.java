@@ -404,6 +404,31 @@ class PublishApiToPortalUseCaseTest {
                 assertThat(listing.getParentId()).isEqualTo(defaultPortalSection.getId());
             });
         }
+
+        @Test
+        void should_keep_a_page_hidden_individually_when_publishing_to_a_second_portal() {
+            var hiddenPage = aHiddenPage();
+            queryService.initWith(List.of(defaultPortalSection, otherPortalSection, aVisibleListing(defaultPortalSection), hiddenPage));
+
+            publishTo(otherPortalSection.getId());
+
+            assertThat(stored(hiddenPage.getId()).getPublished()).isFalse();
+        }
+
+        @Test
+        void should_keep_a_page_hidden_individually_when_showing_a_hidden_listing_of_a_second_portal() {
+            var hiddenPage = aHiddenPage();
+            var hiddenListing = aHiddenListing(otherPortalSection);
+            hiddenListing.changeOwner(portal(otherPortalId));
+            queryService.initWith(
+                List.of(defaultPortalSection, otherPortalSection, aVisibleListing(defaultPortalSection), hiddenListing, hiddenPage)
+            );
+
+            publishTo(otherPortalSection.getId());
+
+            assertThat(stored(hiddenListing.getId()).getPublished()).isTrue();
+            assertThat(stored(hiddenPage.getId()).getPublished()).isFalse();
+        }
     }
 
     private PublishApiToPortalUseCase.Output publishTo(PortalNavigationItemId sectionId) {
@@ -435,6 +460,19 @@ class PublishApiToPortalUseCaseTest {
         listing.updateParent(parent);
         listing.setPublished(false);
         return listing;
+    }
+
+    private static PortalNavigationApi aVisibleListing(PortalNavigationFolder parent) {
+        var listing = anApi(PortalNavigationItemId.random().json(), "Api A", parent.getId(), API_ID);
+        listing.updateParent(parent);
+        return listing;
+    }
+
+    private static PortalNavigationItem aHiddenPage() {
+        var page = aPage("Internal", null).toBuilder().reference(ownedBy(API_ID)).build();
+        page.markAsRoot();
+        page.setPublished(false);
+        return page;
     }
 
     private PortalNavigationItem stored(PortalNavigationItemId id) {

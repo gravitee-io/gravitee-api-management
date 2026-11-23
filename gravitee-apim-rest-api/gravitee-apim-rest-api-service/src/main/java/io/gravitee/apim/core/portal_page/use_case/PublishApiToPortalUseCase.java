@@ -76,7 +76,7 @@ public class PublishApiToPortalUseCase {
         domainService.resolveOwners(input.organizationId(), input.environmentId(), List.of(listingToCreate));
         validatorService.validateAll(List.of(listingToCreate), input.environmentId());
 
-        publishOwnedItems(input);
+        publishOwnedItemsUnlessShownElsewhere(input, listingToCreate.getId());
         return (PortalNavigationApi) domainService.create(input.organizationId(), input.environmentId(), listingToCreate);
     }
 
@@ -96,7 +96,7 @@ public class PublishApiToPortalUseCase {
             .build();
         validatorService.validateToUpdate(listingToUpdate, hiddenListing);
 
-        publishOwnedItems(input);
+        publishOwnedItemsUnlessShownElsewhere(input, hiddenListing.getId());
         // Pages the portal editor stored under the listing are part of what the API shows, and are published with it
         return (PortalNavigationApi) domainService.update(listingToUpdate, hiddenListing, true);
     }
@@ -106,8 +106,10 @@ public class PublishApiToPortalUseCase {
      * leaves an API that is not listed, which publishing again repairs, rather than a listed API with part of
      * its documentation hidden and no way to publish it again.
      */
-    private void publishOwnedItems(Input input) {
-        apiOwnedNavigationDomainService.setPublished(input.environmentId(), input.apiId(), true);
+    private void publishOwnedItemsUnlessShownElsewhere(Input input, PortalNavigationItemId listingId) {
+        if (!apiOwnedNavigationDomainService.isShownByAnotherListing(input.environmentId(), input.apiId(), listingId)) {
+            apiOwnedNavigationDomainService.setPublished(input.environmentId(), input.apiId(), true);
+        }
     }
 
     public record Input(String organizationId, String environmentId, String apiId, PortalNavigationItemId sectionId) {}
