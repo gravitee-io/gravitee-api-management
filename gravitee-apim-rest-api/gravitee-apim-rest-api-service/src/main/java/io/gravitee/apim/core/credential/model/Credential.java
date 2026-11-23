@@ -117,10 +117,13 @@ public record Credential(
     }
 
     private void requireSecretReadAccessToHandOutStoreReferences(CredentialActor actor, List<SecretReference> storeReferences) {
-        // An expression can resolve to any secret of the store.
-        if (!storeReferences.isEmpty() || secretReferences.values().stream().anyMatch(SecretReference::isExpression)) {
+        if (mayResolveStoreSecrets(storeReferences)) {
             actor.requireSecretAccess(SecretAccess.READ);
         }
+    }
+
+    private boolean mayResolveStoreSecrets(List<SecretReference> storeReferences) {
+        return !storeReferences.isEmpty() || secretReferences.values().stream().anyMatch(SecretReference::isExpression);
     }
 
     /** Whether Gravitee stores the values, as opposed to the credential pointing at secrets of the user's own. */

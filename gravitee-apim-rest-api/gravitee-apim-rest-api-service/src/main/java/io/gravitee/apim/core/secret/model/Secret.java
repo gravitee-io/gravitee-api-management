@@ -41,7 +41,6 @@ public record Secret(String id, String organizationId, String environmentId, Str
         }
     }
 
-    /** Matches case: every repository finds a secret by its exact key, so another case names another secret. */
     public static boolean isCredentialKey(String key) {
         return key.startsWith(CREDENTIAL_KEY_PREFIX);
     }

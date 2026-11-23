@@ -138,7 +138,6 @@ public class GraviteeSecretProvider implements SecretProvider {
         storedDataKeysVerified = true;
     }
 
-    // The Management API stores a data key on the first secret write, so the gateway may start before any data key exists.
     private synchronized void refuseIfNoStoredDataKeyMatches() {
         if (refusal == null) {
             refuseIfNoneMatches(findKekIds());
@@ -146,9 +145,13 @@ public class GraviteeSecretProvider implements SecretProvider {
     }
 
     private void refuseIfNoneMatches(Set<String> storedKekIds) {
-        if (!storedKekIds.isEmpty() && storedKekIds.stream().noneMatch(kek::canUnwrap)) {
+        if (!noDataKeyStoredYet(storedKekIds) && storedKekIds.stream().noneMatch(kek::canUnwrap)) {
             throw refuse(KEY_SETTING + " does not match the key that encrypted the stored secrets");
         }
+    }
+
+    private static boolean noDataKeyStoredYet(Set<String> storedKekIds) {
+        return storedKekIds.isEmpty();
     }
 
     private Set<String> findKekIds() {

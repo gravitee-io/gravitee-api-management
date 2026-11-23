@@ -21,11 +21,6 @@ import java.util.Map;
 import java.util.Optional;
 import org.springframework.core.env.ConfigurableEnvironment;
 
-/**
- * The provider never sees the id of its entry, only its configuration. The Management API recognises references to the
- * store by the /gravitee/ prefix, so an entry with another id would serve the store under a path that skips its
- * credential checks. The entries are read the way gravitee-service-secrets reads them to deploy providers.
- */
 final class GraviteeSecretProviderEntries {
 
     private static final String SECRETS = "api.secrets";
@@ -46,7 +41,6 @@ final class GraviteeSecretProviderEntries {
                 }
                 id = ConfigHelper.getProperty(entry, "id", String.class, GraviteeSecretProvider.ID);
             } catch (RuntimeException e) {
-                // A bean that throws here stops the gateway from booting, so an unreadable entry only refuses the provider.
                 return Optional.of("Secret provider entry " + SECRETS + "." + entry(index) + " cannot be read: " + e.getMessage());
             }
             if (!GraviteeSecretProvider.ID.equals(id)) {
