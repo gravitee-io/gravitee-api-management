@@ -148,3 +148,167 @@ export async function getJiraIssuesOfVersions(projectKeys, versionName) {
 
   return issues;
 }
+
+/** The board the release versions live on. Another automation copies each new one to the other boards. */
+export const JiraReleaseBoard = 'APIM';
+
+const PLAIN_VERSION = /^(\d+)\.(\d+)\.(\d+)$/;
+
+/**
+ * The patch version that follows a release, or undefined for a version that has no successor on its line
+ * (an alpha, a hotfix): those are released from a tag, and the line's next version is not theirs to open.
+ *
+ * @param version {string} for example '4.13.6'
+ * @returns {string|undefined} for example '4.13.7'
+ */
+export function nextPatchVersion(version) {
+  const match = PLAIN_VERSION.exec(version);
+  return match ? `${match[1]}.${match[2]}.${Number(match[3]) + 1}` : undefined;
+}
+
+/**
+ * Every version of a board, released or not.
+ *
+ * @param projectKey {string}
+ * @returns {Promise<Array<{id: string, name: string, projectId: number, released: boolean}>>}
+ */
+export async function getJiraProjectVersions(projectKey) {
+  const versions = await fetch(`https://gravitee.atlassian.net/rest/api/3/project/${projectKey}/versions`, {
+    method: 'GET',
+    headers: jiraHeaders(),
+  }).then((response) => response.json());
+
+  if (!Array.isArray(versions)) {
+    throw new Error(`Could not read the versions of ${projectKey}: ${(versions.errorMessages ?? ['unknown error']).join(', ')}`);
+  }
+  return versions;
+}
+
+async function writeJiraVersion(url, method, body) {
+  const version = await fetch(url, {
+    method,
+    headers: { ...jiraHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  }).then((response) => response.json());
+
+  if (!version?.id) {
+    // Writing a version needs the "Administer projects" permission, which reading it does not.
+    const reasons = [...(version?.errorMessages ?? []), ...Object.values(version?.errors ?? {})];
+    throw new Error(
+      `Jira refused to ${method === 'POST' ? 'create' : 'update'} ${body.name ?? 'the version'}: ${reasons.join(', ') || 'unknown error'}`,
+    );
+  }
+  return version;
+}
+
+/**
+ * Every ticket carrying the version that is not closed yet, whatever its type, across the given boards.
+ *
+ * @param projectKeys {Array<string>}
+ * @param versionName {string}
+ * @returns {Promise<Array<{key: string, type: string, status: string, summary: string}>>}
+ */
+export async function getUnclosedJiraIssuesOfVersion(projectKeys, versionName) {
+  if (projectKeys.length === 0) {
+    return [];
+  }
+
+  const projects = projectKeys.map((key) => `"${key.replace(/"/g, '\\"')}"`).join(', ');
+  const jql = `project IN (${projects}) AND fixVersion = "${versionName}" AND statusCategory != Done ORDER BY key`;
+
+  const issues = [];
+  let nextPageToken;
+  do {
+    const page = await fetch('https://gravitee.atlassian.net/rest/api/3/search/jql', {
+      method: 'POST',
+      headers: { ...jiraHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jql,
+        maxResults: 100,
+        fields: ['issuetype', 'summary', 'status'],
+        ...(nextPageToken ? { nextPageToken } : {}),
+      }),
+    }).then((response) => response.json());
+
+    if (!Array.isArray(page.issues)) {
+      // Read as "zero issues" this would report a clean release.
+      throw new Error(`Jira search failed: ${(page.errorMessages ?? ['unknown error']).join(', ')}`);
+    }
+
+    issues.push(...page.issues);
+    nextPageToken = page.nextPageToken;
+  } while (nextPageToken);
+
+  return issues.map((issue) => ({
+    key: issue.key,
+    type: issue.fields.issuetype.name,
+    status: issue.fields.status.name,
+    summary: issue.fields.summary,
+  }));
+}
+
+/**
+ * What a release leaves to do in Jira: mark its version released, and open the next one so the automation
+ * that sets fix versions on merge has somewhere to put the next fixes.
+ *
+ * <p>Tickets of the version that are not closed are reported, never moved nor transitioned: they did ship, and
+ * whoever reads the report decides what that means.
+ *
+ * <p>The report is read first, and a failure to update the versions afterwards is returned rather than thrown, so
+ * a refused write — writing versions needs "Administer projects", reading them does not — never costs the report.
+ * The caller publishes it, then fails on `error`.
+ *
+ * @param options {{version: string, today: string, dryRun?: boolean, log?: (message: string) => void}}
+ * @returns {Promise<{skipped: boolean, released: string|undefined, created: string|undefined, unclosed: Array<object>, error?: Error}>}
+ */
+export async function closeJiraRelease({ version, today, dryRun = false, log = console.log }) {
+  const next = nextPatchVersion(version);
+  if (!next) {
+    log(`${version} is not a plain release, nothing to do in Jira.`);
+    return { skipped: true, released: undefined, created: undefined, unclosed: [] };
+  }
+
+  const unclosed = await getUnclosedJiraIssuesOfVersion(await getJiraVersions(version), version);
+  const prefix = dryRun ? '[dry run] ' : '';
+
+  let released;
+  let created;
+  try {
+    const versions = await getJiraProjectVersions(JiraReleaseBoard);
+    const current = versions.find((candidate) => candidate.name === version);
+
+    if (!current) {
+      log(`⚠️  ${JiraReleaseBoard} has no ${version} version: no fix version was set on merge, so nothing to release.`);
+    } else if (current.released) {
+      log(`${JiraReleaseBoard} ${version} is already released.`);
+    } else {
+      log(`${prefix}Releasing ${JiraReleaseBoard} ${version} on ${today}.`);
+      if (!dryRun) {
+        // No moveUnfixedIssuesTo: tickets that are not closed keep this version.
+        await writeJiraVersion(`https://gravitee.atlassian.net/rest/api/3/version/${current.id}`, 'PUT', {
+          released: true,
+          releaseDate: today,
+        });
+      }
+      released = version;
+    }
+
+    if (versions.some((candidate) => candidate.name === next)) {
+      log(`${JiraReleaseBoard} ${next} already exists.`);
+    } else {
+      // Any version of the board tells its id, the one just released included.
+      const projectId = current?.projectId ?? versions[0]?.projectId;
+      if (projectId === undefined) {
+        throw new Error(`${JiraReleaseBoard} has no version at all, so its project id is unknown.`);
+      }
+      log(`${prefix}Creating ${JiraReleaseBoard} ${next}.`);
+      if (!dryRun) {
+        await writeJiraVersion('https://gravitee.atlassian.net/rest/api/3/version', 'POST', { name: next, projectId });
+      }
+      created = next;
+    }
+  } catch (error) {
+    return { skipped: false, released, created, unclosed, error };
+  }
+  return { skipped: false, released, created, unclosed };
+}

@@ -918,6 +918,29 @@ jobs:
                 }
               ]
             }
+  job-close-jira-release:
+    docker:
+      - image: cimg/node:24.22.1
+    resource_class: small
+    steps:
+      - checkout
+      - keeper/env-export:
+          secret-url: keeper://hfnQD5TEfxzwRXUKhJhM-A/field/password
+          var-name: JIRA_TOKEN
+      - keeper/env-export:
+          secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+          var-name: SLACK_ACCESS_TOKEN
+      - cmd-install-yarn
+      - run:
+          name: Install dependencies
+          command: yarn
+          working_directory: ./release
+      - run:
+          name: Close the release in Jira
+          command: yarn zx --quiet ci-steps/close-jira-release.mjs --version=4.2.0
+          working_directory: ./release
+          environment:
+            SLACK_CHANNEL: C02NGT20S4W
   job-trigger-saas-docker-images:
     docker:
       - image: cimg/base:stable
@@ -1450,6 +1473,20 @@ workflows:
           context:
             - cicd-orchestrator
           name: Create release note pull request
+          requires:
+            - Release Helm Chart
+            - Build and push RPM packages for APIM 4.2.0
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
+      - job-close-jira-release:
+          context:
+            - cicd-orchestrator
+          name: Close the release in Jira
           requires:
             - Release Helm Chart
             - Build and push RPM packages for APIM 4.2.0
