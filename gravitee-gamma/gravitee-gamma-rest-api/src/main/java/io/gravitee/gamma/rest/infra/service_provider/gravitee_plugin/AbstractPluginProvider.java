@@ -22,21 +22,17 @@ import io.gravitee.gamma.rest.core.gravitee_plugin.model.PluginMoreInformation;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PluginProvider;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
-import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.plugin.core.api.ConfigurablePlugin;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
 
 /**
  * Lists the plugins of one type, deployed or not, the way the Management API v2 plugin endpoints do: a plugin is
  * reported as deployed only when the node deployed it and the organization's license enables its feature.
  */
 public abstract class AbstractPluginProvider<T extends ConfigurablePlugin> implements PluginProvider {
-
-    protected final Logger log = NodeLoggerFactory.getLogger(this.getClass());
 
     protected final ConfigurablePluginManager<T> pluginManager;
     private final LicenseManager licenseManager;
@@ -138,8 +134,7 @@ public abstract class AbstractPluginProvider<T extends ConfigurablePlugin> imple
         }
     }
 
-    private TechnicalDomainException technicalError(String what, String pluginId, IOException cause) {
-        log.error("Unable to read the {} of plugin {}", what, pluginId, cause);
+    protected TechnicalDomainException technicalError(String what, String pluginId, IOException cause) {
         return new TechnicalDomainException("An error occurs while trying to get plugin " + what + " for plugin " + pluginId, cause);
     }
 }

@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.handlers.cluster.manager.impl;
 
+import static io.gravitee.apim.common.cluster.KafkaClusterDefinitionSecretRefsFinder.CLUSTER_DEFINITION_KIND;
+
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.cluster.ClusterEvent;
 import io.gravitee.definition.model.cluster.ReactableCluster;
@@ -39,8 +41,6 @@ public class ClusterManagerImpl implements ClusterManager {
 
     private final Map<String, ReactableCluster> clusters = new ConcurrentHashMap<>();
     private final EventManager eventManager;
-
-    public static final String CLUSTER_DEFINITION_KIND = "cluster";
 
     public ClusterManagerImpl(EventManager eventManager) {
         this.eventManager = eventManager;

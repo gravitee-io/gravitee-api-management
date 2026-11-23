@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.cluster.security;
+package io.gravitee.apim.common.cluster;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

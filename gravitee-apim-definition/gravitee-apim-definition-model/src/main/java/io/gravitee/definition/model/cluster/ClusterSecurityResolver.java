@@ -18,13 +18,15 @@ package io.gravitee.definition.model.cluster;
 import io.reactivex.rxjava3.core.Single;
 
 /**
- * Evaluates the secret references of a registered Kafka cluster connection's security on the gateway.
+ * Evaluates the secret references of a registered Kafka cluster connection's security, on the gateway and on the
+ * management API.
  *
  * <p>The gateway discovers the secret references of a cluster when it deploys it, as it does for APIs and shared policy
  * groups. The security the {@link ClusterRegistry} holds then carries expressions, not credentials: every component
- * building a Kafka client from a cluster connection resolves it here first, so both API types read the same values.</p>
+ * building a Kafka client from a cluster connection resolves it here first, so both API types read the same values. The
+ * management API discovers a cluster when a feature that connects to it, such as the Kafka Explorer, first uses it.</p>
  *
- * <p>Only the gateway's secrets are available: a cluster serves many APIs, so request or API expressions
+ * <p>Only the node's own secrets are available: a cluster serves many APIs, so request or API expressions
  * ({@code #request}, {@code #context}, {@code #api}…) fail to evaluate. Values without an expression are returned as
  * is.</p>
  */

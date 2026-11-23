@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { READ_ONLY_SETTINGS_MESSAGE } from '../../../shared/utils/readOnlySettings';
 import type { IdentityProviderType } from '../types/identityProvider';
 
 export const IDENTITY_PROVIDER_TYPES: { value: IdentityProviderType; label: string }[] = [
@@ -36,8 +37,7 @@ export const SYSTEM_READONLY_TOOLTIP = 'Configuration provided by the system';
 export const LOCAL_LOGIN_NEEDS_ACTIVATED_IDP_TOOLTIP =
     'You must create and activate an identity provider to be able to update this setting';
 export const LOCAL_LOGIN_LOAD_FAILED_TOOLTIP = 'Identity provider settings could not be loaded';
-export const LOCAL_LOGIN_NO_PERMISSION_TOOLTIP =
-    'You do not have permission to modify these settings. Contact your administrator for access.';
+export const LOCAL_LOGIN_NO_PERMISSION_TOOLTIP = READ_ONLY_SETTINGS_MESSAGE;
 
 export function localLoginSettingTooltip({
     isLoading,

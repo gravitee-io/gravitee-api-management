@@ -18,12 +18,13 @@ import {
   AikidoScanDockerImagesJob,
   DeployOnAzureJob,
   DeployOnNextGenIntegrationJob,
+  nextGenControlPlaneId,
   PublishJob,
   ReleaseHelmJob,
   TriggerSaasDockerImagesJob,
 } from '../../jobs';
 import { CircleCIEnvironment } from '../../pipelines';
-import { isMasterBranch, triggersSaasDockerImages } from '../../utils';
+import { triggersSaasDockerImages } from '../../utils';
 import { config } from '../../config';
 
 /**
@@ -45,8 +46,11 @@ export function publishAndDeployJobs(dynamicConfig: Config, environment: CircleC
   const deployOnAzureJob = DeployOnAzureJob.create(dynamicConfig, environment);
   dynamicConfig.addJob(deployOnAzureJob);
 
-  const deployOnNextGenIntegrationJob = DeployOnNextGenIntegrationJob.create(dynamicConfig, environment);
-  if (isMasterBranch(environment.branch)) {
+  const controlPlaneId = nextGenControlPlaneId(environment);
+  const deployOnNextGenIntegrationJob = controlPlaneId
+    ? DeployOnNextGenIntegrationJob.create(dynamicConfig, environment, controlPlaneId)
+    : undefined;
+  if (deployOnNextGenIntegrationJob) {
     dynamicConfig.addJob(deployOnNextGenIntegrationJob);
   }
 
@@ -95,12 +99,12 @@ export function publishAndDeployJobs(dynamicConfig: Config, environment: CircleC
       context: config.jobContext,
       requires: environmentImages,
     }),
-    ...(isMasterBranch(environment.branch)
+    ...(deployOnNextGenIntegrationJob
       ? [
           new workflow.WorkflowJob(deployOnNextGenIntegrationJob, {
             name: 'Deploy on NextGen Integration environment',
             context: config.jobContext,
-            requires: ['Trigger SaaS Chainguard Docker images creation', 'Publish Helm chart (internal repo)'],
+            requires: ['Publish Helm chart (internal repo)'],
           }),
         ]
       : []),

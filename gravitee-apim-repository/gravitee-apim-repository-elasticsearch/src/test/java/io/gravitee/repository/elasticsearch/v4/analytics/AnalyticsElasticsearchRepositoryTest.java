@@ -110,6 +110,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
     private static final String API_ID_SSE = "43276d60-7058-4588-8023-52bf1154f903";
     private static final String API_ID_UNCOMMITTED_STATUS = "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d";
     private static final String API_ID_NATIVE_KAFKA = "kafka-api-001";
+    /** The native API of the event-metrics fixture. */
+    private static final String NATIVE_API_ID = "273f4728-1e30-4c78-bf47-281e304c78a5";
     private static final String API_ID_AUTHZ = "authz-traffic-api-001";
 
     @Autowired
@@ -1414,7 +1416,6 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
     @Nested
     class EventAnalytics {
 
-        private static final String NATIVE_API_ID = "273f4728-1e30-4c78-bf47-281e304c78a5";
         private static final QueryContext QUERY_CONTEXT = new QueryContext("DEFAULT", "DEFAULT");
         private final Instant now = TimeProvider.now();
 
@@ -2207,6 +2208,33 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 var result = cut.searchNativeApiMeasures(QUERY_CONTEXT, new MeasuresQuery(buildTimeRange(), List.of(filter), metrics));
 
                 assertThat(result.measures().getFirst().measures().get(Measure.COUNT).longValue()).isEqualTo(2L);
+            }
+        }
+
+        /**
+         * The operation document of the native Kafka API in the event-metrics fixture: five requests received, four of
+         * them forwarded to the broker with 8 ms of gateway-request time in all, and no broker answer yet. The average
+         * divides by the forwarded requests, the counter sampled with the duration.
+         */
+        @Nested
+        class NativeOperationDurations {
+
+            @Test
+            void should_average_an_operation_duration_over_its_samples_and_read_0_without_any() {
+                var metrics = List.of(
+                    new MetricMeasuresQuery(Metric.NATIVE_OPERATION_GATEWAY_REQUEST_DURATION, Set.of(Measure.AVG)),
+                    new MetricMeasuresQuery(Metric.NATIVE_OPERATION_BROKER_DURATION, Set.of(Measure.AVG))
+                );
+                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(NATIVE_API_ID));
+
+                var result = cut.searchEventMetricsMeasures(QUERY_CONTEXT, new MeasuresQuery(buildTimeRange(), List.of(filter), metrics));
+
+                assertThat(result.measures())
+                    .extracting(metric -> metric.metric(), metric -> metric.measures().get(Measure.AVG).doubleValue())
+                    .containsExactlyInAnyOrder(
+                        tuple(Metric.NATIVE_OPERATION_GATEWAY_REQUEST_DURATION, 2.0),
+                        tuple(Metric.NATIVE_OPERATION_BROKER_DURATION, 0.0)
+                    );
             }
         }
 

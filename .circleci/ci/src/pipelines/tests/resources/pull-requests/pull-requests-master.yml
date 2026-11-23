@@ -690,13 +690,18 @@ jobs:
             git add controlplane-5fa78f.json
 
             for dataplane in dataplane-5fa78f-*.json; do
+              [ -e "$dataplane" ] || continue
               /tmp/jq ".appVersion = \"master-784ff35\"" "$dataplane" > tmp.$$.json && \
               mv tmp.$$.json "$dataplane"
               git add "$dataplane"
             done
 
             git commit -m "feat(qa): deploying APIM master-784ff35"
-            git push
+            for attempt in 1 2 3; do
+              if git push; then break; fi
+              [ "$attempt" = 3 ] && exit 1
+              git pull --rebase
+            done
       - cmd-notify-on-failure
   job-trigger-saas-docker-images:
     docker:
@@ -946,7 +951,6 @@ workflows:
           context:
             - cicd-orchestrator
           requires:
-            - Trigger SaaS Chainguard Docker images creation
             - Publish Helm chart (internal repo)
       - job-aikido-scan-docker-images:
           context:

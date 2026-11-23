@@ -27,6 +27,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gamma.rest.resource.AbstractResourceTest;
 import io.gravitee.gamma.rest.spring.ResourceContextConfiguration;
+import io.gravitee.gateway.reactive.api.policy.guardrail.GuardrailPolicy;
+import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
@@ -104,7 +106,7 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
 
         @Test
         void should_expose_the_plugin_and_every_declared_flow_with_its_raw_phases() {
-            given_a_policy(
+            given_a_guardrail(
                 "guardrail-rule",
                 Map.of(
                     "http_proxy",
@@ -137,6 +139,7 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
                 soft.assertThat(plugin.get("icon").asText()).as("icon").isEqualTo("data:image/svg+xml;base64,guardrail-rule");
                 soft.assertThat(plugin.get("feature").asText()).as("feature").isEqualTo(FEATURE);
                 soft.assertThat(plugin.get("deployed").asBoolean()).as("deployed").isTrue();
+                soft.assertThat(plugin.get("guardrail").asBoolean()).as("guardrail").isTrue();
                 soft
                     .assertThat(plugin.get("flow"))
                     .as("flows in kebab-case, phases trimmed but neither validated nor reduced")
@@ -176,6 +179,20 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
                     .assertThat(flowOf(policies, "both"))
                     .as("the flow key wins over the deprecated one")
                     .isEqualTo(json("{\"http-proxy\": [\"RESPONSE\"]}"));
+            });
+        }
+
+        /** The guardian flow says where a policy can run, not that it is a guardrail: a Guardian needs one to deploy. */
+        @Test
+        void should_tell_a_guardrail_from_a_conventional_policy_declaring_the_guardian_flow() {
+            given_a_guardrail("guardrail", Map.of("guardian", "REQUEST"));
+            given_a_policy("conventional", Map.of("guardian", "REQUEST"));
+
+            JsonNode policies = rootTarget().queryParam("flow", "guardian").request().get().readEntity(JsonNode.class);
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(policyOf(policies, "guardrail").get("guardrail").asBoolean()).as("guardrail policy").isTrue();
+                soft.assertThat(policyOf(policies, "conventional").get("guardrail").asBoolean()).as("conventional policy").isFalse();
             });
         }
 
@@ -276,7 +293,7 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
 
         @Test
         void should_get_a_policy_with_its_flows() {
-            given_a_policy("guardrail-rule", Map.of("guardian", "REQUEST,RESPONSE", "llm_proxy", "REQUEST"));
+            given_a_guardrail("guardrail-rule", Map.of("guardian", "REQUEST,RESPONSE", "llm_proxy", "REQUEST"));
 
             Response response = rootTarget("guardrail-rule").request().get();
 
@@ -286,6 +303,7 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
                 soft.assertThat(plugin.get("id").asText()).as("id").isEqualTo("guardrail-rule");
                 soft.assertThat(plugin.get("category").asText()).as("category").isEqualTo("guardrail");
                 soft.assertThat(plugin.get("icon").asText()).as("icon").isEqualTo("data:image/svg+xml;base64,guardrail-rule");
+                soft.assertThat(plugin.get("guardrail").asBoolean()).as("guardrail").isTrue();
                 soft
                     .assertThat(plugin.get("flow"))
                     .as("flow")
@@ -391,11 +409,16 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
         }
     }
 
+    private void given_a_guardrail(String id, Map<String, String> properties) {
+        var plugin = given_a_policy(id, properties, manifest -> {});
+        doReturn(GuardrailPolicy.class).when(plugin).policy();
+    }
+
     private void given_a_policy(String id, Map<String, String> properties) {
         given_a_policy(id, properties, manifest -> {});
     }
 
-    private void given_a_policy(String id, Map<String, String> properties, Consumer<PluginManifest> customizer) {
+    private PolicyPlugin<?> given_a_policy(String id, Map<String, String> properties, Consumer<PluginManifest> customizer) {
         var manifest = mock(PluginManifest.class);
         when(manifest.name()).thenReturn(id);
         when(manifest.description()).thenReturn("Description of " + id);
@@ -407,6 +430,7 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
         PolicyPlugin<?> plugin = mock(PolicyPlugin.class);
         when(plugin.id()).thenReturn(id);
         when(plugin.manifest()).thenReturn(manifest);
+        doReturn(HttpPolicy.class).when(plugin).policy();
         when(plugin.deployed()).thenReturn(true);
         installedPolicies.add(plugin);
         doReturn(plugin).when(policyPluginManager).get(id, true);
@@ -415,6 +439,7 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+        return plugin;
     }
 
     private static JsonNode json(String content) {
@@ -426,11 +451,15 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
     }
 
     private static JsonNode flowOf(JsonNode policies, String id) {
+        return policyOf(policies, id).get("flow");
+    }
+
+    private static JsonNode policyOf(JsonNode policies, String id) {
         var matching = StreamSupport.stream(policies.spliterator(), false)
             .filter(policy -> id.equals(policy.get("id").asText()))
             .toList();
         assertThat(matching).as("listed policies with id %s", id).hasSize(1);
-        return matching.get(0).get("flow");
+        return matching.get(0);
     }
 
     private static Consumer<PluginManifest> named(String name) {

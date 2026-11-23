@@ -28,6 +28,8 @@ import io.gravitee.apim.core.observability.model.FilterType;
 import io.gravitee.apim.core.observability.model.Signal;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -168,7 +170,7 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
 
         private final AnalyticsDefinitionYAMLQueryService service = new AnalyticsDefinitionYAMLQueryService();
 
-        /** COUNT counts the requests carrying the value, as on every metric; SUM is the total the LLM dashboards show. */
+        /** COUNT counts the documents carrying the value, as on every metric; SUM is the total the LLM dashboards show. */
         @ParameterizedTest
         @EnumSource(
             value = MetricSpec.Name.class,
@@ -197,6 +199,130 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
                 .hasValueSatisfying(measures ->
                     assertThat(measures).containsExactlyInAnyOrder(MetricSpec.Measure.COUNT, MetricSpec.Measure.SUM)
                 );
+        }
+
+        /**
+         * Clients start a new widget on a metric's first measure, so it is the measure of the metric's kind: SUM on an
+         * additive value (tokens, a cost, a carried count), COUNT on a counter of requests or events, AVG on a
+         * distribution, MAX on a gauge and PERCENTAGE on a rate. The kind is stated here, not read from the measures
+         * served: an additive value and a counter both serve COUNT, and a unit does not tell them apart (NUMBER is
+         * a counter, a carried count or a gauge; BYTES a distribution or a total).
+         */
+        @ParameterizedTest
+        @EnumSource(MetricSpec.Name.class)
+        void should_list_first_the_measure_of_its_kind_on_every_built_in_metric(MetricSpec.Name name) {
+            var kind = kindOf(name);
+            assertThat(kind).as(name + " has a kind").isPresent();
+            assertThat(service.findMetric(name))
+                .map(metric -> metric.measures().getFirst())
+                .contains(kind.get().firstMeasure);
+        }
+
+        @Test
+        void should_state_one_kind_for_every_built_in_metric() {
+            assertThat(NAMES_BY_KIND.values().stream().flatMap(List::stream)).containsExactlyInAnyOrder(MetricSpec.Name.values());
+        }
+
+        /** The units that name a kind, as the library defaults a new widget by unit. */
+        @Test
+        void should_give_tokens_and_costs_an_additive_kind_and_durations_a_distribution() {
+            var builtIns = Arrays.stream(MetricSpec.Name.values()).map(service::findMetric).flatMap(Optional::stream).toList();
+
+            assertThat(builtIns)
+                .filteredOn(metric -> metric.unit() == MetricSpec.Unit.TOKENS || metric.unit() == MetricSpec.Unit.CURRENCY)
+                .isNotEmpty()
+                .allSatisfy(metric -> assertThat(kindOf(metric.name())).as(metric.name().name()).contains(Kind.ADDITIVE));
+            assertThat(builtIns)
+                .filteredOn(metric -> metric.unit() == MetricSpec.Unit.MILLISECONDS)
+                .isNotEmpty()
+                .allSatisfy(metric -> assertThat(kindOf(metric.name())).as(metric.name().name()).contains(Kind.DISTRIBUTION));
+        }
+
+        private enum Kind {
+            ADDITIVE(MetricSpec.Measure.SUM),
+            COUNTER(MetricSpec.Measure.COUNT),
+            DISTRIBUTION(MetricSpec.Measure.AVG),
+            GAUGE(MetricSpec.Measure.MAX),
+            RATE(MetricSpec.Measure.PERCENTAGE);
+
+            private final MetricSpec.Measure firstMeasure;
+
+            Kind(MetricSpec.Measure firstMeasure) {
+                this.firstMeasure = firstMeasure;
+            }
+        }
+
+        private static final Map<Kind, List<MetricSpec.Name>> NAMES_BY_KIND = Map.of(
+            Kind.ADDITIVE,
+            List.of(
+                MetricSpec.Name.LLM_PROMPT_TOKEN_SENT,
+                MetricSpec.Name.LLM_PROMPT_TOKEN_RECEIVED,
+                MetricSpec.Name.LLM_PROMPT_TOKEN_SENT_COST,
+                MetricSpec.Name.LLM_PROMPT_TOKEN_RECEIVED_COST,
+                MetricSpec.Name.LLM_PROMPT_TOTAL_TOKEN,
+                MetricSpec.Name.LLM_PROMPT_TOKEN_TOTAL_COST,
+                MetricSpec.Name.EDGE_DETECTION_COUNT,
+                MetricSpec.Name.EDGE_TOKENS_IN,
+                MetricSpec.Name.EDGE_TOKENS_OUT,
+                MetricSpec.Name.NATIVE_MESSAGES_PRODUCED_DOWNSTREAM,
+                MetricSpec.Name.NATIVE_MESSAGES_PRODUCED_UPSTREAM,
+                MetricSpec.Name.NATIVE_MESSAGES_CONSUMED_DOWNSTREAM,
+                MetricSpec.Name.NATIVE_MESSAGES_CONSUMED_UPSTREAM,
+                MetricSpec.Name.NATIVE_BYTES_PRODUCED_DOWNSTREAM,
+                MetricSpec.Name.NATIVE_BYTES_PRODUCED_UPSTREAM,
+                MetricSpec.Name.NATIVE_BYTES_CONSUMED_DOWNSTREAM,
+                MetricSpec.Name.NATIVE_BYTES_CONSUMED_UPSTREAM,
+                MetricSpec.Name.NATIVE_AUTHENTICATIONS_SUCCESS_DOWNSTREAM,
+                MetricSpec.Name.NATIVE_AUTHENTICATIONS_SUCCESS_UPSTREAM,
+                MetricSpec.Name.NATIVE_AUTHENTICATIONS_FAILURE_DOWNSTREAM,
+                MetricSpec.Name.NATIVE_AUTHENTICATIONS_FAILURE_UPSTREAM,
+                MetricSpec.Name.NATIVE_OPERATIONS_RECEIVED,
+                MetricSpec.Name.NATIVE_OPERATIONS_FORWARDED,
+                MetricSpec.Name.NATIVE_OPERATIONS_ANSWERED,
+                MetricSpec.Name.NATIVE_OPERATIONS_COMPLETED
+            ),
+            Kind.COUNTER,
+            List.of(
+                MetricSpec.Name.HTTP_REQUESTS,
+                MetricSpec.Name.HTTP_ERRORS,
+                MetricSpec.Name.MESSAGES,
+                MetricSpec.Name.MESSAGE_ERRORS,
+                MetricSpec.Name.EDGE_HEARTBEAT_COUNT,
+                MetricSpec.Name.NATIVE_CONNECTIONS_SUMMARY,
+                MetricSpec.Name.AUTHZ_OPERATIONS,
+                MetricSpec.Name.AUTHZ_DECISIONS,
+                MetricSpec.Name.AUTHZ_PERMITS,
+                MetricSpec.Name.AUTHZ_FORBIDS,
+                MetricSpec.Name.AUTHZ_NOT_APPLICABLE,
+                MetricSpec.Name.AUTHZ_SEARCHES,
+                MetricSpec.Name.AUTHZ_FAILURES
+            ),
+            Kind.DISTRIBUTION,
+            List.of(
+                MetricSpec.Name.HTTP_REQUEST_CONTENT_LENGTH,
+                MetricSpec.Name.HTTP_RESPONSE_CONTENT_LENGTH,
+                MetricSpec.Name.HTTP_ENDPOINT_RESPONSE_TIME,
+                MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME,
+                MetricSpec.Name.HTTP_GATEWAY_LATENCY,
+                MetricSpec.Name.MESSAGE_PAYLOAD_SIZE,
+                MetricSpec.Name.MESSAGE_GATEWAY_LATENCY,
+                MetricSpec.Name.NATIVE_OPERATION_GATEWAY_REQUEST_DURATION,
+                MetricSpec.Name.NATIVE_OPERATION_BROKER_DURATION,
+                MetricSpec.Name.NATIVE_OPERATION_GATEWAY_RESPONSE_DURATION,
+                MetricSpec.Name.AUTHZ_EVAL_DURATION
+            ),
+            Kind.GAUGE,
+            List.of(MetricSpec.Name.NATIVE_ACTIVE_CONNECTIONS_DOWNSTREAM, MetricSpec.Name.NATIVE_ACTIVE_CONNECTIONS_UPSTREAM),
+            Kind.RATE,
+            List.of(MetricSpec.Name.HTTP_ERROR_RATE)
+        );
+
+        private static Optional<Kind> kindOf(MetricSpec.Name name) {
+            return NAMES_BY_KIND.entrySet()
+                .stream()
+                .filter(entry -> entry.getValue().contains(name))
+                .map(Map.Entry::getKey)
+                .findFirst();
         }
     }
 

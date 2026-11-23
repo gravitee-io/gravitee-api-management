@@ -22,15 +22,22 @@ import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.L
 import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.MCP_PROXY;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidator;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import com.fasterxml.jackson.core.JsonPointer;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyValidation;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.DeclaredFlows;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.ResourceReference;
 import io.gravitee.gamma.rest.core.guardian.GuardianFixtures;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
@@ -41,14 +48,17 @@ import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.slf4j.LoggerFactory;
 
 class DefaultPolicyPluginProviderTest {
 
@@ -226,5 +236,150 @@ class DefaultPolicyPluginProviderTest {
             softly.assertThat(policies).containsEntry("transform-headers", new PolicyCapabilities(false, new DeclaredFlows(Map.of())));
             softly.assertThat(policies).containsEntry("rule-guardrail", new PolicyCapabilities(true, new DeclaredFlows(Map.of())));
         });
+    }
+
+    @Nested
+    class ResourceReferences {
+
+        private String the_bundled_schema(String name) throws Exception {
+            try (var schema = getClass().getResourceAsStream("/schemas/" + name)) {
+                return new String(schema.readAllBytes(), StandardCharsets.UTF_8);
+            }
+        }
+
+        private void given_the_schema(String schema) throws Exception {
+            a_policy("guardrail-decision", GuardrailPolicy.class, "guardrail", Map.of());
+            when(pluginManager.getSchema("guardrail-decision", true)).thenReturn(schema);
+        }
+
+        @Test
+        void should_read_a_property_the_schema_marks_as_a_resource_picker() throws Exception {
+            given_the_schema(
+                """
+                {"type":"object","properties":{
+                  "resource":{"type":"string","gioConfig":{"uiType":"resource-type","uiTypeProps":{"resourceType":"ai-model-decision"}}},
+                  "scope":{"type":"object","properties":{"protocol":{"type":"string"}}}
+                }}
+                """
+            );
+
+            assertThat(provider.findResourceReferences("guardrail-decision")).containsExactly(
+                new ResourceReference(JsonPointer.compile("/resource"), List.of("ai-model-decision"))
+            );
+        }
+
+        @Test
+        void should_read_a_nested_property_accepting_several_types() throws Exception {
+            given_the_schema(
+                """
+                {"type":"object","properties":{"model":{"type":"object","properties":{
+                  "name":{"type":"string","gioConfig":{"uiType":"resource-type","uiTypeProps":{"resourceType":["ai-model-decision","ai-model-text-classification"]}}}
+                }}}}
+                """
+            );
+
+            assertThat(provider.findResourceReferences("guardrail-decision")).containsExactly(
+                new ResourceReference(JsonPointer.compile("/model/name"), List.of("ai-model-decision", "ai-model-text-classification"))
+            );
+        }
+
+        /** No picker means any resource, but still a resource of the Guardian. */
+        @Test
+        void should_accept_any_type_when_the_picker_names_none() throws Exception {
+            given_the_schema(
+                """
+                {"type":"object","properties":{"resource":{"type":"string","gioConfig":{"uiType":"resource-type"}}}}
+                """
+            );
+
+            assertThat(provider.findResourceReferences("guardrail-decision")).containsExactly(
+                new ResourceReference(JsonPointer.compile("/resource"), List.of())
+            );
+        }
+
+        /**
+         * The console only offers a picker for {@code uiType: resource-type}: the validation reads the same marker. The
+         * flat {@code gioConfig.resourceType} is what guardrail-decision declared before 1.0.0-alpha.7, which nothing reads.
+         */
+        @Test
+        void should_ignore_a_resource_type_declared_without_the_picker() throws Exception {
+            given_the_schema(
+                """
+                {"type":"object","properties":{"resource":{"type":"string","gioConfig":{"resourceType":"ai-model-decision"}}}}
+                """
+            );
+
+            assertThat(provider.findResourceReferences("guardrail-decision")).isEmpty();
+        }
+
+        /** The schema the distribution bundles, so that a marker renamed in the policy is caught here. */
+        @Test
+        void should_read_the_resource_picker_of_the_bundled_guardrail_decision_policy() throws Exception {
+            given_the_schema(the_bundled_schema("guardrail-decision-1.0.0-alpha.7.json"));
+
+            assertThat(provider.findResourceReferences("guardrail-decision")).containsExactly(
+                new ResourceReference(JsonPointer.compile("/resource"), List.of("ai-model-decision"))
+            );
+        }
+
+        @Test
+        void should_escape_a_property_name_that_is_not_a_plain_identifier() throws Exception {
+            given_the_schema(
+                """
+                {"type":"object","properties":{"a/b~c":{"type":"string","gioConfig":{"uiType":"resource-type"}}}}
+                """
+            );
+
+            assertThat(provider.findResourceReferences("guardrail-decision")).containsExactly(
+                new ResourceReference(JsonPointer.compile("/a~1b~0c"), List.of())
+            );
+        }
+
+        /** What a picker holds is a resource name: properties under it are not read as further pickers. */
+        @Test
+        void should_not_read_under_a_property_marked_as_a_picker() throws Exception {
+            given_the_schema(
+                """
+                {"type":"object","properties":{"resource":{"type":"object","gioConfig":{"uiType":"resource-type"},"properties":{
+                  "inner":{"type":"string","gioConfig":{"uiType":"resource-type"}}
+                }}}}
+                """
+            );
+
+            assertThat(provider.findResourceReferences("guardrail-decision")).containsExactly(
+                new ResourceReference(JsonPointer.compile("/resource"), List.of())
+            );
+        }
+
+        /** The step naming it is refused as not installed before its references are read: nothing to add here. */
+        @Test
+        void should_find_nothing_for_a_policy_that_is_not_installed() {
+            assertThat(provider.findResourceReferences("uninstalled")).isEmpty();
+        }
+
+        /** Rethrown without logging: the REST layer answering the 500 logs it, once. */
+        @Test
+        void should_fail_on_a_schema_that_is_no_json() throws Exception {
+            given_the_schema("not json");
+            var logger = (Logger) LoggerFactory.getLogger(DefaultPolicyPluginProvider.class);
+            var logs = new ListAppender<ILoggingEvent>();
+            logs.start();
+            logger.addAppender(logs);
+            try {
+                assertThatThrownBy(() -> provider.findResourceReferences("guardrail-decision")).isInstanceOf(
+                    TechnicalDomainException.class
+                );
+                assertThat(logs.list).as("logged by the provider").isEmpty();
+            } finally {
+                logger.detachAppender(logs);
+            }
+        }
+
+        @Test
+        void should_find_nothing_in_a_policy_without_schema() throws Exception {
+            given_the_schema(null);
+
+            assertThat(provider.findResourceReferences("guardrail-decision")).isEmpty();
+        }
     }
 }

@@ -643,6 +643,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public ClusterSecretResolverInMemory clusterSecretResolver() {
+        return new ClusterSecretResolverInMemory();
+    }
+
+    @Bean
     public SecretCrudServiceInMemory secretCrudService() {
         return new SecretCrudServiceInMemory();
     }

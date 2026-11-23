@@ -17,10 +17,16 @@ package io.gravitee.gamma.rest.infra.service_provider.gravitee_plugin;
 
 import static java.util.stream.Collectors.toMap;
 
+import com.fasterxml.jackson.core.JsonPointer;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.gamma.rest.core.gravitee_plugin.exception.PluginNotFoundException;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.DeclaredFlows;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PlatformPolicyPlugin;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType;
+import io.gravitee.gamma.rest.core.gravitee_plugin.model.ResourceReference;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gateway.reactive.api.policy.guardrail.GuardrailPolicy;
 import io.gravitee.node.api.license.License;
@@ -38,6 +44,11 @@ import java.util.stream.Stream;
 
 public class DefaultPolicyPluginProvider extends AbstractPluginProvider<PolicyPlugin<?>> implements PolicyPluginProvider {
 
+    /** The {@code gioConfig.uiType} with which a policy schema marks a property holding a resource name. */
+    private static final String RESOURCE_PICKER = "resource-type";
+
+    private static final ObjectMapper SCHEMA_MAPPER = new ObjectMapper();
+
     public DefaultPolicyPluginProvider(ConfigurablePluginManager<PolicyPlugin<?>> pluginManager, LicenseManager licenseManager) {
         super(pluginManager, licenseManager);
     }
@@ -47,11 +58,7 @@ public class DefaultPolicyPluginProvider extends AbstractPluginProvider<PolicyPl
         return pluginManager
             .findAll(true)
             .stream()
-            .collect(
-                toMap(PolicyPlugin::id, plugin ->
-                    new PolicyCapabilities(GuardrailPolicy.class.isAssignableFrom(plugin.policy()), flows(plugin.manifest().properties()))
-                )
-            );
+            .collect(toMap(PolicyPlugin::id, plugin -> new PolicyCapabilities(isGuardrail(plugin), flows(plugin.manifest().properties()))));
     }
 
     /** Filters before converting: the policies left out are not converted, their icon not read. */
@@ -74,8 +81,58 @@ public class DefaultPolicyPluginProvider extends AbstractPluginProvider<PolicyPl
         return toPolicy(plugin, flows(plugin.manifest().properties()), license(organizationId));
     }
 
+    @Override
+    public List<ResourceReference> findResourceReferences(String policyId) {
+        String schema;
+        try {
+            schema = getSchema(policyId);
+        } catch (PluginNotFoundException e) {
+            return List.of();
+        }
+        if (schema == null || schema.isBlank()) {
+            return List.of();
+        }
+        try {
+            return resourceReferences(SCHEMA_MAPPER.readTree(schema), JsonPointer.empty()).toList();
+        } catch (JsonProcessingException e) {
+            throw technicalError("schema", policyId, e);
+        }
+    }
+
+    /**
+     * Walks the nested {@code properties} of an object schema, without entering a property marked as a picker.
+     *
+     * <p>Neither {@code $ref} nor composed branches ({@code oneOf}, {@code anyOf}, {@code items}, ...) are followed, so
+     * a picker declared there is not found, and a step naming a resource through it is not checked. No policy
+     * bundled declares one there.
+     */
+    private static Stream<ResourceReference> resourceReferences(JsonNode schema, JsonPointer pointer) {
+        return schema
+            .path("properties")
+            .propertyStream()
+            .flatMap(property -> {
+                var path = pointer.appendProperty(property.getKey());
+                var gioConfig = property.getValue().path("gioConfig");
+                return RESOURCE_PICKER.equals(gioConfig.path("uiType").asText())
+                    ? Stream.of(new ResourceReference(path, acceptedTypes(gioConfig.path("uiTypeProps").path("resourceType"))))
+                    : resourceReferences(property.getValue(), path);
+            });
+    }
+
+    /** A single type or a list of them, as the console pickers read {@code uiTypeProps.resourceType}. */
+    private static List<String> acceptedTypes(JsonNode resourceType) {
+        if (resourceType.isTextual()) {
+            return List.of(resourceType.textValue());
+        }
+        return resourceType.valueStream().filter(JsonNode::isTextual).map(JsonNode::textValue).toList();
+    }
+
     private PlatformPolicyPlugin toPolicy(PolicyPlugin<?> plugin, DeclaredFlows flows, License license) {
-        return new PlatformPolicyPlugin(convert(plugin, license), flows);
+        return new PlatformPolicyPlugin(convert(plugin, license), isGuardrail(plugin), flows);
+    }
+
+    private static boolean isGuardrail(PolicyPlugin<?> plugin) {
+        return GuardrailPolicy.class.isAssignableFrom(plugin.policy());
     }
 
     /** The phases of each flow the manifest declares ({@code llm_proxy=REQUEST,RESPONSE}), trimmed but neither validated nor reduced. */

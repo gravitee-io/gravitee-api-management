@@ -30,6 +30,7 @@ import { useMemo, useState } from 'react';
 import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { retryTransientRequest } from '../shared/api/queryRetry';
+import { READ_ONLY_SETTINGS_MESSAGE } from '../shared/utils/readOnlySettings';
 
 /**
  * The catalog's queries and mutations run on their own client, not the module's: the module retries
@@ -86,7 +87,7 @@ function EnvironmentMetricsConfiguration() {
             ) : (
                 <QueryClientProvider client={catalogQueryClient}>
                     <MetricDefinitionsSourceProvider source={source}>
-                        <AdditionalMetricsCatalog mode={canEdit ? 'edit' : 'read'} />
+                        <AdditionalMetricsCatalog mode={canEdit ? 'edit' : 'read'} readModeHint={READ_ONLY_SETTINGS_MESSAGE} />
                     </MetricDefinitionsSourceProvider>
                 </QueryClientProvider>
             )}

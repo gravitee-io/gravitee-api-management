@@ -96,7 +96,7 @@ public record MetricSpec(
 
     /**
      * The unit served with an entry of measures on a metric whose values are in {@code unit}. A COUNT is a number of
-     * requests, so an entry reading COUNT only is served {@link Unit#NUMBER}, on a built-in and an additional metric
+     * documents, so an entry reading COUNT only is served {@link Unit#NUMBER}, on a built-in and an additional metric
      * alike; any other entry keeps {@code unit}, which then applies to its measures other than COUNT.
      */
     public static Unit servedUnit(Unit unit, Collection<Measure> measures) {
