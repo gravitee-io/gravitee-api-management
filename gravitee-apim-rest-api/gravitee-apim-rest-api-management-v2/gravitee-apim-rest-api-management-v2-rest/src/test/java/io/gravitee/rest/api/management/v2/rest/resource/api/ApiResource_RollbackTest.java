@@ -36,6 +36,7 @@ import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ApiNotDeployableException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
@@ -127,6 +128,31 @@ class ApiResource_RollbackTest extends ApiResourceTest {
         assertThat(error.getHttpStatus()).isEqualTo(BAD_REQUEST_400);
         assertThat(error.getMessage()).isEqualTo("Cannot rollback this API");
         assertThat(error.getTechnicalCode()).isEqualTo("api.rollback.unsupported");
+    }
+
+    /**
+     * The 400 the specification declares for a restored internal flow no module will run. It is an
+     * {@link ApiNotDeployableException}, a management exception, which another mapper answers than the domain
+     * exception above: nothing else says its code and its message reach the client.
+     */
+    @Test
+    void should_answer_400_when_a_module_refuses_the_restored_internal_flow() {
+        doThrow(new ApiNotDeployableException("API 'my-api' cannot be deployed: Guardian 'guardian-1' is not deployed"))
+            .when(rollbackApiUseCase)
+            .execute(any(RollbackApiUseCase.Input.class));
+
+        final Response response = rootTarget().request().post(Entity.json(aRollbackPayload(EVENT_ID)));
+
+        var error = response.readEntity(Error.class);
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(response.getStatus()).as("HTTP status").isEqualTo(BAD_REQUEST_400);
+            soft.assertThat(error.getHttpStatus()).as("status the body carries").isEqualTo(BAD_REQUEST_400);
+            soft.assertThat(error.getTechnicalCode()).as("technical code").isEqualTo("api.NotDeployable");
+            soft
+                .assertThat(error.getMessage())
+                .as("message")
+                .isEqualTo("API 'my-api' cannot be deployed: Guardian 'guardian-1' is not deployed");
+        });
     }
 
     private ApiRollback aRollbackPayload(String eventId) {

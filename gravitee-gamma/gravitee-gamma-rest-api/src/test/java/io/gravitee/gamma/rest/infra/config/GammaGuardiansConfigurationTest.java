@@ -18,13 +18,12 @@ package io.gravitee.gamma.rest.infra.config;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ENVIRONMENT_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDIAN_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION_ID;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.EventCrudInMemory;
@@ -35,9 +34,11 @@ import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.crud_service.ApiDefinitionCrudService;
 import io.gravitee.apim.core.api.domain_service.DeployApiInternalFlowDomainService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.deployment.service_provider.ApiDeploymentGate;
 import io.gravitee.apim.core.deployment.service_provider.ApiDeploymentValidator;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.event.query_service.EventLatestQueryService;
@@ -51,16 +52,23 @@ import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
+import io.gravitee.apim.infra.deployment.CompositeApiDeploymentValidator;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
+import io.gravitee.definition.model.guardian.GuardianSteps;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.ResourcePluginProvider;
 import io.gravitee.gamma.rest.core.guardian.domain_service.DescribeApiGuardiansDomainService;
 import io.gravitee.gamma.rest.core.guardian.domain_service.SetApiGuardiansDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardedApiPort;
+import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardedApiReadPermissionPort;
 import io.gravitee.gamma.rest.core.guardian.use_case.DeployGuardianUseCase;
+import io.gravitee.gamma.rest.infra.adapter.GuardiansDeploymentValidatorAdapter;
 import io.gravitee.repository.management.api.GuardianRepository;
+import io.gravitee.rest.api.service.exceptions.ApiNotDeployableException;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -89,7 +97,7 @@ class GammaGuardiansConfigurationTest {
             parent.registerBean(JsonSerializer.class, () -> new JacksonJsonSerializer());
             parent.registerBean(JsonDeserializer.class, () -> new JacksonJsonDeserializer());
             parent.registerBean(PermissionDomainService.class, () -> mock(PermissionDomainService.class));
-            parent.registerBean(DeployApiInternalFlowDomainService.class, () -> deployApiInternalFlow(mapper));
+            parent.registerBean(DeployApiInternalFlowDomainService.class, GammaGuardiansConfigurationTest::deployApiInternalFlow);
             parent.registerBean(ApiCrudService.class, ApiCrudServiceInMemory::new);
             parent.registerBean(ApiQueryService.class, () -> new ApiQueryServiceInMemory());
             parent.refresh();
@@ -127,7 +135,7 @@ class GammaGuardiansConfigurationTest {
             parent.registerBean(JsonSerializer.class, () -> new JacksonJsonSerializer());
             parent.registerBean(JsonDeserializer.class, () -> new JacksonJsonDeserializer());
             parent.registerBean(PermissionDomainService.class, () -> mock(PermissionDomainService.class));
-            parent.registerBean(DeployApiInternalFlowDomainService.class, () -> deployApiInternalFlow(mapper));
+            parent.registerBean(DeployApiInternalFlowDomainService.class, GammaGuardiansConfigurationTest::deployApiInternalFlow);
             parent.registerBean(EventLatestQueryService.class, EventLatestQueryServiceInMemory::new);
             parent.registerBean(EventQueryService.class, EventQueryServiceInMemory::new);
             parent.registerBean(UserCrudService.class, UserCrudServiceInMemory::new);
@@ -155,15 +163,24 @@ class GammaGuardiansConfigurationTest {
                     .assertThat(gamma.getBean(GuardedApiPort.class))
                     .as("the port a module reads the Guardians its API holds from")
                     .isNotNull();
+                softly
+                    .assertThat(gamma.getBean(GuardedApiReadPermissionPort.class))
+                    .as("the port the APIs a Guardian runs on are filtered on the caller's rights with")
+                    .isNotNull();
             });
         }
     }
 
     /**
      * How a deployment ever runs the Guardian check: the module's bean is registered in the parent context after that
-     * context is refreshed, and {@code ApiStateServiceImpl} reads the validators through an {@code ObjectProvider},
-     * which resolves them on every call. Inject them as a collection instead and the check silently stops running on
-     * every deployment of the installation until the next restart.
+     * context is refreshed, and {@link CompositeApiDeploymentValidator} reads the validators through an
+     * {@code ObjectProvider}, which resolves them on every call. Inject them as a collection instead and the check
+     * silently stops running on every deployment of the installation until the next restart.
+     *
+     * <p>The gate is asked here rather than the module's bean: it is what every injection point of the rest-api
+     * receives, and the module's validator is only ever reached as one of its candidates. Nothing else pins that
+     * link — the check would leave every deployment and every start of the installation the day this bean stops
+     * being an {@link ApiDeploymentValidator}.
      */
     @Test
     void should_offer_the_deployment_validator_to_a_parent_context_already_refreshed() {
@@ -178,7 +195,7 @@ class GammaGuardiansConfigurationTest {
             parent.registerBean(JsonSerializer.class, () -> new JacksonJsonSerializer());
             parent.registerBean(JsonDeserializer.class, () -> new JacksonJsonDeserializer());
             parent.registerBean(PermissionDomainService.class, () -> mock(PermissionDomainService.class));
-            parent.registerBean(DeployApiInternalFlowDomainService.class, () -> deployApiInternalFlow(mapper));
+            parent.registerBean(DeployApiInternalFlowDomainService.class, GammaGuardiansConfigurationTest::deployApiInternalFlow);
             parent.registerBean(EventLatestQueryService.class, EventLatestQueryServiceInMemory::new);
             parent.registerBean(EventQueryService.class, EventQueryServiceInMemory::new);
             parent.registerBean(UserCrudService.class, UserCrudServiceInMemory::new);
@@ -188,6 +205,8 @@ class GammaGuardiansConfigurationTest {
             parent.registerBean(ResourcePluginProvider.class, () -> mock(ResourcePluginProvider.class));
             parent.registerBean(EnvironmentCrudService.class, () -> mock(EnvironmentCrudService.class));
             parent.registerBean(AuditDomainService.class, () -> mock(AuditDomainService.class));
+            // the bean of the rest-api context the core asks the SPI through, which the module never knows about
+            parent.register(CompositeApiDeploymentValidator.class);
             parent.refresh();
             gamma.setParent(parent);
             gamma.register(GammaGuardiansConfiguration.class);
@@ -196,20 +215,43 @@ class GammaGuardiansConfigurationTest {
             // what the plugin handler does once the module context is up
             parent.getBeanFactory().registerSingleton("gammaGuardiansDeploymentValidator", gamma.getBean(ApiDeploymentValidator.class));
 
-            assertThat(parent.getBeanFactory().getBeansOfType(ApiDeploymentValidator.class).values())
-                .as("validators the parent context hands over after its refresh")
-                .hasSize(1);
+            assertSoftly(softly -> {
+                softly
+                    .assertThat(parent.getBeanFactory().getBeansOfType(ApiDeploymentValidator.class).values())
+                    .as("validators the parent context hands over after its refresh")
+                    .singleElement()
+                    .isInstanceOf(GuardiansDeploymentValidatorAdapter.class);
+                softly
+                    .assertThat(parent.getBean(ApiDeploymentGate.class))
+                    .as("the gate every injection point of the rest-api receives")
+                    .isInstanceOf(CompositeApiDeploymentValidator.class);
+                softly
+                    .assertThatThrownBy(() ->
+                        parent.getBean(ApiDeploymentGate.class).validateInternalFlowDeployable(anApiRunningAWithdrawnGuardian())
+                    )
+                    .as("the refusal of the module's validator, raised through the composite")
+                    .isInstanceOf(ApiNotDeployableException.class)
+                    .hasMessageContaining(GUARDIAN_ID);
+            });
         }
     }
 
+    /** An API whose internal flow runs a Guardian the environment does not hold, which the module's bean refuses. */
+    private static Api anApiRunningAWithdrawnGuardian() {
+        var api = ApiFixtures.aLLMProxyApiV4().toBuilder().environmentId(ENVIRONMENT_ID).build();
+        api
+            .getApiDefinitionHttpV4()
+            .setInternalFlow(Flow.builder().request(List.of(GuardianSteps.of(GUARDIAN_ID, "Credential leakage"))).build());
+        return api;
+    }
+
     /** The rest-api context owns it; here it only has to be resolvable. */
-    private static DeployApiInternalFlowDomainService deployApiInternalFlow(ObjectMapper mapper) {
+    private static DeployApiInternalFlowDomainService deployApiInternalFlow() {
         return new DeployApiInternalFlowDomainService(
             mock(ApiDefinitionCrudService.class),
             new EventCrudInMemory(),
             new EventLatestCrudInMemory(),
-            new EventLatestQueryServiceInMemory(),
-            mapper
+            new EventLatestQueryServiceInMemory()
         );
     }
 }

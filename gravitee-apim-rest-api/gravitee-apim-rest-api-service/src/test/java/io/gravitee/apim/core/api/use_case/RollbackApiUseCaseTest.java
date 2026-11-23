@@ -22,9 +22,11 @@ import static org.assertj.core.groups.Tuple.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -59,6 +61,7 @@ import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
 import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDomainService;
 import io.gravitee.apim.core.cluster.exception.ClusterBindingNotAllowedException;
 import io.gravitee.apim.core.cluster.model.Cluster;
+import io.gravitee.apim.core.deployment.service_provider.ApiDeploymentGate;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
@@ -103,6 +106,7 @@ import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
+import io.gravitee.rest.api.service.exceptions.ApiNotDeployableException;
 import io.gravitee.rest.api.service.v4.ApiService;
 import java.sql.Date;
 import java.time.Clock;
@@ -157,6 +161,7 @@ class RollbackApiUseCaseTest {
     private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     private final ClusterQueryServiceInMemory clusterQueryService = new ClusterQueryServiceInMemory();
     private final PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
+    private final ApiDeploymentGate apiDeploymentValidator = mock(ApiDeploymentGate.class);
 
     @Mock
     CreatePlanDomainService createPlanDomainService;
@@ -242,9 +247,9 @@ class RollbackApiUseCaseTest {
                 new ApiDefinitionCrudServiceInMemory(apiCrudService),
                 eventCrudService,
                 eventLatestCrudService,
-                deployments,
-                GraviteeJacksonMapper.getInstance()
-            )
+                deployments
+            ),
+            apiDeploymentValidator
         );
 
         this.initializePrimaryOwnerData();
@@ -960,6 +965,29 @@ class RollbackApiUseCaseTest {
                     .as("events written")
                     .singleElement()
                     .satisfies(written -> assertThat(written.getPayload()).as("guardian sent").doesNotContain("guardian-1"));
+            });
+        }
+
+        /**
+         * The internal flow this branch republishes is empty, so there is nothing a module could refuse — and the V2
+         * definition it restores is not what it hands the gateways, so the broad question is not this write's either.
+         */
+        @Test
+        void should_not_refuse_a_rollback_a_validator_refuses_the_definition_of() throws JsonProcessingException {
+            apiCrudService.update(ApiAdapter.INSTANCE.toCoreModel(apiV4().build()));
+            givenTheStoredApiRuns(guardians("guardian-1"));
+            givenTheGatewaysRun(EventType.PUBLISH_API);
+            var event = givenAV2Revision();
+            givenEveryValidatorRefuses();
+
+            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+
+            assertSoftly(softly -> {
+                softly
+                    .assertThat(apiCrudService.get(API_ID).getApiDefinitionHttpV4())
+                    .as("v4 definition of the stored API, gone with the rollback")
+                    .isNull();
+                softly.assertThat(eventCrudService.storage()).as("events written").hasSize(1);
             });
         }
 
@@ -1800,16 +1828,110 @@ class RollbackApiUseCaseTest {
 
             assertThat(eventCrudService.storage()).as("events written, a stopped API being restarted by none").isEmpty();
         }
+    }
 
-        /** The deployment to roll back to, which ran {@code internalFlow}. */
-        private Event givenARevisionRunning(io.gravitee.definition.model.v4.flow.Flow internalFlow) throws JsonProcessingException {
-            var revision = io.gravitee.definition.model.v4.Api.builder()
-                .id(API_ID)
-                .name("api-previous-name")
-                .apiVersion("api-previous-version")
-                .definitionVersion(DefinitionVersion.V4)
-                .internalFlow(internalFlow)
-                .build();
+    /**
+     * Of the definition it restores, a rollback hands the gateways the internal flow and that alone, so the internal
+     * flow is what the modules judge, before anything is written: a revision running a Guardian that has been
+     * undeployed or deleted since is one the gateways would answer with their fail-closed check.
+     */
+    @Nested
+    class ValidatingTheRestoredInternalFlow {
+
+        @Test
+        void should_validate_the_internal_flow_the_rollback_restores() throws JsonProcessingException {
+            var event = givenARevisionRunning(guardians("guardian-1"));
+            givenTheApiUpdateKeepsTheStoredDefinition();
+
+            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+
+            var validated = ArgumentCaptor.forClass(io.gravitee.apim.core.api.model.Api.class);
+            verify(apiDeploymentValidator).validateInternalFlowDeployable(validated.capture());
+            assertSoftly(softly -> {
+                softly.assertThat(validated.getValue().getId()).as("API validated").isEqualTo(API_ID);
+                softly
+                    .assertThat(validated.getValue().getApiDefinitionHttpV4().getInternalFlow())
+                    .as("internal flow of the validated definition")
+                    .isEqualTo(guardians("guardian-1"));
+            });
+        }
+
+        @Test
+        void should_refuse_a_rollback_a_module_refuses_the_internal_flow_of_and_write_nothing() throws JsonProcessingException {
+            var event = givenARevisionRunning(guardians("guardian-1"));
+            givenTheGatewaysRun(EventType.PUBLISH_API);
+            doThrow(new ApiNotDeployableException("Guardian 'guardian-1' is not deployed"))
+                .when(apiDeploymentValidator)
+                .validateInternalFlowDeployable(any());
+
+            var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO)));
+
+            var stored = apiCrudService.get(API_ID);
+            assertSoftly(softly -> {
+                softly.assertThat(throwable).isInstanceOf(ApiNotDeployableException.class).hasMessageContaining("guardian-1");
+                softly.assertThat(stored.getName()).as("name of the stored API").isEqualTo("api-name");
+                softly.assertThat(stored.getApiDefinitionHttpV4().getInternalFlow()).as("internal flow of the stored definition").isNull();
+                softly.assertThat(apisRunning("guardian-1")).as("APIs the index answers for guardian-1").isEmpty();
+                softly.assertThat(eventCrudService.storage()).as("events written").isEmpty();
+                softly.assertThat(auditCrudService.storage()).as("audits written").isEmpty();
+                softly.assertThat(indexer.storage()).as("search entries written").isEmpty();
+            });
+            verifyNoInteractions(delegateApiService);
+        }
+
+        /**
+         * The broad question is the deploy's, and asking it here would refuse a rollback over a part of the definition
+         * this write does not republish — a cluster the gateways cannot resolve, which an API is allowed to keep until
+         * someone starts it.
+         */
+        @Test
+        void should_not_refuse_a_rollback_over_the_rest_of_the_definition() throws JsonProcessingException {
+            var event = givenARevisionRunning(guardians("guardian-1"));
+            givenTheApiUpdateKeepsTheStoredDefinition();
+            doThrow(new ApiNotDeployableException("bound virtual cluster is not deployed"))
+                .when(apiDeploymentValidator)
+                .validateDeployable(any());
+
+            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+
+            assertThat(apiCrudService.get(API_ID).getApiDefinitionHttpV4().getInternalFlow())
+                .as("internal flow of the stored definition")
+                .isEqualTo(guardians("guardian-1"));
+        }
+
+        /**
+         * The native branch republishes nothing at all — the restored definition reaches the gateways when its
+         * publisher deploys the API, which is where the gate already is.
+         */
+        @Test
+        void should_not_refuse_a_native_rollback_a_validator_refuses_the_definition_of() throws JsonProcessingException {
+            var event = givenANativeRevision();
+            givenEveryValidatorRefuses();
+
+            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+
+            assertSoftly(softly -> {
+                softly
+                    .assertThat(apiCrudService.get(API_ID).getApiDefinitionNativeV4().getTags())
+                    .as("tags of the stored definition, the revision's")
+                    .containsExactly("deployed-tag");
+                softly.assertThat(eventCrudService.storage()).as("events written, the native branch republishing nothing").isEmpty();
+            });
+        }
+
+        /** A native deployment to roll back to, whose definition drifted from the stored one. */
+        private Event givenANativeRevision() throws JsonProcessingException {
+            apiCrudService.initWith(
+                List.of(
+                    ApiFixtures.aNativeApi()
+                        .toBuilder()
+                        .id(API_ID)
+                        .environmentId(ENVIRONMENT_ID)
+                        .apiDefinitionNativeV4(ApiDefinitionFixtures.aNativeApiV4(API_ID).toBuilder().tags(Set.of("drifted-tag")).build())
+                        .build()
+                )
+            );
+            var revision = ApiDefinitionFixtures.aNativeApiV4(API_ID).toBuilder().tags(Set.of("deployed-tag")).build();
             var event = Event.builder()
                 .id("event-id")
                 .type(EventType.PUBLISH_API)
@@ -1821,6 +1943,7 @@ class RollbackApiUseCaseTest {
                             .name(revision.getName())
                             .version(revision.getApiVersion())
                             .definitionVersion(DefinitionVersion.V4)
+                            .type(ApiType.NATIVE)
                             .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(revision))
                             .build()
                     )
@@ -1829,19 +1952,58 @@ class RollbackApiUseCaseTest {
             eventQueryService.initWith(List.of(event));
             return event;
         }
+    }
 
-        /**
-         * The v4 update path takes the internal flow from the API as stored rather than from the payload it is
-         * handed, so the double does what the real one does: it keeps the stored definition and advances the date.
-         */
-        private void givenTheApiUpdateKeepsTheStoredDefinition() {
-            when(delegateApiService.update(any(), eq(API_ID), any(), eq(false), eq(USER_ID))).thenAnswer(invocation -> {
-                var stored = apiCrudService.get(API_ID);
-                stored.setUpdatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()));
-                apiCrudService.update(stored);
-                return ApiModelFixtures.aModelHttpApiV4().toBuilder().id(API_ID).build();
-            });
-        }
+    /** The deployment to roll back to, which ran {@code internalFlow}. */
+    private Event givenARevisionRunning(io.gravitee.definition.model.v4.flow.Flow internalFlow) throws JsonProcessingException {
+        var revision = io.gravitee.definition.model.v4.Api.builder()
+            .id(API_ID)
+            .name("api-previous-name")
+            .apiVersion("api-previous-version")
+            .definitionVersion(DefinitionVersion.V4)
+            .internalFlow(internalFlow)
+            .build();
+        var event = Event.builder()
+            .id("event-id")
+            .type(EventType.PUBLISH_API)
+            .environments(Set.of(ENVIRONMENT_ID))
+            .payload(
+                GraviteeJacksonMapper.getInstance().writeValueAsString(
+                    Api.builder()
+                        .id(API_ID)
+                        .name(revision.getName())
+                        .version(revision.getApiVersion())
+                        .definitionVersion(DefinitionVersion.V4)
+                        .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(revision))
+                        .build()
+                )
+            )
+            .build();
+        eventQueryService.initWith(List.of(event));
+        return event;
+    }
+
+    /**
+     * Both questions of the SPI refused, as a module whose Guardian is gone answers them: a branch that asks neither
+     * rolls back all the same.
+     */
+    private void givenEveryValidatorRefuses() {
+        var refusal = new ApiNotDeployableException("Guardian 'guardian-1' is not deployed");
+        doThrow(refusal).when(apiDeploymentValidator).validateDeployable(any());
+        doThrow(refusal).when(apiDeploymentValidator).validateInternalFlowDeployable(any());
+    }
+
+    /**
+     * The v4 update path takes the internal flow from the API as stored rather than from the payload it is handed, so
+     * the double does what the real one does: it keeps the stored definition and advances the date.
+     */
+    private void givenTheApiUpdateKeepsTheStoredDefinition() {
+        when(delegateApiService.update(any(), eq(API_ID), any(), eq(false), eq(USER_ID))).thenAnswer(invocation -> {
+            var stored = apiCrudService.get(API_ID);
+            stored.setUpdatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()));
+            apiCrudService.update(stored);
+            return ApiModelFixtures.aModelHttpApiV4().toBuilder().id(API_ID).build();
+        });
     }
 
     private static io.gravitee.definition.model.v4.flow.Flow guardians(String... guardianIds) {
@@ -1885,6 +2047,8 @@ class RollbackApiUseCaseTest {
                 Event.builder()
                     .id("latest-event-id")
                     .type(type)
+                    // The deployment is read for the environment of the caller, as both stores scope it.
+                    .environments(Set.of(ENVIRONMENT_ID))
                     .properties(new java.util.EnumMap<>(Map.of(Event.EventProperties.API_ID, API_ID)))
                     .payload(
                         GraviteeJacksonMapper.getInstance().writeValueAsString(

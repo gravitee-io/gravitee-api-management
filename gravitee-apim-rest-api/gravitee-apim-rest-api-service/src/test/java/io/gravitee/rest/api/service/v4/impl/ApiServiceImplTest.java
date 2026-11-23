@@ -62,7 +62,6 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fakes.spring.MutableObjectProvider;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.exception.ApiPropertyEncryptedToPlainException;
 import io.gravitee.apim.core.api.exception.ApiPropertyNotCiphertextException;
@@ -448,7 +447,7 @@ public class ApiServiceImplTest {
             synchronizationService,
             eventManager,
             searchEngineService,
-            MutableObjectProvider.of(mock(io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService.class))
+            mock(io.gravitee.apim.core.deployment.service_provider.ApiDeploymentGate.class)
         );
         //        when(virtualHostService.sanitizeAndValidate(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
         reset(searchEngineService);

@@ -23,7 +23,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import fakes.spring.MutableObjectProvider;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -210,7 +209,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             synchronizationService,
             eventManager,
             searchEngineService,
-            MutableObjectProvider.of(mock(io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService.class))
+            mock(io.gravitee.apim.core.deployment.service_provider.ApiDeploymentGate.class)
         );
         reset(searchEngineService);
     }

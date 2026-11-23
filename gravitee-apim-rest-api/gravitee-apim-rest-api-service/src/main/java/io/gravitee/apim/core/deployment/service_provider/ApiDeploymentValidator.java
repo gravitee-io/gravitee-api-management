@@ -41,4 +41,18 @@ public interface ApiDeploymentValidator {
      * @throws ApiNotDeployableException when the API cannot run, with a message naming what has to be fixed.
      */
     void validateDeployable(Api api);
+
+    /**
+     * The same question narrowed to the internal flow of {@code api}: the part of a definition the platform owns and
+     * republishes on its own, the rest of the definition staying where it was. A write that hands the gateways nothing
+     * but a new internal flow — a rollback restoring the one of a revision — asks this question, so that it refuses
+     * over what it is about to change and over nothing else.
+     *
+     * <p>A no-op by default: an implementation owning nothing of the internal flow takes no part in those writes.
+     *
+     * @param api the API carrying the internal flow about to be republished, never {@code null}; read from
+     *     {@link Api#getApiDefinitionValue()}, under the same rule as {@link #validateDeployable(Api)}.
+     * @throws ApiNotDeployableException when the internal flow cannot run, with a message naming what has to be fixed.
+     */
+    default void validateInternalFlowDeployable(Api api) {}
 }
