@@ -34,6 +34,7 @@ import io.gravitee.apim.core.cluster.exception.ClusterBindingNotAllowedException
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.rest.api.automation.helpers.SharedPolicyGroupIdHelper;
 import io.gravitee.apim.rest.api.automation.model.ApiV4State;
+import io.gravitee.apim.rest.api.automation.model.FlowMode;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import io.gravitee.definition.model.v4.analytics.tracing.MaskingType;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -266,6 +267,31 @@ class ApisResourceTest extends AbstractResourceTest {
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(state.getHrid()).isEqualTo("api-hrid");
             });
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = { false, true })
+        void should_read_a_hyphenated_flow_mode(boolean dryRun) {
+            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class))).thenAnswer(call ->
+                Validator.Result.ofValue(call.getArgument(0))
+            );
+
+            var state = expectEntity("api-with-hyphenated-flow-mode.json", dryRun, false);
+
+            assertThat(state.getFlowExecution().getMode()).isEqualTo(FlowMode.BEST_MATCH);
+        }
+
+        @Test
+        void should_reject_an_unknown_flow_mode() {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", false)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-with-hyphenated-flow-mode.json").replace("best-match", "best match")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(400);
+            }
         }
 
         @ParameterizedTest
