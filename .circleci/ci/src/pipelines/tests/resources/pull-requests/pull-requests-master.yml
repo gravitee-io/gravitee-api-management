@@ -697,7 +697,11 @@ jobs:
             done
 
             git commit -m "feat(qa): deploying APIM master-784ff35"
-            git push
+            for attempt in 1 2 3; do
+              if git push; then break; fi
+              [ "$attempt" = 3 ] && exit 1
+              git pull --rebase
+            done
       - cmd-notify-on-failure
   job-trigger-saas-docker-images:
     docker:
