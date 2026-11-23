@@ -34,7 +34,9 @@ import io.gravitee.plugin.endpoint.http.proxy.client.WebSocketClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.websocketx.CorruptedWebSocketFrameException;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakeException;
+import io.netty.handler.codec.http.websocketx.WebSocketCloseStatus;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.http.RequestOptions;
@@ -44,6 +46,7 @@ import io.vertx.rxjava3.core.http.ServerWebSocket;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 
@@ -86,7 +89,8 @@ public class WebSocketConnector extends HttpConnector {
             ObservableHttpClientRequest observableHttpClientRequest = new ObservableHttpClientRequest(options);
             Span httpRequestSpan = ctx.getTracer().startSpanFrom(observableHttpClientRequest);
 
-            ctx.metrics().setEndpoint(buildWebSocketUri(options));
+            final String endpointUri = buildWebSocketUri(options);
+            ctx.metrics().setEndpoint(endpointUri);
             WebSocketConnectOptions webSocketConnectOptions = new WebSocketConnectOptions(options.toJson());
             // Extensions are negotiated independently on each leg: the gateway terminates both WebSockets and re-encodes
             // every frame. Relaying the caller's offer would make the backend answer with parameters the gateway client
@@ -136,7 +140,25 @@ public class WebSocketConnector extends HttpConnector {
                                 // Use NOOP Subscriber to completable could be ignored
                                 serverWebSocket.close()
                             );
-                            endpointWebSocket.exceptionHandler(throwable -> serverWebSocket.close((short) HttpStatusCode.BAD_REQUEST_400));
+                            // A backend failure is followed by more errors (connection closed or reset) while the client
+                            // is still closing, before isClosed() turns true: only the first one is reported.
+                            final AtomicBoolean backendFailureReported = new AtomicBoolean();
+                            endpointWebSocket.exceptionHandler(throwable -> {
+                                if (serverWebSocket.isClosed() || !backendFailureReported.compareAndSet(false, true)) {
+                                    return;
+                                }
+                                final WebSocketCloseStatus closeStatus = clientCloseStatus(throwable);
+                                ctx
+                                    .withLogger(log)
+                                    .warn(
+                                        "WebSocket to backend {} failed ({}), closing the client WebSocket with status {}",
+                                        endpointUri,
+                                        throwable.toString(),
+                                        closeStatus.code()
+                                    );
+                                ctx.withLogger(log).debug("WebSocket to backend {} failure", endpointUri, throwable);
+                                serverWebSocket.close((short) closeStatus.code());
+                            });
                             endpointWebSocket.resume();
                         });
                 })
@@ -194,6 +216,16 @@ public class WebSocketConnector extends HttpConnector {
                 }
                 return Single.error(throwable);
             });
+    }
+
+    private static WebSocketCloseStatus clientCloseStatus(Throwable throwable) {
+        if (
+            throwable instanceof CorruptedWebSocketFrameException corrupted &&
+            corrupted.closeStatus().code() == WebSocketCloseStatus.MESSAGE_TOO_BIG.code()
+        ) {
+            return WebSocketCloseStatus.MESSAGE_TOO_BIG;
+        }
+        return WebSocketCloseStatus.INTERNAL_SERVER_ERROR;
     }
 
     private static boolean isNoSubProtocolSelected(Throwable throwable) {
