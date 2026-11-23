@@ -19,11 +19,6 @@ package io.gravitee.apim.core.api_key.domain_service;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.nullsLast;
-<<<<<<< HEAD
-import static java.util.Comparator.reverseOrder;
-=======
-import static java.util.stream.Collectors.joining;
->>>>>>> 5547546 (fix: keep active shared key when inactive one is redeployed and skip revoked keys when attaching shared subscription)
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api_key.crud_service.ApiKeyCrudService;
@@ -210,98 +205,9 @@ public class GenerateApiKeyDomainService {
         String customApiKey,
         boolean federated
     ) {
-<<<<<<< HEAD
-        return addSubscriptionToEveryKey(apiKeyQueryService.findByApplication(application.getId()), subscription).orElseGet(() ->
-=======
-        List<ApiKeyEntity> keys = apiKeyQueryService.findByApplication(application.getId()).toList();
-        if (!federated && !keys.isEmpty() && keys.stream().noneMatch(ApiKeyEntity::canBeRevoked)) {
-            return generateSharedKeyWhenNoneIsLive(auditInfo, keys, subscription);
-        }
-        return addSubscriptionToNonRevokedKeys(keys.stream(), subscription).orElseGet(() ->
->>>>>>> 5547546 (fix: keep active shared key when inactive one is redeployed and skip revoked keys when attaching shared subscription)
+        return addSubscriptionToNonRevokedKeys(apiKeyQueryService.findByApplication(application.getId()), subscription).orElseGet(() ->
             generateFirstSharedKey(auditInfo, application, subscription, customApiKey, federated)
         );
-    }
-
-    /**
-<<<<<<< HEAD
-     * Every key of the application gets the subscription, revoked and expired ones included, so that the previous key keeps
-     * working on the new subscription during the overlap that follows a shared key renewal.
-=======
-     * Every key of the application is revoked or expired. The new subscription is not attached to those rows, and none
-     * of them is turned back on. One new shared key, with no expiry, carries the subscriptions already stored on the
-     * application plus this subscription. A value supplied on the subscription is ignored.
-     * <p>
-     * The id is derived from the application and every existing key id. The first shared key's id is already taken, and
-     * a random id would let two accepts handled at the same time each insert a live key. Deriving it from one dead key
-     * repeats that id after the replacement itself expires. A duplicate insert is the other request's key only when that
-     * row is live; a dead row is left alone and a new key is created. This path does not reuse
-     * {@link #addSubscriptionToNonRevokedKeys}, which would attach the subscription to the dead rows.
-     */
-    private ApiKeyEntity generateSharedKeyWhenNoneIsLive(
-        AuditInfo auditInfo,
-        List<ApiKeyEntity> existingKeys,
-        SubscriptionEntity subscription
-    ) {
-        String replacementId = replacementSharedKeyId(subscription.getApplicationId(), existingKeys);
-        try {
-            return createSharedKeyWhenNoneIsLive(auditInfo, existingKeys, subscription, replacementId);
-        } catch (ApiKeyIdAlreadyExistsException e) {
-            Optional<ApiKeyEntity> existing = apiKeyQueryService
-                .findByApplication(subscription.getApplicationId())
-                .filter(apiKey -> replacementId.equals(apiKey.getId()))
-                .findAny();
-            if (existing.isPresent() && existing.get().canBeRevoked()) {
-                log.debug(
-                    "The shared API Key of application {} was created by another request meanwhile, reusing it",
-                    subscription.getApplicationId()
-                );
-                return apiKeyCrudService
-                    .addSubscription(replacementId, subscription.getId())
-                    .orElseThrow(() ->
-                        new TechnicalDomainException(
-                            "Cannot create the shared API Key of application [" +
-                                subscription.getApplicationId() +
-                                "]: its id [" +
-                                replacementId +
-                                "] is already used, but that API Key is gone",
-                            e
-                        )
-                    );
-            }
-            return createSharedKeyWhenNoneIsLive(auditInfo, existingKeys, subscription, null);
-        }
-    }
-
-    private ApiKeyEntity createSharedKeyWhenNoneIsLive(
-        AuditInfo auditInfo,
-        List<ApiKeyEntity> existingKeys,
-        SubscriptionEntity subscription,
-        String replacementId
-    ) {
-        UnaryOperator<ApiKeyEntity> withId = replacementId == null
-            ? apiKey -> apiKey.toBuilder().expireAt(null).build()
-            : apiKey -> apiKey.toBuilder().id(replacementId).expireAt(null).build();
-        ApiKeyEntity created = generate(auditInfo, subscription, null, false, withId);
-        for (ApiKeyEntity existing : existingKeys) {
-            if (existing.getSubscriptions() == null) {
-                continue;
-            }
-            for (String subscriptionId : existing.getSubscriptions()) {
-                if (subscription.getId().equals(subscriptionId)) {
-                    continue;
-                }
-                created = apiKeyCrudService.addSubscription(created.getId(), subscriptionId).orElse(created);
-            }
-        }
-        return created;
-    }
-
-    private static String replacementSharedKeyId(String applicationId, List<ApiKeyEntity> existingKeys) {
-        String keyIds = existingKeys.stream().map(ApiKeyEntity::getId).filter(Objects::nonNull).sorted().collect(joining(","));
-        return UUID.nameUUIDFromBytes(
-            (REPLACEMENT_SHARED_KEY_ID_PREFIX + applicationId + ":" + keyIds).getBytes(StandardCharsets.UTF_8)
-        ).toString();
     }
 
     /**
@@ -310,9 +216,7 @@ public class GenerateApiKeyDomainService {
      * left unchanged while a key that is not revoked exists: a revoked duplicate of that key would otherwise be loaded on
      * redeploy and remove the live key from the gateway cache.
      * <p>
-     * When every key is revoked, they all get the subscription. A federated subscription reaches that case, because an
-     * application whose keys are all revoked is otherwise handled by {@link #generateSharedKeyWhenNoneIsLive}.
->>>>>>> 5547546 (fix: keep active shared key when inactive one is redeployed and skip revoked keys when attaching shared subscription)
+     * When every key is revoked, they all get the subscription.
      *
      * @return the key the application uses now (the one that got the subscription and expires last), or empty when the
      *     application has no key
