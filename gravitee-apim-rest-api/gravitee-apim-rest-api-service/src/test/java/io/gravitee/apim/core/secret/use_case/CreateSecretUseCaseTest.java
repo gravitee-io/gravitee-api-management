@@ -149,16 +149,17 @@ class CreateSecretUseCaseTest extends AbstractUseCaseTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "credential.cred-1.token", "credential.", "Credential.cred-1.token", "CREDENTIAL." })
+    @ValueSource(strings = { "credential.cred-1.token", "credential." })
     void should_keep_the_keys_that_start_with_credential_for_credentials(String key) {
         assertThatThrownBy(() -> useCase.execute(create(key, "sk-ant-123"))).isInstanceOf(SecretKeptForCredentialException.class);
         assertThat(secretCrudService.storage()).isEmpty();
         assertThat(auditCrudService.storage()).isEmpty();
     }
 
-    @Test
-    void should_accept_a_key_that_only_contains_credential() {
-        assertThat(useCase.execute(create("my-credential.token", "v")).secret().key()).isEqualTo("my-credential.token");
+    @ParameterizedTest
+    @ValueSource(strings = { "my-credential.token", "Credential.cred-1.token", "CREDENTIAL.x" })
+    void should_accept_a_key_that_differs_from_the_credential_prefix(String key) {
+        assertThat(useCase.execute(create(key, "v")).secret().key()).isEqualTo(key);
     }
 
     @Test

@@ -41,9 +41,9 @@ public record Secret(String id, String organizationId, String environmentId, Str
         }
     }
 
-    /** Ignores case: a repository whose collation ignores case, such as MySQL, matches the key of a credential in any case. */
+    /** Matches case: every repository finds a secret by its exact key, so another case names another secret. */
     public static boolean isCredentialKey(String key) {
-        return key.regionMatches(true, 0, CREDENTIAL_KEY_PREFIX, 0, CREDENTIAL_KEY_PREFIX.length());
+        return key.startsWith(CREDENTIAL_KEY_PREFIX);
     }
 
     public Secret withUpdatedAt(Instant now) {

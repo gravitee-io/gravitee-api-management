@@ -127,6 +127,17 @@ class UpdateSecretUseCaseTest extends AbstractUseCaseTest {
         assertThat(auditCrudService.storage()).isEmpty();
     }
 
+    @Test
+    void should_change_the_value_of_a_key_that_starts_with_credential_in_another_case() {
+        var secret = givenASecret(aSecret().toBuilder().key("Credential.prod").build());
+
+        useCase.execute(update(secret.id(), "new-value"));
+
+        assertThat(secretValueEncryptor.decrypt(secret, secretCrudService.encryptedValueOf(secret.id()).orElseThrow())).isEqualTo(
+            "new-value"
+        );
+    }
+
     private Secret givenASecret(Secret secret) {
         return secretCrudService.create(secret, secretValueEncryptor.encrypt(secret, "old-value"));
     }
