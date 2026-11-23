@@ -25,6 +25,7 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public interface PortalRepository extends CrudRepository<Portal, String> {
+    Optional<Portal> updateName(String portalId, String environmentId, String name) throws TechnicalException;
     Optional<Portal> findByIdAndEnvironmentId(final String portalId, final String environmentId) throws TechnicalException;
     List<Portal> findByEnvironmentId(final String environmentId) throws TechnicalException;
     Optional<Portal> findDefaultByEnvironmentId(final String environmentId) throws TechnicalException;

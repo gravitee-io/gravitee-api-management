@@ -47,6 +47,14 @@ public class PortalCrudServiceInMemory implements PortalCrudService, InMemoryAlt
     }
 
     @Override
+    public Optional<Portal> updateName(PortalId portalId, String environmentId, String name) {
+        return findByIdAndEnvironmentId(portalId, environmentId).map(portal -> {
+            portal.update(name, portal.getNavigationStructure(), portal.getActiveThemeId());
+            return update(portal);
+        });
+    }
+
+    @Override
     public Optional<Portal> findByIdAndEnvironmentId(PortalId portalId, String environmentId) {
         return storage
             .stream()
