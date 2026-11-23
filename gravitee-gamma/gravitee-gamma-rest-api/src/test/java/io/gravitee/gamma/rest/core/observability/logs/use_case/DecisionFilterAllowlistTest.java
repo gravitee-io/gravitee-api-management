@@ -68,4 +68,20 @@ class DecisionFilterAllowlistTest {
             .as("a filter only decision records carry must be refused on a request search with a message naming RECORD_TYPE")
             .containsExactlyInAnyOrderElementsOf(decisionOnly);
     }
+
+    @Test
+    void should_support_exactly_the_filters_scoped_to_guardian_decisions() {
+        Set<String> scopeFilters = Set.of("API", "API_TYPE", ExtensibleFilters.RECORD_TYPE.filterName());
+        Set<String> offered = Arrays.stream(StaticFilters.values())
+            .map(StaticFilters::toSpec)
+            .filter(spec -> spec.signals().contains(Signal.LOGS))
+            .filter(spec -> spec.apiTypes().contains(ApiType.GUARDIAN_DECISION))
+            .map(FilterSpec::name)
+            .filter(name -> !scopeFilters.contains(name))
+            .collect(Collectors.toSet());
+
+        assertThat(SearchObservabilityLogsUseCase.GUARDIAN_DECISION_SUPPORTED_FILTERS)
+            .as("every filter scoped to Guardian decisions must be applicable by the Guardian decision search")
+            .containsExactlyInAnyOrderElementsOf(offered);
+    }
 }

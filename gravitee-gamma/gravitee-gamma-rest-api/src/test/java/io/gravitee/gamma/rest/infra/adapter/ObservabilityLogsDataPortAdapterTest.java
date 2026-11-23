@@ -36,9 +36,12 @@ import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.log.crud_service.AggregatedMessageLogCrudService;
 import io.gravitee.apim.core.log.crud_service.AuthzDecisionLogsCrudService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
+import io.gravitee.apim.core.log.crud_service.GuardianDecisionLogsCrudService;
 import io.gravitee.apim.core.log.model.AggregatedMessageLog;
 import io.gravitee.apim.core.log.model.AuthzDecisionLog;
 import io.gravitee.apim.core.log.model.AuthzDecisionLogFilters;
+import io.gravitee.apim.core.log.model.GuardianDecisionLog;
+import io.gravitee.apim.core.log.model.GuardianDecisionLogFilters;
 import io.gravitee.apim.core.log.model.MessageOperation;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
@@ -54,6 +57,7 @@ import io.gravitee.gamma.rest.core.observability.logs.model.ApiReference;
 import io.gravitee.gamma.rest.core.observability.logs.model.AuthzDecision;
 import io.gravitee.gamma.rest.core.observability.logs.model.EntrypointScope;
 import io.gravitee.gamma.rest.core.observability.logs.model.FailureOrigin;
+import io.gravitee.gamma.rest.core.observability.logs.model.GuardianDecision;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
 import io.gravitee.gamma.rest.core.observability.logs.model.MessageLogsPage;
@@ -98,6 +102,9 @@ class ObservabilityLogsDataPortAdapterTest {
     private AuthzDecisionLogsCrudService authzDecisionLogsCrudService;
 
     @Mock
+    private GuardianDecisionLogsCrudService guardianDecisionLogsCrudService;
+
+    @Mock
     private AnalyticsQueryService analyticsQueryService;
 
     @Mock
@@ -129,6 +136,7 @@ class ObservabilityLogsDataPortAdapterTest {
             aggregatedMessageLogCrudService,
             connectionLogsCrudService,
             authzDecisionLogsCrudService,
+            guardianDecisionLogsCrudService,
             analyticsQueryService,
             userContextLoader,
             planCrudService,
@@ -1464,6 +1472,150 @@ class ObservabilityLogsDataPortAdapterTest {
                 .page(1)
                 .perPage(20)
                 .recordType(RecordType.AUTHZ_DECISION)
+                .build();
+        }
+    }
+
+    @Nested
+    class GuardianDecisions {
+
+        @Test
+        void should_read_guardian_decisions_instead_of_connection_logs_or_authz_decisions() {
+            when(guardianDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(
+                new SearchLogsResponse<>(
+                    3,
+                    List.of(
+                        GuardianDecisionLog.builder()
+                            .eventId("evt-1")
+                            .timestamp(1_000L)
+                            .apiId("api-1")
+                            .requestId("req-1")
+                            .guardianId("guardian-a")
+                            .revision("3")
+                            .checkpoint("response.llm-proxy")
+                            .outcome("TRANSFORM")
+                            .enforced("TRANSFORM")
+                            .transformationType("REDACT")
+                            .verdict("REDACT")
+                            .reasons(List.of("Redact PII: REDACT — 1 passage"))
+                            .findings(List.of(new GuardianDecisionLog.Finding("Redact PII", "EMAIL", "$.messages[0].content", "TRANSFORM")))
+                            .durationNanos(4_200L)
+                            .build()
+                    )
+                )
+            );
+
+            var page = adapter.searchLogs(ORG, ENV, guardianQueryWith());
+
+            assertThat(page.totalCount()).isEqualTo(3);
+            var entry = page.data().getFirst();
+            assertThat(entry.apiId()).isEqualTo("api-1");
+            assertThat(entry.apiName()).isEqualTo("API 1");
+            assertThat(entry.apiType()).isEqualTo("LLM");
+            assertThat(entry.timestamp()).isEqualTo(Instant.ofEpochMilli(1_000L));
+            assertThat(entry.requestId()).isEqualTo("req-1");
+            assertThat(entry.authz()).isNull();
+            assertThat(entry.guardian()).isEqualTo(
+                GuardianDecision.builder()
+                    .eventId("evt-1")
+                    .guardianId("guardian-a")
+                    .revision("3")
+                    .checkpoint("response.llm-proxy")
+                    .outcome("TRANSFORM")
+                    .enforced("TRANSFORM")
+                    .transformationType("REDACT")
+                    .verdict("REDACT")
+                    .reasons(List.of("Redact PII: REDACT — 1 passage"))
+                    .findings(List.of(new GuardianDecision.Finding("Redact PII", "EMAIL", "$.messages[0].content", "TRANSFORM")))
+                    .durationNanos(4_200L)
+                    .build()
+            );
+            verifyNoInteractions(connectionLogsCrudService, authzDecisionLogsCrudService);
+        }
+
+        @Test
+        void should_carry_the_api_scope_the_time_range_and_the_guardian_into_the_search() {
+            when(guardianDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(
+                new SearchLogsResponse<>(0, List.of())
+            );
+
+            adapter.searchLogs(
+                ORG,
+                ENV,
+                guardianQueryWith(
+                    new FilterCondition("GUARDIAN", FilterOperator.IN, List.of("guardian-a", "guardian-b")),
+                    new FilterCondition("GUARDIAN_OUTCOME", FilterOperator.EQ, List.of("DENY"))
+                )
+            );
+
+            var captor = ArgumentCaptor.forClass(GuardianDecisionLogFilters.class);
+            verify(guardianDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
+            var filters = captor.getValue();
+            assertThat(filters.apiIds()).containsExactly("api-1");
+            assertThat(filters.from()).isEqualTo(1_000L);
+            assertThat(filters.to()).isEqualTo(2_000L);
+            assertThat(filters.guardianIds()).containsExactly("guardian-a", "guardian-b");
+            assertThat(filters.outcomes()).containsExactly("DENY");
+        }
+
+        @Test
+        void should_search_the_text_and_the_apis_whose_name_holds_it() {
+            when(guardianDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(
+                new SearchLogsResponse<>(0, List.of())
+            );
+
+            adapter.searchLogs(
+                ORG,
+                ENV,
+                LogsSearchQuery.builder()
+                    .apiIds(Set.of("api-1", "api-2", "api-3"))
+                    .apisById(
+                        Map.of(
+                            "api-1",
+                            new ApiReference("Support Assistant", "LLM"),
+                            "api-2",
+                            new ApiReference("Sales ASSISTANT", "LLM"),
+                            "api-3",
+                            new ApiReference("Billing", "LLM")
+                        )
+                    )
+                    .conditions(List.of(new FilterCondition("GUARDIAN_SEARCH", FilterOperator.CONTAINS, List.of("assistant"))))
+                    .page(1)
+                    .perPage(20)
+                    .recordType(RecordType.GUARDIAN_DECISION)
+                    .build()
+            );
+
+            var captor = ArgumentCaptor.forClass(GuardianDecisionLogFilters.class);
+            verify(guardianDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
+            assertThat(captor.getValue().text()).isEqualTo("assistant");
+            assertThat(captor.getValue().textApiIds()).containsExactlyInAnyOrder("api-1", "api-2");
+        }
+
+        @Test
+        void should_search_no_text_when_none_is_asked() {
+            when(guardianDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(
+                new SearchLogsResponse<>(0, List.of())
+            );
+
+            adapter.searchLogs(ORG, ENV, guardianQueryWith());
+
+            var captor = ArgumentCaptor.forClass(GuardianDecisionLogFilters.class);
+            verify(guardianDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
+            assertThat(captor.getValue().text()).isNull();
+            assertThat(captor.getValue().textApiIds()).isEmpty();
+        }
+
+        private LogsSearchQuery guardianQueryWith(FilterCondition... conditions) {
+            return LogsSearchQuery.builder()
+                .apiIds(Set.of("api-1"))
+                .apisById(Map.of("api-1", new ApiReference("API 1", "LLM")))
+                .conditions(List.of(conditions))
+                .from(1_000L)
+                .to(2_000L)
+                .page(1)
+                .perPage(20)
+                .recordType(RecordType.GUARDIAN_DECISION)
                 .build();
         }
     }
