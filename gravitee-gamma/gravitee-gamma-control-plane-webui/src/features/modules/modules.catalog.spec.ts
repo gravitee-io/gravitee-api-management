@@ -15,6 +15,7 @@
  */
 import { getModuleLabel, orderByCatalog } from './modules.catalog';
 import type { GammaModule } from './modules.types';
+import { METRICS_CONFIGURATION_LOCATION } from '../../../../gamma-ui-shared/src/observability/metricsConfigurationLocation';
 
 function moduleWithId(id: string): GammaModule {
     return { id, name: `${id} plugin`, version: '1.0.0', remoteName: id, exposedModule: 'App' };
@@ -44,5 +45,12 @@ describe('getModuleLabel', () => {
     it('should fall back to the backend name, then to the id, for a module missing from the catalog', () => {
         expect(getModuleLabel('zeta', 'Zeta plugin')).toBe('Zeta plugin');
         expect(getModuleLabel('zeta')).toBe('zeta');
+    });
+});
+
+describe('Metrics configuration location', () => {
+    // Modules name the Platform page that edits additional metrics by the label this switcher shows.
+    it('names the Platform module by its product label', () => {
+        expect(getModuleLabel(METRICS_CONFIGURATION_LOCATION.moduleId)).toBe(METRICS_CONFIGURATION_LOCATION.module);
     });
 });

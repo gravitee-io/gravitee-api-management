@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 import { defineObservabilityFeatures, type DashboardCapabilities } from '@gravitee/gamma-lib-observability';
+import { METRICS_CONFIGURATION_PATH } from '@gravitee/gamma-ui-shared/observability';
 
 import { observabilityTemplates } from './templates';
+
+/** This module lists the catalog read-only; the reader is sent to the page that declares and edits it. */
+export const SETTINGS_READ_MODE_HINT = `To declare a metric or change its label, unit or visibility, go to ${METRICS_CONFIGURATION_PATH}.`;
 
 export const PERMISSIVE_CAPABILITIES: DashboardCapabilities = {
     'observability.dashboards.read': true,
@@ -39,6 +43,7 @@ export const observability = defineObservabilityFeatures({
             },
         },
         tracing: { enabled: true },
+        settings: { enabled: true, readModeHint: SETTINGS_READ_MODE_HINT },
     },
     nav: { label: 'Observability' },
 });
