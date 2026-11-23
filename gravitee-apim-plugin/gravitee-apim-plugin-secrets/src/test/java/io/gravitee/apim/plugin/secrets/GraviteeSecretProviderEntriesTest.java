@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.StandardEnvironment;
 
@@ -150,6 +151,15 @@ class GraviteeSecretProviderEntriesTest {
         assertThat(encryptionKey()).contains("entry-key");
     }
 
+    @Test
+    void should_not_resolve_the_properties_outside_the_secrets_block() {
+        gravitee.put("api.secrets.providers[0].plugin", "gravitee");
+        gravitee.put("api.secrets.providers[0].configuration.encryption.key", "entry-key");
+
+        assertThat(misconfiguration()).isEmpty();
+        assertThat(encryptionKey()).contains("entry-key");
+    }
+
     private Optional<String> misconfiguration() {
         return GraviteeSecretProviderEntries.misconfiguration(environment());
     }
@@ -161,6 +171,30 @@ class GraviteeSecretProviderEntriesTest {
     private StandardEnvironment environment() {
         var environment = new StandardEnvironment();
         environment.getPropertySources().addFirst(new MapPropertySource("gravitee", gravitee));
+        environment.getPropertySources().addLast(new UnresolvableSecretPropertySource());
         return environment;
+    }
+
+    /**
+     * Stands for a property that references a secret the gateway cannot resolve, such as a missing Kubernetes secret.
+     */
+    private static class UnresolvableSecretPropertySource extends EnumerablePropertySource<Object> {
+
+        UnresolvableSecretPropertySource() {
+            super("unresolvable-secret", new Object());
+        }
+
+        @Override
+        public String[] getPropertyNames() {
+            return new String[] { "missing" };
+        }
+
+        @Override
+        public Object getProperty(String name) {
+            if ("missing".equals(name)) {
+                throw new IllegalStateException("secret not found: missing");
+            }
+            return null;
+        }
     }
 }

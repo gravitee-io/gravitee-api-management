@@ -15,12 +15,17 @@
  */
 package io.gravitee.apim.plugin.secrets;
 
-import io.gravitee.common.util.EnvironmentUtils;
 import io.gravitee.secrets.api.util.ConfigHelper;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.PropertySource;
 
 final class GraviteeSecretProviderEntries {
 
@@ -83,11 +88,25 @@ final class GraviteeSecretProviderEntries {
         return Optional.empty();
     }
 
-    // removePrefix cuts the separator off each key, so the bare api.secrets key of an empty block would throw.
+    // Only the keys of the block are read: reading a value resolves the secret it references, and another key may reference one
+    // the gateway cannot resolve. removePrefix cuts the separator off each key, so the bare api.secrets key of an empty block
+    // would throw.
     private static Map<String, Object> secretsProperties(ConfigurableEnvironment environment) {
-        Map<String, Object> properties = new HashMap<>(EnvironmentUtils.getAllProperties(environment));
-        properties.keySet().removeIf(key -> !key.startsWith(SECRETS + "."));
+        Set<String> names = new HashSet<>();
+        environment.getPropertySources().forEach(source -> collectSecretsNames(source, names));
+        Map<String, Object> properties = new HashMap<>();
+        names.forEach(name -> properties.put(name, environment.getProperty(name, Object.class)));
         return properties;
+    }
+
+    private static void collectSecretsNames(PropertySource<?> source, Set<String> names) {
+        if (source instanceof CompositePropertySource composite) {
+            composite.getPropertySources().forEach(nested -> collectSecretsNames(nested, names));
+        } else if (source instanceof EnumerablePropertySource<?> enumerable) {
+            Arrays.stream(enumerable.getPropertyNames())
+                .filter(name -> name.startsWith(SECRETS + "."))
+                .forEach(names::add);
+        }
     }
 
     private static boolean isGraviteeEntry(Map<String, Object> entry) {

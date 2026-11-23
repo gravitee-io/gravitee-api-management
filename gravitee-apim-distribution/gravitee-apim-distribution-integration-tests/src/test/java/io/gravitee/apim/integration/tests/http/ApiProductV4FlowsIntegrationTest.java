@@ -269,12 +269,6 @@ class ApiProductV4FlowsIntegrationTest {
         }
 
         @Override
-        public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
-            super.configureApi(api, definitionClass);
-            ((Api) api.getDefinition()).setResources(List.of(Resource.builder().name(RESOURCE_ID).type(RESOURCE_ID).build()));
-        }
-
-        @Override
         public void configureResources(Map<String, ResourcePlugin> resources) {
             resources.put(RESOURCE_ID, ResourceBuilder.build(RESOURCE_ID, MockOAuth2Resource.class));
         }
@@ -317,7 +311,11 @@ class ApiProductV4FlowsIntegrationTest {
 
         @Test
         void should_share_the_rate_limit_of_a_product_flow_across_member_apis_with_an_oauth2_plan(HttpClient client) {
-            deployProduct(PRODUCT_ID, Set.of(API_1_ID, API_2_ID), oauth2Plan(), List.of(rateLimitFlow()), null);
+            ReactableApiProduct deployed = product(PRODUCT_ID, Set.of(API_1_ID, API_2_ID));
+            deployed.setPlans(List.of(oauth2Plan()));
+            deployed.setFlows(List.of(rateLimitFlow()));
+            deployed.setResources(List.of(Resource.builder().name(RESOURCE_ID).type(RESOURCE_ID).enabled(true).build()));
+            deployApiProduct(deployed);
             allowClientId(PRODUCT_ID, OAUTH2_PLAN_ID, OAUTH2_CLIENT_ID);
             String bearer = "Bearer " + OAUTH2_SUCCESS_TOKEN;
 

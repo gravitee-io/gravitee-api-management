@@ -37,6 +37,7 @@ import io.gravitee.gateway.handlers.api.manager.ApiProductResourceManagerFactory
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
 import io.gravitee.gateway.reactive.handlers.api.security.plan.HttpSecurityPlan;
+import io.gravitee.gateway.reactive.handlers.api.v4.ProductResourceScopedHttpSecurityPlan;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.pathparameters.PathParametersExtractor;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.license.LicenseManager;
@@ -240,6 +241,7 @@ class ApiProductRuntimeTest {
         void should_build_the_security_plans_once_its_components_have_started() throws Exception {
             StringBuilder events = new StringBuilder();
             HttpSecurityPlan securityPlan = mock(HttpSecurityPlan.class);
+            when(securityPlan.id()).thenReturn("plan-1");
             ApiProductRuntime runtime = new ApiProductRuntime(
                 product(Set.of("api-1")),
                 null,
@@ -256,7 +258,12 @@ class ApiProductRuntimeTest {
             runtime.start();
 
             assertThat(events).hasToString("start policies,build security plans,");
-            assertThat(runtime.securityPlans()).containsExactly(securityPlan);
+            assertThat(runtime.securityPlans())
+                .singleElement()
+                .satisfies(plan -> {
+                    assertThat(plan).isInstanceOf(ProductResourceScopedHttpSecurityPlan.class);
+                    assertThat(plan.id()).isEqualTo("plan-1");
+                });
         }
 
         @Test
