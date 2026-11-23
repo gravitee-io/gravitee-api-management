@@ -23,8 +23,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalFixtures;
+import inmemory.NavigationPortalDomainServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.rest.api.management.v2.rest.model.ApiPortalPublishPortal;
 import io.gravitee.rest.api.management.v2.rest.model.ApiPortalPublishPortalsResponse;
@@ -58,6 +60,9 @@ class ApiDocumentationNavigationResource_PublishPortalsTest extends AbstractReso
     @Autowired
     private PortalCrudServiceInMemory portalCrudService;
 
+    @Autowired
+    private NavigationPortalDomainService navigationPortalDomainService;
+
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT + "/apis/" + API_ID + "/portal-navigation-items/_publish-portals";
@@ -84,7 +89,11 @@ class ApiDocumentationNavigationResource_PublishPortalsTest extends AbstractReso
 
     @Test
     void should_list_the_default_portal_first_and_then_the_others_by_name() {
-        var partners = portalCrudService.create(Portal.create(ENVIRONMENT, ORGANIZATION, "Partners", PortalFixtures.PORTAL_URL));
+        var partners = ((NavigationPortalDomainServiceInMemory) navigationPortalDomainService).givenConsolePortal(
+            ORGANIZATION,
+            ENVIRONMENT,
+            "Partners"
+        );
         var developer = portalCrudService.create(
             Portal.createDefault(ENVIRONMENT, ORGANIZATION, "Developer Portal", PortalFixtures.PORTAL_URL)
         );
@@ -97,7 +106,26 @@ class ApiDocumentationNavigationResource_PublishPortalsTest extends AbstractReso
             .satisfies(entity ->
                 assertThat(entity.getData()).containsExactly(
                     new ApiPortalPublishPortal().id(developer.getId().id()).name("Developer Portal")._default(true),
-                    new ApiPortalPublishPortal().id(partners.getId().id()).name("Partners")._default(false)
+                    new ApiPortalPublishPortal().id(partners.id()).name("Partners")._default(false)
+                )
+            );
+    }
+
+    @Test
+    void should_not_list_the_portals_managed_through_the_automation_api() {
+        var developer = portalCrudService.create(
+            Portal.createDefault(ENVIRONMENT, ORGANIZATION, "Developer Portal", PortalFixtures.PORTAL_URL)
+        );
+        portalCrudService.create(Portal.create(ENVIRONMENT, ORGANIZATION, "Automation Portal", PortalFixtures.PORTAL_URL));
+
+        Response response = rootTarget().request().get();
+
+        assertThat(response)
+            .hasStatus(OK_200)
+            .asEntity(ApiPortalPublishPortalsResponse.class)
+            .satisfies(entity ->
+                assertThat(entity.getData()).containsExactly(
+                    new ApiPortalPublishPortal().id(developer.getId().id()).name("Developer Portal")._default(true)
                 )
             );
     }

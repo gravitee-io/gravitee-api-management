@@ -27,9 +27,11 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalFixtures;
 import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.NavigationPortalDomainServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
@@ -72,6 +74,9 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
 
     @Autowired
     private PortalCrudServiceInMemory portalCrudService;
+
+    @Autowired
+    private NavigationPortalDomainService navigationPortalDomainService;
 
     @Override
     protected String contextPath() {
@@ -195,6 +200,20 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
     }
 
     @Test
+    void should_return_400_when_the_section_belongs_to_a_portal_managed_through_the_automation_api() {
+        var automationPortalId = portalCrudService
+            .create(Portal.create(ENVIRONMENT, ORGANIZATION, "Automation Portal", PortalFixtures.PORTAL_URL))
+            .getId();
+        var automationPortalSection = aSectionOf(automationPortalId, "Partners");
+        portalNavigationItemCrudService.initWith(List.of(automationPortalSection));
+
+        Response response = publishTo(automationPortalSection.getId());
+
+        assertThat(response).hasStatus(BAD_REQUEST_400);
+        assertThat(portalNavigationItemCrudService.storage()).hasSize(1);
+    }
+
+    @Test
     void should_return_400_when_no_section_is_given() {
         Response response = rootTarget().request().post(Entity.json(Map.of()));
 
@@ -292,7 +311,11 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
     }
 
     private PortalId givenAnotherPortal() {
-        return portalCrudService.create(Portal.create(ENVIRONMENT, ORGANIZATION, "Partners Portal", PortalFixtures.PORTAL_URL)).getId();
+        return ((NavigationPortalDomainServiceInMemory) navigationPortalDomainService).givenConsolePortal(
+            ORGANIZATION,
+            ENVIRONMENT,
+            "Partners Portal"
+        );
     }
 
     private static PortalNavigationFolder aSectionOf(PortalId portalId, String title) {

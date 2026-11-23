@@ -27,9 +27,11 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalFixtures;
 import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.NavigationPortalDomainServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
@@ -68,6 +70,9 @@ class ApiDocumentationNavigationResource_PublishLocationsTest extends AbstractRe
 
     @Autowired
     private PortalCrudServiceInMemory portalCrudService;
+
+    @Autowired
+    private NavigationPortalDomainService navigationPortalDomainService;
 
     @Override
     protected String contextPath() {
@@ -149,9 +154,11 @@ class ApiDocumentationNavigationResource_PublishLocationsTest extends AbstractRe
 
     @Test
     void should_list_only_the_sections_of_the_given_portal() {
-        var otherPortalId = portalCrudService
-            .create(Portal.create(ENVIRONMENT, ORGANIZATION, "Partners Portal", PortalFixtures.PORTAL_URL))
-            .getId();
+        var otherPortalId = ((NavigationPortalDomainServiceInMemory) navigationPortalDomainService).givenConsolePortal(
+            ORGANIZATION,
+            ENVIRONMENT,
+            "Partners Portal"
+        );
         var section = PortalNavigationItemFixtures.aFolder("APIs");
         section.setEnvironmentId(ENVIRONMENT);
         var otherPortalSection = PortalNavigationItemFixtures.aFolder("Partners")

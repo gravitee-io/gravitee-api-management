@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
@@ -44,13 +45,17 @@ public class PublishApiToPortalUseCase {
     private final ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
     private final PortalNavigationItemValidatorService validatorService;
     private final PortalNavigationItemDomainService domainService;
+    private final NavigationPortalDomainService navigationPortalDomainService;
 
     public Output execute(Input input) {
         if (input.sectionId() == null) {
             throw InvalidPortalNavigationItemDataException.fieldIsEmpty("sectionId");
         }
         var section = apiOwnedNavigationDomainService.requirePublishLocation(input.environmentId(), input.sectionId());
-        var portal = (NavigationItemReference.PortalReference) section.getReference();
+        var portal = navigationPortalDomainService.requireReference(
+            input.environmentId(),
+            ((NavigationItemReference.PortalReference) section.getReference()).portalId()
+        );
         var listings = apiOwnedNavigationDomainService.findStandaloneListings(input.environmentId(), input.apiId(), portal);
         if (listings.stream().anyMatch(listing -> Boolean.TRUE.equals(listing.getPublished()))) {
             throw InvalidPortalNavigationItemDataException.apiIdAlreadyExists(input.apiId());

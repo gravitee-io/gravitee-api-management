@@ -34,6 +34,7 @@ import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.portal.exception.NavigationPortalNotResolvedException;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
@@ -110,7 +111,7 @@ class UnpublishApiFromPortalUseCaseTest {
             apiCrudService
         );
         useCase = new UnpublishApiFromPortalUseCase(apiOwnedNavigationDomainService, validatorService, domainService, navigationPortals);
-        publishUseCase = new PublishApiToPortalUseCase(apiOwnedNavigationDomainService, validatorService, domainService);
+        publishUseCase = new PublishApiToPortalUseCase(apiOwnedNavigationDomainService, validatorService, domainService, navigationPortals);
         apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("Api A").environmentId(ENV_ID).build()));
     }
 
@@ -283,7 +284,7 @@ class UnpublishApiFromPortalUseCaseTest {
 
     @Test
     void should_keep_the_documentation_published_when_another_portal_publishes_the_api_during_the_unpublish() {
-        var otherPortalId = navigationPortals.givenAutomationPortal(ORG_ID, ENV_ID);
+        var otherPortalId = navigationPortals.givenConsolePortal(ORG_ID, ENV_ID, "Partners Portal");
         var section = aSection();
         var otherPortalSection = aFolder("Partners").toBuilder().reference(portal(otherPortalId)).build();
         otherPortalSection.markAsRoot();
@@ -326,6 +327,20 @@ class UnpublishApiFromPortalUseCaseTest {
         assertThat(stored(listing.getId()).getPublished()).isTrue();
     }
 
+    @Test
+    void should_reject_a_portal_managed_through_the_automation_api_and_leave_the_api_published_there() {
+        var automationPortalId = navigationPortals.givenAutomationPortal(ORG_ID, ENV_ID);
+        var automationPortalSection = aFolder("Partners").toBuilder().reference(portal(automationPortalId)).build();
+        automationPortalSection.markAsRoot();
+        var listing = aListing(automationPortalSection, API_ID);
+        listing.changeOwner(portal(automationPortalId));
+        queryService.initWith(List.of(automationPortalSection, listing));
+
+        assertThatThrownBy(() -> unpublishFrom(automationPortalId)).isInstanceOf(NavigationPortalNotResolvedException.class);
+
+        assertThat(stored(listing.getId()).getPublished()).isTrue();
+    }
+
     @Nested
     class WithSeveralPortals {
 
@@ -336,7 +351,7 @@ class UnpublishApiFromPortalUseCaseTest {
 
         @BeforeEach
         void givenTheApiPublishedToTwoPortals() {
-            otherPortalId = navigationPortals.givenAutomationPortal(ORG_ID, ENV_ID);
+            otherPortalId = navigationPortals.givenConsolePortal(ORG_ID, ENV_ID, "Partners Portal");
             var defaultPortalSection = aSection();
             var otherPortalSection = aFolder("Partners").toBuilder().reference(portal(otherPortalId)).build();
             otherPortalSection.markAsRoot();

@@ -27,9 +27,11 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalFixtures;
 import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.NavigationPortalDomainServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
@@ -70,6 +72,9 @@ class ApiDocumentationNavigationResource_UnpublishTest extends AbstractResourceT
 
     @Autowired
     private PortalCrudServiceInMemory portalCrudService;
+
+    @Autowired
+    private NavigationPortalDomainService navigationPortalDomainService;
 
     @Override
     protected String contextPath() {
@@ -191,9 +196,11 @@ class ApiDocumentationNavigationResource_UnpublishTest extends AbstractResourceT
 
     @Test
     void should_unpublish_from_the_named_portal_only() {
-        var otherPortalId = portalCrudService
-            .create(Portal.create(ENVIRONMENT, ORGANIZATION, "Partners Portal", PortalFixtures.PORTAL_URL))
-            .getId();
+        var otherPortalId = ((NavigationPortalDomainServiceInMemory) navigationPortalDomainService).givenConsolePortal(
+            ORGANIZATION,
+            ENVIRONMENT,
+            "Partners Portal"
+        );
         var section = aSection();
         var listing = aListing(section);
         var otherPortalSection = aSection();

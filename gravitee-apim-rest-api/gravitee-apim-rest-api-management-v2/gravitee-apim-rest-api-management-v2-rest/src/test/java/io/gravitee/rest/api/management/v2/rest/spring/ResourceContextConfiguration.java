@@ -1597,18 +1597,20 @@ public class ResourceContextConfiguration {
     public PublishApiToPortalUseCase publishApiToPortalUseCase(
         ApiOwnedNavigationDomainService apiOwnedNavigationDomainService,
         PortalNavigationItemValidatorService portalNavigationItemValidatorService,
-        PortalNavigationItemDomainService portalNavigationItemDomainService
+        PortalNavigationItemDomainService portalNavigationItemDomainService,
+        NavigationPortalDomainService navigationPortalDomainService
     ) {
         return new PublishApiToPortalUseCase(
             apiOwnedNavigationDomainService,
             portalNavigationItemValidatorService,
-            portalNavigationItemDomainService
+            portalNavigationItemDomainService,
+            navigationPortalDomainService
         );
     }
 
     @Bean
-    public ListApiPublishPortalsUseCase listApiPublishPortalsUseCase(PortalCrudServiceInMemory portalCrudService) {
-        return new ListApiPublishPortalsUseCase(portalCrudService);
+    public ListApiPublishPortalsUseCase listApiPublishPortalsUseCase(NavigationPortalDomainService navigationPortalDomainService) {
+        return new ListApiPublishPortalsUseCase(navigationPortalDomainService);
     }
 
     @Bean

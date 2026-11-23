@@ -3572,8 +3572,8 @@ paths:
                                 $ref: "#/components/schemas/ApiPortalPublication"
                 "400":
                     description: |-
-                        No section is given, the API is already published to the section's portal, or the section is
-                        not a publish location
+                        No section is given, the API is already published to the section's portal, the section is not
+                        a publish location, or it belongs to a portal managed through the Automation API
                     content:
                         application/json:
                             schema:
@@ -3612,7 +3612,9 @@ paths:
                 "204":
                     description: The API is no longer visible in the portal
                 "400":
-                    description: No portal is given, or the API is not published to the portal
+                    description: |-
+                        No portal is given, the portal is managed through the Automation API, or the API is not
+                        published to the portal
                     content:
                         application/json:
                             schema:
@@ -3660,7 +3662,8 @@ paths:
                 - API Documentation
             summary: Get the portals an API can be published to
             description: |-
-                Get the portals of the environment, the default portal first and then by name.
+                Get the portals of the environment whose navigation the console manages, the default portal first and
+                then by name. Portals managed through the Automation API are left out.
                 Only their id, name and whether they are the default portal are returned.
 
                 User must have the API_DOCUMENTATION[READ] permission.
@@ -3699,7 +3702,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/ApiPortalPublishLocationsResponse"
                 "400":
-                    description: No portal is given
+                    description: No portal is given, or the portal is managed through the Automation API
                     content:
                         application/json:
                             schema:

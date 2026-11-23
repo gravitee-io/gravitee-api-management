@@ -34,6 +34,7 @@ import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.portal.exception.NavigationPortalNotResolvedException;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
@@ -113,7 +114,8 @@ class PublishApiToPortalUseCaseTest {
                 sourceDomainService,
                 apiOwnedNavigationDomainService,
                 navigationPortals
-            )
+            ),
+            navigationPortals
         );
         apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("Api A").environmentId(ENV_ID).build()));
     }
@@ -351,6 +353,17 @@ class PublishApiToPortalUseCaseTest {
         assertThat(crudService.storage()).hasSize(3);
     }
 
+    @Test
+    void should_reject_a_section_of_a_portal_managed_through_the_automation_api() {
+        var automationPortalId = navigationPortals.givenAutomationPortal(ORG_ID, ENV_ID);
+        var automationPortalSection = aSectionOf(automationPortalId, "Partners");
+        queryService.initWith(List.of(automationPortalSection));
+
+        assertThatThrownBy(() -> publishTo(automationPortalSection.getId())).isInstanceOf(NavigationPortalNotResolvedException.class);
+
+        assertThat(listingRows()).isEmpty();
+    }
+
     @Nested
     class WithSeveralPortals {
 
@@ -360,7 +373,7 @@ class PublishApiToPortalUseCaseTest {
 
         @BeforeEach
         void givenASecondPortalWithItsOwnSection() {
-            otherPortalId = navigationPortals.givenAutomationPortal(ORG_ID, ENV_ID);
+            otherPortalId = navigationPortals.givenConsolePortal(ORG_ID, ENV_ID, "Partners Portal");
             defaultPortalSection = aSection("APIs");
             otherPortalSection = aSectionOf(otherPortalId, "Partners");
             queryService.initWith(List.of(defaultPortalSection, otherPortalSection));

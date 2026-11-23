@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import inmemory.NavigationPortalDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import io.gravitee.apim.core.portal.exception.NavigationPortalNotResolvedException;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
@@ -116,7 +117,7 @@ class ListApiPublishLocationsUseCaseTest {
 
     @Test
     void should_return_only_the_sections_of_the_named_portal() {
-        var otherPortalId = navigationPortals.givenAutomationPortal(ORG_ID, ENV_ID);
+        var otherPortalId = navigationPortals.givenConsolePortal(ORG_ID, ENV_ID, "Partners Portal");
         var defaultPortalSection = aFolder("APIs");
         var otherPortalSection = aFolder("Partners")
             .toBuilder()
@@ -125,6 +126,13 @@ class ListApiPublishLocationsUseCaseTest {
         queryService.initWith(List.of(defaultPortalSection, otherPortalSection));
 
         assertThat(locationsOf(otherPortalId)).containsExactly(new PublishLocation(otherPortalSection.getId(), "Partners"));
+    }
+
+    @Test
+    void should_reject_a_portal_managed_through_the_automation_api() {
+        var automationPortalId = navigationPortals.givenAutomationPortal(ORG_ID, ENV_ID);
+
+        assertThatThrownBy(() -> locationsOf(automationPortalId)).isInstanceOf(NavigationPortalNotResolvedException.class);
     }
 
     @Test

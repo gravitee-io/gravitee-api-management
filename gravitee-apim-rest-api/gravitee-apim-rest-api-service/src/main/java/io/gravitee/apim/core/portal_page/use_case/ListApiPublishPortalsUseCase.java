@@ -16,8 +16,7 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
-import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
 import io.gravitee.apim.core.portal.model.PortalId;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -30,13 +29,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ListApiPublishPortalsUseCase {
 
-    private final PortalCrudService portalCrudService;
+    private final NavigationPortalDomainService navigationPortalDomainService;
 
     public Output execute(Input input) {
-        var portals = portalCrudService
-            .findByEnvironmentId(input.environmentId())
+        var portals = navigationPortalDomainService
+            .findManagedByConsole(input.environmentId())
             .stream()
-            .sorted(Portal.DEFAULT_FIRST_THEN_BY_NAME)
             .map(portal -> new PublishPortal(portal.getId(), portal.getName(), portal.isDefault()))
             .toList();
         return new Output(portals);
