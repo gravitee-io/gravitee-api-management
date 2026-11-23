@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { UntypedFormArray, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormGroupDirective,
+  NgForm,
+  UntypedFormArray,
+  UntypedFormControl,
+  UntypedFormGroup,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
+import { ErrorStateMatcher } from '@angular/material/core';
 import { cloneDeep, isEmpty } from 'lodash';
 import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, distinctUntilChanged, shareReplay, takeUntil, tap } from 'rxjs/operators';
@@ -22,7 +32,7 @@ import { GioLicenseService } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { Environment } from '../../../entities/environment/environment';
-import { GroupMapping, IdentityProvider, RoleMapping } from '../../../entities/identity-provider';
+import { GroupMapping, IdentityProvider, isGroupMappingExpression, RoleMapping } from '../../../entities/identity-provider';
 import { EnvironmentService } from '../../../services-ngx/environment.service';
 import { GroupService } from '../../../services-ngx/group.service';
 import { IdentityProviderService } from '../../../services-ngx/identity-provider.service';
@@ -33,6 +43,63 @@ import { ApimFeature } from '../../../shared/components/gio-license/gio-license-
 export interface ProviderConfiguration {
   name: string;
   getFormGroups(): Record<string, UntypedFormGroup>;
+}
+
+interface GroupMappingFormValue {
+  condition: string | null;
+  groups: string[];
+  // One expression per line
+  groupExpressions: string;
+}
+
+const GROUP_OR_EXPRESSION_REQUIRED_ERROR = 'groupOrExpressionRequired';
+const NOT_AN_EXPRESSION_ERROR = 'notAnExpression';
+
+function extractGroupExpressionLines(groupExpressions: string | null | undefined): string[] {
+  return (groupExpressions ?? '')
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => !isEmpty(line));
+}
+
+function toGroupMappingFormValue(groupMapping?: GroupMapping): GroupMappingFormValue {
+  const values = groupMapping?.groups ?? [];
+  return {
+    condition: groupMapping?.condition ?? null,
+    groups: values.filter(value => !isGroupMappingExpression(value)),
+    groupExpressions: values.filter(value => isGroupMappingExpression(value)).join('\n'),
+  };
+}
+
+function toGroupMapping(formValue: GroupMappingFormValue): GroupMapping {
+  return {
+    condition: formValue.condition,
+    groups: [...(formValue.groups ?? []), ...extractGroupExpressionLines(formValue.groupExpressions)],
+  };
+}
+
+function groupOrExpressionRequiredValidator(control: AbstractControl): ValidationErrors | null {
+  const hasGroup = !isEmpty(control.get('groups')?.value);
+  const hasExpression = !isEmpty(extractGroupExpressionLines(control.get('groupExpressions')?.value));
+  return hasGroup || hasExpression ? null : { [GROUP_OR_EXPRESSION_REQUIRED_ERROR]: true };
+}
+
+// A line that is not an expression would be saved as a group id matching no group, and ignored at login
+function groupExpressionLinesValidator(control: AbstractControl): ValidationErrors | null {
+  const lines = extractGroupExpressionLines(control.value);
+  const invalidLine = lines.findIndex(line => !isGroupMappingExpression(line));
+  return invalidLine === -1 ? null : { [NOT_AN_EXPRESSION_ERROR]: { line: lines[invalidLine] } };
+}
+
+/**
+ * Shows the mapping-level "group or expression" error on the group select and the expression textarea, which are
+ * individually optional.
+ */
+class GroupMappingErrorStateMatcher implements ErrorStateMatcher {
+  isErrorState(control: AbstractControl | null, form: FormGroupDirective | NgForm | null): boolean {
+    const isInteracted = !!control && (control.touched || control.dirty || !!form?.submitted);
+    return isInteracted && (control.invalid || !!control.parent?.hasError(GROUP_OR_EXPRESSION_REQUIRED_ERROR));
+  }
 }
 @Component({
   selector: 'org-settings-identity-provider',
@@ -75,6 +142,8 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
   environmentRoles$ = this.roleService.list('ENVIRONMENT').pipe(shareReplay(1));
 
   environmentTableDisplayedColumns = ['name', 'description', 'actions'];
+
+  groupMappingErrorStateMatcher = new GroupMappingErrorStateMatcher();
 
   private unsubscribe$ = new Subject<boolean>();
 
@@ -173,7 +242,13 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
       // clientSecret is write-only from the Management API; keep the field optional unless rotating it.
       formGroups['configuration']?.get('clientSecret')?.clearValidators();
       formGroups['configuration']?.get('clientSecret')?.updateValueAndValidity({ emitEvent: false });
-      this.identityProviderFormGroup.patchValue(this.initialIdentityProviderValue, { emitEvent: false });
+      this.identityProviderFormGroup.patchValue(
+        {
+          ...this.initialIdentityProviderValue,
+          groupMappings: this.initialIdentityProviderValue.groupMappings?.map(toGroupMappingFormValue),
+        },
+        { emitEvent: false },
+      );
       this.identityProviderFormGroup.markAsPristine();
       this.identityProviderFormGroup.markAsUntouched();
     }
@@ -187,6 +262,9 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
     }
 
     const formSettingsValue = this.identityProviderFormGroup.getRawValue();
+    if (formSettingsValue.groupMappings) {
+      formSettingsValue.groupMappings = formSettingsValue.groupMappings.map(toGroupMapping);
+    }
     if (this.mode === 'edit' && !formSettingsValue.configuration?.clientSecret) {
       // Omit a blank secret so the backend keeps the stored value.
       const { clientSecret: _omitted, ...configurationWithoutSecret } = formSettingsValue.configuration ?? {};
@@ -220,11 +298,16 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
 
   addGroupMappingToIdentityProviderFormGroup(groupMapping?: GroupMapping, emitEvent = true) {
     const groupMappings = this.identityProviderFormGroup.get('groupMappings') as UntypedFormArray;
+    const groupMappingFormValue = toGroupMappingFormValue(groupMapping);
     groupMappings.push(
-      new UntypedFormGroup({
-        condition: new UntypedFormControl(groupMapping?.condition ?? null, [Validators.required]),
-        groups: new UntypedFormControl(groupMapping?.groups ?? [], [Validators.required]),
-      }),
+      new UntypedFormGroup(
+        {
+          condition: new UntypedFormControl(groupMappingFormValue.condition, [Validators.required]),
+          groups: new UntypedFormControl(groupMappingFormValue.groups),
+          groupExpressions: new UntypedFormControl(groupMappingFormValue.groupExpressions, [groupExpressionLinesValidator]),
+        },
+        { validators: [groupOrExpressionRequiredValidator] },
+      ),
       { emitEvent },
     );
     if (emitEvent) {
