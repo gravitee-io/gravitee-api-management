@@ -27,6 +27,8 @@ import io.gravitee.repository.management.api.SecretRepository;
 import io.gravitee.secrets.api.core.SecretURL;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.env.MapPropertySource;
 
@@ -106,6 +108,26 @@ class GraviteeSecretProviderConfigurationTest {
                 .resolve(SecretURL.from("/gravitee/s-1:value?envId=env-1", true))
                 .test()
                 .assertError(err -> err.getMessage().contains("api.secrets.providers[0]"));
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "management.type", "repositories.management.type" })
+    void should_refuse_every_secret_on_a_gateway_without_a_management_repository(String property) {
+        try (var context = gatewayContext()) {
+            context.getEnvironment().getPropertySources().addFirst(new MapPropertySource("gateway", Map.of(property, "none")));
+            context.refresh();
+            context.getBeanFactory().registerSingleton("secretRepository", mock(SecretRepository.class));
+            context.getBeanFactory().registerSingleton("organizationKeyRepository", mock(OrganizationKeyRepository.class));
+            context.getBeanFactory().registerSingleton("environmentRepository", mock(EnvironmentRepository.class));
+
+            GraviteeSecretProviderFactory factory = pluginManager.getFactoryById(GraviteeSecretProvider.ID);
+            factory
+                .create(new GraviteeSecretManagerConfiguration(Map.of("encryption.key", "a-key")))
+                .start()
+                .resolve(SecretURL.from("/gravitee/s-1:value?envId=env-1", true))
+                .test()
+                .assertError(err -> err.getMessage().contains("does not store secrets"));
         }
     }
 

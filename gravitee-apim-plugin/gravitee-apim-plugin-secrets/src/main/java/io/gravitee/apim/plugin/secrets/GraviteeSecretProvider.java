@@ -56,6 +56,8 @@ public class GraviteeSecretProvider implements SecretProvider {
         " (or " +
         StaticKeyEncryptionKeyProvider.KEY_PROPERTY +
         ")";
+    static final String NO_SECRET_STORE =
+        "Secret provider [" + ID + "] cannot read secrets: the management repository does not store secrets";
     private static final String VALUE_KEY = "value";
     private static final String ENV_ID = SecretURL.WellKnownQueryParam.ENV_ID;
 
@@ -112,7 +114,7 @@ public class GraviteeSecretProvider implements SecretProvider {
 
     private KeyEncryptionKeyProvider configuredKeyEncryptionKey() {
         if (secretRepository == null || organizationKeyRepository == null || environmentRepository == null) {
-            throw refuse("Secret provider [" + ID + "] cannot read secrets: the management repository does not store secrets");
+            throw refuse(NO_SECRET_STORE);
         }
         try {
             return StaticKeyEncryptionKeyProvider.fromBase64(base64Kek);

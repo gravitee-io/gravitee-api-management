@@ -20,6 +20,7 @@ import io.gravitee.node.secrets.plugins.SecretProviderPluginManager;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.OrganizationKeyRepository;
 import io.gravitee.repository.management.api.SecretRepository;
+import java.util.Optional;
 import lombok.CustomLog;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
@@ -33,6 +34,8 @@ import org.springframework.core.env.ConfigurableEnvironment;
 @CustomLog
 @Configuration
 public class GraviteeSecretProviderConfiguration {
+
+    private static final String NO_MANAGEMENT_REPOSITORY = "none";
 
     @Bean
     public GraviteeSecretProviderFactory graviteeSecretProviderFactory(
@@ -49,9 +52,15 @@ public class GraviteeSecretProviderConfiguration {
             organizationKeyRepository,
             environmentRepository,
             () -> environment.getProperty(StaticKeyEncryptionKeyProvider.KEY_PROPERTY),
-            GraviteeSecretProviderEntries.misconfiguration(environment)
+            GraviteeSecretProviderEntries.misconfiguration(environment).or(() -> withoutManagementRepository(environment))
         );
         log.info("Gravitee secret provider [{}]: REGISTERED", GraviteeSecretProvider.ID);
         return factory;
+    }
+
+    // The none repository registers secret repositories that find nothing, so the provider cannot tell it apart by its beans.
+    private static Optional<String> withoutManagementRepository(ConfigurableEnvironment environment) {
+        String type = environment.getProperty("management.type", environment.getProperty("repositories.management.type", ""));
+        return NO_MANAGEMENT_REPOSITORY.equalsIgnoreCase(type) ? Optional.of(GraviteeSecretProvider.NO_SECRET_STORE) : Optional.empty();
     }
 }
