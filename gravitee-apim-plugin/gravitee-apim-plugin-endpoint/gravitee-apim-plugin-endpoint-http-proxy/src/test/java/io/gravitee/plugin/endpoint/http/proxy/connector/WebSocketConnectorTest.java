@@ -18,10 +18,12 @@ package io.gravitee.plugin.endpoint.http.proxy.connector;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -36,6 +38,8 @@ import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.gateway.reactive.api.ws.WebSocket;
 import io.gravitee.gateway.reactive.http.vertx.ws.VertxWebSocket;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.api.server.DefaultServerManager;
+import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.WebSocketClientFactory;
@@ -102,12 +106,17 @@ class WebSocketConnectorTest {
     @Mock
     private VertxWebSocket upgradedCallerWebSocket;
 
+    @Mock
+    private ServerWebSocket callerServerWebSocket;
+
     private HttpHeaders requestHeaders;
     private HttpHeaders responseHeaders;
     private NetServer backend;
     private CompletableFuture<String> backendReceivedExtensions;
     private CompletableFuture<String> backendReceivedProtocol;
     private volatile String backendSelectedProtocol;
+    private volatile Buffer backendBytesAfterHandshake;
+    private CompletableFuture<Void> backendConnectionClosed;
     private final List<Map<String, String>> backendHandshakes = new CopyOnWriteArrayList<>();
     private HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration;
     private HttpProxyEndpointConnectorConfiguration configuration;
@@ -127,6 +136,8 @@ class WebSocketConnectorTest {
         backendReceivedExtensions = new CompletableFuture<>();
         backendReceivedProtocol = new CompletableFuture<>();
         backendSelectedProtocol = null;
+        backendBytesAfterHandshake = null;
+        backendConnectionClosed = new CompletableFuture<>();
         backendHandshakes.clear();
         backend = vertx.getDelegate().createNetServer().connectHandler(this::answerHandshakeLikeRfc7692Server);
         backend.listen(0).toCompletionStage().toCompletableFuture().get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -138,6 +149,7 @@ class WebSocketConnectorTest {
         lenient().when(ctx.withLogger(any())).thenReturn(mock(Logger.class));
         lenient().when(ctx.getComponent(Vertx.class)).thenReturn(vertx);
         lenient().when(ctx.getComponent(Configuration.class)).thenReturn(mock(Configuration.class));
+        lenient().when(ctx.getComponent(ServerManager.class)).thenReturn(new DefaultServerManager());
         lenient().when(ctx.interruptWith(any(ExecutionFailure.class))).thenReturn(Completable.complete());
 
         requestHeaders = HttpHeaders.create();
@@ -151,7 +163,7 @@ class WebSocketConnectorTest {
 
         lenient().when(callerWebSocket.upgrade()).thenReturn(Single.just(upgradedCallerWebSocket));
         lenient().when(callerWebSocket.close(anyInt())).thenReturn(Completable.complete());
-        lenient().when(upgradedCallerWebSocket.getDelegate()).thenReturn(mock(ServerWebSocket.class));
+        lenient().when(upgradedCallerWebSocket.getDelegate()).thenReturn(callerServerWebSocket);
 
         configuration = new HttpProxyEndpointConnectorConfiguration();
         configuration.setTarget("http://localhost:" + backend.actualPort() + "/ws");
@@ -266,6 +278,41 @@ class WebSocketConnectorTest {
         assertThat(responseHeaders.get("Sec-WebSocket-Protocol")).isEqualTo("USP");
     }
 
+    @Test
+    void should_close_caller_with_message_too_big_when_backend_frame_exceeds_limit() throws Exception {
+        // Header of an unmasked text frame announcing 65_537 bytes: the client rejects it from the length alone.
+        backendBytesAfterHandshake = Buffer.buffer(new byte[] { (byte) 0x81, 127, 0, 0, 0, 0, 0, 1, 0, 1 });
+
+        connect();
+
+        backendConnectionClosed.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        verify(callerServerWebSocket, timeout(TIMEOUT_SECONDS * 1000L)).close((short) 1009);
+        // Closing the backend connection raises a second error: it must not override the first close status.
+        verify(callerServerWebSocket, never()).close((short) 1011);
+    }
+
+    @Test
+    void should_close_caller_with_internal_error_when_backend_breaks_the_protocol() throws Exception {
+        // Unmasked frame with the reserved opcode 0x3.
+        backendBytesAfterHandshake = Buffer.buffer(new byte[] { (byte) 0x83, 0 });
+
+        connect();
+
+        backendConnectionClosed.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        verify(callerServerWebSocket, timeout(TIMEOUT_SECONDS * 1000L)).close((short) 1011);
+    }
+
+    @Test
+    void should_not_close_caller_again_when_already_closed() throws Exception {
+        when(callerServerWebSocket.isClosed()).thenReturn(true);
+        backendBytesAfterHandshake = Buffer.buffer(new byte[] { (byte) 0x83, 0 });
+
+        connect();
+
+        backendConnectionClosed.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        verify(callerServerWebSocket, never()).close(anyShort());
+    }
+
     private void connect() {
         new WebSocketConnector(configuration, sharedConfiguration, new HttpClientFactory(), new WebSocketClientFactory())
             .connect(ctx)
@@ -281,6 +328,7 @@ class WebSocketConnectorTest {
     private void answerHandshakeLikeRfc7692Server(io.vertx.core.net.NetSocket socket) {
         final Buffer received = Buffer.buffer();
         final AtomicBoolean answered = new AtomicBoolean();
+        socket.closeHandler(v -> backendConnectionClosed.complete(null));
         socket.handler(chunk -> {
             if (answered.get()) {
                 return;
@@ -322,6 +370,9 @@ class WebSocketConnectorTest {
                 handshake.append("; server_max_window_bits=15\r\n");
             }
             socket.write(handshake.append("\r\n").toString());
+            if (backendBytesAfterHandshake != null) {
+                socket.write(backendBytesAfterHandshake);
+            }
         });
     }
 
