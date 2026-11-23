@@ -132,7 +132,7 @@ class ValidateApiCRDUseCaseFolderConflictTest {
             OBJECT_MAPPER
         ),
         new ClusterBindingPermissionDomainService(clusterQueryService, mock(PermissionDomainService.class), OBJECT_MAPPER),
-        new ValidateApiClusterBindingService(clusterQueryService, OBJECT_MAPPER),
+        mock(ValidateApiClusterBindingService.class),
         mock(ApiPrimaryOwnerFactory.class),
         mock(ValidateApiDomainService.class),
         mock(UpdateApiDomainService.class),
