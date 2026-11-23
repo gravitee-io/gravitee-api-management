@@ -92,7 +92,11 @@ for dataplane in dataplane-${integrationControlPlaneId}-*.json; do
 done
 
 git commit -m "feat(${gitBranch}): deploying APIM ${apimVersion}"
-git push
+for attempt in 1 2 3; do
+  if git push; then break; fi
+  [ "$attempt" = 3 ] && exit 1
+  git pull --rebase
+done
 `,
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
