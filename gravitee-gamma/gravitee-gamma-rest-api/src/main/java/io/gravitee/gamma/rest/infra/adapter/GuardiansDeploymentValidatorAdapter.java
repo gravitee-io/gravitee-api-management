@@ -15,13 +15,12 @@
  */
 package io.gravitee.gamma.rest.infra.adapter;
 
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.deployment.service_provider.ApiDeploymentValidator;
 import io.gravitee.apim.core.exception.NotFoundDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateApiGuardiansDomainService;
-import io.gravitee.gamma.rest.core.guardian.model.GuardedApi;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeployableException;
 import java.util.Arrays;
 import java.util.function.Function;
@@ -47,18 +46,20 @@ public class GuardiansDeploymentValidatorAdapter implements ApiDeploymentValidat
     private final ValidateApiGuardiansDomainService validateApiGuardians;
 
     @Override
-    public void validateDeployable(io.gravitee.apim.core.api.model.Api api) {
-        if (!(api.getApiDefinitionValue() instanceof Api definition)) {
+    public void validateDeployable(Api api) {
+        validateInternalFlowDeployable(api);
+    }
+
+    /**
+     * The whole of what this adapter judges: the Guardians an API runs live in its internal flow, so a write that
+     * republishes nothing but that flow gets the same answer as a full deployment.
+     */
+    @Override
+    public void validateInternalFlowDeployable(Api api) {
+        if (!api.holdsInternalFlow()) {
             return;
         }
-        var guarded = GuardedApi.builder()
-            .id(api.getId())
-            .environmentId(api.getEnvironmentId())
-            .name(api.getName())
-            .type(api.getType())
-            .supportsGuardians(true)
-            .internalFlow(definition.getInternalFlow())
-            .build();
+        var guarded = GuardedApis.of(api);
         var guardians = guarded.guardians();
         if (guardians.list().isEmpty()) {
             return;

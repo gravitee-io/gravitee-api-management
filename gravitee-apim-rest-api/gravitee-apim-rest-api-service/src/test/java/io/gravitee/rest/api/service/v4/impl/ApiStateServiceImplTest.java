@@ -34,8 +34,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fakes.spring.MutableObjectProvider;
-import io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService;
+import io.gravitee.apim.core.deployment.service_provider.ApiDeploymentGate;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -153,7 +152,7 @@ public class ApiStateServiceImplTest {
     private ApiValidationService apiValidationService;
 
     @Mock
-    private ValidateApiClusterBindingService validateApiClusterBindingService;
+    private ApiDeploymentGate deploymentValidator;
 
     @Mock
     private ApiConverter apiConverter;
@@ -218,7 +217,7 @@ public class ApiStateServiceImplTest {
             synchronizationService,
             eventManager,
             searchEngineService,
-            MutableObjectProvider.of(validateApiClusterBindingService)
+            deploymentValidator
         );
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
@@ -248,13 +247,11 @@ public class ApiStateServiceImplTest {
     }
 
     @Test
-    public void shouldThrowWhenBoundVirtualClusterIsNotDeployedOnStart() throws TechnicalException {
+    public void shouldThrowWhenAValidatorRefusesTheDefinitionOnStart() throws TechnicalException {
         api = new Api();
         when(apiValidationService.canDeploy(executionContext, API_ID)).thenReturn(true);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        doThrow(new ApiNotDeployableException("virtual cluster not deployed"))
-            .when(validateApiClusterBindingService)
-            .validateDeployable(any());
+        doThrow(new ApiNotDeployableException("Guardian 'guardian-1' is not deployed")).when(deploymentValidator).validateDeployable(any());
 
         assertThatExceptionOfType(ApiNotDeployableException.class).isThrownBy(() ->
             apiStateService.start(executionContext, API_ID, USER_NAME)
