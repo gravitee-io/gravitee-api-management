@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.log.adapter.authz;
 
+import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asMapOrNull;
 import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asTextOrNull;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -60,6 +61,7 @@ final class AuthzDecisionLogSourceMapper {
             .batchSize(asIntOrNull(at(source, AuthzDecisionLogFields.BATCH_SIZE)))
             .durationNanos(asLongOrNull(source.get(AuthzDecisionLogFields.DURATION_NANOS)))
             .errorType(asTextOrNull(source.get(AuthzDecisionLogFields.ERROR_TYPE)))
+            .additionalMetrics(asMapOrNull(source.get(AuthzDecisionLogFields.ADDITIONAL_METRICS)))
             .build();
     }
 

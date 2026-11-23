@@ -1231,6 +1231,7 @@ class ObservabilityLogsDataPortAdapterTest {
                             .batchSize(2)
                             .durationNanos(4_200L)
                             .errorType("TimeoutException")
+                            .additionalMetrics(Map.of("json_authz_request", "{\"context\":{}}"))
                             .build()
                     )
                 )
@@ -1268,7 +1269,7 @@ class ObservabilityLogsDataPortAdapterTest {
                         .errorType("TimeoutException")
                         .build()
                 );
-            assertThat(entry.additionalMetrics()).isNull();
+            assertThat(entry.additionalMetrics()).containsExactlyEntriesOf(Map.of("json_authz_request", "{\"context\":{}}"));
             verifyNoInteractions(connectionLogsCrudService);
         }
 
@@ -1285,6 +1286,7 @@ class ObservabilityLogsDataPortAdapterTest {
             assertThat(entry.authz().decision()).isNull();
             assertThat(entry.authz().subjectId()).isNull();
             assertThat(entry.authz().batchIndex()).isNull();
+            assertThat(entry.additionalMetrics()).isEmpty();
         }
 
         @Test

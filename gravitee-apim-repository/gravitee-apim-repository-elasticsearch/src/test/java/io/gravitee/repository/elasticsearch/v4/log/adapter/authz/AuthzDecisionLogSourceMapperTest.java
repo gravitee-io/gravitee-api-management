@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.log.v4.model.authz.AuthzDecisionLog;
+import java.util.Map;
 import lombok.SneakyThrows;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -143,6 +144,22 @@ class AuthzDecisionLogSourceMapperTest {
     }
 
     @Test
+    void reads_the_additional_metrics_as_a_map() {
+        var decision = map(
+            """
+            {
+              "event-id": "evt-5",
+              "additional-metrics": { "int_authz_batch-index": 1, "json_authz_request": "{\\"context\\":{}}" }
+            }
+            """
+        );
+
+        assertThat(decision.additionalMetrics()).containsExactlyInAnyOrderEntriesOf(
+            Map.of("int_authz_batch-index", 1, "json_authz_request", "{\"context\":{}}")
+        );
+    }
+
+    @Test
     void leaves_absent_fields_null_and_absent_lists_empty() {
         var decision = map(
             """
@@ -156,6 +173,7 @@ class AuthzDecisionLogSourceMapperTest {
             soft.assertThat(decision.policyGeneration()).isNull();
             soft.assertThat(decision.batchIndex()).isNull();
             soft.assertThat(decision.batchSize()).isNull();
+            soft.assertThat(decision.additionalMetrics()).isNull();
             soft.assertThat(decision.matchedRules()).isEmpty();
             soft.assertThat(decision.reasons()).isEmpty();
         });
