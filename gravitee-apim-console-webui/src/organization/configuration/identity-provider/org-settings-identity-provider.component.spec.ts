@@ -19,6 +19,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MatRadioGroupHarness } from '@angular/material/radio/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
+import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
@@ -919,6 +920,142 @@ describe('OrgSettingsIdentityProviderComponent', () => {
 
         // no flush to end this test
         httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/providerId`);
+      });
+    });
+
+    describe('group mapping expressions', () => {
+      const jsonPathExpression = "{#jsonPath(#profile, '$.groups')}";
+      const departmentExpression = '{#profile.department}';
+      let identityProviderToUpdate: IdentityProvider;
+      let groupMappingsCard: MatCardHarness;
+
+      beforeEach(async () => {
+        identityProviderToUpdate = fakeIdentityProvider({
+          id: 'providerId',
+          type: 'GRAVITEEIO_AM',
+          name: 'Name',
+          description: 'Description',
+          groupMappings: [
+            { condition: 'mixed', groups: ['groupAId', jsonPathExpression, departmentExpression] },
+            { condition: 'expression only', groups: ['{T(java.lang.String).valueOf("Group B")}'] },
+          ],
+          configuration: {
+            clientId: 'Client Id',
+            color: null,
+            domain: 'Domain',
+            scopes: null,
+            serverURL: 'ServerURL',
+            tokenEndpointAuthMethod: null,
+          },
+          userProfileMapping: {
+            email: null,
+            firstname: null,
+            id: 'Id',
+            lastname: null,
+            picture: null,
+          },
+        });
+        expectIdentityProviderGetRequest(identityProviderToUpdate);
+        expectEnvironmentListRequest([]);
+        expectGroupListRequest([fakeGroup({ id: 'groupAId', name: 'Group A' }), fakeGroup({ id: 'groupBId', name: 'Group B' })]);
+        groupMappingsCard = await loader.getHarness(MatCardHarness.with({ selector: '[formArrayName=groupMappings]' }));
+      });
+
+      async function getGroupMappingControls(index: number) {
+        const groupMappingCard = (await groupMappingsCard.getAllHarnesses(MatCardHarness))[index];
+        return {
+          groupsSelect: await groupMappingCard.getHarness(MatSelectHarness.with({ selector: '[data-testid=group-mapping-groups]' })),
+          expressionsInput: await groupMappingCard.getHarness(
+            MatInputHarness.with({ selector: '[data-testid=group-mapping-group-expressions]' }),
+          ),
+          groupsFormField: await groupMappingCard.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Group' })),
+          expressionsFormField: await groupMappingCard.getHarness(
+            MatFormFieldHarness.with({ floatingLabelText: 'Group name expressions' }),
+          ),
+        };
+      }
+
+      it('should split stored values between selected group ids and one expression per line', async () => {
+        const mixed = await getGroupMappingControls(0);
+        expect(await mixed.groupsSelect.getValueText()).toEqual('Group A');
+        expect(await mixed.expressionsInput.getValue()).toEqual(`${jsonPathExpression}\n${departmentExpression}`);
+        expect(await mixed.expressionsFormField.getTextHints()).toEqual([
+          "One single-line expression per line, e.g. {#jsonPath(#profile, '$.groups')}. Each line must resolve to group names, matched exactly against existing group names. Text around an expression, or several expressions on one line, make up a single name, e.g. team-{#profile['department']}. The syntax is checked on save.",
+        ]);
+
+        const expressionOnly = await getGroupMappingControls(1);
+        expect(await expressionOnly.groupsSelect.getValueText()).toEqual('');
+        expect(await expressionOnly.expressionsInput.getValue()).toEqual('{T(java.lang.String).valueOf("Group B")}');
+      });
+
+      it('should send group ids then trimmed non-blank expressions, without the form-only expressions field', async () => {
+        const mixed = await getGroupMappingControls(0);
+        await mixed.groupsSelect.clickOptions({ text: 'Group B' });
+        await mixed.expressionsInput.setValue(`  ${jsonPathExpression}  \n\n   \n{#profile.team}`);
+
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+        await saveBar.clickSubmit();
+
+        const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/providerId`);
+        expect(req.request.method).toEqual('PUT');
+        expect(req.request.body.groupMappings).toStrictEqual([
+          { condition: 'mixed', groups: ['groupAId', 'groupBId', jsonPathExpression, '{#profile.team}'] },
+          { condition: 'expression only', groups: ['{T(java.lang.String).valueOf("Group B")}'] },
+        ]);
+        req.request.body.groupMappings.forEach(groupMapping => expect(groupMapping).not.toHaveProperty('groupExpressions'));
+        req.flush(identityProviderToUpdate);
+
+        // no flush to end this test
+        httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/providerId`);
+      });
+
+      it('should save stored mappings unchanged when only another field is edited', async () => {
+        const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=description]' }));
+        await descriptionInput.setValue('Updated Description');
+
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        await saveBar.clickSubmit();
+
+        expectIdentityProviderUpdateRequest('providerId', { ...identityProviderToUpdate, description: 'Updated Description' });
+
+        // no flush to end this test
+        httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/providerId`);
+      });
+
+      it('should require at least one group or one non-blank expression', async () => {
+        const mixed = await getGroupMappingControls(0);
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+
+        await mixed.groupsSelect.clickOptions({ text: 'Group A' });
+        await mixed.expressionsInput.setValue('  \n ');
+        await mixed.expressionsInput.blur();
+
+        expect(await saveBar.isSubmitButtonInvalid()).toEqual(true);
+        expect(await mixed.groupsFormField.getTextErrors()).toEqual(['At least one group or one expression is required.']);
+
+        await mixed.expressionsInput.setValue(departmentExpression);
+
+        expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+        expect(await mixed.groupsFormField.getTextErrors()).toEqual([]);
+      });
+
+      it('should reject an expression line that is not an expression', async () => {
+        const mixed = await getGroupMappingControls(0);
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+
+        await mixed.expressionsInput.setValue(`${jsonPathExpression}\nplatform-admin`);
+        await mixed.expressionsInput.blur();
+
+        expect(await saveBar.isSubmitButtonInvalid()).toEqual(true);
+        expect(await mixed.expressionsFormField.getTextErrors()).toEqual([
+          '"platform-admin" is not an expression. Select groups by id in the Group field.',
+        ]);
+
+        await mixed.expressionsInput.setValue(`${jsonPathExpression}\n{ #profile.team}`);
+
+        expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+        expect(await mixed.expressionsFormField.getTextErrors()).toEqual([]);
       });
     });
 

@@ -206,10 +206,39 @@
 
             <mat-form-field class="identity-provider__card__group-mapping__content__form-field">
               <mat-label>Group</mat-label>
-              <mat-select formControlName="groups" multiple required>
+              <mat-select
+                formControlName="groups"
+                multiple
+                [errorStateMatcher]="groupMappingErrorStateMatcher"
+                data-testid="group-mapping-groups"
+              >
                 <mat-option *ngFor="let group of groups$ | async" [value]="group.id">{{ group.name }}</mat-option>
               </mat-select>
-              <mat-error *ngIf="groupMappingControl.get('groups').hasError('required')">At least one group is required.</mat-error>
+              @if (groupMappingControl.hasError('groupOrExpressionRequired')) {
+                <mat-error data-testid="group-mapping-groups-required-error">At least one group or one expression is required.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field class="identity-provider__card__group-mapping__content__form-field">
+              <mat-label>Group name expressions</mat-label>
+              <textarea
+                matInput
+                formControlName="groupExpressions"
+                rows="3"
+                [errorStateMatcher]="groupMappingErrorStateMatcher"
+                data-testid="group-mapping-group-expressions"
+              ></textarea>
+              <mat-hint
+                >One single-line expression per line, e.g. {{ "{#jsonPath(#profile, '$.groups')}" }}. Each line must resolve to group names,
+                matched exactly against existing group names. Text around an expression, or several expressions on one line, make up a
+                single name, e.g. {{ "team-{#profile['department']}" }}. The syntax is checked on save.</mat-hint
+              >
+              @if (groupMappingControl.get('groupExpressions').hasError('notAnExpression')) {
+                <mat-error data-testid="group-mapping-group-expressions-error"
+                  >"{{ groupMappingControl.get('groupExpressions').getError('notAnExpression').line }}" is not an expression. Select groups
+                  by id in the Group field.</mat-error
+                >
+              }
             </mat-form-field>
           </mat-card-content>
           <mat-card-actions align="end">
