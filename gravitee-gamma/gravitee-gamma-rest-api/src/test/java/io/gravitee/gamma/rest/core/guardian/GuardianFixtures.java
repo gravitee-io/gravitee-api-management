@@ -16,12 +16,17 @@
 package io.gravitee.gamma.rest.core.guardian;
 
 import com.fasterxml.jackson.core.JsonPointer;
+import inmemory.CredentialCrudServiceInMemory;
 import inmemory.EnvironmentCrudServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.environment.model.Environment;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
+import io.gravitee.apim.infra.credential.SpelSecretExpressionParser;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.definition.model.guardian.GuardianSteps;
 import io.gravitee.definition.model.v4.ApiType;
@@ -304,6 +309,24 @@ public final class GuardianFixtures {
         ValidateResourceDomainService resourceValidation
     ) {
         return new ValidateGuardianResourcesDomainService(installed, theEnvironments(), resourceValidation, new JacksonJsonDeserializer());
+    }
+
+    /** A reference to a secret of Gravitee's store, in this environment, which only a user who may read secrets can add. */
+    public static final String A_STORE_SECRET_REFERENCE = "{#secrets.get('/gravitee/db-password:value?envId=" + ENVIRONMENT_ID + "')}";
+
+    /** Judges the secret references a save adds, against what these permissions answer. */
+    public static SecretReferencePermissionDomainService aSecretReferenceValidator(PermissionDomainService permissions) {
+        return new SecretReferencePermissionDomainService(
+            new SpelSecretExpressionParser(),
+            permissions,
+            new CredentialCrudServiceInMemory(),
+            GraviteeJacksonMapper.getInstance()
+        );
+    }
+
+    /** The same, for a user who holds no permission. */
+    public static SecretReferencePermissionDomainService aSecretReferenceValidator() {
+        return aSecretReferenceValidator(Mockito.mock(PermissionDomainService.class));
     }
 
     /** A validator that sees exactly these installed policies. */

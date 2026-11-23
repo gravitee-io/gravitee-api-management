@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.core.guardian.use_case;
 
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.A_STORE_SECRET_REFERENCE;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ENVIRONMENT_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDIAN_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION_ID;
@@ -23,6 +24,7 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianUsage;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianUsageRunning;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidator;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aSecretReferenceValidator;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.anUpdateGuardianCommand;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -36,6 +38,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.secret.exception.SecretReferenceNotAllowedException;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -88,7 +91,14 @@ class UpdateGuardianUseCaseTest {
         useCase = new UpdateGuardianUseCase(
             guardianRepository,
             validator,
-            new GuardianDraftDomainService(guardianRepository, validator, auditDomainService, deployments, aGuardianUsage())
+            new GuardianDraftDomainService(
+                guardianRepository,
+                validator,
+                auditDomainService,
+                deployments,
+                aGuardianUsage(),
+                aSecretReferenceValidator()
+            )
         );
         runByAnApi = new UpdateGuardianUseCase(
             guardianRepository,
@@ -98,7 +108,8 @@ class UpdateGuardianUseCaseTest {
                 validator,
                 auditDomainService,
                 deployments,
-                aGuardianUsageRunning(GUARDIAN_ID)
+                aGuardianUsageRunning(GUARDIAN_ID),
+                aSecretReferenceValidator()
             )
         );
     }
@@ -338,6 +349,20 @@ class UpdateGuardianUseCaseTest {
                     .build()
             ).isInstanceOf(NullPointerException.class);
         }
+    }
+
+    @Test
+    void should_refuse_an_update_adding_a_store_secret_reference_without_the_secret_read_permission_and_store_nothing() {
+        assertThatThrownBy(() ->
+            update(
+                ENVIRONMENT_ID,
+                anUpdateGuardianCommand().definition(aDefinitionToSubmit().name(A_STORE_SECRET_REFERENCE).build()).build()
+            )
+        ).isInstanceOf(SecretReferenceNotAllowedException.class);
+
+        assertThat(guardianRepository.findByEnvironmentId(ENVIRONMENT_ID, GUARDIAN_ID)).hasValueSatisfying(stored ->
+            assertThat(stored.getName()).isEqualTo(aGuardian().build().getName())
+        );
     }
 
     @Test

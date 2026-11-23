@@ -15,12 +15,14 @@
  */
 package io.gravitee.gamma.rest.core.guardian.use_case;
 
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.A_STORE_SECRET_REFERENCE;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ENVIRONMENT_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDIAN_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aCreateGuardian;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidator;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aPolicy;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aSecretReferenceValidator;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
@@ -32,6 +34,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.secret.exception.SecretReferenceNotAllowedException;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -61,7 +64,12 @@ class CreateGuardianUseCaseTest {
     @BeforeEach
     void setUp() {
         guardianRepository.reset();
-        useCase = new CreateGuardianUseCase(guardianRepository, aGuardianValidator(guardianRepository), auditDomainService);
+        useCase = new CreateGuardianUseCase(
+            guardianRepository,
+            aGuardianValidator(guardianRepository),
+            auditDomainService,
+            aSecretReferenceValidator()
+        );
     }
 
     private CreateGuardianUseCase.Output create(CreateGuardian command) {
@@ -86,6 +94,15 @@ class CreateGuardianUseCaseTest {
     @Test
     void should_create_a_guardian_at_version_1() {
         assertThat(create(aCreateGuardian().build()).guardian().getVersion()).isEqualTo(1);
+    }
+
+    @Test
+    void should_refuse_a_guardian_referencing_a_store_secret_without_the_secret_read_permission_and_store_nothing() {
+        var command = aCreateGuardian().name(A_STORE_SECRET_REFERENCE).build();
+
+        assertThatThrownBy(() -> create(command)).isInstanceOf(SecretReferenceNotAllowedException.class);
+
+        assertThat(guardianRepository.storedGuardians()).isEmpty();
     }
 
     @Test
