@@ -124,6 +124,30 @@ class NavigationPortalDomainServiceTest {
     }
 
     @Test
+    void should_require_a_portal_created_from_the_console() {
+        var consolePortal = Portal.createFromConsole(ENV_ID, ORG_ID, "Partners", url("https://partners.acme.io"));
+        portalCrudService.initWith(List.of(aPortal(DEFAULT_PORTAL_ID, "Developer Portal", true), consolePortal));
+
+        assertThat(cut.requireReference(ENV_ID, consolePortal.getId())).isEqualTo(
+            new NavigationItemReference.PortalReference(consolePortal.getId())
+        );
+    }
+
+    @Test
+    void should_list_the_portals_created_from_the_console() {
+        var consolePortal = Portal.createFromConsole(ENV_ID, ORG_ID, "Partners", url("https://partners.acme.io"));
+        portalCrudService.initWith(
+            List.of(
+                consolePortal,
+                aPortal(AUTOMATION_PORTAL_ID, "Automation Portal", false),
+                aPortal(DEFAULT_PORTAL_ID, "Developer Portal", true)
+            )
+        );
+
+        assertThat(cut.findManagedByConsole(ENV_ID)).extracting(Portal::getId).containsExactly(DEFAULT_PORTAL_ID, consolePortal.getId());
+    }
+
+    @Test
     void should_refuse_to_require_a_portal_managed_through_the_automation_api() {
         portalCrudService.initWith(
             List.of(aPortal(DEFAULT_PORTAL_ID, "Developer Portal", true), aPortal(AUTOMATION_PORTAL_ID, "Automation Portal", false))
