@@ -55,7 +55,8 @@ public class CreateDefaultPortalNavigationItemsUseCase {
     private final NavigationPortalDomainService navigationPortalDomainService;
 
     /**
-     * Creates whichever of the following default navigation items are still missing for the environment:
+     * Creates whichever of the following default navigation items, and the homepage, are still missing on the
+     * environment's default portal:
      *
      * <pre>
      * 🗂 Guides
@@ -67,21 +68,22 @@ public class CreateDefaultPortalNavigationItemsUseCase {
      * 🔗 Docs
      * </pre>
      *
-     * Idempotent per item, so it is safe to call more than once for the same environment (e.g. to repair
-     * an environment left partially seeded by a previous failed run): items that already exist by title
-     * under their expected parent are left untouched, and only missing items are created.
+     * Idempotent per item, so it is safe to call more than once for the same portal (e.g. to repair a
+     * portal left partially seeded by a previous failed run): items that already exist by title under their
+     * expected parent are left untouched, and only missing items are created.
      * <p>
      * Nothing is created in an environment without a default portal (see {@link #defaultPortalOf}).
      */
     public void execute(String organizationId, String environmentId) {
-        var defaultPortal = defaultPortalOf(organizationId, environmentId);
-        if (defaultPortal.isEmpty()) {
-            return;
-        }
-        final var owner = defaultPortal.get();
-        final var topLevelTopNavbarItems = portalNavigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalArea(
+        defaultPortalOf(organizationId, environmentId).ifPresent(owner -> execute(organizationId, environmentId, owner));
+    }
+
+    /** Same as {@link #execute(String, String)}, on the given portal: other portals' items are neither read nor changed. */
+    public void execute(String organizationId, String environmentId, NavigationItemReference.PortalReference owner) {
+        final var topLevelTopNavbarItems = portalNavigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
             environmentId,
-            PortalArea.TOP_NAVBAR
+            PortalArea.TOP_NAVBAR,
+            owner
         );
 
         var folderGuides = findByTitleAndType(topLevelTopNavbarItems, "Guides", PortalNavigationItemType.FOLDER);
@@ -153,9 +155,10 @@ public class CreateDefaultPortalNavigationItemsUseCase {
             createPortalLink("Docs", organizationId, environmentId, owner, DOCS_URL, PortalArea.TOP_NAVBAR, null);
         }
 
-        final var existingHomepage = portalNavigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalArea(
+        final var existingHomepage = portalNavigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
             environmentId,
-            PortalArea.HOMEPAGE
+            PortalArea.HOMEPAGE,
+            owner
         );
         if (existingHomepage.isEmpty()) {
             final var contentHomePage = createPortalPageContent(organizationId, environmentId, HOMEPAGE_CONTENT_PATH);
@@ -164,7 +167,7 @@ public class CreateDefaultPortalNavigationItemsUseCase {
     }
 
     /**
-     * Creates the "APIs" section when the environment has none: a published top-level folder of the main
+     * Creates the "APIs" section when the environment's default portal has none: a published top-level folder of the main
      * navigation, which is what an API can be published into. Added after whatever the menu already holds.
      */
     public void ensureApisSection(String organizationId, String environmentId) {
@@ -176,7 +179,7 @@ public class CreateDefaultPortalNavigationItemsUseCase {
      * Automation API portal belongs to the Automation API, and a postponed default portal gets an empty
      * navigation that admins fill once its URL is fixed.
      */
-    private Optional<NavigationItemReference> defaultPortalOf(String organizationId, String environmentId) {
+    private Optional<NavigationItemReference.PortalReference> defaultPortalOf(String organizationId, String environmentId) {
         try {
             return Optional.of(navigationPortalDomainService.resolveReference(organizationId, environmentId));
         } catch (NavigationPortalNotResolvedException e) {
@@ -187,10 +190,8 @@ public class CreateDefaultPortalNavigationItemsUseCase {
 
     private void createApisSectionIfMissing(String organizationId, String environmentId, NavigationItemReference owner) {
         final var hasApisSection = portalNavigationItemsQueryService
-            .findTopLevelItemsByEnvironmentIdAndPortalArea(environmentId, PortalArea.TOP_NAVBAR)
+            .findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(environmentId, PortalArea.TOP_NAVBAR, owner)
             .stream()
-            // The documentation of an API is stored at the top level too: a folder an API owns is not a section
-            .filter(item -> !(item.getReference() instanceof NavigationItemReference.ApiReference))
             .anyMatch(item -> APIS_SECTION_TITLE.equals(item.getTitle()) && item.getType() == PortalNavigationItemType.FOLDER);
         if (!hasApisSection) {
             createPortalFolder(APIS_SECTION_TITLE, organizationId, environmentId, owner, PortalArea.TOP_NAVBAR, null);

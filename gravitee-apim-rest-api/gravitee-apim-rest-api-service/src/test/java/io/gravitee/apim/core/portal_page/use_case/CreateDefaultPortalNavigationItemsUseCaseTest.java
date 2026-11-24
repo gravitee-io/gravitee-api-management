@@ -159,6 +159,89 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
     }
 
     @Test
+    void should_seed_another_portal_although_the_default_portal_has_its_starter_content() {
+        useCase.execute(ORG_ID, ENV_ID);
+        var partners = new NavigationItemReference.PortalReference(navigationPortals.givenConsolePortal(ORG_ID, ENV_ID, "Partners"));
+
+        useCase.execute(ORG_ID, ENV_ID, partners);
+
+        assertThat(itemsOf(partners))
+            .extracting(PortalNavigationItem::getTitle, PortalNavigationItem::getType, PortalNavigationItem::getArea)
+            .containsExactlyInAnyOrder(
+                tuple("Guides", PortalNavigationItemType.FOLDER, PortalArea.TOP_NAVBAR),
+                tuple("Getting started", PortalNavigationItemType.PAGE, PortalArea.TOP_NAVBAR),
+                tuple("Core concepts", PortalNavigationItemType.FOLDER, PortalArea.TOP_NAVBAR),
+                tuple("Authentication", PortalNavigationItemType.PAGE, PortalArea.TOP_NAVBAR),
+                tuple("Making your first API call", PortalNavigationItemType.PAGE, PortalArea.TOP_NAVBAR),
+                tuple("APIs", PortalNavigationItemType.FOLDER, PortalArea.TOP_NAVBAR),
+                tuple("Docs", PortalNavigationItemType.LINK, PortalArea.TOP_NAVBAR),
+                tuple("Home Page", PortalNavigationItemType.PAGE, PortalArea.HOMEPAGE)
+            );
+        assertThat(queryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(ENV_ID, PortalArea.TOP_NAVBAR, partners))
+            .extracting(PortalNavigationItem::getTitle, PortalNavigationItem::getOrder)
+            .containsExactlyInAnyOrder(tuple("Guides", 0), tuple("APIs", 1), tuple("Docs", 2));
+        var partnersFolders = itemsOf(partners)
+            .stream()
+            .filter(item -> item.getType() == PortalNavigationItemType.FOLDER)
+            .map(PortalNavigationItem::getId)
+            .toList();
+        assertThat(itemsOf(partners))
+            .filteredOn(item -> item.getParentId() != null)
+            .allSatisfy(item -> assertThat(partnersFolders).contains(item.getParentId()));
+    }
+
+    @Test
+    void should_leave_the_default_portal_unchanged_when_seeding_another_portal() {
+        useCase.execute(ORG_ID, ENV_ID);
+        var defaultPortal = consolePortal();
+        var before = snapshotOf(itemsOf(defaultPortal));
+        var partners = new NavigationItemReference.PortalReference(navigationPortals.givenConsolePortal(ORG_ID, ENV_ID, "Partners"));
+
+        useCase.execute(ORG_ID, ENV_ID, partners);
+
+        assertThat(snapshotOf(itemsOf(defaultPortal))).isEqualTo(before);
+        assertThat(pageContentCrudService.storage()).hasSize(8);
+    }
+
+    @Test
+    void should_not_reseed_items_a_portal_already_has() {
+        var partners = new NavigationItemReference.PortalReference(navigationPortals.givenConsolePortal(ORG_ID, ENV_ID, "Partners"));
+        useCase.execute(ORG_ID, ENV_ID, partners);
+        var before = snapshotOf(itemsOf(partners));
+
+        useCase.execute(ORG_ID, ENV_ID, partners);
+
+        assertThat(snapshotOf(itemsOf(partners))).isEqualTo(before);
+        assertThat(pageContentCrudService.storage()).hasSize(4);
+    }
+
+    private List<PortalNavigationItem> itemsOf(NavigationItemReference.PortalReference portal) {
+        return queryService
+            .storage()
+            .stream()
+            .filter(item -> portal.equals(item.getReference()))
+            .toList();
+    }
+
+    /** A comparable snapshot of the fields seeding sets, since a stored item may be changed in place. */
+    private static List<String> snapshotOf(List<PortalNavigationItem> items) {
+        return items
+            .stream()
+            .map(item ->
+                String.join(
+                    "|",
+                    item.getId().toString(),
+                    item.getTitle(),
+                    String.valueOf(item.getParentId()),
+                    String.valueOf(item.getOrder()),
+                    String.valueOf(item.getArea())
+                )
+            )
+            .sorted()
+            .toList();
+    }
+
+    @Test
     void should_create_default_items() {
         // When
         useCase.execute(ORG_ID, ENV_ID);
@@ -417,6 +500,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
 
     @Test
     void should_leave_an_existing_apis_section_as_it_is() {
+        navigationPortals.givenDefaultPortalForNavigationFixtures();
         var existing = PortalNavigationItemFixtures.aFolder("APIs");
         existing.setPublished(false);
         queryService.storage().add(existing);
