@@ -744,7 +744,13 @@ paths:
             description: |-
                 Rollback an API to a previous version.
 
-                User must have the API_DEFINITION[UPDATE] permission.
+                Return a 400 HTTP Error:
+                 - when rolling back to a V2 version and a plan of that version no longer exists; a V4 version
+                   recreates the missing plan instead
+                 - when the version named by `eventId` is not a version of this API
+
+                User must have the API_DEFINITION[UPDATE] permission on the API of the path, which is the API the
+                version is restored on: a version of another API, or of another environment, is refused.
             operationId: rollbackApi
             requestBody:
                 content:
@@ -755,6 +761,14 @@ paths:
             responses:
                 "204":
                     description: API successfully rollbacked
+                "400":
+                    description: |-
+                        The version cannot be restored, and nothing has been written: a plan of a V2 version no
+                        longer exists, or it is not a version of this API.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
