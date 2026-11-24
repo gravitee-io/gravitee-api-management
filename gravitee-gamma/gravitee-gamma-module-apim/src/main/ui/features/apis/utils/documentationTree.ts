@@ -13,7 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ApiDocumentationItem, ApiPortalPublication, ApiPortalPublishLocation } from '../types/apiDocumentation';
+import type {
+    ApiDocumentationItem,
+    ApiPortalPublication,
+    ApiPortalPublishLocation,
+    ApiPortalPublishPortal,
+} from '../types/apiDocumentation';
 
 export interface DocumentationRow {
     item: ApiDocumentationItem;
@@ -194,6 +199,15 @@ export function allowedChanges(state: SyncState): AllowedChanges {
 }
 
 /** Where the API is visible, if anywhere: a hidden listing does not make the API published. */
+/** The publications in the given portals: the console shows and unpublishes only those of the portals it can publish to. */
+export function publicationsInPortals(
+    publications: ApiPortalPublication[],
+    portals: ApiPortalPublishPortal[],
+): ApiPortalPublication[] {
+    const portalIds = new Set(portals.map(portal => portal.id));
+    return publications.filter(publication => portalIds.has(publication.portalId));
+}
+
 export function getPublishedPublication(publications: ApiPortalPublication[]): ApiPortalPublication | undefined {
     return publications.find(publication => publication.portalNavigationItem.published);
 }
