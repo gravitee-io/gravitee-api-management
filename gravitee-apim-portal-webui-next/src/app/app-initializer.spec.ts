@@ -30,7 +30,7 @@ import { ThemeService } from '../services/theme.service';
 import { IdentityProviderServiceStub, OAuthServiceStub } from '../testing/app-testing.module';
 
 describe('initApp', () => {
-  const bootstrapUrl = 'https://apim.example.com/portal/ui/bootstrap';
+  const bootstrapUrl = 'https://apim.example.com/portal/ui/bootstrap?host=localhost';
   let httpTestingController: HttpTestingController;
   let navigate: jest.SpyInstance;
 
