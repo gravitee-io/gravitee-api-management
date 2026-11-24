@@ -88,7 +88,8 @@ public class GuardiansResource {
         @QueryParam("q") String q,
         @QueryParam("page") Integer page,
         @QueryParam("perPage") Integer perPage,
-        @QueryParam("sortBy") String sortBy
+        @QueryParam("sortBy") String sortBy,
+        @QueryParam("deployedFor") String deployedFor
     ) {
         var ctx = GraviteeContext.getExecutionContext();
         var output = searchGuardianUseCase.execute(
@@ -98,6 +99,7 @@ public class GuardiansResource {
                 .pageNumber(page == null ? 0 : page)
                 .pageSize(perPage == null ? 0 : perPage)
                 .sortBy(sortBy)
+                .deployedFor(deployedFor)
                 .build()
         );
 

@@ -66,11 +66,9 @@ paths:
                 the two storage backends match it differently under the hood, so it is escaped
                 before it reaches either.
 
-                **There is no filter on `lifecycleState` or on `apiTypes` yet**, so a caller offering
-                "the deployed Guardians this API can run" filters the page it received, and only that
-                page. Neither can be pushed to the store as it stands: the deployed state is derived
-                from the deployment history rather than stored, and `apiTypes` lives inside the
-                serialized definition rather than in a column.
+                `deployedFor` lists what an API of that type can turn on: the Guardians the gateways
+                run whose deployed revision supports the type. It filters before the page is cut, so
+                `totalElements` counts the Guardians offered, not the ones stored.
             operationId: searchGuardians
             parameters:
                 - name: q
@@ -119,6 +117,14 @@ paths:
                           - "-createdAt"
                           - updatedAt
                           - "-updatedAt"
+                - name: deployedFor
+                  in: query
+                  required: false
+                  description: |
+                      Label of an API type, such as `llm-proxy`. Only the Guardians the gateways run
+                      whose deployed revision supports that type are listed. An unknown type answers 400.
+                  schema:
+                      type: string
             responses:
                 "200":
                     description: A page of Guardians.
