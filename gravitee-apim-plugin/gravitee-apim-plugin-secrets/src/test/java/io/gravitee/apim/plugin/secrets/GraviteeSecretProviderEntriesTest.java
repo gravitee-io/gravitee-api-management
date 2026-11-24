@@ -52,6 +52,13 @@ class GraviteeSecretProviderEntriesTest {
     }
 
     @Test
+    void should_accept_an_empty_secrets_block() {
+        gravitee.put("api.secrets", "");
+
+        assertThat(misconfiguration()).isEmpty();
+    }
+
+    @Test
     void should_refuse_a_gravitee_entry_whose_id_is_not_gravitee() {
         gravitee.put("api.secrets.providers[0].plugin", "gravitee");
         gravitee.put("api.secrets.providers[0].id", "internal");

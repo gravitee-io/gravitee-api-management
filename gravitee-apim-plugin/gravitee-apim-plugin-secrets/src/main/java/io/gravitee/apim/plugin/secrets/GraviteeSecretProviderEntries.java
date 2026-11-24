@@ -17,6 +17,7 @@ package io.gravitee.apim.plugin.secrets;
 
 import io.gravitee.common.util.EnvironmentUtils;
 import io.gravitee.secrets.api.util.ConfigHelper;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -28,7 +29,7 @@ final class GraviteeSecretProviderEntries {
     private GraviteeSecretProviderEntries() {}
 
     static Optional<String> misconfiguration(ConfigurableEnvironment environment) {
-        Map<String, Object> secrets = ConfigHelper.removePrefix(EnvironmentUtils.getAllProperties(environment), SECRETS);
+        Map<String, Object> secrets = ConfigHelper.removePrefix(secretsProperties(environment), SECRETS);
         for (int index = 0; secrets.containsKey(entry(index) + ".plugin"); index++) {
             Map<String, Object> entry = ConfigHelper.removePrefix(secrets, entry(index));
             if (!isGraviteeEntry(entry)) {
@@ -58,6 +59,13 @@ final class GraviteeSecretProviderEntries {
             }
         }
         return Optional.empty();
+    }
+
+    // removePrefix cuts the separator off each key, so the bare api.secrets key of an empty block would throw.
+    private static Map<String, Object> secretsProperties(ConfigurableEnvironment environment) {
+        Map<String, Object> properties = new HashMap<>(EnvironmentUtils.getAllProperties(environment));
+        properties.keySet().removeIf(key -> !key.startsWith(SECRETS + "."));
+        return properties;
     }
 
     private static boolean isGraviteeEntry(Map<String, Object> entry) {
