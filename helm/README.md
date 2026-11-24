@@ -180,12 +180,12 @@ See [MongoDB replicaset](https://artifacthub.io/packages/helm/bitnami/mongodb) f
 | `es.security.username`       | Elasticsearch username                            | `example`                                                              |
 | `es.security.password`       | Elasticsearch password                            | `example`                                                              |
 | `es.security.apiKey`         | Elasticsearch API key, rendered when set whatever `es.security.enabled`, instead of username and password | `""`   |
-| `es.tls.enabled`             | Elasticsearch TLS enabled                         | false                                                                  |
-| `es.tls.keystore.type`       | Elasticsearch TLS keystore type (jks, pem or pfx) | `null`                                                                 |
-| `es.tls.keystore.path`       | Elasticsearch TLS keystore path (jks, pfx)        | `null`                                                                 |
-| `es.tls.keystore.password`   | Elasticsearch TLS keystore password (jks, pfx)    | `null`                                                                 |
-| `es.tls.keystore.certs`      | Elasticsearch TLS certs (only pems)               | `null`                                                                 |
-| `es.tls.keystore.keys`       | Elasticsearch TLS keys (only pems)                | `null`                                                                 |
+| `es.ssl.enabled`             | Elasticsearch SSL enabled                         | false                                                                  |
+| `es.ssl.keystore.type`       | Elasticsearch SSL keystore type (jks, pem or pfx) | `null`                                                                 |
+| `es.ssl.keystore.path`       | Elasticsearch SSL keystore path (jks, pfx)        | `null`                                                                 |
+| `es.ssl.keystore.password`   | Elasticsearch SSL keystore password (jks, pfx)    | `null`                                                                 |
+| `es.ssl.keystore.certs`      | Elasticsearch SSL certs (only pems)               | `null`                                                                 |
+| `es.ssl.keystore.keys`       | Elasticsearch SSL keys (only pems)                | `null`                                                                 |
 | `es.ssl.trustAll`            | Accept any Elasticsearch certificate, as APIM did before 4.14, rendered when set whatever `es.ssl.enabled` | `null` (certificates verified) |
 | `es.ssl.truststore.type`     | Type of the truststore that verifies the Elasticsearch certificate (jks, pkcs12 or pem); the JVM default one applies when unset | `null` |
 | `es.ssl.truststore.path`     | Path of the truststore                            | `null`                                                                 |
