@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.apim.core.audit.model.event.AuditEvent;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.management.rest.model.wrapper.AuditEntityMetadataPage;
@@ -47,7 +48,7 @@ import org.reflections.Reflections;
 @Tag(name = "Audit")
 public class AuditResource extends AbstractResource {
 
-    private static final List<Audit.AuditEvent> events = new ArrayList<>();
+    private static volatile List<String> events;
 
     @Inject
     private AuditService auditService;
@@ -122,18 +123,19 @@ public class AuditResource extends AbstractResource {
         }
     )
     public Response getAuditEvents() {
-        if (events.isEmpty()) {
-            Set<Class<? extends Audit.AuditEvent>> subTypesOf = new Reflections("io.gravitee.repository.management.model").getSubTypesOf(
-                Audit.AuditEvent.class
-            );
-            for (Class<? extends Audit.AuditEvent> clazz : subTypesOf) {
-                if (clazz.isEnum()) {
-                    events.addAll(Arrays.asList(clazz.getEnumConstants()));
-                }
-            }
-
-            events.sort(Comparator.comparing(Audit.AuditEvent::name));
+        if (events == null) {
+            var names = new TreeSet<String>();
+            addEventNames(names, new Reflections("io.gravitee.repository.management.model").getSubTypesOf(Audit.AuditEvent.class));
+            addEventNames(names, new Reflections("io.gravitee.apim.core").getSubTypesOf(AuditEvent.class));
+            events = List.copyOf(names);
         }
         return Response.ok(events).build();
+    }
+
+    private static void addEventNames(Set<String> names, Set<? extends Class<?>> types) {
+        types
+            .stream()
+            .filter(Class::isEnum)
+            .forEach(type -> Arrays.stream(type.getEnumConstants()).forEach(event -> names.add(((Enum<?>) event).name())));
     }
 }
