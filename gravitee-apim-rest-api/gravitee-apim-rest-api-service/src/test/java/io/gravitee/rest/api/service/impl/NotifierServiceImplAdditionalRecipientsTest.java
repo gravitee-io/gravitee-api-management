@@ -61,6 +61,9 @@ import org.mockito.stubbing.Answer;
 @ExtendWith(MockitoExtension.class)
 class NotifierServiceImplAdditionalRecipientsTest {
 
+    private static final String SUBSCRIBER_DROPPED =
+        "addresses emailed for the application hook: the EMAIL recipient given by the caller must not be dropped";
+
     private NotifierServiceImpl cut;
 
     @Mock
@@ -139,7 +142,7 @@ class NotifierServiceImplAdditionalRecipientsTest {
             eq(params),
             recipientsCaptor.capture()
         );
-        assertThat(recipientsCaptor.getValue()).containsExactlyInAnyOrder("creator@gio.test", "subscriber@gio.test");
+        assertThat(recipientsCaptor.getValue()).as(SUBSCRIBER_DROPPED).containsExactlyInAnyOrder("creator@gio.test", "subscriber@gio.test");
     }
 
     @Test
@@ -172,7 +175,7 @@ class NotifierServiceImplAdditionalRecipientsTest {
             eq(params),
             recipientsCaptor.capture()
         );
-        assertThat(recipientsCaptor.getValue()).containsExactly("subscriber@gio.test");
+        assertThat(recipientsCaptor.getValue()).as(SUBSCRIBER_DROPPED).containsExactly("subscriber@gio.test");
         verifyNoInteractions(webhookNotifierService);
     }
 
@@ -208,7 +211,7 @@ class NotifierServiceImplAdditionalRecipientsTest {
             eq(params),
             recipientsCaptor.capture()
         );
-        assertThat(recipientsCaptor.getValue()).containsExactlyInAnyOrder("creator@gio.test", "subscriber@gio.test");
+        assertThat(recipientsCaptor.getValue()).as(SUBSCRIBER_DROPPED).containsExactlyInAnyOrder("creator@gio.test", "subscriber@gio.test");
         verifyNoInteractions(webhookNotifierService);
     }
 
@@ -250,7 +253,9 @@ class NotifierServiceImplAdditionalRecipientsTest {
             eq(params),
             recipientsCaptor.capture()
         );
-        assertThat(recipientsCaptor.getValue()).containsExactlyInAnyOrder("evaluated@gio.test", "sub${scriber};me@gio.test");
+        assertThat(recipientsCaptor.getValue())
+            .as(SUBSCRIBER_DROPPED)
+            .containsExactlyInAnyOrder("evaluated@gio.test", "sub${scriber};me@gio.test");
     }
 
     /**
