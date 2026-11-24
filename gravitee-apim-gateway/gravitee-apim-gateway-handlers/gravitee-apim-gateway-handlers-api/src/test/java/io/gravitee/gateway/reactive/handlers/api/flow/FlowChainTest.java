@@ -15,11 +15,14 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.flow;
 
+import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_RESOLVED_PATH;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.flow.FlowResolver;
@@ -28,6 +31,8 @@ import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.observers.TestObserver;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -155,5 +160,72 @@ class FlowChainTest {
 
         // Make sure policy chain has not been created for flow2.
         verify(policyChainFactory, times(0)).create(FLOW_CHAIN_ID, flow2, ExecutionPhase.REQUEST);
+    }
+
+    @Test
+    public void should_expose_the_path_of_each_flow_before_running_its_request_policies() {
+        final Flow flowA = flowWithSteps("/a", List.of(new Step()), List.of());
+        final Flow flowB = flowWithSteps("/b", List.of(new Step()), List.of());
+        when(flowResolver.resolve(ctx)).thenReturn(Flowable.just(flowA, flowB));
+
+        final List<String> events = recordResolvedPath();
+        givenPolicyChain(flowA, ExecutionPhase.REQUEST, events, "policies of /a");
+        givenPolicyChain(flowB, ExecutionPhase.REQUEST, events, "policies of /b");
+
+        cut.execute(ctx, ExecutionPhase.REQUEST).test().assertResult();
+
+        assertThat(events).containsExactly("resolved-path=/a", "policies of /a", "resolved-path=/b", "policies of /b");
+    }
+
+    @Test
+    public void should_expose_the_path_of_the_flow_before_running_its_response_policies() {
+        final Flow flow = flowWithSteps("/a", List.of(), List.of(new Step()));
+        when(flowResolver.resolve(ctx)).thenReturn(Flowable.just(flow));
+
+        final List<String> events = recordResolvedPath();
+        givenPolicyChain(flow, ExecutionPhase.RESPONSE, events, "policies of /a");
+
+        cut.execute(ctx, ExecutionPhase.RESPONSE).test().assertResult();
+
+        assertThat(events).containsExactly("resolved-path=/a", "policies of /a");
+    }
+
+    @Test
+    public void should_keep_the_previous_path_when_the_flow_has_no_step_for_the_phase() {
+        final Flow flowA = flowWithSteps("/a", List.of(new Step()), List.of());
+        final Flow flowWithResponseStepsOnly = flowWithSteps("/b", List.of(), List.of(new Step()));
+        when(flowResolver.resolve(ctx)).thenReturn(Flowable.just(flowA, flowWithResponseStepsOnly));
+
+        final List<String> events = recordResolvedPath();
+        givenPolicyChain(flowA, ExecutionPhase.REQUEST, events, "policies of /a");
+        givenPolicyChain(flowWithResponseStepsOnly, ExecutionPhase.REQUEST, events, "policies of /b");
+
+        cut.execute(ctx, ExecutionPhase.REQUEST).test().assertResult();
+
+        assertThat(events).containsExactly("resolved-path=/a", "policies of /a", "policies of /b");
+    }
+
+    private List<String> recordResolvedPath() {
+        final List<String> events = new ArrayList<>();
+        lenient()
+            .doAnswer(invocation -> events.add("resolved-path=" + invocation.getArgument(1)))
+            .when(ctx)
+            .setAttribute(eq(ATTR_RESOLVED_PATH), any());
+        return events;
+    }
+
+    private void givenPolicyChain(Flow flow, ExecutionPhase phase, List<String> events, String event) {
+        final HttpPolicyChain policyChain = mock(HttpPolicyChain.class);
+        when(policyChainFactory.create(FLOW_CHAIN_ID, flow, phase)).thenReturn(policyChain);
+        // Like a real policy chain, the policies run on subscription: that is when they compute their rate-limit key.
+        when(policyChain.execute(ctx)).thenReturn(Completable.fromRunnable(() -> events.add(event)));
+    }
+
+    private static Flow flowWithSteps(String path, List<Step> pre, List<Step> post) {
+        final Flow flow = new Flow();
+        flow.getPathOperator().setPath(path);
+        flow.setPre(pre);
+        flow.setPost(post);
+        return flow;
     }
 }
