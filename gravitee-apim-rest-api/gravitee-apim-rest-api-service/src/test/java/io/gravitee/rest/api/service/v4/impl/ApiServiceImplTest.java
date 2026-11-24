@@ -1045,7 +1045,7 @@ public class ApiServiceImplTest {
         prepareUpdate();
         var internalFlow = Flow.builder()
             .name("internal")
-            .request(List.of(Step.builder().policy("guardian-policy").configuration("{\"guardianId\":\"guardian-id\"}").build()))
+            .request(List.of(Step.builder().policy("guardrail-policy").configuration("{\"guardrailId\":\"guardrail-id\"}").build()))
             .build();
         io.gravitee.definition.model.v4.Api storedDefinition = new io.gravitee.definition.model.v4.Api();
         storedDefinition.setId(API_ID);

@@ -76,9 +76,9 @@ public interface PolicyPluginMapper {
         if (a2aProxyPhases != null) {
             policyPluginAllOfFlowPhaseCompatibility.A2A_PROXY(mapToFlowPhase(a2aProxyPhases));
         }
-        var guardianPhases = flowPhaseCompatibility.get(ApiProtocolType.GUARDIAN);
-        if (guardianPhases != null) {
-            policyPluginAllOfFlowPhaseCompatibility.GUARDIAN(mapToFlowPhase(guardianPhases));
+        var guardrailPhases = flowPhaseCompatibility.get(ApiProtocolType.GUARDRAIL);
+        if (guardrailPhases != null) {
+            policyPluginAllOfFlowPhaseCompatibility.GUARDRAIL(mapToFlowPhase(guardrailPhases));
         }
         return policyPluginAllOfFlowPhaseCompatibility;
     }

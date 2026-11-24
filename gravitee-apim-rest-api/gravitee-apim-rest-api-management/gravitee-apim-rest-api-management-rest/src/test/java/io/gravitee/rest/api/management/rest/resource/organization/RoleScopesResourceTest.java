@@ -77,7 +77,7 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
             "ENTRYPOINT",
             "EXPLORER",
             "GROUP",
-            "GUARDIAN",
+            "GUARDRAIL",
             "HITL_DECISIONS",
             "HITL_NOTIFICATIONS",
             "HITL_RULES",

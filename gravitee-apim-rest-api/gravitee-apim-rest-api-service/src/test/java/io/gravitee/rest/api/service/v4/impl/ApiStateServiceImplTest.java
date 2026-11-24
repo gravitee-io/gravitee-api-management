@@ -253,7 +253,9 @@ public class ApiStateServiceImplTest {
         api = new Api();
         when(apiValidationService.canDeploy(executionContext, API_ID)).thenReturn(true);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        doThrow(new ApiNotDeployableException("Guardian 'guardian-1' is not deployed")).when(deploymentValidator).validateDeployable(any());
+        doThrow(new ApiNotDeployableException("Guardrail 'guardrail-1' is not deployed"))
+            .when(deploymentValidator)
+            .validateDeployable(any());
 
         assertThatExceptionOfType(ApiNotDeployableException.class).isThrownBy(() ->
             apiStateService.start(executionContext, API_ID, USER_NAME)
@@ -311,7 +313,7 @@ public class ApiStateServiceImplTest {
     }
 
     /**
-     * A Guardian change republishes the deployment the gateways run, published or started, under a number of its own
+     * A Guardrail change republishes the deployment the gateways run, published or started, under a number of its own
      * written to the latest event of the API ({@code DeployApiInternalFlowDomainService}): the deployment that follows
      * takes the number after it, whatever the type of that event.
      */
@@ -341,13 +343,13 @@ public class ApiStateServiceImplTest {
 
     /**
      * A gateway that missed the stop, the two falling within one synchronization, sees the start alone: it replaces
-     * the API it runs only under another number, so a start keeping the number would leave a Guardian changed while
+     * the API it runs only under another number, so a start keeping the number would leave a Guardrail changed while
      * the API was stopped unseen.
      */
     @Test
     public void should_start_under_the_number_after_the_one_of_the_latest_event() throws Exception {
-        givenTheStoredDefinition(guardianDefinition("guardian-2"));
-        givenTheLastPublishedDefinition(guardianDefinition("guardian-1"), "7");
+        givenTheStoredDefinition(guardrailDefinition("guardrail-2"));
+        givenTheLastPublishedDefinition(guardrailDefinition("guardrail-1"), "7");
         givenTheLatestEvent(io.gravitee.repository.management.model.EventType.STOP_API, "8");
 
         apiStateService.start(executionContext, API_ID, USER_NAME);
@@ -356,7 +358,7 @@ public class ApiStateServiceImplTest {
     }
 
     /**
-     * The latest event may be a Guardian change republished on a started API, which is no published event: a stop
+     * The latest event may be a Guardrail change republished on a started API, which is no published event: a stop
      * taking the number of the last published one would hand the deployment that follows a number already used.
      */
     @Test
@@ -366,7 +368,7 @@ public class ApiStateServiceImplTest {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         updatedApi.setLifecycleState(LifecycleState.STOPPED);
         when(apiRepository.update(any())).thenReturn(updatedApi);
-        givenTheLastPublishedDefinition(guardianDefinition("guardian-1"), "7");
+        givenTheLastPublishedDefinition(guardrailDefinition("guardrail-1"), "7");
         givenTheLatestEvent(io.gravitee.repository.management.model.EventType.START_API, "8");
 
         apiStateService.stop(executionContext, API_ID, USER_NAME);
@@ -448,31 +450,31 @@ public class ApiStateServiceImplTest {
     }
 
     /**
-     * A Guardian change reaches the gateways as soon as it is written, without a deployment, so the last published
-     * definition may predate it: restarting the API from that definition alone would silently drop the Guardian.
+     * A Guardrail change reaches the gateways as soon as it is written, without a deployment, so the last published
+     * definition may predate it: restarting the API from that definition alone would silently drop the Guardrail.
      */
     @Test
     public void should_restart_an_api_with_the_internal_flow_it_stores_rather_than_the_published_one() throws Exception {
-        givenTheStoredDefinition(guardianDefinition("guardian-2"));
-        givenTheLastPublishedDefinition(guardianDefinition("guardian-1"));
+        givenTheStoredDefinition(guardrailDefinition("guardrail-2"));
+        givenTheLastPublishedDefinition(guardrailDefinition("guardrail-1"));
 
         apiStateService.start(executionContext, API_ID, USER_NAME);
 
         var started = objectMapper.readTree(definitionStartedWith());
         assertSoftly(softly -> {
             softly
-                .assertThat(started.at("/internalFlow/request/0/configuration/guardianId").asText())
-                .as("guardian started")
-                .isEqualTo("guardian-2");
+                .assertThat(started.at("/internalFlow/request/0/configuration/guardrailId").asText())
+                .as("guardrail started")
+                .isEqualTo("guardrail-2");
             softly.assertThat(started.at("/plans/0/id").asText()).as("plan of the published definition").isEqualTo("plan-published");
         });
     }
 
-    /** The reverse: a Guardian turned off since the last deployment must not come back on a restart. */
+    /** The reverse: a Guardrail turned off since the last deployment must not come back on a restart. */
     @Test
     public void should_restart_an_api_without_the_internal_flow_it_no_longer_stores() throws Exception {
-        givenTheStoredDefinition(guardianDefinition(null));
-        givenTheLastPublishedDefinition(guardianDefinition("guardian-1"));
+        givenTheStoredDefinition(guardrailDefinition(null));
+        givenTheLastPublishedDefinition(guardrailDefinition("guardrail-1"));
 
         apiStateService.start(executionContext, API_ID, USER_NAME);
 
@@ -522,12 +524,12 @@ public class ApiStateServiceImplTest {
         return started.getValue().getDefinition();
     }
 
-    private static String guardianDefinition(String guardianId) {
-        var internalFlow = guardianId == null
+    private static String guardrailDefinition(String guardrailId) {
+        var internalFlow = guardrailId == null
             ? ""
             : """
-            "internalFlow": { "request": [ { "policy": "guardian-policy", "configuration": { "guardianId": "%s" } } ] },
-            """.formatted(guardianId);
+            "internalFlow": { "request": [ { "policy": "guardrail-policy", "configuration": { "guardrailId": "%s" } } ] },
+            """.formatted(guardrailId);
         return """
         { "id": "%s", "definitionVersion": "4.0.0", "type": "proxy", %s "plans": [ { "id": "plan-published" } ] }
         """.formatted(API_ID, internalFlow);

@@ -24,7 +24,7 @@ import io.gravitee.apim.core.api.model.Sortable;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.definition.model.guardian.GuardianSteps;
+import io.gravitee.definition.model.guardrail.GuardrailSteps;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.context.OriginContext;
 import java.util.ArrayList;
@@ -75,15 +75,17 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
                     isNull(apiCriteria.getGroups()) ||
                     apiCriteria.getGroups().isEmpty() ||
                     (api.getGroups() != null && !Collections.disjoint(api.getGroups(), apiCriteria.getGroups()));
-                var matchesGuardian =
-                    isNull(apiCriteria) || isNull(apiCriteria.getGuardian()) || indexedGuardiansOf(api).contains(apiCriteria.getGuardian());
+                var matchesGuardrail =
+                    isNull(apiCriteria) ||
+                    isNull(apiCriteria.getGuardrail()) ||
+                    indexedGuardrailsOf(api).contains(apiCriteria.getGuardrail());
                 return (
                     matchesIntegrationId &&
                     matchesApiId &&
                     matchesLifecycleState &&
                     matchesEnvironmentId &&
                     matchesGroups &&
-                    matchesGuardian
+                    matchesGuardrail
                 );
             })
             .toList();
@@ -107,7 +109,7 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
                 apiCriteria.getIds() != null ||
                 apiCriteria.getDefinitionVersion() != null ||
                 apiCriteria.getEnvironmentId() != null ||
-                apiCriteria.getGuardian() != null ||
+                apiCriteria.getGuardrail() != null ||
                 (apiCriteria.getGroups() != null && !apiCriteria.getGroups().isEmpty()))
         ) {
             return this.storage()
@@ -132,7 +134,8 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
                         apiCriteria.getGroups().isEmpty() ||
                         (api.getGroups() != null && !Collections.disjoint(api.getGroups(), apiCriteria.getGroups()));
                     var matchesApiType = isNull(apiCriteria.getApiTypes()) || apiCriteria.getApiTypes().contains(api.getType());
-                    var matchesGuardian = isNull(apiCriteria.getGuardian()) || indexedGuardiansOf(api).contains(apiCriteria.getGuardian());
+                    var matchesGuardrail =
+                        isNull(apiCriteria.getGuardrail()) || indexedGuardrailsOf(api).contains(apiCriteria.getGuardrail());
                     return (
                         matchesIntegrationId &&
                         matchesApiId &&
@@ -141,7 +144,7 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
                         matchesEnvironmentId &&
                         matchesGroups &&
                         matchesApiType &&
-                        matchesGuardian
+                        matchesGuardrail
                     );
                 });
         }
@@ -149,11 +152,11 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
     }
 
     /**
-     * The store answers this from the Guardian index it keeps beside the definition, written by the same operation;
+     * The store answers this from the Guardrail index it keeps beside the definition, written by the same operation;
      * the double reads the definition itself, which gives the same answer without a second place to keep in step.
      */
-    private static Set<String> indexedGuardiansOf(Api api) {
-        return GuardianSteps.guardianIdsOf(api.internalFlow());
+    private static Set<String> indexedGuardrailsOf(Api api) {
+        return GuardrailSteps.guardrailIdsOf(api.internalFlow());
     }
 
     @Override

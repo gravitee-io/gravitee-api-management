@@ -19,7 +19,7 @@ import io.gravitee.apim.core.api.crud_service.ApiDefinitionCrudService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
-import io.gravitee.definition.model.guardian.GuardianSteps;
+import io.gravitee.definition.model.guardrail.GuardrailSteps;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import java.time.ZonedDateTime;
@@ -46,7 +46,7 @@ public class ApiDefinitionCrudServiceImpl implements ApiDefinitionCrudService {
             return apiRepository.updateDefinition(
                 api.getId(),
                 ApiAdapter.INSTANCE.serializeApiDefinition(api),
-                guardiansOf(api),
+                guardrailsOf(api),
                 toDate(api.getUpdatedAt()),
                 toDate(expectedUpdatedAt)
             );
@@ -56,8 +56,8 @@ public class ApiDefinitionCrudServiceImpl implements ApiDefinitionCrudService {
     }
 
     /** The index is read out of the definition being written rather than taken from the caller. */
-    private static Set<String> guardiansOf(Api api) {
-        return GuardianSteps.guardianIdsOf(api.internalFlow());
+    private static Set<String> guardrailsOf(Api api) {
+        return GuardrailSteps.guardrailIdsOf(api.internalFlow());
     }
 
     private static Date toDate(ZonedDateTime at) {

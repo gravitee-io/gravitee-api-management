@@ -182,19 +182,19 @@ public class AuditResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_list_the_guardian_events() {
+    public void should_list_the_guardrail_events() {
         final Response response = envTarget().path("events").request().get();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         assertThat(response.readEntity(String.class))
             .as("listed audit events")
             .contains(
-                "\"GUARDIAN_CREATED\"",
-                "\"GUARDIAN_UPDATED\"",
-                "\"GUARDIAN_DEPLOYED\"",
-                "\"GUARDIAN_UNDEPLOYED\"",
-                "\"GUARDIAN_ROLLED_BACK\"",
-                "\"GUARDIAN_DELETED\""
+                "\"GUARDRAIL_CREATED\"",
+                "\"GUARDRAIL_UPDATED\"",
+                "\"GUARDRAIL_DEPLOYED\"",
+                "\"GUARDRAIL_UNDEPLOYED\"",
+                "\"GUARDRAIL_ROLLED_BACK\"",
+                "\"GUARDRAIL_DELETED\""
             );
     }
 
