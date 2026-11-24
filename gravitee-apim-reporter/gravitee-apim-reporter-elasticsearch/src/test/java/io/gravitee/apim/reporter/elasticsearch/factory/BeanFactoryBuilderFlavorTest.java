@@ -135,6 +135,21 @@ class BeanFactoryBuilderFlavorTest {
         }
 
         @Test
+        void should_write_to_serverless_when_it_reports_a_major_version_this_gateway_does_not_know() {
+            when(client.getInfo()).thenReturn(Single.just(info("serverless", "10.0.0")));
+
+            assertThat(BeanFactoryBuilder.buildFactory(client, configuration)).isInstanceOf(ServerlessBeanFactory.class);
+            assertThat(messages(Level.WARN)).anySatisfy(message -> assertThat(message).contains("10.0.0"));
+        }
+
+        @Test
+        void should_stay_inactive_when_a_classic_cluster_reports_a_major_version_this_gateway_does_not_know() {
+            when(client.getInfo()).thenReturn(Single.just(info("default", "10.0.0")));
+
+            assertThat(BeanFactoryBuilder.buildFactory(client, configuration)).isNull();
+        }
+
+        @Test
         void should_accept_the_flavor_whatever_its_case() {
             configuration.setFlavor("Classic");
             givenCluster("serverless");
@@ -323,8 +338,12 @@ class BeanFactoryBuilderFlavorTest {
     }
 
     private static ElasticsearchInfo info(String buildFlavor) {
+        return info(buildFlavor, "8.17.2");
+    }
+
+    private static ElasticsearchInfo info(String buildFlavor, String number) {
         final Version version = new Version();
-        version.setNumber("8.17.2");
+        version.setNumber(number);
         version.setBuildFlavor(buildFlavor);
         final ElasticsearchInfo info = new ElasticsearchInfo();
         info.setVersion(version);
