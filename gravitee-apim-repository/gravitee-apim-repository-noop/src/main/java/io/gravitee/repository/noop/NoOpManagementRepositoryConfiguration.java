@@ -89,8 +89,8 @@ public class NoOpManagementRepositoryConfiguration {
     }
 
     @Bean
-    public GuardianRepository guardianRepository() {
-        return new NoOpGuardianRepository();
+    public GuardrailRepository guardrailRepository() {
+        return new NoOpGuardrailRepository();
     }
 
     @Bean

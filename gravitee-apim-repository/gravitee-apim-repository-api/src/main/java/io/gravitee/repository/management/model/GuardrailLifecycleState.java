@@ -18,7 +18,7 @@ package io.gravitee.repository.management.model;
 /**
  * @author GraviteeSource Team
  */
-public enum GuardianLifecycleState {
+public enum GuardrailLifecycleState {
     DEPLOYED,
     UNDEPLOYED,
     PENDING,

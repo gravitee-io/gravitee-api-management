@@ -222,7 +222,7 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     protected ApiCategoryOrderRepository apiCategoryOrderRepository;
 
     @Inject
-    protected GuardianRepository guardianRepository;
+    protected GuardrailRepository guardrailRepository;
 
     @Inject
     protected SharedPolicyGroupRepository sharedPolicyGroupRepository;
@@ -362,7 +362,7 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             case Integration integration -> integrationRepository.create(integration);
             case AsyncJob job -> asyncJobRepository.create(job);
             case ApiCategoryOrder apiCategoryOrder -> apiCategoryOrderRepository.create(apiCategoryOrder);
-            case Guardian guardian -> guardianRepository.create(guardian);
+            case Guardrail guardrail -> guardrailRepository.create(guardrail);
             case SharedPolicyGroup sharedPolicyGroup -> sharedPolicyGroupRepository.create(sharedPolicyGroup);
             case PortalMenuLink portalMenuLink -> portalMenuLinkRepository.create(portalMenuLink);
             case Portal portal -> portalRepository.create(portal);

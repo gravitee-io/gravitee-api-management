@@ -17,11 +17,11 @@ package io.gravitee.repository.noop.management;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.GuardianRepository;
-import io.gravitee.repository.management.api.search.GuardianCriteria;
+import io.gravitee.repository.management.api.GuardrailRepository;
+import io.gravitee.repository.management.api.search.GuardrailCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
-import io.gravitee.repository.management.model.Guardian;
+import io.gravitee.repository.management.model.Guardrail;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -31,28 +31,28 @@ import java.util.Set;
 /**
  * @author GraviteeSource Team
  */
-public class NoOpGuardianRepository extends AbstractNoOpManagementRepository<Guardian, String> implements GuardianRepository {
+public class NoOpGuardrailRepository extends AbstractNoOpManagementRepository<Guardrail, String> implements GuardrailRepository {
 
     @Override
-    public List<Guardian> findByEnvironmentIdAndIds(String environmentId, Set<String> guardianIds) {
+    public List<Guardrail> findByEnvironmentIdAndIds(String environmentId, Set<String> guardrailIds) {
         return List.of();
     }
 
     @Override
-    public void updateUpdatedAt(String environmentId, String guardianId, Date updatedAt) {}
+    public void updateUpdatedAt(String environmentId, String guardrailId, Date updatedAt) {}
 
     @Override
-    public Optional<Guardian> updateIfVersionMatches(Guardian guardian, int expectedVersion) {
+    public Optional<Guardrail> updateIfVersionMatches(Guardrail guardrail, int expectedVersion) {
         return Optional.empty();
     }
 
     @Override
-    public Page<Guardian> search(GuardianCriteria criteria, Pageable pageable, Sortable sortable) {
+    public Page<Guardrail> search(GuardrailCriteria criteria, Pageable pageable, Sortable sortable) {
         return new Page<>(List.of(), 0, 0, 0L);
     }
 
     @Override
-    public List<Guardian> findByEnvironmentIdAndNameIgnoreCase(String environmentId, String name) {
+    public List<Guardrail> findByEnvironmentIdAndNameIgnoreCase(String environmentId, String name) {
         return List.of();
     }
 

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.upgrade.upgrader.guardians;
+package io.gravitee.repository.mongodb.management.upgrade.upgrader.guardrails;
 
-import static io.gravitee.repository.mongodb.management.upgrade.upgrader.guardians.GuardianVersionMongoUpgrader.VERSION;
+import static io.gravitee.repository.mongodb.management.upgrade.upgrader.guardrails.GuardrailVersionMongoUpgrader.VERSION;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.repository.management.AbstractManagementRepositoryTest;
@@ -30,7 +30,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-public class GuardianVersionMongoUpgraderTest extends AbstractManagementRepositoryTest {
+public class GuardrailVersionMongoUpgraderTest extends AbstractManagementRepositoryTest {
 
     @Inject
     private MongoTemplate mongoTemplate;
@@ -38,8 +38,8 @@ public class GuardianVersionMongoUpgraderTest extends AbstractManagementReposito
     @Inject
     private Environment environment;
 
-    private GuardianVersionMongoUpgrader upgrader;
-    private String guardians;
+    private GuardrailVersionMongoUpgrader upgrader;
+    private String guardrails;
 
     @Override
     protected String getTestCasesPath() {
@@ -49,33 +49,33 @@ public class GuardianVersionMongoUpgraderTest extends AbstractManagementReposito
 
     @BeforeEach
     public void initUpgrader() {
-        upgrader = new GuardianVersionMongoUpgrader();
+        upgrader = new GuardrailVersionMongoUpgrader();
         upgrader.setMongoTemplate(mongoTemplate);
         upgrader.setEnvironment(environment);
-        guardians = environment.getProperty("management.mongodb.prefix", "") + "guardians";
+        guardrails = environment.getProperty("management.mongodb.prefix", "") + "guardrails";
         // deleteMany, not drop: drop() also removes the indexes created once at context bootstrap
-        mongoTemplate.getCollection(guardians).deleteMany(new Document());
+        mongoTemplate.getCollection(guardrails).deleteMany(new Document());
     }
 
     @AfterEach
     public void cleanUp() {
-        mongoTemplate.getCollection(guardians).deleteMany(new Document());
+        mongoTemplate.getCollection(guardrails).deleteMany(new Document());
     }
 
     private Object versionOf(String id) {
-        return mongoTemplate.getCollection(guardians).find(new Document("_id", id)).first().get(VERSION);
+        return mongoTemplate.getCollection(guardrails).find(new Document("_id", id)).first().get(VERSION);
     }
 
-    private void givenAGuardian(Document guardian) {
+    private void givenAGuardrail(Document guardrail) {
         // the unique (environmentId, name) index needs each of them to carry its own name
         mongoTemplate
-            .getCollection(guardians)
-            .insertOne(guardian.append("environmentId", "DEFAULT").append("name", guardian.getString("_id")));
+            .getCollection(guardrails)
+            .insertOne(guardrail.append("environmentId", "DEFAULT").append("name", guardrail.getString("_id")));
     }
 
     @Test
-    public void should_give_version_1_to_a_guardian_stored_without_one() {
-        givenAGuardian(new Document("_id", "stored-before"));
+    public void should_give_version_1_to_a_guardrail_stored_without_one() {
+        givenAGuardrail(new Document("_id", "stored-before"));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -83,18 +83,18 @@ public class GuardianVersionMongoUpgraderTest extends AbstractManagementReposito
     }
 
     @Test
-    public void should_give_version_1_to_a_guardian_whose_version_is_null() {
-        givenAGuardian(new Document("_id", "null-version").append(VERSION, null));
+    public void should_give_version_1_to_a_guardrail_whose_version_is_null() {
+        givenAGuardrail(new Document("_id", "null-version").append(VERSION, null));
 
         assertThat(upgrader.upgrade()).isTrue();
 
         assertThat(versionOf("null-version")).isEqualTo(1);
     }
 
-    /** A second node running the upgrader, or a Guardian saved since, must not be sent back to 1. */
+    /** A second node running the upgrader, or a Guardrail saved since, must not be sent back to 1. */
     @Test
-    public void should_leave_a_guardian_that_already_has_a_version() {
-        givenAGuardian(new Document("_id", "written-since").append(VERSION, 7));
+    public void should_leave_a_guardrail_that_already_has_a_version() {
+        givenAGuardrail(new Document("_id", "written-since").append(VERSION, 7));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -102,7 +102,7 @@ public class GuardianVersionMongoUpgraderTest extends AbstractManagementReposito
     }
 
     @Test
-    public void should_succeed_when_there_is_no_guardian() {
+    public void should_succeed_when_there_is_no_guardrail() {
         assertThat(upgrader.upgrade()).isTrue();
     }
 }

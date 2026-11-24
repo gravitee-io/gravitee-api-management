@@ -83,17 +83,17 @@ public class MongoApiRepository implements ApiRepository {
         }
 
         final ApiMongo toSave = mapApi(api);
-        // The Guardian index is written with the definition alone; a full-document save would drop it.
-        toSave.setGuardians(apiMongo.getGuardians());
+        // The Guardrail index is written with the definition alone; a full-document save would drop it.
+        toSave.setGuardrails(apiMongo.getGuardrails());
         final ApiMongo apiMongoUpdated = internalApiRepo.save(toSave);
         return mapApi(apiMongoUpdated);
     }
 
     @Override
-    public boolean updateDefinition(String apiId, String definition, Set<String> guardianIds, Date updatedAt, Date expectedUpdatedAt)
+    public boolean updateDefinition(String apiId, String definition, Set<String> guardrailIds, Date updatedAt, Date expectedUpdatedAt)
         throws TechnicalException {
         try {
-            return internalApiRepo.updateDefinition(apiId, definition, guardianIds, updatedAt, expectedUpdatedAt);
+            return internalApiRepo.updateDefinition(apiId, definition, guardrailIds, updatedAt, expectedUpdatedAt);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to update the definition of api " + apiId, ex);
         }

@@ -21,11 +21,11 @@ import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.search.GuardianCriteria;
+import io.gravitee.repository.management.api.search.GuardrailCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
-import io.gravitee.repository.management.model.Guardian;
-import io.gravitee.repository.management.model.GuardianLifecycleState;
+import io.gravitee.repository.management.model.Guardrail;
+import io.gravitee.repository.management.model.GuardrailLifecycleState;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -34,62 +34,62 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
+public class GuardrailRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Override
     protected String getTestCasesPath() {
-        return "/data/guardian-tests/";
+        return "/data/guardrail-tests/";
     }
 
     @BeforeEach
     public void before() throws TechnicalException {
         for (int i = 0; i < 10; i++) {
             var date = new Date(new Date(172321739410L).getTime() + i * 1000);
-            final Guardian guardian = Guardian.builder()
+            final Guardrail guardrail = Guardrail.builder()
                 .id("id_search_test_" + i)
                 .environmentId("environmentId")
                 .name("name search_test " + i)
                 .description("description " + i)
-                .phase(Guardian.Phase.REQUEST)
+                .phase(Guardrail.Phase.REQUEST)
                 .definition("definition")
-                .lifecycleState(i % 2 == 0 ? GuardianLifecycleState.UNDEPLOYED : GuardianLifecycleState.DEPLOYED)
+                .lifecycleState(i % 2 == 0 ? GuardrailLifecycleState.UNDEPLOYED : GuardrailLifecycleState.DEPLOYED)
                 .deployedAt(date)
                 .createdAt(date)
                 .updatedAt(date)
                 .build();
-            guardianRepository.create(guardian);
+            guardrailRepository.create(guardrail);
         }
     }
 
     @Test
-    void should_find_only_requested_guardians_in_the_environment() throws Exception {
-        var found = guardianRepository.findByEnvironmentIdAndIds(
+    void should_find_only_requested_guardrails_in_the_environment() throws Exception {
+        var found = guardrailRepository.findByEnvironmentIdAndIds(
             "environmentId",
             Set.of("id_search_test_0", "id_search_test_2", "missing")
         );
-        var foreign = guardianRepository.findByEnvironmentIdAndIds("another-environment", Set.of("id_search_test_0"));
-        var empty = guardianRepository.findByEnvironmentIdAndIds("environmentId", Set.of());
+        var foreign = guardrailRepository.findByEnvironmentIdAndIds("another-environment", Set.of("id_search_test_0"));
+        var empty = guardrailRepository.findByEnvironmentIdAndIds("environmentId", Set.of());
         assertSoftly(softly -> {
             softly
                 .assertThat(found)
-                .as("requested Guardians, ignoring missing ids")
-                .extracting(Guardian::getId)
+                .as("requested Guardrails, ignoring missing ids")
+                .extracting(Guardrail::getId)
                 .containsExactlyInAnyOrder("id_search_test_0", "id_search_test_2");
-            softly.assertThat(foreign).as("foreign environment cannot read Guardians").isEmpty();
-            softly.assertThat(empty).as("empty ids do not select every Guardian").isEmpty();
+            softly.assertThat(foreign).as("foreign environment cannot read Guardrails").isEmpty();
+            softly.assertThat(empty).as("empty ids do not select every Guardrail").isEmpty();
         });
     }
 
     @Test
     void should_advance_updated_at_without_replacing_the_draft_or_crossing_environments() throws Exception {
-        var before = guardianRepository.findById("id_search_test_0").orElseThrow();
+        var before = guardrailRepository.findById("id_search_test_0").orElseThrow();
         var withdrawnAt = new Date(before.getUpdatedAt().getTime() + 100_000);
 
-        guardianRepository.updateUpdatedAt("another-environment", before.getId(), withdrawnAt);
-        assertThat(guardianRepository.findById(before.getId())).as("foreign environment cannot touch the Guardian").contains(before);
+        guardrailRepository.updateUpdatedAt("another-environment", before.getId(), withdrawnAt);
+        assertThat(guardrailRepository.findById(before.getId())).as("foreign environment cannot touch the Guardrail").contains(before);
 
-        guardianRepository.updateUpdatedAt(before.getEnvironmentId(), before.getId(), withdrawnAt);
-        var after = guardianRepository.findById(before.getId()).orElseThrow();
+        guardrailRepository.updateUpdatedAt(before.getEnvironmentId(), before.getId(), withdrawnAt);
+        var after = guardrailRepository.findById(before.getId()).orElseThrow();
         assertSoftly(softly -> {
             softly
                 .assertThat(after)
@@ -100,15 +100,15 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
             softly.assertThat(after.getUpdatedAt()).as("withdrawal indexed for sorting").isEqualTo(withdrawnAt);
         });
 
-        guardianRepository.updateUpdatedAt(before.getEnvironmentId(), before.getId(), before.getUpdatedAt());
-        assertThat(guardianRepository.findById(before.getId()).orElseThrow().getUpdatedAt())
+        guardrailRepository.updateUpdatedAt(before.getEnvironmentId(), before.getId(), before.getUpdatedAt());
+        assertThat(guardrailRepository.findById(before.getId()).orElseThrow().getUpdatedAt())
             .as("retry cannot move a newer draft timestamp backwards")
             .isEqualTo(withdrawnAt);
     }
 
     /**
      * The CrudRepository contract plus the per-environment deletion the other management repositories
-     * expose: one Guardian at a time, by id.
+     * expose: one Guardrail at a time, by id.
      */
     @Nested
     class Crud {
@@ -116,123 +116,123 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
         @Test
         public void should_create() throws Exception {
             var date = new Date();
-            final Guardian guardian = Guardian.builder()
+            final Guardrail guardrail = Guardrail.builder()
                 .id("id_create_test")
                 .environmentId("environmentId")
                 .name("name")
                 .description("a description")
-                .phase(Guardian.Phase.REQUEST)
+                .phase(Guardrail.Phase.REQUEST)
                 .definition("definition")
-                .lifecycleState(GuardianLifecycleState.UNDEPLOYED)
+                .lifecycleState(GuardrailLifecycleState.UNDEPLOYED)
                 .deployedAt(date)
                 .createdAt(date)
                 .updatedAt(date)
                 .build();
 
-            guardianRepository.create(guardian);
+            guardrailRepository.create(guardrail);
 
-            final Optional<Guardian> optional = guardianRepository.findById("id_create_test");
-            assertThat(optional).as("Guardian to create has not been found").isPresent();
+            final Optional<Guardrail> optional = guardrailRepository.findById("id_create_test");
+            assertThat(optional).as("Guardrail to create has not been found").isPresent();
             assertThat(optional.get().getName()).isEqualTo("name");
             assertThat(optional.get().getDescription()).isEqualTo("a description");
-            assertThat(optional.get().getPhase()).isEqualTo(Guardian.Phase.REQUEST);
+            assertThat(optional.get().getPhase()).isEqualTo(Guardrail.Phase.REQUEST);
             assertThat(optional.get().getDefinition()).isEqualTo("definition");
-            assertThat(optional.get().getLifecycleState()).isEqualTo(GuardianLifecycleState.UNDEPLOYED);
+            assertThat(optional.get().getLifecycleState()).isEqualTo(GuardrailLifecycleState.UNDEPLOYED);
             assertThat(optional.get().getEnvironmentId()).isEqualTo("environmentId");
             assertThat(optional.get().isDeployed()).isFalse();
         }
 
         @Test
         public void should_update() throws Exception {
-            final Optional<Guardian> optional = guardianRepository.findById("id_update_test");
-            assertThat(optional).as("Guardian to update has not been found").isPresent();
+            final Optional<Guardrail> optional = guardrailRepository.findById("id_update_test");
+            assertThat(optional).as("Guardrail to update has not been found").isPresent();
 
-            final Guardian guardian = optional
+            final Guardrail guardrail = optional
                 .get()
                 .toBuilder()
                 .name("updated name")
-                .phase(Guardian.Phase.RESPONSE)
-                .lifecycleState(GuardianLifecycleState.DEPLOYED)
+                .phase(Guardrail.Phase.RESPONSE)
+                .lifecycleState(GuardrailLifecycleState.DEPLOYED)
                 .build();
 
-            guardianRepository.update(guardian);
+            guardrailRepository.update(guardrail);
 
-            final Optional<Guardian> updated = guardianRepository.findById("id_update_test");
+            final Optional<Guardrail> updated = guardrailRepository.findById("id_update_test");
             assertThat(updated).isPresent();
             assertThat(updated.get().getName()).isEqualTo("updated name");
-            assertThat(updated.get().getPhase()).isEqualTo(Guardian.Phase.RESPONSE);
-            assertThat(updated.get().getLifecycleState()).isEqualTo(GuardianLifecycleState.DEPLOYED);
+            assertThat(updated.get().getPhase()).isEqualTo(Guardrail.Phase.RESPONSE);
+            assertThat(updated.get().getLifecycleState()).isEqualTo(GuardrailLifecycleState.DEPLOYED);
             assertThat(updated.get().isDeployed()).isTrue();
         }
 
         /** The counter is stored and read back like any other field: nothing here increments it. */
         @Test
         public void should_keep_the_version_it_is_given() throws Exception {
-            final Guardian guardian = guardianRepository.findById("id_update_test").orElseThrow().toBuilder().version(4).build();
+            final Guardrail guardrail = guardrailRepository.findById("id_update_test").orElseThrow().toBuilder().version(4).build();
 
-            guardianRepository.update(guardian);
+            guardrailRepository.update(guardrail);
 
-            assertThat(guardianRepository.findById("id_update_test")).get().extracting(Guardian::getVersion).isEqualTo(4);
+            assertThat(guardrailRepository.findById("id_update_test")).get().extracting(Guardrail::getVersion).isEqualTo(4);
         }
 
         @Test
-        public void should_read_no_version_from_a_guardian_stored_without_one() throws Exception {
-            assertThat(guardianRepository.findById("id_find-by-id_test")).get().extracting(Guardian::getVersion).isNull();
+        public void should_read_no_version_from_a_guardrail_stored_without_one() throws Exception {
+            assertThat(guardrailRepository.findById("id_find-by-id_test")).get().extracting(Guardrail::getVersion).isNull();
         }
 
         @Test
-        public void should_replace_a_guardian_still_at_the_expected_version() throws Exception {
-            final Guardian stored = guardianRepository.update(
-                guardianRepository.findById("id_update_test").orElseThrow().toBuilder().version(1).build()
+        public void should_replace_a_guardrail_still_at_the_expected_version() throws Exception {
+            final Guardrail stored = guardrailRepository.update(
+                guardrailRepository.findById("id_update_test").orElseThrow().toBuilder().version(1).build()
             );
 
-            final Optional<Guardian> written = guardianRepository.updateIfVersionMatches(
+            final Optional<Guardrail> written = guardrailRepository.updateIfVersionMatches(
                 stored.toBuilder().name("written at version 1").version(2).build(),
                 1
             );
 
-            assertThat(written).get().extracting(Guardian::getName, Guardian::getVersion).containsExactly("written at version 1", 2);
-            assertThat(guardianRepository.findById("id_update_test"))
+            assertThat(written).get().extracting(Guardrail::getName, Guardrail::getVersion).containsExactly("written at version 1", 2);
+            assertThat(guardrailRepository.findById("id_update_test"))
                 .get()
-                .extracting(Guardian::getName, Guardian::getVersion)
+                .extracting(Guardrail::getName, Guardrail::getVersion)
                 .containsExactly("written at version 1", 2);
         }
 
         @Test
-        public void should_leave_a_guardian_that_moved_past_the_expected_version() throws Exception {
-            final Guardian stored = guardianRepository.update(
-                guardianRepository.findById("id_update_test").orElseThrow().toBuilder().version(2).build()
+        public void should_leave_a_guardrail_that_moved_past_the_expected_version() throws Exception {
+            final Guardrail stored = guardrailRepository.update(
+                guardrailRepository.findById("id_update_test").orElseThrow().toBuilder().version(2).build()
             );
 
-            final Optional<Guardian> written = guardianRepository.updateIfVersionMatches(
+            final Optional<Guardrail> written = guardrailRepository.updateIfVersionMatches(
                 stored.toBuilder().name("written from a stale read").version(2).build(),
                 1
             );
 
             assertThat(written).isEmpty();
-            assertThat(guardianRepository.findById("id_update_test"))
+            assertThat(guardrailRepository.findById("id_update_test"))
                 .get()
-                .extracting(Guardian::getName, Guardian::getVersion)
+                .extracting(Guardrail::getName, Guardrail::getVersion)
                 .containsExactly("name crud update", 2);
         }
 
-        /** No version is not version zero, nor any other: such a Guardian cannot be guarded. */
+        /** No version is not version zero, nor any other: such a Guardrail cannot be guarded. */
         @Test
-        public void should_leave_a_guardian_stored_without_a_version() throws Exception {
-            final Guardian stored = guardianRepository.findById("id_update_test").orElseThrow();
+        public void should_leave_a_guardrail_stored_without_a_version() throws Exception {
+            final Guardrail stored = guardrailRepository.findById("id_update_test").orElseThrow();
 
-            final Optional<Guardian> written = guardianRepository.updateIfVersionMatches(
+            final Optional<Guardrail> written = guardrailRepository.updateIfVersionMatches(
                 stored.toBuilder().name("written over no version").version(1).build(),
                 0
             );
 
             assertThat(written).isEmpty();
-            assertThat(guardianRepository.findById("id_update_test")).get().extracting(Guardian::getName).isEqualTo("name crud update");
+            assertThat(guardrailRepository.findById("id_update_test")).get().extracting(Guardrail::getName).isEqualTo("name crud update");
         }
 
         @Test
-        public void should_write_nothing_for_a_guardian_that_does_not_exist() throws Exception {
-            final Guardian unknown = guardianRepository
+        public void should_write_nothing_for_a_guardrail_that_does_not_exist() throws Exception {
+            final Guardrail unknown = guardrailRepository
                 .findById("id_update_test")
                 .orElseThrow()
                 .toBuilder()
@@ -240,19 +240,19 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
                 .version(2)
                 .build();
 
-            assertThat(guardianRepository.updateIfVersionMatches(unknown, 1)).isEmpty();
-            assertThat(guardianRepository.findById("unknown")).isEmpty();
+            assertThat(guardrailRepository.updateIfVersionMatches(unknown, 1)).isEmpty();
+            assertThat(guardrailRepository.findById("unknown")).isEmpty();
         }
 
         @Test
         public void should_find_by_id() throws Exception {
-            final Optional<Guardian> optional = guardianRepository.findById("id_find-by-id_test");
+            final Optional<Guardrail> optional = guardrailRepository.findById("id_find-by-id_test");
             assertThat(optional).isPresent();
             assertThat(optional.get().getEnvironmentId()).isEqualTo("environmentId");
             assertThat(optional.get().getName()).isEqualTo("name crud find by id");
-            assertThat(optional.get().getPhase()).isEqualTo(Guardian.Phase.RESPONSE);
+            assertThat(optional.get().getPhase()).isEqualTo(Guardrail.Phase.RESPONSE);
             assertThat(optional.get().getDefinition()).isEqualTo("definition");
-            assertThat(optional.get().getLifecycleState()).isEqualTo(GuardianLifecycleState.DEPLOYED);
+            assertThat(optional.get().getLifecycleState()).isEqualTo(GuardrailLifecycleState.DEPLOYED);
             assertThat(optional.get().getDeployedAt()).isNotNull();
             assertThat(optional.get().getCreatedAt()).isNotNull();
             assertThat(optional.get().getUpdatedAt()).isNotNull();
@@ -260,25 +260,25 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
 
         @Test
         public void should_not_findById_missing() throws Exception {
-            final Optional<Guardian> optional = guardianRepository.findById("id_does_not_exist");
+            final Optional<Guardrail> optional = guardrailRepository.findById("id_does_not_exist");
             assertThat(optional).isNotPresent();
         }
 
         @Test
         public void should_delete() throws Exception {
-            Optional<Guardian> optional = guardianRepository.findById("id_delete_test");
-            assertThat(optional).as("Guardian to delete has not been found").isPresent();
+            Optional<Guardrail> optional = guardrailRepository.findById("id_delete_test");
+            assertThat(optional).as("Guardrail to delete has not been found").isPresent();
 
-            guardianRepository.delete("id_delete_test");
+            guardrailRepository.delete("id_delete_test");
 
-            optional = guardianRepository.findById("id_delete_test");
-            assertThat(optional).as("Guardian to delete has not been deleted").isNotPresent();
+            optional = guardrailRepository.findById("id_delete_test");
+            assertThat(optional).as("Guardrail to delete has not been deleted").isNotPresent();
         }
 
         @Test
         public void should_findAll() throws Exception {
             assertThrows(IllegalStateException.class, () -> {
-                guardianRepository.findAll();
+                guardrailRepository.findAll();
                 fail("An exception must be thrown");
             });
         }
@@ -288,60 +288,60 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
             // the domain refuses a duplicate name ignoring case, so the store has to answer the same
             // question; a case-sensitive lookup would let "credential leakage" past the check
             var date = new Date();
-            guardianRepository.create(
-                Guardian.builder()
+            guardrailRepository.create(
+                Guardrail.builder()
                     .id("id_name_lookup")
                     .environmentId("environmentId")
                     .name("Credential Leakage")
-                    .phase(Guardian.Phase.REQUEST)
+                    .phase(Guardrail.Phase.REQUEST)
                     .definition("definition")
-                    .lifecycleState(GuardianLifecycleState.UNDEPLOYED)
+                    .lifecycleState(GuardrailLifecycleState.UNDEPLOYED)
                     .createdAt(date)
                     .updatedAt(date)
                     .build()
             );
 
-            assertThat(guardianRepository.findByEnvironmentIdAndNameIgnoreCase("environmentId", "Credential Leakage"))
-                .extracting(Guardian::getId)
+            assertThat(guardrailRepository.findByEnvironmentIdAndNameIgnoreCase("environmentId", "Credential Leakage"))
+                .extracting(Guardrail::getId)
                 .containsExactly("id_name_lookup");
-            assertThat(guardianRepository.findByEnvironmentIdAndNameIgnoreCase("environmentId", "credential leakage")).hasSize(1);
-            assertThat(guardianRepository.findByEnvironmentIdAndNameIgnoreCase("environmentId", "CREDENTIAL LEAKAGE")).hasSize(1);
+            assertThat(guardrailRepository.findByEnvironmentIdAndNameIgnoreCase("environmentId", "credential leakage")).hasSize(1);
+            assertThat(guardrailRepository.findByEnvironmentIdAndNameIgnoreCase("environmentId", "CREDENTIAL LEAKAGE")).hasSize(1);
         }
 
         @Test
         public void should_not_find_a_name_belonging_to_another_environment() throws TechnicalException {
-            // a Guardian is defined per environment, so the same name is free in the next one
+            // a Guardrail is defined per environment, so the same name is free in the next one
             var date = new Date();
-            guardianRepository.create(
-                Guardian.builder()
+            guardrailRepository.create(
+                Guardrail.builder()
                     .id("id_name_other_env")
                     .environmentId("anotherEnvironment")
                     .name("Scoped name")
-                    .phase(Guardian.Phase.REQUEST)
+                    .phase(Guardrail.Phase.REQUEST)
                     .definition("definition")
-                    .lifecycleState(GuardianLifecycleState.UNDEPLOYED)
+                    .lifecycleState(GuardrailLifecycleState.UNDEPLOYED)
                     .createdAt(date)
                     .updatedAt(date)
                     .build()
             );
 
-            assertThat(guardianRepository.findByEnvironmentIdAndNameIgnoreCase("environmentId", "Scoped name")).isEmpty();
-            assertThat(guardianRepository.findByEnvironmentIdAndNameIgnoreCase("anotherEnvironment", "Scoped name")).hasSize(1);
+            assertThat(guardrailRepository.findByEnvironmentIdAndNameIgnoreCase("environmentId", "Scoped name")).isEmpty();
+            assertThat(guardrailRepository.findByEnvironmentIdAndNameIgnoreCase("anotherEnvironment", "Scoped name")).hasSize(1);
         }
 
         @Test
-        public void should_return_empty_when_no_guardian_carries_the_name() throws TechnicalException {
-            assertThat(guardianRepository.findByEnvironmentIdAndNameIgnoreCase("environmentId", "nothing carries this")).isEmpty();
+        public void should_return_empty_when_no_guardrail_carries_the_name() throws TechnicalException {
+            assertThat(guardrailRepository.findByEnvironmentIdAndNameIgnoreCase("environmentId", "nothing carries this")).isEmpty();
         }
 
         @Test
         public void should_delete_by_environment_id() throws TechnicalException {
-            final var criteria = GuardianCriteria.builder().environmentId("ToBeDeleted").build();
+            final var criteria = GuardrailCriteria.builder().environmentId("ToBeDeleted").build();
             final var pageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
-            final var nbBeforeDeletion = guardianRepository.search(criteria, pageable, null).getTotalElements();
-            final var deleted = guardianRepository.deleteByEnvironmentId("ToBeDeleted").size();
-            final var nbAfterDeletion = guardianRepository.search(criteria, pageable, null).getTotalElements();
+            final var nbBeforeDeletion = guardrailRepository.search(criteria, pageable, null).getTotalElements();
+            final var deleted = guardrailRepository.deleteByEnvironmentId("ToBeDeleted").size();
+            final var nbAfterDeletion = guardrailRepository.search(criteria, pageable, null).getTotalElements();
 
             assertThat(nbBeforeDeletion).isEqualTo(2);
             assertThat(deleted).isEqualTo(2);
@@ -350,18 +350,18 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     /**
-     * The paged search over a GuardianCriteria: the filters, the sort, the paging and the two ways a
+     * The paged search over a GuardrailCriteria: the filters, the sort, the paging and the two ways a
      * free-text query must not be read as a pattern. Grouped apart from the CRUD because every one of
-     * them leans on the ten Guardians before() seeds.
+     * them leans on the ten Guardrails before() seeds.
      */
     @Nested
     class Search {
 
         @Test
         public void should_search_with_no_criteria() throws TechnicalException {
-            final var criteria = GuardianCriteria.builder().environmentId("environmentId").build();
+            final var criteria = GuardrailCriteria.builder().environmentId("environmentId").build();
 
-            final var page = guardianRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build(), null);
+            final var page = guardrailRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build(), null);
             assertThat(page).isNotNull();
             assertThat(page.getContent()).hasSize(2);
             assertThat(page.getTotalElements()).isEqualTo(13);
@@ -369,9 +369,9 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
 
         @Test
         public void should_search_with_name_criteria() throws TechnicalException {
-            final var criteria = GuardianCriteria.builder().environmentId("environmentId").query("search_test").build();
+            final var criteria = GuardrailCriteria.builder().environmentId("environmentId").query("search_test").build();
 
-            final var page = guardianRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(20).build(), null);
+            final var page = guardrailRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(20).build(), null);
             assertThat(page).isNotNull();
             assertThat(page.getContent()).hasSize(10);
             assertThat(page.getTotalElements()).isEqualTo(10);
@@ -383,34 +383,34 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
             // metacharacter is where the two backends would part company: unescaped, "(" makes Mongo
             // reject the query outright while JDBC finds the row.
             var date = new Date();
-            guardianRepository.create(
-                Guardian.builder()
+            guardrailRepository.create(
+                Guardrail.builder()
                     .id("id_regex_test")
                     .environmentId("environmentId")
                     .name("Rate (limit) guard")
-                    .phase(Guardian.Phase.REQUEST)
+                    .phase(Guardrail.Phase.REQUEST)
                     .definition("definition")
-                    .lifecycleState(GuardianLifecycleState.UNDEPLOYED)
+                    .lifecycleState(GuardrailLifecycleState.UNDEPLOYED)
                     .createdAt(date)
                     .updatedAt(date)
                     .build()
             );
 
-            final var found = guardianRepository.search(
-                GuardianCriteria.builder().environmentId("environmentId").query("(limit)").build(),
+            final var found = guardrailRepository.search(
+                GuardrailCriteria.builder().environmentId("environmentId").query("(limit)").build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build(),
                 null
             );
 
-            assertThat(found.getContent()).extracting(Guardian::getId).containsExactly("id_regex_test");
+            assertThat(found.getContent()).extracting(Guardrail::getId).containsExactly("id_regex_test");
         }
 
         @Test
         public void should_not_let_a_regex_metacharacter_act_as_a_wildcard() throws TechnicalException {
             // "." is a literal here, not "any character": left unescaped it would match every row on
             // Mongo and none on JDBC, for the same request.
-            final var page = guardianRepository.search(
-                GuardianCriteria.builder().environmentId("environmentId").query("nam.").build(),
+            final var page = guardrailRepository.search(
+                GuardrailCriteria.builder().environmentId("environmentId").query("nam.").build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build(),
                 null
             );
@@ -420,7 +420,7 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
 
         @Test
         public void should_page_without_repeating_or_skipping_when_the_sort_values_tie() throws TechnicalException {
-            // A Guardian's phase takes one of two values, so a single sort key leaves equal rows in an
+            // A Guardrail's phase takes one of two values, so a single sort key leaves equal rows in an
             // undefined order and offset paging can serve one twice while never serving another. A
             // unique secondary key makes the order total.
             //
@@ -428,14 +428,14 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
             // so two rows of one environment can no longer tie on it.
             var date = new Date();
             for (int i = 0; i < 6; i++) {
-                guardianRepository.create(
-                    Guardian.builder()
+                guardrailRepository.create(
+                    Guardrail.builder()
                         .id("id_tie_%d".formatted(i))
                         .environmentId("tieEnvironment")
                         .name("tie %d".formatted(i))
-                        .phase(Guardian.Phase.REQUEST)
+                        .phase(Guardrail.Phase.REQUEST)
                         .definition("definition")
-                        .lifecycleState(GuardianLifecycleState.UNDEPLOYED)
+                        .lifecycleState(GuardrailLifecycleState.UNDEPLOYED)
                         .createdAt(date)
                         .updatedAt(date)
                         .build()
@@ -444,9 +444,9 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
 
             final var seen = new java.util.ArrayList<String>();
             for (int page = 0; page < 3; page++) {
-                guardianRepository
+                guardrailRepository
                     .search(
-                        GuardianCriteria.builder().environmentId("tieEnvironment").build(),
+                        GuardrailCriteria.builder().environmentId("tieEnvironment").build(),
                         new PageableBuilder().pageNumber(page).pageSize(2).build(),
                         new SortableBuilder().field("phase").setAsc(true).build()
                     )
@@ -462,16 +462,16 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
             // The mirror of the regex case, on the other backend: '_' matches any single character in SQL
             // LIKE, so left unescaped q="nam_" would match "name" on JDBC while Mongo, which quotes the
             // query, matches nothing. Same request, different answer per backend.
-            final var underscore = guardianRepository.search(
-                GuardianCriteria.builder().environmentId("environmentId").query("nam_").build(),
+            final var underscore = guardrailRepository.search(
+                GuardrailCriteria.builder().environmentId("environmentId").query("nam_").build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build(),
                 null
             );
             assertThat(underscore.getContent()).isEmpty();
 
             // and '%' likewise
-            final var percent = guardianRepository.search(
-                GuardianCriteria.builder().environmentId("environmentId").query("nam%").build(),
+            final var percent = guardrailRepository.search(
+                GuardrailCriteria.builder().environmentId("environmentId").query("nam%").build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build(),
                 null
             );
@@ -484,21 +484,21 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
             // do not: left unescaped, q="[x]" would match any name containing an x there while Mongo,
             // which quotes the query, matches nothing. Same request, different answer per backend.
             var date = new Date();
-            guardianRepository.create(
-                Guardian.builder()
+            guardrailRepository.create(
+                Guardrail.builder()
                     .id("id_bracket_test")
                     .environmentId("environmentId")
                     .name("plain x guard")
-                    .phase(Guardian.Phase.REQUEST)
+                    .phase(Guardrail.Phase.REQUEST)
                     .definition("definition")
-                    .lifecycleState(GuardianLifecycleState.UNDEPLOYED)
+                    .lifecycleState(GuardrailLifecycleState.UNDEPLOYED)
                     .createdAt(date)
                     .updatedAt(date)
                     .build()
             );
 
-            final var page = guardianRepository.search(
-                GuardianCriteria.builder().environmentId("environmentId").query("[x]").build(),
+            final var page = guardrailRepository.search(
+                GuardrailCriteria.builder().environmentId("environmentId").query("[x]").build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build(),
                 null
             );
@@ -513,33 +513,33 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
             // as text, "Alert!" would find nothing here while Mongo, which quotes the query, finds the
             // row. Whichever character the SQL side picks, this has to keep passing.
             var date = new Date();
-            guardianRepository.create(
-                Guardian.builder()
+            guardrailRepository.create(
+                Guardrail.builder()
                     .id("id_escape_test")
                     .environmentId("environmentId")
                     .name("Alert! guard")
-                    .phase(Guardian.Phase.REQUEST)
+                    .phase(Guardrail.Phase.REQUEST)
                     .definition("definition")
-                    .lifecycleState(GuardianLifecycleState.UNDEPLOYED)
+                    .lifecycleState(GuardrailLifecycleState.UNDEPLOYED)
                     .createdAt(date)
                     .updatedAt(date)
                     .build()
             );
 
-            final var found = guardianRepository.search(
-                GuardianCriteria.builder().environmentId("environmentId").query("Alert!").build(),
+            final var found = guardrailRepository.search(
+                GuardrailCriteria.builder().environmentId("environmentId").query("Alert!").build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build(),
                 null
             );
 
-            assertThat(found.getContent()).extracting(Guardian::getName).containsExactly("Alert! guard");
+            assertThat(found.getContent()).extracting(Guardrail::getName).containsExactly("Alert! guard");
         }
 
         @Test
         public void should_search_page_2() throws TechnicalException {
-            final var criteria = GuardianCriteria.builder().environmentId("environmentId").build();
+            final var criteria = GuardrailCriteria.builder().environmentId("environmentId").build();
 
-            final var page = guardianRepository.search(criteria, new PageableBuilder().pageNumber(1).pageSize(5).build(), null);
+            final var page = guardrailRepository.search(criteria, new PageableBuilder().pageNumber(1).pageSize(5).build(), null);
             assertThat(page).isNotNull();
             assertThat(page.getPageNumber()).isEqualTo(1);
             assertThat(page.getContent()).hasSize(5);
@@ -548,9 +548,9 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
 
         @Test
         public void should_search_with_no_result() throws TechnicalException {
-            final var criteria = GuardianCriteria.builder().environmentId("environmentId").query("does-not-exist").build();
+            final var criteria = GuardrailCriteria.builder().environmentId("environmentId").query("does-not-exist").build();
 
-            final var page = guardianRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(10).build(), null);
+            final var page = guardrailRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(10).build(), null);
             assertThat(page).isNotNull();
             assertThat(page.getContent()).isEmpty();
             assertThat(page.getTotalElements()).isZero();
@@ -558,9 +558,9 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
 
         @Test
         public void should_search_with_unknown_environment() throws TechnicalException {
-            final var criteria = GuardianCriteria.builder().environmentId("unknown").build();
+            final var criteria = GuardrailCriteria.builder().environmentId("unknown").build();
 
-            final var page = guardianRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(10).build(), null);
+            final var page = guardrailRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(10).build(), null);
             assertThat(page).isNotNull();
             assertThat(page.getContent()).isEmpty();
             assertThat(page.getTotalElements()).isZero();
@@ -568,9 +568,9 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
 
         @Test
         public void should_search_with_sortable() throws TechnicalException {
-            final var criteria = GuardianCriteria.builder().environmentId("environmentId").query("search_test").build();
+            final var criteria = GuardrailCriteria.builder().environmentId("environmentId").query("search_test").build();
 
-            final var page = guardianRepository.search(
+            final var page = guardrailRepository.search(
                 criteria,
                 new PageableBuilder().pageNumber(0).pageSize(10).build(),
                 new SortableBuilder().field("name").setAsc(false).build()
@@ -583,15 +583,15 @@ public class GuardianRepositoryTest extends AbstractManagementRepositoryTest {
 
         @Test
         public void should_search_with_lifecycle_state_criteria() throws TechnicalException {
-            final var criteria = GuardianCriteria.builder()
+            final var criteria = GuardrailCriteria.builder()
                 .environmentId("environmentId")
-                .lifecycleState(GuardianLifecycleState.DEPLOYED)
+                .lifecycleState(GuardrailLifecycleState.DEPLOYED)
                 .build();
 
-            final var page = guardianRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(20).build(), null);
+            final var page = guardrailRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(20).build(), null);
             assertThat(page).isNotNull();
             assertThat(page.getTotalElements()).isEqualTo(6);
-            assertThat(page.getContent()).allMatch(Guardian::isDeployed);
+            assertThat(page.getContent()).allMatch(Guardrail::isDeployed);
         }
     }
 }

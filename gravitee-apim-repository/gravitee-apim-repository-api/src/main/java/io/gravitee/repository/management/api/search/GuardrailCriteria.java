@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.management.api.search;
 
-import io.gravitee.repository.management.model.GuardianLifecycleState;
+import io.gravitee.repository.management.model.GuardrailLifecycleState;
 import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
@@ -27,25 +27,25 @@ import lombok.ToString;
 @Data
 @Builder
 @ToString
-public class GuardianCriteria {
+public class GuardrailCriteria {
 
     /**
-     * Free text matched against the Guardian name.
+     * Free text matched against the Guardrail name.
      */
     private String query;
 
     private String environmentId;
 
-    private GuardianLifecycleState lifecycleState;
+    private GuardrailLifecycleState lifecycleState;
 
     /**
-     * The fields a Guardian search may sort on, named as the domain names them. Stated here because
+     * The fields a Guardrail search may sort on, named as the domain names them. Stated here because
      * both backends have to agree: the JDBC one puts the field into its {@code ORDER BY} text, and the
      * Mongo one would otherwise sort on a field that does not exist without saying so.
      *
      * <p>{@code apiType} is absent because the definition carries {@code apiTypes} as a set: there is no
      * single value to order rows by. {@code deployedAt} is deliberately absent. The management API derives
-     * it from the Guardian's publications instead of storing it, so the column holds no usable value;
+     * it from the Guardrail's publications instead of storing it, so the column holds no usable value;
      * sorting on a nullable date would also need the null ordering made explicit, the backends
      * disagreeing on where nulls land — Postgres puts them last on an ascending sort, MySQL and Mongo first.
      */
@@ -58,7 +58,7 @@ public class GuardianCriteria {
     public static String requireSortableField(final String field) {
         final var logical = toCamelCase(field);
         if (logical == null || !SORTABLE_FIELDS.contains(logical)) {
-            throw new IllegalArgumentException("Guardians cannot be sorted on '" + field + "'");
+            throw new IllegalArgumentException("Guardrails cannot be sorted on '" + field + "'");
         }
         return logical;
     }

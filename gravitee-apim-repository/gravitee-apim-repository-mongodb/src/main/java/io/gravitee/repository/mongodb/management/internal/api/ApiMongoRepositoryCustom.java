@@ -52,11 +52,11 @@ public interface ApiMongoRepositoryCustom {
     Set<String> listCategories(ApiCriteria apiCriteria);
 
     /**
-     * Sets the definition, the Guardian index and the update date of an API that still holds
+     * Sets the definition, the Guardrail index and the update date of an API that still holds
      * {@code expectedUpdatedAt}, and nothing else. A targeted update and not a {@code save}: a full document would
      * carry back every field the caller read.
      *
      * @return whether a document matched and was written
      */
-    boolean updateDefinition(String apiId, String definition, Set<String> guardianIds, Date updatedAt, Date expectedUpdatedAt);
+    boolean updateDefinition(String apiId, String definition, Set<String> guardrailIds, Date updatedAt, Date expectedUpdatedAt);
 }

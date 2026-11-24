@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.guardians;
+package io.gravitee.repository.mongodb.management.internal.guardrails;
 
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.management.api.search.GuardianCriteria;
-import io.gravitee.repository.mongodb.management.internal.model.GuardianMongo;
+import io.gravitee.repository.management.api.search.GuardrailCriteria;
+import io.gravitee.repository.mongodb.management.internal.model.GuardrailMongo;
 import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.util.Date;
 import java.util.List;
@@ -36,7 +36,7 @@ import org.springframework.data.mongodb.core.query.Update;
 /**
  * @author GraviteeSource Team
  */
-public class GuardianMongoRepositoryImpl implements GuardianMongoRepositoryCustom {
+public class GuardrailMongoRepositoryImpl implements GuardrailMongoRepositoryCustom {
 
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -45,34 +45,34 @@ public class GuardianMongoRepositoryImpl implements GuardianMongoRepositoryCusto
     private MongoQueries mongoQueries;
 
     @Override
-    public void updateUpdatedAt(String environmentId, String guardianId, Date updatedAt) {
+    public void updateUpdatedAt(String environmentId, String guardrailId, Date updatedAt) {
         Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
-        Objects.requireNonNull(guardianId, "GuardianId must not be null");
+        Objects.requireNonNull(guardrailId, "GuardrailId must not be null");
         Objects.requireNonNull(updatedAt, "UpdatedAt must not be null");
         mongoTemplate.updateFirst(
-            Query.query(where("environmentId").is(environmentId).and("_id").is(guardianId)),
+            Query.query(where("environmentId").is(environmentId).and("_id").is(guardrailId)),
             new Update().max("updatedAt", updatedAt),
-            GuardianMongo.class
+            GuardrailMongo.class
         );
     }
 
     @Override
-    public Optional<GuardianMongo> replaceIfVersionMatches(GuardianMongo guardian, int expectedVersion) {
-        Objects.requireNonNull(guardian, "Guardian must not be null");
+    public Optional<GuardrailMongo> replaceIfVersionMatches(GuardrailMongo guardrail, int expectedVersion) {
+        Objects.requireNonNull(guardrail, "Guardrail must not be null");
         // one command for the comparison and the write: a read followed by a save would let another
         // writer in between the two
         return Optional.ofNullable(
             mongoTemplate.findAndReplace(
-                Query.query(where("_id").is(guardian.getId()).and("version").is(expectedVersion)),
-                guardian,
+                Query.query(where("_id").is(guardrail.getId()).and("version").is(expectedVersion)),
+                guardrail,
                 FindAndReplaceOptions.options().returnNew()
             )
         );
     }
 
     @Override
-    public Page<GuardianMongo> search(GuardianCriteria criteria, PageRequest pageRequest) {
-        Objects.requireNonNull(criteria, "GuardianCriteria must not be null");
+    public Page<GuardrailMongo> search(GuardrailCriteria criteria, PageRequest pageRequest) {
+        Objects.requireNonNull(criteria, "GuardrailCriteria must not be null");
         Objects.requireNonNull(pageRequest, "PageRequest must not be null");
 
         final Query query = new Query();
@@ -90,7 +90,7 @@ public class GuardianMongoRepositoryImpl implements GuardianMongoRepositoryCusto
             query.addCriteria(where("lifecycleState").is(criteria.getLifecycleState().name()));
         }
 
-        final long total = mongoQueries.countOrTimeout(mongoTemplate, query, GuardianMongo.class);
+        final long total = mongoQueries.countOrTimeout(mongoTemplate, query, GuardrailMongo.class);
         if (total == 0) {
             // 0 elements on the page, not the page size the caller asked for: the JDBC side
             // returns 0 here and the adapter passes this straight into the core Page.
@@ -98,8 +98,8 @@ public class GuardianMongoRepositoryImpl implements GuardianMongoRepositoryCusto
         }
 
         query.with(pageRequest);
-        final List<GuardianMongo> guardians = mongoTemplate.find(query, GuardianMongo.class);
+        final List<GuardrailMongo> guardrails = mongoTemplate.find(query, GuardrailMongo.class);
 
-        return new Page<>(guardians, pageRequest.getPageNumber(), guardians.size(), total);
+        return new Page<>(guardrails, pageRequest.getPageNumber(), guardrails.size(), total);
     }
 }
