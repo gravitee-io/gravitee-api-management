@@ -872,7 +872,7 @@ public class ApiResource extends AbstractResource {
     @POST
     @Path("/_rollback")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
-    public Response rollback(ApiRollback apiRollback) {
+    public Response rollback(@PathParam("apiId") String apiId, ApiRollback apiRollback) {
         if (apiRollback.getEventId() == null) {
             log.warn("Event ID is required");
             throw new BadRequestException("Event ID is required");
@@ -881,8 +881,11 @@ public class ApiResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
+        // The API of the path, which the permission filter checked, and not the one the event names: the use case
+        // refuses a deployment of another API rather than restoring it on this authorization.
         this.rollbackApiUseCase.execute(
             new RollbackApiUseCase.Input(
+                apiId,
                 apiRollback.getEventId(),
                 AuditInfo.builder()
                     .organizationId(executionContext.getOrganizationId())

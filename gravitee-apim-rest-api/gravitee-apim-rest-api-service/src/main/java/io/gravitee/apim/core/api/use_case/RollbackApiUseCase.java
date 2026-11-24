@@ -79,9 +79,14 @@ public class RollbackApiUseCase {
     private final ApiStateDomainService apiStateService;
 
     public void execute(Input input) {
+        // The caller was authorized on the API of the URL, and the deployment to restore is named by an id it hands
+        // over in the body: without this, the authorization proved on one API would be spent on another one.
         Api api = eventQueryService
-            .findApiFromPublishApiEvent(input.eventId)
-            .orElseThrow(() -> new IllegalStateException("Cannot rollback an event that is not a publish event!"));
+            .findApiFromPublishApiEvent(input.auditInfo.environmentId(), input.eventId)
+            .filter(deployed -> input.apiId.equals(deployed.getId()))
+            .orElseThrow(() ->
+                new ValidationDomainException("The event %s is not a deployment of the api %s".formatted(input.eventId, input.apiId))
+            );
         var apiUpdated = switch (api.getDefinitionVersion()) {
             case V4 -> {
                 var apiDefinition = api.getApiDefinitionHttpV4();
@@ -151,7 +156,11 @@ public class RollbackApiUseCase {
         createAuditLog(input.auditInfo, apiUpdated.getId(), apiUpdated.getUpdatedAt());
     }
 
-    public record Input(String eventId, AuditInfo auditInfo) {}
+    /**
+     * @param apiId the API the caller was authorized on, which the deployment named by {@code eventId} must be a
+     *     deployment of.
+     */
+    public record Input(String apiId, String eventId, AuditInfo auditInfo) {}
 
     private void rollbackPlansV4(List<Plan> apiDefinitionPlans, Api api, AuditInfo auditInfo) {
         if (apiDefinitionPlans == null) {
