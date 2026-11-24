@@ -2488,6 +2488,19 @@
                 </dependency>
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-authz-list-filter</artifactId>
+                    <version>${gravitee-policy-authz-list-filter.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-authz-pdp-authzen</artifactId>
                     <version>${gravitee-policy-authz-pdp-authzen.version}</version>
                     <type>zip</type>
