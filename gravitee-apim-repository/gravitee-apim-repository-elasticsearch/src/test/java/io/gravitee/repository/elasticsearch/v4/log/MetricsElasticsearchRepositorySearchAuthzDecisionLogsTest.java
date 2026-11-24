@@ -169,7 +169,7 @@ public class MetricsElasticsearchRepositorySearchAuthzDecisionLogsTest extends A
 
     @Test
     void find_does_not_read_the_decision_of_another_decision_point() throws AnalyticsException {
-        assertThat(metricsV4Repository.findAuthzDecisionLog(queryContext, SCOPING_API_ID, "guardian-envA")).isEmpty();
+        assertThat(metricsV4Repository.findAuthzDecisionLog(queryContext, SCOPING_API_ID, "guardrail-envA")).isEmpty();
     }
 
     @Test

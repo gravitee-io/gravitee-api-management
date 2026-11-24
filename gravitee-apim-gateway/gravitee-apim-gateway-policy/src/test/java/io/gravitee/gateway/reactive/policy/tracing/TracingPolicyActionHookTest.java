@@ -41,7 +41,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class TracingPolicyActionHookTest {
 
-    private static final String SPAN_KEY = "tracing-span-guardian-endpoint-request-action";
+    private static final String SPAN_KEY = "tracing-span-guardrail-endpoint-request-action";
 
     @Mock
     private HttpExecutionContext ctx;
@@ -71,13 +71,13 @@ class TracingPolicyActionHookTest {
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED)).thenReturn(true);
         lenient().when(ctx.getInternalAttribute(TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION)).thenReturn("another policy");
 
-        hook.pre("guardian", ctx, ExecutionPhase.REQUEST).test().assertResult();
+        hook.pre("guardrail", ctx, ExecutionPhase.REQUEST).test().assertResult();
 
         ArgumentCaptor<InternalRequest> request = ArgumentCaptor.forClass(InternalRequest.class);
         verify(tracer).startSpanFrom(request.capture());
-        assertThat(request.getValue().name()).isEqualTo("REQUEST policy-guardian (endpoint-request action)");
+        assertThat(request.getValue().name()).isEqualTo("REQUEST policy-guardrail (endpoint-request action)");
         assertThat(request.getValue().attributes())
-            .containsEntry(TracingPolicyHook.SPAN_POLICY_ATTR, "guardian")
+            .containsEntry(TracingPolicyHook.SPAN_POLICY_ATTR, "guardrail")
             .containsEntry(TracingPolicyActionHook.SPAN_POLICY_ACTION_ATTR, "endpoint-request")
             .doesNotContainKey(TracingPolicyHook.SPAN_POLICY_DESCRIPTION_ATTR);
         verify(ctx).putInternalAttribute(SPAN_KEY, span);
@@ -88,7 +88,7 @@ class TracingPolicyActionHookTest {
         when(ctx.getInternalAttribute(SPAN_KEY)).thenReturn(span);
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED)).thenReturn(false);
 
-        hook.post("guardian", ctx, ExecutionPhase.REQUEST).test().assertResult();
+        hook.post("guardrail", ctx, ExecutionPhase.REQUEST).test().assertResult();
 
         verify(span, never()).withAttribute(anyString(), anyString());
         verify(tracer).end(span);
@@ -102,7 +102,7 @@ class TracingPolicyActionHookTest {
         when(span.withAttribute(anyString(), any(Integer.class))).thenReturn(span);
 
         hook
-            .interruptWith("guardian", ctx, ExecutionPhase.REQUEST, new ExecutionFailure(403).key("BLOCKED").message("blocked"))
+            .interruptWith("guardrail", ctx, ExecutionPhase.REQUEST, new ExecutionFailure(403).key("BLOCKED").message("blocked"))
             .test()
             .assertResult();
 
