@@ -225,7 +225,7 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
             endpointGroupsValidationService.validateAndSanitizeHttpV4(updateApiEntity.getType(), updateApiEntity.getEndpointGroups())
         );
         validateClusterBindingPermission(executionContext, existingApiEntity.getEndpointGroups(), updateApiEntity.getEndpointGroups());
-        validateSecretReferences(executionContext, existingApiEntity, updateApiEntity);
+        validateSecretReferencesOfUpdate(executionContext, existingApiEntity, updateApiEntity);
         validateKafkaClusterBindingDomainService.validate(
             executionContext.getEnvironmentId(),
             existingApiEntity.getEndpointGroups(),
@@ -387,6 +387,18 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
             ClusterBoundApisQueryService.messageClusterUses(previousEndpointGroups, objectMapper),
             ClusterBoundApisQueryService.messageClusterUses(endpointGroups, objectMapper)
         );
+    }
+
+    // Part by part, so a reference the update moves from a plan into the API's own flows counts as added.
+    private void validateSecretReferencesOfUpdate(ExecutionContext executionContext, ApiEntity existingApi, UpdateApiEntity api) {
+        validateSecretReferences(executionContext, existingApi.getListeners(), api.getListeners());
+        validateSecretReferences(executionContext, existingApi.getEndpointGroups(), api.getEndpointGroups());
+        validateSecretReferences(executionContext, existingApi.getProperties(), api.getProperties());
+        validateSecretReferences(executionContext, existingApi.getResources(), api.getResources());
+        validateSecretReferences(executionContext, existingApi.getPlans(), api.getPlans());
+        validateSecretReferences(executionContext, existingApi.getFlows(), api.getFlows());
+        validateSecretReferences(executionContext, existingApi.getResponseTemplates(), api.getResponseTemplates());
+        validateSecretReferences(executionContext, existingApi.getServices(), api.getServices());
     }
 
     private void validateSecretReferences(ExecutionContext executionContext, Object previousApi, Object api) {

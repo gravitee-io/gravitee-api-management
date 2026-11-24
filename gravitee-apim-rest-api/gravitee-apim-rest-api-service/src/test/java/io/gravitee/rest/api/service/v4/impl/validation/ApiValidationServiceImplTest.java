@@ -22,6 +22,7 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -34,6 +35,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import inmemory.CredentialCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
@@ -42,11 +44,14 @@ import io.gravitee.apim.core.cluster.domain_service.ClusterBindingPermissionDoma
 import io.gravitee.apim.core.cluster.domain_service.ClusterBoundApisQueryService.ClusterUse;
 import io.gravitee.apim.core.cluster.domain_service.ValidateKafkaClusterBindingDomainService;
 import io.gravitee.apim.core.cluster.exception.ClusterBindingNotAllowedException;
+import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plugin.query_service.EntrypointPluginQueryService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
+import io.gravitee.apim.infra.credential.SpelSecretExpressionParser;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
@@ -54,6 +59,7 @@ import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -651,10 +657,14 @@ public class ApiValidationServiceImplTest {
             ApiEntity existingApiEntity = new ApiEntity();
             existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
             existingApiEntity.setType(ApiType.PROXY);
+            var existingFlows = List.of(flowReading("before"));
+            existingApiEntity.setFlows(existingFlows);
             UpdateApiEntity updateApiEntity = new UpdateApiEntity();
             updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
             updateApiEntity.setType(ApiType.PROXY);
             updateApiEntity.setListeners(List.of(new HttpListener()));
+            var updatedFlows = List.of(flowReading("after"));
+            updateApiEntity.setFlows(updatedFlows);
 
             apiValidationService.validateAndSanitizeUpdateApi(
                 GraviteeContext.getExecutionContext(),
@@ -667,9 +677,68 @@ public class ApiValidationServiceImplTest {
                 GraviteeContext.getExecutionContext().getOrganizationId(),
                 GraviteeContext.getExecutionContext().getEnvironmentId(),
                 "user-id",
-                existingApiEntity,
-                updateApiEntity
+                existingFlows,
+                updatedFlows
             );
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
+    }
+
+    @Test
+    public void should_refuse_a_store_reference_an_update_moves_from_a_plan_into_the_api_flows_without_the_secret_read_permission() {
+        var service = withARealSecretReferenceCheck();
+        var flowWithAReference = flowReading("{#secrets.get('/gravitee/db-password:value?envId=DEFAULT')}");
+        var plan = new PlanEntity();
+        plan.setFlows(List.of(flowWithAReference));
+        ApiEntity existingApiEntity = new ApiEntity();
+        existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        existingApiEntity.setType(ApiType.PROXY);
+        existingApiEntity.setPlans(Set.of(plan));
+        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+        updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        updateApiEntity.setType(ApiType.PROXY);
+        updateApiEntity.setListeners(List.of(new HttpListener()));
+        updateApiEntity.setPlans(Set.of(plan));
+        updateApiEntity.setFlows(List.of(flowWithAReference));
+        authenticateAs("user-id");
+        try {
+            assertThatThrownBy(() ->
+                service.validateAndSanitizeUpdateApi(
+                    GraviteeContext.getExecutionContext(),
+                    updateApiEntity,
+                    new PrimaryOwnerEntity(),
+                    existingApiEntity
+                )
+            ).isInstanceOf(NotAllowedDomainException.class);
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
+    }
+
+    @Test
+    public void should_keep_the_store_references_an_update_leaves_in_place_without_the_secret_read_permission() {
+        var service = withARealSecretReferenceCheck();
+        var flowWithAReference = flowReading("{#secrets.get('/gravitee/db-password:value?envId=DEFAULT')}");
+        ApiEntity existingApiEntity = new ApiEntity();
+        existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        existingApiEntity.setType(ApiType.PROXY);
+        existingApiEntity.setFlows(List.of(flowWithAReference));
+        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+        updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        updateApiEntity.setType(ApiType.PROXY);
+        updateApiEntity.setListeners(List.of(new HttpListener()));
+        updateApiEntity.setFlows(List.of(flowWithAReference));
+        authenticateAs("user-id");
+        try {
+            assertThatCode(() ->
+                service.validateAndSanitizeUpdateApi(
+                    GraviteeContext.getExecutionContext(),
+                    updateApiEntity,
+                    new PrimaryOwnerEntity(),
+                    existingApiEntity
+                )
+            ).doesNotThrowAnyException();
         } finally {
             SecurityContextHolder.clearContext();
         }
@@ -783,6 +852,41 @@ public class ApiValidationServiceImplTest {
         } finally {
             SecurityContextHolder.clearContext();
         }
+    }
+
+    private ApiValidationServiceImpl withARealSecretReferenceCheck() {
+        return new ApiValidationServiceImpl(
+            tagsValidationService,
+            groupValidationService,
+            listenerValidationService,
+            endpointGroupsValidationService,
+            flowValidationService,
+            resourcesValidationService,
+            loggingValidationService,
+            planSearchService,
+            planValidationService,
+            apiServicePluginService,
+            flowValidationDomainService,
+            apiProductQueryService,
+            validateKafkaClusterBindingDomainService,
+            clusterBindingPermissionDomainService,
+            new SecretReferencePermissionDomainService(
+                new SpelSecretExpressionParser(),
+                mock(PermissionDomainService.class),
+                new CredentialCrudServiceInMemory(),
+                new ObjectMapper()
+            ),
+            new ObjectMapper()
+        );
+    }
+
+    private static Flow flowReading(String reference) {
+        var step = new Step();
+        step.setPolicy("transform-headers");
+        step.setConfiguration("{\"addHeaders\":[{\"name\":\"Authorization\",\"value\":\"" + reference + "\"}]}");
+        var flow = new Flow();
+        flow.setRequest(List.of(step));
+        return flow;
     }
 
     private static void authenticateAs(String userId) {
