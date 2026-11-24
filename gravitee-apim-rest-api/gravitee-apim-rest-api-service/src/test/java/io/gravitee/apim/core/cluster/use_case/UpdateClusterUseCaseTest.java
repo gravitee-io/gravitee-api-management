@@ -27,6 +27,7 @@ import inmemory.AbstractUseCaseTest;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.ClusterCrudServiceInMemory;
 import inmemory.ClusterQueryServiceInMemory;
+import inmemory.CredentialCrudServiceInMemory;
 import inmemory.EventCrudInMemory;
 import inmemory.EventLatestCrudInMemory;
 import inmemory.EventLatestQueryServiceInMemory;
@@ -46,6 +47,9 @@ import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
 import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.cluster.model.UpdateCluster;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
+import io.gravitee.apim.core.secret.exception.SecretReferenceNotAllowedException;
+import io.gravitee.apim.infra.credential.SpelSecretExpressionParser;
 import io.gravitee.apim.infra.json.JsonSchemaCheckerImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.cluster.ClusterType;
@@ -103,6 +107,12 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
                 new ClusterBoundApisQueryService(apiQueryService, objectMapper),
                 new DeployedClustersDomainService(new EventLatestQueryServiceInMemory(), objectMapper),
                 objectMapper
+            ),
+            new SecretReferencePermissionDomainService(
+                new SpelSecretExpressionParser(),
+                permissionDomainService,
+                new CredentialCrudServiceInMemory(),
+                objectMapper
             )
         );
         clusterQueryService.reset();
@@ -149,6 +159,21 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
         expected.setUpdatedAt(INSTANT_NOW);
 
         assertThat(updatedCluster.cluster()).usingRecursiveComparison().isEqualTo(expected);
+    }
+
+    @Test
+    void should_refuse_a_configuration_adding_a_store_secret_reference_without_the_secret_read_permission() {
+        Object configuration = Map.of(
+            "bootstrapServers",
+            "localhost:9092",
+            "security",
+            Map.of("protocol", "SASL_SSL", "password", "{#secrets.get('/gravitee/kafka-password:value?envId=" + ENV_ID + "')}")
+        );
+        var toUpdate = UpdateCluster.builder().configuration(configuration).build();
+
+        assertThatThrownBy(() ->
+            updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO))
+        ).isInstanceOf(SecretReferenceNotAllowedException.class);
     }
 
     @Test

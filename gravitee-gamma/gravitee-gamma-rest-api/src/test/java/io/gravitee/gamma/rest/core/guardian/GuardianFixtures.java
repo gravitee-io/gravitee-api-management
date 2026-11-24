@@ -16,12 +16,17 @@
 package io.gravitee.gamma.rest.core.guardian;
 
 import com.fasterxml.jackson.core.JsonPointer;
+import inmemory.CredentialCrudServiceInMemory;
 import inmemory.EnvironmentCrudServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.environment.model.Environment;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
+import io.gravitee.apim.infra.credential.SpelSecretExpressionParser;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.definition.model.guardian.GuardianSteps;
 import io.gravitee.definition.model.v4.ApiType;
@@ -304,6 +309,21 @@ public final class GuardianFixtures {
         ValidateResourceDomainService resourceValidation
     ) {
         return new ValidateGuardianResourcesDomainService(installed, theEnvironments(), resourceValidation, new JacksonJsonDeserializer());
+    }
+
+    public static final String A_STORE_SECRET_REFERENCE = "{#secrets.get('/gravitee/db-password:value?envId=" + ENVIRONMENT_ID + "')}";
+
+    public static SecretReferencePermissionDomainService aSecretReferenceValidator(PermissionDomainService permissions) {
+        return new SecretReferencePermissionDomainService(
+            new SpelSecretExpressionParser(),
+            permissions,
+            new CredentialCrudServiceInMemory(),
+            GraviteeJacksonMapper.getInstance()
+        );
+    }
+
+    public static SecretReferencePermissionDomainService aSecretReferenceValidatorWithoutPermissions() {
+        return aSecretReferenceValidator(Mockito.mock(PermissionDomainService.class));
     }
 
     /** A validator that sees exactly these installed policies. */

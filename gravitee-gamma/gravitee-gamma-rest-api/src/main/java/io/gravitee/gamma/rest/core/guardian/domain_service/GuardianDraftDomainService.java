@@ -21,6 +21,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianInUseException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianInUseException.RefusedChange;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
@@ -54,6 +55,7 @@ public class GuardianDraftDomainService {
     private final AuditDomainService auditDomainService;
     private final GuardianDeploymentDomainService deployments;
     private final GuardianUsageDomainService usage;
+    private final SecretReferencePermissionDomainService secretReferencePermissionDomainService;
 
     /** How many times an overwrite counts again from a draft another writer just stored, before it is refused. */
     private static final int OVERWRITE_ATTEMPTS = 3;
@@ -100,6 +102,7 @@ public class GuardianDraftDomainService {
         var guardianToUpdate = existingGuardian.update(command);
         // after the merge, not before: the identity it needs comes from the path
         validateGuardian.validateDefinition(guardianToUpdate.getDefinition());
+        requireRightsForAddedSecretReferences(auditInfo, existingGuardian.getDefinition(), guardianToUpdate.getDefinition());
 
         // Only a rename is checked. An edit that leaves the name alone cannot newly break the rule, and
         // checking it anyway would make a Guardian unsaveable whenever the store already holds a case
@@ -211,5 +214,15 @@ public class GuardianDraftDomainService {
         return guardianRepository
             .findByEnvironmentId(guardian.getEnvironmentId(), guardian.getId())
             .orElseThrow(() -> new GuardianNotFoundException(guardian.getId()));
+    }
+
+    private void requireRightsForAddedSecretReferences(AuditInfo auditInfo, Object before, Object after) {
+        secretReferencePermissionDomainService.validate(
+            auditInfo.organizationId(),
+            auditInfo.environmentId(),
+            auditInfo.actor().userId(),
+            before,
+            after
+        );
     }
 }

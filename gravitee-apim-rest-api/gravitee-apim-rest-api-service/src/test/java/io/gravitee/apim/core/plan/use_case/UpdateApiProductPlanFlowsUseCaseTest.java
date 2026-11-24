@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PlanFixtures;
 import inmemory.ApiProductCrudServiceInMemory;
+import inmemory.CredentialCrudServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
@@ -36,9 +37,14 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
+import io.gravitee.apim.core.secret.exception.SecretReferenceNotAllowedException;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
+import io.gravitee.apim.infra.credential.SpelSecretExpressionParser;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
@@ -73,6 +79,8 @@ class UpdateApiProductPlanFlowsUseCaseTest {
         new EntrypointPluginQueryServiceInMemory()
     );
 
+    private final PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
+
     @Mock
     private UpdatePlanDomainService updatePlanDomainService;
 
@@ -84,7 +92,13 @@ class UpdateApiProductPlanFlowsUseCaseTest {
             updatePlanDomainService,
             flowValidationDomainService,
             planQueryService,
-            apiProductCrudService
+            apiProductCrudService,
+            new SecretReferencePermissionDomainService(
+                new SpelSecretExpressionParser(),
+                permissionDomainService,
+                new CredentialCrudServiceInMemory(),
+                GraviteeJacksonMapper.getInstance()
+            )
         );
         apiProductCrudService.initWith(List.of(API_PRODUCT));
     }
@@ -120,6 +134,24 @@ class UpdateApiProductPlanFlowsUseCaseTest {
         assertThat(output.updated())
             .extracting(plan -> plan.getPlanDefinitionHttpV4().getFlows())
             .containsExactly(flows1, flows2);
+    }
+
+    @Test
+    void should_refuse_flows_adding_a_store_secret_reference_without_the_secret_read_permission_and_write_nothing() {
+        planQueryService.initWith(List.of(productPlan("plan-1", PlanStatus.PUBLISHED)));
+        var withReference = List.of(Flow.builder().name("{#secrets.get('/gravitee/db-password:value?envId=env-id')}").build());
+
+        assertThatThrownBy(() ->
+            useCase.execute(
+                new UpdateApiProductPlanFlowsUseCase.Input(
+                    API_PRODUCT_ID,
+                    List.of(new UpdateApiProductPlanFlowsUseCase.PlanFlows("plan-1", null, withReference)),
+                    AUDIT_INFO
+                )
+            )
+        ).isInstanceOf(SecretReferenceNotAllowedException.class);
+
+        verify(updatePlanDomainService, never()).updatePlanForApiProduct(any(), any(), any(), any());
     }
 
     @Test

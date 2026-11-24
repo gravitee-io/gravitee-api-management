@@ -44,6 +44,11 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>io.gravitee.gateway</groupId>
+            <artifactId>gravitee-gateway-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>io.gravitee.secret</groupId>
             <artifactId>gravitee-secret-api</artifactId>
             <scope>provided</scope>

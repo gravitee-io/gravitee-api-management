@@ -31,6 +31,7 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
+import inmemory.CredentialCrudServiceInMemory;
 import inmemory.EventLatestQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
@@ -57,7 +58,11 @@ import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDom
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.Role;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
+import io.gravitee.apim.core.secret.exception.SecretReferenceNotAllowedException;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
+import io.gravitee.apim.infra.credential.SpelSecretExpressionParser;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.model.Parameter;
@@ -98,6 +103,7 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
     private final NotificationConfigCrudServiceInMemory notificationConfigCrudService = new NotificationConfigCrudServiceInMemory();
     private final ApiProductTagDomainService apiProductTagDomainService = mock(ApiProductTagDomainService.class);
 
+    private final PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
     private CreateApiProductUseCase createApiProductUseCase;
 
     @BeforeEach
@@ -163,7 +169,13 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
                 GraviteeJacksonMapper.getInstance()
             ),
             groupQueryService,
-            apiProductTagDomainService
+            apiProductTagDomainService,
+            new SecretReferencePermissionDomainService(
+                new SpelSecretExpressionParser(),
+                permissionDomainService,
+                new CredentialCrudServiceInMemory(),
+                GraviteeJacksonMapper.getInstance()
+            )
         );
 
         initRoles();
@@ -180,6 +192,21 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
                 .build()
         );
         roleQueryService.initWith(roles);
+    }
+
+    @Test
+    void should_refuse_a_product_referencing_a_store_secret_without_the_secret_read_permission_and_store_nothing() {
+        var toCreate = CreateApiProduct.builder()
+            .name("API Product 1")
+            .version("1.0.0")
+            .description("{#secrets.get('/gravitee/db-password:value?envId=env-id')}")
+            .build();
+
+        Assertions.assertThatThrownBy(() ->
+            createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO))
+        ).isInstanceOf(SecretReferenceNotAllowedException.class);
+
+        assertThat(apiProductCrudService.storage()).isEmpty();
     }
 
     @Test
