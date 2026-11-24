@@ -56,7 +56,7 @@ public interface ApiRepository extends CrudRepository<Api, String> {
     boolean existById(final String appId) throws TechnicalException;
 
     /**
-     * Replaces the definition of an API, the index of the Guardians that definition names, and its update date —
+     * Replaces the definition of an API, the index of the Guardrails that definition names, and its update date —
      * nothing else — while it still holds {@code expectedUpdatedAt}.
      *
      * <p>The alternative is to read the API, change its definition and {@link #update(Object) update} it, which
@@ -66,16 +66,16 @@ public interface ApiRepository extends CrudRepository<Api, String> {
      * all when the API moved in between — the update date is the fingerprint of that move.
      *
      * <p>The definition and its index travel together because they say the same thing twice: two calls would leave a
-     * window where the definition names a Guardian the index does not, and the refusal to withdraw that Guardian
+     * window where the definition names a Guardrail the index does not, and the refusal to withdraw that Guardrail
      * reads the index.
      *
-     * @param guardianIds the Guardians {@code definition} names, empty when it names none. The index is a projection
+     * @param guardrailIds the Guardrails {@code definition} names, empty when it names none. The index is a projection
      *     of the definition being written, so it is the caller computing that definition that reads them out of it.
      * @param expectedUpdatedAt the update date the API carried when {@code definition} was computed from it
      * @return whether the write happened. {@code false} means the API no longer holds {@code expectedUpdatedAt} —
      *     another writer got there first — or that it is gone. Nothing was written either way, index included.
      */
-    boolean updateDefinition(String apiId, String definition, Set<String> guardianIds, Date updatedAt, Date expectedUpdatedAt)
+    boolean updateDefinition(String apiId, String definition, Set<String> guardrailIds, Date updatedAt, Date expectedUpdatedAt)
         throws TechnicalException;
 
     /**

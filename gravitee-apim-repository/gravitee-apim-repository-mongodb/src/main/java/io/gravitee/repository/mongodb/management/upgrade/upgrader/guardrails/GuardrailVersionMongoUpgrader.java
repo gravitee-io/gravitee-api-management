@@ -13,30 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.upgrade.upgrader.guardians;
+package io.gravitee.repository.mongodb.management.upgrade.upgrader.guardrails;
 
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUpgrader;
-import io.gravitee.repository.mongodb.management.upgrade.upgrader.subscriptionform.SubscriptionFormGlobalDefaultMongoUpgrader;
 import org.bson.Document;
 import org.springframework.stereotype.Component;
 
 /**
- * Gives version 1 to the Guardians stored before the draft version existed.
+ * Gives version 1 to the Guardrails stored before the draft version existed.
  *
- * <p>A Guardian is created at version 1 and an update has to state the version it was built on. One with no
+ * <p>A Guardrail is created at version 1 and an update has to state the version it was built on. One with no
  * version would carry no {@code ETag}, so its first save could only be an unguarded overwrite: two editors
  * would still undo each other until someone saved it once. The JDBC changelog does the same for its rows.
  *
  * @author GraviteeSource Team
  */
 @Component
-public class GuardianVersionMongoUpgrader extends MongoUpgrader {
+public class GuardrailVersionMongoUpgrader extends MongoUpgrader {
 
-    public static final int GUARDIAN_VERSION_MONGO_UPGRADER_ORDER =
-        SubscriptionFormGlobalDefaultMongoUpgrader.SUBSCRIPTION_FORM_GLOBAL_DEFAULT_MONGO_UPGRADER_ORDER + 1;
+    public static final int GUARDRAIL_VERSION_MONGO_UPGRADER_ORDER = GuardrailRenameMongoUpgrader.GUARDRAIL_RENAME_MONGO_UPGRADER_ORDER + 1;
 
     static final String VERSION = "version";
     static final int FIRST_VERSION = 1;
@@ -49,8 +47,8 @@ public class GuardianVersionMongoUpgrader extends MongoUpgrader {
     @Override
     public boolean upgrade() {
         // The version carries no index, and the databases the tests run against forbid collection scans:
-        // walking the _id index visits every Guardian without asking for one.
-        var result = this.getCollection("guardians").updateMany(
+        // walking the _id index visits every Guardrail without asking for one.
+        var result = this.getCollection("guardrails").updateMany(
             Filters.eq(VERSION, null),
             Updates.set(VERSION, FIRST_VERSION),
             new UpdateOptions().hint(new Document("_id", 1))
@@ -60,6 +58,6 @@ public class GuardianVersionMongoUpgrader extends MongoUpgrader {
 
     @Override
     public int getOrder() {
-        return GUARDIAN_VERSION_MONGO_UPGRADER_ORDER;
+        return GUARDRAIL_VERSION_MONGO_UPGRADER_ORDER;
     }
 }

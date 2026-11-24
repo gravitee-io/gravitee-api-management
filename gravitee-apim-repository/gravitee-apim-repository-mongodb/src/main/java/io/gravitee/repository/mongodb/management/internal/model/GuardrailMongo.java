@@ -26,8 +26,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
  */
 @Getter
 @Setter
-@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}guardians")
-public class GuardianMongo {
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}guardrails")
+public class GuardrailMongo {
 
     @Id
     private String id;

@@ -22,14 +22,14 @@ import static io.gravitee.repository.jdbc.utils.FieldUtils.toSnakeCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
-import io.gravitee.repository.management.api.GuardianRepository;
-import io.gravitee.repository.management.api.search.GuardianCriteria;
+import io.gravitee.repository.management.api.GuardrailRepository;
+import io.gravitee.repository.management.api.search.GuardrailCriteria;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
-import io.gravitee.repository.management.model.Guardian;
-import io.gravitee.repository.management.model.GuardianLifecycleState;
+import io.gravitee.repository.management.model.Guardrail;
+import io.gravitee.repository.management.model.GuardrailLifecycleState;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
@@ -48,22 +48,22 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcGuardianRepository extends JdbcAbstractCrudRepository<Guardian, String> implements GuardianRepository {
+public class JdbcGuardrailRepository extends JdbcAbstractCrudRepository<Guardrail, String> implements GuardrailRepository {
 
-    JdbcGuardianRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
-        super(tablePrefix, "guardians");
+    JdbcGuardrailRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "guardrails");
     }
 
     @Override
-    protected JdbcObjectMapper<Guardian> buildOrm() {
-        return JdbcObjectMapper.builder(Guardian.class, this.tableName, "id")
+    protected JdbcObjectMapper<Guardrail> buildOrm() {
+        return JdbcObjectMapper.builder(Guardrail.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("phase", Types.NVARCHAR, Guardian.Phase.class)
+            .addColumn("phase", Types.NVARCHAR, Guardrail.Phase.class)
             .addColumn("definition", Types.NVARCHAR, String.class)
-            .addColumn("lifecycle_state", Types.NVARCHAR, GuardianLifecycleState.class)
+            .addColumn("lifecycle_state", Types.NVARCHAR, GuardrailLifecycleState.class)
             .addColumn("deployed_at", Types.TIMESTAMP, Date.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
@@ -72,38 +72,38 @@ public class JdbcGuardianRepository extends JdbcAbstractCrudRepository<Guardian,
     }
 
     @Override
-    protected String getId(Guardian item) {
+    protected String getId(Guardrail item) {
         return item.getId();
     }
 
     @Override
-    public Optional<Guardian> updateIfVersionMatches(Guardian guardian, int expectedVersion) throws TechnicalException {
-        if (guardian == null || guardian.getId() == null) {
-            throw new IllegalStateException("Guardian to update must have an id");
+    public Optional<Guardrail> updateIfVersionMatches(Guardrail guardrail, int expectedVersion) throws TechnicalException {
+        if (guardrail == null || guardrail.getId() == null) {
+            throw new IllegalStateException("Guardrail to update must have an id");
         }
-        log.debug("JdbcGuardianRepository.updateIfVersionMatches({}, {})", guardian.getId(), expectedVersion);
+        log.debug("JdbcGuardrailRepository.updateIfVersionMatches({}, {})", guardrail.getId(), expectedVersion);
         try {
             // one statement for the comparison and the write, so no other writer can get in between the two
             final var sql = getOrm().getUpdateSql() + " and " + escapeReservedWord("version") + " = ?";
             final int rows = jdbcTemplate.update(
-                getOrm().buildUpdatePreparedStatementCreator(sql, guardian, guardian.getId(), expectedVersion)
+                getOrm().buildUpdatePreparedStatementCreator(sql, guardrail, guardrail.getId(), expectedVersion)
             );
-            return rows == 0 ? Optional.empty() : findById(guardian.getId());
+            return rows == 0 ? Optional.empty() : findById(guardrail.getId());
         } catch (Exception ex) {
-            throw new TechnicalException("Failed to update guardian [%s]".formatted(guardian.getId()), ex);
+            throw new TechnicalException("Failed to update guardrail [%s]".formatted(guardrail.getId()), ex);
         }
     }
 
     @Override
-    public Set<Guardian> findAll() throws TechnicalException {
-        // Not an unfinished job: a Guardian is always read within its environment, so a global
+    public Set<Guardrail> findAll() throws TechnicalException {
+        // Not an unfinished job: a Guardrail is always read within its environment, so a global
         // findAll has no meaning here. The shared repository contract asserts this refusal.
-        throw new IllegalStateException("findAll is not supported: a Guardian is always read within its environment");
+        throw new IllegalStateException("findAll is not supported: a Guardrail is always read within its environment");
     }
 
     static String sortColumn(final String field) {
         // the allow-list itself lives on the shared criteria, so both backends offer the same fields
-        return toSnakeCase(GuardianCriteria.requireSortableField(field));
+        return toSnakeCase(GuardrailCriteria.requireSortableField(field));
     }
 
     /**
@@ -129,15 +129,15 @@ public class JdbcGuardianRepository extends JdbcAbstractCrudRepository<Guardian,
     }
 
     @Override
-    public List<Guardian> findByEnvironmentIdAndIds(String environmentId, Set<String> guardianIds) throws TechnicalException {
+    public List<Guardrail> findByEnvironmentIdAndIds(String environmentId, Set<String> guardrailIds) throws TechnicalException {
         Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
-        var guardians = new ArrayList<Guardian>();
+        var guardrails = new ArrayList<Guardrail>();
         try {
-            JdbcIdBatches.forEach(List.copyOf(guardianIds), batch -> {
+            JdbcIdBatches.forEach(List.copyOf(guardrailIds), batch -> {
                 var parameters = new ArrayList<Object>();
                 parameters.add(environmentId);
                 parameters.addAll(batch);
-                guardians.addAll(
+                guardrails.addAll(
                     jdbcTemplate.query(
                         getOrm().getSelectAllSql() + " where environment_id = ? and id in (" + getOrm().buildInClause(batch) + ")",
                         getOrm().getRowMapper(),
@@ -145,17 +145,17 @@ public class JdbcGuardianRepository extends JdbcAbstractCrudRepository<Guardian,
                     )
                 );
             });
-            return guardians;
+            return guardrails;
         } catch (Exception ex) {
-            throw new TechnicalException("Failed to find Guardians by environment and ids", ex);
+            throw new TechnicalException("Failed to find Guardrails by environment and ids", ex);
         }
     }
 
     @Override
-    public List<Guardian> findByEnvironmentIdAndNameIgnoreCase(String environmentId, String name) throws TechnicalException {
+    public List<Guardrail> findByEnvironmentIdAndNameIgnoreCase(String environmentId, String name) throws TechnicalException {
         Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
         Objects.requireNonNull(name, "Name must not be null");
-        log.debug("JdbcGuardianRepository.findByEnvironmentIdAndNameIgnoreCase({})", environmentId);
+        log.debug("JdbcGuardrailRepository.findByEnvironmentIdAndNameIgnoreCase({})", environmentId);
         try {
             // lower() on both sides rather than a collation: the four flavours this module supports do
             // not agree on a case-insensitive one, and the domain rule is case-insensitive.
@@ -169,16 +169,16 @@ public class JdbcGuardianRepository extends JdbcAbstractCrudRepository<Guardian,
             );
             return rows;
         } catch (Exception ex) {
-            throw new TechnicalException("Failed to find a Guardian by name", ex);
+            throw new TechnicalException("Failed to find a Guardrail by name", ex);
         }
     }
 
     @Override
-    public Page<Guardian> search(GuardianCriteria criteria, Pageable pageable, Sortable sortable) throws TechnicalException {
+    public Page<Guardrail> search(GuardrailCriteria criteria, Pageable pageable, Sortable sortable) throws TechnicalException {
         Objects.requireNonNull(pageable, "Pageable must not be null");
-        Objects.requireNonNull(criteria, "GuardianCriteria must not be null");
+        Objects.requireNonNull(criteria, "GuardrailCriteria must not be null");
         Objects.requireNonNull(criteria.getEnvironmentId(), "EnvironmentId must not be null");
-        log.debug("JdbcGuardianRepository.search({}, {})", criteria, pageable);
+        log.debug("JdbcGuardrailRepository.search({}, {})", criteria, pageable);
 
         try {
             final StringJoiner andWhere = new StringJoiner(" AND ");
@@ -232,14 +232,14 @@ public class JdbcGuardianRepository extends JdbcAbstractCrudRepository<Guardian,
         } catch (Exception ex) {
             // no log here: the boundary logs it once, and AGENTS.md asks lower layers to wrap with
             // context and rethrow rather than duplicate the stack trace
-            throw new TechnicalException("Failed to search for Guardians", ex);
+            throw new TechnicalException("Failed to search for Guardrails", ex);
         }
     }
 
     @Override
-    public void updateUpdatedAt(String environmentId, String guardianId, Date updatedAt) throws TechnicalException {
+    public void updateUpdatedAt(String environmentId, String guardrailId, Date updatedAt) throws TechnicalException {
         Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
-        Objects.requireNonNull(guardianId, "GuardianId must not be null");
+        Objects.requireNonNull(guardrailId, "GuardrailId must not be null");
         Objects.requireNonNull(updatedAt, "UpdatedAt must not be null");
         try {
             jdbcTemplate.update(
@@ -248,17 +248,17 @@ public class JdbcGuardianRepository extends JdbcAbstractCrudRepository<Guardian,
                     " set updated_at = ? where environment_id = ? and id = ? and (updated_at is null or updated_at < ?)",
                 updatedAt,
                 environmentId,
-                guardianId,
+                guardrailId,
                 updatedAt
             );
         } catch (Exception e) {
-            throw new TechnicalException("Failed to update Guardian timestamp", e);
+            throw new TechnicalException("Failed to update Guardrail timestamp", e);
         }
     }
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        log.debug("Delete guardians by environment ID [{}]", environmentId);
+        log.debug("Delete guardrails by environment ID [{}]", environmentId);
         try {
             final var rows = jdbcTemplate.queryForList(
                 "select id from " + tableName + " WHERE environment_id = ?",
@@ -268,12 +268,12 @@ public class JdbcGuardianRepository extends JdbcAbstractCrudRepository<Guardian,
             if (!rows.isEmpty()) {
                 jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
             }
-            log.debug("Delete guardians by environment ID [{}] - Done", environmentId);
+            log.debug("Delete guardrails by environment ID [{}] - Done", environmentId);
             return rows;
         } catch (Exception ex) {
             // no log here: the boundary logs it once, and AGENTS.md asks lower layers to wrap with
             // context and rethrow rather than duplicate the stack trace
-            throw new TechnicalException("Failed to delete Guardians by environment ID [%s]".formatted(environmentId), ex);
+            throw new TechnicalException("Failed to delete Guardrails by environment ID [%s]".formatted(environmentId), ex);
         }
     }
 }

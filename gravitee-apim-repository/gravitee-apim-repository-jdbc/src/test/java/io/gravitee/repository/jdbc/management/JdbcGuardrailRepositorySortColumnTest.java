@@ -27,24 +27,24 @@ import org.junit.jupiter.params.provider.ValueSource;
 /**
  * The sort field is the one value {@code search} puts into its SQL rather than binding as a
  * parameter, so this repository validates it itself instead of trusting its caller: the
- * {@code GuardianRepository} SPI is public and the allow-list of its only caller today is two
+ * {@code GuardrailRepository} SPI is public and the allow-list of its only caller today is two
  * layers away.
  *
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class JdbcGuardianRepositorySortColumnTest {
+class JdbcGuardrailRepositorySortColumnTest {
 
     @ParameterizedTest
     @ValueSource(strings = { "name", "phase", "updatedAt", "createdAt" })
     void should_accept_every_sortable_column(String field) {
-        assertThat(JdbcGuardianRepository.sortColumn(field)).isNotBlank();
+        assertThat(JdbcGuardrailRepository.sortColumn(field)).isNotBlank();
     }
 
     @Test
     void should_map_a_camel_case_field_onto_its_column() {
-        assertThat(JdbcGuardianRepository.sortColumn("updatedAt")).isEqualTo("updated_at");
-        assertThat(JdbcGuardianRepository.sortColumn("createdAt")).isEqualTo("created_at");
+        assertThat(JdbcGuardrailRepository.sortColumn("updatedAt")).isEqualTo("updated_at");
+        assertThat(JdbcGuardrailRepository.sortColumn("createdAt")).isEqualTo("created_at");
     }
 
     @ParameterizedTest
@@ -53,14 +53,14 @@ class JdbcGuardianRepositorySortColumnTest {
     // backends disagree on where nulls sort
     @ValueSource(strings = { "id", "definition", "environmentId", "apiType", "deployedAt", "nawak" })
     void should_refuse_a_column_that_is_not_sortable(String field) {
-        assertThatThrownBy(() -> JdbcGuardianRepository.sortColumn(field))
+        assertThatThrownBy(() -> JdbcGuardrailRepository.sortColumn(field))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining(field);
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "name; drop table guardians", "name--", "(select 1)", "name, definition" })
+    @ValueSource(strings = { "name; drop table guardrails", "name--", "(select 1)", "name, definition" })
     void should_refuse_anything_that_would_reach_the_order_by_clause(String field) {
-        assertThatThrownBy(() -> JdbcGuardianRepository.sortColumn(field)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> JdbcGuardrailRepository.sortColumn(field)).isInstanceOf(IllegalArgumentException.class);
     }
 }

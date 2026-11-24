@@ -1022,101 +1022,101 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(0, nbAfterDeletion);
     }
 
-    /** The Guardian index of the test data, written the only way it is written: with the definition it projects. */
+    /** The Guardrail index of the test data, written the only way it is written: with the definition it projects. */
     @BeforeEach
-    public void index_the_guardians_of_the_test_data() throws TechnicalException {
-        indexGuardians("api-to-findById", Set.of("guardian-1", "guardian-2"));
-        indexGuardians("grouped-api", Set.of("guardian-1"));
-        indexGuardians("big-name", Set.of("guardian-1"));
+    public void index_the_guardrails_of_the_test_data() throws TechnicalException {
+        indexGuardrails("api-to-findById", Set.of("guardrail-1", "guardrail-2"));
+        indexGuardrails("grouped-api", Set.of("guardrail-1"));
+        indexGuardrails("big-name", Set.of("guardrail-1"));
     }
 
-    private void indexGuardians(String apiId, Set<String> guardianIds) throws TechnicalException {
+    private void indexGuardrails(String apiId, Set<String> guardrailIds) throws TechnicalException {
         Api api = apiRepository.findById(apiId).orElseThrow();
-        apiRepository.updateDefinition(apiId, api.getDefinition(), guardianIds, api.getUpdatedAt(), api.getUpdatedAt());
+        apiRepository.updateDefinition(apiId, api.getDefinition(), guardrailIds, api.getUpdatedAt(), api.getUpdatedAt());
     }
 
-    private List<String> apisRunning(String guardianId) {
+    private List<String> apisRunning(String guardrailId) {
         return apiRepository
-            .search(new ApiCriteria.Builder().guardian(guardianId).build(), ApiFieldFilter.defaultFields())
+            .search(new ApiCriteria.Builder().guardrail(guardrailId).build(), ApiFieldFilter.defaultFields())
             .stream()
             .map(Api::getId)
             .toList();
     }
 
     @Test
-    public void should_forget_the_guardians_of_a_deleted_api() throws TechnicalException {
+    public void should_forget_the_guardrails_of_a_deleted_api() throws TechnicalException {
         apiRepository.delete("api-to-findById");
 
-        assertThat(apisRunning("guardian-2")).as("APIs running guardian-2 once the only one running it is deleted").isEmpty();
+        assertThat(apisRunning("guardrail-2")).as("APIs running guardrail-2 once the only one running it is deleted").isEmpty();
     }
 
     @Test
-    public void should_forget_the_guardians_of_the_apis_of_a_deleted_environment() throws TechnicalException {
+    public void should_forget_the_guardrails_of_the_apis_of_a_deleted_environment() throws TechnicalException {
         apiRepository.deleteByEnvironmentId("DEV");
 
-        assertThat(apisRunning("guardian-1"))
-            .as("APIs running guardian-1 once the environment DEV is deleted")
+        assertThat(apisRunning("guardrail-1"))
+            .as("APIs running guardrail-1 once the environment DEV is deleted")
             .containsExactlyInAnyOrder("api-to-findById", "grouped-api");
     }
 
     @Test
-    public void should_find_the_apis_of_an_environment_running_a_guardian() {
+    public void should_find_the_apis_of_an_environment_running_a_guardrail() {
         List<Api> apis = apiRepository.search(
-            new ApiCriteria.Builder().environmentId("DEFAULT").guardian("guardian-1").build(),
+            new ApiCriteria.Builder().environmentId("DEFAULT").guardrail("guardrail-1").build(),
             ApiFieldFilter.defaultFields()
         );
 
         assertThat(apis)
             .extracting(Api::getId)
-            .as("APIs of DEFAULT running guardian-1")
+            .as("APIs of DEFAULT running guardrail-1")
             .containsExactlyInAnyOrder("api-to-findById", "grouped-api");
     }
 
     @Test
-    public void should_find_the_apis_running_a_guardian_whatever_their_environment() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().guardian("guardian-1").build(), ApiFieldFilter.defaultFields());
+    public void should_find_the_apis_running_a_guardrail_whatever_their_environment() {
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().guardrail("guardrail-1").build(), ApiFieldFilter.defaultFields());
 
         assertThat(apis)
             .extracting(Api::getId)
-            .as("APIs running guardian-1")
+            .as("APIs running guardrail-1")
             .containsExactlyInAnyOrder("api-to-findById", "grouped-api", "big-name");
     }
 
     @Test
-    public void should_find_no_api_for_a_guardian_no_api_runs() {
+    public void should_find_no_api_for_a_guardrail_no_api_runs() {
         List<Api> apis = apiRepository.search(
-            new ApiCriteria.Builder().guardian("unknown-guardian").build(),
+            new ApiCriteria.Builder().guardrail("unknown-guardrail").build(),
             ApiFieldFilter.defaultFields()
         );
 
-        assertThat(apis).as("APIs running unknown-guardian").isEmpty();
+        assertThat(apis).as("APIs running unknown-guardrail").isEmpty();
     }
 
     @Test
-    public void should_search_the_ids_of_the_apis_running_a_guardian() {
+    public void should_search_the_ids_of_the_apis_running_a_guardrail() {
         Page<String> apiIds = apiRepository.searchIds(
-            List.of(new ApiCriteria.Builder().guardian("guardian-2").build()),
+            List.of(new ApiCriteria.Builder().guardrail("guardrail-2").build()),
             new PageableBuilder().pageNumber(0).pageSize(10).build(),
             null
         );
 
-        assertThat(apiIds.getContent()).as("ids of the APIs running guardian-2").containsExactly("api-to-findById");
+        assertThat(apiIds.getContent()).as("ids of the APIs running guardrail-2").containsExactly("api-to-findById");
     }
 
     /**
      * The index is written by the write that replaces a definition, not by a save of the API: a save must leave it
-     * alone, or the refusal to withdraw a Guardian an API runs would stop refusing on the next save of any API. Both
+     * alone, or the refusal to withdraw a Guardrail an API runs would stop refusing on the next save of any API. Both
      * stores have to answer the same here — a full-document store is where this silently went wrong.
      */
     @Test
-    public void should_keep_the_guardians_an_api_runs_when_the_api_is_updated() throws TechnicalException {
+    public void should_keep_the_guardrails_an_api_runs_when_the_api_is_updated() throws TechnicalException {
         Api api = apiRepository.findById("api-to-findById").orElseThrow();
         api.setDescription("Updated without the index");
 
         apiRepository.update(api);
 
-        assertThat(apisRunning("guardian-2"))
-            .as("APIs running guardian-2 after a save of api-to-findById")
+        assertThat(apisRunning("guardrail-2"))
+            .as("APIs running guardrail-2 after a save of api-to-findById")
             .containsExactly("api-to-findById");
     }
 
@@ -1128,7 +1128,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         boolean written = apiRepository.updateDefinition(
             "api-to-findById",
             "{\"replaced\":true}",
-            Set.of("guardian-1", "guardian-2"),
+            Set.of("guardrail-1", "guardrail-2"),
             advanced,
             before.getUpdatedAt()
         );
@@ -1155,7 +1155,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         apiRepository.updateDefinition(
             "api-to-findById",
             "{\"replaced\":true}",
-            Set.of("guardian-3"),
+            Set.of("guardrail-3"),
             parse("13/11/2026"),
             before.getUpdatedAt()
         );
@@ -1169,43 +1169,47 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     /**
-     * The index travels with the definition it projects, in one call: the Guardians the API runs are the ones the
+     * The index travels with the definition it projects, in one call: the Guardrails the API runs are the ones the
      * written definition names, and the search answers them from the same write.
      */
     @Test
-    public void should_replace_the_guardian_index_with_the_definition() throws TechnicalException {
+    public void should_replace_the_guardrail_index_with_the_definition() throws TechnicalException {
         Api before = apiRepository.findById("api-to-findById").orElseThrow();
 
         apiRepository.updateDefinition(
             "api-to-findById",
             "{\"replaced\":true}",
-            Set.of("guardian-3"),
+            Set.of("guardrail-3"),
             parse("13/11/2026"),
             before.getUpdatedAt()
         );
 
         assertSoftly(softly -> {
             softly
-                .assertThat(apiRepository.search(new ApiCriteria.Builder().guardian("guardian-3").build(), ApiFieldFilter.defaultFields()))
+                .assertThat(
+                    apiRepository.search(new ApiCriteria.Builder().guardrail("guardrail-3").build(), ApiFieldFilter.defaultFields())
+                )
                 .extracting(Api::getId)
-                .as("APIs running guardian-3")
+                .as("APIs running guardrail-3")
                 .contains("api-to-findById");
             softly
-                .assertThat(apiRepository.search(new ApiCriteria.Builder().guardian("guardian-2").build(), ApiFieldFilter.defaultFields()))
-                .as("APIs still running guardian-2")
+                .assertThat(
+                    apiRepository.search(new ApiCriteria.Builder().guardrail("guardrail-2").build(), ApiFieldFilter.defaultFields())
+                )
+                .as("APIs still running guardrail-2")
                 .isEmpty();
         });
     }
 
     @Test
-    public void should_run_no_guardian_at_all_once_the_definition_names_none() throws TechnicalException {
+    public void should_run_no_guardrail_at_all_once_the_definition_names_none() throws TechnicalException {
         Api before = apiRepository.findById("api-to-findById").orElseThrow();
 
         apiRepository.updateDefinition("api-to-findById", "{\"replaced\":true}", Set.of(), parse("13/11/2026"), before.getUpdatedAt());
 
         assertSoftly(softly -> {
-            softly.assertThat(apisRunning("guardian-1")).as("APIs still running guardian-1").doesNotContain("api-to-findById");
-            softly.assertThat(apisRunning("guardian-2")).as("APIs still running guardian-2").isEmpty();
+            softly.assertThat(apisRunning("guardrail-1")).as("APIs still running guardrail-1").doesNotContain("api-to-findById");
+            softly.assertThat(apisRunning("guardrail-2")).as("APIs still running guardrail-2").isEmpty();
         });
     }
 
@@ -1217,7 +1221,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         boolean written = apiRepository.updateDefinition(
             "api-to-findById",
             "{\"replaced\":true}",
-            Set.of("guardian-3"),
+            Set.of("guardrail-3"),
             parse("13/11/2026"),
             parse("01/01/2000")
         );
@@ -1230,8 +1234,8 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
                     softly.assertThat(after.getDefinition()).as("definition").isEqualTo(before.getDefinition());
                     softly.assertThat(after.getUpdatedAt()).as("update date").isEqualTo(before.getUpdatedAt());
                     softly
-                        .assertThat(apisRunning("guardian-2"))
-                        .as("APIs running guardian-2, the write having refused to touch the index")
+                        .assertThat(apisRunning("guardrail-2"))
+                        .as("APIs running guardrail-2, the write having refused to touch the index")
                         .containsExactly("api-to-findById");
                 })
             );

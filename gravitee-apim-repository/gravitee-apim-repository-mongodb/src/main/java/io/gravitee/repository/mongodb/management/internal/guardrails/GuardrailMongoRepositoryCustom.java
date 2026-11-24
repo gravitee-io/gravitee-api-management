@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.guardians;
+package io.gravitee.repository.mongodb.management.internal.guardrails;
 
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.management.api.search.GuardianCriteria;
-import io.gravitee.repository.mongodb.management.internal.model.GuardianMongo;
+import io.gravitee.repository.management.api.search.GuardrailCriteria;
+import io.gravitee.repository.mongodb.management.internal.model.GuardrailMongo;
 import java.util.Date;
 import java.util.Optional;
 import org.springframework.data.domain.PageRequest;
@@ -25,11 +25,11 @@ import org.springframework.data.domain.PageRequest;
 /**
  * @author GraviteeSource Team
  */
-public interface GuardianMongoRepositoryCustom {
-    void updateUpdatedAt(String environmentId, String guardianId, Date updatedAt);
+public interface GuardrailMongoRepositoryCustom {
+    void updateUpdatedAt(String environmentId, String guardrailId, Date updatedAt);
 
-    /** Replaces the Guardian only if its stored version is still the expected one; empty when nothing was written. */
-    Optional<GuardianMongo> replaceIfVersionMatches(GuardianMongo guardian, int expectedVersion);
+    /** Replaces the Guardrail only if its stored version is still the expected one; empty when nothing was written. */
+    Optional<GuardrailMongo> replaceIfVersionMatches(GuardrailMongo guardrail, int expectedVersion);
 
-    Page<GuardianMongo> search(GuardianCriteria guardianCriteria, PageRequest pageRequest);
+    Page<GuardrailMongo> search(GuardrailCriteria guardrailCriteria, PageRequest pageRequest);
 }
