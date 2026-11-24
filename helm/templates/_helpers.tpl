@@ -592,3 +592,28 @@ Usage:
 {{- print "standalone" -}}
 {{- end }}
 {{- end }}
+
+{{/*
+Certificate verification settings of an Elasticsearch client, from its ssl values: trustAll and the truststore.
+Renders nothing when neither is set. trustAll is rendered whenever the key is present, so false is kept.
+Usage:
+{{ include "elasticsearch.ssl.trust" .Values.es.ssl }}
+*/}}
+{{- define "elasticsearch.ssl.trust" -}}
+{{- $ssl := . | default dict -}}
+{{- if hasKey $ssl "trustAll" }}
+trustAll: {{ $ssl.trustAll }}
+{{- end }}
+{{- with $ssl.truststore }}
+{{- if .type }}
+truststore:
+  type: {{ .type }}
+  {{- with .path }}
+  path: {{ . }}
+  {{- end }}
+  {{- with .password }}
+  password: {{ . | quote }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
