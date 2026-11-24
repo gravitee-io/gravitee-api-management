@@ -259,12 +259,14 @@ export class FlatTreeComponent {
     return this.getPublishActionState(node).tooltip;
   }
 
+  isCatalogCardTemplateNavId = isCatalogCardTemplateNavId;
+
   isDeleteDisabled(node: SectionNode | FlatTreeNode): boolean {
     return isCatalogCardTemplateNavId(node.id);
   }
 
   getDeleteDisabledTooltip(node: SectionNode | FlatTreeNode): string {
-    return isCatalogCardTemplateNavId(node.id) ? 'The Catalog folder is managed by the portal' : '';
+    return isCatalogCardTemplateNavId(node.id) ? 'The Catalog page is managed by the portal' : '';
   }
 
   treeBase = viewChild<MatTree<SectionNode, string>>(MatTree);
@@ -398,7 +400,7 @@ export class FlatTreeComponent {
 
   canShowMoreActions(node: FlatTreeNode): boolean {
     if (isCatalogCardTemplateNavId(node.id)) {
-      return false;
+      return this.canUpdate;
     }
     if ((node.type === 'FOLDER' || node.type === 'API_PRODUCT') && this.canCreate) {
       return true;

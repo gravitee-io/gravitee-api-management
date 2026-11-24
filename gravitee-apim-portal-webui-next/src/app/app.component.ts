@@ -44,7 +44,7 @@ export class AppComponent {
     private breadcrumbService: BreadcrumbService,
     private title: Title,
   ) {
-    this.siteTitle = configService.configuration?.portalNext?.siteTitle ?? 'Westfield Group US';
+    this.siteTitle = configService.configuration?.portalNext?.siteTitle ?? 'Developer Portal';
     this.title.setTitle(this.siteTitle);
     effect(() => {
       if (this.favicon()) {

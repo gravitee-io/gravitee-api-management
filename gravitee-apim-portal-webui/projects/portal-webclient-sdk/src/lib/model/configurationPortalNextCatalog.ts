@@ -10,17 +10,32 @@
  */
 
 
+import { Enabled } from './enabled';
+import { ConfigurationPortalNextCatalogTile } from './configurationPortalNextCatalogTile';
+
+
 /**
  * Configuration of the catalog for Portal Next
  */
 export interface ConfigurationPortalNextCatalog { 
-    /**
-     * View mode used by the Catalog. If the value is invalid, the TABS view will be shown by default.
-     */
     viewMode?: string;
-    /**
-     * Gravitee Markdown template used to render each API catalog card.
-     */
     cardTemplate?: string;
+    published?: Enabled;
+    topContent?: string;
+    bottomContent?: string;
+    categoryFilter?: {
+        enabled?: boolean;
+        label?: string;
+    };
+    cardsView?: {
+        enabled?: boolean;
+        label?: string;
+    };
+    listView?: {
+        enabled?: boolean;
+        label?: string;
+    };
+    defaultDisplayMode?: string;
+    listColumns?: string;
+    tile?: ConfigurationPortalNextCatalogTile;
 }
-

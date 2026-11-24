@@ -19,25 +19,132 @@
   <div class="loading" data-testid="catalog-tile-loading"><gio-loader /></div>
 } @else if (settingsResource.error() && !editorReady()) {
   <gio-banner-error data-testid="catalog-tile-load-error">
-    Catalog card template could not be loaded.
+    Catalog page configuration could not be loaded.
     <span gioBannerBody>Retry the request or contact your administrator if the problem persists.</span>
     <div gioBannerAction>
       <button mat-stroked-button type="button" (click)="retry()">Retry</button>
     </div>
   </gio-banner-error>
 } @else if (editorReady()) {
-  <div class="catalog-card-template" data-testid="catalog-card-template-editor">
-    <gmd-editor
-      class="catalog-card-template__editor"
-      [formControl]="contentControl"
-      [showPreview]="false"
-      data-testid="catalog-card-gmd-editor"
-    />
-    @if (showPreview()) {
-      <hr class="catalog-card-template__divider" />
-      <div class="catalog-card-template__preview" data-testid="catalog-card-preview">
-        <gmd-viewer [content]="previewContent()" />
-      </div>
-    }
+  <div class="catalog-page-config" data-testid="catalog-card-template-editor">
+    <mat-tab-group class="catalog-page-config__tabs" animationDuration="0ms">
+      <mat-tab label="Page options">
+        <div class="catalog-page-config__section" data-testid="catalog-config-options-form" [formGroup]="optionsForm">
+          <section class="catalog-page-config__block">
+            <h3 class="catalog-page-config__heading">Category filter</h3>
+            <mat-checkbox formControlName="categoryFilterEnabled">Show category filter</mat-checkbox>
+            @if (showCategoryLabel()) {
+              <mat-form-field class="catalog-page-config__field" appearance="outline">
+                <mat-label>Category filter label</mat-label>
+                <input matInput formControlName="categoryFilterLabel" />
+              </mat-form-field>
+            }
+          </section>
+
+          <section class="catalog-page-config__block">
+            <h3 class="catalog-page-config__heading">Display modes</h3>
+            <div class="catalog-page-config__mode-row">
+              <mat-checkbox formControlName="cardsViewEnabled">Cards view</mat-checkbox>
+              @if (showCardsLabel()) {
+                <mat-form-field class="catalog-page-config__field catalog-page-config__field--inline" appearance="outline">
+                  <mat-label>Cards label</mat-label>
+                  <input matInput formControlName="cardsViewLabel" />
+                </mat-form-field>
+              }
+            </div>
+            <div class="catalog-page-config__mode-row">
+              <mat-checkbox formControlName="listViewEnabled">List view</mat-checkbox>
+              @if (showListLabel()) {
+                <mat-form-field class="catalog-page-config__field catalog-page-config__field--inline" appearance="outline">
+                  <mat-label>List label</mat-label>
+                  <input matInput formControlName="listViewLabel" />
+                </mat-form-field>
+              }
+            </div>
+
+            <mat-form-field class="catalog-page-config__field" appearance="outline">
+              <mat-label>Default display mode</mat-label>
+              <mat-select formControlName="defaultDisplayMode">
+                <mat-option value="grid">Cards</mat-option>
+                <mat-option value="list">List</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </section>
+
+          @if (showListColumns()) {
+            <section class="catalog-page-config__block" data-testid="catalog-list-columns">
+              <h3 class="catalog-page-config__heading">List columns</h3>
+              <p class="catalog-page-config__hint">Select columns and reorder them for the list table.</p>
+              <div class="catalog-page-config__columns">
+                @for (column of listColumnOptions; track column) {
+                  <mat-checkbox
+                    [checked]="isColumnSelected(column)"
+                    (change)="toggleColumn(column, $event.checked)"
+                  >
+                    {{ column }}
+                  </mat-checkbox>
+                }
+              </div>
+
+              <div class="catalog-page-config__order">
+                <span class="catalog-page-config__order-label">Column order</span>
+                @for (column of orderedSelectedColumns(); track column; let i = $index; let first = $first; let last = $last) {
+                  <div class="catalog-page-config__order-row">
+                    <span class="catalog-page-config__order-name">{{ i + 1 }}. {{ column }}</span>
+                    <button mat-stroked-button type="button" [disabled]="first" (click)="moveColumn(column, -1)">Up</button>
+                    <button mat-stroked-button type="button" [disabled]="last" (click)="moveColumn(column, 1)">Down</button>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Top content">
+        <div class="catalog-page-config__section">
+          <p class="catalog-page-config__hint">Gravitee Markdown shown above the Catalog listing.</p>
+          <gmd-editor
+            class="catalog-page-config__editor"
+            [formControl]="topContentControl"
+            [showPreview]="showPreview()"
+            data-testid="catalog-top-content-editor"
+          />
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Bottom content">
+        <div class="catalog-page-config__section">
+          <p class="catalog-page-config__hint">Gravitee Markdown shown below the Catalog listing.</p>
+          <gmd-editor
+            class="catalog-page-config__editor"
+            [formControl]="bottomContentControl"
+            [showPreview]="showPreview()"
+            data-testid="catalog-bottom-content-editor"
+          />
+        </div>
+      </mat-tab>
+
+      <mat-tab label="API card template">
+        <div class="catalog-page-config__section">
+          <p class="catalog-page-config__hint">
+            Use EL such as <code>{{ '{#api.name}' }}</code>, <code>{{ '{#api.description}' }}</code>,
+            <code>{{ "{#api.metadata['key']}" }}</code>.
+          </p>
+          <gmd-editor
+            class="catalog-page-config__editor"
+            [formControl]="cardTemplateControl"
+            [showPreview]="false"
+            data-testid="catalog-card-gmd-editor"
+          />
+          @if (showPreview()) {
+            <hr class="catalog-page-config__divider" />
+            <div class="catalog-page-config__preview" data-testid="catalog-card-preview">
+              <gmd-viewer [content]="previewContent()" />
+            </div>
+          }
+        </div>
+      </mat-tab>
+    </mat-tab-group>
   </div>
 }

@@ -21,7 +21,7 @@ import { CATALOG_CARD_TEMPLATE_NAV_ID } from './catalog-card-template.constants'
 import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard';
 
 /**
- * Legacy Catalog settings route — redirects into Navigation's Catalog folder
+ * Legacy Catalog settings route — redirects into Navigation's Catalog page
  * so old bookmarks to /api-catalog still open the editor.
  */
 @Component({

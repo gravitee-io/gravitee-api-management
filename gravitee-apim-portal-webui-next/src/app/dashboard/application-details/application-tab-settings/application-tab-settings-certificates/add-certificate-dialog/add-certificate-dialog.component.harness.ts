@@ -15,13 +15,16 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatButtonToggleGroupHarness } from '@angular/material/button-toggle/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 
 export class AddCertificateDialogHarness extends ComponentHarness {
   static readonly hostSelector = 'app-add-certificate-dialog';
 
-  protected locateNameInput = this.locatorFor(MatInputHarness.with({ selector: '[data-testid="certificate-name-input"]' }));
-  protected locatePemInput = this.locatorFor(MatInputHarness.with({ selector: '[data-testid="certificate-pem-input"]' }));
+  protected locateNameInput = this.locatorForOptional(MatInputHarness.with({ selector: '[data-testid="certificate-name-input"]' }));
+  protected locatePemInput = this.locatorForOptional(MatInputHarness.with({ selector: '[data-testid="certificate-pem-input"]' }));
+  protected locateCsrPemInput = this.locatorForOptional(MatInputHarness.with({ selector: '[data-testid="csr-pem-input"]' }));
+  protected locateModeToggle = this.locatorFor(MatButtonToggleGroupHarness.with({ selector: '[data-testid="certificate-mode-toggle"]' }));
   protected locateContinueUploadButton = this.locatorFor(
     MatButtonHarness.with({ selector: '[data-testid="certificate-continue-upload-button"]' }),
   );
@@ -38,13 +41,29 @@ export class AddCertificateDialogHarness extends ComponentHarness {
   );
   protected locateSubmitErrorEl = this.locatorForOptional('[data-testid="certificate-submit-error"]');
   protected locateValidateErrorEl = this.locatorForOptional('[data-testid="certificate-validate-error"]');
+  protected locateFileErrorEl = this.locatorForOptional('[data-testid="certificate-file-error"]');
+  protected locateCsrFileNameEl = this.locatorForOptional('[data-testid="csr-file-name"]');
 
-  public async nameInput(): Promise<MatInputHarness> {
+  public async nameInput(): Promise<MatInputHarness | null> {
     return this.locateNameInput();
   }
 
-  public async pemInput(): Promise<MatInputHarness> {
+  public async pemInput(): Promise<MatInputHarness | null> {
     return this.locatePemInput();
+  }
+
+  public async csrPemInput(): Promise<MatInputHarness | null> {
+    return this.locateCsrPemInput();
+  }
+
+  public async modeToggle(): Promise<MatButtonToggleGroupHarness> {
+    return this.locateModeToggle();
+  }
+
+  public async selectMode(mode: 'certificate' | 'csr'): Promise<void> {
+    const group = await this.modeToggle();
+    const toggles = await group.getToggles({ text: mode === 'csr' ? 'CSR' : 'Certificate' });
+    await toggles[0]?.check();
   }
 
   public async clickContinueUpload(): Promise<void> {
@@ -78,6 +97,16 @@ export class AddCertificateDialogHarness extends ComponentHarness {
 
   public async validateErrorText(): Promise<string | null> {
     const el = await this.locateValidateErrorEl();
+    return el ? el.text() : null;
+  }
+
+  public async fileErrorText(): Promise<string | null> {
+    const el = await this.locateFileErrorEl();
+    return el ? el.text() : null;
+  }
+
+  public async csrFileNameText(): Promise<string | null> {
+    const el = await this.locateCsrFileNameEl();
     return el ? el.text() : null;
   }
 }

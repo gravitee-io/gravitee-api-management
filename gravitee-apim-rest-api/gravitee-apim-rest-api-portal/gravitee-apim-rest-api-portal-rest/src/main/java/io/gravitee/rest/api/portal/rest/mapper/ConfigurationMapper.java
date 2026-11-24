@@ -154,10 +154,40 @@ public class ConfigurationMapper {
         if (!Objects.isNull(catalog)) {
             configuration.setViewMode(catalog.getViewMode());
             configuration.setCardTemplate(catalog.getCardTemplate());
+            configuration.setTopContent(catalog.getTopContent());
+            configuration.setBottomContent(catalog.getBottomContent());
+            configuration.setDefaultDisplayMode(catalog.getDefaultDisplayMode());
+            configuration.setListColumns(catalog.getListColumns());
+            if (catalog.getPublished() != null) {
+                configuration.setPublished(convert(catalog.getPublished()));
+            }
+            if (catalog.getCategoryFilter() != null) {
+                configuration.setCategoryFilter(convert(catalog.getCategoryFilter()));
+            }
+            if (catalog.getCardsView() != null) {
+                configuration.setCardsView(convert(catalog.getCardsView()));
+            }
+            if (catalog.getListView() != null) {
+                configuration.setListView(convert(catalog.getListView()));
+            }
             if (catalog.getTile() != null) {
                 configuration.setTile(convert(catalog.getTile()));
             }
         }
+        return configuration;
+    }
+
+    private ConfigurationPortalNextCatalogCategoryFilter convert(PortalNext.Catalog.CategoryFilter filter) {
+        ConfigurationPortalNextCatalogCategoryFilter configuration = new ConfigurationPortalNextCatalogCategoryFilter();
+        configuration.setEnabled(filter.getEnabled());
+        configuration.setLabel(filter.getLabel());
+        return configuration;
+    }
+
+    private ConfigurationPortalNextCatalogDisplayMode convert(PortalNext.Catalog.DisplayModeOption option) {
+        ConfigurationPortalNextCatalogDisplayMode configuration = new ConfigurationPortalNextCatalogDisplayMode();
+        configuration.setEnabled(option.getEnabled());
+        configuration.setLabel(option.getLabel());
         return configuration;
     }
 

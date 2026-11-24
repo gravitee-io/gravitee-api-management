@@ -15,19 +15,26 @@
  */
 
 /**
- * Default GMD catalog tile.
- * Keep title/subtitle first — gmd-card always projects those slots above other content.
+ * Default GMD catalog tile (classic-style: picture + name/version/owner/status).
+ * Prefer GMD components over raw HTML — the viewer sanitizes inline styles.
  */
-export const DEFAULT_CATALOG_CARD_TEMPLATE = `<gmd-card>
-  <gmd-card-title>{#api.name}</gmd-card-title>
-  <gmd-card-subtitle>{#api.version}</gmd-card-subtitle>
-  <gmd-md>
+export const DEFAULT_CATALOG_CARD_TEMPLATE = `<gmd-card backgroundColor="white">
+  <gmd-grid columns="2">
+    <gmd-cell>
+      <gmd-md>
 ![{#api.name}]({#api.picture})
+      </gmd-md>
+    </gmd-cell>
+    <gmd-cell>
+      <gmd-md>
+**{#api.name}** · \`v{#api.version}\`
 
-{#api.description}
+👤 {#api.owner}
 
-**Type:** {#api.type} · **Status:** {#api.status} · **Owner:** {#api.owner}
-  </gmd-md>
+\`{#api.status}\`
+      </gmd-md>
+    </gmd-cell>
+  </gmd-grid>
 </gmd-card>
 `;
 

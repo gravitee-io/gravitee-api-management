@@ -7466,8 +7466,51 @@ components:
                 cardTemplate:
                     description: Gravitee Markdown template used to render each API catalog card. Supports EL expressions such as {#api.name} and {#api.metadata['key']}.
                     type: string
+                published:
+                    description: Whether the Catalog entry is published in the Developer Portal navigation.
+                    $ref: "#/components/schemas/Enabled"
+                topContent:
+                    description: Gravitee Markdown content rendered above the Catalog listing.
+                    type: string
+                bottomContent:
+                    description: Gravitee Markdown content rendered below the Catalog listing.
+                    type: string
+                categoryFilter:
+                    $ref: "#/components/schemas/ConfigurationPortalNextCatalogCategoryFilter"
+                cardsView:
+                    $ref: "#/components/schemas/ConfigurationPortalNextCatalogDisplayMode"
+                listView:
+                    $ref: "#/components/schemas/ConfigurationPortalNextCatalogDisplayMode"
+                defaultDisplayMode:
+                    description: Default Catalog layout when both cards and list views are enabled. Valid values are grid or list.
+                    type: string
+                    example: grid
+                listColumns:
+                    description: Comma-separated list of columns shown in the Catalog list view (name, labels, category, version, mcp).
+                    type: string
+                    example: name,labels,category,version,mcp
                 tile:
                     $ref: "#/components/schemas/ConfigurationPortalNextCatalogTile"
+        ConfigurationPortalNextCatalogCategoryFilter:
+            type: object
+            description: Category filter controls for the Catalog page
+            properties:
+                enabled:
+                    description: Whether the category filter is shown on the Catalog page.
+                    type: boolean
+                label:
+                    description: Label displayed for the category filter.
+                    type: string
+        ConfigurationPortalNextCatalogDisplayMode:
+            type: object
+            description: Cards or list display mode option for the Catalog page
+            properties:
+                enabled:
+                    description: Whether this display mode is available on the Catalog page.
+                    type: boolean
+                label:
+                    description: Label displayed on the display mode toggle.
+                    type: string
         ConfigurationPortalNextCatalogTile:
             type: object
             description: Fields displayed on an API tile in the Portal Next catalog

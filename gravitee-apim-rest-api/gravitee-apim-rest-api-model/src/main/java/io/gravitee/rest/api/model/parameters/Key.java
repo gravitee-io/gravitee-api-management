@@ -515,7 +515,34 @@ public enum Key {
     ),
     PORTAL_NEXT_CATALOG_TILE_STATUS_ENABLED("portal.next.catalog.tile.status.enabled", "true", new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_CATALOG_TILE_OWNER_ENABLED("portal.next.catalog.tile.owner.enabled", "true", new HashSet<>(singletonList(ENVIRONMENT))),
-    PORTAL_NEXT_CATALOG_CARD_TEMPLATE("portal.next.catalog.cardTemplate", new HashSet<>(singletonList(ENVIRONMENT)));
+    PORTAL_NEXT_CATALOG_CARD_TEMPLATE("portal.next.catalog.cardTemplate", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_CATALOG_PUBLISHED("portal.next.catalog.published", "true", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_CATALOG_TOP_CONTENT("portal.next.catalog.topContent", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_CATALOG_BOTTOM_CONTENT("portal.next.catalog.bottomContent", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_CATALOG_CATEGORY_FILTER_ENABLED(
+        "portal.next.catalog.categoryFilter.enabled",
+        "true",
+        new HashSet<>(singletonList(ENVIRONMENT))
+    ),
+    PORTAL_NEXT_CATALOG_CATEGORY_FILTER_LABEL(
+        "portal.next.catalog.categoryFilter.label",
+        "Category",
+        new HashSet<>(singletonList(ENVIRONMENT))
+    ),
+    PORTAL_NEXT_CATALOG_CARDS_VIEW_ENABLED("portal.next.catalog.cardsView.enabled", "true", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_CATALOG_CARDS_VIEW_LABEL("portal.next.catalog.cardsView.label", "Cards", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_CATALOG_LIST_VIEW_ENABLED("portal.next.catalog.listView.enabled", "true", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_CATALOG_LIST_VIEW_LABEL("portal.next.catalog.listView.label", "List", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_CATALOG_DEFAULT_DISPLAY_MODE(
+        "portal.next.catalog.defaultDisplayMode",
+        "grid",
+        new HashSet<>(singletonList(ENVIRONMENT))
+    ),
+    PORTAL_NEXT_CATALOG_LIST_COLUMNS(
+        "portal.next.catalog.listColumns",
+        "name,labels,category,version,mcp",
+        new HashSet<>(singletonList(ENVIRONMENT))
+    );
 
     final String key;
     String defaultValue;

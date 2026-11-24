@@ -3673,6 +3673,9 @@ describe('PortalNavigationItemsComponent', () => {
       .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items?area=TOP_NAVBAR` })
       .flush(response);
 
+    // Catalog published state is loaded from portal settings after navigation items
+    flushPendingPortalSettingsRequests();
+
     // Used for the navId query param handling for getting page content
     await fixture.whenStable();
     fixture.detectChanges();

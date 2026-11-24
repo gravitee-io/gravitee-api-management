@@ -100,14 +100,14 @@
               {{ selectedNavigationItem().label }}
             </div>
 
-            @if (!isCatalogCardTemplateSelected()) {
-              <div class="panel-header__title__badges">
-                <span [class]="selectedNavigationItemIsPublished() ? 'gio-badge-success' : 'gio-badge-warning'">
-                  {{ selectedNavigationItemIsPublished() ? 'Published' : 'Unpublished' }}
-                </span>
+            <div class="panel-header__title__badges">
+              <span [class]="selectedNavigationItemIsPublished() ? 'gio-badge-success' : 'gio-badge-warning'">
+                {{ selectedNavigationItemIsPublished() ? 'Published' : 'Unpublished' }}
+              </span>
+              @if (!isCatalogCardTemplateSelected()) {
                 <span class="gio-badge-primary">{{ selectedNavigationItem().data.visibility | titlecase }}</span>
-              </div>
-            }
+              }
+            </div>
           </div>
 
           @if (selectedApiId()) {
@@ -135,6 +135,9 @@
           <mat-slide-toggle data-testid="preview-toggle" [checked]="isPreviewVisible()" (change)="isPreviewVisible.set($event.checked)">
             Preview
           </mat-slide-toggle>
+          <button mat-stroked-button data-testid="catalog-publish-button" (click)="onPublishToggle()">
+            {{ selectedNavigationItemIsPublished() ? 'Unpublish' : 'Publish' }}
+          </button>
           <button
             mat-flat-button
             color="primary"
@@ -183,7 +186,12 @@
     @if (selectedNavigationItem()) {
       @switch (selectedNavigationItem().type) {
         @case ('PAGE') {
-          @if (isLoadingPageContent()) {
+          @if (isCatalogCardTemplateSelected()) {
+            <portal-catalog-card-template-editor
+              [showPreview]="isPreviewVisible()"
+              data-testid="navigation-catalog-card-editor"
+            />
+          } @else if (isLoadingPageContent()) {
             <div class="empty-editor">
               <mat-card appearance="outlined"> </mat-card>
 
@@ -214,21 +222,14 @@
           }
         }
         @case ('FOLDER') {
-          @if (isCatalogCardTemplateSelected()) {
-            <portal-catalog-card-template-editor
-              [showPreview]="isPreviewVisible()"
-              data-testid="navigation-catalog-card-editor"
-            />
-          } @else {
-            @if (selectedItemSource()) {
-              <div class="source-mention" data-testid="folder-managed-by-source-banner">
-                <mat-icon class="source-mention__icon" svgIcon="gio:link" />
-                <span>Folder content from {{ selectedSourceTypeLabel() }} — read only</span>
-                <ng-container *ngTemplateOutlet="fetchNowButton"></ng-container>
-              </div>
-            }
-            <ng-container *ngTemplateOutlet="emptyEditorState"></ng-container>
+          @if (selectedItemSource()) {
+            <div class="source-mention" data-testid="folder-managed-by-source-banner">
+              <mat-icon class="source-mention__icon" svgIcon="gio:link" />
+              <span>Folder content from {{ selectedSourceTypeLabel() }} — read only</span>
+              <ng-container *ngTemplateOutlet="fetchNowButton"></ng-container>
+            </div>
           }
+          <ng-container *ngTemplateOutlet="emptyEditorState"></ng-container>
         }
         @default {
           <ng-container *ngTemplateOutlet="emptyEditorState"></ng-container>

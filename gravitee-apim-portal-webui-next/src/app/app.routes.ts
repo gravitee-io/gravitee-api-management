@@ -45,6 +45,7 @@ import { RegistrationConfirmationComponent } from './registration/registration-c
 import { ServiceUnavailableComponent } from './service-unavailable/service-unavailable.component';
 import { analyticsEnabledGuard } from '../guards/analytics-enabled.guard';
 import { applicationInvitationsEnabledGuard, applicationMembershipEnabledGuard } from '../guards/application-membership-enabled.guard';
+import { catalogPublishedGuard } from '../guards/catalog-published.guard';
 import { redirectGuard } from '../guards/redirect.guard';
 import { apiProductResolver } from '../resolvers/api-product.resolver';
 import { apiResolver } from '../resolvers/api.resolver';
@@ -151,7 +152,7 @@ const appRoutes: Routes = [
   },
   {
     path: 'catalog',
-    canActivateChild: [redirectGuard, authGuard],
+    canActivateChild: [redirectGuard, authGuard, catalogPublishedGuard],
     children: [
       {
         path: '',

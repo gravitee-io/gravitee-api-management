@@ -211,11 +211,16 @@ public class ListPortalNavigationItemsUseCase {
     ) {
         if (parent instanceof PortalNavigationApi navApi) {
             var physicalChildren = searchItems(input, navApi.getId(), false, visibilityEvaluator);
-            var splicedRoots = queryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
-                input.environmentId(),
-                input.portalArea(),
-                new NavigationItemReference.ApiReference(navApi.getApiId())
-            );
+            // Prefer the request area; fall back to the API nav item's own area when listing
+            // without an area filter (loadChildren across all areas).
+            PortalArea areaForReference = input.portalArea() != null ? input.portalArea() : navApi.getArea();
+            var splicedRoots = areaForReference == null
+                ? List.<PortalNavigationItem>of()
+                : queryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
+                    input.environmentId(),
+                    areaForReference,
+                    new NavigationItemReference.ApiReference(navApi.getApiId())
+                );
             var combined = new ArrayList<>(physicalChildren);
             combined.addAll(renderUnder(navApi, filterForViewer(splicedRoots, input, visibilityEvaluator)));
             return combined;

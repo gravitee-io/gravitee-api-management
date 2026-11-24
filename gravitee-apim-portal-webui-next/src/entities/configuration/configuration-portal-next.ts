@@ -31,6 +31,14 @@ export class ConfigurationPortalNext {
   catalog?: {
     viewMode?: 'TABS' | 'CATEGORIES';
     cardTemplate?: string;
+    published?: { enabled?: boolean };
+    topContent?: string;
+    bottomContent?: string;
+    categoryFilter?: { enabled?: boolean; label?: string };
+    cardsView?: { enabled?: boolean; label?: string };
+    listView?: { enabled?: boolean; label?: string };
+    defaultDisplayMode?: 'grid' | 'list' | string;
+    listColumns?: string;
     tile?: PortalCatalogTileSettings;
   };
   analytics?: {

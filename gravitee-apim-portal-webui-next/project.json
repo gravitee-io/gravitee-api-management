@@ -60,7 +60,14 @@
             "bundleName": "asyncapi-web-component"
           }
         ],
-        "styles": ["gravitee-apim-portal-webui-next/src/styles.scss", "node_modules/swagger-ui/dist/swagger-ui.css"],
+        "styles": [
+          "gravitee-apim-portal-webui-next/src/styles.scss",
+          {
+            "input": "node_modules/swagger-ui/dist/swagger-ui.css",
+            "inject": true,
+            "bundleName": "swagger-ui"
+          }
+        ],
         "stylePreprocessorOptions": {
           "includePaths": ["node_modules/", "gravitee-apim-webui-libs/", "dist/"]
         },

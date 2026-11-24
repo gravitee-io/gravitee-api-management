@@ -152,6 +152,9 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
         if (PortalVisibility.PUBLIC.equals(item.getVisibility())) {
             return true;
         }
+        if (item.getApiId() == null) {
+            return false;
+        }
         Set<String> candidate = Set.of(item.getApiId());
         return (
             !apiMembershipDomainService.filterApiIdsByUserMembership(userId, candidate).isEmpty() ||

@@ -42,6 +42,7 @@ export class MobileNavBarComponent {
   currentUser: InputSignal<User> = input({});
   topBarNavigationItems: InputSignal<PortalNavigationItem[]> = input<PortalNavigationItem[]>([]);
   analyticsEnabled: InputSignal<boolean> = input(false);
+  catalogPublished: InputSignal<boolean> = input(true);
   readonly unreadNotificationCount = this.userNotificationInboxService.unreadCount;
   hasHomepage = toSignal(
     inject(PortalNavigationItemsService)

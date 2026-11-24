@@ -36,6 +36,15 @@ $empty-state-height: 400px;
   gap: 32px;
 }
 
+.api-list__custom-content {
+  flex: 0 0 auto;
+
+  &--top,
+  &--bottom {
+    min-height: 0;
+  }
+}
+
 .api-list {
   &__header {
     display: flex;

@@ -289,6 +289,14 @@ export interface PortalSettingsPortalNext {
     viewMode?: string;
     fuzzySearch?: { enabled?: boolean };
     cardTemplate?: string;
+    published?: { enabled?: boolean };
+    topContent?: string;
+    bottomContent?: string;
+    categoryFilter?: { enabled?: boolean; label?: string };
+    cardsView?: { enabled?: boolean; label?: string };
+    listView?: { enabled?: boolean; label?: string };
+    defaultDisplayMode?: 'grid' | 'list' | string;
+    listColumns?: string;
     tile?: PortalCatalogTileSettings;
   };
 }

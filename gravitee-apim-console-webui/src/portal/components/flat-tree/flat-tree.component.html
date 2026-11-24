@@ -148,6 +148,21 @@
 }
 
 <ng-template #menuItems let-node>
+  @if (isCatalogCardTemplateNavId(node.id)) {
+    @if (canUpdate) {
+      @if (isUnpublished(node)) {
+        <button mat-menu-item (click)="onPublish(node)" data-testid="publish-node-button">
+          <mat-icon svgIcon="gio:eye-empty"></mat-icon>
+          Publish
+        </button>
+      } @else {
+        <button mat-menu-item (click)="onUnpublish(node)" data-testid="unpublish-node-button">
+          <mat-icon svgIcon="gio:eye-off"></mat-icon>
+          Unpublish
+        </button>
+      }
+    }
+  } @else {
   @if (node.type === 'FOLDER' || node.type === 'API' || node.type === 'API_PRODUCT') {
     @if (canCreate) {
       <button mat-menu-item (click)="onCreate(node, 'PAGE')">
@@ -234,6 +249,7 @@
         Delete
       </button>
     </span>
+  }
   }
 </ng-template>
 

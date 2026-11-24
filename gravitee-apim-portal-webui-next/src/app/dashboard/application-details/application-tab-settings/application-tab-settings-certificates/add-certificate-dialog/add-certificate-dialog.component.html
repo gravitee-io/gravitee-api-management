@@ -18,6 +18,18 @@
 <h2 mat-dialog-title i18n="@@addCertificateDialogTitle">Add certificate</h2>
 
 <mat-dialog-content class="add-certificate-dialog__content">
+  <mat-button-toggle-group
+    class="add-certificate-dialog__mode-toggle"
+    [value]="uploadMode()"
+    (change)="setUploadMode($event.value)"
+    aria-label="Upload mode"
+    i18n-aria-label="@@addCertificateModeToggleAria"
+    data-testid="certificate-mode-toggle"
+  >
+    <mat-button-toggle value="certificate" i18n="@@addCertificateModeCertificate">Certificate</mat-button-toggle>
+    <mat-button-toggle value="csr" i18n="@@addCertificateModeCsr">CSR</mat-button-toggle>
+  </mat-button-toggle-group>
+
   <mat-stepper [linear]="false" animationDuration="0" #certificateStepper>
     <!-- Step 1: Upload -->
     <mat-step>
@@ -25,52 +37,107 @@
         <span i18n="@@addCertificateStepUpload">Upload</span>
       </ng-template>
       <form [formGroup]="uploadForm" class="add-certificate-dialog__step">
-        <mat-form-field appearance="outline" class="add-certificate-dialog__field">
-          <mat-label i18n="@@addCertificateNameLabel">Certificate Name</mat-label>
-          <input matInput formControlName="name" type="text" maxlength="256" data-testid="certificate-name-input" />
-          @if (uploadForm.controls.name.hasError('required') && uploadForm.controls.name.touched) {
-            <mat-error i18n="@@addCertificateNameRequired">Certificate name is required.</mat-error>
-          }
-        </mat-form-field>
+        @if (uploadMode() === 'certificate') {
+          <mat-form-field appearance="outline" class="add-certificate-dialog__field">
+            <mat-label i18n="@@addCertificateNameLabel">Certificate Name</mat-label>
+            <input matInput formControlName="name" type="text" maxlength="256" data-testid="certificate-name-input" />
+            @if (uploadForm.controls.name.hasError('required') && uploadForm.controls.name.touched) {
+              <mat-error i18n="@@addCertificateNameRequired">Certificate name is required.</mat-error>
+            }
+          </mat-form-field>
 
-        <div class="add-certificate-dialog__certificate-input">
-          <div class="add-certificate-dialog__section">
-            <span class="next-gen-h4" i18n="@@addCertificatePasteLabel">Paste certificate or CSR</span>
-            <mat-form-field appearance="outline" class="add-certificate-dialog__field">
-              <mat-label i18n="@@addCertificatePemLabel">Certificate or CSR (PEM)</mat-label>
-              <textarea
-                matInput
-                formControlName="certificate"
-                rows="6"
-                placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
-                aria-label="PEM certificate or CSR"
-                i18n-aria-label="@@addCertificatePemAriaLabel"
-                data-testid="certificate-pem-input"
-              ></textarea>
-              @if (uploadForm.controls.certificate.hasError('required') && uploadForm.controls.certificate.touched) {
-                <mat-error i18n="@@addCertificatePemRequired">Certificate or CSR is required.</mat-error>
+          <div class="add-certificate-dialog__certificate-input">
+            <div class="add-certificate-dialog__section">
+              <span class="next-gen-h4" i18n="@@addCertificatePasteLabel">Paste certificate</span>
+              <mat-form-field appearance="outline" class="add-certificate-dialog__field">
+                <mat-label i18n="@@addCertificatePemLabel">Certificate (PEM)</mat-label>
+                <textarea
+                  matInput
+                  formControlName="certificate"
+                  rows="6"
+                  placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
+                  aria-label="PEM certificate"
+                  i18n-aria-label="@@addCertificatePemAriaLabel"
+                  data-testid="certificate-pem-input"
+                ></textarea>
+                @if (uploadForm.controls.certificate.hasError('required') && uploadForm.controls.certificate.touched) {
+                  <mat-error i18n="@@addCertificatePemRequired">Certificate is required.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="add-certificate-dialog__section">
+              <span class="next-gen-h4" i18n="@@addCertificateUploadFileLabel">Upload file</span>
+              <label class="add-certificate-dialog__file-label">
+                <input
+                  type="file"
+                  accept=".pem,.crt,.cer"
+                  class="add-certificate-dialog__file-input"
+                  (change)="onFileSelected($event)"
+                  aria-label="Upload certificate file"
+                  i18n-aria-label="@@addCertificateFileInputAriaLabel"
+                  data-testid="certificate-file-input"
+                />
+                <mat-icon aria-hidden="true">upload_file</mat-icon>
+                <span i18n="@@addCertificateChooseFile">Choose file (.pem, .crt, .cer)</span>
+              </label>
+              @if (fileName(); as name) {
+                <p class="add-certificate-dialog__file-name next-gen-small" data-testid="certificate-file-name">{{ name }}</p>
               }
-            </mat-form-field>
+            </div>
           </div>
+        } @else {
+          <p class="next-gen-body add-certificate-dialog__mode-hint" i18n="@@addCertificateCsrHint">
+            Upload a PEM-encoded certificate signing request, then review and submit it.
+          </p>
 
-          <div class="add-certificate-dialog__section">
-            <span class="next-gen-h4" i18n="@@addCertificateUploadFileLabel">Upload file</span>
-            <label class="add-certificate-dialog__file-label">
-              <input
-                type="file"
-                accept=".pem,.crt,.cer,.csr,.req"
-                class="add-certificate-dialog__file-input"
-                (change)="onFileSelected($event)"
-                aria-label="Upload certificate or CSR file"
-                i18n-aria-label="@@addCertificateFileInputAriaLabel"
-                data-testid="certificate-file-input"
-              />
-              <mat-icon aria-hidden="true">upload_file</mat-icon>
-              <span i18n="@@addCertificateChooseFile">Choose file (.pem, .crt, .cer, .csr, .req)</span>
-            </label>
+          <div class="add-certificate-dialog__certificate-input">
+            <div class="add-certificate-dialog__section">
+              <span class="next-gen-h4" i18n="@@addCertificateCsrUploadFileLabel">Upload CSR file</span>
+              <label class="add-certificate-dialog__file-label">
+                <input
+                  type="file"
+                  accept=".csr,.req"
+                  class="add-certificate-dialog__file-input"
+                  (change)="onFileSelected($event)"
+                  aria-label="Upload CSR file"
+                  i18n-aria-label="@@addCertificateCsrFileInputAriaLabel"
+                  data-testid="csr-file-input"
+                />
+                <mat-icon aria-hidden="true">upload_file</mat-icon>
+                <span i18n="@@addCertificateCsrChooseFile">Choose file (.csr, .req)</span>
+              </label>
+              @if (fileName(); as name) {
+                <p class="add-certificate-dialog__file-name next-gen-small" data-testid="csr-file-name">{{ name }}</p>
+              }
+            </div>
+
+            <div class="add-certificate-dialog__section">
+              <span class="next-gen-h4" i18n="@@addCertificateCsrPasteLabel">Or paste CSR</span>
+              <mat-form-field appearance="outline" class="add-certificate-dialog__field">
+                <mat-label i18n="@@addCertificateCsrPemLabel">CSR (PEM)</mat-label>
+                <textarea
+                  matInput
+                  formControlName="certificate"
+                  rows="6"
+                  placeholder="-----BEGIN CERTIFICATE REQUEST-----&#10;...&#10;-----END CERTIFICATE REQUEST-----"
+                  aria-label="PEM-encoded CSR"
+                  i18n-aria-label="@@addCertificateCsrPemAriaLabel"
+                  data-testid="csr-pem-input"
+                ></textarea>
+                @if (uploadForm.controls.certificate.hasError('required') && uploadForm.controls.certificate.touched) {
+                  <mat-error i18n="@@addCertificateCsrPemRequired">CSR is required.</mat-error>
+                }
+              </mat-form-field>
+            </div>
           </div>
-        </div>
+        }
 
+        @if (fileError(); as fileError) {
+          <p class="add-certificate-dialog__error next-gen-small" data-testid="certificate-file-error" role="alert">
+            {{ fileError }}
+          </p>
+        }
         @if (validateError(); as validateError) {
           <p class="add-certificate-dialog__error next-gen-small" data-testid="certificate-validate-error" role="alert">
             {{ validateError }}
@@ -84,13 +151,13 @@
       </form>
     </mat-step>
 
-    <!-- Step 2: Configure -->
-    <mat-step>
-      <ng-template matStepLabel>
-        <span i18n="@@addCertificateStepConfigure">Configure</span>
-      </ng-template>
-      <form [formGroup]="configureForm" class="add-certificate-dialog__step">
-        @if (detectedPemType() === 'certificate') {
+    <!-- Step 2: Configure (certificate mode only) -->
+    @if (uploadMode() === 'certificate') {
+      <mat-step>
+        <ng-template matStepLabel>
+          <span i18n="@@addCertificateStepConfigure">Configure</span>
+        </ng-template>
+        <form [formGroup]="configureForm" class="add-certificate-dialog__step">
           <mat-form-field appearance="outline" class="add-certificate-dialog__field">
             <mat-label i18n="@@addCertificateEndsAtLabel">Active until (optional)</mat-label>
             <input
@@ -109,59 +176,73 @@
             <mat-datepicker #endsAtPicker />
             <mat-hint i18n="@@addCertificateEndsAtHint">When this certificate should stop being active</mat-hint>
           </mat-form-field>
-        }
 
-        @if (detectedPemType() === 'certificate' && data.hasActiveCertificates) {
-          <div class="add-certificate-dialog__grace-period-info">
-            <mat-icon aria-hidden="true">info_outline</mat-icon>
-            <span class="next-gen-small" i18n="@@addCertificateGracePeriodInfo">
-              Both certificates will remain active during the grace period to avoid downtime.
-            </span>
-          </div>
+          @if (data.hasActiveCertificates) {
+            <div class="add-certificate-dialog__grace-period-info">
+              <mat-icon aria-hidden="true">info_outline</mat-icon>
+              <span class="next-gen-small" i18n="@@addCertificateGracePeriodInfo">
+                Both certificates will remain active during the grace period to avoid downtime.
+              </span>
+            </div>
 
-          <mat-form-field appearance="outline" class="add-certificate-dialog__field">
-            <mat-label i18n="@@addCertificateGracePeriodLabel">Grace period end for current certificate</mat-label>
-            <input
-              matInput
-              [matDatepicker]="gracePicker"
-              [min]="minDate"
-              [max]="maxGracePeriodDate"
-              formControlName="gracePeriodEnd"
-              data-testid="certificate-grace-period-input"
-            />
-            <mat-datepicker-toggle
-              matIconSuffix
-              [for]="gracePicker"
-              aria-label="Open calendar"
-              i18n-aria-label="@@addCertificateGracePeriodCalendarAriaLabel"
-            />
-            <mat-datepicker #gracePicker />
-            <mat-hint i18n="@@addCertificateGracePeriodHint">When the currently active certificate should be revoked</mat-hint>
-            @if (configureForm.controls.gracePeriodEnd?.hasError('required') && configureForm.controls.gracePeriodEnd?.touched) {
-              <mat-error i18n="@@addCertificateGracePeriodRequired"
-                >Grace period end date is required when rotating certificates.</mat-error
-              >
-            }
-          </mat-form-field>
-        }
-      </form>
-    </mat-step>
+            <mat-form-field appearance="outline" class="add-certificate-dialog__field">
+              <mat-label i18n="@@addCertificateGracePeriodLabel">Grace period end for current certificate</mat-label>
+              <input
+                matInput
+                [matDatepicker]="gracePicker"
+                [min]="minDate"
+                [max]="maxGracePeriodDate"
+                formControlName="gracePeriodEnd"
+                data-testid="certificate-grace-period-input"
+              />
+              <mat-datepicker-toggle
+                matIconSuffix
+                [for]="gracePicker"
+                aria-label="Open calendar"
+                i18n-aria-label="@@addCertificateGracePeriodCalendarAriaLabel"
+              />
+              <mat-datepicker #gracePicker />
+              <mat-hint i18n="@@addCertificateGracePeriodHint">When the currently active certificate should be revoked</mat-hint>
+              @if (configureForm.controls.gracePeriodEnd?.hasError('required') && configureForm.controls.gracePeriodEnd?.touched) {
+                <mat-error i18n="@@addCertificateGracePeriodRequired"
+                  >Grace period end date is required when rotating certificates.</mat-error
+                >
+              }
+            </mat-form-field>
+          }
+        </form>
+      </mat-step>
+    }
 
-    <!-- Step 3: Confirm -->
+    <!-- Confirm (step 2 for CSR, step 3 for certificate) -->
     <mat-step>
       <ng-template matStepLabel>
         <span i18n="@@addCertificateStepConfirm">Confirm</span>
       </ng-template>
       <div class="add-certificate-dialog__step">
         <div class="add-certificate-dialog__summary" data-testid="certificate-summary">
-          <span class="next-gen-h5" i18n="@@addCertificateSummaryTitle">Certificate Summary</span>
-          @if (detectedPemType() === 'csr') {
+          @if (uploadMode() === 'csr') {
+            <span class="next-gen-h5" i18n="@@addCertificateCsrSummaryTitle">CSR Summary</span>
+          } @else {
+            <span class="next-gen-h5" i18n="@@addCertificateSummaryTitle">Certificate Summary</span>
+          }
+          <div class="add-certificate-dialog__summary-row">
+            <span class="next-gen-small add-certificate-dialog__summary-label" i18n="@@addCertificateSummaryTypeLabel">Type:</span>
+            <span class="next-gen-small add-certificate-dialog__summary-value" data-testid="certificate-summary-type">
+              @if (uploadMode() === 'csr') {
+                <ng-container i18n="@@addCertificateSummaryTypeCsr">CSR</ng-container>
+              } @else {
+                <ng-container i18n="@@addCertificateSummaryTypeCertificate">Certificate</ng-container>
+              }
+            </span>
+          </div>
+          @if (fileName(); as name) {
             <div class="add-certificate-dialog__summary-row">
-              <span class="next-gen-small add-certificate-dialog__summary-label" i18n="@@addCertificateSummaryTypeLabel">Type:</span>
-              <span class="next-gen-small add-certificate-dialog__summary-value" data-testid="certificate-summary-type">CSR</span>
+              <span class="next-gen-small add-certificate-dialog__summary-label" i18n="@@addCertificateSummaryFileLabel">File:</span>
+              <span class="next-gen-small add-certificate-dialog__summary-value" data-testid="certificate-summary-file">{{ name }}</span>
             </div>
           }
-          @if (uploadForm.controls.name.value) {
+          @if (uploadMode() === 'certificate' && uploadForm.controls.name.value) {
             <div class="add-certificate-dialog__summary-row">
               <span class="next-gen-small add-certificate-dialog__summary-label" i18n="@@addCertificateSummaryNameLabel">Name:</span>
               <span class="next-gen-small add-certificate-dialog__summary-value" data-testid="certificate-summary-name">{{
@@ -169,7 +250,7 @@
               }}</span>
             </div>
           }
-          @if (configureForm.controls.endsAt.value) {
+          @if (uploadMode() === 'certificate' && configureForm.controls.endsAt.value) {
             <div class="add-certificate-dialog__summary-row">
               <span class="next-gen-small add-certificate-dialog__summary-label" i18n="@@addCertificateSummaryEndsAtLabel"
                 >Active until:</span
@@ -179,7 +260,7 @@
               }}</span>
             </div>
           }
-          @if (configureForm.controls.gracePeriodEnd?.value) {
+          @if (uploadMode() === 'certificate' && configureForm.controls.gracePeriodEnd?.value) {
             <div class="add-certificate-dialog__summary-row">
               <span class="next-gen-small add-certificate-dialog__summary-label" i18n="@@addCertificateSummaryGracePeriodLabel"
                 >Grace period ends:</span
@@ -190,6 +271,12 @@
             </div>
           }
         </div>
+
+        @if (uploadMode() === 'csr') {
+          <p class="next-gen-small add-certificate-dialog__confirm-hint" i18n="@@addCertificateCsrConfirmHint">
+            Submitting this CSR attaches it to the application so it can be signed by your certificate authority.
+          </p>
+        }
 
         @if (submitError(); as submitError) {
           <p class="add-certificate-dialog__error next-gen-small" data-testid="certificate-submit-error" role="alert">
@@ -234,7 +321,7 @@
     >
       Continue
     </button>
-  } @else if ((stepper()?.selectedIndex ?? 0) === 1) {
+  } @else if (uploadMode() === 'certificate' && (stepper()?.selectedIndex ?? 0) === 1) {
     <button
       mat-flat-button
       color="primary"
@@ -254,7 +341,7 @@
       (click)="onSubmit()"
       data-testid="certificate-submit-button"
     >
-      @if (detectedPemType() === 'csr') {
+      @if (uploadMode() === 'csr') {
         <span i18n="@@addCertificateSubmitCsrButton">Submit CSR</span>
       } @else {
         <span i18n="@@addCertificateSubmitButton">Add Certificate</span>

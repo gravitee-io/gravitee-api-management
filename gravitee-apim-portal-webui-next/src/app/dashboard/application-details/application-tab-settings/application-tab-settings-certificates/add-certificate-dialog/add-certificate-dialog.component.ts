@@ -19,6 +19,7 @@ import { Component, DestroyRef, inject, signal, viewChild } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MAT_DATE_FORMATS, MAT_NATIVE_DATE_FORMATS, provideNativeDateAdapter } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -32,6 +33,7 @@ import { ApplicationCertificateService } from '../../../../../../services/applic
 import { ApplicationService } from '../../../../../../services/application.service';
 import { fileNameWithoutExtension } from '../../../../../../utils/common.utils';
 
+export type UploadMode = 'certificate' | 'csr';
 export type DetectedPemType = 'certificate' | 'csr' | 'unknown';
 
 export interface AddCertificateDialogData {
@@ -42,12 +44,16 @@ export interface AddCertificateDialogData {
   activeCertificateExpiration?: string;
 }
 
+const CERTIFICATE_EXTENSIONS = ['.pem', '.crt', '.cer'];
+const CSR_EXTENSIONS = ['.csr', '.req'];
+
 @Component({
   selector: 'app-add-certificate-dialog',
   imports: [
     DatePipe,
     MatDialogModule,
     MatButtonModule,
+    MatButtonToggleModule,
     MatStepperModule,
     MatFormFieldModule,
     MatInputModule,
@@ -73,7 +79,9 @@ export class AddCertificateDialogComponent {
     ? new Date(this.data.activeCertificateExpiration)
     : undefined;
 
-  detectedPemType = signal<DetectedPemType | null>(null);
+  readonly uploadMode = signal<UploadMode>('certificate');
+  readonly fileName = signal<string | null>(null);
+  readonly fileError = signal<string | null>(null);
   isSubmitting = signal(false);
   submitError = signal<string | null>(null);
   isValidating = signal(false);
@@ -89,6 +97,33 @@ export class AddCertificateDialogComponent {
     gracePeriodEnd: new FormControl<Date | null>(null, this.data.hasActiveCertificates ? [Validators.required] : []),
   });
 
+  setUploadMode(mode: UploadMode): void {
+    if (this.uploadMode() === mode) {
+      return;
+    }
+
+    this.uploadMode.set(mode);
+    this.uploadForm.controls.certificate.reset('');
+    this.uploadForm.controls.name.reset('');
+    this.fileName.set(null);
+    this.fileError.set(null);
+    this.validateError.set(null);
+    this.submitError.set(null);
+    this.configureForm.reset({ endsAt: null, gracePeriodEnd: null });
+
+    if (mode === 'csr') {
+      this.uploadForm.controls.name.clearValidators();
+    } else {
+      this.uploadForm.controls.name.setValidators([Validators.required]);
+    }
+    this.uploadForm.controls.name.updateValueAndValidity();
+
+    const stepper = this.stepper();
+    if (stepper) {
+      stepper.selectedIndex = 0;
+    }
+  }
+
   continueStep(group: FormGroup): void {
     group.markAllAsTouched();
     if (group.invalid) return;
@@ -96,19 +131,13 @@ export class AddCertificateDialogComponent {
   }
 
   goPrevious(): void {
-    const stepper = this.stepper();
-    if (!stepper) return;
-    // CSR skips Configure, so Previous from Confirm returns to Upload.
-    if (this.detectedPemType() === 'csr' && stepper.selectedIndex === 2) {
-      stepper.selectedIndex = 0;
-      return;
-    }
-    stepper.previous();
+    this.stepper()?.previous();
   }
 
   validateAndContinue(): void {
     this.validateError.set(null);
     this.submitError.set(null);
+    this.fileError.set(null);
 
     const pem = this.uploadForm.controls.certificate.value.trim();
     this.uploadForm.controls.certificate.markAsTouched();
@@ -118,19 +147,20 @@ export class AddCertificateDialogComponent {
     }
 
     const detectedType = this.detectPemType(pem);
-    this.detectedPemType.set(detectedType);
-
-    if (detectedType === 'csr') {
-      const stepper = this.stepper();
-      if (stepper) {
-        stepper.selectedIndex = 2; // Jump to Confirm, skipping Configure / grace period
+    if (this.uploadMode() === 'csr') {
+      if (detectedType !== 'csr') {
+        this.validateError.set(
+          $localize`:@@addCertificateExpectedCsr:Please provide a PEM-encoded certificate signing request (.csr or .req).`,
+        );
+        return;
       }
+      this.stepper()?.next(); // Upload → Confirm (CSR has only these two steps)
       return;
     }
 
-    if (detectedType === 'unknown') {
+    if (detectedType !== 'certificate') {
       this.validateError.set(
-        $localize`:@@addCertificateUnrecognizedPem:Please provide a PEM-encoded certificate or CSR.`,
+        $localize`:@@addCertificateExpectedCertificate:Please provide a PEM-encoded certificate (.pem, .crt, or .cer).`,
       );
       return;
     }
@@ -174,18 +204,40 @@ export class AddCertificateDialogComponent {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
-    const content = await this.readFileAsText(file);
-    this.uploadForm.controls.certificate.setValue(content);
-    this.detectedPemType.set(null);
-    if (!this.uploadForm.controls.name.value) {
-      this.uploadForm.controls.name.setValue(fileNameWithoutExtension(file.name));
+
+    const extension = this.fileExtension(file.name);
+    const allowed = this.uploadMode() === 'csr' ? CSR_EXTENSIONS : CERTIFICATE_EXTENSIONS;
+    if (!allowed.includes(extension)) {
+      this.fileError.set(
+        this.uploadMode() === 'csr'
+          ? $localize`:@@addCertificateCsrInvalidExtension:Please choose a .csr or .req file.`
+          : $localize`:@@addCertificateCertInvalidExtension:Please choose a .pem, .crt, or .cer file.`,
+      );
+      this.fileName.set(null);
+      input.value = '';
+      return;
     }
+
+    try {
+      const content = await this.readFileAsText(file);
+      this.uploadForm.controls.certificate.setValue(content);
+      this.fileName.set(file.name);
+      this.fileError.set(null);
+      this.validateError.set(null);
+      if (this.uploadMode() === 'certificate' && !this.uploadForm.controls.name.value) {
+        this.uploadForm.controls.name.setValue(fileNameWithoutExtension(file.name));
+      }
+    } catch {
+      this.fileError.set($localize`:@@addCertificateFileReadError:Could not read the selected file. Please try again.`);
+      this.fileName.set(null);
+    }
+
     input.value = '';
   }
 
   onSubmit(): void {
-    if (this.detectedPemType() === 'csr') {
-      this.submitCsr(this.uploadForm.controls.certificate.value.trim(), false);
+    if (this.uploadMode() === 'csr') {
+      this.submitCsr(this.uploadForm.controls.certificate.value.trim());
       return;
     }
 
@@ -235,18 +287,15 @@ export class AddCertificateDialogComponent {
     return 'unknown';
   }
 
-  private submitCsr(csr: string, applyGracePeriod = true): void {
+  private submitCsr(csr: string): void {
     this.isSubmitting.set(true);
     this.validateError.set(null);
     this.submitError.set(null);
-
-    const gracePeriodEnd = applyGracePeriod ? this.configureForm.controls.gracePeriodEnd.value : null;
 
     this.applicationService
       .get(this.data.applicationId)
       .pipe(
         switchMap(application => this.applicationService.save({ ...application, csr })),
-        switchMap(() => this.updateActiveCertificateGracePeriod(gracePeriodEnd)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
@@ -273,6 +322,10 @@ export class AddCertificateDialogComponent {
       });
     }
     return of(null);
+  }
+
+  private fileExtension(fileName: string): string {
+    return fileName.includes('.') ? `.${fileName.split('.').pop()?.toLowerCase()}` : '';
   }
 
   private readFileAsText(file: File): Promise<string> {

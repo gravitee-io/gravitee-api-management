@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
+
 import { Component, DestroyRef, Signal, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -96,6 +98,7 @@ interface CategoriesState {
     CardsGridComponent,
     CatalogApiCardComponent,
     DropdownSearchComponent,
+    GraviteeMarkdownViewerModule,
     LoaderComponent,
     MobileClassDirective,
     OverflowLabelsComponent,
@@ -128,7 +131,31 @@ export class CatalogComponent {
   private readonly route = inject(ActivatedRoute);
   protected readonly isMobile = this.breakpointService.isMobile;
   protected readonly isAuthenticated = this.currentUserService.isUserAuthenticated;
-  protected readonly catalogCardTemplate = this.configService.configuration.portalNext?.catalog?.cardTemplate;
+  private readonly catalogSettings = this.configService.configuration.portalNext?.catalog;
+  protected readonly catalogCardTemplate = this.catalogSettings?.cardTemplate;
+  protected readonly catalogTopContent = this.catalogSettings?.topContent?.trim() || '';
+  protected readonly catalogBottomContent = this.catalogSettings?.bottomContent?.trim() || '';
+  protected readonly showCategoryFilter = this.catalogSettings?.categoryFilter?.enabled !== false;
+  protected readonly categoryFilterLabel = this.catalogSettings?.categoryFilter?.label?.trim() || 'Category';
+  protected readonly showCardsView = this.catalogSettings?.cardsView?.enabled !== false;
+  protected readonly cardsViewLabel = this.catalogSettings?.cardsView?.label?.trim() || 'Cards';
+  protected readonly showListView = this.catalogSettings?.listView?.enabled !== false;
+  protected readonly listViewLabel = this.catalogSettings?.listView?.label?.trim() || 'List';
+  protected readonly showViewToggle = this.showCardsView && this.showListView;
+  /** Resolved mode after applying enabled cards/list settings. */
+  protected readonly activeViewMode = computed<'grid' | 'list'>(() => {
+    if (this.showCardsView && this.showListView) {
+      return this.viewMode();
+    }
+    if (this.showListView) {
+      return 'list';
+    }
+    return 'grid';
+  });
+  private readonly configuredListColumns = (this.catalogSettings?.listColumns || 'name,labels,category,version,mcp')
+    .split(',')
+    .map(column => column.trim())
+    .filter(Boolean);
 
   private readonly page$ = new BehaviorSubject<number>(1);
   protected readonly query = toSignal(this.route.queryParams.pipe(map(p => p['query'] ?? '')), { initialValue: '' });
@@ -151,9 +178,11 @@ export class CatalogComponent {
     return !!categoryId && status === 'loaded' && !categories.some(category => category.id === categoryId);
   });
   protected readonly categoryNameById = computed(() => new Map(this.categories().map(category => [category.id, category.title])));
-  protected readonly tableColumns = computed(() =>
-    this.isMobile() ? ['name', 'version', 'mcp'] : ['name', 'labels', 'category', 'version', 'mcp'],
-  );
+  protected readonly tableColumns = computed(() => {
+    const available = this.isMobile() ? ['name', 'version', 'mcp'] : ['name', 'labels', 'category', 'version', 'mcp'];
+    const selected = this.configuredListColumns.filter(column => available.includes(column));
+    return selected.length > 0 ? selected : available;
+  });
   protected catalogPaginator: Signal<CatalogPaginatorVM> = toSignal(this.loadCatalogItems$(), {
     initialValue: { data: [], page: 1, totalResults: 0, error: false },
   });
@@ -185,6 +214,18 @@ export class CatalogComponent {
   protected readonly notificationBusyApiId = signal<string | null>(null);
 
   constructor() {
+    const defaultMode = this.catalogSettings?.defaultDisplayMode === 'list' ? 'list' : 'grid';
+    if (this.showCardsView && this.showListView) {
+      this.viewMode.set(defaultMode);
+    } else if (this.showListView) {
+      this.viewMode.set('list');
+    } else if (this.showCardsView) {
+      this.viewMode.set('grid');
+    } else {
+      // Both modes disabled in settings — fall back to configured default.
+      this.viewMode.set(defaultMode);
+    }
+
     effect(() => {
       this.query();
       this.categoryId();

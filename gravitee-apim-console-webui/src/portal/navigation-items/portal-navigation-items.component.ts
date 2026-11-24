@@ -74,7 +74,7 @@ import {
 
 import { CatalogCardTemplateEditorComponent } from '../catalog-tile/catalog-card-template-editor.component';
 import {
-  createCatalogCardTemplateFolder,
+  createCatalogCardTemplatePage,
   isCatalogCardTemplateNavId,
 } from '../catalog-tile/catalog-card-template.constants';
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
@@ -105,10 +105,12 @@ import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
 import { PortalNavigationItemService } from '../../services-ngx/portal-navigation-item.service';
 import { PortalPageContentService } from '../../services-ngx/portal-page-content.service';
+import { PortalSettingsService } from '../../services-ngx/portal-settings.service';
 import { ApiV2Service } from '../../services-ngx/api-v2.service';
 import { ApiDocumentationV2Service } from '../../services-ngx/api-documentation-v2.service';
 import { ApiProductV2Service } from '../../services-ngx/api-product-v2.service';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
+import { PortalSettings } from '../../entities/portal/portalSettings';
 import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard';
 import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/content.util';
 import { PortalNavigationItemIconPipe } from '../icon/portal-navigation-item-icon.pipe';
@@ -202,6 +204,7 @@ function orderApiProxyPagesForNavigationCreate(pages: Page[]): Page[] {
 export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   private destroyRef = inject(DestroyRef);
   private readonly apiProductService = inject(ApiProductV2Service);
+  private readonly portalSettingsService = inject(PortalSettingsService);
   readonly catalogCardTemplateEditor = viewChild(CatalogCardTemplateEditorComponent);
 
   // UI State & Forms
@@ -228,11 +231,21 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   // Menu Data State
   private readonly refreshMenuList = new BehaviorSubject(1);
   readonly menuLinks$: Observable<PortalNavigationItem[]> = this.refreshMenuList.pipe(
-    switchMap(() => this.portalNavigationItemsService.getNavigationItems('TOP_NAVBAR')),
-    map(response => {
+    switchMap(() =>
+      this.portalNavigationItemsService.getNavigationItems('TOP_NAVBAR').pipe(
+        switchMap(response =>
+          this.portalSettingsService.get().pipe(
+            map(settings => ({ response, settings })),
+            catchError(() => of({ response, settings: null as PortalSettings | null })),
+          ),
+        ),
+      ),
+    ),
+    map(({ response, settings }) => {
       const items = response.items ?? [];
       const withoutStaleCatalog = items.filter(item => !isCatalogCardTemplateNavId(item.id));
-      return [createCatalogCardTemplateFolder(), ...withoutStaleCatalog];
+      const catalogPublished = settings?.portalNext?.catalog?.published?.enabled !== false;
+      return [createCatalogCardTemplatePage(catalogPublished), ...withoutStaleCatalog];
     }),
     tap(items => {
       const currentNavId = this.navId();
@@ -247,7 +260,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     }),
     catchError(() => {
       this.snackBarService.error('Failed to load navigation items');
-      return of([createCatalogCardTemplateFolder()]);
+      return of([createCatalogCardTemplatePage()]);
     }),
     shareReplay({ bufferSize: 1, refCount: true }),
   );
@@ -480,7 +493,11 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   onNodeMenuAction(event: NodeMenuActionEvent) {
     this.checkUnsavedChangesAndRun(() => {
       if (isCatalogCardTemplateNavId(event.node.id)) {
-        this.snackBarService.error('The Catalog folder is managed by the portal and cannot be changed here.');
+        if (event.action === 'publish' || event.action === 'unpublish') {
+          this.handlePublishToggle(event.node.data);
+          return;
+        }
+        this.snackBarService.error('The Catalog page is managed by the portal and cannot be changed here.');
         return;
       }
       // A fetch refreshes content without mutating the structure, so the read-only guard does not apply
@@ -646,7 +663,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         }),
         switchMap(node => {
           const navItem = node?.data;
-          if (!navItem || navItem.type !== 'PAGE') {
+          if (!navItem || navItem.type !== 'PAGE' || isCatalogCardTemplateNavId(navItem.id)) {
             this.contentControl.reset('');
             this.initialContent.set('');
             this.currentPageContentType.set(null);
@@ -1430,7 +1447,11 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       .afterClosed()
       .pipe(
         filter((result): result is PublishNavigationItemDialogResult => !!result?.confirmed),
-        switchMap(result => this.update(navItem.id, this.createPublicationUpdateItem(navItem), result.propagatePublishToChildren)),
+        switchMap(result =>
+          isCatalogCardTemplateNavId(navItem.id)
+            ? this.saveCatalogPublished(!navItem.published)
+            : this.update(navItem.id, this.createPublicationUpdateItem(navItem), result.propagatePublishToChildren),
+        ),
         tap(() => this.refreshMenuList.next(1)),
         catchError(() => {
           this.snackBarService.error('Failed to update publication status');
@@ -1439,6 +1460,24 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
+  }
+
+  private saveCatalogPublished(published: boolean): Observable<PortalSettings> {
+    return this.portalSettingsService.get().pipe(
+      switchMap(settings => {
+        const payload: PortalSettings = {
+          ...settings,
+          portalNext: {
+            ...settings.portalNext,
+            catalog: {
+              ...settings.portalNext?.catalog,
+              published: { enabled: published },
+            },
+          },
+        };
+        return this.portalSettingsService.save(payload);
+      }),
+    );
   }
 
   private createPublicationUpdateItem(navItem: PortalNavigationItem): UpdatePortalNavigationItem {
@@ -1498,7 +1537,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     const { node, newParentId, newOrder } = $event;
 
     if (isCatalogCardTemplateNavId(node.id) || isCatalogCardTemplateNavId(newParentId)) {
-      this.snackBarService.error('The Catalog folder cannot be moved or receive child items.');
+      this.snackBarService.error('The Catalog page cannot be moved or receive child items.');
       this.refreshMenuList.next(1);
       return;
     }
@@ -1689,7 +1728,7 @@ export function findFirstAvailablePage(
     const sortedChildren = [...children].sort((a, b) => a.order - b.order);
 
     for (const element of sortedChildren) {
-      if (element.type === 'PAGE') {
+      if (element.type === 'PAGE' && !isCatalogCardTemplateNavId(element.id)) {
         return element;
       }
       if (element.type === 'FOLDER' || element.type === 'API' || element.type === 'API_PRODUCT') {

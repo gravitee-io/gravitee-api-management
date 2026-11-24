@@ -13,25 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PortalNavigationFolder } from '../../entities/management-api-v2';
+import { PortalNavigationPage } from '../../entities/management-api-v2';
 
-/** Console-only virtual nav node — not persisted; hosts the catalog card GMD editor. */
+/** Console-only virtual nav node — not a content page; hosts the catalog card GMD editor. */
 export const CATALOG_CARD_TEMPLATE_NAV_ID = '__portal-catalog-card-template__';
 
 export function isCatalogCardTemplateNavId(id: string | null | undefined): boolean {
   return id === CATALOG_CARD_TEMPLATE_NAV_ID;
 }
 
-export function createCatalogCardTemplateFolder(): PortalNavigationFolder {
+/** Shown as a Page so publish/unpublish matches other navigation pages. */
+export function createCatalogCardTemplatePage(published = true): PortalNavigationPage {
   return {
     id: CATALOG_CARD_TEMPLATE_NAV_ID,
     organizationId: '',
     environmentId: '',
     title: 'Catalog',
-    type: 'FOLDER',
+    type: 'PAGE',
     order: -1,
     area: 'TOP_NAVBAR',
-    published: true,
+    published,
     visibility: 'PUBLIC',
+    portalPageContentId: '',
   };
 }

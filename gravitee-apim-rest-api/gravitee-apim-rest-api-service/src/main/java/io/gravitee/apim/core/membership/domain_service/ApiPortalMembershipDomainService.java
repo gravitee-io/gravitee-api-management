@@ -28,6 +28,7 @@ import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
@@ -95,6 +96,8 @@ public class ApiPortalMembershipDomainService {
             .findActiveByApplicationIdsAndApiIds(userApplicationIds, candidateApiIds)
             .stream()
             .map(SubscriptionEntity::getApiId)
+            // Set.of(...) rejects null via contains(); subscriptions can carry a null apiId.
+            .filter(Objects::nonNull)
             .filter(candidateApiIds::contains)
             .collect(toSet());
     }

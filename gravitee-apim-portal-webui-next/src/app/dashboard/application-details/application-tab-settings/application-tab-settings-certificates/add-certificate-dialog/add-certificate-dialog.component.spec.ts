@@ -28,6 +28,8 @@ import { AppTestingModule, TESTING_BASE_URL } from '../../../../../../testing/ap
 const APPLICATION_ID = 'app-1';
 const VALIDATE_URL = `${TESTING_BASE_URL}/applications/${APPLICATION_ID}/certificates/_validate`;
 const CERTIFICATES_URL = `${TESTING_BASE_URL}/applications/${APPLICATION_ID}/certificates`;
+const CSR_PEM = '-----BEGIN CERTIFICATE REQUEST-----\ncsr-body\n-----END CERTIFICATE REQUEST-----';
+const CERT_PEM = '-----BEGIN CERTIFICATE-----\ncert-body\n-----END CERTIFICATE-----';
 
 function makeData(overrides: Partial<AddCertificateDialogData> = {}): AddCertificateDialogData {
   return {
@@ -73,7 +75,7 @@ describe('AddCertificateDialogComponent', () => {
   }
 
   async function fillAndValidate(): Promise<void> {
-    fixture.componentInstance.uploadForm.setValue({ name: 'My Cert', certificate: '-----BEGIN CERTIFICATE-----' });
+    fixture.componentInstance.uploadForm.setValue({ name: 'My Cert', certificate: CERT_PEM });
     fixture.detectChanges();
     await harness.clickContinueUpload();
     fixture.detectChanges();
@@ -85,10 +87,25 @@ describe('AddCertificateDialogComponent', () => {
 
   afterEach(() => httpTestingController.verify());
 
-  it('should show upload step initially', async () => {
+  it('should show upload step initially in certificate mode', async () => {
     await init();
+    expect(fixture.componentInstance.uploadMode()).toBe('certificate');
     expect(await harness.nameInput()).toBeTruthy();
     expect(await harness.pemInput()).toBeTruthy();
+    expect(await harness.csrPemInput()).toBeNull();
+  });
+
+  it('should switch to CSR mode and show CSR upload fields', async () => {
+    await init();
+    await harness.selectMode('csr');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.uploadMode()).toBe('csr');
+    expect(await harness.nameInput()).toBeNull();
+    expect(await harness.pemInput()).toBeNull();
+    expect(await harness.csrPemInput()).toBeTruthy();
   });
 
   it('should show validation errors when continuing with empty upload form', async () => {
@@ -117,7 +134,7 @@ describe('AddCertificateDialogComponent', () => {
   it('should show validate error when certificate validation returns 400', async () => {
     await init();
 
-    fixture.componentInstance.uploadForm.setValue({ name: 'My Cert', certificate: 'INVALID PEM' });
+    fixture.componentInstance.uploadForm.setValue({ name: 'My Cert', certificate: CERT_PEM });
     fixture.detectChanges();
     await harness.clickContinueUpload();
     fixture.detectChanges();
@@ -165,7 +182,7 @@ describe('AddCertificateDialogComponent', () => {
 
     const req = httpTestingController.expectOne(CERTIFICATES_URL);
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toMatchObject({ name: 'My Cert', certificate: '-----BEGIN CERTIFICATE-----' });
+    expect(req.request.body).toMatchObject({ name: 'My Cert', certificate: CERT_PEM });
     req.flush({ id: 'new-cert', name: 'My Cert', status: 'ACTIVE' });
     fixture.detectChanges();
     await fixture.whenStable();
@@ -263,12 +280,13 @@ describe('AddCertificateDialogComponent', () => {
   it('should fill certificate name from uploaded file name', async () => {
     await init();
 
-    const file = new File(['-----BEGIN CERTIFICATE-----'], 'my-server.crt', { type: 'application/x-x509-ca-cert' });
+    const file = new File([CERT_PEM], 'my-server.crt', { type: 'application/x-x509-ca-cert' });
     const mockEvent = { target: { files: [file], value: '' } } as unknown as Event;
     await fixture.componentInstance.onFileSelected(mockEvent);
     fixture.detectChanges();
 
     expect(fixture.componentInstance.uploadForm.controls.name.value).toBe('my-server');
+    expect(fixture.componentInstance.fileName()).toBe('my-server.crt');
   });
 
   it('should not overwrite an existing certificate name when uploading a file', async () => {
@@ -276,7 +294,7 @@ describe('AddCertificateDialogComponent', () => {
 
     fixture.componentInstance.uploadForm.controls.name.setValue('already-set');
 
-    const file = new File(['-----BEGIN CERTIFICATE-----'], 'my-server.crt', { type: 'application/x-x509-ca-cert' });
+    const file = new File([CERT_PEM], 'my-server.crt', { type: 'application/x-x509-ca-cert' });
     const mockEvent = { target: { files: [file], value: '' } } as unknown as Event;
     await fixture.componentInstance.onFileSelected(mockEvent);
     fixture.detectChanges();
@@ -284,33 +302,79 @@ describe('AddCertificateDialogComponent', () => {
     expect(fixture.componentInstance.uploadForm.controls.name.value).toBe('already-set');
   });
 
-  it('should jump to Confirm when CSR content is detected', async () => {
+  it('should reject unsupported extensions in certificate mode', async () => {
     await init();
 
-    const csr = '-----BEGIN CERTIFICATE REQUEST-----\ncsr-body\n-----END CERTIFICATE REQUEST-----';
-    fixture.componentInstance.uploadForm.setValue({ name: '', certificate: csr });
+    const file = new File([CSR_PEM], 'request.csr', { type: 'application/pkcs10' });
+    const mockEvent = { target: { files: [file], value: '' } } as unknown as Event;
+    await fixture.componentInstance.onFileSelected(mockEvent);
+    fixture.detectChanges();
+
+    expect(await harness.fileErrorText()).toBeTruthy();
+    expect(fixture.componentInstance.uploadForm.controls.certificate.value).toBe('');
+  });
+
+  it('should advance to Confirm (step 2 of 2) when CSR mode continues with a CSR', async () => {
+    await init();
+    fixture.componentInstance.setUploadMode('csr');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    fixture.componentInstance.uploadForm.controls.certificate.setValue(CSR_PEM);
     fixture.detectChanges();
     await harness.clickContinueUpload();
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(fixture.componentInstance.detectedPemType()).toBe('csr');
-    expect(fixture.componentInstance.stepper()?.selectedIndex).toBe(2);
+    expect(fixture.componentInstance.uploadMode()).toBe('csr');
+    expect(fixture.componentInstance.stepper()?.selectedIndex).toBe(1);
+    expect(fixture.componentInstance.stepper()?.steps.length).toBe(2);
+  });
+
+  it('should accept .csr file upload in CSR mode and show the file name', async () => {
+    await init();
+    fixture.componentInstance.setUploadMode('csr');
+    fixture.detectChanges();
+
+    const file = new File([CSR_PEM], 'client.csr', { type: 'application/pkcs10' });
+    const mockEvent = { target: { files: [file], value: '' } } as unknown as Event;
+    await fixture.componentInstance.onFileSelected(mockEvent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.uploadForm.controls.certificate.value).toBe(CSR_PEM);
+    expect(await harness.csrFileNameText()).toBe('client.csr');
+  });
+
+  it('should accept .req file upload in CSR mode', async () => {
+    await init();
+    fixture.componentInstance.setUploadMode('csr');
+    fixture.detectChanges();
+
+    const file = new File([CSR_PEM], 'client.req', { type: 'application/pkcs10' });
+    const mockEvent = { target: { files: [file], value: '' } } as unknown as Event;
+    await fixture.componentInstance.onFileSelected(mockEvent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.fileName()).toBe('client.req');
   });
 
   it('should submit CSR from Confirm without updating an active certificate grace period', async () => {
     const activeCertificateId = 'old-cert-id';
     await init(makeData({ hasActiveCertificates: true, activeCertificateId, activeCertificateName: 'Old Cert' }));
 
-    const csr = '-----BEGIN CERTIFICATE REQUEST-----\ncsr-body\n-----END CERTIFICATE REQUEST-----';
-    fixture.componentInstance.uploadForm.setValue({ name: 'csr-upload', certificate: csr });
+    fixture.componentInstance.setUploadMode('csr');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    fixture.componentInstance.uploadForm.controls.certificate.setValue(CSR_PEM);
     fixture.detectChanges();
     await harness.clickContinueUpload();
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(fixture.componentInstance.stepper()?.selectedIndex).toBe(2);
+    expect(fixture.componentInstance.stepper()?.selectedIndex).toBe(1);
 
     await harness.clickSubmit();
     fixture.detectChanges();
@@ -323,8 +387,8 @@ describe('AddCertificateDialogComponent', () => {
     fixture.detectChanges();
 
     const saveReq = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/${APPLICATION_ID}`);
-    expect(saveReq.request.body).toMatchObject({ csr });
-    saveReq.flush({ id: APPLICATION_ID, name: 'App', settings: {}, csr });
+    expect(saveReq.request.body).toMatchObject({ csr: CSR_PEM });
+    saveReq.flush({ id: APPLICATION_ID, name: 'App', settings: {}, csr: CSR_PEM });
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -332,10 +396,10 @@ describe('AddCertificateDialogComponent', () => {
     expect(dialogRef.close).toHaveBeenCalledWith(true);
   });
 
-  it('should show an error for unrecognized PEM content', async () => {
+  it('should show an error when certificate mode receives CSR content', async () => {
     await init();
 
-    fixture.componentInstance.uploadForm.setValue({ name: 'My Cert', certificate: 'not-a-pem' });
+    fixture.componentInstance.uploadForm.setValue({ name: 'My Cert', certificate: CSR_PEM });
     fixture.detectChanges();
     await harness.clickContinueUpload();
     fixture.detectChanges();
@@ -343,5 +407,46 @@ describe('AddCertificateDialogComponent', () => {
 
     expect(await harness.validateErrorText()).toBeTruthy();
     expect(fixture.componentInstance.stepper()?.selectedIndex).toBe(0);
+    httpTestingController.expectNone(VALIDATE_URL);
+  });
+
+  it('should show an error when CSR mode receives certificate content', async () => {
+    await init();
+    fixture.componentInstance.setUploadMode('csr');
+    fixture.detectChanges();
+
+    fixture.componentInstance.uploadForm.controls.certificate.setValue(CERT_PEM);
+    fixture.detectChanges();
+    await harness.clickContinueUpload();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(await harness.validateErrorText()).toBeTruthy();
+    expect(fixture.componentInstance.stepper()?.selectedIndex).toBe(0);
+  });
+
+  it('should return to Upload from Confirm with Previous in CSR mode', async () => {
+    await init();
+    fixture.componentInstance.setUploadMode('csr');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    fixture.componentInstance.uploadForm.controls.certificate.setValue(CSR_PEM);
+    fixture.detectChanges();
+    await harness.clickContinueUpload();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.stepper()?.selectedIndex).toBe(1);
+
+    fixture.componentInstance.goPrevious();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.stepper()?.selectedIndex).toBe(0);
+  });
+
+  it('should show three steps in certificate mode', async () => {
+    await init();
+    expect(fixture.componentInstance.stepper()?.steps.length).toBe(3);
   });
 });

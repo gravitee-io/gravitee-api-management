@@ -15,12 +15,13 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
 import {
   AimAiWorkspace,
   AimBudget,
+  AimBudgetPage,
   AimCatalogModelPage,
   AimLlmProvider,
   AimWorkspaceUsageResponse,
@@ -37,8 +38,12 @@ export class AimAiWorkspaceService {
     return this.http.get<AimAiWorkspace>(`${this.aimBaseUrl()}/ai-workspaces/${encodeURIComponent(workspaceId)}`);
   }
 
-  listBudgets(workspaceId: string): Observable<AimBudget[]> {
-    return this.http.get<AimBudget[]>(`${this.aimBaseUrl()}/ai-workspaces/${encodeURIComponent(workspaceId)}/budgets`);
+  listBudgets(workspaceId: string, perPage = 100): Observable<AimBudget[]> {
+    return this.http
+      .get<AimBudgetPage>(`${this.aimBaseUrl()}/ai-workspaces/${encodeURIComponent(workspaceId)}/budgets`, {
+        params: { perPage: String(perPage) },
+      })
+      .pipe(map(page => page.content ?? []));
   }
 
   listModels(workspaceId: string): Observable<AimLlmProvider[]> {

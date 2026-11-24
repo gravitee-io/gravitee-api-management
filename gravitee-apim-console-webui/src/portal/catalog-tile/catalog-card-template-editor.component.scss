@@ -27,27 +27,124 @@
   padding: 48px 0;
 }
 
-.catalog-card-template {
+.catalog-page-config {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 0;
   min-height: 0;
 }
 
-.catalog-card-template__editor {
+.catalog-page-config__tabs {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+
+  ::ng-deep .mat-mdc-tab-body-wrapper {
+    flex: 1;
+    min-height: 0;
+  }
+
+  ::ng-deep .mat-mdc-tab-body-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: auto;
+  }
+}
+
+.catalog-page-config__section {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  padding: 16px 0;
+}
+
+.catalog-page-config__hint {
+  margin: 0;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 13px;
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 12px;
+  }
+}
+
+.catalog-page-config__block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 8px;
+}
+
+.catalog-page-config__heading {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.catalog-page-config__field {
+  width: 100%;
+  max-width: 420px;
+}
+
+.catalog-page-config__field--inline {
+  max-width: 280px;
+}
+
+.catalog-page-config__mode-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  align-items: center;
+}
+
+.catalog-page-config__columns {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 420px;
+}
+
+.catalog-page-config__order {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 480px;
+}
+
+.catalog-page-config__order-label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.catalog-page-config__order-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.catalog-page-config__order-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.catalog-page-config__editor {
   display: block;
   flex: 1;
   min-height: 280px;
 }
 
-.catalog-card-template__divider {
+.catalog-page-config__divider {
   margin: 16px 0;
   border: none;
   border-top: 1px solid rgba(0, 0, 0, 0.12);
 }
 
-.catalog-card-template__preview {
+.catalog-page-config__preview {
   flex: 1;
   min-height: 200px;
   padding: 16px;

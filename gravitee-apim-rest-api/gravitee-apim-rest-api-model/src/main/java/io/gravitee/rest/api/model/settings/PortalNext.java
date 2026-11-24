@@ -163,8 +163,60 @@ public class PortalNext {
         @ParameterKey(Key.PORTAL_NEXT_CATALOG_CARD_TEMPLATE)
         private String cardTemplate;
 
+        @ParameterKey(Key.PORTAL_NEXT_CATALOG_PUBLISHED)
+        private Enabled published;
+
+        @ParameterKey(Key.PORTAL_NEXT_CATALOG_TOP_CONTENT)
+        private String topContent;
+
+        @ParameterKey(Key.PORTAL_NEXT_CATALOG_BOTTOM_CONTENT)
+        private String bottomContent;
+
+        @ParameterKey(Key.PORTAL_NEXT_CATALOG_DEFAULT_DISPLAY_MODE)
+        private String defaultDisplayMode;
+
+        @ParameterKey(Key.PORTAL_NEXT_CATALOG_LIST_COLUMNS)
+        private String listColumns;
+
         @ParameterKey(Key.PORTAL_NEXT_SEARCH_FUZZY)
         private Enabled fuzzySearch;
+
+        // Flattened ParameterKeys (settings loader walks Catalog fields). JSON uses nested objects.
+        @JsonIgnore
+        @Getter(AccessLevel.NONE)
+        @Setter(AccessLevel.NONE)
+        @ParameterKey(Key.PORTAL_NEXT_CATALOG_CATEGORY_FILTER_ENABLED)
+        private Boolean categoryFilterEnabled;
+
+        @JsonIgnore
+        @Getter(AccessLevel.NONE)
+        @Setter(AccessLevel.NONE)
+        @ParameterKey(Key.PORTAL_NEXT_CATALOG_CATEGORY_FILTER_LABEL)
+        private String categoryFilterLabel;
+
+        @JsonIgnore
+        @Getter(AccessLevel.NONE)
+        @Setter(AccessLevel.NONE)
+        @ParameterKey(Key.PORTAL_NEXT_CATALOG_CARDS_VIEW_ENABLED)
+        private Boolean cardsViewEnabled;
+
+        @JsonIgnore
+        @Getter(AccessLevel.NONE)
+        @Setter(AccessLevel.NONE)
+        @ParameterKey(Key.PORTAL_NEXT_CATALOG_CARDS_VIEW_LABEL)
+        private String cardsViewLabel;
+
+        @JsonIgnore
+        @Getter(AccessLevel.NONE)
+        @Setter(AccessLevel.NONE)
+        @ParameterKey(Key.PORTAL_NEXT_CATALOG_LIST_VIEW_ENABLED)
+        private Boolean listViewEnabled;
+
+        @JsonIgnore
+        @Getter(AccessLevel.NONE)
+        @Setter(AccessLevel.NONE)
+        @ParameterKey(Key.PORTAL_NEXT_CATALOG_LIST_VIEW_LABEL)
+        private String listViewLabel;
 
         // Stored on Catalog itself so the existing settings loader, which only walks this object,
         // persists them. JSON still exposes the nested "tile" object the console and portal use.
@@ -211,6 +263,15 @@ public class PortalNext {
         private Enabled tileOwner;
 
         public Catalog() {
+            this.published = new Enabled(true);
+            this.categoryFilterEnabled = Boolean.TRUE;
+            this.categoryFilterLabel = "Category";
+            this.cardsViewEnabled = Boolean.TRUE;
+            this.cardsViewLabel = "Cards";
+            this.listViewEnabled = Boolean.TRUE;
+            this.listViewLabel = "List";
+            this.defaultDisplayMode = "grid";
+            this.listColumns = "name,labels,category,version,mcp";
             this.tileName = new Enabled(true);
             this.tileType = new Enabled(true);
             this.tileImage = new Enabled(true);
@@ -218,6 +279,80 @@ public class PortalNext {
             this.tileDescription = new Enabled(true);
             this.tileStatus = new Enabled(true);
             this.tileOwner = new Enabled(true);
+        }
+
+        @JsonProperty("categoryFilter")
+        public CategoryFilter getCategoryFilter() {
+            return new CategoryFilter(categoryFilterEnabled, categoryFilterLabel);
+        }
+
+        @JsonProperty("categoryFilter")
+        public void setCategoryFilter(CategoryFilter filter) {
+            if (filter == null) {
+                return;
+            }
+            if (filter.getEnabled() != null) {
+                this.categoryFilterEnabled = filter.getEnabled();
+            }
+            if (filter.getLabel() != null) {
+                this.categoryFilterLabel = filter.getLabel();
+            }
+        }
+
+        @JsonProperty("cardsView")
+        public DisplayModeOption getCardsView() {
+            return new DisplayModeOption(cardsViewEnabled, cardsViewLabel);
+        }
+
+        @JsonProperty("cardsView")
+        public void setCardsView(DisplayModeOption option) {
+            if (option == null) {
+                return;
+            }
+            if (option.getEnabled() != null) {
+                this.cardsViewEnabled = option.getEnabled();
+            }
+            if (option.getLabel() != null) {
+                this.cardsViewLabel = option.getLabel();
+            }
+        }
+
+        @JsonProperty("listView")
+        public DisplayModeOption getListView() {
+            return new DisplayModeOption(listViewEnabled, listViewLabel);
+        }
+
+        @JsonProperty("listView")
+        public void setListView(DisplayModeOption option) {
+            if (option == null) {
+                return;
+            }
+            if (option.getEnabled() != null) {
+                this.listViewEnabled = option.getEnabled();
+            }
+            if (option.getLabel() != null) {
+                this.listViewLabel = option.getLabel();
+            }
+        }
+
+        @Data
+        @NoArgsConstructor
+        @AllArgsConstructor
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        public static class CategoryFilter {
+
+            private Boolean enabled;
+            private String label;
+        }
+
+        @Data
+        @NoArgsConstructor
+        @AllArgsConstructor
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        public static class DisplayModeOption {
+
+            private Boolean enabled;
+            private String label;
         }
 
         @JsonProperty("tile")

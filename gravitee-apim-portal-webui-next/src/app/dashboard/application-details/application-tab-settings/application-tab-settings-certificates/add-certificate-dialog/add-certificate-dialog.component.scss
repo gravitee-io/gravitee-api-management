@@ -17,14 +17,54 @@
 
 .add-certificate-dialog {
   &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
     min-width: 480px;
+
+    // Keep Upload / Configure / Confirm labels closer together
+    --mat-stepper-header-height: 48px;
+
+    ::ng-deep {
+      .mat-horizontal-stepper-header-container {
+        justify-content: flex-start;
+      }
+
+      .mat-horizontal-stepper-header {
+        padding: 0 8px;
+      }
+
+      .mat-stepper-horizontal-line {
+        flex: 0 0 24px;
+        min-width: 24px;
+        margin: 0 4px;
+      }
+
+      .mat-horizontal-content-container {
+        padding: 0 0 8px;
+      }
+    }
   }
 
   &__step {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    padding-top: 16px;
+    padding-top: 8px;
+  }
+
+  &__mode-toggle {
+    align-self: flex-start;
+  }
+
+  &__mode-hint {
+    margin: 0;
+    color: app-theme.$paragraph-color;
+  }
+
+  &__confirm-hint {
+    margin: 0;
+    color: app-theme.$paragraph-color;
   }
 
   &__field {
@@ -35,6 +75,11 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+  }
+
+  &__file-name {
+    margin: 0;
+    color: app-theme.$paragraph-color;
   }
 
   &__section {

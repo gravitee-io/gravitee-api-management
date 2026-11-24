@@ -34,6 +34,14 @@ export interface AimBudget {
   period?: AimBudgetPeriod | null;
 }
 
+/** AIM list budgets response (`AiWorkspacePage`). */
+export interface AimBudgetPage {
+  content?: AimBudget[];
+  totalElements?: number;
+  pageNumber?: number;
+  pageElements?: number;
+}
+
 export interface AimInlineLlmModel {
   name: string;
   inputPrice?: number | null;
