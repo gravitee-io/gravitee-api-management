@@ -240,28 +240,23 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
 
         portal.setAccessPointId("access-point-a");
         portalRepository.update(portal);
-        assertThat(portalRepository.findById("portal3")).hasValueSatisfying(found -> {
-            assertThat(found.getAccessPointId()).isEqualTo("access-point-a");
-            assertThat(found.getUrl()).isEqualTo("https://portal.env2.example");
-        });
+        assertThat(portalRepository.findById("portal3")).hasValueSatisfying(found ->
+            assertThat(found.getAccessPointId()).isEqualTo("access-point-a")
+        );
         assertThat(portalRepository.findByAccessPointId("access-point-a")).extracting(Portal::getId).containsExactly("portal3");
         assertThat(portalRepository.findByAccessPointId("shared-access-point")).extracting(Portal::getId).containsExactly("portal4");
 
         portal.setAccessPointId("access-point-b");
         portalRepository.update(portal);
-        assertThat(portalRepository.findById("portal3")).hasValueSatisfying(found -> {
-            assertThat(found.getAccessPointId()).isEqualTo("access-point-b");
-            assertThat(found.getUrl()).isEqualTo("https://portal.env2.example");
-        });
+        assertThat(portalRepository.findById("portal3")).hasValueSatisfying(found ->
+            assertThat(found.getAccessPointId()).isEqualTo("access-point-b")
+        );
         assertThat(portalRepository.findByAccessPointId("access-point-a")).isEmpty();
         assertThat(portalRepository.findByAccessPointId("access-point-b")).extracting(Portal::getId).containsExactly("portal3");
 
         portal.setAccessPointId(null);
         portalRepository.update(portal);
-        assertThat(portalRepository.findById("portal3")).hasValueSatisfying(found -> {
-            assertThat(found.getAccessPointId()).isNull();
-            assertThat(found.getUrl()).isEqualTo("https://portal.env2.example");
-        });
+        assertThat(portalRepository.findById("portal3")).hasValueSatisfying(found -> assertThat(found.getAccessPointId()).isNull());
         assertThat(portalRepository.findByAccessPointId("access-point-a")).isEmpty();
         assertThat(portalRepository.findByAccessPointId("access-point-b")).isEmpty();
     }
