@@ -29,7 +29,7 @@ import java.util.Set;
 
 /**
  * The schema validation of the platform as a domain test installs it, in place of the service the
- * Guardian domain validates its step configurations with.
+ * Guardrail domain validates its step configurations with.
  *
  * <p>Answering on the configuration as much as on the policy is what lets a test tell "the
  * configuration of <em>this</em> step was checked" from "something was checked", and {@link #checks()}
@@ -91,7 +91,7 @@ public final class InMemoryPolicyValidation implements PolicyValidationDomainSer
 
     @Override
     public void validatePoliciesFlowPhase(List<String> policyIds, ApiType apiType, FlowPhase phase) {
-        throw new UnsupportedOperationException("The Guardian domain reads the declared flows of a plugin itself.");
+        throw new UnsupportedOperationException("The Guardrail domain reads the declared flows of a plugin itself.");
     }
 
     /** What the service was asked to validate, in order. */

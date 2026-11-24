@@ -26,11 +26,11 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.gamma.rest.core.guardian.exception.ApiCannotRunGuardiansException;
-import io.gravitee.gamma.rest.core.guardian.exception.ApiInternalFlowChangedException;
-import io.gravitee.gamma.rest.core.guardian.model.ApiReference;
-import io.gravitee.gamma.rest.core.guardian.model.GuardedApi;
-import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardedApiPort;
+import io.gravitee.gamma.rest.core.guardrail.exception.ApiCannotRunGuardrailsException;
+import io.gravitee.gamma.rest.core.guardrail.exception.ApiInternalFlowChangedException;
+import io.gravitee.gamma.rest.core.guardrail.model.ApiReference;
+import io.gravitee.gamma.rest.core.guardrail.model.GuardedApi;
+import io.gravitee.gamma.rest.core.guardrail.port.service_provider.GuardedApiPort;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import java.util.Objects;
 import java.util.Optional;
@@ -44,8 +44,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class GuardedApiPortAdapter implements GuardedApiPort {
 
-    /** Shown in the API's deployment history, on the entry a Guardian change republishes. */
-    private static final String DEPLOYMENT_LABEL = "Guardians updated";
+    /** Shown in the API's deployment history, on the entry a Guardrail change republishes. */
+    private static final String DEPLOYMENT_LABEL = "Guardrails updated";
 
     private final ApiCrudService apiCrudService;
     private final ApiQueryService apiQueryService;
@@ -60,9 +60,9 @@ public class GuardedApiPortAdapter implements GuardedApiPort {
     }
 
     @Override
-    public Page<ApiReference> findByGuardian(String environmentId, String guardianId, int pageNumber, int pageSize) {
+    public Page<ApiReference> findByGuardrail(String environmentId, String guardrailId, int pageNumber, int pageSize) {
         var page = apiQueryService.search(
-            ApiSearchCriteria.builder().environmentId(environmentId).guardian(guardianId).build(),
+            ApiSearchCriteria.builder().environmentId(environmentId).guardrail(guardrailId).build(),
             Sortable.builder().field("name").order(Sortable.Order.ASC).build(),
             new PageableImpl(pageNumber, pageSize),
             ApiFieldFilter.builder().definitionExcluded(true).pictureExcluded(true).build()
@@ -86,7 +86,7 @@ public class GuardedApiPortAdapter implements GuardedApiPort {
             .filter(stored -> stored.belongsToEnvironment(auditInfo.environmentId()))
             .orElseThrow(() -> new ApiNotFoundException(apiId));
         if (!api.holdsInternalFlow()) {
-            throw new ApiCannotRunGuardiansException(apiId);
+            throw new ApiCannotRunGuardrailsException(apiId);
         }
         if (!Objects.equals(api.internalFlow(), expectedInternalFlow)) {
             throw new ApiInternalFlowChangedException(apiId);

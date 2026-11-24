@@ -15,7 +15,7 @@
  */
 package io.gravitee.gamma.rest.core.gravitee_plugin.model;
 
-import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.GUARDIAN;
+import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.GUARDRAIL;
 import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.HTTP_PROXY;
 import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.LLM_PROXY;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,7 +34,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 class DeclaredFlowsTest {
 
     private static final DeclaredFlows GUARDRAIL_POLICY = new DeclaredFlows(
-        Map.of(GUARDIAN, List.of("REQUEST", "RESPONSE"), LLM_PROXY, List.of("RESPONSE"))
+        Map.of(GUARDRAIL, List.of("REQUEST", "RESPONSE"), LLM_PROXY, List.of("RESPONSE"))
     );
 
     @ParameterizedTest(name = "{0}")
@@ -51,15 +51,15 @@ class DeclaredFlowsTest {
     static Stream<Arguments> requests() {
         return Stream.of(
             Arguments.of("no flow nor phase requested", Set.of(), null, true),
-            Arguments.of("a declared flow", Set.of(GUARDIAN), null, true),
+            Arguments.of("a declared flow", Set.of(GUARDRAIL), null, true),
             Arguments.of("an absent flow", Set.of(HTTP_PROXY), null, false),
-            Arguments.of("declared and absent flows", Set.of(GUARDIAN, HTTP_PROXY), null, false),
-            Arguments.of("a phase of every requested flow", Set.of(GUARDIAN, LLM_PROXY), "RESPONSE", true),
-            Arguments.of("a phase missing from one requested flow", Set.of(GUARDIAN, LLM_PROXY), "REQUEST", false),
+            Arguments.of("declared and absent flows", Set.of(GUARDRAIL, HTTP_PROXY), null, false),
+            Arguments.of("a phase of every requested flow", Set.of(GUARDRAIL, LLM_PROXY), "RESPONSE", true),
+            Arguments.of("a phase missing from one requested flow", Set.of(GUARDRAIL, LLM_PROXY), "REQUEST", false),
             Arguments.of("a phase of one flow, no flow requested", Set.of(), "REQUEST", true),
             Arguments.of("a phase of no flow, no flow requested", Set.of(), "INTERACT", false),
             Arguments.of("a phase compared with case", Set.of(), "request", false),
-            Arguments.of("a blank phase filters nothing", Set.of(GUARDIAN), " ", true),
+            Arguments.of("a blank phase filters nothing", Set.of(GUARDRAIL), " ", true),
             Arguments.of("an empty phase filters nothing", Set.of(), "", true)
         );
     }

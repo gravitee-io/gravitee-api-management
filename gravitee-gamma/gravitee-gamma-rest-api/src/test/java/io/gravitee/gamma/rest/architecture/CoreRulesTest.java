@@ -81,7 +81,7 @@ class CoreRulesTest {
                 .or(equivalentTo(PageableImpl.class))
                 .or(
                     // what PolicyValidationDomainService#validateAndSanitizeConfiguration throws, which the
-                    // Guardian domain validates its step configurations with, as the API flows do. A port over
+                    // Guardrail domain validates its step configurations with, as the API flows do. A port over
                     // that service would have been a pass-through whose only purpose was to hide these two
                     // exceptions from this rule. Requested by the lead on gravitee-api-management#22765.
                     equivalentTo(InvalidDataException.class)

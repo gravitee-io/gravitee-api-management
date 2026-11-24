@@ -18,7 +18,7 @@ package io.gravitee.gamma.rest.resources.gravitee_plugin;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PlatformPlugin;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.ResourcePluginProvider;
 import io.gravitee.gamma.rest.resources.gravitee_plugin.dto.PlatformPluginDto;
-import io.gravitee.gamma.rest.resources.guardian.GuardiansResource;
+import io.gravitee.gamma.rest.resources.guardrail.GuardrailsResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.GraviteeLicenseFeature;
@@ -33,14 +33,14 @@ import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 
 /**
- * The resource types a Guardian may hold, read from the installed resource plugins.
+ * The resource types a Guardrail may hold, read from the installed resource plugins.
  *
  * <p>Organization-scoped, like the policies catalog: what the node has installed is the same for every environment.
  * Sorted the way every catalog is, see {@link PlatformPlugin#BY_NAME_THEN_ID}, so the screen does not have to.
  *
- * <p>Gated as the policies catalog is, by the {@code ORGANIZATION_POLICIES} read permission and the Guardians license
- * feature: a Guardian screen reads both catalogs, so one grant opens them both. No permission exists for resource
- * plugins, and the Guardian permission is an environment's while this path names none.
+ * <p>Gated as the policies catalog is, by the {@code ORGANIZATION_POLICIES} read permission and the Guardrails license
+ * feature: a Guardrail screen reads both catalogs, so one grant opens them both. No permission exists for resource
+ * plugins, and the Guardrail permission is an environment's while this path names none.
  *
  * @author GraviteeSource Team
  */
@@ -50,7 +50,7 @@ public class ResourcePluginResource {
     private ResourcePluginProvider resourcePluginProvider;
 
     @GET
-    @GraviteeLicenseFeature(GuardiansResource.GUARDIANS_LICENSE_FEATURE)
+    @GraviteeLicenseFeature(GuardrailsResource.GUARDRAILS_LICENSE_FEATURE)
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_POLICIES, acls = RolePermissionAction.READ) })
     @Produces(MediaType.APPLICATION_JSON)
     public List<PlatformPluginDto> getResources(@PathParam("orgId") String organizationId) {
@@ -63,7 +63,7 @@ public class ResourcePluginResource {
     }
 
     @GET
-    @GraviteeLicenseFeature(GuardiansResource.GUARDIANS_LICENSE_FEATURE)
+    @GraviteeLicenseFeature(GuardrailsResource.GUARDRAILS_LICENSE_FEATURE)
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_POLICIES, acls = RolePermissionAction.READ) })
     @Path("/{resourceId}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -72,7 +72,7 @@ public class ResourcePluginResource {
     }
 
     @GET
-    @GraviteeLicenseFeature(GuardiansResource.GUARDIANS_LICENSE_FEATURE)
+    @GraviteeLicenseFeature(GuardrailsResource.GUARDRAILS_LICENSE_FEATURE)
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_POLICIES, acls = RolePermissionAction.READ) })
     @Path("/{resourceId}/schema")
     @Produces(MediaType.APPLICATION_JSON)
@@ -81,7 +81,7 @@ public class ResourcePluginResource {
     }
 
     @GET
-    @GraviteeLicenseFeature(GuardiansResource.GUARDIANS_LICENSE_FEATURE)
+    @GraviteeLicenseFeature(GuardrailsResource.GUARDRAILS_LICENSE_FEATURE)
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_POLICIES, acls = RolePermissionAction.READ) })
     @Path("/{resourceId}/documentation")
     @Produces(MediaType.TEXT_PLAIN)

@@ -29,7 +29,7 @@ tags:
           and the `apim-guardians` license feature.
     - name: Resources
       description: |
-          The installed resource plugins. Every one listed as `deployed` is a type a Guardian resource
+          The installed resource plugins. Every one listed as `deployed` is a type a Guardrail resource
           may be of: the catalog is not narrowed to the types a guardrail policy is known to use. Every operation
           requires the `ORGANIZATION_POLICIES` permission with the `READ` action on the organization
           of the path, and the `apim-guardians` license feature.
@@ -335,7 +335,7 @@ components:
                 - mcp-proxy
                 - llm-proxy
                 - a2a-proxy
-                - guardian
+                - guardrail
 
         ResourcePlugin:
             type: object
@@ -345,7 +345,7 @@ components:
             properties:
                 id:
                     type: string
-                    description: The id its manifest declares, and the value a Guardian resource stores as its type.
+                    description: The id its manifest declares, and the value a Guardrail resource stores as its type.
                 name:
                     type: string
                 description:
@@ -365,7 +365,7 @@ components:
                     description: |
                         Deployed on the node *and* enabled by the organization's license. A type the license
                         does not cover is still listed, so a screen can say why it cannot be picked; a
-                        Guardian holding an enabled resource of such a type is refused.
+                        Guardrail holding an enabled resource of such a type is refused.
             required:
                 - id
                 - deployed
@@ -403,9 +403,9 @@ components:
                 guardrailPolicy:
                     type: boolean
                     description: |
-                        Whether the policy is a guardrail policy. A Guardian deploys only when at least one
-                        of its enabled steps runs a guardrail policy: a policy declaring the `guardian` flow
-                        can run in a Guardian without being one.
+                        Whether the policy is a guardrail policy. A Guardrail deploys only when at least one
+                        of its enabled steps runs a guardrail policy: a policy declaring the `guardrail` flow
+                        can run in a Guardrail without being one.
                 flow:
                     type: object
                     description: |
@@ -434,7 +434,7 @@ components:
                 guardrailPolicy: true
                 flow:
                     llm-proxy: [REQUEST, RESPONSE]
-                    guardian: [REQUEST, RESPONSE]
+                    guardrail: [REQUEST, RESPONSE]
 
         Error:
             type: object
@@ -450,5 +450,5 @@ components:
                 - message
                 - http_status
             example:
-                message: "Invalid flow. Expected one of [http-proxy, http-message, native-kafka, mcp-proxy, llm-proxy, a2a-proxy, guardian]."
+                message: "Invalid flow. Expected one of [http-proxy, http-message, native-kafka, mcp-proxy, llm-proxy, a2a-proxy, guardrail]."
                 http_status: 400

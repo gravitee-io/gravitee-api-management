@@ -65,7 +65,7 @@ public final class InMemoryResourceValidation implements ValidateResourceDomainS
 
     @Override
     public Result<Input> validateAndSanitize(Input input) {
-        throw new UnsupportedOperationException("The Guardian domain judges its resources one at a time.");
+        throw new UnsupportedOperationException("The Guardrail domain judges its resources one at a time.");
     }
 
     /** What the service was asked to validate, in order. */

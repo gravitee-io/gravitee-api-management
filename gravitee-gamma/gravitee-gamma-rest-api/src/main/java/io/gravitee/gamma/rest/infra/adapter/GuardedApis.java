@@ -16,10 +16,10 @@
 package io.gravitee.gamma.rest.infra.adapter;
 
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.gamma.rest.core.guardian.model.GuardedApi;
+import io.gravitee.gamma.rest.core.guardrail.model.GuardedApi;
 
 /**
- * An APIM API as the Guardians domain reads it, for every adapter that hands one over.
+ * An APIM API as the Guardrails domain reads it, for every adapter that hands one over.
  *
  * @author GraviteeSource Team
  */
@@ -33,7 +33,7 @@ final class GuardedApis {
             .environmentId(api.getEnvironmentId())
             .name(api.getName())
             .type(api.getType())
-            .supportsGuardians(api.holdsInternalFlow())
+            .supportsGuardrails(api.holdsInternalFlow())
             .internalFlow(api.internalFlow())
             .build();
     }

@@ -27,7 +27,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
 /**
- * The permission that names an API running a Guardian: reading the API's definition, and no weaker or other one.
+ * The permission that names an API running a Guardrail: reading the API's definition, and no weaker or other one.
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class GuardedApiReadPermissionPortAdapterTest {
