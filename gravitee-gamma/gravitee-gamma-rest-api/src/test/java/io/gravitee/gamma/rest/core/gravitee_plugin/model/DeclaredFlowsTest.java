@@ -33,7 +33,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class DeclaredFlowsTest {
 
-    private static final DeclaredFlows GUARDRAIL = new DeclaredFlows(
+    private static final DeclaredFlows GUARDRAIL_POLICY = new DeclaredFlows(
         Map.of(GUARDIAN, List.of("REQUEST", "RESPONSE"), LLM_PROXY, List.of("RESPONSE"))
     );
 
@@ -45,7 +45,7 @@ class DeclaredFlowsTest {
         String phase,
         boolean expected
     ) {
-        assertThat(GUARDRAIL.declares(flows, phase)).as(description).isEqualTo(expected);
+        assertThat(GUARDRAIL_POLICY.declares(flows, phase)).as(description).isEqualTo(expected);
     }
 
     static Stream<Arguments> requests() {

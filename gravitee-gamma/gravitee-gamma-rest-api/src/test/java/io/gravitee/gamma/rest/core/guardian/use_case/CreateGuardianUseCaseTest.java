@@ -190,7 +190,7 @@ class CreateGuardianUseCaseTest {
     }
 
     @Test
-    void should_refuse_an_incompatible_guardrail_before_creating_a_guardian_or_an_audit() {
+    void should_refuse_an_incompatible_guardrail_policy_before_creating_a_guardian_or_an_audit() {
         var policy = aPolicy();
         policy.setConfiguration("{\"scope\":{\"protocol\":\"MCP\"}}");
 
@@ -199,7 +199,7 @@ class CreateGuardianUseCaseTest {
             .hasMessageContaining("Detect credentials")
             .hasMessageContaining("llm-proxy");
 
-        assertThat(guardianRepository.storedGuardians()).as("a rejected guardrail leaves no Guardian draft").isEmpty();
+        assertThat(guardianRepository.storedGuardians()).as("a rejected guardrail policy leaves no Guardian draft").isEmpty();
         verifyNoInteractions(auditDomainService);
     }
 

@@ -45,7 +45,7 @@ import lombok.RequiredArgsConstructor;
  *       service asks the plugin for a schema, gets {@code null} for a plugin the node does not have, and
  *       validates nothing, so a Guardian would deploy holding a resource the gateway cannot build;</li>
  *   <li><strong>no two enabled resources share a name</strong> — the gateway keeps the resources of a
- *       Guardian by name, so the second would silently replace the first and a guardrail naming it
+ *       Guardian by name, so the second would silently replace the first and a guardrail policy naming it
  *       would be handed whichever loaded last.</li>
  * </ul>
  *

@@ -43,7 +43,7 @@ public class GammaRootResource {
     }
 
     /**
-     * Guardians of the environment — reusable guardrail sequences attached to LLM proxies. See
+     * Guardians of the environment — reusable guardrail policy sequences attached to LLM proxies. See
      * {@link GuardiansResource} for the contract.
      */
     @Path("/organizations/{orgId}/environments/{envId}/guardians")

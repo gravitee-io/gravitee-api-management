@@ -26,7 +26,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * What the guardrails of a Guardian do to the calls they evaluate.
+ * What the guardrail policies of a Guardian do to the calls they evaluate.
  *
  * <p>There is no platform-wide contract for this: {@code GuardrailPolicy} says nothing about effects, and each
  * guardrail policy spells its own in its configuration. This reads the one convention the guardrail policies of the
@@ -35,18 +35,18 @@ import java.util.Optional;
  *
  * @author GraviteeSource Team
  */
-public final class GuardrailEffects {
+public final class GuardrailPolicyEffects {
 
     private static final String ON_MATCH = "onMatch";
     private static final String ON_NO_MATCH = "onNoMatch";
     private static final String ACTION = "action";
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private GuardrailEffects() {}
+    private GuardrailPolicyEffects() {}
 
     /** The effects the sequence can apply, each once, strongest first. */
-    public static List<GuardrailEffect> of(Guardian definition) {
-        var effects = EnumSet.noneOf(GuardrailEffect.class);
+    public static List<GuardrailPolicyEffect> of(Guardian definition) {
+        var effects = EnumSet.noneOf(GuardrailPolicyEffect.class);
         if (definition == null || definition.getPolicies() == null) {
             return List.of();
         }
@@ -55,7 +55,7 @@ public final class GuardrailEffects {
             .stream()
             .filter(Objects::nonNull)
             .filter(Step::isEnabled)
-            .map(GuardrailEffects::configurationOf)
+            .map(GuardrailPolicyEffects::configurationOf)
             .flatMap(Optional::stream)
             .forEach(configuration -> {
                 actionOf(configuration, ON_MATCH).ifPresent(effects::add);
@@ -77,8 +77,8 @@ public final class GuardrailEffects {
         }
     }
 
-    private static Optional<GuardrailEffect> actionOf(JsonNode configuration, String outcome) {
+    private static Optional<GuardrailPolicyEffect> actionOf(JsonNode configuration, String outcome) {
         var action = configuration.path(outcome).path(ACTION);
-        return action.isTextual() ? GuardrailEffect.byName(action.asText()) : Optional.empty();
+        return action.isTextual() ? GuardrailPolicyEffect.byName(action.asText()) : Optional.empty();
     }
 }

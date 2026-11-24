@@ -40,7 +40,7 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Replaces the draft of a Guardian, whether the console sends it or a deployment it rolls back to: both go through the
- * same checks, since an old revision may carry a name another Guardian took since, or a guardrail or a resource type no
+ * same checks, since an old revision may carry a name another Guardian took since, or a guardrail policy or a resource type no
  * longer installed.
  *
  * <p>One thing separates them, {@link DraftOrigin}: a submitted draft is stored as its plugins accept it, where a

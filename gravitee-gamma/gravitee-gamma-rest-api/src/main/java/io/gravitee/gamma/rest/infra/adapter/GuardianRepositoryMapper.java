@@ -76,7 +76,7 @@ final class GuardianRepositoryMapper {
 
     /**
      * Reads the stored definition, or fails. A row whose definition cannot be read carries no name, no
-     * phase and no guardrail sequence, so returning a half-built Guardian would hand the console an
+     * phase and no guardrail policy sequence, so returning a half-built Guardian would hand the console an
      * entry it can neither render nor repair; the search maps every row, so one such row fails the
      * whole page rather than itself, which is the point.
      */

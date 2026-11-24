@@ -126,7 +126,7 @@ class GuardianManagerImplTest {
     void should_remove_a_first_deployment_when_the_reactor_factory_throws() {
         ReactableGuardian guardian = guardian("env-a", NOW);
         lenient()
-            .doThrow(new IllegalArgumentException("Incompatible guardrail protocol"))
+            .doThrow(new IllegalArgumentException("Incompatible guardrail policy protocol"))
             .when(eventManager)
             .publishEvent(ReactorEvent.DEPLOY, guardian);
 
@@ -151,7 +151,7 @@ class GuardianManagerImplTest {
         cut.register(guardian);
         var previousReactor = guardianRegistry.get(GUARDIAN_ID, "env-a");
         lenient()
-            .doThrow(new IllegalArgumentException("Incompatible guardrail protocol"))
+            .doThrow(new IllegalArgumentException("Incompatible guardrail policy protocol"))
             .when(eventManager)
             .publishEvent(ReactorEvent.UPDATE, newerGuardian);
 
@@ -225,7 +225,7 @@ class GuardianManagerImplTest {
         }
         ReactableGuardian rejectedGuardian = guardian("env-a", Date.from(NOW.toInstant().plusSeconds(1)));
         lenient()
-            .doThrow(new IllegalArgumentException("Incompatible guardrail protocol"))
+            .doThrow(new IllegalArgumentException("Incompatible guardrail policy protocol"))
             .when(eventManager)
             .publishEvent(event, rejectedGuardian);
 

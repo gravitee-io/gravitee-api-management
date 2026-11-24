@@ -25,26 +25,26 @@ import java.util.Set;
 
 /**
  * What an installed policy declares about where it can run: the Guardian phases of its {@code guardian} flow, and the
- * API types of its guardrail flows.
+ * API types of its guardrail policy flows.
  */
-public record PolicyCapabilities(boolean guardrail, DeclaredFlows flows) {
+public record PolicyCapabilities(boolean guardrailPolicy, DeclaredFlows flows) {
     /** The Guardian phases the policy declares in its {@code guardian} flow. */
     public Set<Phase> guardianPhases() {
         return toGuardianPhases(flows.phases().getOrDefault(PolicyFlowType.GUARDIAN, List.of()));
     }
 
-    /** Whether a Guardian of this phase can run the policy, guardrail or not. */
+    /** Whether a Guardian of this phase can run the policy, guardrail policy or not. */
     public boolean runsInGuardian(Phase phase) {
         return guardianPhases().contains(phase);
     }
 
-    /** Whether the manifest declares a guardrail flow for each of these API types, whatever the phases it lists. */
+    /** Whether the manifest declares a guardrail policy flow for each of these API types, whatever the phases it lists. */
     public boolean supports(Set<ApiType> apiTypes) {
         return flows
             .phases()
             .keySet()
             .stream()
-            .flatMap(flow -> flow.guardrailApiType().stream())
+            .flatMap(flow -> flow.guardrailPolicyApiType().stream())
             .collect(toSet())
             .containsAll(apiTypes);
     }

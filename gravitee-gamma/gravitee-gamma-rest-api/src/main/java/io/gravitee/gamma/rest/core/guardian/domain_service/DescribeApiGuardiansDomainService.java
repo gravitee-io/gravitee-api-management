@@ -21,7 +21,7 @@ import io.gravitee.gamma.rest.core.guardian.exception.ApiCannotRunGuardiansExcep
 import io.gravitee.gamma.rest.core.guardian.model.ApiGuardian;
 import io.gravitee.gamma.rest.core.guardian.model.ApiGuardians;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianDeployment;
-import io.gravitee.gamma.rest.core.guardian.model.GuardrailEffects;
+import io.gravitee.gamma.rest.core.guardian.model.GuardrailPolicyEffects;
 import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardedApiPort;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -72,7 +72,7 @@ public class DescribeApiGuardiansDomainService {
                         deployed.getName(),
                         enabled.phase(),
                         enabled.order(),
-                        GuardrailEffects.of(deployed)
+                        GuardrailPolicyEffects.of(deployed)
                     );
                     case null, default -> new ApiGuardian(enabled.guardianId(), null, enabled.phase(), enabled.order(), List.of());
                 }

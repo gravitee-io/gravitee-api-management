@@ -35,7 +35,7 @@ import lombok.RequiredArgsConstructor;
 /**
  * Publishes the stored draft of a Guardian to the gateways.
  *
- * <p>A Guardian with no enabled guardrail is refused here rather than when it is saved: a draft is
+ * <p>A Guardian with no enabled guardrail policy is refused here rather than when it is saved: a draft is
  * expected to be empty while its sequence is being designed, and only a deployment claims that the
  * APIs using it are protected. Publishing one would also undo the protection of a Guardian already
  * deployed, since the empty revision replaces the one the gateways run.
@@ -63,7 +63,7 @@ public class DeployGuardianUseCase {
 
     public Output execute(Input input) {
         var guardian = find(input);
-        // the guardrail rule first: it names what the user has to do, where a validation error names
+        // the guardrail policy rule first: it names what the user has to do, where a validation error names
         // what is wrong with a sequence they may not have written in this session
         validateGuardian.validateDeployable(guardian);
         validateGuardian.validateStoredAgainstInstalledPlugins(guardian);

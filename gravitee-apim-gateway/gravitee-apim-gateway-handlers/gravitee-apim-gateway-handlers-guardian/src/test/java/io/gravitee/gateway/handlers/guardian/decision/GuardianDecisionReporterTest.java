@@ -112,7 +112,7 @@ class GuardianDecisionReporterTest {
     class Decided {
 
         @Test
-        void should_report_an_allow_when_every_guardrail_let_the_call_through() {
+        void should_report_an_allow_when_every_guardrail_policy_let_the_call_through() {
             verdicts.record("first", GuardrailVerdict.allow("CONTINUE", List.of("first did not match"), List.of()));
             verdicts.record("second", GuardrailVerdict.allow("CONTINUE", List.of("second matched"), List.of(FINDING)));
 
@@ -160,7 +160,7 @@ class GuardianDecisionReporterTest {
         }
 
         @Test
-        void should_report_a_deny_the_gateway_let_through_when_a_guardrail_denied_without_ending_the_call() {
+        void should_report_a_deny_the_gateway_let_through_when_a_guardrail_policy_denied_without_ending_the_call() {
             verdicts.record("observing", GuardrailVerdict.deny("BLOCK", List.of("matched"), List.of(FINDING)));
             verdicts.record("after", GuardrailVerdict.allow("CONTINUE", List.of(), List.of()));
 
@@ -176,7 +176,7 @@ class GuardianDecisionReporterTest {
         }
 
         @Test
-        void should_report_a_deny_enforced_as_a_transform_when_a_guardrail_denied_and_another_transformed() {
+        void should_report_a_deny_enforced_as_a_transform_when_a_guardrail_policy_denied_and_another_transformed() {
             verdicts.record("observing", GuardrailVerdict.deny("BLOCK", List.of(), List.of()));
             verdicts.record("masking", GuardrailVerdict.transform(Transformation.MASK, "MASK", List.of(), List.of()));
 
@@ -194,7 +194,7 @@ class GuardianDecisionReporterTest {
     class Interrupted {
 
         @Test
-        void should_enforce_a_deny_when_a_guardrail_ended_the_call_before_the_endpoint() {
+        void should_enforce_a_deny_when_a_guardrail_policy_ended_the_call_before_the_endpoint() {
             verdicts.record("answering", GuardrailVerdict.allow("CONTINUE", List.of(), List.of()));
 
             cut.interrupted(ctx, STEP, guardian(), Guardian.Phase.REQUEST, verdicts, 42L);
@@ -207,7 +207,7 @@ class GuardianDecisionReporterTest {
         }
 
         @Test
-        void should_report_a_deny_when_a_guardrail_denied_and_ended_the_call_before_the_endpoint() {
+        void should_report_a_deny_when_a_guardrail_policy_denied_and_ended_the_call_before_the_endpoint() {
             verdicts.record("refusing", GuardrailVerdict.deny("SOFT_BLOCK", List.of("off topic"), List.of()));
 
             cut.interrupted(ctx, STEP, guardian(), Guardian.Phase.REQUEST, verdicts, 42L);
@@ -244,7 +244,7 @@ class GuardianDecisionReporterTest {
         }
 
         @Test
-        void should_enforce_what_the_guardrails_did_when_a_guardrail_ended_the_call_on_the_response() {
+        void should_enforce_what_the_guardrail_policies_did_when_a_guardrail_policy_ended_the_call_on_the_response() {
             verdicts.record("masking", GuardrailVerdict.transform(Transformation.MASK, "MASK", List.of(), List.of()));
 
             cut.interrupted(ctx, STEP, guardian(), Guardian.Phase.RESPONSE, verdicts, 42L);
@@ -266,7 +266,7 @@ class GuardianDecisionReporterTest {
             .contentType("application/json");
 
         @Test
-        void should_report_a_deny_when_a_guardrail_blocked() {
+        void should_report_a_deny_when_a_guardrail_policy_blocked() {
             verdicts.record("before", GuardrailVerdict.allow("CONTINUE", List.of("did not match"), List.of()));
             verdicts.record("blocking", GuardrailVerdict.deny("BLOCK", List.of("Blocked", "matched"), List.of(FINDING)));
 
@@ -284,7 +284,7 @@ class GuardianDecisionReporterTest {
         }
 
         @Test
-        void should_keep_the_failure_message_out_when_no_guardrail_denied() {
+        void should_keep_the_failure_message_out_when_no_guardrail_policy_denied() {
             verdicts.record("before", GuardrailVerdict.allow("CONTINUE", List.of("did not match"), List.of()));
 
             cut.denied(ctx, STEP, guardian(), Guardian.Phase.REQUEST, verdicts, failure, 42L);
@@ -311,12 +311,12 @@ class GuardianDecisionReporterTest {
         }
 
         @Test
-        void should_report_an_error_when_a_guardrail_has_no_typed_view() {
-            ExecutionFailure unsupported = new ExecutionFailure(500).key(GuardianPolicy.GUARDRAIL_UNSUPPORTED_API_TYPE_KEY);
+        void should_report_an_error_when_a_guardrail_policy_has_no_typed_view() {
+            ExecutionFailure unsupported = new ExecutionFailure(500).key(GuardianPolicy.GUARDRAIL_POLICY_UNSUPPORTED_API_TYPE_KEY);
 
             cut.denied(ctx, STEP, guardian(), Guardian.Phase.REQUEST, verdicts, unsupported, 42L);
 
-            assertUndecided(reported(), IndeterminateCause.ERROR, "GUARDIAN_GUARDRAIL_UNSUPPORTED_API_TYPE");
+            assertUndecided(reported(), IndeterminateCause.ERROR, "GUARDIAN_GUARDRAIL_POLICY_UNSUPPORTED_API_TYPE");
         }
     }
 

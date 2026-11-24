@@ -376,7 +376,7 @@ class RollbackGuardianUseCaseTest {
     }
 
     @Test
-    void should_refuse_a_revision_whose_guardrail_is_no_longer_installed() {
+    void should_refuse_a_revision_whose_guardrail_policy_is_no_longer_installed() {
         publications.givenPublication(
             aGuardianDefinition()
                 .name("First name")

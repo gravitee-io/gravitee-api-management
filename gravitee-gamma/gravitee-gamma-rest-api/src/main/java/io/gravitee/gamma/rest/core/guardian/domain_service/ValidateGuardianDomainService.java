@@ -29,7 +29,7 @@ import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.ResourceReference;
 import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyPluginProvider;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNameAlreadyExistsException;
-import io.gravitee.gamma.rest.core.guardian.exception.GuardianWithoutEnabledGuardrailException;
+import io.gravitee.gamma.rest.core.guardian.exception.GuardianWithoutEnabledGuardrailPolicyException;
 import io.gravitee.gamma.rest.core.guardian.model.CreateGuardian;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
@@ -65,9 +65,9 @@ import lombok.RequiredArgsConstructor;
  * 4.14, so accepting any other API type would store a Guardian nothing can execute. A Guardian also
  * needs a phase.
  *
- * <p><strong>The steps</strong> — every enabled step, guardrail or not, must reference an installed
+ * <p><strong>The steps</strong> — every enabled step, guardrail policy or not, must reference an installed
  * policy whose plugin declares the Guardian phase in its {@code guardian} flow, and carry a
- * configuration that policy's schema accepts. A guardrail must also support the Guardian API types, in
+ * configuration that policy's schema accepts. A guardrail policy must also support the Guardian API types, in
  * its plugin metadata and in any explicit scope protocol: the {@code guardian} flow says where it
  * runs, its API type flows only which API types it applies to. A property its schema marks as a resource
  * picker ({@code gioConfig.uiType: resource-type}) must name an enabled resource of the Guardian, of a type
@@ -81,7 +81,7 @@ import lombok.RequiredArgsConstructor;
  * again to the stored draft when it is deployed: a draft may predate a rule, or have been written
  * against plugins that have changed since, and a deployment turns it into a revision the gateways
  * must be able to start. One rule runs there only, {@link #validateDeployable(Guardian)} — the
- * sequence must hold an enabled guardrail — so a draft may be saved empty and still be refused at
+ * sequence must hold an enabled guardrail policy — so a draft may be saved empty and still be refused at
  * deployment. What separates the two passes is the configuration a plugin accepts only corrected: a
  * write path stores it, a deployment or a rollback refuses the step or the resource carrying it.
  *
@@ -173,7 +173,7 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
     }
 
     /**
-     * Refuses a Guardian that would enforce nothing: no enabled step of its sequence runs a guardrail
+     * Refuses a Guardian that would enforce nothing: no enabled step of its sequence runs a guardrail policy
      * the platform has installed.
      *
      * <p>Run when a Guardian is deployed, not when it is saved — a draft is expected to be empty while
@@ -182,16 +182,16 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
      */
     public void validateDeployable(Guardian guardian) {
         var installed = policyPluginProvider.findAllCapabilities();
-        Predicate<String> isGuardrail = policy ->
-            installed.get(policy) instanceof PolicyCapabilities capabilities && capabilities.guardrail();
-        if (guardian.hasEnabledGuardrail(isGuardrail)) {
+        Predicate<String> isGuardrailPolicy = policy ->
+            installed.get(policy) instanceof PolicyCapabilities capabilities && capabilities.guardrailPolicy();
+        if (guardian.hasEnabledGuardrailPolicy(isGuardrailPolicy)) {
             return;
         }
-        throw new GuardianWithoutEnabledGuardrailException(
+        throw new GuardianWithoutEnabledGuardrailPolicyException(
             guardian.getId(),
             guardian
                 .enabledPolicies()
-                .filter(step -> !isGuardrail.test(step.getPolicy()))
+                .filter(step -> !isGuardrailPolicy.test(step.getPolicy()))
                 .toList()
         );
     }
@@ -288,12 +288,12 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
             if (!policy.runsInGuardian(phase)) {
                 errors.add(notRunningInGuardian(step, policy, phase));
             }
-            if (policy.guardrail()) {
+            if (policy.guardrailPolicy()) {
                 var protocolError = policy.supports(apiTypes)
                     ? scopeProtocolError(step, apiTypes)
                     : Optional.of(incompatibleProtocol(step, apiTypes));
                 if (protocolError.isPresent()) {
-                    // the schema of a guardrail usually constrains its scope too: judging it would report
+                    // the schema of a guardrail policy usually constrains its scope too: judging it would report
                     // this cause a second time, or a configuration moot on a Guardian it cannot run in
                     errors.add(protocolError.get());
                     continue;
@@ -442,7 +442,7 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
     }
 
     /**
-     * Refuses a guardrail whose {@code scope.protocol} designates another API type than the Guardian's.
+     * Refuses a guardrail policy whose {@code scope.protocol} designates another API type than the Guardian's.
      *
      * <p>A configuration that is no JSON object is left alone here: the schema check refuses it on its
      * own, naming one cause rather than two, and there is nothing to read in it anyway.
@@ -457,7 +457,7 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
             return Optional.empty();
         }
         if (!scope.isObject()) {
-            return Optional.of(Error.severe("Guardrail step [%s] has an invalid scope configuration.", step.getName()));
+            return Optional.of(Error.severe("Guardrail policy step [%s] has an invalid scope configuration.", step.getName()));
         }
         var protocol = scope.get("protocol");
         if (protocol == null) {
@@ -465,12 +465,12 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
         }
         ApiType scopeApiType = protocol.isTextual() ? scopeApiType(protocol.textValue()) : null;
         if (scopeApiType == null) {
-            return Optional.of(Error.severe("Guardrail step [%s] has an invalid scope protocol.", step.getName()));
+            return Optional.of(Error.severe("Guardrail policy step [%s] has an invalid scope protocol.", step.getName()));
         }
         if (apiTypes.stream().anyMatch(apiType -> apiType != scopeApiType)) {
             return Optional.of(
                 Error.severe(
-                    "Guardrail step [%s] declares scope protocol [%s], incompatible with Guardian API types [%s].",
+                    "Guardrail policy step [%s] declares scope protocol [%s], incompatible with Guardian API types [%s].",
                     step.getName(),
                     protocol.textValue(),
                     labels(apiTypes)
@@ -498,14 +498,14 @@ public class ValidateGuardianDomainService implements Validator<ValidateGuardian
         );
     }
 
-    /** The API type a guardrail {@code scope.protocol} designates, or {@code null} for any other value: see {@link PolicyFlowType}. */
+    /** The API type a guardrail policy {@code scope.protocol} designates, or {@code null} for any other value: see {@link PolicyFlowType}. */
     private static ApiType scopeApiType(String protocol) {
-        return PolicyFlowType.fromScopeProtocol(protocol).flatMap(PolicyFlowType::guardrailApiType).orElse(null);
+        return PolicyFlowType.fromScopeProtocol(protocol).flatMap(PolicyFlowType::guardrailPolicyApiType).orElse(null);
     }
 
     private static Error incompatibleProtocol(Step step, Set<ApiType> apiTypes) {
         return Error.severe(
-            "Guardrail step [%s] using policy [%s] does not support Guardian API types [%s].",
+            "Guardrail policy step [%s] using policy [%s] does not support Guardian API types [%s].",
             step.getName(),
             step.getPolicy(),
             labels(apiTypes)

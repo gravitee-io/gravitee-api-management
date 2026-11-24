@@ -33,7 +33,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * A Guardian: a reusable sequence of guardrails and the resources they need, defined at environment
+ * A Guardian: a reusable sequence of guardrail policies and the resources they need, defined at environment
  * level, deployed on its own and attached to APIs.
  *
  * <p>What a Guardian <em>is</em> lives in its definition — the model the gateway reads — and this
@@ -214,15 +214,15 @@ public class Guardian {
     }
 
     /**
-     * Whether at least one enabled step of the sequence runs a guardrail.
+     * Whether at least one enabled step of the sequence runs a guardrail policy.
      *
-     * <p>Which policies are guardrails is the caller's to say: the installed plugins answer that, and
+     * <p>Which policies are guardrail policies is the caller's to say: the installed plugins answer that, and
      * this model knows nothing of them.
      *
-     * @param isGuardrail whether the policy a step names is a guardrail
+     * @param isGuardrailPolicy whether the policy a step names is a guardrail policy
      */
-    public boolean hasEnabledGuardrail(Predicate<String> isGuardrail) {
-        return enabledPolicies().anyMatch(step -> isGuardrail.test(step.getPolicy()));
+    public boolean hasEnabledGuardrailPolicy(Predicate<String> isGuardrailPolicy) {
+        return enabledPolicies().anyMatch(step -> isGuardrailPolicy.test(step.getPolicy()));
     }
 
     /** The enabled resource of this name, the one the gateway would hand a policy naming it. */
