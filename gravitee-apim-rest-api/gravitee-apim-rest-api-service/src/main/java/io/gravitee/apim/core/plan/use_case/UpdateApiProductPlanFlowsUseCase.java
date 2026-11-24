@@ -27,6 +27,7 @@ import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
@@ -59,6 +60,7 @@ public class UpdateApiProductPlanFlowsUseCase {
     private final FlowValidationDomainService flowValidationDomainService;
     private final PlanQueryService planQueryService;
     private final ApiProductCrudService apiProductCrudService;
+    private final SecretReferencePermissionDomainService secretReferencePermissionDomainService;
 
     public Output execute(Input input) {
         rejectPlansListedTwice(input.plans());
@@ -79,9 +81,17 @@ public class UpdateApiProductPlanFlowsUseCase {
             .map(update ->
                 Optional.ofNullable(productPlans.get(update.planId()))
                     .map(UpdateApiProductPlanFlowsUseCase::requireOpenHttpPlan)
-                    .map(plan ->
-                        withFlows(plan, update.name(), flowValidationDomainService.validateAndSanitizeApiProductFlows(update.flows()))
-                    )
+                    .map(plan -> {
+                        var flows = flowValidationDomainService.validateAndSanitizeApiProductFlows(update.flows());
+                        secretReferencePermissionDomainService.validate(
+                            input.auditInfo().organizationId(),
+                            input.auditInfo().environmentId(),
+                            input.auditInfo().actor().userId(),
+                            plan.getPlanDefinitionHttpV4().getFlows(),
+                            update.flows()
+                        );
+                        return withFlows(plan, update.name(), flows);
+                    })
                     .orElseThrow(() -> new PlanNotFoundException(update.planId()))
             )
             .toList();

@@ -15,7 +15,10 @@
  */
 package io.gravitee.apim.plugin.secrets;
 
+import io.gravitee.apim.common.secret.SecretChangedEvent;
 import io.gravitee.apim.common.secret.StaticKeyEncryptionKeyProvider;
+import io.gravitee.common.event.EventManager;
+import io.gravitee.gateway.api.genericevent.GenericEventRegistry;
 import io.gravitee.node.secrets.plugins.SecretProviderPluginManager;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.OrganizationKeyRepository;
@@ -56,6 +59,11 @@ public class GraviteeSecretProviderConfiguration {
         );
         log.info("Gravitee secret provider [{}]: REGISTERED", GraviteeSecretProvider.ID);
         return factory;
+    }
+
+    @Bean(destroyMethod = "cancel")
+    public GenericEventRegistry.Subscription graviteeSecretChangeSubscription(GenericEventRegistry registry, EventManager eventManager) {
+        return registry.subscribe(SecretChangedEvent.KIND, new GraviteeSecretChangeSubscriber(eventManager));
     }
 
     // The none repository registers secret repositories that find nothing, so the provider cannot tell it apart by its beans.

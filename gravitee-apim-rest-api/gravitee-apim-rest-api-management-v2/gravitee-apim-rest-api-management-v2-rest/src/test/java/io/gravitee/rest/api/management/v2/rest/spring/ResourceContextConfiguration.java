@@ -271,6 +271,7 @@ import io.gravitee.apim.core.promotion.use_case.CreatePromotionUseCase;
 import io.gravitee.apim.core.promotion.use_case.ProcessPromotionUseCase;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.use_case.CreateSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.DeleteSharedPolicyGroupUseCase;
@@ -1246,6 +1247,11 @@ public class ResourceContextConfiguration {
     @Bean
     public ClusterBindingPermissionDomainService clusterBindingPermissionDomainService() {
         return mock(ClusterBindingPermissionDomainService.class);
+    }
+
+    @Bean
+    public SecretReferencePermissionDomainService secretReferencePermissionDomainService() {
+        return mock(SecretReferencePermissionDomainService.class);
     }
 
     @Bean

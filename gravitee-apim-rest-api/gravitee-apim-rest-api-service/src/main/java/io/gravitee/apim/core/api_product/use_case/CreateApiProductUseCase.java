@@ -41,6 +41,7 @@ import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerFac
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.notification.crud_service.NotificationConfigCrudService;
 import io.gravitee.apim.core.notification.model.config.NotificationConfig;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
@@ -67,6 +68,7 @@ public class CreateApiProductUseCase {
     private final DeployApiProductDomainService deployApiProductDomainService;
     private final GroupQueryService groupQueryService;
     private final ApiProductTagDomainService apiProductTagDomainService;
+    private final SecretReferencePermissionDomainService secretReferencePermissionDomainService;
 
     public record Input(CreateApiProduct createApiProduct, AuditInfo auditInfo) {}
 
@@ -103,6 +105,13 @@ public class CreateApiProductUseCase {
             .build();
 
         validateApiProductService.validate(apiProduct);
+        secretReferencePermissionDomainService.validate(
+            auditInfo.organizationId(),
+            auditInfo.environmentId(),
+            auditInfo.actor().userId(),
+            null,
+            apiProduct
+        );
 
         apiProductQueryService
             .findByEnvironmentIdAndName(auditInfo.environmentId(), apiProduct.getName())

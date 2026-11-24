@@ -34,6 +34,7 @@ import io.gravitee.apim.core.generic_event.domain_service.GenericEventWriterDoma
 import io.gravitee.apim.core.json.JsonDeserializer;
 import io.gravitee.apim.core.json.JsonSerializer;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
@@ -1808,6 +1809,11 @@ class GuardiansResourceTest extends AbstractResourceTest {
         @Bean
         AuditDomainService auditDomainService(GuardianAuditFixture audits) {
             return audits.service;
+        }
+
+        @Bean
+        SecretReferencePermissionDomainService secretReferencePermissionDomainService() {
+            return mock(SecretReferencePermissionDomainService.class);
         }
 
         @Bean

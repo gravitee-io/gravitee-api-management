@@ -25,6 +25,7 @@ import fixtures.core.model.LicenseFixtures;
 import inmemory.AbstractUseCaseTest;
 import inmemory.ApiProductCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.CredentialCrudServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
@@ -38,7 +39,12 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
+import io.gravitee.apim.core.secret.exception.SecretReferenceNotAllowedException;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
+import io.gravitee.apim.infra.credential.SpelSecretExpressionParser;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -65,6 +71,7 @@ class UpdateApiProductFlowsUseCaseTest extends AbstractUseCaseTest {
     private final FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
     private final PolicyValidationDomainService policyValidationDomainService = mock(PolicyValidationDomainService.class);
     private final LicenseManager licenseManager = mock(LicenseManager.class);
+    private final PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
     private UpdateApiProductFlowsUseCase useCase;
 
     @BeforeEach
@@ -83,7 +90,13 @@ class UpdateApiProductFlowsUseCaseTest extends AbstractUseCaseTest {
             flowCrudService,
             flowValidationDomainService,
             new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
-            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager)
+            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
+            new SecretReferencePermissionDomainService(
+                new SpelSecretExpressionParser(),
+                permissionDomainService,
+                new CredentialCrudServiceInMemory(),
+                GraviteeJacksonMapper.getInstance()
+            )
         );
     }
 
@@ -137,6 +150,20 @@ class UpdateApiProductFlowsUseCaseTest extends AbstractUseCaseTest {
         assertThat(flowCrudService.getApiProductFlows(API_PRODUCT_ID)).extracting(Flow::getName).containsExactly("existing");
         assertThat(storedProduct().getFlowExecution()).isNull();
         assertThat(auditCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_refuse_flows_adding_a_store_secret_reference_without_the_secret_read_permission_and_write_nothing() {
+        givenProduct(aProduct().build());
+        flowCrudService.saveApiProductFlows(API_PRODUCT_ID, List.of(requestFlow("existing")));
+
+        assertThatThrownBy(() ->
+            useCase.execute(
+                input(new ApiProductFlows(null, List.of(requestFlow("{#secrets.get('/gravitee/db-password:value?envId=env-id')}"))))
+            )
+        ).isInstanceOf(SecretReferenceNotAllowedException.class);
+
+        assertThat(flowCrudService.getApiProductFlows(API_PRODUCT_ID)).extracting(Flow::getName).containsExactly("existing");
     }
 
     @Test

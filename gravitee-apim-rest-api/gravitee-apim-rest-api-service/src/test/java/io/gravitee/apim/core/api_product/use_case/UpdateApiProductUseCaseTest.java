@@ -35,6 +35,7 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
+import inmemory.CredentialCrudServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
@@ -54,7 +55,12 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.notification.model.hook.ApiProductUpdatedHookContext;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
+import io.gravitee.apim.core.secret.exception.SecretReferenceNotAllowedException;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
+import io.gravitee.apim.infra.credential.SpelSecretExpressionParser;
 import io.gravitee.apim.infra.domain_service.api_product.ApiProductResourceValidationDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
@@ -93,6 +99,7 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         ApiProductResourceValidationDomainService.class
     );
 
+    private final PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
     private UpdateApiProductUseCase updateApiProductUseCase;
 
     @BeforeEach
@@ -122,8 +129,34 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
             planCrudService,
             apiProductTagDomainService,
             deployApiProductDomainService,
-            apiProductResourceValidationDomainService
+            apiProductResourceValidationDomainService,
+            new SecretReferencePermissionDomainService(
+                new SpelSecretExpressionParser(),
+                permissionDomainService,
+                new CredentialCrudServiceInMemory(),
+                GraviteeJacksonMapper.getInstance()
+            )
         );
+    }
+
+    @Test
+    void should_refuse_an_update_adding_a_store_secret_reference_without_the_secret_read_permission_and_store_nothing() {
+        ApiProduct existing = ApiProduct.builder()
+            .id("api-product-id")
+            .name("API Product")
+            .version("1.0.0")
+            .description("desc")
+            .environmentId(ENV_ID)
+            .build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+        var toUpdate = UpdateApiProduct.builder().description("{#secrets.get('/gravitee/db-password:value?envId=env-id')}").build();
+
+        Assertions.assertThatThrownBy(() ->
+            updateApiProductUseCase.execute(new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO))
+        ).isInstanceOf(SecretReferenceNotAllowedException.class);
+
+        assertThat(apiProductCrudService.get("api-product-id").getDescription()).isEqualTo("desc");
     }
 
     @Test
@@ -305,7 +338,13 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
             planCrudService,
             apiProductTagDomainService,
             deployApiProductDomainService,
-            new ApiProductResourceValidationDomainServiceImpl(resourcesValidationService)
+            new ApiProductResourceValidationDomainServiceImpl(resourcesValidationService),
+            new SecretReferencePermissionDomainService(
+                new SpelSecretExpressionParser(),
+                permissionDomainService,
+                new CredentialCrudServiceInMemory(),
+                GraviteeJacksonMapper.getInstance()
+            )
         );
         Resource cache = Resource.builder().name("cache").type("cache").configuration("{\"ttl\":-1}").enabled(true).build();
 

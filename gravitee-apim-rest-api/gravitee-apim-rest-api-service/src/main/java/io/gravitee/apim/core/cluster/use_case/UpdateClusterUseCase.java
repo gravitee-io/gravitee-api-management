@@ -30,6 +30,7 @@ import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
 import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
 import io.gravitee.apim.core.cluster.model.UpdateCluster;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -49,6 +50,7 @@ public class UpdateClusterUseCase {
     private final ObjectMapper objectMapper;
     private final ClusterConfigurationAccessDomainService clusterConfigurationAccessDomainService;
     private final ClusterInUseDomainService clusterInUseDomainService;
+    private final SecretReferencePermissionDomainService secretReferencePermissionDomainService;
 
     public record Input(String clusterId, UpdateCluster updateCluster, AuditInfo auditInfo) {}
 
@@ -99,7 +101,15 @@ public class UpdateClusterUseCase {
             .organizationId(clusterToUpdate.getOrganizationId())
             .build();
 
+        var storedConfiguration = clusterToUpdate.getConfiguration();
         clusterToUpdate.update(input.updateCluster());
+        secretReferencePermissionDomainService.validate(
+            input.auditInfo().organizationId(),
+            input.auditInfo().environmentId(),
+            input.auditInfo().actor().userId(),
+            storedConfiguration,
+            clusterToUpdate.getConfiguration()
+        );
 
         validateClusterService.validateForUpdate(existingClusterSnapshot, clusterToUpdate);
 
