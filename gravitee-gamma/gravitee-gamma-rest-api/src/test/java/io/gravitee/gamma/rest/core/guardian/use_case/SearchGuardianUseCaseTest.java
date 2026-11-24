@@ -19,16 +19,22 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ENVIRONMENT_
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.gamma.rest.core.guardian.GuardianDeploymentFixtures;
 import io.gravitee.gamma.rest.core.guardian.GuardianFixtures;
+import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
+import java.time.Instant;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -113,5 +119,83 @@ class SearchGuardianUseCaseTest {
         assertThatThrownBy(() -> search(SearchGuardianUseCase.Input.builder().sortBy("apiType")))
             .isInstanceOf(ValidationDomainException.class)
             .hasMessageContaining("apiType");
+    }
+
+    /**
+     * What a publisher is offered to turn on: the Guardians the gateways run, whose deployed revision supports the
+     * type of the API. The filter runs before the page is cut, so an eligible Guardian is never lost on another page.
+     */
+    @Nested
+    class DeployedFor {
+
+        private final GuardianPublicationFixture publications = new GuardianPublicationFixture();
+        private final SearchGuardianUseCase offering = new SearchGuardianUseCase(
+            guardianRepository,
+            publications.service(guardianRepository)
+        );
+
+        @BeforeEach
+        void given_guardians_deployed_or_not_for_one_api_type_or_another() {
+            guardianRepository.reset();
+            givenDeployed("llm-1", "A llm guardian", ApiType.LLM_PROXY);
+            guardianRepository.givenGuardian(
+                aGuardian(d -> d.id("draft-only").name("B never deployed").apiTypes(Set.of(ApiType.LLM_PROXY))).build()
+            );
+            givenDeployed("proxy-only", "C proxy guardian", ApiType.PROXY);
+            givenDeployed("llm-2", "D llm guardian", ApiType.LLM_PROXY);
+        }
+
+        @Test
+        void should_offer_only_the_deployed_guardians_an_api_type_can_run() {
+            var output = offering.execute(
+                SearchGuardianUseCase.Input.builder().environmentId(ENVIRONMENT_ID).deployedFor("llm-proxy").sortBy("name").build()
+            );
+
+            assertSoftly(softly -> {
+                softly
+                    .assertThat(output.guardians().getContent())
+                    .extracting(Guardian::getId)
+                    .as("guardians offered")
+                    .containsExactly("llm-1", "llm-2");
+                softly.assertThat(output.guardians().getTotalElements()).as("guardians offered in all").isEqualTo(2);
+            });
+        }
+
+        @Test
+        void should_page_the_guardians_offered_rather_than_the_ones_stored() {
+            var output = offering.execute(
+                SearchGuardianUseCase.Input.builder()
+                    .environmentId(ENVIRONMENT_ID)
+                    .deployedFor("llm-proxy")
+                    .sortBy("name")
+                    .pageNumber(2)
+                    .pageSize(1)
+                    .build()
+            );
+
+            assertSoftly(softly -> {
+                softly
+                    .assertThat(output.guardians().getContent())
+                    .extracting(Guardian::getId)
+                    .as("second guardian offered")
+                    .containsExactly("llm-2");
+                softly.assertThat(output.guardians().getTotalElements()).as("guardians offered in all").isEqualTo(2);
+            });
+        }
+
+        @Test
+        void should_refuse_an_unknown_api_type() {
+            assertThatThrownBy(() ->
+                offering.execute(SearchGuardianUseCase.Input.builder().environmentId(ENVIRONMENT_ID).deployedFor("no-such-type").build())
+            )
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("no-such-type");
+        }
+
+        private void givenDeployed(String id, String name, ApiType apiType) {
+            var guardian = aGuardian(d -> d.id(id).name(name).apiTypes(Set.of(apiType))).build();
+            guardianRepository.givenGuardian(guardian);
+            publications.givenPublication(guardian.getDefinition(), Instant.parse("2026-11-09T10:00:00Z"));
+        }
     }
 }

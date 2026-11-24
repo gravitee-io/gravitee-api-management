@@ -332,6 +332,31 @@ class GuardiansResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_list_only_the_deployed_guardians_an_api_type_can_run() {
+            guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Deployed"));
+            guardianRepository.givenGuardian(guardian("never-deployed", ENVIRONMENT, "Never deployed"));
+            guardianPublications.givenPublication(
+                guardianRepository.findByEnvironmentId(ENVIRONMENT, GUARDIAN_ID).orElseThrow().getDefinition(),
+                Instant.parse("2026-11-09T10:00:00Z")
+            );
+
+            JsonNode body = rootTarget().queryParam("deployedFor", "llm-proxy").request().get().readEntity(JsonNode.class);
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(body.get("data")).as("guardians offered").hasSize(1);
+                softly.assertThat(body.get("data").get(0).get("id").asText()).as("guardian offered").isEqualTo(GUARDIAN_ID);
+                softly.assertThat(body.get("pagination").get("totalCount").asLong()).as("guardians offered in all").isEqualTo(1L);
+            });
+        }
+
+        @Test
+        void should_refuse_an_unknown_api_type_with_400() {
+            Response response = rootTarget().queryParam("deployedFor", "no-such-type").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
         void should_refuse_an_unknown_sort_field_with_400() {
             // the API types are a set in the definition, so there is nothing to order rows by
             Response response = rootTarget().queryParam("sortBy", "apiType").request().get();
