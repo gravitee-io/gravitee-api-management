@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.plan.use_case;
 
+import static org.assertj.core.api.Assertions.assertThatList;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.mock;
 
@@ -24,6 +26,7 @@ import fixtures.core.model.PlanFixtures;
 import fixtures.definition.FlowFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.CredentialCrudServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
@@ -35,6 +38,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.exception.PlanInvalidException;
@@ -43,8 +47,13 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase.Input;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
+import io.gravitee.apim.core.secret.exception.SecretReferenceNotAllowedException;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
+import io.gravitee.apim.infra.credential.SpelSecretExpressionParser;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.repository.management.model.Parameter;
@@ -108,7 +117,16 @@ class CreatePlanUseCaseTest {
         kafkaPortRanges
     );
 
-    CreatePlanUseCase createPlanUseCase = new CreatePlanUseCase(createPlanDomainService, apiCrudService);
+    CreatePlanUseCase createPlanUseCase = new CreatePlanUseCase(
+        createPlanDomainService,
+        apiCrudService,
+        new SecretReferencePermissionDomainService(
+            new SpelSecretExpressionParser(),
+            mock(PermissionDomainService.class),
+            new CredentialCrudServiceInMemory(),
+            GraviteeJacksonMapper.getInstance()
+        )
+    );
 
     @BeforeAll
     static void beforeAll() {
@@ -169,6 +187,30 @@ class CreatePlanUseCaseTest {
                 createdPlan -> createdPlan.getReferenceType()
             )
             .containsExactly(api.getId(), Plan.PlanType.API.name(), PlanMode.STANDARD.name(), api.getId(), Plan.ReferenceType.API);
+    }
+
+    @Test
+    void should_refuse_a_plan_whose_flows_reference_a_store_secret_without_the_secret_read_permission_and_create_nothing() {
+        var api = givenExistingApi(API);
+        var reference = "{#secrets.get('/gravitee/db-password:value?envId=" + ENVIRONMENT_ID + "')}";
+
+        assertThatThrownBy(() ->
+            createPlanUseCase.execute(
+                new Input(
+                    api.getId(),
+                    _api ->
+                        PlanFixtures.HttpV4.aKeyless()
+                            .toBuilder()
+                            .id(null)
+                            .referenceId(API.getId())
+                            .referenceType(GenericPlanEntity.ReferenceType.API)
+                            .build(),
+                    _api -> List.of(Flow.builder().name(reference).build()),
+                    AUDIT_INFO
+                )
+            )
+        ).isInstanceOf(SecretReferenceNotAllowedException.class);
+        assertThatList(planCrudService.storage()).isEmpty();
     }
 
     @Test
