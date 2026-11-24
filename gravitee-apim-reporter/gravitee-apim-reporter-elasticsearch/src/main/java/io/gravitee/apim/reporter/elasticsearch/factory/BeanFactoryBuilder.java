@@ -77,7 +77,7 @@ public class BeanFactoryBuilder {
             return null;
         }
 
-        final BeanFactory beanFactory = getBeanFactoryFromElasticsearchInfo(info);
+        final BeanFactory beanFactory = getBeanFactoryFromElasticsearchInfo(info, flavor);
         if (beanFactory == null) {
             log.error(
                 "{} version {} is not supported by this connector",
@@ -86,7 +86,7 @@ public class BeanFactoryBuilder {
             );
             return null;
         }
-        // Serverless answers with a regular 8.x or 9.x version: only its document format comes from the classic beans.
+        // Only the document format of Serverless comes from the classic beans.
         if (flavor == Flavor.SERVERLESS) {
             return serverlessBeanFactory(beanFactory, configuration, configuredFlavor.isEmpty());
         }
@@ -199,7 +199,7 @@ public class BeanFactoryBuilder {
         return null;
     }
 
-    private static BeanFactory getBeanFactoryFromElasticsearchInfo(ElasticsearchInfo elasticsearchInfo) {
+    private static BeanFactory getBeanFactoryFromElasticsearchInfo(ElasticsearchInfo elasticsearchInfo, Flavor flavor) {
         if (elasticsearchInfo.getVersion().isOpenSearch()) {
             if (SUPPORTED_OPENSEARCH_MAJOR_VERSIONS.contains(elasticsearchInfo.getVersion().getMajorVersion())) {
                 return new OpenSearchBeanFactory();
@@ -211,7 +211,18 @@ public class BeanFactoryBuilder {
             case 7 -> new Elastic7xBeanFactory();
             case 8 -> new Elastic8xBeanFactory();
             case 9 -> new Elastic9xBeanFactory();
-            default -> null;
+            default -> flavor == Flavor.SERVERLESS ? latestBeanFactoryForServerless(elasticsearchInfo) : null;
         };
+    }
+
+    /**
+     * Serverless is versionless: the number it reports does not gate any feature, so an unknown one must not turn the reporter off.
+     */
+    private static BeanFactory latestBeanFactoryForServerless(ElasticsearchInfo elasticsearchInfo) {
+        log.warn(
+            "Elastic Cloud Serverless reports version {}, unknown to this gateway: the reporter uses the Elasticsearch 9 document format",
+            elasticsearchInfo.getVersion().getNumber()
+        );
+        return new Elastic9xBeanFactory();
     }
 }
