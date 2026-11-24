@@ -69,6 +69,7 @@ public class GraviteeSecretProvider implements SecretProvider {
     private volatile KeyEncryptionKeyProvider kek;
     private volatile DataKeyResolver dataKeys;
     private volatile boolean storedDataKeysVerified;
+    private volatile boolean storedDataKeysRechecked;
     private volatile String refusal;
 
     public GraviteeSecretProvider(
@@ -139,8 +140,9 @@ public class GraviteeSecretProvider implements SecretProvider {
     }
 
     private synchronized void refuseIfNoStoredDataKeyMatches() {
-        if (refusal == null) {
+        if (refusal == null && !storedDataKeysRechecked) {
             refuseIfNoneMatches(findKekIds());
+            storedDataKeysRechecked = true;
         }
     }
 
@@ -175,7 +177,9 @@ public class GraviteeSecretProvider implements SecretProvider {
             return Maybe.error(new SecretManagerException(reason));
         }
         return Maybe.fromCallable(() -> {
-            verifyStoredDataKeys();
+            if (!storedDataKeysVerified) {
+                verifyStoredDataKeys();
+            }
             String key = secretURL.path();
             if (key.isEmpty() || key.contains("/")) {
                 throw new SecretManagerException(
@@ -226,7 +230,9 @@ public class GraviteeSecretProvider implements SecretProvider {
             var scope = new SecretScope(secret.getOrganizationId(), secret.getEnvironmentId(), secret.getId());
             return SecretEnvelope.open(dataKey, scope, secret.getEncryptedValue());
         } catch (KeyEncryptionKeyMismatchException e) {
-            refuseIfNoStoredDataKeyMatches();
+            if (!storedDataKeysRechecked) {
+                refuseIfNoStoredDataKeyMatches();
+            }
             throw new SecretManagerException(e.getMessage(), e);
         } catch (SecretCryptoException e) {
             throw new SecretManagerException(e.getMessage(), e);

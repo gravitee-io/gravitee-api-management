@@ -200,6 +200,26 @@ class GraviteeSecretProviderTest {
 
         @Test
         void should_fail_when_another_key_encryption_key_wrapped_the_data_key_of_the_organization() throws TechnicalException {
+            givenTheDataKeyOfTheOrganizationWrappedByAnotherKeyEncryptionKey();
+
+            started()
+                .resolve(LLM_KEY)
+                .test()
+                .assertError(err -> err instanceof SecretManagerException && !err.getMessage().contains("sk-live-123"));
+        }
+
+        @Test
+        void should_check_the_stored_data_keys_again_only_on_the_first_unwrap_that_fails() throws TechnicalException {
+            givenTheDataKeyOfTheOrganizationWrappedByAnotherKeyEncryptionKey();
+            var provider = started();
+
+            provider.resolve(LLM_KEY).test().assertError(SecretManagerException.class);
+            provider.resolve(LLM_KEY).test().assertError(SecretManagerException.class);
+
+            verify(organizationKeyRepository, times(2)).findKekIds();
+        }
+
+        private void givenTheDataKeyOfTheOrganizationWrappedByAnotherKeyEncryptionKey() throws TechnicalException {
             givenSecret(ENV, KEY, "sk-live-123");
             var otherKek = StaticKeyEncryptionKeyProvider.fromBase64(randomKek());
             when(organizationKeyRepository.findByOrganizationId(ORG)).thenReturn(
@@ -213,11 +233,6 @@ class GraviteeSecretProviderTest {
                 )
             );
             when(organizationKeyRepository.findKekIds()).thenReturn(Set.of(kek.id(), otherKek.id()));
-
-            started()
-                .resolve(LLM_KEY)
-                .test()
-                .assertError(err -> err instanceof SecretManagerException && !err.getMessage().contains("sk-live-123"));
         }
     }
 
