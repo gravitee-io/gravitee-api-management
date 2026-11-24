@@ -186,4 +186,42 @@ public class EventQueryServiceImplTest {
             assertThat(result).isNotEmpty();
         }
     }
+
+    /** What a rollback restores, read for the environment of its caller: a deployment of another one is another tenant's. */
+    @Nested
+    class FindApiFromPublishApiEvent {
+
+        @Test
+        @SneakyThrows
+        void should_find_the_api_a_publish_event_of_the_environment_deployed() {
+            when(eventRepository.findById("event-id")).thenReturn(Optional.of(aPublishEvent()));
+
+            assertThat(service.findApiFromPublishApiEvent("environment-id", "event-id"))
+                .as("API deployed by the event")
+                .hasValueSatisfying(api -> assertThat(api.getId()).isEqualTo("api-id"));
+        }
+
+        @Test
+        @SneakyThrows
+        void should_not_find_the_api_a_publish_event_of_another_environment_deployed() {
+            when(eventRepository.findById("event-id")).thenReturn(Optional.of(aPublishEvent()));
+
+            assertThat(service.findApiFromPublishApiEvent("another-environment", "event-id"))
+                .as("API deployed in another environment")
+                .isEmpty();
+        }
+
+        private io.gravitee.repository.management.model.Event aPublishEvent() {
+            return io.gravitee.repository.management.model.Event.builder()
+                .id("event-id")
+                .environments(Set.of("environment-id"))
+                .type(io.gravitee.repository.management.model.EventType.PUBLISH_API)
+                .properties(Map.of())
+                .payload(
+                    """
+                    {"id":"api-id","definitionVersion":"4.0.0","definition":"{\\"id\\":\\"api-id\\",\\"definitionVersion\\":\\"4.0.0\\"}"}"""
+                )
+                .build();
+        }
+    }
 }
