@@ -1,0 +1,70 @@
+suite: Test the certificate verification of the ES reporter
+templates:
+  - "gateway/gateway-configmap.yaml"
+
+tests:
+
+  - it: Renders no ssl block by default
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "trustAll|truststore"
+
+  - it: Renders trustAll when set, even to false
+    set:
+      es:
+        ssl:
+          trustAll: false
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            [ ]+ssl:
+            [ ]+trustAll: false
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "keystore"
+
+  - it: Renders the truststore without the keystore when ssl is not enabled
+    set:
+      es:
+        ssl:
+          truststore:
+            type: pem
+            path: /opt/graviteeio-gateway/security/es-ca.pem
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            [ ]+ssl:
+            [ ]+truststore:
+            [ ]+type: pem
+            [ ]+path: /opt/graviteeio-gateway/security/es-ca.pem
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "keystore"
+
+  - it: Renders the truststore along with the keystore
+    set:
+      es:
+        ssl:
+          enabled: true
+          keystore:
+            type: jks
+            path: /path/to/keystore.jks
+            password: keystore-secret
+          truststore:
+            type: pkcs12
+            path: /path/to/truststore.p12
+            password: truststore-secret
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            [ ]+ssl:
+            [ ]+truststore:
+            [ ]+type: pkcs12
+            [ ]+path: /path/to/truststore.p12
+            [ ]+password: "truststore-secret"
+            [ ]+keystore:
+            [ ]+type: jks

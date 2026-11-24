@@ -116,8 +116,13 @@ data:
             username: {{ .Values.es.security.username }}
             password: {{ .Values.es.security.password }}
           {{- end }}
-          {{- if (eq .Values.es.ssl.enabled true) }}
+          {{- $esTrust := include "elasticsearch.ssl.trust" .Values.es.ssl | trim }}
+          {{- if or (eq .Values.es.ssl.enabled true) $esTrust }}
           ssl:
+            {{- if $esTrust }}
+            {{- $esTrust | nindent 12 }}
+            {{- end }}
+            {{- if (eq .Values.es.ssl.enabled true) }}
             keystore:
               type: {{ .Values.es.ssl.keystore.type }}
               {{- if or .Values.es.ssl.keystore.path .Values.es.ssl.keystore.password }}
@@ -128,6 +133,7 @@ data:
               certs: {{ .Values.es.ssl.keystore.certs }}
               keys: {{ .Values.es.ssl.keystore.keys }}
               {{- end }}
+            {{- end }}
           {{- end }}
           index: {{ .Values.es.index }}
         {{- else if (eq .Values.api.analytics.type "none") }}
@@ -159,6 +165,8 @@ data:
           {{- end }}
           {{- if .Values.api.otelTraces.elasticsearch.ssl }}
           ssl:
+            {{- include "elasticsearch.ssl.trust" .Values.api.otelTraces.elasticsearch.ssl | trim | nindent 12 }}
+            {{- if .Values.api.otelTraces.elasticsearch.ssl.keystore }}
             keystore:
               type: {{ .Values.api.otelTraces.elasticsearch.ssl.keystore.type }}
               {{- if or .Values.api.otelTraces.elasticsearch.ssl.keystore.path .Values.api.otelTraces.elasticsearch.ssl.keystore.password }}
@@ -169,6 +177,7 @@ data:
               certs: {{ .Values.api.otelTraces.elasticsearch.ssl.keystore.certs }}
               keys: {{ .Values.api.otelTraces.elasticsearch.ssl.keystore.keys }}
               {{- end }}
+            {{- end }}
           {{- end }}
           index: {{ .Values.api.otelTraces.elasticsearch.index }}
         {{- end }}
@@ -198,6 +207,8 @@ data:
           {{- end }}
           {{- if .Values.api.otelLogs.elasticsearch.ssl }}
           ssl:
+            {{- include "elasticsearch.ssl.trust" .Values.api.otelLogs.elasticsearch.ssl | trim | nindent 12 }}
+            {{- if .Values.api.otelLogs.elasticsearch.ssl.keystore }}
             keystore:
               type: {{ .Values.api.otelLogs.elasticsearch.ssl.keystore.type }}
               {{- if or .Values.api.otelLogs.elasticsearch.ssl.keystore.path .Values.api.otelLogs.elasticsearch.ssl.keystore.password }}
@@ -208,6 +219,7 @@ data:
               certs: {{ .Values.api.otelLogs.elasticsearch.ssl.keystore.certs }}
               keys: {{ .Values.api.otelLogs.elasticsearch.ssl.keystore.keys }}
               {{- end }}
+            {{- end }}
           {{- end }}
           index: {{ .Values.api.otelLogs.elasticsearch.index }}
         {{- end }}

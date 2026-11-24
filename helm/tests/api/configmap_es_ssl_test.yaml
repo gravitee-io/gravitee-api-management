@@ -1,0 +1,82 @@
+suite: Test the certificate verification of the Management API ES clients
+templates:
+  - "api/api-configmap.yaml"
+
+tests:
+
+  - it: Renders no ssl block for the ES clients by default
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "\n      ssl:\n"
+
+  - it: Renders trustAll and the truststore of the analytics repository
+    set:
+      es:
+        ssl:
+          trustAll: true
+          truststore:
+            type: pem
+            path: /opt/graviteeio-management-api/security/es-ca.pem
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            [ ]+ssl:
+            [ ]+trustAll: true
+            [ ]+truststore:
+            [ ]+type: pem
+            [ ]+path: /opt/graviteeio-management-api/security/es-ca.pem
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "keystore"
+
+  - it: Renders the truststore of the OTel traces repository without a keystore
+    set:
+      api:
+        otelTraces:
+          type: elasticsearch
+          elasticsearch:
+            endpoints:
+              - https://es.example.com:9200
+            index: traces-apim.otel-{orgId}
+            ssl:
+              truststore:
+                type: jks
+                path: /path/to/truststore.jks
+                password: secret
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            otel-traces:
+            [\s\S]*ssl:
+            [ ]+truststore:
+            [ ]+type: jks
+            [ ]+path: /path/to/truststore.jks
+            [ ]+password: "secret"
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "keystore"
+
+  - it: Renders trustAll of the OTel logs repository
+    set:
+      api:
+        otelLogs:
+          type: elasticsearch
+          elasticsearch:
+            endpoints:
+              - https://es.example.com:9200
+            index: logs-apim.otel-{orgId}
+            ssl:
+              trustAll: true
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            otel-logs:
+            [\s\S]*ssl:
+            [ ]+trustAll: true
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "keystore"

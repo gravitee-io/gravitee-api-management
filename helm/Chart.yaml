@@ -31,6 +31,11 @@ annotations:
   ###########
   artifacthub.io/changes: |
     - kind: added
+      description: "Add `es.ssl.trustAll` and `es.ssl.truststore`, also under `api.otelTraces.elasticsearch.ssl` and `api.otelLogs.elasticsearch.ssl`; from APIM 4.14 the Elasticsearch certificate is verified by default, and `trustAll: true` restores the previous behavior"
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/PR_NUMBER
+    - kind: added
       description: "Add `api.analytics.elasticsearch.index_mode`, rendered as the management API analytics index mode instead of `es.index_mode`, which the gateway reporter also reads; set it to `data_stream` to read analytics from data streams"
       links:
         - name: Github PR

@@ -804,8 +804,13 @@ data:
           username: {{ .Values.es.security.username }}
           password: {{ .Values.es.security.password }}
         {{- end }}
-        {{- if (eq .Values.es.ssl.enabled true) }}
+        {{- $esTrust := include "elasticsearch.ssl.trust" .Values.es.ssl | trim }}
+        {{- if or (eq .Values.es.ssl.enabled true) $esTrust }}
         ssl:
+          {{- if $esTrust }}
+          {{- $esTrust | nindent 10 }}
+          {{- end }}
+          {{- if (eq .Values.es.ssl.enabled true) }}
           keystore:
             type: {{ .Values.es.ssl.keystore.type }}
             {{- if or .Values.es.ssl.keystore.path .Values.es.ssl.keystore.password }}
@@ -816,6 +821,7 @@ data:
             certs: {{ .Values.es.ssl.keystore.certs }}
             keys: {{ .Values.es.ssl.keystore.keys }}
             {{- end }}
+          {{- end }}
         {{- end }}
         index: {{ .Values.es.index }}
         {{- with .Values.es.settings }}
