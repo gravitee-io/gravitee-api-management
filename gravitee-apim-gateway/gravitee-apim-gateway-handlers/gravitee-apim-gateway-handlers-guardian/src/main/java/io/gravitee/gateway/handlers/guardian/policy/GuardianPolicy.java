@@ -51,7 +51,7 @@ public class GuardianPolicy implements HttpPolicy {
     public static final String NOT_DEPLOYED_KEY = "GUARDIAN_NOT_DEPLOYED";
     public static final String INCOMPATIBLE_API_TYPE_KEY = "GUARDIAN_INCOMPATIBLE_API_TYPE";
     public static final String INCOMPATIBLE_PHASE_KEY = "GUARDIAN_INCOMPATIBLE_PHASE";
-    public static final String GUARDRAIL_UNSUPPORTED_API_TYPE_KEY = "GUARDIAN_GUARDRAIL_UNSUPPORTED_API_TYPE";
+    public static final String GUARDRAIL_POLICY_UNSUPPORTED_API_TYPE_KEY = "GUARDIAN_GUARDRAIL_POLICY_UNSUPPORTED_API_TYPE";
 
     private final String id;
     private final String stepName;

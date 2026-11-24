@@ -60,7 +60,7 @@ class PolicyCapabilitiesTest {
     }
 
     @Test
-    void should_project_the_guardrail_flows_onto_api_types() {
+    void should_project_the_guardrail_policy_flows_onto_api_types() {
         var policy = declaring(
             Map.of(
                 LLM_PROXY,
@@ -83,7 +83,7 @@ class PolicyCapabilitiesTest {
                 .assertThat(policy.supports(Set.of(ApiType.A2A_PROXY)))
                 .as("supports a2a-proxy, declared with no Guardian phase")
                 .isTrue();
-            softly.assertThat(policy.supports(Set.of(ApiType.PROXY))).as("the HTTP flow is no guardrail API type").isFalse();
+            softly.assertThat(policy.supports(Set.of(ApiType.PROXY))).as("the HTTP flow is no guardrail policy API type").isFalse();
         });
     }
 }

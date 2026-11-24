@@ -65,11 +65,11 @@ class ValidateGuardianAgainstPolicySchemasTest {
     private static final String GUARDRAIL_POLICY = "rule-guardrail";
 
     /**
-     * A guardrail schema of the shape the plugins declare, carrying the three traits that make the
+     * A guardrail policy schema of the shape the plugins declare, carrying the three traits that make the
      * validation correct a document before accepting it: a required property with a default, a closed
      * object, and an optional property a caller may send as {@code null}.
      */
-    private static final String GUARDRAIL_SCHEMA = """
+    private static final String GUARDRAIL_POLICY_SCHEMA = """
         {
           "type": "object",
           "additionalProperties": false,
@@ -102,16 +102,16 @@ class ValidateGuardianAgainstPolicySchemasTest {
         policyValidation
     );
 
-    private void given_a_policy_declaring_the_guardrail_schema() {
+    private void given_a_policy_declaring_the_guardrail_policy_schema() {
         var schemas = new JsonSchemaServiceImpl(new JsonSchemaValidatorImpl());
         when(policyValidation.validateAndSanitizeConfiguration(eq(GUARDRAIL_POLICY), anyString())).thenAnswer(call ->
-            schemas.validate(GUARDRAIL_SCHEMA, call.getArgument(1))
+            schemas.validate(GUARDRAIL_POLICY_SCHEMA, call.getArgument(1))
         );
     }
 
     @Test
     void should_leave_a_configuration_the_policy_schema_accepts_as_it_is() {
-        given_a_policy_declaring_the_guardrail_schema();
+        given_a_policy_declaring_the_guardrail_policy_schema();
         var submitted = "{\"mode\":\"REPORT\",\"rules\":[{\"policy\":\"ban-topics\",\"threshold\":0.5}]}";
 
         assertThat(stored(submitted)).as("nothing to correct, nothing to rewrite").isEqualTo(submitted);
@@ -119,7 +119,7 @@ class ValidateGuardianAgainstPolicySchemasTest {
 
     @Test
     void should_store_the_configuration_the_policy_accepts_rather_than_the_one_submitted() {
-        given_a_policy_declaring_the_guardrail_schema();
+        given_a_policy_declaring_the_guardrail_policy_schema();
 
         assertSoftly(softly -> {
             softly
@@ -169,7 +169,7 @@ class ValidateGuardianAgainstPolicySchemasTest {
      */
     @Test
     void should_accept_on_a_read_only_pass_every_configuration_a_write_path_stored() {
-        given_a_policy_declaring_the_guardrail_schema();
+        given_a_policy_declaring_the_guardrail_policy_schema();
 
         assertSoftly(softly -> {
             softly
@@ -197,7 +197,7 @@ class ValidateGuardianAgainstPolicySchemasTest {
 
     @Test
     void should_refuse_a_step_the_policy_schema_refuses_and_say_what_is_wrong() {
-        given_a_policy_declaring_the_guardrail_schema();
+        given_a_policy_declaring_the_guardrail_policy_schema();
 
         assertSoftly(softly -> {
             softly

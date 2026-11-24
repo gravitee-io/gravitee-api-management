@@ -84,7 +84,7 @@ class DefaultPolicyPluginProviderTest {
     }
 
     @Test
-    void should_map_the_installed_guardrail_protocols_without_imposing_a_guardian_phase() {
+    void should_map_the_installed_guardrail_policy_protocols_without_imposing_a_guardian_phase() {
         given_installed_policies(
             a_policy(
                 "rule-guardrail",
@@ -99,7 +99,7 @@ class DefaultPolicyPluginProviderTest {
             .extractingByKey("rule-guardrail")
             .satisfies(policy ->
                 SoftAssertions.assertSoftly(softly -> {
-                    softly.assertThat(policy.guardrail()).as("guardrail").isTrue();
+                    softly.assertThat(policy.guardrailPolicy()).as("guardrail").isTrue();
                     softly
                         .assertThat(policy.flows())
                         .as("the declared flows, blank ones left out")
@@ -171,7 +171,7 @@ class DefaultPolicyPluginProviderTest {
     @ParameterizedTest
     @NullSource
     @ValueSource(strings = { "guardrail", "security" })
-    void should_reject_an_incompatible_runtime_guardrail_regardless_of_category(String category) {
+    void should_reject_an_incompatible_runtime_guardrail_policy_regardless_of_category(String category) {
         given_installed_policies(
             a_policy("rule-guardrail", GuardrailPolicy.class, category, Map.of("llm_proxy", "REQUEST", "guardian", "REQUEST"))
         );
@@ -179,7 +179,7 @@ class DefaultPolicyPluginProviderTest {
             definition.policies(
                 List.of(
                     Step.builder()
-                        .name("MCP guardrail")
+                        .name("MCP guardrail policy")
                         .policy("rule-guardrail")
                         .configuration("{\"scope\":{\"protocol\":\"MCP\"}}")
                         .build()
@@ -191,14 +191,14 @@ class DefaultPolicyPluginProviderTest {
             new ValidateGuardianDomainService.Input(guardian)
         );
 
-        assertThat(result.severe()).as("every runtime guardrail is validated, including alternate or absent categories").isPresent();
+        assertThat(result.severe()).as("every runtime guardrail policy is validated, including alternate or absent categories").isPresent();
         assertThat(result.severe().orElseThrow())
             .singleElement()
-            .satisfies(error -> assertThat(error.getMessage()).contains("MCP guardrail", "MCP", "llm-proxy"));
+            .satisfies(error -> assertThat(error.getMessage()).contains("MCP guardrail policy", "MCP", "llm-proxy"));
     }
 
     @Test
-    void should_not_classify_a_conventional_policy_as_a_guardrail_from_its_category() {
+    void should_not_classify_a_conventional_policy_as_a_guardrail_policy_from_its_category() {
         given_installed_policies(a_policy("ordinary-policy", HttpPolicy.class, "guardrail", Map.of()));
 
         assertThat(provider.findAllCapabilities()).containsEntry(
@@ -224,7 +224,7 @@ class DefaultPolicyPluginProviderTest {
     }
 
     @Test
-    void should_distinguish_conventional_policies_and_guardrails_without_metadata() {
+    void should_distinguish_conventional_policies_and_guardrail_policies_without_metadata() {
         given_installed_policies(
             a_policy("transform-headers", HttpPolicy.class, "transformation", Map.of()),
             a_policy("rule-guardrail", GuardrailPolicy.class, "guardrail", null)

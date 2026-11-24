@@ -59,7 +59,7 @@ import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianDraftDomainSe
 import io.gravitee.gamma.rest.core.guardian.domain_service.GuardianUsageDomainService;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianInUseException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
-import io.gravitee.gamma.rest.core.guardian.exception.GuardianWithoutEnabledGuardrailException;
+import io.gravitee.gamma.rest.core.guardian.exception.GuardianWithoutEnabledGuardrailPolicyException;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardedApiPort;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.DraftPrecondition;
@@ -253,7 +253,7 @@ class GuardianDeploymentUseCasesTest {
                 definition.policies(
                     List.of(
                         Step.builder()
-                            .name("MCP guardrail")
+                            .name("MCP guardrail policy")
                             .policy("data-logging-masking")
                             .enabled(true)
                             .configuration("{\"scope\":{\"protocol\":\"MCP\"}}")
@@ -268,7 +268,7 @@ class GuardianDeploymentUseCasesTest {
                 .assertThatThrownBy(() -> deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, "Reviewed")))
                 .as("a draft stored before the check, or saved against policies that have changed since")
                 .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContainingAll("MCP guardrail", "MCP", "llm-proxy");
+                .hasMessageContainingAll("MCP guardrail policy", "MCP", "llm-proxy");
             softly.assertThat(deployments.publications()).as("nothing published").isZero();
             softly.assertThat(audits.storage()).as("no deployment audit").isEmpty();
         });
@@ -383,25 +383,25 @@ class GuardianDeploymentUseCasesTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource
-    void should_refuse_to_deploy_a_guardian_without_an_enabled_guardrail(UnaryOperator<GuardianBuilder> definition) {
+    void should_refuse_to_deploy_a_guardian_without_an_enabled_guardrail_policy(UnaryOperator<GuardianBuilder> definition) {
         repository.reset();
         repository.givenGuardian(aGuardian(definition).build());
 
-        assertRefused(() -> deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, "Reviewed")), aGuardrailRefusal());
+        assertRefused(() -> deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, "Reviewed")), aGuardrailPolicyRefusal());
     }
 
-    static Stream<Arguments> should_refuse_to_deploy_a_guardian_without_an_enabled_guardrail() {
+    static Stream<Arguments> should_refuse_to_deploy_a_guardian_without_an_enabled_guardrail_policy() {
         return Stream.of(
             arguments(sequence("no policies", definition -> definition.policies(null))),
             arguments(sequence("an empty sequence", definition -> definition.policies(List.of()))),
-            arguments(sequence("only a disabled guardrail", definition -> definition.policies(List.of(aDisabledPolicy())))),
+            arguments(sequence("only a disabled guardrail policy", definition -> definition.policies(List.of(aDisabledPolicy())))),
             arguments(sequence("only a null step", definition -> definition.policies(Collections.singletonList(null))))
         );
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource
-    void should_refuse_to_deploy_a_guardian_whose_enabled_step_is_no_guardrail(Map<String, PolicyCapabilities> installed) {
+    void should_refuse_to_deploy_a_guardian_whose_enabled_step_is_no_guardrail_policy(Map<String, PolicyCapabilities> installed) {
         var deployAgainstRegistry = new DeployGuardianUseCase(
             repository,
             deploymentService,
@@ -416,15 +416,19 @@ class GuardianDeploymentUseCasesTest {
         );
     }
 
-    static Stream<Arguments> should_refuse_to_deploy_a_guardian_whose_enabled_step_is_no_guardrail() {
+    static Stream<Arguments> should_refuse_to_deploy_a_guardian_whose_enabled_step_is_no_guardrail_policy() {
         return Stream.of(
-            arguments(registry("a policy that is not a guardrail", capabilities -> capabilities.put(GUARDRAIL_POLICY, notAGuardrail()))),
+            arguments(
+                registry("a policy that is not a guardrail policy", capabilities ->
+                    capabilities.put(GUARDRAIL_POLICY, notAGuardrailPolicy())
+                )
+            ),
             arguments(registry("a policy no longer installed", capabilities -> capabilities.remove(GUARDRAIL_POLICY)))
         );
     }
 
     @Test
-    void should_keep_the_deployed_revision_when_the_draft_lost_its_guardrails() {
+    void should_keep_the_deployed_revision_when_the_draft_lost_its_guardrail_policies() {
         deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, "Reviewed"));
         var pending = save(aGuardianDefinition().policies(List.of()).build(), "description");
 
@@ -432,12 +436,12 @@ class GuardianDeploymentUseCasesTest {
             softly
                 .assertThatThrownBy(() -> deploy.execute(new DeployGuardianUseCase.Input(actor, GUARDIAN_ID, null)))
                 .as("refusal")
-                .is(aGuardrailRefusal());
+                .is(aGuardrailPolicyRefusal());
             softly.assertThat(deployments.publications()).as("no revision added").isEqualTo(1);
             softly
                 .assertThat(deployments.published(ENVIRONMENT_ID, GUARDIAN_ID).definition())
                 .as("the revision the gateways still run")
-                .is(enforcingAGuardrail());
+                .is(enforcingAGuardrailPolicy());
             softly
                 .assertThat(audits.storage())
                 .as("no second deployment audit")
@@ -456,7 +460,7 @@ class GuardianDeploymentUseCasesTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource
-    void should_deploy_a_guardian_with_an_enabled_guardrail(UnaryOperator<GuardianBuilder> definition) {
+    void should_deploy_a_guardian_with_an_enabled_guardrail_policy(UnaryOperator<GuardianBuilder> definition) {
         repository.reset();
         repository.givenGuardian(aGuardian(definition).build());
 
@@ -468,15 +472,15 @@ class GuardianDeploymentUseCasesTest {
             softly
                 .assertThat(deployments.published(ENVIRONMENT_ID, GUARDIAN_ID).definition())
                 .as("gateway definition")
-                .is(enforcingAGuardrail());
+                .is(enforcingAGuardrailPolicy());
         });
     }
 
-    static Stream<Arguments> should_deploy_a_guardian_with_an_enabled_guardrail() {
+    static Stream<Arguments> should_deploy_a_guardian_with_an_enabled_guardrail_policy() {
         return Stream.of(
-            arguments(sequence("a single enabled guardrail", definition -> definition.policies(List.of(aPolicy())))),
+            arguments(sequence("a single enabled guardrail policy", definition -> definition.policies(List.of(aPolicy())))),
             arguments(
-                sequence("a disabled step beside an enabled guardrail", definition ->
+                sequence("a disabled step beside an enabled guardrail policy", definition ->
                     definition.policies(List.of(aDisabledPolicy(), aPolicy()))
                 )
             )
@@ -484,7 +488,7 @@ class GuardianDeploymentUseCasesTest {
     }
 
     /**
-     * The guardrail rule reads past a hole in the sequence — a null step is nothing the gateways would
+     * The guardrail policy rule reads past a hole in the sequence — a null step is nothing the gateways would
      * run — but the revalidation of the draft does not: a definition carrying one is not a definition a
      * gateway can read, and publishing it is the failure AIAM-1750 is about.
      */
@@ -505,11 +509,11 @@ class GuardianDeploymentUseCasesTest {
     }
 
     /**
-     * A deployment validates the draft again, so the state of the plugins at that moment decides: a guardrail whose
+     * A deployment validates the draft again, so the state of the plugins at that moment decides: a guardrail policy whose
      * plugin no longer declares the Guardian phase is refused here, where the gateways would refuse to start it.
      */
     @Test
-    void should_refuse_to_deploy_a_guardian_whose_guardrail_no_longer_declares_the_guardian_phase() {
+    void should_refuse_to_deploy_a_guardian_whose_guardrail_policy_no_longer_declares_the_guardian_phase() {
         var downgraded = aGuardianValidatorAgainst(Map.of(GUARDRAIL_POLICY, new PolicyCapabilities(true, flows())));
         var deployAgainstRegistry = new DeployGuardianUseCase(repository, deploymentService, audits.service, downgraded, aGuardianUsage());
 
@@ -812,8 +816,8 @@ class GuardianDeploymentUseCasesTest {
         return Named.of(name, installed);
     }
 
-    /** The guardrail of the fixtures as the registry would describe a policy that is not one: same flows, not a guardrail. */
-    private static PolicyCapabilities notAGuardrail() {
+    /** The guardrail policy of the fixtures as the registry would describe a policy that is not one: same flows, not a guardrail policy. */
+    private static PolicyCapabilities notAGuardrailPolicy() {
         return new PolicyCapabilities(false, theInstalledPolicies().get(GUARDRAIL_POLICY).flows());
     }
 
@@ -826,11 +830,11 @@ class GuardianDeploymentUseCasesTest {
     }
 
     /** The refusal a sequence with nothing enabled answers: there is no step to point at. */
-    private static Condition<Throwable> aGuardrailRefusal() {
-        return refusal("a refusal asking for an enabled guardrail", "at least one enabled guardrail");
+    private static Condition<Throwable> aGuardrailPolicyRefusal() {
+        return refusal("a refusal asking for an enabled guardrail policy", "at least one enabled guardrail policy");
     }
 
-    /** The refusal an enabled step that is no installed guardrail answers: it says which step to fix. */
+    /** The refusal an enabled step that is no installed guardrail policy answers: it says which step to fix. */
     private static Condition<Throwable> aRefusalNaming(String step, String policy) {
         return refusal(
             "a refusal naming step [%s] and policy [%s]".formatted(step, policy),
@@ -879,7 +883,7 @@ class GuardianDeploymentUseCasesTest {
     private static Condition<Throwable> refusal(String description, String... expectedInMessage) {
         return VerboseCondition.verboseCondition(
             error ->
-                error instanceof GuardianWithoutEnabledGuardrailException &&
+                error instanceof GuardianWithoutEnabledGuardrailPolicyException &&
                 Stream.of(expectedInMessage).allMatch(error.getMessage()::contains),
             description,
             // soft assertions carry on with a null throwable when nothing was thrown, and that case is
@@ -891,8 +895,8 @@ class GuardianDeploymentUseCasesTest {
         );
     }
 
-    /** A definition that enforces something: one of its enabled steps runs the guardrail of the fixtures. */
-    private static Condition<io.gravitee.definition.model.v4.guardian.Guardian> enforcingAGuardrail() {
+    /** A definition that enforces something: one of its enabled steps runs the guardrail policy of the fixtures. */
+    private static Condition<io.gravitee.definition.model.v4.guardian.Guardian> enforcingAGuardrailPolicy() {
         return new Condition<>(
             definition ->
                 definition.getPolicies() != null &&
@@ -902,7 +906,7 @@ class GuardianDeploymentUseCasesTest {
                     .filter(Objects::nonNull)
                     .filter(Step::isEnabled)
                     .anyMatch(step -> GUARDRAIL_POLICY.equals(step.getPolicy())),
-            "enforcing an enabled guardrail"
+            "enforcing an enabled guardrail policy"
         );
     }
 }

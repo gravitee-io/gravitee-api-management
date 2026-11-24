@@ -23,7 +23,7 @@ import java.util.Optional;
 /**
  * The flows a policy plugin declares in its manifest that it can run in.
  *
- * <p>A guardrail flow carries the API type a guardrail runs on and the {@code scope.protocol} designating it. The
+ * <p>A guardrail policy flow carries the API type a guardrail policy runs on and the {@code scope.protocol} designating it. The
  * gateway applies the same table when it deploys a Guardian ({@code GuardianProtocolValidator} in
  * gravitee-reactor-guardian): change both together.
  */
@@ -37,16 +37,16 @@ public enum PolicyFlowType {
     GUARDIAN(null, null, null);
 
     private final String deprecatedManifestKey;
-    private final ApiType guardrailApiType;
+    private final ApiType guardrailPolicyApiType;
     private final String scopeProtocol;
 
-    PolicyFlowType(String deprecatedManifestKey, ApiType guardrailApiType, String scopeProtocol) {
+    PolicyFlowType(String deprecatedManifestKey, ApiType guardrailPolicyApiType, String scopeProtocol) {
         this.deprecatedManifestKey = deprecatedManifestKey;
-        this.guardrailApiType = guardrailApiType;
+        this.guardrailPolicyApiType = guardrailPolicyApiType;
         this.scopeProtocol = scopeProtocol;
     }
 
-    /** The guardrail flow a {@code scope.protocol} designates, compared case-sensitively. */
+    /** The guardrail policy flow a {@code scope.protocol} designates, compared case-sensitively. */
     public static Optional<PolicyFlowType> fromScopeProtocol(String protocol) {
         return Arrays.stream(values())
             .filter(flow -> flow.scopeProtocol != null && flow.scopeProtocol.equals(protocol))
@@ -63,8 +63,8 @@ public enum PolicyFlowType {
         return Optional.ofNullable(deprecatedManifestKey);
     }
 
-    /** The API type a guardrail declaring this flow runs on, for a guardrail flow. */
-    public Optional<ApiType> guardrailApiType() {
-        return Optional.ofNullable(guardrailApiType);
+    /** The API type a guardrail policy declaring this flow runs on, for a guardrail policy flow. */
+    public Optional<ApiType> guardrailPolicyApiType() {
+        return Optional.ofNullable(guardrailPolicyApiType);
     }
 }

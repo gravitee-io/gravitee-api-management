@@ -22,81 +22,85 @@ import io.gravitee.definition.model.v4.guardian.Guardian;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-class GuardrailEffectsTest {
+class GuardrailPolicyEffectsTest {
 
     @Test
-    void should_report_what_a_guardrail_does_on_a_match_and_on_no_match() {
+    void should_report_what_a_guardrail_policy_does_on_a_match_and_on_no_match() {
         var definition = aGuardianRunning(
-            aGuardrail(
+            aGuardrailPolicy(
                 """
                 {"onMatch":{"action":"BLOCK"},"onNoMatch":{"action":"CONTINUE"}}"""
             )
         );
 
-        assertThat(GuardrailEffects.of(definition)).as("effects").containsExactly(GuardrailEffect.BLOCK, GuardrailEffect.CONTINUE);
+        assertThat(GuardrailPolicyEffects.of(definition))
+            .as("effects")
+            .containsExactly(GuardrailPolicyEffect.BLOCK, GuardrailPolicyEffect.CONTINUE);
     }
 
     @Test
     void should_report_the_effects_of_the_whole_sequence_once_each_and_strongest_first() {
         var definition = aGuardianRunning(
-            aGuardrail(
+            aGuardrailPolicy(
                 """
                 {"onMatch":{"action":"CONTINUE"},"onNoMatch":{"action":"CONTINUE"}}"""
             ),
-            aGuardrail(
+            aGuardrailPolicy(
                 """
                 {"onMatch":{"action":"MASK"},"onNoMatch":{"action":"BLOCK"}}"""
             )
         );
 
-        assertThat(GuardrailEffects.of(definition))
+        assertThat(GuardrailPolicyEffects.of(definition))
             .as("effects")
-            .containsExactly(GuardrailEffect.BLOCK, GuardrailEffect.MASK, GuardrailEffect.CONTINUE);
+            .containsExactly(GuardrailPolicyEffect.BLOCK, GuardrailPolicyEffect.MASK, GuardrailPolicyEffect.CONTINUE);
     }
 
     /**
-     * An action the enum does not hold is reported as no effect, so the set has to name every action a guardrail
+     * An action the enum does not hold is reported as no effect, so the set has to name every action a guardrail policy
      * policy accepts, and the transformations have to be ordered the way the gateway resolves a verdict.
      */
     @Test
-    void should_name_every_action_a_guardrail_accepts_from_the_most_to_the_least_destructive() {
-        assertThat(GuardrailEffect.values())
-            .as("the effects a guardrail can apply, strongest first")
+    void should_name_every_action_a_guardrail_policy_accepts_from_the_most_to_the_least_destructive() {
+        assertThat(GuardrailPolicyEffect.values())
+            .as("the effects a guardrail policy can apply, strongest first")
             .containsExactly(
-                GuardrailEffect.BLOCK,
-                GuardrailEffect.REWRITE,
-                GuardrailEffect.REDACT,
-                GuardrailEffect.MASK,
-                GuardrailEffect.CONTINUE
+                GuardrailPolicyEffect.BLOCK,
+                GuardrailPolicyEffect.REWRITE,
+                GuardrailPolicyEffect.REDACT,
+                GuardrailPolicyEffect.MASK,
+                GuardrailPolicyEffect.CONTINUE
             );
     }
 
     @Test
-    void should_report_a_guardrail_that_rewrites_what_it_matches() {
+    void should_report_a_guardrail_policy_that_rewrites_what_it_matches() {
         var definition = aGuardianRunning(
-            aGuardrail(
+            aGuardrailPolicy(
                 """
                 {"onMatch":{"action":"REWRITE"},"onNoMatch":{"action":"CONTINUE"}}"""
             )
         );
 
-        assertThat(GuardrailEffects.of(definition)).as("effects").containsExactly(GuardrailEffect.REWRITE, GuardrailEffect.CONTINUE);
+        assertThat(GuardrailPolicyEffects.of(definition))
+            .as("effects")
+            .containsExactly(GuardrailPolicyEffect.REWRITE, GuardrailPolicyEffect.CONTINUE);
     }
 
     @Test
-    void should_report_an_effect_a_guardrail_applies_without_blocking() {
+    void should_report_an_effect_a_guardrail_policy_applies_without_blocking() {
         var definition = aGuardianRunning(
-            aGuardrail(
+            aGuardrailPolicy(
                 """
                 {"onMatch":{"action":"REDACT"}}"""
             )
         );
 
-        assertThat(GuardrailEffects.of(definition)).as("effects").containsExactly(GuardrailEffect.REDACT);
+        assertThat(GuardrailPolicyEffects.of(definition)).as("effects").containsExactly(GuardrailPolicyEffect.REDACT);
     }
 
     @Test
-    void should_ignore_a_guardrail_the_sequence_does_not_run() {
+    void should_ignore_a_guardrail_policy_the_sequence_does_not_run() {
         var definition = aGuardianRunning(
             Step.builder()
                 .policy("guardrails")
@@ -106,44 +110,44 @@ class GuardrailEffectsTest {
                     {"onMatch":{"action":"BLOCK"}}"""
                 )
                 .build(),
-            aGuardrail(
+            aGuardrailPolicy(
                 """
                 {"onMatch":{"action":"CONTINUE"}}"""
             )
         );
 
-        assertThat(GuardrailEffects.of(definition)).as("effects").containsExactly(GuardrailEffect.CONTINUE);
+        assertThat(GuardrailPolicyEffects.of(definition)).as("effects").containsExactly(GuardrailPolicyEffect.CONTINUE);
     }
 
     @Test
-    void should_report_nothing_for_a_guardrail_that_does_not_say_what_it_does() {
+    void should_report_nothing_for_a_guardrail_policy_that_does_not_say_what_it_does() {
         var definition = aGuardianRunning(
-            aGuardrail(
+            aGuardrailPolicy(
                 """
                 {"requestPolicy":"BLOCK_REQUEST"}"""
             ),
-            aGuardrail("not json at all"),
-            aGuardrail(null),
-            aGuardrail(
+            aGuardrailPolicy("not json at all"),
+            aGuardrailPolicy(null),
+            aGuardrailPolicy(
                 """
                 {"onMatch":{"action":"SOMETHING_ELSE"}}"""
             )
         );
 
-        assertThat(GuardrailEffects.of(definition)).as("effects").isEmpty();
+        assertThat(GuardrailPolicyEffects.of(definition)).as("effects").isEmpty();
     }
 
     @Test
-    void should_report_nothing_for_a_guardian_running_no_guardrail() {
-        assertThat(GuardrailEffects.of(Guardian.builder().build())).as("effects of an empty sequence").isEmpty();
-        assertThat(GuardrailEffects.of(null)).as("effects of no definition").isEmpty();
+    void should_report_nothing_for_a_guardian_running_no_guardrail_policy() {
+        assertThat(GuardrailPolicyEffects.of(Guardian.builder().build())).as("effects of an empty sequence").isEmpty();
+        assertThat(GuardrailPolicyEffects.of(null)).as("effects of no definition").isEmpty();
     }
 
-    private static Guardian aGuardianRunning(Step... guardrails) {
-        return Guardian.builder().policies(List.of(guardrails)).build();
+    private static Guardian aGuardianRunning(Step... guardrailPolicies) {
+        return Guardian.builder().policies(List.of(guardrailPolicies)).build();
     }
 
-    private static Step aGuardrail(String configuration) {
+    private static Step aGuardrailPolicy(String configuration) {
         return Step.builder().policy("guardrails").configuration(configuration).build();
     }
 }

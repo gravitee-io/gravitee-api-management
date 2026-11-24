@@ -76,7 +76,7 @@ public class GuardianDecisionReporter {
     }
 
     /**
-     * The chain completed: the call goes on, as the guardrails left it, whatever they concluded.
+     * The chain completed: the call goes on, as the guardrail policies left it, whatever they concluded.
      */
     public void decided(
         HttpPlainExecutionContext ctx,
@@ -90,8 +90,8 @@ public class GuardianDecisionReporter {
     }
 
     /**
-     * A guardrail ended the call with {@code ctx.interrupt()}, without a failure: before the endpoint, the call never
-     * reaches it; on the response, the client gets the response as the guardrails left it.
+     * A guardrail policy ended the call with {@code ctx.interrupt()}, without a failure: before the endpoint, the call never
+     * reaches it; on the response, the client gets the response as the guardrail policies left it.
      */
     public void interrupted(
         HttpPlainExecutionContext ctx,
@@ -105,8 +105,8 @@ public class GuardianDecisionReporter {
     }
 
     /**
-     * The outcome is what the guardrails concluded; what was enforced is what the gateway did with the call. They differ
-     * when a guardrail denies without ending the call, or when one ends it without denying.
+     * The outcome is what the guardrail policies concluded; what was enforced is what the gateway did with the call. They differ
+     * when a guardrail policy denies without ending the call, or when one ends it without denying.
      */
     private void concluded(
         HttpPlainExecutionContext ctx,
@@ -160,7 +160,7 @@ public class GuardianDecisionReporter {
             DecisionReportBuilder<?, ?> decision = runReport(ctx, caller, guardian, phase, verdicts, durationNanos);
             if (GuardianPolicy.NOT_DEPLOYED_KEY.equals(failure.key())) {
                 undecided(decision, IndeterminateCause.NOT_READY, failure.key());
-            } else if (GuardianPolicy.GUARDRAIL_UNSUPPORTED_API_TYPE_KEY.equals(failure.key())) {
+            } else if (GuardianPolicy.GUARDRAIL_POLICY_UNSUPPORTED_API_TYPE_KEY.equals(failure.key())) {
                 undecided(decision, IndeterminateCause.ERROR, failure.key());
             } else {
                 decision.outcome(Outcome.DENY).enforced(Enforced.DENY).status(Status.SUCCESS).verdict(failure.key());
@@ -343,7 +343,7 @@ public class GuardianDecisionReporter {
 
     private static String reason(Entry entry) {
         GuardrailVerdict verdict = entry.verdict();
-        String line = entry.guardrail() + ": " + verdict.verdict();
+        String line = entry.guardrailPolicy() + ": " + verdict.verdict();
         return verdict.reasons().isEmpty() ? line : line + " — " + String.join("; ", verdict.reasons());
     }
 
@@ -363,7 +363,7 @@ public class GuardianDecisionReporter {
 
     private static MatchedRule matchedRule(Entry entry, GuardrailVerdict.Finding finding) {
         Map<String, String> annotations = new LinkedHashMap<>();
-        annotations.put("guardrail", entry.guardrail());
+        annotations.put("guardrail", entry.guardrailPolicy());
         annotations.put("location", finding.location());
         return new MatchedRule(finding.rule(), finding.rule(), null, entry.verdict().outcome().name(), annotations);
     }

@@ -106,7 +106,7 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
 
         @Test
         void should_expose_the_plugin_and_every_declared_flow_with_its_raw_phases() {
-            given_a_guardrail(
+            given_a_guardrail_policy(
                 "guardrail-rule",
                 Map.of(
                     "http_proxy",
@@ -182,10 +182,10 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
             });
         }
 
-        /** The guardian flow says where a policy can run, not that it is a guardrail: a Guardian needs one to deploy. */
+        /** The guardian flow says where a policy can run, not that it is a guardrail policy: a Guardian needs one to deploy. */
         @Test
         void should_tell_a_guardrail_from_a_conventional_policy_declaring_the_guardian_flow() {
-            given_a_guardrail("guardrail", Map.of("guardian", "REQUEST"));
+            given_a_guardrail_policy("guardrail", Map.of("guardian", "REQUEST"));
             given_a_policy("conventional", Map.of("guardian", "REQUEST"));
 
             JsonNode policies = rootTarget().queryParam("flow", "guardian").request().get().readEntity(JsonNode.class);
@@ -293,7 +293,7 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
 
         @Test
         void should_get_a_policy_with_its_flows() {
-            given_a_guardrail("guardrail-rule", Map.of("guardian", "REQUEST,RESPONSE", "llm_proxy", "REQUEST"));
+            given_a_guardrail_policy("guardrail-rule", Map.of("guardian", "REQUEST,RESPONSE", "llm_proxy", "REQUEST"));
 
             Response response = rootTarget("guardrail-rule").request().get();
 
@@ -409,7 +409,7 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
         }
     }
 
-    private void given_a_guardrail(String id, Map<String, String> properties) {
+    private void given_a_guardrail_policy(String id, Map<String, String> properties) {
         var plugin = given_a_policy(id, properties, manifest -> {});
         doReturn(GuardrailPolicy.class).when(plugin).policy();
     }

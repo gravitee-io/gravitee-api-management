@@ -51,7 +51,7 @@ import org.junit.jupiter.api.Test;
 class ValidateGuardianDomainServiceTest {
 
     private final Map<String, PolicyCapabilities> policies = new LinkedHashMap<>(
-        Map.of("data-logging-masking", aGuardrail(flows(LLM_PROXY, "REQUEST,RESPONSE", GUARDIAN, "REQUEST,RESPONSE")))
+        Map.of("data-logging-masking", aGuardrailPolicy(flows(LLM_PROXY, "REQUEST,RESPONSE", GUARDIAN, "REQUEST,RESPONSE")))
     );
 
     /** The schema answers, which a test installs to make a step conforming, corrected or refused. */
@@ -64,16 +64,16 @@ class ValidateGuardianDomainServiceTest {
     );
 
     @Test
-    void should_accept_a_guardrail_supporting_the_guardian_protocol() {
+    void should_accept_a_guardrail_policy_supporting_the_guardian_protocol() {
         assertThat(validate(aGuardian().build()).severe()).isEmpty();
     }
 
     @Test
-    void should_name_each_incompatible_guardrail_and_the_required_protocol() {
-        policies.put("data-logging-masking", aGuardrail(flows(MCP_PROXY, "REQUEST", GUARDIAN, "REQUEST")));
-        policies.put("other-guardrail", aGuardrail(flows(A2A_PROXY, "REQUEST", GUARDIAN, "REQUEST")));
+    void should_name_each_incompatible_guardrail_policy_and_the_required_protocol() {
+        policies.put("data-logging-masking", aGuardrailPolicy(flows(MCP_PROXY, "REQUEST", GUARDIAN, "REQUEST")));
+        policies.put("other-guardrail", aGuardrailPolicy(flows(A2A_PROXY, "REQUEST", GUARDIAN, "REQUEST")));
         var guardian = aGuardian(definition ->
-            definition.policies(List.of(aPolicy(), step("Other guardrail", "other-guardrail", true)))
+            definition.policies(List.of(aPolicy(), step("Other guardrail policy", "other-guardrail", true)))
         ).build();
 
         var errors = validate(guardian).severe().orElseThrow();
@@ -87,13 +87,13 @@ class ValidateGuardianDomainServiceTest {
             softly
                 .assertThat(errors)
                 .extracting(Validator.Error::getMessage)
-                .anySatisfy(message -> assertThat(message).contains("Other guardrail", "other-guardrail", "llm-proxy"));
+                .anySatisfy(message -> assertThat(message).contains("Other guardrail policy", "other-guardrail", "llm-proxy"));
         });
     }
 
     @Test
-    void should_accept_a_guardrail_whose_api_type_flow_lists_another_phase() {
-        policies.put("data-logging-masking", aGuardrail(flows(LLM_PROXY, "RESPONSE", GUARDIAN, "REQUEST")));
+    void should_accept_a_guardrail_policy_whose_api_type_flow_lists_another_phase() {
+        policies.put("data-logging-masking", aGuardrailPolicy(flows(LLM_PROXY, "RESPONSE", GUARDIAN, "REQUEST")));
         var guardian = aGuardian(definition -> definition.phase(Phase.REQUEST)).build();
 
         assertThat(validate(guardian).severe())
@@ -102,8 +102,8 @@ class ValidateGuardianDomainServiceTest {
     }
 
     @Test
-    void should_accept_a_guardrail_that_runs_in_the_guardian_phase() {
-        policies.put("data-logging-masking", aGuardrail(flows(LLM_PROXY, "RESPONSE", GUARDIAN, "RESPONSE")));
+    void should_accept_a_guardrail_policy_that_runs_in_the_guardian_phase() {
+        policies.put("data-logging-masking", aGuardrailPolicy(flows(LLM_PROXY, "RESPONSE", GUARDIAN, "RESPONSE")));
         var guardian = aGuardian(definition -> definition.phase(Phase.RESPONSE)).build();
 
         assertThat(validate(guardian).severe()).isEmpty();
@@ -129,8 +129,8 @@ class ValidateGuardianDomainServiceTest {
     }
 
     @Test
-    void should_refuse_a_guardrail_without_protocol_metadata() {
-        policies.put("data-logging-masking", aGuardrail(flows()));
+    void should_refuse_a_guardrail_policy_without_protocol_metadata() {
+        policies.put("data-logging-masking", aGuardrailPolicy(flows()));
 
         assertThat(validate(aGuardian().build()).severe().orElseThrow())
             .as("every refusal of the step is reported at once")
@@ -144,7 +144,9 @@ class ValidateGuardianDomainServiceTest {
     @Test
     void should_ignore_an_unknown_disabled_step() {
         policies.clear();
-        var guardian = aGuardian(definition -> definition.policies(List.of(step("Disabled guardrail", "not-installed", false)))).build();
+        var guardian = aGuardian(definition ->
+            definition.policies(List.of(step("Disabled guardrail policy", "not-installed", false)))
+        ).build();
 
         assertThat(validate(guardian).severe()).isEmpty();
     }
@@ -169,12 +171,12 @@ class ValidateGuardianDomainServiceTest {
     }
 
     @Test
-    void should_refuse_a_guardrail_not_declaring_the_guardian_phase() {
-        policies.put("data-logging-masking", aGuardrail(flows(LLM_PROXY, "REQUEST,RESPONSE", GUARDIAN, "RESPONSE")));
+    void should_refuse_a_guardrail_policy_not_declaring_the_guardian_phase() {
+        policies.put("data-logging-masking", aGuardrailPolicy(flows(LLM_PROXY, "REQUEST,RESPONSE", GUARDIAN, "RESPONSE")));
         var guardian = aGuardian(definition -> definition.phase(Phase.REQUEST)).build();
 
         assertThat(validate(guardian).severe().orElseThrow())
-            .as("a guardrail declaring guardian=RESPONSE only cannot run in a REQUEST Guardian")
+            .as("a guardrail policy declaring guardian=RESPONSE only cannot run in a REQUEST Guardian")
             .singleElement()
             .extracting(Validator.Error::getMessage)
             .asString()
@@ -192,8 +194,8 @@ class ValidateGuardianDomainServiceTest {
     }
 
     @Test
-    void should_accept_a_guardrail_declaring_the_guardian_phase_and_the_api_type() {
-        policies.put("data-logging-masking", aGuardrail(flows(LLM_PROXY, "REQUEST,RESPONSE", GUARDIAN, "REQUEST,RESPONSE")));
+    void should_accept_a_guardrail_policy_declaring_the_guardian_phase_and_the_api_type() {
+        policies.put("data-logging-masking", aGuardrailPolicy(flows(LLM_PROXY, "REQUEST,RESPONSE", GUARDIAN, "REQUEST,RESPONSE")));
 
         SoftAssertions.assertSoftly(softly -> {
             for (var phase : Phase.values()) {
@@ -204,7 +206,7 @@ class ValidateGuardianDomainServiceTest {
     }
 
     @Test
-    void should_accept_an_empty_guardrail_sequence() {
+    void should_accept_an_empty_guardrail_policy_sequence() {
         var guardian = aGuardian(definition -> definition.policies(List.of())).build();
 
         assertThat(validate(guardian).severe()).isEmpty();
@@ -451,36 +453,36 @@ class ValidateGuardianDomainServiceTest {
 
     @Test
     void should_report_the_schema_violation_of_every_step_at_once() {
-        policies.put("other-guardrail", aGuardrail(flows(LLM_PROXY, "REQUEST", GUARDIAN, "REQUEST")));
+        policies.put("other-guardrail", aGuardrailPolicy(flows(LLM_PROXY, "REQUEST", GUARDIAN, "REQUEST")));
         policyValidation.givenRefuses("data-logging-masking", "$.rules: is missing but it is required");
         policyValidation.givenRefuses("other-guardrail", "$.threshold: must have a maximum value of 1");
         var guardian = aGuardian(definition ->
-            definition.policies(List.of(aPolicy(), step("Other guardrail", "other-guardrail", true)))
+            definition.policies(List.of(aPolicy(), step("Other guardrail policy", "other-guardrail", true)))
         ).build();
 
         assertThat(validate(guardian).severe().orElseThrow())
             .extracting(Validator.Error::getMessage)
             .satisfiesExactlyInAnyOrder(
                 message -> assertThat(message).contains("Detect credentials", "$.rules"),
-                message -> assertThat(message).contains("Other guardrail", "$.threshold")
+                message -> assertThat(message).contains("Other guardrail policy", "$.threshold")
             );
     }
 
     @Test
     void should_refuse_with_one_sentence_per_error() {
-        policies.put("other-guardrail", aGuardrail(flows(LLM_PROXY, "REQUEST", GUARDIAN, "REQUEST")));
+        policies.put("other-guardrail", aGuardrailPolicy(flows(LLM_PROXY, "REQUEST", GUARDIAN, "REQUEST")));
         policyValidation.givenRefuses("other-guardrail", "$.threshold: must have a maximum value of 1");
         var policy = aPolicy();
         policy.setConfiguration("{\"scope\":{\"protocol\":\"MCP\"}}");
         var guardian = aGuardian(definition ->
-            definition.policies(List.of(policy, step("Other guardrail", "other-guardrail", true)))
+            definition.policies(List.of(policy, step("Other guardrail policy", "other-guardrail", true)))
         ).build();
 
         assertThatThrownBy(() -> validator.validateAgainstInstalledPlugins(guardian))
             .isInstanceOf(ValidationDomainException.class)
             .hasMessage(
-                "Guardrail step [Detect credentials] declares scope protocol [MCP], incompatible with Guardian API types [llm-proxy]. " +
-                    "Step [Other guardrail] has an invalid configuration: $.threshold: must have a maximum value of 1."
+                "Guardrail policy step [Detect credentials] declares scope protocol [MCP], incompatible with Guardian API types [llm-proxy]. " +
+                    "Step [Other guardrail policy] has an invalid configuration: $.threshold: must have a maximum value of 1."
             );
     }
 
@@ -500,8 +502,8 @@ class ValidateGuardianDomainServiceTest {
     }
 
     @Test
-    void should_not_judge_the_schema_of_a_guardrail_that_does_not_support_the_api_type() {
-        policies.put("data-logging-masking", aGuardrail(flows(MCP_PROXY, "REQUEST", GUARDIAN, "REQUEST")));
+    void should_not_judge_the_schema_of_a_guardrail_policy_that_does_not_support_the_api_type() {
+        policies.put("data-logging-masking", aGuardrailPolicy(flows(MCP_PROXY, "REQUEST", GUARDIAN, "REQUEST")));
         policyValidation.givenRefuses("data-logging-masking", "$.rules: is missing but it is required");
 
         assertThat(validate(aGuardian().build()).severe().orElseThrow())
@@ -516,7 +518,7 @@ class ValidateGuardianDomainServiceTest {
     void should_not_check_the_schema_of_a_disabled_step() {
         policyValidation.givenRefuses("data-logging-masking", "$.rules: is missing but it is required");
         var guardian = aGuardian(definition ->
-            definition.policies(List.of(step("Disabled guardrail", "data-logging-masking", false)))
+            definition.policies(List.of(step("Disabled guardrail policy", "data-logging-masking", false)))
         ).build();
 
         assertThat(validate(guardian).severe()).isEmpty();
@@ -558,12 +560,12 @@ class ValidateGuardianDomainServiceTest {
     }
 
     @Test
-    void should_check_the_schema_of_an_enabled_step_that_is_no_guardrail() {
+    void should_check_the_schema_of_an_enabled_step_that_is_no_guardrail_policy() {
         policies.put("data-logging-masking", aConventionalPolicy(flows(GUARDIAN, "REQUEST")));
         policyValidation.givenRefuses("data-logging-masking", "$.header: is missing but it is required");
 
         assertThat(validate(aGuardian().build()).severe().orElseThrow())
-            .as("a conventional policy the gateway could not build is refused too, not only a guardrail")
+            .as("a conventional policy the gateway could not build is refused too, not only a guardrail policy")
             .singleElement()
             .extracting(Validator.Error::getMessage)
             .asString()
@@ -594,7 +596,7 @@ class ValidateGuardianDomainServiceTest {
         return aGuardian(definition -> definition.policies(List.of(step))).build();
     }
 
-    private static PolicyCapabilities aGuardrail(DeclaredFlows flows) {
+    private static PolicyCapabilities aGuardrailPolicy(DeclaredFlows flows) {
         return new PolicyCapabilities(true, flows);
     }
 

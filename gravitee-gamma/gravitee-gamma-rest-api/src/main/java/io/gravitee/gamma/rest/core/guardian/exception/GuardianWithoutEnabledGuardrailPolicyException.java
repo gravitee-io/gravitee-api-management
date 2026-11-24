@@ -21,36 +21,38 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * A Guardian whose sequence holds no enabled guardrail, refused at deployment.
+ * A Guardian whose sequence holds no enabled guardrail policy, refused at deployment.
  *
  * <p>The sequence may be empty, hold only disabled steps, or hold enabled steps that no installed
- * guardrail backs. The last case is the one that needs more than the rule to act on: the user sees
- * an enabled guardrail and has to be told which step the platform cannot run, so the message names
+ * guardrail policy backs. The last case is the one that needs more than the rule to act on: the user sees
+ * an enabled guardrail policy and has to be told which step the platform cannot run, so the message names
  * the offending steps when there are any.
  *
  * @author GraviteeSource Team
  */
-public class GuardianWithoutEnabledGuardrailException extends ValidationDomainException {
+public class GuardianWithoutEnabledGuardrailPolicyException extends ValidationDomainException {
 
     /**
-     * @param stepsThatAreNoGuardrail the enabled steps no installed guardrail backs, empty when the
+     * @param stepsThatAreNoGuardrailPolicy the enabled steps no installed guardrail policy backs, empty when the
      *     sequence has no enabled step at all — there is then nothing to point at.
      */
-    public GuardianWithoutEnabledGuardrailException(String guardianId, List<Step> stepsThatAreNoGuardrail) {
-        super(message(guardianId, stepsThatAreNoGuardrail));
+    public GuardianWithoutEnabledGuardrailPolicyException(String guardianId, List<Step> stepsThatAreNoGuardrailPolicy) {
+        super(message(guardianId, stepsThatAreNoGuardrailPolicy));
     }
 
-    private static String message(String guardianId, List<Step> stepsThatAreNoGuardrail) {
-        var rule = "Guardian '" + guardianId + "' needs at least one enabled guardrail to be deployed";
-        if (stepsThatAreNoGuardrail.isEmpty()) {
+    private static String message(String guardianId, List<Step> stepsThatAreNoGuardrailPolicy) {
+        var rule = "Guardian '" + guardianId + "' needs at least one enabled guardrail policy to be deployed";
+        if (stepsThatAreNoGuardrailPolicy.isEmpty()) {
             return rule + ".";
         }
         return (
             rule +
             ": " +
-            stepsThatAreNoGuardrail
+            stepsThatAreNoGuardrailPolicy
                 .stream()
-                .map(step -> "step [%s] uses policy [%s], which is not an installed guardrail".formatted(step.getName(), step.getPolicy()))
+                .map(step ->
+                    "step [%s] uses policy [%s], which is not an installed guardrail policy".formatted(step.getName(), step.getPolicy())
+                )
                 .collect(Collectors.joining(", ")) +
             "."
         );

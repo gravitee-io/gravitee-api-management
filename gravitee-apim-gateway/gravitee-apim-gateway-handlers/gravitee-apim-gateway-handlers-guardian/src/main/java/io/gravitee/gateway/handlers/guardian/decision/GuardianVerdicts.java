@@ -23,7 +23,7 @@ import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * What the guardrails of one Guardian run concluded, in the order they ran. A cancelled run is reported while a guardrail
+ * What the guardrail policies of one Guardian run concluded, in the order they ran. A cancelled run is reported while a guardrail policy
  * may still be running on another thread: it can record a verdict while the decision reads them.
  *
  * @author GraviteeSource Team
@@ -43,11 +43,11 @@ public class GuardianVerdicts {
     private final List<Entry> entries = new CopyOnWriteArrayList<>();
 
     /**
-     * @param guardrail the name of the guardrail step.
+     * @param guardrail policy the name of the guardrail policy step.
      * @param verdict what it concluded.
      */
-    public void record(String guardrail, GuardrailVerdict verdict) {
-        entries.add(new Entry(guardrail, verdict));
+    public void record(String guardrailPolicy, GuardrailVerdict verdict) {
+        entries.add(new Entry(guardrailPolicy, verdict));
     }
 
     public List<Entry> entries() {
@@ -59,7 +59,7 @@ public class GuardianVerdicts {
     }
 
     /**
-     * @return the most destructive transformation of the run, empty when no guardrail rewrote the exchange.
+     * @return the most destructive transformation of the run, empty when no guardrail policy rewrote the exchange.
      */
     public Optional<Transformation> transformation() {
         return MOST_DESTRUCTIVE_FIRST.stream()
@@ -68,7 +68,7 @@ public class GuardianVerdicts {
     }
 
     /**
-     * @return the last guardrail of the run that denied, empty when none did.
+     * @return the last guardrail policy of the run that denied, empty when none did.
      */
     public Optional<Entry> denial() {
         return entries
@@ -78,5 +78,5 @@ public class GuardianVerdicts {
             .findFirst();
     }
 
-    public record Entry(String guardrail, GuardrailVerdict verdict) {}
+    public record Entry(String guardrailPolicy, GuardrailVerdict verdict) {}
 }

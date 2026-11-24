@@ -26,7 +26,7 @@ import lombok.ToString;
 import lombok.With;
 
 /**
- * A Guardian is a reusable, independently deployed sequence of guardrails and the resources they need,
+ * A Guardian is a reusable, independently deployed sequence of guardrail policies and the resources they need,
  * defined at environment level and attached to APIs.
  *
  * <p>It follows the {@link SharedPolicyGroup} model: the Guardian definition the gateway reads is kept
@@ -63,7 +63,7 @@ public class Guardian {
     private Phase phase;
 
     /**
-     * The guardrail sequence and the resources, serialized.
+     * The guardrail policy sequence and the resources, serialized.
      */
     private String definition;
 
