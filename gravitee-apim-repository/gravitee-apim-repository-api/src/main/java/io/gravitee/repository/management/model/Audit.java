@@ -124,6 +124,8 @@ public class Audit {
         AUTHORIZATION_PDP,
         AUTHORIZATION_SCHEMA,
         AI_WORKSPACE_COMPONENT,
+        APPROVAL_RULE,
+        HITL_NOTIFICATION,
         /**
          * Classifies the change instead of naming an entity it was made against, so it is not a target:
          * any audit entry, whatever its type, can carry it.
