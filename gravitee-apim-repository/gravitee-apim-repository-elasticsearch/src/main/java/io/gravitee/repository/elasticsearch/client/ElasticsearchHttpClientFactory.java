@@ -21,6 +21,7 @@ import io.gravitee.elasticsearch.client.http.HttpClientConfiguration;
 import io.gravitee.elasticsearch.client.http.HttpClientJksSslConfiguration;
 import io.gravitee.elasticsearch.client.http.HttpClientPemSslConfiguration;
 import io.gravitee.elasticsearch.client.http.HttpClientPfxSslConfiguration;
+import io.gravitee.elasticsearch.client.http.HttpClientTrustStoreConfiguration;
 import io.gravitee.elasticsearch.config.Endpoint;
 import java.util.ArrayList;
 import java.util.List;
@@ -91,6 +92,7 @@ public class ElasticsearchHttpClientFactory {
         cfg.setProxyConfigured(isProxyConfigured());
 
         configureSsl(cfg);
+        configureTrust(cfg);
         return cfg;
     }
 
@@ -131,6 +133,20 @@ public class ElasticsearchHttpClientFactory {
                 new HttpClientPemSslConfiguration(
                     readIndexedListProperty("ssl.keystore.certs"),
                     readIndexedListProperty("ssl.keystore.keys")
+                )
+            );
+        }
+    }
+
+    private void configureTrust(HttpClientConfiguration cfg) {
+        cfg.setTrustAll(readProperty("ssl.trustAll", Boolean.class, false));
+        String truststoreType = readProperty("ssl.truststore.type", String.class, null);
+        if (truststoreType != null) {
+            cfg.setTrustStoreConfig(
+                new HttpClientTrustStoreConfiguration(
+                    truststoreType,
+                    readProperty("ssl.truststore.path", String.class, null),
+                    readProperty("ssl.truststore.password", String.class, null)
                 )
             );
         }

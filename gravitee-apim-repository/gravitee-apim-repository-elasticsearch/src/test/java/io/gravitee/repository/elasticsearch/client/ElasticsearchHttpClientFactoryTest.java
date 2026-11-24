@@ -21,6 +21,7 @@ import io.gravitee.elasticsearch.client.http.HttpClientConfiguration;
 import io.gravitee.elasticsearch.client.http.HttpClientJksSslConfiguration;
 import io.gravitee.elasticsearch.client.http.HttpClientPemSslConfiguration;
 import io.gravitee.elasticsearch.client.http.HttpClientPfxSslConfiguration;
+import io.gravitee.elasticsearch.client.http.HttpClientTrustStoreConfiguration;
 import io.gravitee.elasticsearch.config.Endpoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -124,6 +125,40 @@ class ElasticsearchHttpClientFactoryTest {
         HttpClientConfiguration cfg = new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
 
         assertThat(cfg.getSslConfig()).isNull();
+    }
+
+    @Test
+    void should_verify_server_certificates_by_default() {
+        HttpClientConfiguration cfg = new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
+
+        assertThat(cfg.isTrustAll()).isFalse();
+        assertThat(cfg.getTrustStoreConfig()).isNull();
+    }
+
+    @Test
+    void should_trust_all_server_certificates_when_trust_all_is_enabled() {
+        environment.setProperty(PROPERTY_PREFIX + "ssl.trustAll", "true");
+
+        HttpClientConfiguration cfg = new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
+
+        assertThat(cfg.isTrustAll()).isTrue();
+    }
+
+    @Test
+    void should_wire_the_truststore_when_its_type_is_set() {
+        environment.setProperty(PROPERTY_PREFIX + "ssl.truststore.type", "pkcs12");
+        environment.setProperty(PROPERTY_PREFIX + "ssl.truststore.path", "/path/to/truststore.p12");
+        environment.setProperty(PROPERTY_PREFIX + "ssl.truststore.password", "trustPass");
+
+        HttpClientConfiguration cfg = new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
+
+        assertThat(cfg.getTrustStoreConfig())
+            .extracting(
+                HttpClientTrustStoreConfiguration::getType,
+                HttpClientTrustStoreConfiguration::getPath,
+                HttpClientTrustStoreConfiguration::getPassword
+            )
+            .containsExactly("pkcs12", "/path/to/truststore.p12", "trustPass");
     }
 
     @Test
