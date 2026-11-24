@@ -37,6 +37,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.OrganizationKeyRepository;
 import io.gravitee.repository.management.api.SecretRepository;
+import io.gravitee.repository.management.api.SecretValueRepository;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.OrganizationKey;
 import io.gravitee.repository.management.model.Secret;
@@ -246,6 +247,46 @@ class GraviteeSecretProviderTest {
         }
     }
 
+    @Nested
+    class ThroughTheBridge {
+
+        private final SecretValueRepository bridge = mock(SecretValueRepository.class);
+
+        @Test
+        void should_resolve_the_value_the_bridge_reads() throws TechnicalException {
+            when(bridge.findValue(ENV, KEY)).thenReturn(Optional.of("sk-live-123"));
+
+            var secrets = GraviteeSecretProvider.throughBridge(bridge).start().resolve(LLM_KEY).blockingGet();
+
+            assertThat(secrets.asMap().get("value").asString()).isEqualTo("sk-live-123");
+        }
+
+        @Test
+        void should_resolve_nothing_when_the_bridge_finds_no_secret() throws TechnicalException {
+            when(bridge.findValue(ENV, KEY)).thenReturn(Optional.empty());
+
+            GraviteeSecretProvider.throughBridge(bridge).start().resolve(LLM_KEY).test().assertComplete().assertNoValues();
+        }
+
+        @Test
+        void should_fail_when_the_bridge_fails() throws TechnicalException {
+            when(bridge.findValue(ENV, KEY)).thenThrow(new TechnicalException("bridge down"));
+
+            GraviteeSecretProvider.throughBridge(bridge).start().resolve(LLM_KEY).test().assertError(SecretManagerException.class);
+        }
+
+        @Test
+        void should_refuse_a_reference_that_names_no_environment_without_calling_the_bridge() {
+            GraviteeSecretProvider.throughBridge(bridge)
+                .start()
+                .resolve(SecretURL.from("/gravitee/llm-key:value", true))
+                .test()
+                .assertError(SecretManagerException.class);
+
+            verifyNoInteractions(bridge);
+        }
+    }
+
     @Test
     void should_refuse_to_watch_a_secret() {
         started().watch(LLM_KEY).test().assertError(SecretManagerException.class);
@@ -254,7 +295,7 @@ class GraviteeSecretProviderTest {
     @Nested
     class Start {
 
-        private final Logger logger = (Logger) LoggerFactory.getLogger(GraviteeSecretProvider.class);
+        private final Logger logger = (Logger) LoggerFactory.getLogger(GraviteeSecretProvider.class.getPackageName());
         private final ListAppender<ILoggingEvent> logs = new ListAppender<>();
 
         Start() {
@@ -343,14 +384,14 @@ class GraviteeSecretProviderTest {
 
         @Test
         void should_refuse_every_secret_when_the_management_repository_has_no_environments() {
-            var provider = new GraviteeSecretProvider(base64Kek, secretRepository, organizationKeyRepository, null).start();
+            var provider = GraviteeSecretProvider.decrypting(base64Kek, secretRepository, organizationKeyRepository, null).start();
 
             assertRefusesEverySecret(provider, "does not store secrets");
         }
 
         @Test
         void should_refuse_every_secret_when_the_management_repository_does_not_store_secrets() {
-            var provider = new GraviteeSecretProvider(base64Kek, null, null, environmentRepository).start();
+            var provider = GraviteeSecretProvider.decrypting(base64Kek, null, null, environmentRepository).start();
 
             assertRefusesEverySecret(provider, "does not store secrets");
         }
@@ -410,7 +451,7 @@ class GraviteeSecretProviderTest {
     }
 
     private GraviteeSecretProvider provider(String base64Kek) {
-        return new GraviteeSecretProvider(base64Kek, secretRepository, organizationKeyRepository, environmentRepository);
+        return GraviteeSecretProvider.decrypting(base64Kek, secretRepository, organizationKeyRepository, environmentRepository);
     }
 
     private static String randomKek() {

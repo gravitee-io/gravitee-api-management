@@ -23,12 +23,19 @@ import io.gravitee.node.secrets.plugins.SecretProviderPluginManager;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.OrganizationKeyRepository;
 import io.gravitee.repository.management.api.SecretRepository;
+import io.gravitee.repository.management.api.SecretValueRepository;
 import java.util.Optional;
 import lombok.CustomLog;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.Environment;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
  * Registration must happen while the gateway context starts: the secrets service starts afterwards and deploys the
@@ -39,6 +46,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 public class GraviteeSecretProviderConfiguration {
 
     private static final String NO_MANAGEMENT_REPOSITORY = "none";
+    private static final String BRIDGE_CLIENT = "http";
 
     @Bean
     public GraviteeSecretProviderFactory graviteeSecretProviderFactory(
@@ -46,7 +54,8 @@ public class GraviteeSecretProviderConfiguration {
         ConfigurableEnvironment environment,
         ObjectProvider<SecretRepository> secretRepository,
         ObjectProvider<OrganizationKeyRepository> organizationKeyRepository,
-        ObjectProvider<EnvironmentRepository> environmentRepository
+        ObjectProvider<EnvironmentRepository> environmentRepository,
+        ObjectProvider<SecretValueRepository> secretValueRepository
     ) {
         pluginManager.register(new GraviteeSecretProviderPlugin());
         GraviteeSecretProviderFactory factory = pluginManager.getFactoryById(GraviteeSecretProvider.ID);
@@ -54,11 +63,31 @@ public class GraviteeSecretProviderConfiguration {
             secretRepository,
             organizationKeyRepository,
             environmentRepository,
+            secretValueRepository,
+            BRIDGE_CLIENT.equalsIgnoreCase(managementType(environment)),
             () -> environment.getProperty(StaticKeyEncryptionKeyProvider.KEY_PROPERTY),
             GraviteeSecretProviderEntries.misconfiguration(environment).or(() -> withoutManagementRepository(environment))
         );
         log.info("Gravitee secret provider [{}]: REGISTERED", GraviteeSecretProvider.ID);
         return factory;
+    }
+
+    // Lazy: the management repository plugin registers the repositories after this context starts.
+    @Bean
+    @Lazy
+    @Conditional(WithManagementDatabase.class)
+    public SecretValueRepository graviteeSecretValueRepository(
+        ConfigurableEnvironment environment,
+        ObjectProvider<SecretRepository> secretRepository,
+        ObjectProvider<OrganizationKeyRepository> organizationKeyRepository,
+        ObjectProvider<EnvironmentRepository> environmentRepository
+    ) {
+        return new DecryptingSecretValueRepository(
+            environment.getProperty(StaticKeyEncryptionKeyProvider.KEY_PROPERTY),
+            secretRepository.getIfAvailable(),
+            organizationKeyRepository.getIfAvailable(),
+            environmentRepository.getIfAvailable()
+        );
     }
 
     @Bean(destroyMethod = "cancel")
@@ -68,7 +97,22 @@ public class GraviteeSecretProviderConfiguration {
 
     // The none repository registers secret repositories that find nothing, so the provider cannot tell it apart by its beans.
     private static Optional<String> withoutManagementRepository(ConfigurableEnvironment environment) {
-        String type = environment.getProperty("management.type", environment.getProperty("repositories.management.type", ""));
-        return NO_MANAGEMENT_REPOSITORY.equalsIgnoreCase(type) ? Optional.of(GraviteeSecretProvider.NO_SECRET_STORE) : Optional.empty();
+        return NO_MANAGEMENT_REPOSITORY.equalsIgnoreCase(managementType(environment))
+            ? Optional.of(GraviteeSecretProvider.NO_SECRET_STORE)
+            : Optional.empty();
+    }
+
+    private static String managementType(Environment environment) {
+        return environment.getProperty("management.type", environment.getProperty("repositories.management.type", ""));
+    }
+
+    // A bridge server in this gateway serves these values; a bridge client registers its own.
+    static class WithManagementDatabase implements Condition {
+
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            String type = managementType(context.getEnvironment());
+            return !BRIDGE_CLIENT.equalsIgnoreCase(type) && !NO_MANAGEMENT_REPOSITORY.equalsIgnoreCase(type);
+        }
     }
 }

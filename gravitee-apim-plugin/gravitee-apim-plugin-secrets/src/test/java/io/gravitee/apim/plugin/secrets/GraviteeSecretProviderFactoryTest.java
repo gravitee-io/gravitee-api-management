@@ -18,10 +18,13 @@ package io.gravitee.apim.plugin.secrets;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.OrganizationKeyRepository;
 import io.gravitee.repository.management.api.SecretRepository;
+import io.gravitee.repository.management.api.SecretValueRepository;
 import io.gravitee.secrets.api.core.SecretURL;
 import io.gravitee.secrets.api.errors.SecretManagerException;
 import java.security.SecureRandom;
@@ -39,6 +42,7 @@ class GraviteeSecretProviderFactoryTest {
     private final StaticApplicationContext gateway = new StaticApplicationContext();
     private String sharedKey;
     private Optional<String> misconfiguration = Optional.empty();
+    private boolean throughBridge;
 
     @Test
     void should_refuse_to_create_a_provider_before_it_is_connected_to_the_gateway() {
@@ -135,11 +139,41 @@ class GraviteeSecretProviderFactoryTest {
             .assertError(err -> err.getMessage().contains("is not valid base64"));
     }
 
+    @Test
+    void should_create_a_provider_that_reads_through_the_bridge_without_a_key_encryption_key_on_a_hybrid_gateway()
+        throws TechnicalException {
+        throughBridge = true;
+        connect();
+        var bridge = mock(SecretValueRepository.class);
+        when(bridge.findValue("env-1", "s-1")).thenReturn(Optional.of("sk-live-123"));
+        gateway.getBeanFactory().registerSingleton("httpSecretValueRepository", bridge);
+
+        var provider = factory.create(new GraviteeSecretManagerConfiguration(Map.of())).start();
+
+        assertThat(provider.resolve(LLM_KEY).blockingGet().asMap().get("value").asString()).isEqualTo("sk-live-123");
+    }
+
+    @Test
+    void should_create_a_provider_that_refuses_every_secret_when_the_bridge_client_does_not_serve_secrets() {
+        throughBridge = true;
+        connect();
+        gateway.getBeanFactory().registerSingleton("environmentRepository", mock(EnvironmentRepository.class));
+
+        var provider = factory.create(new GraviteeSecretManagerConfiguration(Map.of())).start();
+
+        provider
+            .resolve(LLM_KEY)
+            .test()
+            .assertError(err -> err instanceof SecretManagerException && err.getMessage().contains("bridge client"));
+    }
+
     private void connect() {
         factory.connect(
             gateway.getBeanProvider(SecretRepository.class),
             gateway.getBeanProvider(OrganizationKeyRepository.class),
             gateway.getBeanProvider(EnvironmentRepository.class),
+            gateway.getBeanProvider(SecretValueRepository.class),
+            throughBridge,
             () -> sharedKey,
             misconfiguration
         );

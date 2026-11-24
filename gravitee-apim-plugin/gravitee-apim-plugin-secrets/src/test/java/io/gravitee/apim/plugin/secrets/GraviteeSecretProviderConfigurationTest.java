@@ -20,17 +20,21 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.api.genericevent.GenericEventRegistry;
 import io.gravitee.node.secrets.plugins.SecretProviderPluginManager;
 import io.gravitee.node.secrets.plugins.internal.DefaultSecretProviderClassLoaderFactory;
 import io.gravitee.node.secrets.plugins.internal.DefaultSecretProviderPluginManager;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.OrganizationKeyRepository;
 import io.gravitee.repository.management.api.SecretRepository;
+import io.gravitee.repository.management.api.SecretValueRepository;
 import io.gravitee.secrets.api.core.SecretURL;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -134,6 +138,49 @@ class GraviteeSecretProviderConfigurationTest {
                 .resolve(SecretURL.from("/gravitee/s-1:value?envId=env-1", true))
                 .test()
                 .assertError(err -> err.getMessage().contains("does not store secrets"));
+        }
+    }
+
+    @Test
+    void should_read_secrets_through_the_bridge_client_on_a_hybrid_gateway() throws TechnicalException {
+        try (var context = gatewayContext()) {
+            context.getEnvironment().getPropertySources().addFirst(new MapPropertySource("gateway", Map.of("management.type", "http")));
+            context.refresh();
+            var bridge = mock(SecretValueRepository.class);
+            when(bridge.findValue("env-1", "s-1")).thenReturn(Optional.of("sk-live-123"));
+            context.getBeanFactory().registerSingleton("httpSecretValueRepository", bridge);
+
+            GraviteeSecretProviderFactory factory = pluginManager.getFactoryById(GraviteeSecretProvider.ID);
+            var secrets = factory
+                .create(new GraviteeSecretManagerConfiguration(Map.of()))
+                .start()
+                .resolve(SecretURL.from("/gravitee/s-1:value?envId=env-1", true))
+                .blockingGet();
+
+            assertThat(secrets.asMap().get("value").asString()).isEqualTo("sk-live-123");
+        }
+    }
+
+    @Test
+    void should_give_a_bridge_server_on_a_gateway_with_a_management_repository_the_secret_values_it_decrypts() {
+        try (var context = gatewayContext()) {
+            context.refresh();
+            context.getBeanFactory().registerSingleton("secretRepository", mock(SecretRepository.class));
+            context.getBeanFactory().registerSingleton("organizationKeyRepository", mock(OrganizationKeyRepository.class));
+            context.getBeanFactory().registerSingleton("environmentRepository", mock(EnvironmentRepository.class));
+
+            assertThat(context.getBean(SecretValueRepository.class)).isInstanceOf(DecryptingSecretValueRepository.class);
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "http", "none" })
+    void should_give_no_secret_values_of_its_own_on_a_gateway_without_a_management_database(String type) {
+        try (var context = gatewayContext()) {
+            context.getEnvironment().getPropertySources().addFirst(new MapPropertySource("gateway", Map.of("management.type", type)));
+            context.refresh();
+
+            assertThat(context.getBeanProvider(SecretValueRepository.class).getIfAvailable()).isNull();
         }
     }
 
