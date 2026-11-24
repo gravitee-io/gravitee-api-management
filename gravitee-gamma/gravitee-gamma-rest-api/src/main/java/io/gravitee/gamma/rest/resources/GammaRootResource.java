@@ -17,7 +17,7 @@ package io.gravitee.gamma.rest.resources;
 
 import io.gravitee.gamma.rest.resources.credential.CredentialsResource;
 import io.gravitee.gamma.rest.resources.gravitee_plugin.PluginResource;
-import io.gravitee.gamma.rest.resources.guardian.GuardiansResource;
+import io.gravitee.gamma.rest.resources.guardrail.GuardrailsResource;
 import io.gravitee.gamma.rest.resources.observability.GammaObservabilityResource;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.container.ResourceContext;
@@ -43,12 +43,12 @@ public class GammaRootResource {
     }
 
     /**
-     * Guardians of the environment — reusable guardrail policy sequences attached to LLM proxies. See
-     * {@link GuardiansResource} for the contract.
+     * Guardrails of the environment — reusable guardrail policy sequences attached to LLM proxies. See
+     * {@link GuardrailsResource} for the contract.
      */
-    @Path("/organizations/{orgId}/environments/{envId}/guardians")
-    public GuardiansResource getGuardiansResource() {
-        return resourceContext.getResource(GuardiansResource.class);
+    @Path("/organizations/{orgId}/environments/{envId}/guardrails")
+    public GuardrailsResource getGuardrailsResource() {
+        return resourceContext.getResource(GuardrailsResource.class);
     }
 
     /**

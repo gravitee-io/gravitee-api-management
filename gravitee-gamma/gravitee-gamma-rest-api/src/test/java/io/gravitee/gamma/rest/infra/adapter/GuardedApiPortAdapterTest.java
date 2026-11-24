@@ -31,11 +31,11 @@ import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.guardian.GuardianSteps;
+import io.gravitee.definition.model.guardrail.GuardrailSteps;
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.gamma.rest.core.guardian.exception.ApiInternalFlowChangedException;
-import io.gravitee.gamma.rest.core.guardian.port.GuardedApiPortContractTest;
-import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardedApiPort;
+import io.gravitee.gamma.rest.core.guardrail.exception.ApiInternalFlowChangedException;
+import io.gravitee.gamma.rest.core.guardrail.port.GuardedApiPortContractTest;
+import io.gravitee.gamma.rest.core.guardrail.port.service_provider.GuardedApiPort;
 import io.gravitee.rest.api.model.EventType;
 import java.util.EnumMap;
 import java.util.List;
@@ -84,20 +84,20 @@ class GuardedApiPortAdapterTest extends GuardedApiPortContractTest {
     }
 
     @Test
-    void should_tell_that_an_api_without_internal_flow_supports_no_guardian() {
+    void should_tell_that_an_api_without_internal_flow_supports_no_guardrail() {
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV2()));
 
         assertThat(adapter.findById(ENVIRONMENT_ID, ApiFixtures.aProxyApiV2().getId()))
             .as("v2 API")
             .get()
-            .satisfies(guardedApi -> assertThat(guardedApi.supportsGuardians()).as("supports guardians").isFalse());
+            .satisfies(guardedApi -> assertThat(guardedApi.supportsGuardrails()).as("supports guardrails").isFalse());
     }
 
     @Test
     void should_keep_the_rest_of_the_definition_and_advance_the_update_date() {
         var api = ApiFixtures.aLLMProxyApiV4();
         apiCrudService.initWith(List.of(api));
-        var internalFlow = Flow.builder().response(List.of(GuardianSteps.of("guardian-1", "One"))).build();
+        var internalFlow = Flow.builder().response(List.of(GuardrailSteps.of("guardrail-1", "One"))).build();
 
         adapter.updateInternalFlow(CALLER, api.getId(), api.getApiDefinitionHttpV4().getInternalFlow(), internalFlow);
 
@@ -131,7 +131,7 @@ class GuardedApiPortAdapterTest extends GuardedApiPortContractTest {
         };
         racing.initWith(List.of(api));
         var adapterOnRacingStore = adapterOver(racing);
-        var internalFlow = Flow.builder().response(List.of(GuardianSteps.of("guardian-1", "One"))).build();
+        var internalFlow = Flow.builder().response(List.of(GuardrailSteps.of("guardrail-1", "One"))).build();
 
         adapterOnRacingStore.updateInternalFlow(CALLER, api.getId(), api.getApiDefinitionHttpV4().getInternalFlow(), internalFlow);
 
@@ -173,7 +173,7 @@ class GuardedApiPortAdapterTest extends GuardedApiPortContractTest {
                         CALLER,
                         api.getId(),
                         readFlow,
-                        Flow.builder().response(List.of(GuardianSteps.of("guardian-1", "One"))).build()
+                        Flow.builder().response(List.of(GuardrailSteps.of("guardrail-1", "One"))).build()
                     )
                 )
                 .as("a write the API moved past")
@@ -192,11 +192,11 @@ class GuardedApiPortAdapterTest extends GuardedApiPortContractTest {
     class SendingTheChangeToTheGateways {
 
         @Test
-        void should_send_the_guardian_turned_on_to_the_gateways() {
+        void should_send_the_guardrail_turned_on_to_the_gateways() {
             var api = ApiFixtures.aLLMProxyApiV4();
             apiCrudService.initWith(List.of(api));
             givenTheGatewaysRun(api, EventType.PUBLISH_API);
-            var internalFlow = Flow.builder().request(List.of(GuardianSteps.of("guardian-1", "One"))).build();
+            var internalFlow = Flow.builder().request(List.of(GuardrailSteps.of("guardrail-1", "One"))).build();
 
             adapter.updateInternalFlow(CALLER, api.getId(), api.getApiDefinitionHttpV4().getInternalFlow(), internalFlow);
 
@@ -207,15 +207,15 @@ class GuardedApiPortAdapterTest extends GuardedApiPortContractTest {
                     .singleElement()
                     .satisfies(event -> {
                         softly.assertThat(event.getType()).as("event type").isEqualTo(EventType.PUBLISH_API);
-                        softly.assertThat(event.getPayload()).as("payload sent").contains("guardian-1");
+                        softly.assertThat(event.getPayload()).as("payload sent").contains("guardrail-1");
                     });
                 softly.assertThat(latestEvents.storage()).as("latest events").hasSize(1);
             });
         }
 
         @Test
-        void should_send_the_guardian_turned_off_to_the_gateways() {
-            var ran = Flow.builder().request(List.of(GuardianSteps.of("guardian-1", "One"))).build();
+        void should_send_the_guardrail_turned_off_to_the_gateways() {
+            var ran = Flow.builder().request(List.of(GuardrailSteps.of("guardrail-1", "One"))).build();
             var api = ApiFixtures.aLLMProxyApiV4();
             api.getApiDefinitionHttpV4().setInternalFlow(ran);
             apiCrudService.initWith(List.of(api));
@@ -226,7 +226,7 @@ class GuardedApiPortAdapterTest extends GuardedApiPortContractTest {
             assertThat(events.storage())
                 .as("events written")
                 .singleElement()
-                .satisfies(event -> assertThat(event.getPayload()).as("payload sent").doesNotContain("guardian-1"));
+                .satisfies(event -> assertThat(event.getPayload()).as("payload sent").doesNotContain("guardrail-1"));
         }
 
         /** E1: nothing runs, so nothing is applied. The definition is written and the API reads as out of sync. */
@@ -234,7 +234,7 @@ class GuardedApiPortAdapterTest extends GuardedApiPortContractTest {
         void should_send_nothing_for_an_api_the_gateways_do_not_run() {
             var api = ApiFixtures.aLLMProxyApiV4();
             apiCrudService.initWith(List.of(api));
-            var internalFlow = Flow.builder().request(List.of(GuardianSteps.of("guardian-1", "One"))).build();
+            var internalFlow = Flow.builder().request(List.of(GuardrailSteps.of("guardrail-1", "One"))).build();
 
             adapter.updateInternalFlow(CALLER, api.getId(), api.getApiDefinitionHttpV4().getInternalFlow(), internalFlow);
 
@@ -272,7 +272,7 @@ class GuardedApiPortAdapterTest extends GuardedApiPortContractTest {
                             CALLER,
                             api.getId(),
                             readFlow,
-                            Flow.builder().request(List.of(GuardianSteps.of("guardian-1", "One"))).build()
+                            Flow.builder().request(List.of(GuardrailSteps.of("guardrail-1", "One"))).build()
                         )
                     )
                     .as("a deployment that cannot be read")

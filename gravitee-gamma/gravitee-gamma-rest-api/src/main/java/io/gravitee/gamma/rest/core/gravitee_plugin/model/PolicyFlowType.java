@@ -24,8 +24,8 @@ import java.util.Optional;
  * The flows a policy plugin declares in its manifest that it can run in.
  *
  * <p>A guardrail policy flow carries the API type a guardrail policy runs on and the {@code scope.protocol} designating it. The
- * gateway applies the same table when it deploys a Guardian ({@code GuardianProtocolValidator} in
- * gravitee-reactor-guardian): change both together.
+ * gateway applies the same table when it deploys a Guardrail ({@code GuardrailProtocolValidator} in
+ * gravitee-reactor-guardrail): change both together.
  */
 public enum PolicyFlowType {
     HTTP_PROXY("proxy", null, null),
@@ -34,7 +34,8 @@ public enum PolicyFlowType {
     MCP_PROXY(null, ApiType.MCP_PROXY, "MCP"),
     LLM_PROXY(null, ApiType.LLM_PROXY, "LLM"),
     A2A_PROXY(null, ApiType.A2A_PROXY, "A2A"),
-    GUARDIAN(null, null, null);
+    // TODO(AIAM-1913): drop the deprecated key once the guardrail policy plugins declare the guardrail flow
+    GUARDRAIL("guardian", null, null);
 
     private final String deprecatedManifestKey;
     private final ApiType guardrailPolicyApiType;

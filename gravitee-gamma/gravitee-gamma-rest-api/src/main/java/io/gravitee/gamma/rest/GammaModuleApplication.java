@@ -28,9 +28,9 @@ import io.gravitee.gamma.rest.resources.gravitee_plugin.AgentProviderPluginResou
 import io.gravitee.gamma.rest.resources.gravitee_plugin.PluginResource;
 import io.gravitee.gamma.rest.resources.gravitee_plugin.PolicyPluginResource;
 import io.gravitee.gamma.rest.resources.gravitee_plugin.ResourcePluginResource;
-import io.gravitee.gamma.rest.resources.guardian.GuardianResource;
-import io.gravitee.gamma.rest.resources.guardian.GuardianVersionConflictExceptionMapper;
-import io.gravitee.gamma.rest.resources.guardian.GuardiansResource;
+import io.gravitee.gamma.rest.resources.guardrail.GuardrailResource;
+import io.gravitee.gamma.rest.resources.guardrail.GuardrailVersionConflictExceptionMapper;
+import io.gravitee.gamma.rest.resources.guardrail.GuardrailsResource;
 import io.gravitee.gamma.rest.resources.observability.GammaObservabilityResource;
 import io.gravitee.gamma.rest.resources.observability.analytics.AnalyticsDefinitionResource;
 import io.gravitee.gamma.rest.resources.observability.analytics.AnalyticsResource;
@@ -76,8 +76,8 @@ public class GammaModuleApplication extends ResourceConfig {
         register(GammaRootResource.class);
         register(GammaUIResource.class);
         register(OpenAPIResource.class);
-        register(GuardiansResource.class);
-        register(GuardianResource.class);
+        register(GuardrailsResource.class);
+        register(GuardrailResource.class);
         register(CredentialsResource.class);
         register(CredentialResource.class);
         register(GammaObservabilityResource.class);
@@ -115,7 +115,7 @@ public class GammaModuleApplication extends ResourceConfig {
         register(GammaTechnicalDomainExceptionMapper.class);
         register(JsonMappingExceptionMapper.class);
         register(DashboardVersionConflictExceptionMapper.class);
-        register(GuardianVersionConflictExceptionMapper.class);
+        register(GuardrailVersionConflictExceptionMapper.class);
 
         register(SecurityContextFilter.class);
         register(PermissionsFilter.class);

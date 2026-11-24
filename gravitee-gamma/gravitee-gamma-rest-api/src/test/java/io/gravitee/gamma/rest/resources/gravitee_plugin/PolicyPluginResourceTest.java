@@ -64,7 +64,7 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
 
     private static final ObjectMapper JSON = new ObjectMapper();
     private static final String FEATURE = "apim-guardian-policy-rule";
-    private static final String GUARDIANS_FEATURE = "apim-guardians";
+    private static final String GUARDRAILS_FEATURE = "apim-guardians";
 
     @Inject
     private ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager;
@@ -84,14 +84,14 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
         var license = mock(License.class);
         when(license.isFeatureEnabled(FEATURE)).thenReturn(true);
         when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION)).thenReturn(license);
-        givenGuardiansLicensed(true);
+        givenGuardrailsLicensed(true);
         when(policyPluginManager.findAll(true)).thenReturn(installedPolicies);
     }
 
     /** The platform license gating the endpoints, distinct from the organization license the {@code deployed} flag reads. */
-    private void givenGuardiansLicensed(boolean licensed) {
+    private void givenGuardrailsLicensed(boolean licensed) {
         var platformLicense = mock(License.class);
-        when(platformLicense.isFeatureEnabled(GUARDIANS_FEATURE)).thenReturn(licensed);
+        when(platformLicense.isFeatureEnabled(GUARDRAILS_FEATURE)).thenReturn(licensed);
         when(licenseManager.getPlatformLicense()).thenReturn(platformLicense);
     }
 
@@ -121,7 +121,7 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
                     " REQUEST , RESPONSE ",
                     "a2a_proxy",
                     "MESSAGE_REQUEST",
-                    "guardian",
+                    "guardrail",
                     "REQUEST,RESPONSE"
                 )
             );
@@ -139,7 +139,7 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
                 soft.assertThat(plugin.get("icon").asText()).as("icon").isEqualTo("data:image/svg+xml;base64,guardrail-rule");
                 soft.assertThat(plugin.get("feature").asText()).as("feature").isEqualTo(FEATURE);
                 soft.assertThat(plugin.get("deployed").asBoolean()).as("deployed").isTrue();
-                soft.assertThat(plugin.get("guardrail").asBoolean()).as("guardrail").isTrue();
+                soft.assertThat(plugin.get("guardrailPolicy").asBoolean()).as("guardrail policy").isTrue();
                 soft
                     .assertThat(plugin.get("flow"))
                     .as("flows in kebab-case, phases trimmed but neither validated nor reduced")
@@ -153,7 +153,7 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
                               "mcp-proxy": ["REQUEST"],
                               "llm-proxy": ["REQUEST", "RESPONSE"],
                               "a2a-proxy": ["MESSAGE_REQUEST"],
-                              "guardian": ["REQUEST", "RESPONSE"]
+                              "guardrail": ["REQUEST", "RESPONSE"]
                             }
                             """
                         )
@@ -182,23 +182,23 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
             });
         }
 
-        /** The guardian flow says where a policy can run, not that it is a guardrail policy: a Guardian needs one to deploy. */
+        /** The guardrail flow says where a policy can run, not that it is a guardrail policy: a Guardrail needs one to deploy. */
         @Test
-        void should_tell_a_guardrail_from_a_conventional_policy_declaring_the_guardian_flow() {
-            given_a_guardrail_policy("guardrail", Map.of("guardian", "REQUEST"));
-            given_a_policy("conventional", Map.of("guardian", "REQUEST"));
+        void should_tell_a_guardrail_from_a_conventional_policy_declaring_the_guardrail_flow() {
+            given_a_guardrail_policy("guardrail", Map.of("guardrail", "REQUEST"));
+            given_a_policy("conventional", Map.of("guardrail", "REQUEST"));
 
-            JsonNode policies = rootTarget().queryParam("flow", "guardian").request().get().readEntity(JsonNode.class);
+            JsonNode policies = rootTarget().queryParam("flow", "guardrail").request().get().readEntity(JsonNode.class);
 
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(policyOf(policies, "guardrail").get("guardrail").asBoolean()).as("guardrail policy").isTrue();
-                soft.assertThat(policyOf(policies, "conventional").get("guardrail").asBoolean()).as("conventional policy").isFalse();
+                soft.assertThat(policyOf(policies, "guardrail").get("guardrailPolicy").asBoolean()).as("guardrail policy").isTrue();
+                soft.assertThat(policyOf(policies, "conventional").get("guardrailPolicy").asBoolean()).as("conventional policy").isFalse();
             });
         }
 
         @Test
         void should_leave_out_the_flows_a_plugin_does_not_declare() {
-            given_a_policy("blank", Map.of("llm_proxy", " ", "guardian", ""));
+            given_a_policy("blank", Map.of("llm_proxy", " ", "guardrail", ""));
             given_a_policy("no-properties", null);
 
             JsonNode policies = rootTarget().request().get().readEntity(JsonNode.class);
@@ -211,7 +211,7 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
 
         @Test
         void should_report_a_plugin_whose_feature_the_license_disables_as_not_deployed() {
-            given_a_policy("unlicensed", Map.of("guardian", "REQUEST"), manifest -> when(manifest.feature()).thenReturn("other-feature"));
+            given_a_policy("unlicensed", Map.of("guardrail", "REQUEST"), manifest -> when(manifest.feature()).thenReturn("other-feature"));
 
             JsonNode policies = rootTarget().request().get().readEntity(JsonNode.class);
 
@@ -238,8 +238,8 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
         @ParameterizedTest(name = "flow={0} phase={1}")
         @MethodSource("filters")
         void should_keep_the_policies_matching_the_filters(List<String> flows, String phase, List<String> expectedIds) {
-            given_a_policy("guard-both", Map.of("guardian", "REQUEST,RESPONSE", "llm_proxy", "REQUEST,RESPONSE"));
-            given_a_policy("guard-request-llm-response", Map.of("guardian", "REQUEST", "llm_proxy", "RESPONSE"));
+            given_a_policy("guard-both", Map.of("guardrail", "REQUEST,RESPONSE", "llm_proxy", "REQUEST,RESPONSE"));
+            given_a_policy("guard-request-llm-response", Map.of("guardrail", "REQUEST", "llm_proxy", "RESPONSE"));
             given_a_policy("llm-only", Map.of("llm_proxy", "REQUEST"));
             given_a_policy("http-only", Map.of("http_proxy", "REQUEST"));
             WebTarget target = rootTarget();
@@ -259,31 +259,31 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
         static Stream<Arguments> filters() {
             return Stream.of(
                 Arguments.of(List.of(), null, List.of("guard-both", "guard-request-llm-response", "llm-only", "http-only")),
-                Arguments.of(List.of("guardian"), null, List.of("guard-both", "guard-request-llm-response")),
-                Arguments.of(List.of("guardian", "llm-proxy"), null, List.of("guard-both", "guard-request-llm-response")),
-                Arguments.of(List.of("http-proxy", "guardian"), null, List.of()),
+                Arguments.of(List.of("guardrail"), null, List.of("guard-both", "guard-request-llm-response")),
+                Arguments.of(List.of("guardrail", "llm-proxy"), null, List.of("guard-both", "guard-request-llm-response")),
+                Arguments.of(List.of("http-proxy", "guardrail"), null, List.of()),
                 Arguments.of(List.of(), "RESPONSE", List.of("guard-both", "guard-request-llm-response")),
-                Arguments.of(List.of("guardian"), "RESPONSE", List.of("guard-both")),
+                Arguments.of(List.of("guardrail"), "RESPONSE", List.of("guard-both")),
                 Arguments.of(List.of("llm-proxy"), "RESPONSE", List.of("guard-both", "guard-request-llm-response")),
-                Arguments.of(List.of("guardian", "llm-proxy"), "REQUEST", List.of("guard-both")),
+                Arguments.of(List.of("guardrail", "llm-proxy"), "REQUEST", List.of("guard-both")),
                 Arguments.of(List.of(), "request", List.of()),
                 Arguments.of(List.of(), " ", List.of("guard-both", "guard-request-llm-response", "llm-only", "http-only")),
-                Arguments.of(List.of("guardian"), "", List.of("guard-both", "guard-request-llm-response"))
+                Arguments.of(List.of("guardrail"), "", List.of("guard-both", "guard-request-llm-response"))
             );
         }
 
         @ParameterizedTest
         @ValueSource(strings = { "unknown", "llm_proxy", "LLM_PROXY" })
         void should_refuse_an_unknown_flow(String flow) {
-            given_a_policy("guard-both", Map.of("guardian", "REQUEST"));
+            given_a_policy("guard-both", Map.of("guardrail", "REQUEST"));
 
-            Response response = rootTarget().queryParam("flow", "guardian", flow).request().get();
+            Response response = rootTarget().queryParam("flow", "guardrail", flow).request().get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
             assertThat(response.readEntity(JsonNode.class).get("message").asText())
                 .as("error message, which does not echo the requested value")
                 .isEqualTo(
-                    "Invalid flow. Expected one of [http-proxy, http-message, native-kafka, mcp-proxy, llm-proxy, a2a-proxy, guardian]."
+                    "Invalid flow. Expected one of [http-proxy, http-message, native-kafka, mcp-proxy, llm-proxy, a2a-proxy, guardrail]."
                 );
         }
     }
@@ -293,7 +293,7 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
 
         @Test
         void should_get_a_policy_with_its_flows() {
-            given_a_guardrail_policy("guardrail-rule", Map.of("guardian", "REQUEST,RESPONSE", "llm_proxy", "REQUEST"));
+            given_a_guardrail_policy("guardrail-rule", Map.of("guardrail", "REQUEST,RESPONSE", "llm_proxy", "REQUEST"));
 
             Response response = rootTarget("guardrail-rule").request().get();
 
@@ -303,11 +303,11 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
                 soft.assertThat(plugin.get("id").asText()).as("id").isEqualTo("guardrail-rule");
                 soft.assertThat(plugin.get("category").asText()).as("category").isEqualTo("guardrail");
                 soft.assertThat(plugin.get("icon").asText()).as("icon").isEqualTo("data:image/svg+xml;base64,guardrail-rule");
-                soft.assertThat(plugin.get("guardrail").asBoolean()).as("guardrail").isTrue();
+                soft.assertThat(plugin.get("guardrailPolicy").asBoolean()).as("guardrail policy").isTrue();
                 soft
                     .assertThat(plugin.get("flow"))
                     .as("flow")
-                    .isEqualTo(json("{\"llm-proxy\": [\"REQUEST\"], \"guardian\": [\"REQUEST\", \"RESPONSE\"]}"));
+                    .isEqualTo(json("{\"llm-proxy\": [\"REQUEST\"], \"guardrail\": [\"REQUEST\", \"RESPONSE\"]}"));
             });
         }
 
@@ -364,7 +364,7 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void given_an_installed_policy() throws IOException {
-            given_a_policy("guardrail-rule", Map.of("guardian", "REQUEST"));
+            given_a_policy("guardrail-rule", Map.of("guardrail", "REQUEST"));
             when(policyPluginManager.getSchema("guardrail-rule", true)).thenReturn("{}");
             when(policyPluginManager.getDocumentation("guardrail-rule", true)).thenReturn("# Guardrail rule");
         }
@@ -395,15 +395,15 @@ class PolicyPluginResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void given_an_installed_policy() throws IOException {
-            given_a_policy("guardrail-rule", Map.of("guardian", "REQUEST"));
+            given_a_policy("guardrail-rule", Map.of("guardrail", "REQUEST"));
             when(policyPluginManager.getSchema("guardrail-rule", true)).thenReturn("{}");
             when(policyPluginManager.getDocumentation("guardrail-rule", true)).thenReturn("# Guardrail rule");
         }
 
         @ParameterizedTest
         @ValueSource(strings = { "", "guardrail-rule", "guardrail-rule/schema", "guardrail-rule/documentation" })
-        void should_return_403_without_the_guardians_license_feature(String path) {
-            givenGuardiansLicensed(false);
+        void should_return_403_without_the_guardrails_license_feature(String path) {
+            givenGuardrailsLicensed(false);
 
             assertThat(rootTarget(path).request().get().getStatus()).as("GET /%s", path).isEqualTo(HttpStatusCode.FORBIDDEN_403);
         }
