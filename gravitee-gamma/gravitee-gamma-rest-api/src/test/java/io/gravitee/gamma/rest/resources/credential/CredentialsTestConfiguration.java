@@ -19,6 +19,8 @@ import inmemory.AuditCrudServiceInMemory;
 import inmemory.CredentialConsumersInMemory;
 import inmemory.CredentialCrudServiceInMemory;
 import inmemory.CredentialQueryServiceInMemory;
+import inmemory.EventCrudInMemory;
+import inmemory.EventLatestCrudInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.SecretCrudServiceInMemory;
 import inmemory.SecretValueEncryptorInMemory;
@@ -35,7 +37,10 @@ import io.gravitee.apim.core.credential.use_case.ListCredentialConsumersUseCase;
 import io.gravitee.apim.core.credential.use_case.RotateCredentialUseCase;
 import io.gravitee.apim.core.credential.use_case.SearchCredentialsUseCase;
 import io.gravitee.apim.core.credential.use_case.UpdateCredentialUseCase;
+import io.gravitee.apim.core.generic_event.domain_service.GenericEventPublicationDomainService;
+import io.gravitee.apim.core.generic_event.domain_service.GenericEventWriterDomainService;
 import io.gravitee.apim.core.secret.domain_service.SecretDomainService;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.apim.infra.credential.SpelSecretExpressionParser;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import org.springframework.context.annotation.Bean;
@@ -86,7 +91,19 @@ class CredentialsTestConfiguration {
         AuditDomainService auditDomainService
     ) {
         return new CredentialSecretsDomainService(
-            new SecretDomainService(secretCrudService, new SecretValueEncryptorInMemory(), auditDomainService),
+            new SecretDomainService(
+                secretCrudService,
+                new SecretValueEncryptorInMemory(),
+                auditDomainService,
+                new GenericEventPublicationDomainService(
+                    new GenericEventWriterDomainService(
+                        new EventCrudInMemory(),
+                        new EventLatestCrudInMemory(),
+                        GraviteeJacksonMapper.getInstance()
+                    ),
+                    GraviteeJacksonMapper.getInstance()
+                )
+            ),
             secretCrudService
         );
     }

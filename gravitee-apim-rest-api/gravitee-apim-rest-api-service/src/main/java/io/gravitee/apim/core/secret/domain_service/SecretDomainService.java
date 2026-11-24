@@ -15,11 +15,15 @@
  */
 package io.gravitee.apim.core.secret.domain_service;
 
+import io.gravitee.apim.common.secret.SecretChangedEvent;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
+import io.gravitee.apim.core.generic_event.domain_service.GenericEventPublicationDomainService;
+import io.gravitee.apim.core.generic_event.model.GenericEvent;
+import io.gravitee.apim.core.generic_event.model.PublicationOptions;
 import io.gravitee.apim.core.secret.crud_service.SecretCrudService;
 import io.gravitee.apim.core.secret.exception.SecretKeyAlreadyExistsException;
 import io.gravitee.apim.core.secret.model.Secret;
@@ -29,6 +33,7 @@ import io.gravitee.apim.core.secret.model.SecretValue;
 import io.gravitee.apim.core.secret.service_provider.SecretValueEncryptor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -41,9 +46,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecretDomainService {
 
+    private static final Duration CHANGED_EVENT_OUTLIVES_ANY_GATEWAY_SYNC = Duration.ofDays(1);
+
     private final SecretCrudService secretCrudService;
     private final SecretValueEncryptor secretValueEncryptor;
     private final AuditDomainService auditService;
+    private final GenericEventPublicationDomainService genericEventPublicationDomainService;
 
     public Secret create(String key, SecretValue value, AuditInfo auditInfo) {
         var secret = Secret.create(
@@ -58,6 +66,7 @@ public class SecretDomainService {
         }
         var created = secretCrudService.create(secret, secretValueEncryptor.encrypt(secret, value.plaintext()));
         audit(SecretAuditEvent.SECRET_CREATED, null, created, created.createdAt().atZone(TimeProvider.clock().getZone()), auditInfo);
+        tellGateways(created, auditInfo);
         return created;
     }
 
@@ -67,6 +76,7 @@ public class SecretDomainService {
             secretValueEncryptor.encrypt(current, value.plaintext())
         );
         audit(SecretAuditEvent.SECRET_UPDATED, current, updated, updated.updatedAt().atZone(TimeProvider.clock().getZone()), auditInfo);
+        tellGateways(updated, auditInfo);
         return updated;
     }
 
@@ -84,12 +94,27 @@ public class SecretDomainService {
             restored.updatedAt().atZone(TimeProvider.clock().getZone()),
             auditInfo
         );
+        tellGateways(restored, auditInfo);
         return restored;
     }
 
     public void delete(Secret secret, AuditInfo auditInfo) {
         secretCrudService.delete(secret);
         audit(SecretAuditEvent.SECRET_DELETED, secret, null, TimeProvider.now(), auditInfo);
+        tellGateways(secret, auditInfo);
+    }
+
+    private void tellGateways(Secret secret, AuditInfo auditInfo) {
+        genericEventPublicationDomainService.publish(
+            GenericEvent.builder()
+                .kind(SecretChangedEvent.KIND)
+                .id(secret.key())
+                .expiresAt(TimeProvider.instantNow().plus(CHANGED_EVENT_OUTLIVES_ANY_GATEWAY_SYNC))
+                .payload("{}")
+                .build(),
+            PublicationOptions.latestOnly(),
+            auditInfo
+        );
     }
 
     private void audit(SecretAuditEvent event, Secret before, Secret after, ZonedDateTime at, AuditInfo auditInfo) {
