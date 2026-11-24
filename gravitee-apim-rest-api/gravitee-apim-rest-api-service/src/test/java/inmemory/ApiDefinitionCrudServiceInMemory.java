@@ -27,8 +27,8 @@ import java.util.Objects;
  * made to another field since the caller read it is still there afterwards. A double that wrote the caller's whole
  * copy back would hide the very defect this port exists to close.
  *
- * <p>The Guardian index the real write carries alongside the definition is not kept here: the double stores the
- * definition, and {@link ApiQueryServiceInMemory} reads the Guardians out of it — the same answer, from one place.
+ * <p>The Guardrail index the real write carries alongside the definition is not kept here: the double stores the
+ * definition, and {@link ApiQueryServiceInMemory} reads the Guardrails out of it — the same answer, from one place.
  */
 public class ApiDefinitionCrudServiceInMemory implements ApiDefinitionCrudService, InMemoryAlternative<Api> {
 

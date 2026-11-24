@@ -111,7 +111,7 @@ class PoliciesResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    void should_expose_guardian_flow_phases() {
+    void should_expose_guardrail_flow_phases() {
         policyPluginQueryServiceInMemory.initWith(
             List.of(
                 io.gravitee.apim.core.plugin.model.PolicyPlugin.builder()
@@ -120,7 +120,12 @@ class PoliciesResourceTest extends AbstractResourceTest {
                     .feature("feature-1")
                     .deployed(true)
                     .flowPhaseCompatibility(
-                        Map.of(ApiProtocolType.GUARDIAN, Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE), ApiProtocolType.LLM_PROXY, Set.of())
+                        Map.of(
+                            ApiProtocolType.GUARDRAIL,
+                            Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE),
+                            ApiProtocolType.LLM_PROXY,
+                            Set.of()
+                        )
                     )
                     .build()
             )
@@ -135,10 +140,10 @@ class PoliciesResourceTest extends AbstractResourceTest {
         final Set<PolicyPlugin> policyPlugins = response.readEntity(new GenericType<>() {});
 
         assertThat(policyPlugins)
-            .as("guardrail policy guardian phases")
+            .as("guardrail policy guardrail phases")
             .filteredOn(policy -> "guardrail-policy".equals(policy.getId()))
             .singleElement()
-            .extracting(policy -> policy.getFlowPhaseCompatibility().getGUARDIAN())
+            .extracting(policy -> policy.getFlowPhaseCompatibility().getGUARDRAIL())
             .isEqualTo(
                 Set.of(
                     io.gravitee.rest.api.management.v2.rest.model.FlowPhase.REQUEST,

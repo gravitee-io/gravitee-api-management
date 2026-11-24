@@ -1036,14 +1036,14 @@ paths:
             description: |-
                 Rollback an API to a previous version.
 
-                The whole definition is restored in the store. Of it, only the internal flow — the Guardians the API
-                runs — is republished at once, and only to the gateways already running the API, since a Guardian
+                The whole definition is restored in the store. Of it, only the internal flow — the Guardrails the API
+                runs — is republished at once, and only to the gateways already running the API, since a Guardrail
                 applies as soon as it is written. The rest of the restored definition reaches them when the API is
-                deployed, and so does the whole of it for an API no gateway runs yet. The restored Guardians are
+                deployed, and so does the whole of it for an API no gateway runs yet. The restored Guardrails are
                 checked before anything is written.
 
                 Return a 400 HTTP Error:
-                 - when the internal flow of the version rolled back to names a Guardian that is no longer deployed,
+                 - when the internal flow of the version rolled back to names a Guardrail that is no longer deployed,
                    has been withdrawn, or no longer runs on the API's type or phase
                  - when rolling back to a V2 version and a plan of that version no longer exists; a V4 version
                    recreates the missing plan instead

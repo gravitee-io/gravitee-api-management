@@ -104,12 +104,16 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         var mcpProxyFlowPhase = getFlowPhase(plugin, ApiProtocolType.MCP_PROXY);
         var llmProxyFlowPhase = getFlowPhase(plugin, ApiProtocolType.LLM_PROXY);
         var a2aProxyFlowPhase = getFlowPhase(plugin, ApiProtocolType.A2A_PROXY);
-        var guardianFlowPhase = getFlowPhase(plugin, ApiProtocolType.GUARDIAN);
+        var guardrailFlowPhase = getFlowPhase(plugin, ApiProtocolType.GUARDRAIL);
         if (httpProxyFlowPhase.isEmpty()) {
             httpProxyFlowPhase = getDeprecatedFlowPhase(plugin, "proxy");
         }
         if (httpMessageFlowPhase.isEmpty()) {
             httpMessageFlowPhase = getDeprecatedFlowPhase(plugin, "message");
+        }
+        if (guardrailFlowPhase.isEmpty()) {
+            // TODO(AIAM-1913): drop once the guardrail policy plugins declare the guardrail flow
+            guardrailFlowPhase = getDeprecatedFlowPhase(plugin, "guardian");
         }
 
         entity.putFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY, httpProxyFlowPhase);
@@ -118,7 +122,7 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         entity.putFlowPhaseCompatibility(ApiProtocolType.MCP_PROXY, mcpProxyFlowPhase);
         entity.putFlowPhaseCompatibility(ApiProtocolType.LLM_PROXY, llmProxyFlowPhase);
         entity.putFlowPhaseCompatibility(ApiProtocolType.A2A_PROXY, a2aProxyFlowPhase);
-        entity.putFlowPhaseCompatibility(ApiProtocolType.GUARDIAN, guardianFlowPhase);
+        entity.putFlowPhaseCompatibility(ApiProtocolType.GUARDRAIL, guardrailFlowPhase);
         entity.setSupportsMessageCondition(supportsMessageCondition(plugin));
 
         return entity;

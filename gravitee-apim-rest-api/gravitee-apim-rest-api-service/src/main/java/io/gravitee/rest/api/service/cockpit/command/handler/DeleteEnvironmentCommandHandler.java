@@ -51,7 +51,7 @@ import io.gravitee.repository.management.api.GammaDashboardRepository;
 import io.gravitee.repository.management.api.GammaMetricDefinitionRepository;
 import io.gravitee.repository.management.api.GenericNotificationConfigRepository;
 import io.gravitee.repository.management.api.GroupRepository;
-import io.gravitee.repository.management.api.GuardianRepository;
+import io.gravitee.repository.management.api.GuardrailRepository;
 import io.gravitee.repository.management.api.IdentityProviderActivationRepository;
 import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.InvitationRepository;
@@ -162,7 +162,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     private final GammaMetricDefinitionRepository gammaMetricDefinitionRepository;
     private final GenericNotificationConfigRepository genericNotificationConfigRepository;
     private final GroupRepository groupRepository;
-    private final GuardianRepository guardianRepository;
+    private final GuardrailRepository guardrailRepository;
     private final IdentityProviderActivationRepository identityProviderActivationRepository;
     private final IdentityProviderActivationService identityProviderActivationService;
     private final AsyncJobRepository asyncJobRepository;
@@ -231,7 +231,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         @Lazy GammaMetricDefinitionRepository gammaMetricDefinitionRepository,
         @Lazy GenericNotificationConfigRepository genericNotificationConfigRepository,
         @Lazy GroupRepository groupRepository,
-        @Lazy GuardianRepository guardianRepository,
+        @Lazy GuardrailRepository guardrailRepository,
         @Lazy IdentityProviderActivationRepository identityProviderActivationRepository,
         @Lazy IntegrationRepository integrationRepository,
         @Lazy InvitationRepository invitationRepository,
@@ -309,7 +309,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         this.gammaMetricDefinitionRepository = gammaMetricDefinitionRepository;
         this.genericNotificationConfigRepository = genericNotificationConfigRepository;
         this.groupRepository = groupRepository;
-        this.guardianRepository = guardianRepository;
+        this.guardrailRepository = guardrailRepository;
         this.identityProviderActivationRepository = identityProviderActivationRepository;
         this.identityProviderActivationService = identityProviderActivationService;
         this.asyncJobRepository = asyncJobRepository;
@@ -469,7 +469,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         // Always default for environment
         portalNotificationConfigRepository.deleteByReferenceIdAndReferenceType(environment.getId(), NotificationReferenceType.ENVIRONMENT);
         genericNotificationConfigRepository.deleteByReferenceIdAndReferenceType(environment.getId(), NotificationReferenceType.ENVIRONMENT);
-        guardianRepository.deleteByEnvironmentId(environment.getId());
+        guardrailRepository.deleteByEnvironmentId(environment.getId());
         sharedPolicyGroupRepository.deleteByEnvironmentId(environment.getId());
         sharedPolicyGroupHistoryRepository.deleteByEnvironmentId(environment.getId());
         themeRepository.deleteByReferenceIdAndReferenceType(environment.getId(), ThemeReferenceType.ENVIRONMENT);

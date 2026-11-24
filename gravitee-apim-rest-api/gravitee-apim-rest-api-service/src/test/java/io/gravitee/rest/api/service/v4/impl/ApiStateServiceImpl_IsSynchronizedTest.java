@@ -992,7 +992,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
     }
 
     /**
-     * Setting the Guardians of an API sends that change to the gateways by itself, so the internal flow it stores and
+     * Setting the Guardrails of an API sends that change to the gateways by itself, so the internal flow it stores and
      * the one they run normally match. A difference is the signal that the change was not applied — the API was never
      * deployed, it is stopped, or the event write failed — and the API is then out of sync, like for any other
      * deployment-bearing field.
@@ -1001,28 +1001,28 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
     class InternalFlow {
 
         @Test
-        void should_return_false_when_the_gateways_were_not_given_an_enabled_guardian() throws JsonProcessingException {
+        void should_return_false_when_the_gateways_were_not_given_an_enabled_guardrail() throws JsonProcessingException {
             givenDeployed(definitionWithInternalFlow(null));
 
-            var isSynchronized = isSynchronized(definitionWithInternalFlow(guardians("guardian-1")));
+            var isSynchronized = isSynchronized(definitionWithInternalFlow(guardrails("guardrail-1")));
 
-            assertThat(isSynchronized).as("API synchronized while the gateways run no guardian").isFalse();
+            assertThat(isSynchronized).as("API synchronized while the gateways run no guardrail").isFalse();
         }
 
         @Test
         void should_return_true_when_the_gateways_run_the_internal_flow_the_api_stores() throws JsonProcessingException {
-            givenDeployed(definitionWithInternalFlow(guardians("guardian-1", "guardian-2")));
+            givenDeployed(definitionWithInternalFlow(guardrails("guardrail-1", "guardrail-2")));
 
-            var isSynchronized = isSynchronized(definitionWithInternalFlow(guardians("guardian-1", "guardian-2")));
+            var isSynchronized = isSynchronized(definitionWithInternalFlow(guardrails("guardrail-1", "guardrail-2")));
 
             assertThat(isSynchronized).as("API synchronized with an unchanged internal flow").isTrue();
         }
 
         @Test
-        void should_return_false_when_the_gateways_run_the_guardians_in_another_order() throws JsonProcessingException {
-            givenDeployed(definitionWithInternalFlow(guardians("guardian-1", "guardian-2")));
+        void should_return_false_when_the_gateways_run_the_guardrails_in_another_order() throws JsonProcessingException {
+            givenDeployed(definitionWithInternalFlow(guardrails("guardrail-1", "guardrail-2")));
 
-            var isSynchronized = isSynchronized(definitionWithInternalFlow(guardians("guardian-2", "guardian-1")));
+            var isSynchronized = isSynchronized(definitionWithInternalFlow(guardrails("guardrail-2", "guardrail-1")));
 
             assertThat(isSynchronized).as("API synchronized while the gateways run another order").isFalse();
         }
@@ -1036,12 +1036,12 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
                 .build();
         }
 
-        private Flow guardians(String... guardianIds) {
+        private Flow guardrails(String... guardrailIds) {
             return Flow.builder()
                 .request(
-                    Arrays.stream(guardianIds)
-                        .map(guardianId ->
-                            Step.builder().policy("guardian-policy").configuration("{\"guardianId\":\"" + guardianId + "\"}").build()
+                    Arrays.stream(guardrailIds)
+                        .map(guardrailId ->
+                            Step.builder().policy("guardrail-policy").configuration("{\"guardrailId\":\"" + guardrailId + "\"}").build()
                         )
                         .toList()
                 )

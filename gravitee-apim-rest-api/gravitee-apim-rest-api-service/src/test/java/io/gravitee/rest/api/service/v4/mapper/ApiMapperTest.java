@@ -356,7 +356,7 @@ public class ApiMapperTest {
         var definition = new io.gravitee.definition.model.v4.Api();
         definition.setDefinitionVersion(DefinitionVersion.V4);
         definition.setType(ApiType.LLM_PROXY);
-        definition.setInternalFlow(aGuardianInternalFlow());
+        definition.setInternalFlow(aGuardrailInternalFlow());
         Api api = new Api();
         api.setId("id");
         api.setType(ApiType.LLM_PROXY);
@@ -364,7 +364,7 @@ public class ApiMapperTest {
 
         var apiEntity = apiMapper.toEntity(api, new PrimaryOwnerEntity());
 
-        assertThat(apiEntity.getInternalFlow()).as("internal flow read from the definition").isEqualTo(aGuardianInternalFlow());
+        assertThat(apiEntity.getInternalFlow()).as("internal flow read from the definition").isEqualTo(aGuardrailInternalFlow());
     }
 
     @Test
@@ -375,7 +375,7 @@ public class ApiMapperTest {
         apiEntity.setApiVersion("1");
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setType(ApiType.LLM_PROXY);
-        apiEntity.setInternalFlow(aGuardianInternalFlow());
+        apiEntity.setInternalFlow(aGuardrailInternalFlow());
 
         when(categoryMapper.toCategoryId(any(), any())).thenReturn(Set.of());
 
@@ -397,7 +397,7 @@ public class ApiMapperTest {
     @Test
     public void should_keep_the_stored_internal_flow_on_update() throws Exception {
         var definition = new io.gravitee.definition.model.v4.Api();
-        definition.setInternalFlow(aGuardianInternalFlow());
+        definition.setInternalFlow(aGuardrailInternalFlow());
         Api existingApi = new Api();
         existingApi.setDefinition(objectMapper.writeValueAsString(definition));
         UpdateApiEntity update = new UpdateApiEntity();
@@ -409,7 +409,7 @@ public class ApiMapperTest {
 
         Api repo = apiMapper.toRepository(GraviteeContext.getExecutionContext(), update, existingApi);
 
-        assertThat(repo.getDefinition()).as("definition written").contains("guardian-policy");
+        assertThat(repo.getDefinition()).as("definition written").contains("guardrail-policy");
     }
 
     @Test
@@ -1092,9 +1092,9 @@ public class ApiMapperTest {
         assertThat(result.getOriginContext().provider()).isEqualTo("A2A");
     }
 
-    private static Flow aGuardianInternalFlow() {
+    private static Flow aGuardrailInternalFlow() {
         return Flow.builder()
-            .request(List.of(Step.builder().policy("guardian-policy").configuration("{\"guardianId\":\"guardian-1\"}").build()))
+            .request(List.of(Step.builder().policy("guardrail-policy").configuration("{\"guardrailId\":\"guardrail-1\"}").build()))
             .build();
     }
 

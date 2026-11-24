@@ -331,7 +331,7 @@ public class ApiStateServiceImpl implements ApiStateService {
     }
 
     /**
-     * Read from the latest event of the API rather than from its last published one, which a Guardian change
+     * Read from the latest event of the API rather than from its last published one, which a Guardrail change
      * republished on a started API leaves behind. A start opens the next number: a gateway that missed the stop, the
      * two falling within one synchronization, sees the start alone and takes it only under another number.
      */
@@ -594,7 +594,7 @@ public class ApiStateServiceImpl implements ApiStateService {
     /**
      * The published definition with the internal flow of the stored one. The internal flow reaches the gateways as
      * soon as it is written, without a deployment, so the last published definition may predate it: republishing that
-     * one as it is would bring back a Guardian turned off since, or drop one turned on.
+     * one as it is would bring back a Guardrail turned off since, or drop one turned on.
      */
     private String withStoredInternalFlow(Api published, Api stored) throws JsonProcessingException {
         if (

@@ -37,7 +37,7 @@ import lombok.RequiredArgsConstructor;
 /**
  * Sends a new internal flow of an API to the gateways, and nothing else of it.
  *
- * <p>The internal flow is where the Guardians an API runs live, and a Guardian takes effect when it is turned on
+ * <p>The internal flow is where the Guardrails an API runs live, and a Guardrail takes effect when it is turned on
  * rather than at the next deployment of the API. So this republishes what the gateways were last given with the one
  * field replaced: every plan, flow and property the publisher saved without deploying stays out, exactly as a
  * publisher who did not press deploy expects.
@@ -56,7 +56,7 @@ import lombok.RequiredArgsConstructor;
  * The republished event <strong>is an entry of the API's deployment history</strong>: that history is a plain search
  * over the events of an API, with no filter on who wrote them, and a rollback accepts any publish event. So the
  * entry shows up under a {@link DeploymentNumber} of its own, the one after the deployment it patches, and can be
- * rolled back to, which restores that deployment with these Guardians, the two being what it holds. Its label says
+ * rolled back to, which restores that deployment with these Guardrails, the two being what it holds. Its label says
  * so, since an unlabelled entry would read as a deployment its publisher never made.
  *
  * <h2>One call, because the order is not a caller's business</h2>
@@ -64,7 +64,7 @@ import lombok.RequiredArgsConstructor;
  * The definition is written, then the event is handed over — and the event only if the write happened, so the
  * gateways never run an internal flow the store does not hold. The definition and the event are not in one
  * transaction, so one hole is left open on purpose: <strong>if the event write fails after the definition was
- * written</strong>, the API names a Guardian the gateways do not run. It then reads as out of sync, which is the true
+ * written</strong>, the API names a Guardrail the gateways do not run. It then reads as out of sync, which is the true
  * signal, and the publisher can deploy it. Writing the old definition back would add a second point of failure at
  * the same place for no gain.
  *
@@ -78,7 +78,7 @@ import lombok.RequiredArgsConstructor;
  *   <li>Inside the <strong>definition</strong>, a field written by a rest-api of another version that the current
  *       model no longer declares is dropped, with no exception and no log. Pressing deploy drops it too — the
  *       definition {@code EventServiceImpl.buildApiEventPayload} ships is re-serialized from the current model as
- *       well — so failing here would make a Guardian change stricter than a deployment, which is not the trade a
+ *       well — so failing here would make a Guardrail change stricter than a deployment, which is not the trade a
  *       publisher is asking for.
  *   <li>Around the definition the two part ways, and this is the one that loses: pressing deploy copies the stored
  *       row column by column and swaps the definition alone, whereas here whatever the mapping between the
@@ -134,7 +134,7 @@ public class DeployApiInternalFlowDomainService {
 
     /**
      * {@link #replaceInternalFlow} for a definition that cannot hold an internal flow: the gateways stop running the
-     * steps they were given, and the API indexes no Guardian.
+     * steps they were given, and the API indexes no Guardrail.
      */
     public boolean clearInternalFlow(AuditInfo auditInfo, Api api, ZonedDateTime expectedUpdatedAt, String label) {
         return replaceInternalFlow(auditInfo, api.withInternalFlow(null), expectedUpdatedAt, label);

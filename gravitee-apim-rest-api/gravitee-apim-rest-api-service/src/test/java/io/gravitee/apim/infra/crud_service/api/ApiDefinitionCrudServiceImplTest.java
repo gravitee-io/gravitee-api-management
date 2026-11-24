@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.ApiFixtures;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
-import io.gravitee.definition.model.guardian.GuardianSteps;
+import io.gravitee.definition.model.guardrail.GuardrailSteps;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -58,73 +58,73 @@ class ApiDefinitionCrudServiceImplTest {
     }
 
     /**
-     * The index is the reason this write exists in one call: the definition and the Guardians it names reach the
+     * The index is the reason this write exists in one call: the definition and the Guardrails it names reach the
      * store together, so nothing can read an index the definition contradicts.
      */
     @Test
-    void should_index_the_guardians_the_written_definition_names() throws TechnicalException {
-        var api = runningGuardians("guardian-1", "guardian-2");
+    void should_index_the_guardrails_the_written_definition_names() throws TechnicalException {
+        var api = runningGuardrails("guardrail-1", "guardrail-2");
 
         boolean written = service.replaceDefinition(api, EXPECTED_UPDATED_AT);
 
-        var guardianIds = ArgumentCaptor.forClass(Set.class);
+        var guardrailIds = ArgumentCaptor.forClass(Set.class);
         verify(apiRepository).updateDefinition(
             eq(api.getId()),
             any(),
-            guardianIds.capture(),
+            guardrailIds.capture(),
             eq(Date.from(UPDATED_AT.toInstant())),
             eq(Date.from(EXPECTED_UPDATED_AT.toInstant()))
         );
         assertSoftly(softly -> {
             softly.assertThat(written).as("the write happened").isTrue();
-            softly.assertThat(guardianIds.getValue()).as("indexed guardians").containsExactly("guardian-1", "guardian-2");
+            softly.assertThat(guardrailIds.getValue()).as("indexed guardrails").containsExactly("guardrail-1", "guardrail-2");
         });
     }
 
     @Test
-    void should_index_no_guardian_for_a_definition_naming_none() throws TechnicalException {
-        service.replaceDefinition(runningGuardians(), EXPECTED_UPDATED_AT);
+    void should_index_no_guardrail_for_a_definition_naming_none() throws TechnicalException {
+        service.replaceDefinition(runningGuardrails(), EXPECTED_UPDATED_AT);
 
-        var guardianIds = ArgumentCaptor.forClass(Set.class);
-        verify(apiRepository).updateDefinition(any(), any(), guardianIds.capture(), any(), any());
-        assertThat(guardianIds.getValue()).as("indexed guardians").isEmpty();
+        var guardrailIds = ArgumentCaptor.forClass(Set.class);
+        verify(apiRepository).updateDefinition(any(), any(), guardrailIds.capture(), any(), any());
+        assertThat(guardrailIds.getValue()).as("indexed guardrails").isEmpty();
     }
 
-    /** A definition that cannot carry an internal flow runs no Guardian, and indexing one would be a lie. */
+    /** A definition that cannot carry an internal flow runs no Guardrail, and indexing one would be a lie. */
     @Test
-    void should_index_no_guardian_for_a_definition_that_carries_no_internal_flow() throws TechnicalException {
+    void should_index_no_guardrail_for_a_definition_that_carries_no_internal_flow() throws TechnicalException {
         service.replaceDefinition(ApiFixtures.aProxyApiV2().toBuilder().updatedAt(UPDATED_AT).build(), EXPECTED_UPDATED_AT);
 
-        var guardianIds = ArgumentCaptor.forClass(Set.class);
-        verify(apiRepository).updateDefinition(any(), any(), guardianIds.capture(), any(), any());
-        assertThat(guardianIds.getValue()).as("indexed guardians").isEmpty();
+        var guardrailIds = ArgumentCaptor.forClass(Set.class);
+        verify(apiRepository).updateDefinition(any(), any(), guardrailIds.capture(), any(), any());
+        assertThat(guardrailIds.getValue()).as("indexed guardrails").isEmpty();
     }
 
     @Test
     void should_answer_that_nothing_was_written_when_the_api_moved() throws TechnicalException {
         when(apiRepository.updateDefinition(any(), any(), any(), any(), any())).thenReturn(false);
 
-        assertThat(service.replaceDefinition(runningGuardians("guardian-1"), EXPECTED_UPDATED_AT)).as("the write happened").isFalse();
+        assertThat(service.replaceDefinition(runningGuardrails("guardrail-1"), EXPECTED_UPDATED_AT)).as("the write happened").isFalse();
     }
 
     @Test
     void should_fail_loudly_when_the_store_fails() throws TechnicalException {
         when(apiRepository.updateDefinition(any(), any(), any(), any(), any())).thenThrow(new TechnicalException("boom"));
 
-        assertThatThrownBy(() -> service.replaceDefinition(runningGuardians("guardian-1"), EXPECTED_UPDATED_AT))
+        assertThatThrownBy(() -> service.replaceDefinition(runningGuardrails("guardrail-1"), EXPECTED_UPDATED_AT))
             .as("a store failure")
             .isInstanceOf(TechnicalDomainException.class);
     }
 
-    private static Api runningGuardians(String... guardianIds) {
+    private static Api runningGuardrails(String... guardrailIds) {
         var api = ApiFixtures.aProxyApiV4().toBuilder().updatedAt(UPDATED_AT).build();
         api
             .getApiDefinitionHttpV4()
             .setInternalFlow(
                 Flow.builder()
                     .request(
-                        Arrays.stream(guardianIds)
-                            .map(id -> GuardianSteps.of(id, id))
+                        Arrays.stream(guardrailIds)
+                            .map(id -> GuardrailSteps.of(id, id))
                             .toList()
                     )
                     .build()
