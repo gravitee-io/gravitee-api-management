@@ -22,9 +22,11 @@ import io.gravitee.apim.infra.adapter.AccessPointAdapter;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AccessPointRepository;
+import io.gravitee.repository.management.api.PortalRepository;
 import io.gravitee.repository.management.api.search.AccessPointCriteria;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
 import io.gravitee.repository.management.model.AccessPointStatus;
+import io.gravitee.repository.management.model.AccessPointTarget;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
@@ -32,17 +34,25 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
+@CustomLog
 public class AccessPointCrudServiceImpl extends TransactionalService implements AccessPointCrudService {
 
     private final AccessPointRepository accessPointRepository;
+    private final PortalRepository portalRepository;
     private EventManager eventManager;
 
-    public AccessPointCrudServiceImpl(@Lazy AccessPointRepository accessPointRepository, EventManager eventManager) {
+    public AccessPointCrudServiceImpl(
+        @Lazy AccessPointRepository accessPointRepository,
+        @Lazy PortalRepository portalRepository,
+        EventManager eventManager
+    ) {
         this.accessPointRepository = accessPointRepository;
+        this.portalRepository = portalRepository;
         this.eventManager = eventManager;
     }
 
@@ -104,7 +114,10 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
                 this.createAccessPoint(apToCreate);
             }
             for (var apToDelete : apsToDelete) {
-                this.deleteAccessPoint(apToDelete);
+                deleteUnlessServingPortal(apToDelete);
+            }
+            if (referenceType == AccessPoint.ReferenceType.ENVIRONMENT) {
+                restoreAccessPointsServingPortals(referenceId);
             }
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while updating access points", e);
@@ -125,6 +138,49 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
             }
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while deleting access points", e);
+        }
+    }
+
+    @Override
+    public void deleteUnreferencedAccessPoints(final AccessPoint.ReferenceType referenceType, final String referenceId) {
+        try {
+            var accessPointCriteria = AccessPointCriteria.builder()
+                .referenceType(AccessPointReferenceType.valueOf(referenceType.name()))
+                .referenceIds(Set.of(referenceId))
+                .status(AccessPointStatus.CREATED)
+                .build();
+            for (var accessPoint : accessPointRepository.findByCriteria(accessPointCriteria, null, null)) {
+                deleteUnlessServingPortal(accessPoint);
+            }
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurs while deleting unreferenced access points", e);
+        }
+    }
+
+    // Checked right before each delete, to keep the window with a portal being linked concurrently as short as possible.
+    private void deleteUnlessServingPortal(io.gravitee.repository.management.model.AccessPoint accessPoint) throws TechnicalException {
+        if (portalRepository.findByAccessPointId(accessPoint.getId()).isEmpty()) {
+            deleteAccessPoint(accessPoint);
+        } else {
+            log.warn("Access point [{}] on host [{}] is kept: a portal is served at it", accessPoint.getId(), accessPoint.getHost());
+        }
+    }
+
+    // Disabling an environment deletes its access points: the update that follows brings back those its portals still use.
+    private void restoreAccessPointsServingPortals(final String environmentId) throws TechnicalException {
+        var deletedPortalAccessPoints = AccessPointCriteria.builder()
+            .referenceType(AccessPointReferenceType.ENVIRONMENT)
+            .referenceIds(Set.of(environmentId))
+            .targets(List.of(AccessPointTarget.PORTAL_INSTANCE))
+            .status(AccessPointStatus.DELETED)
+            .build();
+        for (var accessPoint : accessPointRepository.findByCriteria(deletedPortalAccessPoints, null, null)) {
+            if (!portalRepository.findByAccessPointId(accessPoint.getId()).isEmpty()) {
+                accessPoint.setStatus(AccessPointStatus.CREATED);
+                accessPoint.setUpdatedAt(new Date());
+                var restored = accessPointRepository.update(accessPoint);
+                eventManager.publishEvent(AccessPointEvent.CREATED, AccessPointAdapter.INSTANCE.toEntity(restored));
+            }
         }
     }
 

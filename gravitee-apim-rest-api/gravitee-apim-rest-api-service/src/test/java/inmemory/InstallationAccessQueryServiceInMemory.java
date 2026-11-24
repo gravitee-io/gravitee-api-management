@@ -40,6 +40,16 @@ public class InstallationAccessQueryServiceInMemory implements InstallationAcces
     }
 
     @Override
+    public List<String> getPortalInstanceUrls() {
+        return List.of();
+    }
+
+    @Override
+    public List<String> getPortalInstanceUrls(final String environmentId) {
+        return List.of();
+    }
+
+    @Override
     public String getConsoleApiPath() {
         return "/management";
     }

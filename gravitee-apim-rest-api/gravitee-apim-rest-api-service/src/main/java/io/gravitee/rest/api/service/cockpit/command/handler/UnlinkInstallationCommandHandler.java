@@ -59,7 +59,8 @@ public class UnlinkInstallationCommandHandler implements CommandHandler<UnlinkIn
 
             if (unlinkInstallationPayload.environmentCockpitId() != null) {
                 EnvironmentEntity environment = this.environmentService.findByCockpitId(unlinkInstallationPayload.environmentCockpitId());
-                this.accessPointService.deleteAccessPoints(
+                // Unlinking keeps the environment serving: its portals stay at their access points.
+                this.accessPointService.deleteUnreferencedAccessPoints(
                     io.gravitee.apim.core.access_point.model.AccessPoint.ReferenceType.ENVIRONMENT,
                     environment.getId()
                 );

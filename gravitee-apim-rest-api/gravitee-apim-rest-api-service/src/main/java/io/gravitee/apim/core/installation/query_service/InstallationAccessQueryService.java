@@ -48,6 +48,12 @@ public interface InstallationAccessQueryService {
 
     String getPortalAPIUrl(final String environmentId);
 
+    /** @return the base URL of every portal access point, which a portal app can call the Portal API from */
+    List<String> getPortalInstanceUrls();
+
+    /** @return the base URL of every portal access point of this environment */
+    List<String> getPortalInstanceUrls(final String environmentId);
+
     List<RestrictedDomain> getGatewayRestrictedDomains(final String environmentId);
 
     String getGammaApiPath();

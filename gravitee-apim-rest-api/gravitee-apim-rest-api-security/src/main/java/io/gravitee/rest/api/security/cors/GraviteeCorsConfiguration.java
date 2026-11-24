@@ -190,10 +190,14 @@ public class GraviteeCorsConfiguration extends CorsConfiguration {
 
     private List<String> getPortalUrls() {
         if (referenceId.equals(UNDEFINED_REFERENCE_ID)) {
-            return installationAccessQueryService.getPortalUrls();
+            // A portal app bootstraps before it knows its environment: every portal access point is an expected origin.
+            List<String> urls = new ArrayList<>(nullToEmpty(installationAccessQueryService.getPortalUrls()));
+            urls.addAll(nullToEmpty(installationAccessQueryService.getPortalInstanceUrls()));
+            return urls;
         } else {
             List<String> urls = new ArrayList<>();
             List<String> portalUrls = installationAccessQueryService.getPortalUrls(referenceId);
+            urls.addAll(nullToEmpty(installationAccessQueryService.getPortalInstanceUrls(referenceId)));
             if (portalUrls != null) {
                 urls.addAll(portalUrls);
                 if (GraviteeContext.getCurrentEnvironment().equals(referenceId) && GraviteeContext.getCurrentOrganization() != null) {
@@ -205,6 +209,10 @@ public class GraviteeCorsConfiguration extends CorsConfiguration {
             }
             return urls;
         }
+    }
+
+    private static List<String> nullToEmpty(List<String> urls) {
+        return urls == null ? List.of() : urls;
     }
 
     public void release() {
