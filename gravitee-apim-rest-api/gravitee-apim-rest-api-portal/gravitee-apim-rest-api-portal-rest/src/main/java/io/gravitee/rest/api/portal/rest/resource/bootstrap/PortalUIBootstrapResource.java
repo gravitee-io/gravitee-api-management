@@ -15,8 +15,12 @@
  */
 package io.gravitee.rest.api.portal.rest.resource.bootstrap;
 
+import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalAddressDomainService;
+import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalHost;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.bootstrap.PortalUIBootstrapEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
@@ -27,12 +31,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import java.util.Optional;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -63,6 +69,12 @@ public class PortalUIBootstrapResource {
     protected DefaultPortalDomainService defaultPortalDomainService;
 
     @Autowired
+    protected PortalAddressDomainService portalAddressDomainService;
+
+    @Autowired
+    protected InstallationTypeDomainService installationTypeDomainService;
+
+    @Autowired
     private Environment environment;
 
     @GET
@@ -76,11 +88,16 @@ public class PortalUIBootstrapResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response bootstrap(
         @Context final HttpServletRequest httpServletRequest,
-        @QueryParam("environmentId") final String enforceEnvironmentId
+        @QueryParam("environmentId") final String enforceEnvironmentId,
+        @QueryParam("host") final String host
     ) {
+        var addressedPortal = findAddressedPortal(host, enforceEnvironmentId);
         String environmentId;
         String organizationId;
-        if (enforceEnvironmentId != null) {
+        if (addressedPortal.isPresent()) {
+            environmentId = addressedPortal.get().getEnvironmentId();
+            organizationId = addressedPortal.get().getOrganizationId();
+        } else if (enforceEnvironmentId != null) {
             environmentId = enforceEnvironmentId;
             organizationId = environmentService.findById(environmentId).getOrganizationId();
         } else {
@@ -92,8 +109,12 @@ public class PortalUIBootstrapResource {
                 : GraviteeContext.getDefaultOrganization();
         }
 
-        String portalId = defaultPortalDomainService
-            .findDefaultOrOnly(environmentId)
+        String portalId = addressedPortal
+            .or(() ->
+                host == null
+                    ? defaultPortalDomainService.findDefaultOrOnly(environmentId)
+                    : defaultPortalDomainService.findDefault(environmentId)
+            )
             .map(portal -> portal.getId().toString())
             .orElse(null);
         String portalApiUrl = installationAccessQueryService.getPortalAPIUrl(environmentId);
@@ -106,6 +127,21 @@ public class PortalUIBootstrapResource {
                 .baseURL(baseUrl)
                 .build()
         ).build();
+    }
+
+    private Optional<Portal> findAddressedPortal(String rawHost, String enforceEnvironmentId) {
+        if (rawHost == null) {
+            return Optional.empty();
+        }
+        var host = PortalHost.parse(rawHost).orElseThrow(() ->
+            new BadRequestException("Query parameter [host] must be a host with an optional port")
+        );
+        var scopeEnvironmentId = enforceEnvironmentId != null ? enforceEnvironmentId : GraviteeContext.getCurrentEnvironment();
+        // This endpoint is public: without a resolved environment, a multi-tenant lookup would reveal other tenants' portals.
+        if (scopeEnvironmentId == null && installationTypeDomainService.isMultiTenant()) {
+            return Optional.empty();
+        }
+        return portalAddressDomainService.findByAddress(host, scopeEnvironmentId);
     }
 
     private String portalApiUrlFromRequest(HttpServletRequest httpServletRequest) {
