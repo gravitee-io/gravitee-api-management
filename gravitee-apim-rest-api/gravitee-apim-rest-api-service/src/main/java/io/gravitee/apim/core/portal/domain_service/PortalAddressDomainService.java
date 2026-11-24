@@ -270,28 +270,28 @@ public class PortalAddressDomainService {
             var uri = new URI(rawUrl);
             // A user-info part would put credentials in the stored host and in the logs.
             if (
-                uri.getScheme() != null &&
-                HTTP_SCHEMES.contains(uri.getScheme().toLowerCase(Locale.ROOT)) &&
-                uri.getHost() != null &&
-                uri.getRawUserInfo() == null &&
-                uri.getRawQuery() == null &&
-                uri.getRawFragment() == null &&
-                (uri.getRawPath() == null || uri.getRawPath().isEmpty() || "/".equals(uri.getRawPath()))
+                uri.getScheme() == null ||
+                !HTTP_SCHEMES.contains(uri.getScheme().toLowerCase(Locale.ROOT)) ||
+                uri.getHost() == null ||
+                uri.getRawUserInfo() != null ||
+                uri.getRawQuery() != null ||
+                uri.getRawFragment() != null ||
+                (uri.getRawPath() != null && !uri.getRawPath().isEmpty() && !"/".equals(uri.getRawPath()))
             ) {
-                return new URI(
-                    uri.getScheme().toLowerCase(Locale.ROOT),
-                    null,
-                    uri.getHost().toLowerCase(Locale.ROOT),
-                    uri.getPort(),
-                    null,
-                    null,
-                    null
-                ).toURL();
+                throw invalidCustomUrl(null);
             }
+            return new URI(
+                uri.getScheme().toLowerCase(Locale.ROOT),
+                null,
+                uri.getHost().toLowerCase(Locale.ROOT),
+                uri.getPort(),
+                null,
+                null,
+                null
+            ).toURL();
         } catch (URISyntaxException | MalformedURLException | NullPointerException e) {
             throw invalidCustomUrl(e);
         }
-        throw invalidCustomUrl(null);
     }
 
     private static ValidationDomainException invalidCustomUrl(@Nullable Exception cause) {
