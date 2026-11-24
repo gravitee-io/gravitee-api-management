@@ -20,16 +20,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.AbstractUseCaseTest;
+import inmemory.EventCrudInMemory;
+import inmemory.EventLatestCrudInMemory;
 import inmemory.SecretCrudServiceInMemory;
 import inmemory.SecretValueEncryptorInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
+import io.gravitee.apim.core.generic_event.domain_service.GenericEventPublicationDomainService;
+import io.gravitee.apim.core.generic_event.domain_service.GenericEventWriterDomainService;
 import io.gravitee.apim.core.secret.domain_service.SecretDomainService;
 import io.gravitee.apim.core.secret.exception.SecretKeptForCredentialException;
 import io.gravitee.apim.core.secret.exception.SecretNotFoundException;
 import io.gravitee.apim.core.secret.model.Secret;
 import io.gravitee.apim.core.secret.model.SecretAuditEvent;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import java.time.ZoneId;
 import java.util.Map;
@@ -52,7 +57,19 @@ class DeleteSecretUseCaseTest extends AbstractUseCaseTest {
     void setUp() {
         useCase = new DeleteSecretUseCase(
             secretCrudService,
-            new SecretDomainService(secretCrudService, secretValueEncryptor, auditService)
+            new SecretDomainService(
+                secretCrudService,
+                secretValueEncryptor,
+                auditService,
+                new GenericEventPublicationDomainService(
+                    new GenericEventWriterDomainService(
+                        new EventCrudInMemory(),
+                        new EventLatestCrudInMemory(),
+                        GraviteeJacksonMapper.getInstance()
+                    ),
+                    GraviteeJacksonMapper.getInstance()
+                )
+            )
         );
     }
 

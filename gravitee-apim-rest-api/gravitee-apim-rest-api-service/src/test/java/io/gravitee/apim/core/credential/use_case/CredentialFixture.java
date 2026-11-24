@@ -19,6 +19,8 @@ import inmemory.AuditCrudServiceInMemory;
 import inmemory.CredentialConsumersInMemory;
 import inmemory.CredentialCrudServiceInMemory;
 import inmemory.CredentialQueryServiceInMemory;
+import inmemory.EventCrudInMemory;
+import inmemory.EventLatestCrudInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -34,9 +36,12 @@ import io.gravitee.apim.core.credential.model.CredentialActor;
 import io.gravitee.apim.core.credential.model.CredentialActor.SecretAccess;
 import io.gravitee.apim.core.credential.model.CredentialStrategy;
 import io.gravitee.apim.core.credential.model.NewCredentialCommand;
+import io.gravitee.apim.core.generic_event.domain_service.GenericEventPublicationDomainService;
+import io.gravitee.apim.core.generic_event.domain_service.GenericEventWriterDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.secret.domain_service.SecretDomainService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.apim.infra.credential.SpelSecretExpressionParser;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import java.time.Instant;
@@ -95,7 +100,19 @@ public class CredentialFixture {
         var auditDomainService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         var audit = new CredentialAuditDomainService(auditDomainService);
         var secrets = new CredentialSecretsDomainService(
-            new SecretDomainService(secretStore, secretStore.encryptor, auditDomainService),
+            new SecretDomainService(
+                secretStore,
+                secretStore.encryptor,
+                auditDomainService,
+                new GenericEventPublicationDomainService(
+                    new GenericEventWriterDomainService(
+                        new EventCrudInMemory(),
+                        new EventLatestCrudInMemory(),
+                        GraviteeJacksonMapper.getInstance()
+                    ),
+                    GraviteeJacksonMapper.getInstance()
+                )
+            ),
             secretStore
         );
         var owners = new CredentialOwnerDomainService(userCrudService, membershipQueryService);

@@ -19,13 +19,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.AbstractUseCaseTest;
+import inmemory.EventCrudInMemory;
+import inmemory.EventLatestCrudInMemory;
 import inmemory.SecretCrudServiceInMemory;
 import inmemory.SecretValueEncryptorInMemory;
+import io.gravitee.apim.common.secret.SecretChangedEvent;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
+import io.gravitee.apim.core.generic_event.domain_service.GenericEventPublicationDomainService;
+import io.gravitee.apim.core.generic_event.domain_service.GenericEventWriterDomainService;
+import io.gravitee.apim.core.generic_event.model.GenericEvent;
 import io.gravitee.apim.core.secret.exception.SecretKeyAlreadyExistsException;
 import io.gravitee.apim.core.secret.model.SecretAuditEvent;
 import io.gravitee.apim.core.secret.model.SecretValue;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,6 +41,7 @@ class SecretDomainServiceTest extends AbstractUseCaseTest {
 
     private final SecretCrudServiceInMemory secretCrudService = new SecretCrudServiceInMemory();
     private final SecretValueEncryptorInMemory secretValueEncryptor = new SecretValueEncryptorInMemory();
+    private final EventLatestCrudInMemory eventLatestCrudService = new EventLatestCrudInMemory();
 
     private SecretDomainService service;
 
@@ -42,7 +50,11 @@ class SecretDomainServiceTest extends AbstractUseCaseTest {
         service = new SecretDomainService(
             secretCrudService,
             secretValueEncryptor,
-            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor())
+            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+            new GenericEventPublicationDomainService(
+                new GenericEventWriterDomainService(new EventCrudInMemory(), eventLatestCrudService, GraviteeJacksonMapper.getInstance()),
+                GraviteeJacksonMapper.getInstance()
+            )
         );
     }
 
@@ -104,6 +116,51 @@ class SecretDomainServiceTest extends AbstractUseCaseTest {
         assertThat(auditCrudService.storage())
             .extracting(AuditEntity::getEvent)
             .containsExactly(SecretAuditEvent.SECRET_CREATED.name(), SecretAuditEvent.SECRET_DELETED.name());
+    }
+
+    @Test
+    void should_tell_the_gateways_when_a_secret_is_created_as_they_may_hold_it_as_not_found() {
+        service.create("db-password", new SecretValue("s3cret"), AUDIT_INFO);
+
+        assertSecretChangedEvent("db-password");
+    }
+
+    @Test
+    void should_tell_the_gateways_when_the_value_of_a_secret_changes_without_sending_it() {
+        var secret = service.create("db-password", new SecretValue("s3cret"), AUDIT_INFO);
+
+        service.update(secret, new SecretValue("n3w-s3cret"), AUDIT_INFO);
+
+        assertSecretChangedEvent("db-password");
+    }
+
+    @Test
+    void should_tell_the_gateways_when_a_snapshot_puts_back_a_value() {
+        var secret = service.create("db-password", new SecretValue("s3cret"), AUDIT_INFO);
+        var snapshot = service.snapshot(secret);
+
+        service.restore(snapshot, AUDIT_INFO);
+
+        assertSecretChangedEvent("db-password");
+    }
+
+    @Test
+    void should_tell_the_gateways_when_a_secret_is_deleted() {
+        var secret = service.create("db-password", new SecretValue("s3cret"), AUDIT_INFO);
+
+        service.delete(secret, AUDIT_INFO);
+
+        assertSecretChangedEvent("db-password");
+    }
+
+    private void assertSecretChangedEvent(String key) {
+        assertThat(eventLatestCrudService.storage())
+            .singleElement()
+            .satisfies(event -> {
+                assertThat(event.getId()).isEqualTo(GenericEvent.latestEventId(ENV_ID, SecretChangedEvent.KIND, key));
+                assertThat(event.getExpiresAt()).isNotNull();
+                assertThat(event.getPayload()).doesNotContain("s3cret");
+            });
     }
 
     private String valueOf(String secretId) {

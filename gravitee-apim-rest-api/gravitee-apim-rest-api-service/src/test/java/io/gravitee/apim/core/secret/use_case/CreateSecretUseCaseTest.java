@@ -20,11 +20,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.AbstractUseCaseTest;
+import inmemory.EventCrudInMemory;
+import inmemory.EventLatestCrudInMemory;
 import inmemory.SecretCrudServiceInMemory;
 import inmemory.SecretValueEncryptorInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
+import io.gravitee.apim.core.generic_event.domain_service.GenericEventPublicationDomainService;
+import io.gravitee.apim.core.generic_event.domain_service.GenericEventWriterDomainService;
 import io.gravitee.apim.core.secret.domain_service.SecretDomainService;
 import io.gravitee.apim.core.secret.exception.InvalidSecretKeyException;
 import io.gravitee.apim.core.secret.exception.InvalidSecretValueException;
@@ -32,6 +36,7 @@ import io.gravitee.apim.core.secret.exception.SecretKeptForCredentialException;
 import io.gravitee.apim.core.secret.exception.SecretKeyAlreadyExistsException;
 import io.gravitee.apim.core.secret.model.SecretAuditEvent;
 import io.gravitee.apim.core.secret.model.SecretValue;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import java.time.ZoneId;
 import java.util.Map;
@@ -55,7 +60,21 @@ class CreateSecretUseCaseTest extends AbstractUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new CreateSecretUseCase(new SecretDomainService(secretCrudService, secretValueEncryptor, auditService));
+        useCase = new CreateSecretUseCase(
+            new SecretDomainService(
+                secretCrudService,
+                secretValueEncryptor,
+                auditService,
+                new GenericEventPublicationDomainService(
+                    new GenericEventWriterDomainService(
+                        new EventCrudInMemory(),
+                        new EventLatestCrudInMemory(),
+                        GraviteeJacksonMapper.getInstance()
+                    ),
+                    GraviteeJacksonMapper.getInstance()
+                )
+            )
+        );
     }
 
     @Test
