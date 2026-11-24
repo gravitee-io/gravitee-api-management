@@ -18,24 +18,24 @@ package io.gravitee.gamma.rest.core.gravitee_plugin.model;
 import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
+import io.gravitee.definition.model.v4.guardrail.Guardrail.Phase;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
 /**
- * What an installed policy declares about where it can run: the Guardian phases of its {@code guardian} flow, and the
+ * What an installed policy declares about where it can run: the Guardrail phases of its {@code guardrail} flow, and the
  * API types of its guardrail policy flows.
  */
 public record PolicyCapabilities(boolean guardrailPolicy, DeclaredFlows flows) {
-    /** The Guardian phases the policy declares in its {@code guardian} flow. */
-    public Set<Phase> guardianPhases() {
-        return toGuardianPhases(flows.phases().getOrDefault(PolicyFlowType.GUARDIAN, List.of()));
+    /** The Guardrail phases the policy declares in its {@code guardrail} flow. */
+    public Set<Phase> guardrailPhases() {
+        return toGuardrailPhases(flows.phases().getOrDefault(PolicyFlowType.GUARDRAIL, List.of()));
     }
 
-    /** Whether a Guardian of this phase can run the policy, guardrail policy or not. */
-    public boolean runsInGuardian(Phase phase) {
-        return guardianPhases().contains(phase);
+    /** Whether a Guardrail of this phase can run the policy, guardrail policy or not. */
+    public boolean runsInGuardrail(Phase phase) {
+        return guardrailPhases().contains(phase);
     }
 
     /** Whether the manifest declares a guardrail policy flow for each of these API types, whatever the phases it lists. */
@@ -49,7 +49,7 @@ public record PolicyCapabilities(boolean guardrailPolicy, DeclaredFlows flows) {
             .containsAll(apiTypes);
     }
 
-    private static Set<Phase> toGuardianPhases(List<String> flowPhases) {
+    private static Set<Phase> toGuardrailPhases(List<String> flowPhases) {
         return Arrays.stream(Phase.values())
             .filter(phase -> flowPhases.contains(phase.name()))
             .collect(toSet());

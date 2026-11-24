@@ -16,13 +16,13 @@
 package io.gravitee.gamma.rest.core.gravitee_plugin.model;
 
 import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.A2A_PROXY;
-import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.GUARDIAN;
+import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.GUARDRAIL;
 import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.HTTP_PROXY;
 import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.LLM_PROXY;
 import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.MCP_PROXY;
 
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
+import io.gravitee.definition.model.v4.guardrail.Guardrail.Phase;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,23 +39,23 @@ class PolicyCapabilitiesTest {
     }
 
     @Test
-    void should_project_the_guardian_flow_onto_guardian_phases() {
-        var policy = declaring(Map.of(GUARDIAN, List.of("RESPONSE", "INTERACT"), LLM_PROXY, List.of("REQUEST")));
+    void should_project_the_guardrail_flow_onto_guardrail_phases() {
+        var policy = declaring(Map.of(GUARDRAIL, List.of("RESPONSE", "INTERACT"), LLM_PROXY, List.of("REQUEST")));
 
         SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(policy.guardianPhases()).as("guardian phases, INTERACT dropped").containsExactly(Phase.RESPONSE);
-            softly.assertThat(policy.runsInGuardian(Phase.RESPONSE)).as("RESPONSE Guardian").isTrue();
-            softly.assertThat(policy.runsInGuardian(Phase.REQUEST)).as("REQUEST Guardian, declared for llm-proxy only").isFalse();
+            softly.assertThat(policy.guardrailPhases()).as("guardrail phases, INTERACT dropped").containsExactly(Phase.RESPONSE);
+            softly.assertThat(policy.runsInGuardrail(Phase.RESPONSE)).as("RESPONSE Guardrail").isTrue();
+            softly.assertThat(policy.runsInGuardrail(Phase.REQUEST)).as("REQUEST Guardrail, declared for llm-proxy only").isFalse();
         });
     }
 
     @Test
-    void should_not_run_in_any_guardian_without_guardian_flow() {
+    void should_not_run_in_any_guardrail_without_guardrail_flow() {
         var policy = declaring(Map.of(LLM_PROXY, List.of("REQUEST", "RESPONSE")));
 
         SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(policy.guardianPhases()).as("guardian phases").isEmpty();
-            softly.assertThat(policy.runsInGuardian(Phase.REQUEST)).as("REQUEST Guardian").isFalse();
+            softly.assertThat(policy.guardrailPhases()).as("guardrail phases").isEmpty();
+            softly.assertThat(policy.runsInGuardrail(Phase.REQUEST)).as("REQUEST Guardrail").isFalse();
         });
     }
 
@@ -81,7 +81,7 @@ class PolicyCapabilitiesTest {
                 .isTrue();
             softly
                 .assertThat(policy.supports(Set.of(ApiType.A2A_PROXY)))
-                .as("supports a2a-proxy, declared with no Guardian phase")
+                .as("supports a2a-proxy, declared with no Guardrail phase")
                 .isTrue();
             softly.assertThat(policy.supports(Set.of(ApiType.PROXY))).as("the HTTP flow is no guardrail policy API type").isFalse();
         });

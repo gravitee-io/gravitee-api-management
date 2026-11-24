@@ -48,19 +48,20 @@ class PolicyFlowTypeTest {
                     "llm_proxy",
                     PolicyFlowType.A2A_PROXY,
                     "a2a_proxy",
-                    PolicyFlowType.GUARDIAN,
-                    "guardian"
+                    PolicyFlowType.GUARDRAIL,
+                    "guardrail"
                 )
             );
     }
 
     @Test
-    void should_fall_back_on_the_deprecated_keys_of_the_http_flows_only() {
+    void should_fall_back_on_the_deprecated_keys_of_the_http_and_guardrail_flows_only() {
         SoftAssertions.assertSoftly(softly -> {
             for (var flow : PolicyFlowType.values()) {
                 var expected = switch (flow) {
                     case HTTP_PROXY -> Optional.of("proxy");
                     case HTTP_MESSAGE -> Optional.of("message");
+                    case GUARDRAIL -> Optional.of("guardian");
                     default -> Optional.<String>empty();
                 };
                 softly.assertThat(flow.deprecatedManifestKey()).as("deprecated key of %s", flow).isEqualTo(expected);
@@ -83,7 +84,7 @@ class PolicyFlowTypeTest {
                 PolicyFlowType.HTTP_PROXY,
                 PolicyFlowType.HTTP_MESSAGE,
                 PolicyFlowType.NATIVE_KAFKA,
-                PolicyFlowType.GUARDIAN,
+                PolicyFlowType.GUARDRAIL,
             }) {
                 softly.assertThat(flow.guardrailPolicyApiType()).as("%s is no guardrail policy flow", flow).isEmpty();
             }

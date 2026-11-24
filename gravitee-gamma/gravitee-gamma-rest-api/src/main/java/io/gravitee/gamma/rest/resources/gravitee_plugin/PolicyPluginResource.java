@@ -23,7 +23,7 @@ import io.gravitee.gamma.rest.core.gravitee_plugin.port.service_provider.PolicyP
 import io.gravitee.gamma.rest.core.gravitee_plugin.use_case.ListPolicyPluginsUseCase;
 import io.gravitee.gamma.rest.resources.gravitee_plugin.dto.PolicyFlow;
 import io.gravitee.gamma.rest.resources.gravitee_plugin.dto.PolicyPluginDto;
-import io.gravitee.gamma.rest.resources.guardian.GuardiansResource;
+import io.gravitee.gamma.rest.resources.guardrail.GuardrailsResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.GraviteeLicenseFeature;
@@ -49,7 +49,7 @@ public class PolicyPluginResource {
     private PolicyPluginProvider policyPluginProvider;
 
     @GET
-    @GraviteeLicenseFeature(GuardiansResource.GUARDIANS_LICENSE_FEATURE)
+    @GraviteeLicenseFeature(GuardrailsResource.GUARDRAILS_LICENSE_FEATURE)
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_POLICIES, acls = RolePermissionAction.READ) })
     @Produces(MediaType.APPLICATION_JSON)
     public List<PolicyPluginDto> getPolicies(
@@ -66,7 +66,7 @@ public class PolicyPluginResource {
     }
 
     @GET
-    @GraviteeLicenseFeature(GuardiansResource.GUARDIANS_LICENSE_FEATURE)
+    @GraviteeLicenseFeature(GuardrailsResource.GUARDRAILS_LICENSE_FEATURE)
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_POLICIES, acls = RolePermissionAction.READ) })
     @Path("/{policyId}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -75,7 +75,7 @@ public class PolicyPluginResource {
     }
 
     @GET
-    @GraviteeLicenseFeature(GuardiansResource.GUARDIANS_LICENSE_FEATURE)
+    @GraviteeLicenseFeature(GuardrailsResource.GUARDRAILS_LICENSE_FEATURE)
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_POLICIES, acls = RolePermissionAction.READ) })
     @Path("/{policyId}/schema")
     @Produces(MediaType.APPLICATION_JSON)
@@ -84,7 +84,7 @@ public class PolicyPluginResource {
     }
 
     @GET
-    @GraviteeLicenseFeature(GuardiansResource.GUARDIANS_LICENSE_FEATURE)
+    @GraviteeLicenseFeature(GuardrailsResource.GUARDRAILS_LICENSE_FEATURE)
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_POLICIES, acls = RolePermissionAction.READ) })
     @Path("/{policyId}/documentation")
     @Produces(MediaType.TEXT_PLAIN)

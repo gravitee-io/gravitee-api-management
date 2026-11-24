@@ -16,7 +16,7 @@
 package io.gravitee.gamma.rest.infra.adapter;
 
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
-import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardedApiReadPermissionPort;
+import io.gravitee.gamma.rest.core.guardrail.port.service_provider.GuardedApiReadPermissionPort;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import lombok.RequiredArgsConstructor;
