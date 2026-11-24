@@ -117,7 +117,7 @@ public class GuardianDeploymentDomainService {
      * Publishes the definition as it stands, without judging it.
      *
      * <p>Whether the Guardian is worth publishing is the caller's to decide, and one rule has to be
-     * decided before calling: a revision without an enabled guardrail enforces nothing, and it would
+     * decided before calling: a revision without an enabled guardrail policy enforces nothing, and it would
      * replace the one the gateways run. {@code DeployGuardianUseCase} refuses that case; any future
      * publishing path owes the same check.
      */

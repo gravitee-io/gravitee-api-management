@@ -235,7 +235,7 @@ class GuardianDeploymentsResourceTest extends AbstractResourceTest {
             softly.assertThat(body.at("/name").asText()).as("deployed name").isEqualTo("Credential leakage");
             softly.assertThat(body.at("/phase").asText()).as("deployed phase").isEqualTo("REQUEST");
             softly.assertThat(body.at("/apiTypes/0").asText()).as("deployed API type").isEqualTo("llm-proxy");
-            softly.assertThat(body.at("/policies").isArray()).as("deployed guardrail sequence").isTrue();
+            softly.assertThat(body.at("/policies").isArray()).as("deployed guardrail policy sequence").isTrue();
             softly.assertThat(body.has("environmentId")).as("environment left out").isFalse();
         });
     }

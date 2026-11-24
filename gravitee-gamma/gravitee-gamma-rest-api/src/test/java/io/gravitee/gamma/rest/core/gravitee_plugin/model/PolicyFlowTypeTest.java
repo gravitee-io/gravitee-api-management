@@ -69,11 +69,11 @@ class PolicyFlowTypeTest {
     }
 
     @Test
-    void should_map_each_guardrail_flow_to_its_api_type_and_scope_protocol() {
+    void should_map_each_guardrail_policy_flow_to_its_api_type_and_scope_protocol() {
         SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(PolicyFlowType.LLM_PROXY.guardrailApiType()).as("llm-proxy API type").contains(ApiType.LLM_PROXY);
-            softly.assertThat(PolicyFlowType.MCP_PROXY.guardrailApiType()).as("mcp-proxy API type").contains(ApiType.MCP_PROXY);
-            softly.assertThat(PolicyFlowType.A2A_PROXY.guardrailApiType()).as("a2a-proxy API type").contains(ApiType.A2A_PROXY);
+            softly.assertThat(PolicyFlowType.LLM_PROXY.guardrailPolicyApiType()).as("llm-proxy API type").contains(ApiType.LLM_PROXY);
+            softly.assertThat(PolicyFlowType.MCP_PROXY.guardrailPolicyApiType()).as("mcp-proxy API type").contains(ApiType.MCP_PROXY);
+            softly.assertThat(PolicyFlowType.A2A_PROXY.guardrailPolicyApiType()).as("a2a-proxy API type").contains(ApiType.A2A_PROXY);
             softly.assertThat(PolicyFlowType.fromScopeProtocol("LLM")).as("LLM scope").contains(PolicyFlowType.LLM_PROXY);
             softly.assertThat(PolicyFlowType.fromScopeProtocol("MCP")).as("MCP scope").contains(PolicyFlowType.MCP_PROXY);
             softly.assertThat(PolicyFlowType.fromScopeProtocol("A2A")).as("A2A scope").contains(PolicyFlowType.A2A_PROXY);
@@ -85,7 +85,7 @@ class PolicyFlowTypeTest {
                 PolicyFlowType.NATIVE_KAFKA,
                 PolicyFlowType.GUARDIAN,
             }) {
-                softly.assertThat(flow.guardrailApiType()).as("%s is no guardrail flow", flow).isEmpty();
+                softly.assertThat(flow.guardrailPolicyApiType()).as("%s is no guardrail policy flow", flow).isEmpty();
             }
         });
     }

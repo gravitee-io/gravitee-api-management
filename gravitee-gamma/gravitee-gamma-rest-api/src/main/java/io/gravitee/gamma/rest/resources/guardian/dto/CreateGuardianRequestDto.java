@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * What the console sends to create a Guardian: the whole definition, guardrail sequence included,
+ * What the console sends to create a Guardian: the whole definition, guardrail policy sequence included,
  * plus the description the control plane keeps beside it.
  *
  * <p>Two fields are absent on purpose. The environment, already in the path. And the deployment

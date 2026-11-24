@@ -2,12 +2,12 @@ openapi: 3.0.3
 info:
     title: Gravitee.io Gamma - Guardians
     description: |
-        Manage and deploy Guardians: named, reusable guardrail sequences defined at environment
+        Manage and deploy Guardians: named, reusable guardrail policy sequences defined at environment
         level and attached to LLM proxies. Saving a Guardian updates its draft; the `_deploy`
         endpoint publishes that draft to the gateway.
 
         **The environment is carried by the path.** Request and response payloads expose the
-        guardrail sequence and resources as structured fields, rather than a serialized `definition`
+        guardrail policy sequence and resources as structured fields, rather than a serialized `definition`
         blob. A `PUT` replaces the complete draft, including its sequence and resources.
 
         **Nothing here is generated.** The gamma rest-api has no OpenAPI generator wired, so the
@@ -19,7 +19,7 @@ info:
         set the format themselves; the offset is always `Z`, never the server's.
 
         **A Guardian is its definition.** Creation and update both carry the whole thing — name,
-        phase, API types, guardrail sequence and resources — and a `PUT` replaces it rather than
+        phase, API types, guardrail policy sequence and resources — and a `PUT` replaces it rather than
         patching it. Five fields are the store's and not the caller's: `id`, which comes from the
         path, `lifecycleState` and `deployedAt`, which come from the latest deployment, and `createdAt` and
         `updatedAt`. An update accepts all five and ignores them, so the response of a `GET` can be
@@ -48,7 +48,7 @@ servers:
 tags:
     - name: Guardians
       description: |
-          Reusable guardrail sequences of an environment. Every operation requires the
+          Reusable guardrail policy sequences of an environment. Every operation requires the
           `ENVIRONMENT_GUARDIAN` permission with the action matching the verb, so holding read
           rights never grants creation. An organization admin bypasses the check.
 
@@ -145,7 +145,7 @@ paths:
                 does; omit it and the server assigns one. A Guardian is created **undeployed**:
                 storing a definition is not deploying it.
 
-                The body is the whole definition: the guardrail sequence and the resources travel
+                The body is the whole definition: the guardrail policy sequence and the resources travel
                 with the general settings rather than through a second endpoint.
             operationId: createGuardian
             requestBody:
@@ -183,7 +183,7 @@ paths:
                         whose configuration is not a JSON object, or does not match the schema that
                         policy declares — a step carrying no configuration at all being judged
                         against an empty object, so a schema that requires a property refuses it; and
-                        for a guardrail, one whose plugin does not declare the Guardian API types,
+                        for a guardrail policy, one whose plugin does not declare the Guardian API types,
                         whatever phases it lists for them, or that declares an incompatible
                         `scope.protocol`; and one naming, in a property its policy schema marks as a
                         resource picker, a resource the Guardian does not hold, holds disabled, or holds
@@ -256,7 +256,7 @@ paths:
                 - Guardians
             summary: Replace the definition of a Guardian
             description: |
-                Carries the whole definition: the name, the phase, the API types, the guardrail
+                Carries the whole definition: the name, the phase, the API types, the guardrail policy
                 sequence and the resources.
 
                 **A `PUT` replaces, it does not patch.** A property the payload omits is left out of
@@ -319,7 +319,7 @@ paths:
                         whose configuration is not a JSON object, or does not match the schema that
                         policy declares — a step carrying no configuration at all being judged
                         against an empty object, so a schema that requires a property refuses it; and
-                        for a guardrail, one whose plugin does not declare the Guardian API types,
+                        for a guardrail policy, one whose plugin does not declare the Guardian API types,
                         whatever phases it lists for them, or that declares an incompatible
                         `scope.protocol`; and one naming, in a property its policy schema marks as a
                         resource picker, a resource the Guardian does not hold, holds disabled, or holds
@@ -434,8 +434,8 @@ paths:
                 definition is unchanged, and records an audit entry. The returned state compares the
                 current draft with the latest publication; it is not an acknowledgement from each gateway.
 
-                **A Guardian needs at least one enabled guardrail to be deployed**: a sequence that is
-                empty, holds only disabled steps, or names only policies that are not guardrails or are no
+                **A Guardian needs at least one enabled guardrail policy to be deployed**: a sequence that is
+                empty, holds only disabled steps, or names only policies that are not guardrail policies or are no
                 longer installed is refused with a 400, publishing nothing. A Guardian already deployed
                 keeps the revision the gateways run. A draft may still be saved empty while its sequence is
                 being designed.
@@ -678,7 +678,7 @@ paths:
                 of a definition.
 
                 The checks of an update apply, since the revision may be out of date: a name
-                another Guardian took since answers 409, a guardrail or a resource type no longer
+                another Guardian took since answers 409, a guardrail policy or a resource type no longer
                 installed 400, and so does a step or a resource configuration the schema of its plugin no
                 longer accepts — a plugin upgraded to a stricter schema since that revision was deployed
                 closes this way back, and the Guardian has to be edited rather than rolled back. Refusing is deliberate:
@@ -926,12 +926,12 @@ components:
             description: |
                 One row of the Guardian list: what a list screen shows, and nothing it does not.
 
-                The guardrail sequence (`policies`) and the `resources` are deliberately absent —
+                The guardrail policy sequence (`policies`) and the `resources` are deliberately absent —
                 they are the bulk of a Guardian, and a page of twenty would carry twenty copies of
                 them for columns that never render one. Read `GET /guardians/{guardianId}` for the
                 whole definition.
 
-                `guardrailCount` stands in for the one thing a row says about the sequence: its
+                `guardrailPolicyCount` stands in for the one thing a row says about the sequence: its
                 length.
             properties:
                 id:
@@ -946,10 +946,10 @@ components:
                     $ref: "#/components/schemas/ApiTypes"
                 lifecycleState:
                     $ref: "#/components/schemas/GuardianLifecycleState"
-                guardrailCount:
+                guardrailPolicyCount:
                     type: integer
                     format: int32
-                    description: How many guardrails the sequence holds.
+                    description: How many guardrail policies the sequence holds.
                 createdAt:
                     $ref: "#/components/schemas/Timestamp"
                 updatedAt:
@@ -960,7 +960,7 @@ components:
                 - phase
                 - apiTypes
                 - lifecycleState
-                - guardrailCount
+                - guardrailPolicyCount
                 - createdAt
                 - updatedAt
             example:
@@ -971,14 +971,14 @@ components:
                 apiTypes:
                     - llm-proxy
                 lifecycleState: UNDEPLOYED
-                guardrailCount: 1
+                guardrailPolicyCount: 1
                 createdAt: "2026-11-07T10:00:01.119Z"
                 updatedAt: "2026-11-07T10:00:01.119Z"
 
         CreateGuardian:
             type: object
             description: |
-                The whole Guardian definition, guardrail sequence included. Rejects any key it does
+                The whole Guardian definition, guardrail policy sequence included. Rejects any key it does
                 not declare, rather than ignoring it — an unknown property answers 400.
 
                 The environment is not a property: it comes from the path. Neither is `deployedAt`,
@@ -1178,7 +1178,7 @@ components:
         Policies:
             type: array
             description: |
-                The guardrail sequence, in order. Each entry is a v4 definition-model `Step` — the
+                The guardrail policy sequence, in order. Each entry is a v4 definition-model `Step` — the
                 same shape a flow uses, carrying at least `policy`, plus `name`, `description`,
                 `configuration`, `condition` and `enabled`. Not enumerated here: the shape belongs to
                 `gravitee-apim-definition`, and restating it would let the two drift apart.
@@ -1205,14 +1205,14 @@ components:
         Resources:
             type: array
             description: |
-                The resources the guardrails need, as v4 definition-model `Resource` entries. Same
+                The resources the guardrail policies need, as v4 definition-model `Resource` entries. Same
                 reasoning as `policies`: the shape lives in the definition model.
 
                 The `type` of every enabled resource must be a resource plugin the catalog lists as
                 `deployed` — installed, deployed by the node and enabled by the license of the
                 organization —, and its `configuration` must match the schema that plugin declares;
                 `GET /organizations/{orgId}/plugins/resources` lists the types. A type listed with
-                `deployed: false` is refused. A guardrail refers to a resource by its name, so no two enabled resources may
+                `deployed: false` is refused. A guardrail policy refers to a resource by its name, so no two enabled resources may
                 share one. The steps naming a resource are judged against these: see `policies`.
                 Nothing follows a rename, and an update renaming a resource a step still names is
                 refused as a whole.
@@ -1231,7 +1231,7 @@ components:
         GuardianPhase:
             type: string
             description: |
-                When the guardrail sequence runs. Chosen at creation and sent again on every update,
+                When the guardrail policy sequence runs. Chosen at creation and sent again on every update,
                 because a `PUT` replaces the whole definition.
             enum:
                 - REQUEST

@@ -27,7 +27,7 @@ import io.gravitee.gamma.rest.core.guardian.use_case.DeployGuardianUseCase;
 
 /**
  * Keeps the one rule a publication cannot be trusted to carry itself: a revision is never published
- * without an enabled guardrail.
+ * without an enabled guardrail policy.
  *
  * <p>{@link GuardianDeploymentDomainService#publish} publishes what it is given, and the check lives
  * in {@link DeployGuardianUseCase} right before it. That holds only while this use case is the single

@@ -26,11 +26,11 @@ import java.util.List;
  * @param name the name of the deployed revision; {@code null} when no revision of this Guardian is deployed, which
  *     includes the Guardian having been withdrawn or the environment no longer holding it.
  * @param order the 1-based position of the Guardian among those of its phase.
- * @param effects what the guardrails of the deployed revision do to the calls they evaluate, empty when none of them
- *     says (see {@link GuardrailEffects}) or when no revision is deployed.
+ * @param effects what the guardrail policies of the deployed revision do to the calls they evaluate, empty when none of them
+ *     says (see {@link GuardrailPolicyEffects}) or when no revision is deployed.
  * @author GraviteeSource Team
  */
-public record ApiGuardian(String guardianId, String name, Phase phase, int order, List<GuardrailEffect> effects) {
+public record ApiGuardian(String guardianId, String name, Phase phase, int order, List<GuardrailPolicyEffect> effects) {
     public ApiGuardian {
         effects = effects == null ? List.of() : List.copyOf(effects);
     }

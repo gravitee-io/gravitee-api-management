@@ -83,13 +83,13 @@ public final class GuardianFixtures {
     /** A UUID, because that is what the creation endpoint accepts as a caller-supplied id. */
     public static final String GUARDIAN_ID = "3f1b0f2a-6c14-4b0e-9a3f-7d2c8e5a1b40";
 
-    /** The installed guardrail the fixtures build their sequences from. */
+    /** The installed guardrail policy the fixtures build their sequences from. */
     public static final String GUARDRAIL_POLICY = "data-logging-masking";
 
     /** The resource type the fixtures install, so a resource can name one the node has. */
     public static final String INSTALLED_RESOURCE_TYPE = "ai-model-token-classification";
 
-    /** An installed guardrail whose configuration names a resource, in its {@code resource} property. */
+    /** An installed guardrail policy whose configuration names a resource, in its {@code resource} property. */
     public static final String DECISION_POLICY = "guardrail-decision";
 
     /** The only resource type {@link #DECISION_POLICY} accepts in that property, installed too. */
@@ -335,12 +335,12 @@ public final class GuardianFixtures {
         return Step.builder().name("Detect credentials").policy(GUARDRAIL_POLICY).enabled(true).build();
     }
 
-    /** The same guardrail, switched off: part of the stored sequence, run by nothing. */
+    /** The same guardrail policy, switched off: part of the stored sequence, run by nothing. */
     public static Step aDisabledPolicy() {
         return Step.builder().name("Detect credentials").policy(GUARDRAIL_POLICY).enabled(false).build();
     }
 
-    /** A stored definition: identified, scoped to its environment and carrying one guardrail. */
+    /** A stored definition: identified, scoped to its environment and carrying one guardrail policy. */
     public static io.gravitee.definition.model.v4.guardian.Guardian.GuardianBuilder aGuardianDefinition() {
         return io.gravitee.definition.model.v4.guardian.Guardian.builder()
             .id(GUARDIAN_ID)

@@ -33,7 +33,7 @@ import lombok.RequiredArgsConstructor;
 /**
  * Replaces the definition of a Guardian with the one the console sends.
  *
- * <p>A {@code PUT} sets everything: the name, the phase, the API types, the guardrail sequence and
+ * <p>A {@code PUT} sets everything: the name, the phase, the API types, the guardrail policy sequence and
  * the resources all come from the payload, and whatever it leaves out is left out of the stored
  * definition too. {@link Guardian#update} keeps back only what the caller does not own — the
  * identity, which comes from the path, and the deployment stamp.

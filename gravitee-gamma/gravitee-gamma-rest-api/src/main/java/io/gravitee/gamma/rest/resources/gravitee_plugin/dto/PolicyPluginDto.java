@@ -29,7 +29,7 @@ public record PolicyPluginDto(
     String icon,
     String feature,
     boolean deployed,
-    boolean guardrail,
+    boolean guardrailPolicy,
     Map<String, List<String>> flow
 ) {
     public static PolicyPluginDto from(PlatformPolicyPlugin policy) {
@@ -48,7 +48,7 @@ public record PolicyPluginDto(
             plugin.icon(),
             plugin.feature(),
             plugin.deployed(),
-            policy.guardrail(),
+            policy.guardrailPolicy(),
             flow
         );
     }
