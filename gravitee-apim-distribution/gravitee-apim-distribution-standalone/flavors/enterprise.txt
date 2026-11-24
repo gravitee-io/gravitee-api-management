@@ -109,6 +109,7 @@ gravitee-policy-guardrail-llm-decision-binary
 gravitee-policy-guardrail-llm-decision-scoring
 gravitee-policy-human-approval
 gravitee-policy-authz-pep
+gravitee-policy-authz-list-filter
 gravitee-policy-authz-pdp-authzen
 
 # Reactors
