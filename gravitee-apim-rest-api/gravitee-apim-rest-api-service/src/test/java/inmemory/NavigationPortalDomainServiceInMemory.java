@@ -26,6 +26,8 @@ import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import java.net.URI;
 import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.SneakyThrows;
 
 /**
@@ -37,6 +39,7 @@ public class NavigationPortalDomainServiceInMemory extends NavigationPortalDomai
     public static final String PORTAL_URL = "https://portal.example.com";
 
     private final PortalCrudServiceInMemory portalCrudService;
+    private final Set<PortalId> consolePortals = new HashSet<>();
     private int resolveCalls;
 
     public NavigationPortalDomainServiceInMemory() {
@@ -96,6 +99,18 @@ public class NavigationPortalDomainServiceInMemory extends NavigationPortalDomai
 
     public PortalId givenAutomationPortal(String organizationId, String environmentId) {
         return portalCrudService.create(Portal.create(environmentId, organizationId, "Automation Portal", portalUrl())).getId();
+    }
+
+    /** A portal the console manages besides the default one, as it will once it can create portals (PORTAL-380). */
+    public PortalId givenConsolePortal(String organizationId, String environmentId, String name) {
+        var portalId = portalCrudService.create(Portal.create(environmentId, organizationId, name, portalUrl())).getId();
+        consolePortals.add(portalId);
+        return portalId;
+    }
+
+    @Override
+    protected boolean isManagedByConsole(Portal portal) {
+        return super.isManagedByConsole(portal) || consolePortals.contains(portal.getId());
     }
 
     @SneakyThrows

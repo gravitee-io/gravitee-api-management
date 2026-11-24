@@ -22,7 +22,12 @@ import { ApiDocumentationPage } from './ApiDocumentationPage';
 import { ApimApiError } from '../../../../shared/api/apimClient';
 import { notify } from '../../../../shared/notify';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
-import { useApiDocumentation, useDeleteApiDocumentationItem, useUnpublishApiFromPortal } from '../../hooks/useApiDocumentation';
+import {
+    useApiDocumentation,
+    useApiPublishPortals,
+    useDeleteApiDocumentationItem,
+    useUnpublishApiFromPortal,
+} from '../../hooks/useApiDocumentation';
 import { useFetchNow } from '../../hooks/useFetchNow';
 import type { ApiDocumentationItem, ApiPortalNavigationItemsResponse, ApiPortalPublication } from '../../types/apiDocumentation';
 
@@ -36,6 +41,7 @@ jest.mock('../../context/ApiDetailContext', () => ({
 
 jest.mock('../../hooks/useApiDocumentation', () => ({
     useApiDocumentation: jest.fn(),
+    useApiPublishPortals: jest.fn(),
     useDeleteApiDocumentationItem: jest.fn(),
     useUnpublishApiFromPortal: jest.fn(),
 }));
@@ -45,7 +51,7 @@ jest.mock('../../hooks/useFetchNow', () => ({
 }));
 
 jest.mock('../../../../shared/notify', () => ({
-    notify: { success: jest.fn(), warning: jest.fn(), error: jest.fn() },
+    notify: { success: jest.fn(), warning: jest.fn(), info: jest.fn(), error: jest.fn() },
 }));
 
 // The dialog has its own spec; here only whether the page opens it, for which API, and what follows, matters.
@@ -236,6 +242,7 @@ jest.mock('../../components/detail/documentation/PublishToPortalDialog', () => (
 const mockUseHasPermission = useHasPermission as jest.Mock;
 const mockUseApiDetailContext = useApiDetailContext as jest.Mock;
 const mockUseApiDocumentation = useApiDocumentation as jest.Mock;
+const mockUseApiPublishPortals = useApiPublishPortals as jest.Mock;
 const mockUseDeleteApiDocumentationItem = useDeleteApiDocumentationItem as jest.Mock;
 const mockDelete = jest.fn();
 const mockUseUnpublishApiFromPortal = useUnpublishApiFromPortal as jest.Mock;
@@ -275,9 +282,9 @@ const CHANGELOG: ApiDocumentationItem = {
     order: 1,
 };
 
-function publication(published: boolean): ApiPortalPublication {
+function publication(published: boolean, portalId = 'DEFAULT'): ApiPortalPublication {
     return {
-        portalId: 'DEFAULT',
+        portalId,
         sectionName: 'APIs',
         portalNavigationItem: {
             ...BASE,
@@ -293,6 +300,9 @@ function publication(published: boolean): ApiPortalPublication {
     };
 }
 
+// An Automation API portal is not among the portals the console can publish to
+const AUTOMATION_PORTAL_ID = 'automation-portal';
+
 function givenDocumentation(data: ApiPortalNavigationItemsResponse) {
     mockUseApiDocumentation.mockReturnValue({ data, isLoading: false, isError: false });
 }
@@ -302,8 +312,8 @@ function EditRoute() {
     return <p>Editing {pageId}</p>;
 }
 
-function renderPage() {
-    return render(
+function pageTree() {
+    return (
         <MemoryRouter initialEntries={['/apis/api-1/documentation']}>
             <Routes>
                 <Route path="apis/:apiId/documentation">
@@ -311,8 +321,12 @@ function renderPage() {
                     <Route path=":pageId/edit" element={<EditRoute />} />
                 </Route>
             </Routes>
-        </MemoryRouter>,
+        </MemoryRouter>
     );
+}
+
+function renderPage() {
+    return render(pageTree());
 }
 
 beforeEach(() => {
@@ -321,6 +335,10 @@ beforeEach(() => {
     mockUseHasPermission.mockReturnValue(true);
     mockUseApiDetailContext.mockReturnValue({ api: { id: 'api-1' }, isLoading: false, permissionsReady: true });
     givenDocumentation({ items: [GUIDES, GETTING_STARTED, CHANGELOG], publications: [] });
+    mockUseApiPublishPortals.mockReturnValue({
+        data: { data: [{ id: 'DEFAULT', name: 'Developer Portal', default: true }] },
+        isSuccess: true,
+    });
     mockDelete.mockResolvedValue(undefined);
     mockUseDeleteApiDocumentationItem.mockReturnValue({ mutateAsync: mockDelete, isPending: false });
     mockUnpublish.mockResolvedValue(undefined);
@@ -391,6 +409,25 @@ describe('ApiDocumentationPage', () => {
             renderPage();
 
             expect(screen.queryByText(/published/i)).not.toBeInTheDocument();
+        });
+
+        it('ignores a listing in a portal the console does not manage', () => {
+            givenDocumentation({ items: [GUIDES], publications: [publication(true, AUTOMATION_PORTAL_ID)] });
+            renderPage();
+
+            expect(screen.getByText('Not published')).toBeInTheDocument();
+            expect(screen.getByRole('button', { name: 'Publish' })).toBeInTheDocument();
+        });
+
+        it('claims no publication status while the portals are loading', () => {
+            givenDocumentation({ items: [GUIDES], publications: [publication(true)] });
+            mockUseApiPublishPortals.mockReturnValue({ data: undefined, isSuccess: false });
+            renderPage();
+
+            expect(screen.queryByText('Published in APIs')).not.toBeInTheDocument();
+            expect(screen.queryByText('Not published')).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', { name: 'Unpublish' })).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', { name: 'Publish' })).not.toBeInTheDocument();
         });
 
         it('claims no publication status when the documentation failed to load', () => {
@@ -527,15 +564,40 @@ describe('ApiDocumentationPage', () => {
             expect(mockUnpublish).not.toHaveBeenCalled();
         });
 
-        it('unpublishes once confirmed, then closes', async () => {
+        it('unpublishes from the portal the API is published in once confirmed, then closes', async () => {
             const user = userEvent.setup();
             renderPage();
 
             await user.click(screen.getByRole('button', { name: 'Unpublish' }));
             await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Unpublish' }));
 
-            expect(mockUnpublish).toHaveBeenCalled();
+            expect(mockUnpublish).toHaveBeenCalledWith('DEFAULT');
             expect(notify.success).toHaveBeenCalledWith('Unpublished from the developer portal');
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        });
+
+        it('unpublishes from the portal the console manages when the Automation API also lists the API', async () => {
+            givenDocumentation({ items: [GUIDES], publications: [publication(true, AUTOMATION_PORTAL_ID), publication(true)] });
+            const user = userEvent.setup();
+            renderPage();
+
+            await user.click(screen.getByRole('button', { name: 'Unpublish' }));
+            await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Unpublish' }));
+
+            expect(mockUnpublish).toHaveBeenCalledWith('DEFAULT');
+        });
+
+        it('closes the confirmation and says so when the API was unpublished meanwhile', async () => {
+            const user = userEvent.setup();
+            const { rerender } = renderPage();
+
+            await user.click(screen.getByRole('button', { name: 'Unpublish' }));
+            givenDocumentation({ items: [GUIDES], publications: [publication(false)] });
+            rerender(pageTree());
+            await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Unpublish' }));
+
+            expect(mockUnpublish).not.toHaveBeenCalled();
+            expect(notify.info).toHaveBeenCalledWith('The API is no longer published to the developer portal');
             expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
         });
 

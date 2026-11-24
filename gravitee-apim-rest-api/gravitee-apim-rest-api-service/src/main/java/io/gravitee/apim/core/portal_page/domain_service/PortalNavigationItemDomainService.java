@@ -662,7 +662,12 @@ public class PortalNavigationItemDomainService {
         }
 
         final var children = new ArrayList<>(queryService.findByParentIdAndEnvironmentId(parent.getEnvironmentId(), parent.getId()));
-        if (changedPublished != null && parent instanceof PortalNavigationApi api && !inApiProductContext) {
+        if (
+            changedPublished != null &&
+            parent instanceof PortalNavigationApi api &&
+            !inApiProductContext &&
+            !apiOwnedNavigationDomainService.isShownByAnotherListing(api.getEnvironmentId(), api.getApiId(), api.getId())
+        ) {
             children.addAll(
                 queryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
                     parent.getEnvironmentId(),

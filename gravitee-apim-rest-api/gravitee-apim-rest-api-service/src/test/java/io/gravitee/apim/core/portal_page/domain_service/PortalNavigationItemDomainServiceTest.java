@@ -2372,6 +2372,23 @@ public class PortalNavigationItemDomainServiceTest {
         }
 
         @Test
+        void should_keep_api_owned_documentation_published_while_another_standalone_listing_shows_the_api() {
+            var api = standaloneApi(true);
+            var physicalPage = PortalNavigationItemFixtures.aPage("Physical page", api.getId());
+            physicalPage.updateParent(api);
+            var otherPortalListing = PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().json(), "Api", null, API_ID);
+            otherPortalListing.changeOwner(new NavigationItemReference.PortalReference(PortalId.random()));
+            otherPortalListing.markAsRoot();
+            var ownedPage = ownedPage("Owned page", null, true);
+            portalNavigationItemsCrudService.initWith(List.of(api, physicalPage, otherPortalListing, ownedPage));
+
+            domainService.update(publicationUpdate(api, false), api, false);
+
+            assertPublished(false, api, physicalPage);
+            assertPublished(true, otherPortalListing, ownedPage);
+        }
+
+        @Test
         void should_not_propagate_publication_to_documentation_of_another_api_environment_or_area() {
             var api = standaloneApi(true);
             var ownedPage = ownedPage("Owned page", null, true);

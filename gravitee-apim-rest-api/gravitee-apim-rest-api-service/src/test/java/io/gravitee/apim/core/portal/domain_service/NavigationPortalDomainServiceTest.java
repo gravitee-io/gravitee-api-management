@@ -25,6 +25,7 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import java.net.URI;
 import java.net.URL;
 import java.util.List;
@@ -111,6 +112,26 @@ class NavigationPortalDomainServiceTest {
             .hasMessageContaining("[" + ENV_ID + "]")
             .hasMessageContaining("its portal is managed through the Automation API");
         assertThat(portalCrudService.storage()).singleElement().extracting(Portal::getId).isEqualTo(AUTOMATION_PORTAL_ID);
+    }
+
+    @Test
+    void should_require_the_default_portal() {
+        portalCrudService.initWith(List.of(aPortal(DEFAULT_PORTAL_ID, "Developer Portal", true)));
+
+        assertThat(cut.requireReference(ENV_ID, DEFAULT_PORTAL_ID)).isEqualTo(
+            new NavigationItemReference.PortalReference(DEFAULT_PORTAL_ID)
+        );
+    }
+
+    @Test
+    void should_refuse_to_require_a_portal_managed_through_the_automation_api() {
+        portalCrudService.initWith(
+            List.of(aPortal(DEFAULT_PORTAL_ID, "Developer Portal", true), aPortal(AUTOMATION_PORTAL_ID, "Automation Portal", false))
+        );
+
+        assertThatThrownBy(() -> cut.requireReference(ENV_ID, AUTOMATION_PORTAL_ID))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("managed through the Automation API");
     }
 
     @Test

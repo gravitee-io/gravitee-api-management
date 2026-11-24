@@ -23,6 +23,7 @@ import {
     useApiDocumentationPageContent,
     useChangeApiDocumentationItem,
     useApiPublishLocations,
+    useApiPublishPortals,
     useCreateApiDocumentationItem,
     useCreateApiOverviewPage,
     useDeleteApiDocumentationItem,
@@ -43,6 +44,7 @@ import {
     importApiDocumentation,
     listApiDocumentation,
     listApiPublishLocations,
+    listApiPublishPortals,
     publishApiToPortal,
     saveApiDocumentationPageConfiguration,
     saveApiDocumentationPageContent,
@@ -66,6 +68,7 @@ jest.mock('../services/apiDocumentation');
 const mockUseEnvironment = jest.mocked(useEnvironment);
 const mockListApiDocumentation = jest.mocked(listApiDocumentation);
 const mockListApiPublishLocations = jest.mocked(listApiPublishLocations);
+const mockListApiPublishPortals = jest.mocked(listApiPublishPortals);
 const mockCreateApiDocumentationItem = jest.mocked(createApiDocumentationItem);
 const mockUpdateApiDocumentationItem = jest.mocked(updateApiDocumentationItem);
 const mockDeleteApiDocumentationItem = jest.mocked(deleteApiDocumentationItem);
@@ -100,6 +103,7 @@ describe('useApiDocumentation hooks', () => {
         mockUseEnvironment.mockReturnValue({ id: 'env-1' } as ReturnType<typeof useEnvironment>);
         mockListApiDocumentation.mockResolvedValue({ items: [], publications: [] });
         mockListApiPublishLocations.mockResolvedValue({ data: [] });
+        mockListApiPublishPortals.mockResolvedValue({ data: [] });
     });
 
     describe('useApiDocumentation', () => {
@@ -166,16 +170,39 @@ describe('useApiDocumentation hooks', () => {
         });
     });
 
-    describe('useApiPublishLocations', () => {
-        it('loads the sections the API can be published to', async () => {
-            const { result } = renderWithQueryClient(() => useApiPublishLocations('api-1'));
+    describe('useApiPublishPortals', () => {
+        it('loads the portals the API can be published to', async () => {
+            const { result } = renderWithQueryClient(() => useApiPublishPortals('api-1'));
 
             await waitFor(() => expect(result.current.isSuccess).toBe(true));
-            expect(mockListApiPublishLocations).toHaveBeenCalledWith('env-1', 'api-1');
+            expect(mockListApiPublishPortals).toHaveBeenCalledWith('env-1', 'api-1');
         });
 
         it('does not load until it is enabled', () => {
-            const { result } = renderWithQueryClient(() => useApiPublishLocations('api-1', false));
+            const { result } = renderWithQueryClient(() => useApiPublishPortals('api-1', false));
+
+            expect(result.current.fetchStatus).toBe('idle');
+            expect(mockListApiPublishPortals).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('useApiPublishLocations', () => {
+        it('loads the sections of the given portal the API can be published to', async () => {
+            const { result } = renderWithQueryClient(() => useApiPublishLocations('api-1', 'portal-1'));
+
+            await waitFor(() => expect(result.current.isSuccess).toBe(true));
+            expect(mockListApiPublishLocations).toHaveBeenCalledWith('env-1', 'api-1', 'portal-1');
+        });
+
+        it('does not load until a portal is given', () => {
+            const { result } = renderWithQueryClient(() => useApiPublishLocations('api-1', undefined));
+
+            expect(result.current.fetchStatus).toBe('idle');
+            expect(mockListApiPublishLocations).not.toHaveBeenCalled();
+        });
+
+        it('does not load until it is enabled', () => {
+            const { result } = renderWithQueryClient(() => useApiPublishLocations('api-1', 'portal-1', false));
 
             expect(result.current.fetchStatus).toBe('idle');
             expect(mockListApiPublishLocations).not.toHaveBeenCalled();
@@ -214,9 +241,9 @@ describe('useApiDocumentation hooks', () => {
         {
             name: 'useUnpublishApiFromPortal',
             render: () => renderWithQueryClient(() => useUnpublishApiFromPortal('api-1')),
-            variables: undefined,
+            variables: 'portal-1',
             service: mockUnpublishApiFromPortal,
-            expectedCall: ['env-1', 'api-1'],
+            expectedCall: ['env-1', 'api-1', 'portal-1'],
         },
         {
             name: 'useCreateApiOverviewPage',

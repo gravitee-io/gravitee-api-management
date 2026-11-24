@@ -22,6 +22,7 @@ import {
     getAncestors,
     getHiddenListing,
     getPublishedSection,
+    publicationsInPortals,
     syncStateOf,
 } from './documentationTree';
 import type {
@@ -302,6 +303,21 @@ describe('getPublishedSection', () => {
 
     it('is undefined when every listing is hidden', () => {
         expect(getPublishedSection([publication('APIs', false)])).toBeUndefined();
+    });
+});
+
+describe('publicationsInPortals', () => {
+    const developerPortal = { id: 'DEFAULT', name: 'Developer Portal', default: true };
+
+    it('keeps the publications of the given portals only', () => {
+        const inDeveloperPortal = publication('APIs', true);
+        const inAutomationPortal = { ...publication('Partner APIs', true), portalId: 'automation-portal' };
+
+        expect(publicationsInPortals([inAutomationPortal, inDeveloperPortal], [developerPortal])).toEqual([inDeveloperPortal]);
+    });
+
+    it('keeps none when no portal is given', () => {
+        expect(publicationsInPortals([publication('APIs', true)], [])).toEqual([]);
     });
 });
 

@@ -37,7 +37,12 @@ import { useId, useState, type FormEvent } from 'react';
 
 import { notify } from '../../../../../shared/notify';
 import { extractErrorMessage } from '../../../../../shared/notify/extractErrorMessage';
-import { useApiPublishLocations, useCreateApiOverviewPage, usePublishApiToPortal } from '../../../hooks/useApiDocumentation';
+import {
+    useApiPublishLocations,
+    useApiPublishPortals,
+    useCreateApiOverviewPage,
+    usePublishApiToPortal,
+} from '../../../hooks/useApiDocumentation';
 import type { ApiPortalPublication, PortalNavigationPage, PublishApiToPortal } from '../../../types/apiDocumentation';
 import { defaultPublishSectionId, getHiddenListing } from '../../../utils/documentationTree';
 
@@ -170,19 +175,25 @@ function PublishToPortalForm({
     onClose: () => void;
 }>) {
     const sectionId = useId();
-    const locationsQuery = useApiPublishLocations(apiId);
+    const portalsQuery = useApiPublishPortals(apiId);
+    // The developer portal is the environment's default portal
+    const portal = portalsQuery.data?.data.find(candidate => candidate.default);
+    const locationsQuery = useApiPublishLocations(apiId, portal?.id);
     const [chosenSectionId, setChosenSectionId] = useState<string | undefined>(undefined);
     const [refusal, setRefusal] = useState<string | null>(null);
 
+    const portalPublications = publications.filter(publication => publication.portalId === portal?.id);
     const locations = locationsQuery.data?.data ?? [];
-    const selectedSectionId = chosenSectionId ?? defaultPublishSectionId(locations, publications);
-    const hiddenListing = getHiddenListing(publications);
+    const selectedSectionId = chosenSectionId ?? defaultPublishSectionId(locations, portalPublications);
+    const hiddenListing = getHiddenListing(portalPublications);
     const hiddenListingMoves =
         locationsQuery.isSuccess &&
         hiddenListing !== undefined &&
         !locations.some(location => location.id === hiddenListing.portalNavigationItem.parentId);
-    const hasNoSection = locationsQuery.isSuccess && locations.length === 0;
-    const canPublish = selectedSectionId !== undefined && !isPublishing;
+    const hasNoPortal = portalsQuery.isSuccess && portal === undefined;
+    const hasNoSection = hasNoPortal || (locationsQuery.isSuccess && locations.length === 0);
+    const isLoadingSections = portalsQuery.isPending || (portal !== undefined && locationsQuery.isPending);
+    const canPublish = portal !== undefined && selectedSectionId !== undefined && !isPublishing;
 
     function handleSectionChange(next: string) {
         // Inside a form, the select's hidden native twin reports an empty value before the sections arrive.
@@ -193,7 +204,7 @@ function PublishToPortalForm({
 
     async function handleSubmit(event: FormEvent) {
         event.preventDefault();
-        if (!canPublish) return;
+        if (!canPublish || selectedSectionId === undefined) return;
         try {
             const published = await publishApi({ sectionId: selectedSectionId });
             notify.success(`Published in '${published.sectionName}'`);
@@ -224,7 +235,7 @@ function PublishToPortalForm({
                     </Alert>
                 ) : null}
 
-                {locationsQuery.isError ? (
+                {portalsQuery.isError || locationsQuery.isError ? (
                     <Alert variant="destructive">
                         <AlertCircleIcon aria-hidden />
                         <AlertDescription>Failed to load the portal sections. Close and try again.</AlertDescription>
@@ -246,7 +257,7 @@ function PublishToPortalForm({
                         disabled={locations.length === 0 || isPublishing}
                     >
                         <SelectTrigger id={sectionId} className="w-full">
-                            <SelectValue placeholder={sectionPlaceholder(locationsQuery.isPending, hasNoSection)} />
+                            <SelectValue placeholder={sectionPlaceholder(isLoadingSections, hasNoSection)} />
                         </SelectTrigger>
                         {/* Aligned on the selected item, the list is placed against the page rather than the dialog */}
                         <SelectContent position="popper" style={{ width: 'var(--radix-select-trigger-width)', minWidth: 'unset' }}>
@@ -257,7 +268,10 @@ function PublishToPortalForm({
                             ))}
                         </SelectContent>
                     </Select>
-                    {hasNoSection ? (
+                    {hasNoPortal ? (
+                        <FieldDescription>This environment has no developer portal to publish this API to.</FieldDescription>
+                    ) : null}
+                    {hasNoSection && !hasNoPortal ? (
                         <FieldDescription>
                             The portal&apos;s top navigation has no published section to list this API in. Ask a portal administrator to add
                             one.

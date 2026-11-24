@@ -13,7 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ApiDocumentationItem, ApiPortalPublication, ApiPortalPublishLocation } from '../types/apiDocumentation';
+import type {
+    ApiDocumentationItem,
+    ApiPortalPublication,
+    ApiPortalPublishLocation,
+    ApiPortalPublishPortal,
+} from '../types/apiDocumentation';
 
 export interface DocumentationRow {
     item: ApiDocumentationItem;
@@ -193,9 +198,20 @@ export function allowedChanges(state: SyncState): AllowedChanges {
     };
 }
 
+/** The publications in the given portals: the console shows and unpublishes only those of the portals it can publish to. */
+export function publicationsInPortals(publications: ApiPortalPublication[], portals: ApiPortalPublishPortal[]): ApiPortalPublication[] {
+    const portalIds = new Set(portals.map(portal => portal.id));
+    return publications.filter(publication => portalIds.has(publication.portalId));
+}
+
+/** Where the API is visible, if anywhere: a hidden listing does not make the API published. */
+export function getPublishedPublication(publications: ApiPortalPublication[]): ApiPortalPublication | undefined {
+    return publications.find(publication => publication.portalNavigationItem.published);
+}
+
 /** The section the API is visible under, if any: a hidden listing does not make the API published. */
 export function getPublishedSection(publications: ApiPortalPublication[]): string | undefined {
-    return publications.find(publication => publication.portalNavigationItem.published)?.sectionName;
+    return getPublishedPublication(publications)?.sectionName;
 }
 
 /** A listing kept hidden, typically added in the portal editor: publishing the API reuses it rather than adding another. */
