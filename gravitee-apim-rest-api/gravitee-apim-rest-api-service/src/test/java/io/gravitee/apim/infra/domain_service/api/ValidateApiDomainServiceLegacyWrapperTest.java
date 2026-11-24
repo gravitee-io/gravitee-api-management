@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -173,6 +174,25 @@ class ValidateApiDomainServiceLegacyWrapperTest {
 
     @Nested
     class ValidateAndSanitizeForCreationApiHttpV4 {
+
+        @Test
+        void should_check_the_secret_references_of_the_whole_new_definition_against_the_authenticated_user() {
+            var api = ApiFixtures.aProxyApiV4();
+            authenticateAs("user-id");
+            try {
+                service.validateAndSanitizeForCreation(api, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID);
+            } finally {
+                SecurityContextHolder.clearContext();
+            }
+
+            verify(secretReferencePermissionDomainService).validate(
+                eq(ORGANIZATION_ID),
+                eq(ENVIRONMENT_ID),
+                eq("user-id"),
+                isNull(),
+                same(api.getApiDefinitionHttpV4())
+            );
+        }
 
         @Test
         void should_call_legacy_service() {

@@ -148,6 +148,8 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         apiValidationService.validateDynamicProperties(
             api.getApiDefinitionHttpV4().getServices() != null ? api.getApiDefinitionHttpV4().getServices().getDynamicProperty() : null
         );
+        // NewApiEntity has no properties, resources, services or response templates, which an import or a promotion carries.
+        validateSecretReferences(new ExecutionContext(organizationId, environmentId), null, api.getApiDefinitionHttpV4());
     }
 
     private void validateAndSanitizeNativeV4ForCreation(
@@ -240,7 +242,7 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         );
     }
 
-    private void validateSecretReferences(ExecutionContext executionContext, NativeApi previousDefinition, NativeApi definition) {
+    private void validateSecretReferences(ExecutionContext executionContext, Object previousDefinition, Object definition) {
         secretReferencePermissionDomainService.validate(
             executionContext.getOrganizationId(),
             executionContext.getEnvironmentId(),
