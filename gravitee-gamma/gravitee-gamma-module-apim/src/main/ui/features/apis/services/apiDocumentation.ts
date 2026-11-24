@@ -20,6 +20,7 @@ import type {
     ApiPortalNavigationItemsResponse,
     ApiPortalPublication,
     ApiPortalPublishLocationsResponse,
+    ApiPortalPublishPortalsResponse,
     CreateApiDocumentationItem,
     FetchPortalNavigationItemResponse,
     ImportPortalNavigationRequest,
@@ -87,8 +88,19 @@ export async function importApiDocumentation(
     });
 }
 
-export async function listApiPublishLocations(environmentId: string, apiId: string): Promise<ApiPortalPublishLocationsResponse> {
-    return apimFetchJsonV2<ApiPortalPublishLocationsResponse>(environmentId, `${documentationPath(apiId)}/_publish-locations`);
+export async function listApiPublishPortals(environmentId: string, apiId: string): Promise<ApiPortalPublishPortalsResponse> {
+    return apimFetchJsonV2<ApiPortalPublishPortalsResponse>(environmentId, `${documentationPath(apiId)}/_publish-portals`);
+}
+
+export async function listApiPublishLocations(
+    environmentId: string,
+    apiId: string,
+    portalId: string,
+): Promise<ApiPortalPublishLocationsResponse> {
+    return apimFetchJsonV2<ApiPortalPublishLocationsResponse>(
+        environmentId,
+        `${documentationPath(apiId)}/_publish-locations?portalId=${encodeURIComponent(portalId)}`,
+    );
 }
 
 export async function publishApiToPortal(environmentId: string, apiId: string, request: PublishApiToPortal): Promise<ApiPortalPublication> {
@@ -103,8 +115,10 @@ export async function createApiOverviewPage(environmentId: string, apiId: string
     return apimFetchJsonV2<PortalNavigationPage>(environmentId, `${documentationPath(apiId)}/_overview-page`, { method: 'POST' });
 }
 
-export async function unpublishApiFromPortal(environmentId: string, apiId: string): Promise<void> {
-    return apimFetchJsonV2<void>(environmentId, `${documentationPath(apiId)}/_unpublish`, { method: 'POST' });
+export async function unpublishApiFromPortal(environmentId: string, apiId: string, portalId: string): Promise<void> {
+    return apimFetchJsonV2<void>(environmentId, `${documentationPath(apiId)}/_unpublish?portalId=${encodeURIComponent(portalId)}`, {
+        method: 'POST',
+    });
 }
 
 export async function getApiDocumentationPageContent(environmentId: string, apiId: string, navId: string): Promise<PortalPageContent> {

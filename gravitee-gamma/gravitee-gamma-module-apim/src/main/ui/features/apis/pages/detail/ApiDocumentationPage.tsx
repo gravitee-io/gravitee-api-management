@@ -50,11 +50,23 @@ import { LinkDialog } from '../../components/detail/documentation/LinkDialog';
 import { PublicationDialog } from '../../components/detail/documentation/PublicationDialog';
 import { PublishToPortalDialog } from '../../components/detail/documentation/PublishToPortalDialog';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
-import { useApiDocumentation, useDeleteApiDocumentationItem, useUnpublishApiFromPortal } from '../../hooks/useApiDocumentation';
+import {
+    useApiDocumentation,
+    useApiPublishPortals,
+    useDeleteApiDocumentationItem,
+    useUnpublishApiFromPortal,
+} from '../../hooks/useApiDocumentation';
 import { useExpandedDocumentationFolders } from '../../hooks/useExpandedDocumentationFolders';
 import { useFetchNow } from '../../hooks/useFetchNow';
 import type { ApiDocumentationItem, ApiPortalPublication, PortalNavigationFolder } from '../../types/apiDocumentation';
-import { type DocumentationRow, getAncestors, getPublishedSection, syncStateOf } from '../../utils/documentationTree';
+import {
+    type DocumentationRow,
+    getAncestors,
+    getPublishedPublication,
+    getPublishedSection,
+    publicationsInPortals,
+    syncStateOf,
+} from '../../utils/documentationTree';
 
 const DESCRIPTION = 'Pages, folders and links that describe this API in the developer portal.';
 
@@ -90,6 +102,9 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
     const canCreate = useHasPermission({ anyOf: ['api-documentation-c'] });
     const { api } = useApiDetailContext();
     const { data, isLoading, isError } = useApiDocumentation(apiId);
+    const portalsQuery = useApiPublishPortals(apiId);
+    // A listing the Automation API keeps in a portal it manages can be neither shown as published nor unpublished here
+    const publications = portalsQuery.isSuccess ? publicationsInPortals(data?.publications ?? [], portalsQuery.data.data) : undefined;
     const deleteMutation = useDeleteApiDocumentationItem(apiId);
     const unpublishMutation = useUnpublishApiFromPortal(apiId);
     const { fetchNow, isFetching } = useFetchNow(apiId);
@@ -130,8 +145,14 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
     }
 
     async function handleUnpublish() {
+        const published = getPublishedPublication(publications ?? []);
+        if (!published) {
+            notify.info('The API is no longer published to the developer portal');
+            setIsUnpublishing(false);
+            return;
+        }
         try {
-            await unpublishMutation.mutateAsync();
+            await unpublishMutation.mutateAsync(published.portalId);
             notify.success('Unpublished from the developer portal');
             setIsUnpublishing(false);
         } catch (error) {
@@ -154,10 +175,10 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                 description={DESCRIPTION}
                 actions={
                     <>
-                        {data ? <ApiPublicationBadge publications={data.publications} /> : null}
-                        {data && canEdit ? (
+                        {data && publications ? <ApiPublicationBadge publications={publications} /> : null}
+                        {data && publications && canEdit ? (
                             <PublicationAction
-                                publications={data.publications}
+                                publications={publications}
                                 onPublish={() => setIsPublishing(true)}
                                 onUnpublish={() => setIsUnpublishing(true)}
                             />
@@ -195,7 +216,7 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                     onAddLink={openAddLinkDialog}
                     canEdit={canEdit}
                     onEditDetails={openEditDetailsDialog}
-                    isApiPublished={getPublishedSection(data?.publications ?? []) !== undefined}
+                    isApiPublished={getPublishedSection(publications ?? []) !== undefined}
                     onChangePublication={openPublicationDialog}
                     isFetching={isFetching}
                     onFetch={fetchNow}

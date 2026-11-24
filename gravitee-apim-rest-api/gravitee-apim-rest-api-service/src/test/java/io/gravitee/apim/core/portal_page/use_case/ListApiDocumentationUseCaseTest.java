@@ -22,6 +22,7 @@ import static fixtures.core.model.PortalNavigationItemFixtures.aPage;
 import static fixtures.core.model.PortalNavigationItemFixtures.anApi;
 import static fixtures.core.model.PortalNavigationItemFixtures.anApiProduct;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
@@ -197,6 +198,27 @@ class ListApiDocumentationUseCaseTest {
         assertThat(execute().publications())
             .extracting(publication -> publication.section().getTitle())
             .containsExactlyInAnyOrder("APIs", "Partners");
+    }
+
+    @Test
+    void should_report_each_portal_and_its_section_when_published_to_two_portals() {
+        var otherPortalId = PortalId.random();
+        var section = aFolder("APIs");
+        var otherPortalSection = aFolder("Partners")
+            .toBuilder()
+            .reference(new NavigationItemReference.PortalReference(otherPortalId))
+            .build();
+        var listing = anApi(PortalNavigationItemId.random().json(), "Api A", section.getId(), API_ID);
+        var otherPortalListing = anApi(PortalNavigationItemId.random().json(), "Api A", otherPortalSection.getId(), API_ID);
+        otherPortalListing.changeOwner(new NavigationItemReference.PortalReference(otherPortalId));
+        queryService.initWith(List.of(section, otherPortalSection, listing, otherPortalListing));
+
+        assertThat(execute().publications())
+            .extracting(ListApiDocumentationUseCase.Publication::portalId, publication -> publication.section().getTitle())
+            .containsExactlyInAnyOrder(
+                tuple(PortalId.of("11111111-1111-1111-1111-111111111111"), "APIs"),
+                tuple(otherPortalId, "Partners")
+            );
     }
 
     @Test
