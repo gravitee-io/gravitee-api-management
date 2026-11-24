@@ -128,6 +128,16 @@ class GraviteeSecretProviderTest {
         }
 
         @Test
+        void should_refuse_a_reference_that_names_two_environments_without_reading_the_repository() {
+            started()
+                .resolve(SecretURL.from("/gravitee/llm-key:value?envId=" + ENV + "&envId=other-env", true))
+                .test()
+                .assertError(err -> err instanceof SecretManagerException && err.getMessage().contains("?envId={envId}"));
+
+            verifyNoInteractions(secretRepository, environmentRepository);
+        }
+
+        @Test
         void should_refuse_a_reference_whose_path_is_not_a_secret_id() {
             started()
                 .resolve(SecretURL.from("/gravitee/env-1/llm-key:value?envId=env-1", true))
