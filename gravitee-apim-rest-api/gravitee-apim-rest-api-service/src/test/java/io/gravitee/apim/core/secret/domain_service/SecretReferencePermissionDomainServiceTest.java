@@ -28,6 +28,8 @@ import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.infra.credential.SpelSecretExpressionParser;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import java.util.List;
@@ -116,6 +118,31 @@ class SecretReferencePermissionDomainServiceTest {
             );
 
             assertThatThrownBy(() -> validate(null, definition)).isInstanceOf(NotAllowedDomainException.class);
+        }
+
+        @Test
+        void should_find_a_store_reference_inside_the_configuration_of_a_flow_step() {
+            var step = new Step();
+            step.setPolicy("transform-headers");
+            step.setConfiguration("{\"addHeaders\":[{\"name\":\"Authorization\",\"value\":\"Bearer " + STORE_REFERENCE + "\"}]}");
+            var flow = new Flow();
+            flow.setRequest(List.of(step));
+
+            assertThatThrownBy(() -> validate(null, Map.of("flows", List.of(flow)))).isInstanceOf(NotAllowedDomainException.class);
+        }
+
+        @ParameterizedTest
+        @ValueSource(
+            strings = {
+                "{#secrets.get(' /gravitee/db-password:value?envId=env-id')}",
+                "{#secrets.get('/gravitee/db-password:value?envId=env-id ')}",
+                "{#secrets.get('/ gravitee /db-password:value?envId=env-id')}",
+                "{#secrets.get('/GRAVITEE/db-password:value?envId=env-id')}",
+                "{#secrets.get('xgravitee/db-password:value?envId=env-id')}",
+            }
+        )
+        void should_refuse_a_store_reference_the_gateway_reads_after_trimming_it_without_the_secret_read_permission(String reference) {
+            assertThatThrownBy(() -> validate(null, header(reference))).isInstanceOf(NotAllowedDomainException.class);
         }
 
         @Test

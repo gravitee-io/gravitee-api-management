@@ -17,6 +17,8 @@ package io.gravitee.apim.core.secret.domain_service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.POJONode;
+import com.fasterxml.jackson.databind.util.RawValue;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.credential.crud_service.CredentialCrudService;
 import io.gravitee.apim.core.credential.exception.InvalidCredentialException;
@@ -47,6 +49,8 @@ public class SecretReferencePermissionDomainService {
 
     // Mirrors the gateway's RefParser, which finds a reference anywhere in a string, plugin configurations included.
     private static final Pattern SECRETS_GET = Pattern.compile("\\{#secrets\\.get\\(.*?\\)}", Pattern.DOTALL);
+    private static final Pattern GATEWAY_TRIMMED = Pattern.compile("^[ ']+|[ ']+$");
+    private static final String SECRET_SCHEME = "secret://";
 
     private final SecretExpressionParser expressionParser;
     private final PermissionDomainService permissionDomainService;
@@ -69,13 +73,12 @@ public class SecretReferencePermissionDomainService {
         var needsSecretRead = false;
         for (String expression : added) {
             var path = pathUnlessDynamic(expression);
-            if (path.isPresent() && !SecretReference.namesGraviteeStore(path.get())) {
+            var storeReference = path.flatMap(SecretReferencePermissionDomainService::asStoreReference);
+            if (path.isPresent() && storeReference.isEmpty()) {
                 continue;
             }
             needsSecretRead = true;
-            if (path.isPresent()) {
-                validateStoreReference(organizationId, environmentId, userId, path.get());
-            }
+            storeReference.ifPresent(reference -> validateStoreReference(organizationId, environmentId, userId, reference));
         }
         if (needsSecretRead && userId != null && !canReadSecrets(organizationId, environmentId, userId)) {
             throw new SecretReferenceNotAllowedException(
@@ -126,6 +129,25 @@ public class SecretReferencePermissionDomainService {
         );
     }
 
+    /**
+     * The gateway strips the spaces and quotes around a path, drops its first character and trims the provider name, so
+     * a path only escapes these checks when the provider it names that way is clearly another one.
+     *
+     * @return the path as a reference to Gravitee's store, empty for a path of another provider
+     */
+    private static Optional<String> asStoreReference(String path) {
+        var trimmed = GATEWAY_TRIMMED.matcher(path).replaceAll("").trim();
+        var schemeLess = trimmed.startsWith(SECRET_SCHEME)
+            ? trimmed.substring(SECRET_SCHEME.length())
+            : trimmed.substring(Math.min(1, trimmed.length()));
+        var providerEnd = schemeLess.indexOf('/');
+        var provider = providerEnd < 0 ? "" : schemeLess.substring(0, providerEnd).trim();
+        if (!provider.isEmpty() && !provider.equalsIgnoreCase(SecretReference.GRAVITEE_PROVIDER)) {
+            return Optional.empty();
+        }
+        return Optional.of("/" + SecretReference.GRAVITEE_PROVIDER + "/" + schemeLess.substring(providerEnd + 1).trim());
+    }
+
     private Optional<String> pathUnlessDynamic(String expression) {
         try {
             return expressionParser.literalPath(expression, expression);
@@ -144,13 +166,20 @@ public class SecretReferencePermissionDomainService {
 
     private static void collect(JsonNode node, Set<String> references) {
         if (node.isTextual()) {
-            // A plugin configuration is JSON held in a string, so its quotes reach this text escaped.
-            var matcher = SECRETS_GET.matcher(node.textValue().replace("\\\"", "\""));
-            while (matcher.find()) {
-                references.add(matcher.group());
-            }
+            collect(node.textValue(), references);
+        } else if (node instanceof POJONode pojo && pojo.getPojo() instanceof RawValue raw) {
+            // A plugin configuration is a @JsonRawValue string, which valueToTree keeps unparsed.
+            collect(String.valueOf(raw.rawValue()), references);
         } else {
             node.forEach(child -> collect(child, references));
+        }
+    }
+
+    private static void collect(String text, Set<String> references) {
+        // A plugin configuration is JSON held in a string, so its quotes reach this text escaped.
+        var matcher = SECRETS_GET.matcher(text.replace("\\\"", "\""));
+        while (matcher.find()) {
+            references.add(matcher.group());
         }
     }
 }

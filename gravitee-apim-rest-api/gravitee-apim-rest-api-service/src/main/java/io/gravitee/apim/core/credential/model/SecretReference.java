@@ -32,7 +32,7 @@ public record SecretReference(String reference, String secretId) {
     /** Lets the gateway pick up a rotated value without a redeploy. */
     private static final String MANAGED_FLAGS = "renewable=true&reloadOnChange=true";
 
-    private static final String GRAVITEE_PROVIDER = "gravitee";
+    public static final String GRAVITEE_PROVIDER = "gravitee";
     private static final String EXPRESSION_PREFIX = "{#";
     private static final String ENV_ID = "envId=";
     private static final String STORE_VALUE_KEY = "value";
@@ -153,12 +153,11 @@ public record SecretReference(String reference, String secretId) {
 
     /** Whether the reference names Gravitee's own secret store, the provider the gateway reads from its first path segment. */
     public boolean isInGraviteeStore() {
-        return !isExpression() && namesGraviteeStore(reference);
-    }
-
-    public static boolean namesGraviteeStore(String path) {
-        var providerEnd = path.indexOf('/', 1);
-        return path.startsWith("/") && providerEnd > 0 && path.substring(1, providerEnd).equalsIgnoreCase(GRAVITEE_PROVIDER);
+        if (isExpression()) {
+            return false;
+        }
+        var providerEnd = reference.indexOf('/', 1);
+        return providerEnd > 0 && reference.substring(1, providerEnd).equalsIgnoreCase(GRAVITEE_PROVIDER);
     }
 
     /** The credential whose secret a store reference names, keyed {@code credential.<credentialId>.<field>}. */
