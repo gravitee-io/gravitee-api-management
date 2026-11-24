@@ -48,6 +48,7 @@ public class JdbcPortalRepository extends JdbcAbstractCrudRepository<Portal, Str
             .addColumn("active_theme_id", Types.NVARCHAR, String.class)
             .addColumn("default_portal", Types.BOOLEAN, boolean.class)
             .addColumn("url", Types.NVARCHAR, String.class)
+            .addColumn("access_point_id", Types.NVARCHAR, String.class)
             .build();
     }
 
@@ -103,6 +104,18 @@ public class JdbcPortalRepository extends JdbcAbstractCrudRepository<Portal, Str
                 .findFirst();
         } catch (final Exception ex) {
             final String error = "Failed to find default portal by environment id: " + environmentId;
+            log.error(error, ex);
+            throw new TechnicalException(error, ex);
+        }
+    }
+
+    @Override
+    public List<Portal> findByAccessPointId(String accessPointId) throws TechnicalException {
+        log.debug("JdbcPortalRepository.findByAccessPointId({})", accessPointId);
+        try {
+            return jdbcTemplate.query(getOrm().getSelectAllSql() + " WHERE access_point_id = ?", getOrm().getRowMapper(), accessPointId);
+        } catch (final Exception ex) {
+            final String error = "Failed to find portals by access point id: " + accessPointId;
             log.error(error, ex);
             throw new TechnicalException(error, ex);
         }

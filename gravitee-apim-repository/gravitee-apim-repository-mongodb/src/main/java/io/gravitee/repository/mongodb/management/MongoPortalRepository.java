@@ -66,6 +66,12 @@ public class MongoPortalRepository implements PortalRepository {
     }
 
     @Override
+    public List<Portal> findByAccessPointId(String accessPointId) throws TechnicalException {
+        log.debug("Find portals by access point [{}]", accessPointId);
+        return mapper.mapPortals(internalPortalRepo.findByAccessPointId(accessPointId));
+    }
+
+    @Override
     public void deleteByEnvironmentId(String environmentId) throws TechnicalException {
         try {
             internalPortalRepo.deleteByEnvironmentId(environmentId);

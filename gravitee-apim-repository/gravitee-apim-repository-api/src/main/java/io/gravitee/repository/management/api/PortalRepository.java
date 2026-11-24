@@ -28,6 +28,7 @@ public interface PortalRepository extends CrudRepository<Portal, String> {
     List<Portal> findByEnvironmentId(final String environmentId) throws TechnicalException;
     Optional<Portal> findDefaultByEnvironmentId(final String environmentId) throws TechnicalException;
     List<Portal> findByActiveThemeIdAndEnvironmentId(final String activeThemeId, final String environmentId) throws TechnicalException;
+    List<Portal> findByAccessPointId(final String accessPointId) throws TechnicalException;
     void deleteByEnvironmentId(final String environmentId) throws TechnicalException;
     void deleteByOrganizationId(final String organizationId) throws TechnicalException;
 }

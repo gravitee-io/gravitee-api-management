@@ -94,6 +94,7 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(portal).hasValueSatisfying(found -> {
             assertThat(found.isDefaultPortal()).isFalse();
             assertThat(found.getUrl()).isEqualTo(Portal.URL_PLACEHOLDER);
+            assertThat(found.getAccessPointId()).isNull();
         });
     }
 
@@ -106,6 +107,7 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
             .name("Default Portal")
             .defaultPortal(true)
             .url("https://portal.env3.example")
+            .accessPointId("access-point-env3")
             .build();
 
         portalRepository.create(toCreate);
@@ -113,6 +115,7 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(portalRepository.findById("default-portal")).hasValueSatisfying(found -> {
             assertThat(found.isDefaultPortal()).isTrue();
             assertThat(found.getUrl()).isEqualTo("https://portal.env3.example");
+            assertThat(found.getAccessPointId()).isEqualTo("access-point-env3");
         });
     }
 
@@ -125,6 +128,7 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
             .name("Default Portal")
             .defaultPortal(true)
             .url("https://portal.env1.example")
+            .accessPointId("access-point-env1")
             .build();
 
         portalRepository.update(toUpdate);
@@ -132,6 +136,7 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(portalRepository.findById("portal1")).hasValueSatisfying(found -> {
             assertThat(found.isDefaultPortal()).isTrue();
             assertThat(found.getUrl()).isEqualTo("https://portal.env1.example");
+            assertThat(found.getAccessPointId()).isEqualTo("access-point-env1");
         });
     }
 
@@ -144,6 +149,18 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
             assertThat(found.isDefaultPortal()).isTrue();
             assertThat(found.getUrl()).isEqualTo("https://portal.env2.example");
         });
+    }
+
+    @Test
+    public void should_find_every_portal_referencing_an_access_point() throws Exception {
+        List<Portal> portals = portalRepository.findByAccessPointId("shared-access-point");
+
+        assertThat(portals).extracting(Portal::getId).containsExactlyInAnyOrder("portal3", "portal4");
+    }
+
+    @Test
+    public void should_find_no_portal_for_an_unreferenced_access_point() throws Exception {
+        assertThat(portalRepository.findByAccessPointId("unknown-access-point")).isEmpty();
     }
 
     @Test
