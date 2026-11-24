@@ -425,7 +425,16 @@ es:
       # initialDelay: 3000 ## milliseconds
       # maxDelay: 30000 ## milliseconds
   ssl:
+    # Renders the keystore below (client certificate), for the gateway reporter and the management API analytics.
     enabled: false
+    # Server certificates are verified against the truststore, or the JVM default one when it is unset (APIM 4.14
+    # and later). trustAll: true accepts any certificate, as APIM did before 4.14. Both are rendered whenever they
+    # are set, whatever the value of enabled.
+    # trustAll: false
+    # truststore:
+    #   type: pem            # jks, pkcs12 or pem
+    #   path: /path/to/ca.pem
+    #   password: example    # jks and pkcs12 only
     # keystore:
     #   type: jks
     #   path: path/to/jks
@@ -1233,6 +1242,10 @@ api:
       #   # rendered instead of username and password.
       #   apiKey: <encoded API key>
       # ssl:
+      #   trustAll: false        # accept any server certificate (APIM 4.14 and later verifies them by default)
+      #   truststore:            # without it, the JVM default truststore applies
+      #     type: pem            # jks, pkcs12 or pem
+      #     path: /path/to/ca.pem
       #   keystore:
       #     type: jks            # jks, pkcs12 or pem
       #     path: /path/to/keystore.jks
@@ -1274,6 +1287,10 @@ api:
       #   # rendered instead of username and password.
       #   apiKey: <encoded API key>
       # ssl:
+      #   trustAll: false        # accept any server certificate (APIM 4.14 and later verifies them by default)
+      #   truststore:            # without it, the JVM default truststore applies
+      #     type: pem            # jks, pkcs12 or pem
+      #     path: /path/to/ca.pem
       #   keystore:
       #     type: jks            # jks, pkcs12 or pem
       #     path: /path/to/keystore.jks

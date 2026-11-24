@@ -186,6 +186,10 @@ See [MongoDB replicaset](https://artifacthub.io/packages/helm/bitnami/mongodb) f
 | `es.tls.keystore.password`   | Elasticsearch TLS keystore password (jks, pfx)    | `null`                                                                 |
 | `es.tls.keystore.certs`      | Elasticsearch TLS certs (only pems)               | `null`                                                                 |
 | `es.tls.keystore.keys`       | Elasticsearch TLS keys (only pems)                | `null`                                                                 |
+| `es.ssl.trustAll`            | Accept any Elasticsearch certificate, as APIM did before 4.14, rendered when set whatever `es.ssl.enabled` | `null` (certificates verified) |
+| `es.ssl.truststore.type`     | Type of the truststore that verifies the Elasticsearch certificate (jks, pkcs12 or pem); the JVM default one applies when unset | `null` |
+| `es.ssl.truststore.path`     | Path of the truststore                            | `null`                                                                 |
+| `es.ssl.truststore.password` | Password of the truststore (jks, pkcs12)          | `null`                                                                 |
 | `es.index`                   | Elasticsearch index                               | `gravitee`                                                             |
 | `es.endpoints`               | Elasticsearch endpoint array                      | `[http://graviteeio-apim-elasticsearch.default.svc.cluster.local:9200]` |
 | `es.pipeline.plugins.ingest` | Elasticsearch pipeline ingest plugins             | `geoip, user_agent`                                                    |
