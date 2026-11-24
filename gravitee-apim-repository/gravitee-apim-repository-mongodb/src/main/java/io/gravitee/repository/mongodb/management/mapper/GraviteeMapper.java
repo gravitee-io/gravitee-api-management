@@ -386,9 +386,9 @@ public interface GraviteeMapper {
 
     List<Integration> mapIntegrationsList(Collection<IntegrationMongo> toMap);
 
-    // Guardian mapping
-    GuardianMongo map(Guardian item);
-    Guardian map(GuardianMongo item);
+    // Guardrail mapping
+    GuardrailMongo map(Guardrail item);
+    Guardrail map(GuardrailMongo item);
 
     // SharedPolicyGroup mapping
     SharedPolicyGroupMongo map(SharedPolicyGroup item);

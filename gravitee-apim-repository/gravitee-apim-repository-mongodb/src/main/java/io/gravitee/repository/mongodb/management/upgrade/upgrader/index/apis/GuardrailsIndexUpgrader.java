@@ -19,15 +19,15 @@ import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
 import org.springframework.stereotype.Component;
 
-@Component("ApisGuardiansIndexUpgrader")
-public class GuardiansIndexUpgrader extends IndexUpgrader {
+@Component("ApisGuardrailsIndexUpgrader")
+public class GuardrailsIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
         return Index.builder()
             .collection("apis")
-            .name("gu1")
-            .key("guardians", ascending())
+            .name("gr1")
+            .key("guardrails", ascending())
             .build();
     }
 }

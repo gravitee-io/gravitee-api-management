@@ -32,14 +32,14 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 /**
- * The definition of an API and the index of the Guardians it names are written together or not at all: a definition
- * written without its index would let a Guardian the API runs be undeployed or deleted.
+ * The definition of an API and the index of the Guardrails it names are written together or not at all: a definition
+ * written without its index would let a Guardrail the API runs be undeployed or deleted.
  */
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class JdbcApiRepositoryDefinitionTransactionTest extends AbstractRepositoryTest {
 
     private static final String API_ID = "api-whose-index-write-fails";
-    private static final String GUARDIAN_ID_TOO_LONG_FOR_ITS_COLUMN = "g".repeat(65);
+    private static final String GUARDRAIL_ID_TOO_LONG_FOR_ITS_COLUMN = "g".repeat(65);
 
     @Inject
     private ApiRepository apiRepository;
@@ -59,13 +59,13 @@ public class JdbcApiRepositoryDefinitionTransactionTest extends AbstractReposito
                 .updatedAt(updatedAt)
                 .build()
         );
-        apiRepository.updateDefinition(API_ID, "{\"before\":true}", Set.of("guardian-kept"), updatedAt, updatedAt);
+        apiRepository.updateDefinition(API_ID, "{\"before\":true}", Set.of("guardrail-kept"), updatedAt, updatedAt);
 
         assertThatThrownBy(() ->
             apiRepository.updateDefinition(
                 API_ID,
                 "{\"after\":true}",
-                Set.of(GUARDIAN_ID_TOO_LONG_FOR_ITS_COLUMN),
+                Set.of(GUARDRAIL_ID_TOO_LONG_FOR_ITS_COLUMN),
                 new Date(1_700_000_060_000L),
                 updatedAt
             )
@@ -80,12 +80,12 @@ public class JdbcApiRepositoryDefinitionTransactionTest extends AbstractReposito
                     softly
                         .assertThat(
                             apiRepository.search(
-                                new ApiCriteria.Builder().guardian("guardian-kept").build(),
+                                new ApiCriteria.Builder().guardrail("guardrail-kept").build(),
                                 ApiFieldFilter.defaultFields()
                             )
                         )
                         .extracting(Api::getId)
-                        .as("APIs indexed as running guardian-kept")
+                        .as("APIs indexed as running guardrail-kept")
                         .containsExactly(API_ID);
                 })
             );

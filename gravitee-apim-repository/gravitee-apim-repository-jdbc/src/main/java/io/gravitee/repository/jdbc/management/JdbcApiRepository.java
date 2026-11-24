@@ -83,10 +83,10 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     private final String API_CATEGORIES;
     private final String API_LABELS;
     private final String API_GROUPS;
-    private final String API_GUARDIANS;
+    private final String API_GUARDRAILS;
 
     /**
-     * Runs a definition write and its Guardian index in a savepoint of the caller's transaction (in a transaction of
+     * Runs a definition write and its Guardrail index in a savepoint of the caller's transaction (in a transaction of
      * their own otherwise), so that a failed index write leaves the definition as it was.
      */
     private final TransactionTemplate savepoint;
@@ -99,7 +99,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         API_CATEGORIES = getTableNameFor("api_categories");
         API_LABELS = getTableNameFor("api_labels");
         API_GROUPS = getTableNameFor("api_groups");
-        API_GUARDIANS = getTableNameFor("api_guardians");
+        API_GUARDRAILS = getTableNameFor("api_guardrails");
         savepoint = new TransactionTemplate(transactionManager);
         savepoint.setPropagationBehavior(TransactionDefinition.PROPAGATION_NESTED);
     }
@@ -209,7 +209,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         jdbcTemplate.update("delete from " + API_LABELS + " where api_id = ?", id);
         jdbcTemplate.update("delete from " + API_GROUPS + " where api_id = ?", id);
         jdbcTemplate.update("delete from " + API_CATEGORIES + " where api_id = ?", id);
-        jdbcTemplate.update("delete from " + API_GUARDIANS + " where api_id = ?", id);
+        jdbcTemplate.update("delete from " + API_GUARDRAILS + " where api_id = ?", id);
         jdbcTemplate.update(getOrm().getDeleteSql(), id);
     }
 
@@ -265,8 +265,8 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         if (hasLabels.isPresent()) {
             sbQuery.append("left join ").append(API_LABELS).append(" al on a.id = al.api_id ");
         }
-        if (criteria.stream().anyMatch(apiCriteria -> hasText(apiCriteria.getGuardian()))) {
-            sbQuery.append("left join ").append(API_GUARDIANS).append(" agu on a.id = agu.api_id ");
+        if (criteria.stream().anyMatch(apiCriteria -> hasText(apiCriteria.getGuardrail()))) {
+            sbQuery.append("left join ").append(API_GUARDRAILS).append(" agu on a.id = agu.api_id ");
         }
 
         List<String> clauses = criteria.stream().map(this::convert).filter(Objects::nonNull).collect(Collectors.toList());
@@ -379,7 +379,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                 jdbcTemplate.update("delete from " + API_LABELS + " where api_id IN ( " + inClause + " )", apiIds.toArray());
                 jdbcTemplate.update("delete from " + API_GROUPS + " where api_id IN ( " + inClause + " )", apiIds.toArray());
                 jdbcTemplate.update("delete from " + API_CATEGORIES + " where api_id IN ( " + inClause + " )", apiIds.toArray());
-                jdbcTemplate.update("delete from " + API_GUARDIANS + " where api_id IN ( " + inClause + " )", apiIds.toArray());
+                jdbcTemplate.update("delete from " + API_GUARDRAILS + " where api_id IN ( " + inClause + " )", apiIds.toArray());
                 jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
             }
 
@@ -452,11 +452,11 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     }
 
     /**
-     * The only writer of the Guardian index: written with the definition it projects, so no save of the API can leave
+     * The only writer of the Guardrail index: written with the definition it projects, so no save of the API can leave
      * the two apart.
      */
     @Override
-    public boolean updateDefinition(String apiId, String definition, Set<String> guardianIds, Date updatedAt, Date expectedUpdatedAt)
+    public boolean updateDefinition(String apiId, String definition, Set<String> guardrailIds, Date updatedAt, Date expectedUpdatedAt)
         throws TechnicalException {
         log.debug("JdbcApiRepository.updateDefinition({})", apiId);
         try {
@@ -475,8 +475,8 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                         // The API moved or is gone: the index of a definition that was not written must not be either.
                         return false;
                     }
-                    jdbcTemplate.update("delete from " + API_GUARDIANS + " where api_id = ?", apiId);
-                    insertGuardians(apiId, guardianIds);
+                    jdbcTemplate.update("delete from " + API_GUARDRAILS + " where api_id = ?", apiId);
+                    insertGuardrails(apiId, guardrailIds);
                     return true;
                 })
             );
@@ -485,12 +485,12 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         }
     }
 
-    private void insertGuardians(String apiId, Set<String> guardianIds) {
-        List<String> filteredGuardians = getOrm().filterStrings(guardianIds);
-        if (!filteredGuardians.isEmpty()) {
+    private void insertGuardrails(String apiId, Set<String> guardrailIds) {
+        List<String> filteredGuardrails = getOrm().filterStrings(guardrailIds);
+        if (!filteredGuardrails.isEmpty()) {
             jdbcTemplate.batchUpdate(
-                "insert into " + API_GUARDIANS + " ( api_id, guardian_id ) values ( ?, ? )",
-                getOrm().getBatchStringSetter(apiId, filteredGuardians)
+                "insert into " + API_GUARDRAILS + " ( api_id, guardrail_id ) values ( ?, ? )",
+                getOrm().getBatchStringSetter(apiId, filteredGuardrails)
             );
         }
     }
@@ -541,8 +541,8 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                 if (hasText(apiCriteria.getLabel())) {
                     sbQuery.append("join " + API_LABELS + " al on a.id = al.api_id ");
                 }
-                if (hasText(apiCriteria.getGuardian())) {
-                    sbQuery.append("join " + API_GUARDIANS + " agu on a.id = agu.api_id ");
+                if (hasText(apiCriteria.getGuardrail())) {
+                    sbQuery.append("join " + API_GUARDRAILS + " agu on a.id = agu.api_id ");
                 }
                 sbQuery.append("where ").append(clauses).append(" ");
             }
@@ -629,8 +629,8 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             if (apiCriteria.getUpdatedAtFrom() != null) {
                 ps.setTimestamp(lastIndex++, new java.sql.Timestamp(apiCriteria.getUpdatedAtFrom().getTime()));
             }
-            if (hasText(apiCriteria.getGuardian())) {
-                ps.setString(lastIndex++, apiCriteria.getGuardian());
+            if (hasText(apiCriteria.getGuardrail())) {
+                ps.setString(lastIndex++, apiCriteria.getGuardrail());
             }
         }
         return lastIndex;
@@ -705,8 +705,8 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         if (apiCriteria.getUpdatedAtFrom() != null) {
             clauses.add("a.updated_at >= ?");
         }
-        if (hasText(apiCriteria.getGuardian())) {
-            clauses.add("agu.guardian_id = ?");
+        if (hasText(apiCriteria.getGuardrail())) {
+            clauses.add("agu.guardrail_id = ?");
         }
         if (!clauses.isEmpty()) {
             return String.join(" and ", clauses);

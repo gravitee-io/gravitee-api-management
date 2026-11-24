@@ -1,0 +1,45 @@
+databaseChangeLog:
+  # Guardians are renamed Guardrails. The tables keep their rows: only their names, the link column and
+  # the indexes change.
+  #
+  # The primary keys keep their pk_*guardians names. MySQL and MariaDB name every primary key PRIMARY
+  # anyway, and renaming one elsewhere means dropping and adding it, which a server requiring primary
+  # keys (sql_require_primary_key) refuses outside a single ALTER.
+  - changeSet:
+      id: 4.14.0_20_rename_guardians_to_guardrails
+      author: GraviteeSource Team
+      changes:
+        - renameTable:
+            oldTableName: ${gravitee_prefix}guardians
+            newTableName: ${gravitee_prefix}guardrails
+        - dropIndex:
+            tableName: ${gravitee_prefix}guardrails
+            indexName: idx_${gravitee_prefix}guardians_environment_id_name
+        - createIndex:
+            tableName: ${gravitee_prefix}guardrails
+            indexName: idx_${gravitee_prefix}guardrails_environment_id_name
+            unique: true
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)
+              - column:
+                  name: name
+                  type: nvarchar(512)
+        - renameTable:
+            oldTableName: ${gravitee_prefix}api_guardians
+            newTableName: ${gravitee_prefix}api_guardrails
+        - dropIndex:
+            tableName: ${gravitee_prefix}api_guardrails
+            indexName: idx_${gravitee_prefix}api_guardians_guardian_id
+        - renameColumn:
+            tableName: ${gravitee_prefix}api_guardrails
+            oldColumnName: guardian_id
+            newColumnName: guardrail_id
+            columnDataType: nvarchar(64)
+        - createIndex:
+            tableName: ${gravitee_prefix}api_guardrails
+            indexName: idx_${gravitee_prefix}api_guardrails_guardrail_id
+            columns:
+              - column:
+                  name: guardrail_id
