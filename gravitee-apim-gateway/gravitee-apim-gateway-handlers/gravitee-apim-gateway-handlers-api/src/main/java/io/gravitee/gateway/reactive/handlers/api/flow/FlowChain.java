@@ -15,9 +15,11 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.flow;
 
+import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_RESOLVED_PATH;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_FLOW_STAGE;
 
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
@@ -122,8 +124,26 @@ public class FlowChain implements Hookable<ChainHook> {
      */
     private Completable executeFlow(final ExecutionContext ctx, final Flow flow, final ExecutionPhase phase) {
         HttpPolicyChain policyChain = policyChainFactory.create(id, flow, phase);
-        return HookHelper.hook(() -> policyChain.execute(ctx), policyChain.getId(), hooks, ctx, phase).doOnSubscribe(subscription ->
-            ctx.withLogger(log).debug("\t-> Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name())
-        );
+        return Completable.fromRunnable(() -> setResolvedPath(ctx, flow, phase))
+            .andThen(HookHelper.hook(() -> policyChain.execute(ctx), policyChain.getId(), hooks, ctx, phase))
+            .doOnSubscribe(subscription ->
+                ctx.withLogger(log).debug("\t-> Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name())
+            );
+    }
+
+    /**
+     * Exposes the path of the flow about to run as the {@code resolved-path} attribute, which rate-limit, quota and
+     * spike-arrest hash into their counter key, as the v3 engine does in {@code FlowPolicyResolver}.
+     * Like the v3 engine, a flow with no step for the phase leaves the attribute untouched.
+     */
+    private static void setResolvedPath(final ExecutionContext ctx, final Flow flow, final ExecutionPhase phase) {
+        List<Step> steps = switch (phase) {
+            case REQUEST -> flow.getPre();
+            case RESPONSE -> flow.getPost();
+            case MESSAGE_REQUEST, MESSAGE_RESPONSE, ENTRYPOINT_CONNECT -> null;
+        };
+        if (steps != null && !steps.isEmpty()) {
+            ctx.setAttribute(ATTR_RESOLVED_PATH, flow.getPath());
+        }
     }
 }
