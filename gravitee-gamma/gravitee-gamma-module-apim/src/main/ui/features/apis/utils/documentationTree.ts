@@ -198,16 +198,13 @@ export function allowedChanges(state: SyncState): AllowedChanges {
     };
 }
 
-/** Where the API is visible, if anywhere: a hidden listing does not make the API published. */
 /** The publications in the given portals: the console shows and unpublishes only those of the portals it can publish to. */
-export function publicationsInPortals(
-    publications: ApiPortalPublication[],
-    portals: ApiPortalPublishPortal[],
-): ApiPortalPublication[] {
+export function publicationsInPortals(publications: ApiPortalPublication[], portals: ApiPortalPublishPortal[]): ApiPortalPublication[] {
     const portalIds = new Set(portals.map(portal => portal.id));
     return publications.filter(publication => portalIds.has(publication.portalId));
 }
 
+/** Where the API is visible, if anywhere: a hidden listing does not make the API published. */
 export function getPublishedPublication(publications: ApiPortalPublication[]): ApiPortalPublication | undefined {
     return publications.find(publication => publication.portalNavigationItem.published);
 }
