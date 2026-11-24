@@ -22,17 +22,12 @@ import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalSummary;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
-import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
 @RequiredArgsConstructor
 public class ListPortalsUseCase {
-
-    private static final Comparator<Portal> DEFAULT_FIRST_THEN_BY_NAME = Comparator.comparing((Portal portal) -> !portal.isDefault())
-        .thenComparing(Portal::getName, String.CASE_INSENSITIVE_ORDER)
-        .thenComparing(portal -> portal.getId().toString());
 
     private final PortalCrudService portalCrudService;
     private final PortalSummaryDomainService portalSummaryDomainService;
@@ -49,7 +44,7 @@ public class ListPortalsUseCase {
             .findByEnvironmentId(input.environmentId())
             .stream()
             .filter(nameFilter)
-            .sorted(DEFAULT_FIRST_THEN_BY_NAME)
+            .sorted(Portal.DEFAULT_FIRST_THEN_BY_NAME)
             .toList();
 
         var pageable = input.pageable();

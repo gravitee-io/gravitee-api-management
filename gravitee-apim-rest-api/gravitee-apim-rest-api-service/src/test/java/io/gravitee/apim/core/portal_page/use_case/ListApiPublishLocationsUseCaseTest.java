@@ -16,20 +16,29 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.PORTAL_REFERENCE;
 import static fixtures.core.model.PortalNavigationItemFixtures.aFolder;
 import static fixtures.core.model.PortalNavigationItemFixtures.aLink;
 import static fixtures.core.model.PortalNavigationItemFixtures.aPage;
 import static fixtures.core.model.PortalNavigationItemFixtures.anApiProduct;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import inmemory.NavigationPortalDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import io.gravitee.apim.core.portal.exception.NavigationPortalNotResolvedException;
+import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
+import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.use_case.ListApiPublishLocationsUseCase.PublishLocation;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -38,9 +47,16 @@ import org.junit.jupiter.api.Test;
 class ListApiPublishLocationsUseCaseTest {
 
     private final PortalNavigationItemsQueryServiceInMemory queryService = new PortalNavigationItemsQueryServiceInMemory();
+    private final NavigationPortalDomainServiceInMemory navigationPortals = new NavigationPortalDomainServiceInMemory();
     private final ListApiPublishLocationsUseCase useCase = new ListApiPublishLocationsUseCase(
-        new ApiOwnedNavigationDomainService(queryService, new PortalNavigationItemsCrudServiceInMemory())
+        new ApiOwnedNavigationDomainService(queryService, new PortalNavigationItemsCrudServiceInMemory()),
+        navigationPortals
     );
+
+    @BeforeEach
+    void setUp() {
+        navigationPortals.givenDefaultPortalForNavigationFixtures();
+    }
 
     @Test
     void should_return_id_and_name_of_each_top_level_section_in_display_order() {
@@ -99,7 +115,41 @@ class ListApiPublishLocationsUseCaseTest {
         assertThat(locations()).isEmpty();
     }
 
+    @Test
+    void should_return_only_the_sections_of_the_named_portal() {
+        var otherPortalId = navigationPortals.givenConsolePortal(ORG_ID, ENV_ID, "Partners Portal");
+        var defaultPortalSection = aFolder("APIs");
+        var otherPortalSection = aFolder("Partners")
+            .toBuilder()
+            .reference(new NavigationItemReference.PortalReference(otherPortalId))
+            .build();
+        queryService.initWith(List.of(defaultPortalSection, otherPortalSection));
+
+        assertThat(locationsOf(otherPortalId)).containsExactly(new PublishLocation(otherPortalSection.getId(), "Partners"));
+    }
+
+    @Test
+    void should_reject_a_portal_managed_through_the_automation_api() {
+        var automationPortalId = navigationPortals.givenAutomationPortal(ORG_ID, ENV_ID);
+
+        assertThatThrownBy(() -> locationsOf(automationPortalId)).isInstanceOf(NavigationPortalNotResolvedException.class);
+    }
+
+    @Test
+    void should_reject_when_no_portal_is_given() {
+        assertThatThrownBy(() -> locationsOf(null)).isInstanceOf(InvalidPortalNavigationItemDataException.class);
+    }
+
+    @Test
+    void should_reject_an_unknown_portal() {
+        assertThatThrownBy(() -> locationsOf(PortalId.random())).isInstanceOf(PortalNotFoundException.class);
+    }
+
     private List<PublishLocation> locations() {
-        return useCase.execute(new ListApiPublishLocationsUseCase.Input(ENV_ID)).locations();
+        return locationsOf(((NavigationItemReference.PortalReference) PORTAL_REFERENCE).portalId());
+    }
+
+    private List<PublishLocation> locationsOf(PortalId portalId) {
+        return useCase.execute(new ListApiPublishLocationsUseCase.Input(ENV_ID, portalId)).locations();
     }
 }

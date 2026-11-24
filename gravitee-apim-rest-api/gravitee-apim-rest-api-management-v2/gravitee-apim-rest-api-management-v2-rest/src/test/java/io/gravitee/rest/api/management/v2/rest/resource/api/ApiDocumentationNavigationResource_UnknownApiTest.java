@@ -127,6 +127,7 @@ class ApiDocumentationNavigationResource_UnknownApiTest extends AbstractResource
     private static Stream<Named<Function<WebTarget, Response>>> operations() {
         return Stream.of(
             Named.of("list", target -> target.request().get()),
+            Named.of("publish portals", target -> target.path("_publish-portals").request().get()),
             Named.of("publish locations", target -> target.path("_publish-locations").request().get()),
             Named.of("create", target ->
                 target.request().post(json(PortalNavigationItemsFixtures.aCreatePortalNavigationPage().parentId(null)))

@@ -22,8 +22,18 @@ import type { ReactNode } from 'react';
 import { PublishToPortalDialog } from './PublishToPortalDialog';
 import { ApimApiError } from '../../../../../shared/api/apimClient';
 import { notify } from '../../../../../shared/notify';
-import { createApiOverviewPage, listApiPublishLocations, publishApiToPortal } from '../../../services/apiDocumentation';
-import type { ApiPortalPublication, ApiPortalPublishLocation, PortalNavigationPage } from '../../../types/apiDocumentation';
+import {
+    createApiOverviewPage,
+    listApiPublishLocations,
+    listApiPublishPortals,
+    publishApiToPortal,
+} from '../../../services/apiDocumentation';
+import type {
+    ApiPortalPublication,
+    ApiPortalPublishLocation,
+    ApiPortalPublishPortal,
+    PortalNavigationPage,
+} from '../../../types/apiDocumentation';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     ...jest.requireActual<object>('@gravitee/gamma-modules-sdk'),
@@ -47,17 +57,21 @@ Element.prototype.setPointerCapture ??= () => {};
 Element.prototype.releasePointerCapture ??= () => {};
 Element.prototype.scrollIntoView ??= () => {};
 
+const mockPortals = jest.mocked(listApiPublishPortals);
 const mockLocations = jest.mocked(listApiPublishLocations);
 const mockPublish = jest.mocked(publishApiToPortal);
 const mockCreateOverviewPage = jest.mocked(createApiOverviewPage);
+
+const DEVELOPER_PORTAL: ApiPortalPublishPortal = { id: 'DEFAULT', name: 'Developer Portal', default: true };
+const PARTNERS_PORTAL: ApiPortalPublishPortal = { id: 'partners-portal', name: 'Partners', default: false };
 
 const GUIDES: ApiPortalPublishLocation = { id: 'guides', name: 'Guides' };
 const APIS: ApiPortalPublishLocation = { id: 'apis', name: 'APIs' };
 const PARTNERS: ApiPortalPublishLocation = { id: 'partners', name: 'Partner APIs' };
 
-function publication(sectionId: string, sectionName: string, published: boolean): ApiPortalPublication {
+function publication(sectionId: string, sectionName: string, published: boolean, portalId = DEVELOPER_PORTAL.id): ApiPortalPublication {
     return {
-        portalId: 'DEFAULT',
+        portalId,
         sectionName,
         portalNavigationItem: {
             id: 'listing',
@@ -117,6 +131,7 @@ describe('PublishToPortalDialog', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         jest.mocked(useEnvironment).mockReturnValue({ id: 'env-1' } as ReturnType<typeof useEnvironment>);
+        mockPortals.mockResolvedValue({ data: [DEVELOPER_PORTAL, PARTNERS_PORTAL] });
         mockLocations.mockResolvedValue({ data: [GUIDES, APIS, PARTNERS] });
         mockPublish.mockImplementation(async (_envId, _apiId, { sectionId }) =>
             publication(sectionId, [GUIDES, APIS, PARTNERS].find(location => location.id === sectionId)!.name, true),
@@ -133,13 +148,14 @@ describe('PublishToPortalDialog', () => {
         ).not.toBeNull();
     });
 
-    it('offers the section named APIs first, and publishes the API there', async () => {
+    it('offers the section named APIs first, and publishes the API there in the default portal', async () => {
         const { user, onClose } = renderDialog();
 
         await waitFor(() => expect(sectionPicker().textContent).toBe('APIs'));
         await user.click(publishButton());
 
         await waitFor(() => expect(onClose).toHaveBeenCalled());
+        expect(mockLocations).toHaveBeenCalledWith('env-1', 'api-1', 'DEFAULT');
         expect(mockPublish).toHaveBeenCalledWith('env-1', 'api-1', { sectionId: 'apis' });
         expect(notify.success).toHaveBeenCalledWith("Published in 'APIs'");
     });
@@ -175,6 +191,31 @@ describe('PublishToPortalDialog', () => {
             ).not.toBeNull();
             expect(sectionPicker().textContent).toBe('APIs');
         });
+
+        it('ignores a hidden listing in another portal', async () => {
+            renderDialog([publication('nested', 'Internal', false, PARTNERS_PORTAL.id)]);
+
+            await waitFor(() => expect(sectionPicker().textContent).toBe('APIs'));
+            expect(screen.queryByText(/Publishing moves it/)).toBeNull();
+        });
+    });
+
+    it('says why, without loading sections, when the environment has no default portal', async () => {
+        mockPortals.mockResolvedValue({ data: [PARTNERS_PORTAL] });
+        renderDialog();
+
+        expect(await screen.findByText('This environment has no developer portal to publish this API to.')).not.toBeNull();
+        expect(sectionPicker().textContent).toBe('No sections available');
+        expect(publishButton().disabled).toBe(true);
+        expect(mockLocations).not.toHaveBeenCalled();
+    });
+
+    it('reports portals that failed to load', async () => {
+        mockPortals.mockRejectedValue(new ApimApiError(500, 'Internal error'));
+        renderDialog();
+
+        expect(await screen.findByText('Failed to load the portal sections. Close and try again.')).not.toBeNull();
+        expect(publishButton().disabled).toBe(true);
     });
 
     it('shows an empty section picker, saying why, when the portal has no section to publish to', async () => {
@@ -191,10 +232,19 @@ describe('PublishToPortalDialog', () => {
         expect(publishButton().disabled).toBe(true);
     });
 
-    it('cannot publish while the sections are loading', () => {
+    it('cannot publish while the portals are loading', () => {
+        mockPortals.mockReturnValue(new Promise(() => {}));
+        renderDialog();
+
+        expect(sectionPicker().textContent).toBe('Loading sections…');
+        expect(publishButton().disabled).toBe(true);
+    });
+
+    it('cannot publish while the sections are loading', async () => {
         mockLocations.mockReturnValue(new Promise(() => {}));
         renderDialog();
 
+        await waitFor(() => expect(mockLocations).toHaveBeenCalled());
         expect(sectionPicker().textContent).toBe('Loading sections…');
         expect(publishButton().disabled).toBe(true);
     });

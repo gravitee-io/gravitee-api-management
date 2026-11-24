@@ -16,7 +16,10 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
+import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -30,17 +33,22 @@ import lombok.RequiredArgsConstructor;
 public class ListApiPublishLocationsUseCase {
 
     private final ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
+    private final NavigationPortalDomainService navigationPortalDomainService;
 
     public Output execute(Input input) {
+        if (input.portalId() == null) {
+            throw InvalidPortalNavigationItemDataException.fieldIsEmpty("portalId");
+        }
+        var portal = navigationPortalDomainService.requireReference(input.environmentId(), input.portalId());
         var locations = apiOwnedNavigationDomainService
-            .findPublishLocations(input.environmentId())
+            .findPublishLocations(input.environmentId(), portal)
             .stream()
             .map(section -> new PublishLocation(section.getId(), section.getTitle()))
             .toList();
         return new Output(locations);
     }
 
-    public record Input(String environmentId) {}
+    public record Input(String environmentId, PortalId portalId) {}
 
     public record Output(List<PublishLocation> locations) {}
 

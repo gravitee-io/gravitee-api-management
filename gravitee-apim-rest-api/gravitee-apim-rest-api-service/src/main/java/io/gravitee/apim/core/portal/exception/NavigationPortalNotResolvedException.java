@@ -36,6 +36,10 @@ public class NavigationPortalNotResolvedException extends ValidationDomainExcept
         );
     }
 
+    public static NavigationPortalNotResolvedException automationPortal(String environmentId) {
+        return new NavigationPortalNotResolvedException(environmentId, "the portal is managed through the Automation API", null);
+    }
+
     public static NavigationPortalNotResolvedException defaultPortalPostponed(String environmentId) {
         return new NavigationPortalNotResolvedException(
             environmentId,
