@@ -172,18 +172,18 @@ public class PolicyPluginServiceImplTest {
     }
 
     @Nested
-    class GuardianFlowPhaseProperty {
+    class GuardrailFlowPhaseProperty {
 
         @Test
-        void should_expose_guardian_phases_declared_in_manifest() {
-            when(mockPluginManifest.properties()).thenReturn(Map.of("guardian", "REQUEST, RESPONSE", "llm_proxy", "REQUEST"));
+        void should_expose_guardrail_phases_declared_in_manifest() {
+            when(mockPluginManifest.properties()).thenReturn(Map.of("guardrail", "REQUEST, RESPONSE", "llm_proxy", "REQUEST"));
 
             PolicyPluginEntity policyPlugin = cut.findById(PLUGIN_ID);
 
             SoftAssertions.assertSoftly(soft -> {
                 soft
-                    .assertThat(policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.GUARDIAN))
-                    .as("guardian phases")
+                    .assertThat(policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.GUARDRAIL))
+                    .as("guardrail phases")
                     .containsExactlyInAnyOrder(FlowPhase.REQUEST, FlowPhase.RESPONSE);
                 soft
                     .assertThat(policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.LLM_PROXY))
@@ -193,21 +193,21 @@ public class PolicyPluginServiceImplTest {
         }
 
         @Test
-        void should_expose_no_guardian_phase_when_manifest_does_not_declare_it() {
+        void should_expose_no_guardrail_phase_when_manifest_does_not_declare_it() {
             when(mockPluginManifest.properties()).thenReturn(Map.of("llm_proxy", "REQUEST,RESPONSE"));
 
             PolicyPluginEntity policyPlugin = cut.findById(PLUGIN_ID);
 
-            assertThat(policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.GUARDIAN)).as("guardian phases").isNotNull().isEmpty();
+            assertThat(policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.GUARDRAIL)).as("guardrail phases").isNotNull().isEmpty();
         }
 
         @Test
-        void should_expose_no_guardian_phase_when_manifest_declares_it_blank() {
-            when(mockPluginManifest.properties()).thenReturn(Map.of("guardian", " ", "llm_proxy", "REQUEST"));
+        void should_expose_no_guardrail_phase_when_manifest_declares_it_blank() {
+            when(mockPluginManifest.properties()).thenReturn(Map.of("guardrail", " ", "llm_proxy", "REQUEST"));
 
             PolicyPluginEntity policyPlugin = cut.findById(PLUGIN_ID);
 
-            assertThat(policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.GUARDIAN)).as("guardian phases").isNotNull().isEmpty();
+            assertThat(policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.GUARDRAIL)).as("guardrail phases").isNotNull().isEmpty();
         }
     }
 
@@ -247,6 +247,22 @@ public class PolicyPluginServiceImplTest {
                 policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE)
             );
         }
+
+        @Test
+        public void should_read_the_guardrail_phases_a_plugin_declares_under_the_guardian_key() {
+            when(mockPlugin.id()).thenReturn(PLUGIN_ID);
+            when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
+            when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
+            when(mockPluginManifest.properties()).thenReturn(Map.of("guardian", "REQUEST,RESPONSE"));
+
+            Set<PolicyPluginEntity> result = cut.findAll();
+
+            assertThat(result)
+                .singleElement()
+                .extracting(policyPlugin -> policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.GUARDRAIL))
+                .as("guardrail phases")
+                .isEqualTo(Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE));
+        }
     }
 
     @Test
@@ -258,12 +274,12 @@ public class PolicyPluginServiceImplTest {
     }
 
     @Test
-    void should_get_guardian_schema() throws IOException {
-        when(pluginManager.getSchema(PLUGIN_ID, "guardian.schema", false, true)).thenReturn("guardian-schema");
+    void should_get_guardrail_schema() throws IOException {
+        when(pluginManager.getSchema(PLUGIN_ID, "guardrail.schema", false, true)).thenReturn("guardrail-schema");
 
-        String schema = cut.getSchema(PLUGIN_ID, ApiProtocolType.GUARDIAN, null);
+        String schema = cut.getSchema(PLUGIN_ID, ApiProtocolType.GUARDRAIL, null);
 
-        assertThat(schema).as("schema resolved from the guardian.schema key").isEqualTo("guardian-schema");
+        assertThat(schema).as("schema resolved from the guardrail.schema key").isEqualTo("guardrail-schema");
     }
 
     @Test
@@ -296,16 +312,16 @@ public class PolicyPluginServiceImplTest {
     }
 
     @Test
-    void should_get_guardian_documentation() throws IOException {
-        when(pluginManager.getPluginDocumentation(PLUGIN_ID, "guardian.documentation", true, true)).thenReturn(
-            new PluginDocumentation("guardian documentation", PluginDocumentation.Language.MARKDOWN)
+    void should_get_guardrail_documentation() throws IOException {
+        when(pluginManager.getPluginDocumentation(PLUGIN_ID, "guardrail.documentation", true, true)).thenReturn(
+            new PluginDocumentation("guardrail documentation", PluginDocumentation.Language.MARKDOWN)
         );
 
-        PluginDocumentation documentation = cut.getDocumentation(PLUGIN_ID, ApiProtocolType.GUARDIAN);
+        PluginDocumentation documentation = cut.getDocumentation(PLUGIN_ID, ApiProtocolType.GUARDRAIL);
 
         assertThat(documentation.content())
-            .as("documentation resolved from the guardian.documentation key")
-            .isEqualTo("guardian documentation");
+            .as("documentation resolved from the guardrail.documentation key")
+            .isEqualTo("guardrail documentation");
     }
 
     @Nested

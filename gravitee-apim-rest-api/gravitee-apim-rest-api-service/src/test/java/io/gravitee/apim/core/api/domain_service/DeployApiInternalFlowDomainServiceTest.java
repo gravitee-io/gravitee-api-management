@@ -33,7 +33,7 @@ import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
-import io.gravitee.definition.model.guardian.GuardianSteps;
+import io.gravitee.definition.model.guardrail.GuardrailSteps;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.Plan;
@@ -55,7 +55,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * What the gateways are given when the Guardians of an API change: the deployment they are already running, with the
+ * What the gateways are given when the Guardrails of an API change: the deployment they are already running, with the
  * internal flow replaced and nothing else touched. And nothing at all when the definition was not written.
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -67,7 +67,7 @@ class DeployApiInternalFlowDomainServiceTest {
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final ZonedDateTime STORED_AT = ZonedDateTime.of(2026, 11, 9, 10, 0, 0, 0, ZoneOffset.UTC);
-    private static final String LABEL = "Guardians updated";
+    private static final String LABEL = "Guardrails updated";
     private static final AuditInfo CALLER = AuditInfo.builder()
         .organizationId(ORGANIZATION_ID)
         .environmentId(ENVIRONMENT_ID)
@@ -91,22 +91,22 @@ class DeployApiInternalFlowDomainServiceTest {
         latestEvents.reset();
         deployments.reset();
         apis.reset();
-        givenTheStoredApiRuns(guardians("guardian-1"));
+        givenTheStoredApiRuns(guardrails("guardrail-1"));
     }
 
     @Nested
     class WhatIsSent {
 
         /**
-         * The whole point: a publisher who turned a Guardian on did not press deploy, so everything they saved
+         * The whole point: a publisher who turned a Guardrail on did not press deploy, so everything they saved
          * without deploying — here a plan and a flow — must stay where it is. The payload therefore comes from the
          * event the gateways were given, patched, and never from the definition stored on the API.
          */
         @Test
         void should_keep_everything_but_the_internal_flow_of_what_the_gateways_run() {
-            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")));
+            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardrails("guardrail-1")));
 
-            service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+            service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL);
 
             assertSoftly(softly -> {
                 softly
@@ -114,8 +114,8 @@ class DeployApiInternalFlowDomainServiceTest {
                     .as("the definition sent, around its internal flow")
                     .usingRecursiveComparison()
                     .ignoringFields("internalFlow")
-                    .isEqualTo(deployedDefinition(guardians("guardian-1")));
-                softly.assertThat(definitionSent().getInternalFlow()).as("internal flow sent").isEqualTo(guardians("guardian-2"));
+                    .isEqualTo(deployedDefinition(guardrails("guardrail-1")));
+                softly.assertThat(definitionSent().getInternalFlow()).as("internal flow sent").isEqualTo(guardrails("guardrail-2"));
                 softly
                     .assertThat(definitionSent().getPlans())
                     .as("plans sent: those of the deployment, not those saved since")
@@ -125,8 +125,8 @@ class DeployApiInternalFlowDomainServiceTest {
         }
 
         @Test
-        void should_send_no_internal_flow_at_all_when_every_guardian_is_turned_off() {
-            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")));
+        void should_send_no_internal_flow_at_all_when_every_guardrail_is_turned_off() {
+            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardrails("guardrail-1")));
 
             service.replaceInternalFlow(CALLER, apiRunning(null), STORED_AT, LABEL);
 
@@ -136,7 +136,7 @@ class DeployApiInternalFlowDomainServiceTest {
         /** A V2 API holds no internal flow, so the one the gateways run is taken away rather than replaced. */
         @Test
         void should_send_no_internal_flow_at_all_for_an_api_whose_definition_cannot_hold_one() {
-            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")));
+            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardrails("guardrail-1")));
             var v2Api = io.gravitee.apim.core.api.model.Api.builder()
                 .id(API_ID)
                 .updatedAt(STORED_AT)
@@ -154,9 +154,9 @@ class DeployApiInternalFlowDomainServiceTest {
          */
         @Test
         void should_keep_the_payload_fields_the_gateways_read() {
-            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")));
+            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardrails("guardrail-1")));
 
-            service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+            service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL);
 
             assertSoftly(softly -> {
                 softly.assertThat(payloadSent().get("id").asText()).as("api id of the payload").isEqualTo(API_ID);
@@ -185,7 +185,7 @@ class DeployApiInternalFlowDomainServiceTest {
             var deployment = v2DeploymentPayload();
             givenDeployedPayload(EventType.PUBLISH_API, deployment);
 
-            service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+            service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL);
 
             assertSoftly(softly -> {
                 softly
@@ -203,14 +203,14 @@ class DeployApiInternalFlowDomainServiceTest {
         /**
          * The deployment is re-expressed in the current model, so a field an older rest-api wrote and the model no
          * longer declares is dropped rather than carried over. Accepted, and decided here rather than discovered:
-         * pressing deploy rebuilds the payload from the current model too, so refusing would make a Guardian change
+         * pressing deploy rebuilds the payload from the current model too, so refusing would make a Guardrail change
          * stricter than a deployment.
          */
         @Test
         void should_drop_a_field_of_the_deployment_the_current_model_no_longer_declares() {
             givenDeployedPayload(EventType.PUBLISH_API, deploymentCarryingAnUnknownField());
 
-            var written = service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+            var written = service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL);
 
             assertSoftly(softly -> {
                 softly.assertThat(written).as("definition written").isTrue();
@@ -219,7 +219,7 @@ class DeployApiInternalFlowDomainServiceTest {
                     .assertThat(definitionSentAsWritten().has(UNKNOWN_FIELD_OF_A_DEFINITION))
                     .as("the unknown field inside the definition, which is what the gateways run, republished")
                     .isFalse();
-                softly.assertThat(definitionSent().getInternalFlow()).as("internal flow sent").isEqualTo(guardians("guardian-2"));
+                softly.assertThat(definitionSent().getInternalFlow()).as("internal flow sent").isEqualTo(guardrails("guardrail-2"));
             });
         }
     }
@@ -230,12 +230,12 @@ class DeployApiInternalFlowDomainServiceTest {
         /** E1: nothing runs on the gateways, so there is nothing to apply. The definition is still written. */
         @Test
         void should_send_nothing_for_an_api_that_was_never_deployed() {
-            var written = service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+            var written = service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL);
 
             assertSoftly(softly -> {
                 softly.assertThat(written).as("definition written").isTrue();
                 softly.assertThat(events.storage()).as("events written").isEmpty();
-                softly.assertThat(internalFlowStored()).as("internal flow stored").isEqualTo(guardians("guardian-2"));
+                softly.assertThat(internalFlowStored()).as("internal flow stored").isEqualTo(guardrails("guardrail-2"));
             });
         }
 
@@ -245,9 +245,9 @@ class DeployApiInternalFlowDomainServiceTest {
          */
         @Test
         void should_send_nothing_for_a_stopped_api() {
-            givenDeployed(EventType.STOP_API, deployedDefinition(guardians("guardian-1")));
+            givenDeployed(EventType.STOP_API, deployedDefinition(guardrails("guardrail-1")));
 
-            var written = service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+            var written = service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL);
 
             assertSoftly(softly -> {
                 softly.assertThat(written).as("definition written").isTrue();
@@ -257,9 +257,9 @@ class DeployApiInternalFlowDomainServiceTest {
 
         @Test
         void should_send_nothing_for_an_unpublished_api() {
-            givenDeployed(EventType.UNPUBLISH_API, deployedDefinition(guardians("guardian-1")));
+            givenDeployed(EventType.UNPUBLISH_API, deployedDefinition(guardrails("guardrail-1")));
 
-            service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+            service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL);
 
             assertThat(events.storage()).as("events written").isEmpty();
         }
@@ -274,11 +274,11 @@ class DeployApiInternalFlowDomainServiceTest {
                 "another-environment",
                 "event-id",
                 EventType.PUBLISH_API,
-                deploymentPayload(deployedDefinition(guardians("guardian-1"))),
+                deploymentPayload(deployedDefinition(guardrails("guardrail-1"))),
                 null
             );
 
-            var written = service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+            var written = service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL);
 
             assertSoftly(softly -> {
                 softly.assertThat(written).as("definition written").isTrue();
@@ -298,42 +298,42 @@ class DeployApiInternalFlowDomainServiceTest {
         void should_fail_on_a_payload_that_is_not_a_deployment() {
             givenDeployedPayload(EventType.PUBLISH_API, "not json at all");
 
-            assertThatThrownBy(() -> service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL))
+            assertThatThrownBy(() -> service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL))
                 .as("a payload that cannot be read")
                 .isInstanceOf(TechnicalDomainException.class);
-            assertThat(internalFlowStored()).as("internal flow stored").isEqualTo(guardians("guardian-1"));
+            assertThat(internalFlowStored()).as("internal flow stored").isEqualTo(guardrails("guardrail-1"));
         }
 
         @Test
         void should_fail_on_a_deployment_that_carries_no_definition() {
             givenDeployedPayload(EventType.PUBLISH_API, "{\"id\":\"api-id\"}");
 
-            assertThatThrownBy(() -> service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL))
+            assertThatThrownBy(() -> service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL))
                 .as("a deployment without a definition")
                 .isInstanceOf(TechnicalDomainException.class);
-            assertThat(internalFlowStored()).as("internal flow stored").isEqualTo(guardians("guardian-1"));
+            assertThat(internalFlowStored()).as("internal flow stored").isEqualTo(guardrails("guardrail-1"));
         }
 
         @Test
         void should_fail_on_a_definition_that_cannot_be_read() {
             givenDeployedPayload(EventType.PUBLISH_API, "{\"id\":\"api-id\",\"definition\":\"not json either\"}");
 
-            assertThatThrownBy(() -> service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL))
+            assertThatThrownBy(() -> service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL))
                 .as("a definition that cannot be read")
                 .isInstanceOf(TechnicalDomainException.class);
-            assertThat(internalFlowStored()).as("internal flow stored").isEqualTo(guardians("guardian-1"));
+            assertThat(internalFlowStored()).as("internal flow stored").isEqualTo(guardrails("guardrail-1"));
         }
 
         /** The number the event opens is the one after the deployment's, so it is read before anything is written. */
         @Test
         void should_fail_on_a_deployment_number_that_cannot_be_read() {
-            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")), "not a number");
+            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardrails("guardrail-1")), "not a number");
 
-            assertThatThrownBy(() -> service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL))
+            assertThatThrownBy(() -> service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL))
                 .as("a deployment number that cannot be read")
                 .isInstanceOf(TechnicalDomainException.class);
             assertSoftly(softly -> {
-                softly.assertThat(internalFlowStored()).as("internal flow stored").isEqualTo(guardians("guardian-1"));
+                softly.assertThat(internalFlowStored()).as("internal flow stored").isEqualTo(guardrails("guardrail-1"));
                 softly.assertThat(events.storage()).as("events written").isEmpty();
             });
         }
@@ -342,7 +342,7 @@ class DeployApiInternalFlowDomainServiceTest {
         void should_send_nothing_for_a_deployment_with_an_empty_payload() {
             givenDeployedPayload(EventType.PUBLISH_API, "");
 
-            var written = service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+            var written = service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL);
 
             assertSoftly(softly -> {
                 softly.assertThat(written).as("definition written").isTrue();
@@ -360,15 +360,15 @@ class DeployApiInternalFlowDomainServiceTest {
 
         @Test
         void should_send_nothing_when_another_writer_moved_the_api() {
-            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")));
+            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardrails("guardrail-1")));
 
-            var written = service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT.minusMinutes(1), LABEL);
+            var written = service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT.minusMinutes(1), LABEL);
 
             assertSoftly(softly -> {
                 softly.assertThat(written).as("definition written").isFalse();
                 softly.assertThat(events.storage()).as("events written").isEmpty();
                 softly.assertThat(latestEvents.storage()).as("latest events written").isEmpty();
-                softly.assertThat(internalFlowStored()).as("internal flow stored").isEqualTo(guardians("guardian-1"));
+                softly.assertThat(internalFlowStored()).as("internal flow stored").isEqualTo(guardrails("guardrail-1"));
             });
         }
 
@@ -379,22 +379,22 @@ class DeployApiInternalFlowDomainServiceTest {
          */
         @Test
         void should_refuse_a_later_write_conditioned_on_the_date_this_one_expected() {
-            service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+            service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL);
 
-            var overwritten = service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-3")), STORED_AT, LABEL);
+            var overwritten = service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-3")), STORED_AT, LABEL);
 
             assertSoftly(softly -> {
                 softly.assertThat(overwritten).as("write conditioned on the date the first one expected").isFalse();
-                softly.assertThat(internalFlowStored()).as("internal flow stored").isEqualTo(guardians("guardian-2"));
+                softly.assertThat(internalFlowStored()).as("internal flow stored").isEqualTo(guardrails("guardrail-2"));
             });
         }
 
         @Test
         void should_send_nothing_for_an_api_that_is_gone() {
-            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")));
+            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardrails("guardrail-1")));
             apis.reset();
 
-            var written = service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+            var written = service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL);
 
             assertSoftly(softly -> {
                 softly.assertThat(written).as("definition written").isFalse();
@@ -413,11 +413,11 @@ class DeployApiInternalFlowDomainServiceTest {
 
         @Test
         void should_patch_the_newer_deployment_rather_than_overwrite_it() {
-            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")));
+            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardrails("guardrail-1")));
 
             serviceDeployingWhileWriting(() ->
                 givenDeployed("deployed-since", EventType.PUBLISH_API, deployedDefinition(null, "plan-of-the-deployment-made-since"))
-            ).replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+            ).replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL);
 
             assertSoftly(softly -> {
                 softly
@@ -425,17 +425,17 @@ class DeployApiInternalFlowDomainServiceTest {
                     .as("plans sent: those of the deployment made in between")
                     .extracting(Plan::getId)
                     .containsExactly("plan-of-the-deployment-made-since");
-                softly.assertThat(definitionSent().getInternalFlow()).as("internal flow sent").isEqualTo(guardians("guardian-2"));
+                softly.assertThat(definitionSent().getInternalFlow()).as("internal flow sent").isEqualTo(guardrails("guardrail-2"));
             });
         }
 
         @Test
         void should_send_nothing_when_the_api_was_stopped_in_between() {
-            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")));
+            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardrails("guardrail-1")));
 
             serviceDeployingWhileWriting(() ->
                 givenDeployed("stopped-since", EventType.STOP_API, deployedDefinition(null))
-            ).replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+            ).replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL);
 
             assertThat(events.storage()).as("events written, a stopped API being restarted by none").isEmpty();
         }
@@ -450,7 +450,7 @@ class DeployApiInternalFlowDomainServiceTest {
                     return written;
                 }
             };
-            racing.initWith(List.of(apiRunning(guardians("guardian-1"))));
+            racing.initWith(List.of(apiRunning(guardrails("guardrail-1"))));
             return new DeployApiInternalFlowDomainService(racing, events, latestEvents, deployments);
         }
     }
@@ -460,9 +460,9 @@ class DeployApiInternalFlowDomainServiceTest {
 
         @Test
         void should_deploy_an_event_of_the_type_the_api_was_deployed_with() {
-            givenDeployed(EventType.START_API, deployedDefinition(guardians("guardian-1")));
+            givenDeployed(EventType.START_API, deployedDefinition(guardrails("guardrail-1")));
 
-            service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+            service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL);
 
             assertThat(events.storage())
                 .as("events written")
@@ -473,14 +473,14 @@ class DeployApiInternalFlowDomainServiceTest {
         /** A caller the security context does not name as a user — a technical call — still has its change sent. */
         @Test
         void should_deploy_it_without_a_user_for_a_caller_that_is_none() {
-            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")));
+            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardrails("guardrail-1")));
             var anonymous = AuditInfo.builder()
                 .organizationId(ORGANIZATION_ID)
                 .environmentId(ENVIRONMENT_ID)
                 .actor(AuditActor.builder().build())
                 .build();
 
-            service.replaceInternalFlow(anonymous, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+            service.replaceInternalFlow(anonymous, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL);
 
             assertThat(events.storage())
                 .as("events written")
@@ -490,9 +490,9 @@ class DeployApiInternalFlowDomainServiceTest {
 
         @Test
         void should_deploy_it_as_the_caller() {
-            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")), "7");
+            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardrails("guardrail-1")), "7");
 
-            service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+            service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL);
 
             assertThat(events.storage())
                 .as("events written")
@@ -516,9 +516,9 @@ class DeployApiInternalFlowDomainServiceTest {
          */
         @Test
         void should_deploy_it_under_the_deployment_number_after_the_one_it_patches() {
-            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")), "7");
+            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardrails("guardrail-1")), "7");
 
-            service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+            service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL);
 
             assertThat(events.storage())
                 .as("events written")
@@ -530,13 +530,13 @@ class DeployApiInternalFlowDomainServiceTest {
 
         /**
          * A deployment of the API takes the number after the one of its latest event, which is the row written here:
-         * so the deployment that follows a Guardian change takes the number after this one rather than reusing it.
+         * so the deployment that follows a Guardrail change takes the number after this one rather than reusing it.
          */
         @Test
         void should_leave_the_number_it_opens_to_the_deployment_that_follows() {
-            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")), "7");
+            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardrails("guardrail-1")), "7");
 
-            service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+            service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL);
 
             assertThat(latestEvents.storage())
                 .as("latest events")
@@ -554,10 +554,10 @@ class DeployApiInternalFlowDomainServiceTest {
          * made.
          */
         @Test
-        void should_label_it_as_a_guardian_change_rather_than_a_deployment() {
-            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")), "7");
+        void should_label_it_as_a_guardrail_change_rather_than_a_deployment() {
+            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardrails("guardrail-1")), "7");
 
-            service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+            service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL);
 
             assertThat(events.storage())
                 .as("events written")
@@ -570,9 +570,9 @@ class DeployApiInternalFlowDomainServiceTest {
         /** A deployment that carries no number counts as number 0, as it does when the API is deployed. */
         @Test
         void should_deploy_it_under_the_first_deployment_number_after_a_deployment_that_carried_none() {
-            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")));
+            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardrails("guardrail-1")));
 
-            service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+            service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL);
 
             assertThat(events.storage())
                 .as("events written")
@@ -585,10 +585,10 @@ class DeployApiInternalFlowDomainServiceTest {
         /** The gateways read one row per API: the republished event replaces it rather than adding one. */
         @Test
         void should_keep_one_latest_event_per_api() {
-            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")));
+            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardrails("guardrail-1")));
             latestEvents.initWith(List.of(Event.builder().id(API_ID).type(EventType.PUBLISH_API).build()));
 
-            service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+            service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL);
 
             assertThat(latestEvents.storage())
                 .as("latest events")
@@ -603,11 +603,11 @@ class DeployApiInternalFlowDomainServiceTest {
          */
         @Test
         void should_deploy_the_patched_payload_and_not_the_one_it_read() {
-            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")));
+            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardrails("guardrail-1")));
 
-            service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+            service.replaceInternalFlow(CALLER, apiRunning(guardrails("guardrail-2")), STORED_AT, LABEL);
 
-            assertThat(definitionSent().getInternalFlow()).as("internal flow sent").isEqualTo(guardians("guardian-2"));
+            assertThat(definitionSent().getInternalFlow()).as("internal flow sent").isEqualTo(guardrails("guardrail-2"));
         }
     }
 
@@ -644,7 +644,7 @@ class DeployApiInternalFlowDomainServiceTest {
     @SneakyThrows
     private static String deploymentCarryingAnUnknownField() {
         var mapper = GraviteeJacksonMapper.getInstance();
-        var payload = (ObjectNode) mapper.readTree(deploymentPayload(deployedDefinition(guardians("one"))));
+        var payload = (ObjectNode) mapper.readTree(deploymentPayload(deployedDefinition(guardrails("one"))));
         var definition = (ObjectNode) mapper.readTree(payload.get("definition").asText());
         definition.put(UNKNOWN_FIELD_OF_A_DEFINITION, "written by a rest-api of another version");
         payload.put("definition", definition.toString());
@@ -722,7 +722,7 @@ class DeployApiInternalFlowDomainServiceTest {
         );
     }
 
-    /** A deployment holds the plans and the flows the gateways run, which a Guardian change must not touch. */
+    /** A deployment holds the plans and the flows the gateways run, which a Guardrail change must not touch. */
     private static io.gravitee.definition.model.v4.Api deployedDefinition(Flow internalFlow) {
         return deployedDefinition(internalFlow, "plan-deployed");
     }
@@ -751,12 +751,12 @@ class DeployApiInternalFlowDomainServiceTest {
             .build();
     }
 
-    private static Flow guardians(String... guardianIds) {
+    private static Flow guardrails(String... guardrailIds) {
         return Flow.builder()
             .request(
-                List.of(guardianIds)
+                List.of(guardrailIds)
                     .stream()
-                    .map(id -> GuardianSteps.of(id, id))
+                    .map(id -> GuardrailSteps.of(id, id))
                     .toList()
             )
             .build();

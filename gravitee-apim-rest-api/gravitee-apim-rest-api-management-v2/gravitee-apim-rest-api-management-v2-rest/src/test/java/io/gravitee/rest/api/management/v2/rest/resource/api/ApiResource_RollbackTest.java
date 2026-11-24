@@ -140,7 +140,7 @@ class ApiResource_RollbackTest extends ApiResourceTest {
      */
     @Test
     void should_answer_400_when_a_module_refuses_the_restored_internal_flow() {
-        doThrow(new ApiNotDeployableException("API 'my-api' cannot be deployed: Guardian 'guardian-1' is not deployed"))
+        doThrow(new ApiNotDeployableException("API 'my-api' cannot be deployed: Guardrail 'guardrail-1' is not deployed"))
             .when(rollbackApiUseCase)
             .execute(any(RollbackApiUseCase.Input.class));
 
@@ -154,7 +154,7 @@ class ApiResource_RollbackTest extends ApiResourceTest {
             soft
                 .assertThat(error.getMessage())
                 .as("message")
-                .isEqualTo("API 'my-api' cannot be deployed: Guardian 'guardian-1' is not deployed");
+                .isEqualTo("API 'my-api' cannot be deployed: Guardrail 'guardrail-1' is not deployed");
         });
     }
 

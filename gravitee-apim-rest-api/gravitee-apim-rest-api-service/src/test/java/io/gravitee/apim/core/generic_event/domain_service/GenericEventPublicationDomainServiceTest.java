@@ -129,7 +129,7 @@ class GenericEventPublicationDomainServiceTest {
 
     @Test
     void should_record_the_deployment_label_in_history_and_latest() {
-        var genericEvent = GenericEvent.builder().kind("guardian.definition").id("guardian-1").payload("{}").build();
+        var genericEvent = GenericEvent.builder().kind("guardrail.definition").id("guardrail-1").payload("{}").build();
 
         service.publish(genericEvent, PublicationOptions.withHistory("Reviewed guardrails"), AUDIT_INFO);
 
@@ -151,7 +151,7 @@ class GenericEventPublicationDomainServiceTest {
 
     @Test
     void should_record_the_label_when_history_is_disabled() {
-        var genericEvent = GenericEvent.builder().kind("guardian.definition").id("guardian-1").payload("{}").build();
+        var genericEvent = GenericEvent.builder().kind("guardrail.definition").id("guardrail-1").payload("{}").build();
 
         service.publish(genericEvent, new PublicationOptions(false, "Emergency deployment"), AUDIT_INFO);
 
@@ -168,7 +168,7 @@ class GenericEventPublicationDomainServiceTest {
 
     @Test
     void should_keep_the_deployment_label_optional_for_existing_callers() {
-        var genericEvent = GenericEvent.builder().kind("guardian.definition").id("guardian-1").payload("{}").build();
+        var genericEvent = GenericEvent.builder().kind("guardrail.definition").id("guardrail-1").payload("{}").build();
 
         service.publish(genericEvent, PublicationOptions.withHistory(), AUDIT_INFO);
 
@@ -180,7 +180,7 @@ class GenericEventPublicationDomainServiceTest {
 
     @Test
     void should_accept_a_deployment_label_at_the_size_limit() {
-        var genericEvent = GenericEvent.builder().kind("guardian.definition").id("guardian-1").payload("{}").build();
+        var genericEvent = GenericEvent.builder().kind("guardrail.definition").id("guardrail-1").payload("{}").build();
         var label = "a".repeat(256);
 
         service.publish(genericEvent, PublicationOptions.withHistory(label), AUDIT_INFO);
@@ -194,7 +194,7 @@ class GenericEventPublicationDomainServiceTest {
 
     @Test
     void should_refuse_an_oversized_label_before_writing_any_event() {
-        var genericEvent = GenericEvent.builder().kind("guardian.definition").id("guardian-1").payload("{}").build();
+        var genericEvent = GenericEvent.builder().kind("guardrail.definition").id("guardrail-1").payload("{}").build();
 
         assertThatThrownBy(() -> service.publish(genericEvent, PublicationOptions.withHistory("a".repeat(257)), AUDIT_INFO))
             .isInstanceOf(InvalidDataException.class)
@@ -279,7 +279,7 @@ class GenericEventPublicationDomainServiceTest {
 
     @Test
     void should_withdraw_with_a_payload_scoped_and_dated_like_a_publication() {
-        var withdrawal = GenericEvent.builder().kind("guardian.definition").id("guardian-1").payload("{\"reason\":\"retired\"}").build();
+        var withdrawal = GenericEvent.builder().kind("guardrail.definition").id("guardrail-1").payload("{\"reason\":\"retired\"}").build();
 
         var output = service.withdraw(withdrawal, PublicationOptions.withHistory(), AUDIT_INFO);
 

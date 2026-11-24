@@ -151,7 +151,7 @@ public class ApiEntity implements GenericApiEntity {
 
     // Managed by the platform, not by the API publisher: kept out of every payload. Compared against what the
     // gateways run like any other deployment-bearing field, which here detects an application that did not happen:
-    // a Guardian change is sent to them as it is written, so a difference means the API was never deployed, is
+    // a Guardrail change is sent to them as it is written, so a difference means the API was never deployed, is
     // stopped, or the event write failed.
     @JsonIgnore
     @DeploymentRequired

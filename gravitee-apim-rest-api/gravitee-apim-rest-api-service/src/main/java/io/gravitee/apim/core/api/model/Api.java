@@ -302,7 +302,7 @@ public class Api {
                         .failover(source.getFailover())
                         .flowExecution(source.getFlowExecution())
                         .flows(source.getFlows())
-                        // The Guardians the API runs are a step of the internal flow, so they roll back with the
+                        // The Guardrails the API runs are a step of the internal flow, so they roll back with the
                         // rest of the definition rather than surviving the rollback.
                         .internalFlow(source.getInternalFlow())
                         .responseTemplates(source.getResponseTemplates())

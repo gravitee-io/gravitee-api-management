@@ -32,9 +32,9 @@ public interface ApiDefinitionCrudService {
     /**
      * Replaces the definition of an API, and its update date, while it still holds {@code expectedUpdatedAt}.
      *
-     * <p>The index of the Guardians the API runs travels with it, in the same store operation: it is a projection of
+     * <p>The index of the Guardrails the API runs travels with it, in the same store operation: it is a projection of
      * the internal flow of the definition being written, read out of it here so that no caller can write one without
-     * the other. The index is what the refusal to withdraw a Guardian an API runs reads.
+     * the other. The index is what the refusal to withdraw a Guardrail an API runs reads.
      *
      * @param api the API carrying the definition to write and the update date to stamp. Nothing else of it is
      *     written.

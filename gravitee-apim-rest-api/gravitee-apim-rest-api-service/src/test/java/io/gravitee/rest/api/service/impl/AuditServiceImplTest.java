@@ -30,12 +30,12 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.api.DashboardRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
-import io.gravitee.repository.management.api.GuardianRepository;
+import io.gravitee.repository.management.api.GuardrailRepository;
 import io.gravitee.repository.management.api.search.AuditCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Dashboard;
-import io.gravitee.repository.management.model.Guardian;
+import io.gravitee.repository.management.model.Guardrail;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.audit.AuditEntity;
 import io.gravitee.rest.api.model.audit.AuditQuery;
@@ -75,7 +75,7 @@ class AuditServiceImplTest {
     private EnvironmentRepository environmentRepository;
 
     @Mock
-    private GuardianRepository guardianRepository;
+    private GuardrailRepository guardrailRepository;
 
     @Mock
     private UserService userService;
@@ -468,8 +468,8 @@ class AuditServiceImplTest {
         private static final String DASHBOARD_ID = "dash-id";
         private static final String DASHBOARD_NAME = "My Dashboard";
         private static final String USER_ID = "user-id";
-        private static final String GUARDIAN_ID = "guardian-id";
-        private static final String GUARDIAN_NAME = "PII Guardian";
+        private static final String GUARDRAIL_ID = "guardrail-id";
+        private static final String GUARDRAIL_NAME = "PII Guardrail";
 
         private final ExecutionContext executionContext = new ExecutionContext(ORG_ID, ENV_ID);
 
@@ -489,23 +489,23 @@ class AuditServiceImplTest {
             return audit;
         }
 
-        private Audit guardianAudit() {
+        private Audit guardrailAudit() {
             Audit audit = new Audit();
-            audit.setId("guardian-audit-id");
+            audit.setId("guardrail-audit-id");
             audit.setReferenceType(Audit.AuditReferenceType.ENVIRONMENT);
             audit.setReferenceId(ENV_ID);
             audit.setUser(USER_ID);
-            audit.setEvent("GUARDIAN_DEPLOYED");
-            audit.setProperties(Map.of("GUARDIAN", GUARDIAN_ID));
+            audit.setEvent("GUARDRAIL_DEPLOYED");
+            audit.setProperties(Map.of("GUARDRAIL", GUARDRAIL_ID));
             audit.setPatch("[]");
             return audit;
         }
 
         @Test
-        void should_list_every_audit_of_a_page_holding_a_guardian_audit_with_the_guardian_name() throws TechnicalException {
-            when(auditRepository.search(any(), any())).thenReturn(new Page<>(List.of(dashboardAudit(), guardianAudit()), 0, 2, 2));
-            when(guardianRepository.findById(GUARDIAN_ID)).thenReturn(
-                Optional.of(Guardian.builder().id(GUARDIAN_ID).name(GUARDIAN_NAME).build())
+        void should_list_every_audit_of_a_page_holding_a_guardrail_audit_with_the_guardrail_name() throws TechnicalException {
+            when(auditRepository.search(any(), any())).thenReturn(new Page<>(List.of(dashboardAudit(), guardrailAudit()), 0, 2, 2));
+            when(guardrailRepository.findById(GUARDRAIL_ID)).thenReturn(
+                Optional.of(Guardrail.builder().id(GUARDRAIL_ID).name(GUARDRAIL_NAME).build())
             );
 
             var result = auditSearch();
@@ -515,22 +515,22 @@ class AuditServiceImplTest {
                     .assertThat(result.getContent())
                     .as("audits of the page")
                     .extracting(AuditEntity::getId)
-                    .containsExactly("audit-id", "guardian-audit-id");
+                    .containsExactly("audit-id", "guardrail-audit-id");
                 softly
                     .assertThat(result.getMetadata())
-                    .as("metadata of the guardian")
-                    .containsEntry("GUARDIAN:" + GUARDIAN_ID + ":name", GUARDIAN_NAME);
+                    .as("metadata of the guardrail")
+                    .containsEntry("GUARDRAIL:" + GUARDRAIL_ID + ":name", GUARDRAIL_NAME);
             });
         }
 
         @Test
-        void should_fallback_to_guardian_id_when_guardian_not_found() throws TechnicalException {
-            when(auditRepository.search(any(), any())).thenReturn(new Page<>(List.of(guardianAudit()), 0, 1, 1));
-            when(guardianRepository.findById(GUARDIAN_ID)).thenReturn(Optional.empty());
+        void should_fallback_to_guardrail_id_when_guardrail_not_found() throws TechnicalException {
+            when(auditRepository.search(any(), any())).thenReturn(new Page<>(List.of(guardrailAudit()), 0, 1, 1));
+            when(guardrailRepository.findById(GUARDRAIL_ID)).thenReturn(Optional.empty());
 
             var result = auditSearch();
 
-            assertThat(result.getMetadata()).containsEntry("GUARDIAN:" + GUARDIAN_ID + ":name", GUARDIAN_ID);
+            assertThat(result.getMetadata()).containsEntry("GUARDRAIL:" + GUARDRAIL_ID + ":name", GUARDRAIL_ID);
         }
 
         @Test

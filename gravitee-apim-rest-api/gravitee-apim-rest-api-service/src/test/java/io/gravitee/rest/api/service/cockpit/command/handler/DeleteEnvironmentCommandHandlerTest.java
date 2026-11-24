@@ -57,7 +57,7 @@ import io.gravitee.repository.management.api.GammaDashboardRepository;
 import io.gravitee.repository.management.api.GammaMetricDefinitionRepository;
 import io.gravitee.repository.management.api.GenericNotificationConfigRepository;
 import io.gravitee.repository.management.api.GroupRepository;
-import io.gravitee.repository.management.api.GuardianRepository;
+import io.gravitee.repository.management.api.GuardrailRepository;
 import io.gravitee.repository.management.api.IdentityProviderActivationRepository;
 import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.InvitationRepository;
@@ -254,7 +254,7 @@ public class DeleteEnvironmentCommandHandlerTest {
     private GroupRepository groupRepository;
 
     @Mock
-    private GuardianRepository guardianRepository;
+    private GuardrailRepository guardrailRepository;
 
     @Mock
     private RoleRepository roleRepository;
@@ -494,7 +494,7 @@ public class DeleteEnvironmentCommandHandlerTest {
             gammaMetricDefinitionRepository,
             genericNotificationConfigRepository,
             groupRepository,
-            guardianRepository,
+            guardrailRepository,
             identityProviderActivationRepository,
             integrationRepository,
             invitationRepository,
@@ -616,7 +616,7 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(dictionaryRepository).deleteByEnvironmentId(ENV_ID);
         verify(portalNotificationConfigRepository).deleteByReferenceIdAndReferenceType(ENV_ID, NotificationReferenceType.ENVIRONMENT);
         verify(genericNotificationConfigRepository).deleteByReferenceIdAndReferenceType(ENV_ID, NotificationReferenceType.ENVIRONMENT);
-        verify(guardianRepository).deleteByEnvironmentId(ENV_ID);
+        verify(guardrailRepository).deleteByEnvironmentId(ENV_ID);
         verify(sharedPolicyGroupRepository).deleteByEnvironmentId(ENV_ID);
         verify(sharedPolicyGroupHistoryRepository).deleteByEnvironmentId(ENV_ID);
         verify(themeRepository).deleteByReferenceIdAndReferenceType(ENV_ID, ThemeReferenceType.ENVIRONMENT);
