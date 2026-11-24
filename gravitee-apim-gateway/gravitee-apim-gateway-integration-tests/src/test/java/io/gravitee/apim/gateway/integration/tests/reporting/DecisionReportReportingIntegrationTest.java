@@ -97,7 +97,7 @@ class DecisionReportReportingIntegrationTest extends AbstractGatewayTest {
             .assertValue(reportable -> {
                 assertThat(reportable.getApiId()).isEqualTo("my-api-decision-permit-v4");
                 assertThat(reportable.getGatewayId()).isNotBlank();
-                assertThat(reportable.getDecisionPointType()).isEqualTo(DecisionReport.DECISION_POINT_GUARDIAN);
+                assertThat(reportable.getDecisionPointType()).isEqualTo("guardrail");
                 assertThat(reportable.getCheckpoint()).isEqualTo("request.prompt");
                 assertThat(reportable.getPhase()).isEqualTo(DecisionReport.Phase.RESOLVED);
                 assertThat(reportable.getStatus()).isEqualTo(DecisionReport.Status.SUCCESS);

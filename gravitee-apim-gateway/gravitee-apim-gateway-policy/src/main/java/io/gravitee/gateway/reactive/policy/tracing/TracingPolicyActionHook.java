@@ -22,7 +22,7 @@ import java.util.Map;
 
 /**
  * Traces an action a policy registered on the execution context, in a span of its own named after the policy and the
- * action type (e.g. {@code REQUEST policy-guardian (endpoint-request action)}). It carries the same attributes and
+ * action type (e.g. {@code REQUEST policy-guardrail (endpoint-request action)}). It carries the same attributes and
  * verbose events as the policy spans, plus {@value #SPAN_POLICY_ACTION_ATTR}.
  */
 public class TracingPolicyActionHook extends TracingPolicyHook {

@@ -10,8 +10,8 @@
   "app-id": "test_app",
   "event-id": "evt-1",
   "phase": "RESOLVED",
-  "decision-point-type": "guardian",
-  "decision-point-id": "prompt-guardian",
+  "decision-point-type": "guardrail",
+  "decision-point-id": "prompt-guardrail",
   "decision-point-version": "gpt-4o-2024-11",
   "checkpoint": "response.tool_calls",
   "caller": "pep",
@@ -28,7 +28,7 @@
   "indeterminate-cause": "TIMEOUT",
   "confidence": 0.94,
   "reasons": [
-    "Guardian did not answer within 250ms"
+    "Guardrail did not answer within 250ms"
   ],
   "matched-rules": [
     {

@@ -55,7 +55,7 @@ import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.edge.EdgeApi;
-import io.gravitee.definition.model.v4.guardian.Guardian;
+import io.gravitee.definition.model.v4.guardrail.Guardrail;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
 import io.gravitee.gateway.api.genericevent.GenericEvent;
@@ -64,7 +64,7 @@ import io.gravitee.gateway.dictionary.model.Dictionary;
 import io.gravitee.gateway.genericevent.GenericEventManager;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
-import io.gravitee.gateway.handlers.guardian.manager.GuardianManager;
+import io.gravitee.gateway.handlers.guardrail.manager.GuardrailManager;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupManager;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
@@ -193,7 +193,7 @@ public class GatewayRunner {
     private final Map<String, ReactableOrganization> deployedOrganizationsForTest;
     private final Map<SharedPolicyGroupKey, ReactableSharedPolicyGroup> deployedSharedPolicyGroupsForTestClass;
     private final Map<SharedPolicyGroupKey, ReactableSharedPolicyGroup> deployedSharedPolicyGroupsForTest;
-    private final GuardianDeployments guardianDeployments;
+    private final GuardrailDeployments guardrailDeployments;
     private final GenericEventDeployments genericEventDeployments;
     private final Map<String, ReactableApiProduct> deployedApiProductsForTestClass;
     private final Map<String, ReactableApiProduct> deployedApiProductsForTest;
@@ -218,8 +218,8 @@ public class GatewayRunner {
         this.deployedOrganizationsForTest = new HashMap<>();
         this.deployedSharedPolicyGroupsForTestClass = new HashMap<>();
         this.deployedSharedPolicyGroupsForTest = new HashMap<>();
-        this.guardianDeployments = new GuardianDeployments(testInstance, () ->
-            gatewayContainer.applicationContext().getBean(GuardianManager.class)
+        this.guardrailDeployments = new GuardrailDeployments(testInstance, () ->
+            gatewayContainer.applicationContext().getBean(GuardrailManager.class)
         );
         this.genericEventDeployments = new GenericEventDeployments(() ->
             gatewayContainer.applicationContext().getBean(GenericEventManager.class)
@@ -279,8 +279,8 @@ public class GatewayRunner {
             testInstance.setUndeployCallback(this::undeployFromTest);
             testInstance.setDeploySharedPolicyGroupCallback(this::deploySharedPolicyGroupFromTest);
             testInstance.setUndeploySharedPolicyGroupCallback(this::undeploySharedPolicyGroupFromTest);
-            testInstance.setDeployGuardianCallback(guardianDeployments::deployFromTest);
-            testInstance.setUndeployGuardianCallback(guardianDeployments::undeployFromTest);
+            testInstance.setDeployGuardrailCallback(guardrailDeployments::deployFromTest);
+            testInstance.setUndeployGuardrailCallback(guardrailDeployments::undeployFromTest);
             testInstance.setDeployGenericEventCallback(genericEventDeployments::deployFromTest);
             testInstance.setUndeployGenericEventCallback(genericEventDeployments::undeployFromTest);
             testInstance.setDeployApiProductCallback(this::deployOrRedeployApiProductFromTest);
@@ -533,12 +533,12 @@ public class GatewayRunner {
         );
     }
 
-    public void deployGuardianForClass(String guardianDefinitionPath) throws IOException {
-        guardianDeployments.deployForClass(loadResource(guardianDefinitionPath, Guardian.class));
+    public void deployGuardrailForClass(String guardrailDefinitionPath) throws IOException {
+        guardrailDeployments.deployForClass(loadResource(guardrailDefinitionPath, Guardrail.class));
     }
 
-    public void deployGuardianForTest(String guardianDefinitionPath) throws IOException {
-        guardianDeployments.deployForTest(loadResource(guardianDefinitionPath, Guardian.class));
+    public void deployGuardrailForTest(String guardrailDefinitionPath) throws IOException {
+        guardrailDeployments.deployForTest(loadResource(guardrailDefinitionPath, Guardrail.class));
     }
 
     public void deployGenericEventsForClass(String... genericEventDefinitionPaths) throws IOException {
@@ -819,12 +819,12 @@ public class GatewayRunner {
         sharedPolicyGroupManager.unregister(reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId());
     }
 
-    public void undeployGuardianForClass() {
-        guardianDeployments.undeployForClass();
+    public void undeployGuardrailForClass() {
+        guardrailDeployments.undeployForClass();
     }
 
-    public void undeployGuardianForTest() {
-        guardianDeployments.undeployForTest();
+    public void undeployGuardrailForTest() {
+        guardrailDeployments.undeployForTest();
     }
 
     public void undeployGenericEventForClass() {
