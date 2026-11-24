@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.v4.guardian;
+package io.gravitee.definition.model.v4.guardrail;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -38,8 +38,8 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * A Guardian is a named group of policies deployed on its own and executed from an API flow through the
- * {@code guardian-policy}. It follows the Shared Policy Group model, but is executed by the Guardian reactor plugin.
+ * A Guardrail is a named group of policies deployed on its own and executed from an API flow through the
+ * {@code guardrail-policy}. It follows the Shared Policy Group model, but is executed by the Guardrail reactor plugin.
  *
  * @author GraviteeSource Team
  */
@@ -50,7 +50,7 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 @Builder(toBuilder = true)
-public class Guardian implements Serializable {
+public class Guardrail implements Serializable {
 
     @JsonProperty(required = true)
     @NotBlank
@@ -75,7 +75,7 @@ public class Guardian implements Serializable {
     private List<Resource> resources;
 
     /**
-     * The API types this Guardian is designed for. Empty or absent means it applies to any API.
+     * The API types this Guardrail is designed for. Empty or absent means it applies to any API.
      */
     private Set<ApiType> apiTypes;
 
