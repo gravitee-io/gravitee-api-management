@@ -21,6 +21,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.apim.core.audit.model.event.AiWorkspaceAuditEvent;
+import io.gravitee.apim.core.audit.model.event.ApiProductAuditEvent;
+import io.gravitee.apim.core.audit.model.event.ApprovalAuditEvent;
+import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
 import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.node.api.license.License;
@@ -83,6 +87,25 @@ public class AuditResourceTest extends AbstractResourceTest {
         assertTrue(events.containsAll(Arrays.stream(Audit.AuthorizationAuditEvent.values()).map(Enum::name).toList()), events.toString());
         assertEquals(31, Audit.AuthorizationAuditEvent.values().length);
         assertEquals(events.size(), new HashSet<>(events).size(), events.toString());
+        assertEquals(events.stream().sorted().toList(), events);
+    }
+
+    @Test
+    public void should_list_the_events_of_the_core_audit_model_so_that_they_can_be_filtered() {
+        final Response response = envTarget().path("events").request().get();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        List<String> events = response.readEntity(new GenericType<>() {});
+        assertTrue(events.containsAll(namesOf(ApprovalAuditEvent.values())), events.toString());
+        assertTrue(events.containsAll(namesOf(AiWorkspaceAuditEvent.values())), events.toString());
+        assertTrue(events.containsAll(namesOf(ApiProductAuditEvent.values())), events.toString());
+        assertTrue(events.containsAll(namesOf(ClusterAuditEvent.values())), events.toString());
+        assertEquals(events.size(), new HashSet<>(events).size(), events.toString());
+        assertEquals(events.stream().sorted().toList(), events);
+    }
+
+    private static List<String> namesOf(Enum<?>[] constants) {
+        return Arrays.stream(constants).map(Enum::name).toList();
     }
 
     @Test
