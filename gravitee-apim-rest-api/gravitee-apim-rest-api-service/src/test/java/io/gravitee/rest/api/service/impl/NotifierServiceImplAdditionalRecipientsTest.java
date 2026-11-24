@@ -158,7 +158,9 @@ class NotifierServiceImplAdditionalRecipientsTest {
                 "app-id"
             )
         ).thenReturn(Collections.emptyList());
-        when(emailRecipientsService.processTemplatedRecipients(List.of(), params)).thenReturn(Set.of());
+        when(emailRecipientsService.processTemplatedRecipients(List.of("subscriber@gio.test"), params)).thenReturn(
+            Set.of("subscriber@gio.test")
+        );
 
         cut.trigger(
             executionContext,

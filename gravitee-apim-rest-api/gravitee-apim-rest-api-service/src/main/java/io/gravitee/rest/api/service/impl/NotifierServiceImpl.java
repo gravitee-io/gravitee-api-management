@@ -308,26 +308,26 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
             list().forEach(notifier -> {
                 switch (notifier.type()) {
                     case EMAIL -> {
-                        var configuredRecipients = notificationConfigs
+                        var recipientsToProcess = notificationConfigs
                             .getOrDefault(notifier.getId(), Collections.emptyList())
                             .stream()
                             .map(GenericNotificationConfig::getConfig)
-                            .toList();
+                            .collect(Collectors.toCollection(ArrayList::new));
 
-                        // extract emails from templated string (eg: ${api.primaryOwner.email})
-                        var recipients = new HashSet<>(
-                            emailRecipientsService.processTemplatedRecipients(configuredRecipients, data.params)
-                        );
-
+                        // a recipient given by the caller is an address held by the platform, never a template:
+                        // one holding a template marker is kept out of template processing so it is never evaluated
+                        var verbatimRecipients = new ArrayList<String>();
                         if (!CollectionUtils.isEmpty(data.recipients)) {
-                            // a recipient given by the caller is an address held by the platform, never a template:
-                            // it is added after template processing so it is never evaluated nor split
                             data.recipients
                                 .stream()
                                 .filter(r -> notifier.type().name().equals(r.type()))
                                 .map(Recipient::value)
-                                .forEach(recipients::add);
+                                .forEach(value -> (value.contains("$") ? verbatimRecipients : recipientsToProcess).add(value));
                         }
+
+                        // extract emails from templated string (eg: ${api.primaryOwner.email})
+                        var recipients = new HashSet<>(emailRecipientsService.processTemplatedRecipients(recipientsToProcess, data.params));
+                        recipients.addAll(verbatimRecipients);
 
                         // extract emails of opted-in users if trial instance
                         Collection<String> validRecipients = parameterService.findAsBoolean(
