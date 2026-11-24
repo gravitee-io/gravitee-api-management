@@ -225,7 +225,7 @@ import { SearchAndSelectController } from './components/logs/search-and-select/s
 import AlertsActivityComponentAjs from './management/alerts/activity/alerts-activity.component.ajs';
 import { ApiV2Service } from './services-ngx/api-v2.service';
 import { GioPermissionService } from './shared/components/gio-permission/gio-permission.service';
-import { LIGHT_CHART_PALETTE } from './shared/components/gio-chart-abstract/gio-chart-abstract.component';
+import { CONSOLE_HIGHCHARTS_OPTIONS } from './shared/utils/console-highcharts-options';
 import { ApiAnalyticsOverviewComponentAjs } from './management/api/analytics/overview/analytics-overview.component.ajs';
 import { Router } from '@angular/router';
 import SettingsAnalyticsComponentAjs from './management/settings/analytics/settings-analytics.component.ajs';
@@ -305,76 +305,7 @@ require('highcharts/modules/map');
 
 require('@highcharts/map-collection/custom/world');
 
-// Configure Highcharts to use Manrope font
-const PARAGRAPH_FONT_FAMILY = 'Manrope, sans-serif';
-const HEADER_FONT_FAMILY = 'Kanit, Roboto, Helvetica Neue, sans-serif';
-
-Highcharts.setOptions({
-  // Charts of both the Angular and the AngularJS side share this instance, so the Console's
-  // light-only theme is set here once; each chart may still pin it in its own options.
-  palette: LIGHT_CHART_PALETTE,
-  chart: {
-    style: {
-      fontFamily: PARAGRAPH_FONT_FAMILY,
-    },
-  },
-  title: {
-    style: {
-      fontFamily: HEADER_FONT_FAMILY,
-    },
-  },
-  subtitle: {
-    style: {
-      fontFamily: PARAGRAPH_FONT_FAMILY,
-    },
-  },
-  xAxis: {
-    labels: {
-      style: {
-        fontFamily: PARAGRAPH_FONT_FAMILY,
-      },
-    },
-    title: {
-      style: {
-        fontFamily: PARAGRAPH_FONT_FAMILY,
-      },
-    },
-  },
-  yAxis: {
-    labels: {
-      style: {
-        fontFamily: PARAGRAPH_FONT_FAMILY,
-      },
-    },
-    title: {
-      style: {
-        fontFamily: PARAGRAPH_FONT_FAMILY,
-      },
-    },
-  },
-  legend: {
-    itemStyle: {
-      fontFamily: PARAGRAPH_FONT_FAMILY,
-    },
-    itemHoverStyle: {
-      fontFamily: PARAGRAPH_FONT_FAMILY,
-    },
-  },
-  tooltip: {
-    style: {
-      fontFamily: PARAGRAPH_FONT_FAMILY,
-    },
-  },
-  plotOptions: {
-    series: {
-      dataLabels: {
-        style: {
-          fontFamily: PARAGRAPH_FONT_FAMILY,
-        },
-      },
-    },
-  },
-});
+Highcharts.setOptions(CONSOLE_HIGHCHARTS_OPTIONS);
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
