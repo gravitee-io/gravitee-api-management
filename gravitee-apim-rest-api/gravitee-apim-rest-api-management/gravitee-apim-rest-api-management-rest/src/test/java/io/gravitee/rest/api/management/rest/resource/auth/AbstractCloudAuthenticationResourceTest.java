@@ -171,7 +171,24 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
         when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
         when(installationAccessQueryService.getConsoleUrl(ORGANIZATION_ID)).thenReturn(rootTarget("console").getUri().toString());
         final Response response = rootTarget(PATH).queryParam("token", "invalid").request().get();
-        assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotAuthenticateWithoutToken() {
+        final Response response = rootTarget(PATH).request().get();
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotAuthenticateWithTokenNotSignedByCockpit() {
+        String jwt = JWT.create()
+            .withSubject(JWT_SUBJECT)
+            .withClaim(ORG_CLAIM, ORGANIZATION_ID)
+            .withClaim(ENVIRONMENT_CLAIM, ENVIRONMENT_ID)
+            .sign(Algorithm.HMAC256("not-the-cockpit-key-".repeat(2)));
+        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
     }
 
     @Test
@@ -280,6 +297,46 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
     }
 
     @Test
+<<<<<<< HEAD
+=======
+    public void shouldNotAuthenticateWithFormPostIfCockpitIsNotEnabled() {
+        System.clearProperty(getPropertyPrefix() + ".enabled");
+        final Response response = postToken("test");
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotAuthenticateWithInvalidTokenInFormPost() {
+        final Response response = postToken("invalid");
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldAuthenticateToGammaWithFormPost() {
+        UserEntity userEntity = mockUserEntity();
+        String gcat = "Bearer cockpit-session-token";
+
+        String jwt = this.generateJWT(
+            userEntity.getId(),
+            ORGANIZATION_ID,
+            ENVIRONMENT_ID,
+            "audience",
+            null,
+            null,
+            "gamma_console",
+            Map.of(JWTHelper.Claims.GCAT, gcat)
+        );
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true)).thenReturn(userEntity);
+        when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
+        when(installationAccessQueryService.getGammaUrl(ORGANIZATION_ID)).thenReturn("http://localhost:4200");
+        final Response response = postToken(jwt);
+        assertEquals(HttpStatusCode.SEE_OTHER_303, response.getStatus());
+        assertEquals("http://localhost:4200/environments/" + ENVIRONMENT_ID, response.getLocation().toString());
+        assertEquals(gcat, sessionCookieJwt().getClaim(JWTHelper.Claims.GCAT).asString());
+    }
+
+    @Test
+>>>>>>> 3c3b4d1 (fix: change for a private ticket (PORTAL-374))
     public void shouldRecordConnectionWhenAuthenticatingToConsole() {
         UserEntity userEntity = mockUserEntity();
 
