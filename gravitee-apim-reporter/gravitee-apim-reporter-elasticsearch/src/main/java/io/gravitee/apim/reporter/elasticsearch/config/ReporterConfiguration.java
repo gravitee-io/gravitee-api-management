@@ -165,6 +165,25 @@ public class ReporterConfiguration {
     private String sslKeystorePassword;
 
     /**
+     * Whether any server certificate is accepted, without checking who signed it or the host it was issued for.
+     */
+    @Value("${reporters.elasticsearch.ssl.trustAll:false}")
+    private boolean sslTrustAll;
+
+    /**
+     * Type of the truststore holding the certificate authorities to trust: jks, pkcs12 or pem.
+     * Without it, the JVM default truststore applies.
+     */
+    @Value("${reporters.elasticsearch.ssl.truststore.type:#{null}}")
+    private String sslTruststoreType;
+
+    @Value("${reporters.elasticsearch.ssl.truststore.path:#{null}}")
+    private String sslTruststorePath;
+
+    @Value("${reporters.elasticsearch.ssl.truststore.password:#{null}}")
+    private String sslTruststorePassword;
+
+    /**
      * Elasticsearch ssl pem certs paths
      */
     private List<String> sslPemCerts;
@@ -441,6 +460,38 @@ public class ReporterConfiguration {
 
     public void setSslKeystorePassword(String sslKeystorePassword) {
         this.sslKeystorePassword = sslKeystorePassword;
+    }
+
+    public boolean isSslTrustAll() {
+        return sslTrustAll;
+    }
+
+    public void setSslTrustAll(boolean sslTrustAll) {
+        this.sslTrustAll = sslTrustAll;
+    }
+
+    public String getSslTruststoreType() {
+        return sslTruststoreType;
+    }
+
+    public void setSslTruststoreType(String sslTruststoreType) {
+        this.sslTruststoreType = sslTruststoreType;
+    }
+
+    public String getSslTruststorePath() {
+        return sslTruststorePath;
+    }
+
+    public void setSslTruststorePath(String sslTruststorePath) {
+        this.sslTruststorePath = sslTruststorePath;
+    }
+
+    public String getSslTruststorePassword() {
+        return sslTruststorePassword;
+    }
+
+    public void setSslTruststorePassword(String sslTruststorePassword) {
+        this.sslTruststorePassword = sslTruststorePassword;
     }
 
     public List<String> getSslPemCerts() {

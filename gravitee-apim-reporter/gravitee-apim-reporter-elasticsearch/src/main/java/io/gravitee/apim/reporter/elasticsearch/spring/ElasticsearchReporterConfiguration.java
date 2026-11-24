@@ -40,6 +40,10 @@ public class ElasticsearchReporterConfiguration {
 
     @Bean
     public Client httpClient(ReporterConfiguration reporterConfiguration) {
+        return new HttpClient(clientConfiguration(reporterConfiguration));
+    }
+
+    static HttpClientConfiguration clientConfiguration(ReporterConfiguration reporterConfiguration) {
         HttpClientConfiguration clientConfiguration = new HttpClientConfiguration();
         clientConfiguration.setEndpoints(reporterConfiguration.getEndpoints());
         clientConfiguration.setUsername(reporterConfiguration.getUsername());
@@ -80,7 +84,18 @@ public class ElasticsearchReporterConfiguration {
             }
         }
 
-        return new HttpClient(clientConfiguration);
+        clientConfiguration.setTrustAll(reporterConfiguration.isSslTrustAll());
+        if (reporterConfiguration.getSslTruststoreType() != null) {
+            clientConfiguration.setTrustStoreConfig(
+                new HttpClientTrustStoreConfiguration(
+                    reporterConfiguration.getSslTruststoreType(),
+                    reporterConfiguration.getSslTruststorePath(),
+                    reporterConfiguration.getSslTruststorePassword()
+                )
+            );
+        }
+
+        return clientConfiguration;
     }
 
     @Bean

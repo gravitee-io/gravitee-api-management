@@ -731,6 +731,12 @@ reporters:
 #      username: user
 #      password: secret
 #      api_key: <encoded API key> # Instead of username/password, e.g. for Elastic Cloud Serverless. Do not set both.
+#    ssl:
+#      trustAll: false # Accept any certificate from an https endpoint, without checking it (default false)
+#      truststore:     # Certificate authorities to trust. Without it, the JVM default truststore applies
+#        type: pem     # jks, pkcs12 or pem
+#        path: ${gravitee.home}/security/elasticsearch-ca.pem
+#        password: secret # jks and pkcs12 only
 #    http:
 #      timeout: 30000 # in milliseconds
 #      proxy:
