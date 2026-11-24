@@ -1,0 +1,6 @@
+{
+  "id": "my-guardrail",
+  "name": "My guardrail",
+  "phase": "REQUEST",
+  "policies": []
+}

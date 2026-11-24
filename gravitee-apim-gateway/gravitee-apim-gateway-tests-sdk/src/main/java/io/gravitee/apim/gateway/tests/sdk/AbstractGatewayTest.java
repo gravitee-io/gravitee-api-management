@@ -31,7 +31,7 @@ import io.gravitee.apim.gateway.tests.sdk.runner.ApiDeployer;
 import io.gravitee.apim.gateway.tests.sdk.runner.ApiProductDeployer;
 import io.gravitee.apim.gateway.tests.sdk.runner.DictionaryDeployer;
 import io.gravitee.apim.gateway.tests.sdk.runner.GenericEventDeployer;
-import io.gravitee.apim.gateway.tests.sdk.runner.GuardianDeployer;
+import io.gravitee.apim.gateway.tests.sdk.runner.GuardrailDeployer;
 import io.gravitee.apim.gateway.tests.sdk.runner.OrganizationConfigurer;
 import io.gravitee.apim.gateway.tests.sdk.runner.SharedPolicyGroupDeployer;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -40,7 +40,7 @@ import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.api.genericevent.GenericEvent;
 import io.gravitee.gateway.dictionary.model.Dictionary;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
-import io.gravitee.gateway.handlers.guardian.ReactableGuardian;
+import io.gravitee.gateway.handlers.guardrail.ReactableGuardrail;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
@@ -97,7 +97,7 @@ public abstract class AbstractGatewayTest
         DictionaryDeployer,
         ApplicationContextAware,
         SharedPolicyGroupDeployer,
-        GuardianDeployer,
+        GuardrailDeployer,
         GenericEventDeployer,
         ApiProductDeployer {
 
@@ -129,8 +129,8 @@ public abstract class AbstractGatewayTest
     private Consumer<String> apiUndeployer;
     private Consumer<ReactableSharedPolicyGroup> sharedPolicyGroupDeployer;
     private BiConsumer<String, String> sharedPolicyGroupUndeployer;
-    private Consumer<ReactableGuardian> guardianDeployer;
-    private BiConsumer<String, String> guardianUndeployer;
+    private Consumer<ReactableGuardrail> guardrailDeployer;
+    private BiConsumer<String, String> guardrailUndeployer;
     private Consumer<GenericEvent> genericEventDeployer;
     private Consumer<GenericEvent> genericEventUndeployer;
     private Consumer<ReactableApiProduct> apiProductDeployer;
@@ -370,29 +370,29 @@ public abstract class AbstractGatewayTest
     }
 
     @Override
-    public void setDeployGuardianCallback(Consumer<ReactableGuardian> guardianDeployer) {
-        this.guardianDeployer = guardianDeployer;
+    public void setDeployGuardrailCallback(Consumer<ReactableGuardrail> guardrailDeployer) {
+        this.guardrailDeployer = guardrailDeployer;
     }
 
     @Override
-    public void setUndeployGuardianCallback(BiConsumer<String, String> guardianUndeployer) {
-        this.guardianUndeployer = guardianUndeployer;
+    public void setUndeployGuardrailCallback(BiConsumer<String, String> guardrailUndeployer) {
+        this.guardrailUndeployer = guardrailUndeployer;
     }
 
     @Override
-    public void deployGuardian(ReactableGuardian reactableGuardian) {
-        guardianDeployer.accept(reactableGuardian);
+    public void deployGuardrail(ReactableGuardrail reactableGuardrail) {
+        guardrailDeployer.accept(reactableGuardrail);
     }
 
     @Override
-    public void undeployGuardian(String guardianId, String environmentId) {
-        guardianUndeployer.accept(guardianId, environmentId);
+    public void undeployGuardrail(String guardrailId, String environmentId) {
+        guardrailUndeployer.accept(guardrailId, environmentId);
     }
 
     @Override
-    public void redeployGuardian(ReactableGuardian reactableGuardian) {
-        undeployGuardian(reactableGuardian.getId(), reactableGuardian.getEnvironmentId());
-        deployGuardian(reactableGuardian);
+    public void redeployGuardrail(ReactableGuardrail reactableGuardrail) {
+        undeployGuardrail(reactableGuardrail.getId(), reactableGuardrail.getEnvironmentId());
+        deployGuardrail(reactableGuardrail);
     }
 
     @Override
@@ -475,13 +475,13 @@ public abstract class AbstractGatewayTest
     }
 
     /**
-     * Ensures the Guardian has the minimal requirement to be run properly.
+     * Ensures the Guardrail has the minimal requirement to be run properly.
      * - add a default environment id ("DEFAULT") if not set
-     * @param reactableGuardian to deploy
+     * @param reactableGuardrail to deploy
      */
-    public void ensureMinimalRequirementForGuardian(ReactableGuardian reactableGuardian) {
-        if (!StringUtils.hasText(reactableGuardian.getEnvironmentId())) {
-            reactableGuardian.getDefinition().setEnvironmentId(DEFAULT_ID);
+    public void ensureMinimalRequirementForGuardrail(ReactableGuardrail reactableGuardrail) {
+        if (!StringUtils.hasText(reactableGuardrail.getEnvironmentId())) {
+            reactableGuardrail.getDefinition().setEnvironmentId(DEFAULT_ID);
         }
     }
 

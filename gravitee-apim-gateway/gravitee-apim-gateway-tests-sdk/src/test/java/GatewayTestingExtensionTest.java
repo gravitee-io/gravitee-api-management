@@ -148,9 +148,9 @@ class GatewayTestingExtensionTest {
     }
 
     @Test
-    void should_fail_if_trying_to_deploy_an_already_deployed_guardian_without_environment_at_class_level() {
+    void should_fail_if_trying_to_deploy_an_already_deployed_guardrail_without_environment_at_class_level() {
         EngineTestKit.engine("junit-jupiter")
-            .selectors(selectClass(RegisterTwiceSameGuardianClassLevelTestCase.class))
+            .selectors(selectClass(RegisterTwiceSameGuardrailClassLevelTestCase.class))
             .execute()
             .testEvents()
             .assertStatistics(stats -> stats.started(0));
