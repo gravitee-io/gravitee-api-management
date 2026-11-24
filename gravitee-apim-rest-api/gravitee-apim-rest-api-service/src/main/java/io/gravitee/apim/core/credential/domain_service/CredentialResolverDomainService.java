@@ -17,13 +17,16 @@ package io.gravitee.apim.core.credential.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.credential.crud_service.CredentialCrudService;
+import io.gravitee.apim.core.credential.exception.CredentialExpiredException;
 import io.gravitee.apim.core.credential.exception.CredentialNotResolvableException;
 import io.gravitee.apim.core.credential.exception.CredentialSecretMissingException;
+import io.gravitee.apim.core.credential.exception.CredentialSecretNotOwnedException;
 import io.gravitee.apim.core.credential.model.ResolvedCredential;
 import io.gravitee.apim.core.secret.crud_service.SecretCrudService;
 import io.gravitee.apim.core.secret.exception.SecretNotFoundException;
 import io.gravitee.apim.core.secret.model.Secret;
 import io.gravitee.apim.core.secret.service_provider.SecretValueEncryptor;
+import io.gravitee.common.utils.TimeProvider;
 import java.util.LinkedHashMap;
 import lombok.RequiredArgsConstructor;
 
@@ -38,6 +41,9 @@ public class CredentialResolverDomainService {
     /** Checks no permission and writes no audit: the caller must have checked that its user may use the credential. */
     public ResolvedCredential resolve(String organizationId, String environmentId, String credentialId) {
         var credential = credentialCrudService.get(organizationId, environmentId, credentialId);
+        if (credential.expiresAt() != null && !credential.expiresAt().isAfter(TimeProvider.instantNow())) {
+            throw new CredentialExpiredException(credentialId, credential.expiresAt());
+        }
         var values = new LinkedHashMap<String, String>();
         credential
             .secretReferences()
@@ -47,8 +53,10 @@ public class CredentialResolverDomainService {
                 }
                 var secret = secretCrudService
                     .findById(organizationId, environmentId, reference.secretId())
-                    .filter(found -> found.key().equals(Secret.CREDENTIAL_KEY_PREFIX + credentialId + "." + field))
                     .orElseThrow(() -> CredentialSecretMissingException.whenRead(credentialId, field));
+                if (!secret.key().equals(Secret.CREDENTIAL_KEY_PREFIX + credentialId + "." + field)) {
+                    throw new CredentialSecretNotOwnedException(credentialId, field);
+                }
                 values.put(field, decrypt(secret, credentialId, field));
             });
         return new ResolvedCredential(credential.strategy(), credential.configuration(), values);

@@ -20,15 +20,19 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.CredentialCrudServiceInMemory;
 import io.gravitee.apim.core.credential.CredentialSecretsInMemory;
+import io.gravitee.apim.core.credential.exception.CredentialExpiredException;
 import io.gravitee.apim.core.credential.exception.CredentialNotFoundException;
 import io.gravitee.apim.core.credential.exception.CredentialNotResolvableException;
 import io.gravitee.apim.core.credential.exception.CredentialSecretMissingException;
+import io.gravitee.apim.core.credential.exception.CredentialSecretNotOwnedException;
 import io.gravitee.apim.core.credential.model.Credential;
 import io.gravitee.apim.core.credential.model.CredentialStrategy;
 import io.gravitee.apim.core.credential.model.SecretReference;
 import io.gravitee.apim.core.secret.exception.SecretNotFoundException;
 import io.gravitee.apim.core.secret.model.Secret;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -115,9 +119,28 @@ class CredentialResolverDomainServiceTest {
         credentialCrudService.initWith(List.of(credential(CredentialStrategy.BEARER, Map.of(), references)));
 
         assertThatThrownBy(() -> service.resolve(ORG_ID, ENV_ID, CREDENTIAL_ID))
-            .isInstanceOf(CredentialSecretMissingException.class)
+            .isInstanceOf(CredentialSecretNotOwnedException.class)
             .hasMessageContaining("token")
+            .hasMessageContaining("another credential")
             .hasMessageNotContaining("other-token");
+    }
+
+    @Test
+    void should_refuse_a_credential_that_has_expired() {
+        var credential = managedCredential(CredentialStrategy.BEARER, Map.of(), Map.of("token", "plain-token"));
+        credentialCrudService.initWith(List.of(credential.toBuilder().expiresAt(Instant.parse("2023-01-01T00:00:00Z")).build()));
+
+        assertThatThrownBy(() -> service.resolve(ORG_ID, ENV_ID, CREDENTIAL_ID))
+            .isInstanceOf(CredentialExpiredException.class)
+            .hasMessageContaining(CREDENTIAL_ID);
+    }
+
+    @Test
+    void should_resolve_a_credential_that_has_not_expired_yet() {
+        var credential = managedCredential(CredentialStrategy.BEARER, Map.of(), Map.of("token", "plain-token"));
+        credentialCrudService.initWith(List.of(credential.toBuilder().expiresAt(Instant.now().plus(1, ChronoUnit.DAYS)).build()));
+
+        assertThat(service.resolve(ORG_ID, ENV_ID, CREDENTIAL_ID).secrets()).containsEntry("token", "plain-token");
     }
 
     @Test
@@ -142,15 +165,20 @@ class CredentialResolverDomainServiceTest {
 
     @Test
     void should_not_let_the_caller_change_the_values() {
-        Map<String, Object> configuration = new HashMap<>(Map.of("tokenUrl", "https://login.example.com/token"));
+        Map<String, Object> configuration = new HashMap<>(
+            Map.of("tokenUrl", "https://login.example.com/token", "scopes", new ArrayList<>(List.of("a")))
+        );
         credentialCrudService.initWith(
-            List.of(managedCredential(CredentialStrategy.BEARER, configuration, Map.of("token", "plain-token")))
+            List.of(managedCredential(CredentialStrategy.OAUTH2, configuration, Map.of("clientId", "id", "clientSecret", "secret")))
         );
 
         var resolved = service.resolve(ORG_ID, ENV_ID, CREDENTIAL_ID);
 
-        assertThatThrownBy(() -> resolved.secrets().put("token", "changed")).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> resolved.secrets().put("clientSecret", "changed")).isInstanceOf(UnsupportedOperationException.class);
         assertThatThrownBy(() -> resolved.configuration().put("tokenUrl", "changed")).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> ((List<String>) resolved.configuration().get("scopes")).add("b")).isInstanceOf(
+            UnsupportedOperationException.class
+        );
     }
 
     @Test

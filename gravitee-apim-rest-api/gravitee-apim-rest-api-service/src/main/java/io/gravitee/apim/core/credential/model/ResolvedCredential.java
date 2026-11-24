@@ -17,12 +17,19 @@ package io.gravitee.apim.core.credential.model;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public record ResolvedCredential(CredentialStrategy strategy, Map<String, Object> configuration, Map<String, String> secrets) {
     public ResolvedCredential {
-        configuration = configuration == null ? Map.of() : Collections.unmodifiableMap(new LinkedHashMap<>(configuration));
+        configuration = configuration == null ? Map.of() : readOnly(configuration);
         secrets = Collections.unmodifiableMap(new LinkedHashMap<>(secrets));
+    }
+
+    private static Map<String, Object> readOnly(Map<String, Object> configuration) {
+        var copy = new LinkedHashMap<String, Object>();
+        configuration.forEach((key, value) -> copy.put(key, value instanceof List<?> list ? List.copyOf(list) : value));
+        return Collections.unmodifiableMap(copy);
     }
 
     @Override
