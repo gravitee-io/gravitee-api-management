@@ -34,3 +34,4 @@ Based on the GoogleSheet, we can easily identified that some libraries are embed
 A first step will be to make new versions of these plugins, removing unnecessary dependencies.
 
 But some plugins are not present by default in the bundle, so for them we will have to keep "duplicated" libraries. It's indeed useless to add external libraries if the plugins that depend on are not loaded.
+
