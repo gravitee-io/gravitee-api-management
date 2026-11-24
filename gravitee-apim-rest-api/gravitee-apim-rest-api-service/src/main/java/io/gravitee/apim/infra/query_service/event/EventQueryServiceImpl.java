@@ -83,11 +83,12 @@ public class EventQueryServiceImpl implements EventQueryService {
 
     @SneakyThrows
     @Override
-    public Optional<io.gravitee.apim.core.api.model.Api> findApiFromPublishApiEvent(String eventId) {
+    public Optional<io.gravitee.apim.core.api.model.Api> findApiFromPublishApiEvent(String environmentId, String eventId) {
         try {
             return eventRepository
                 .findById(eventId)
                 .map(EventAdapter.INSTANCE::map)
+                .filter(e -> e.getEnvironments() != null && e.getEnvironments().contains(environmentId))
                 .filter(e -> e.getType().equals(io.gravitee.rest.api.model.EventType.PUBLISH_API) && e.getPayload() != null)
                 .map(EventQueryServiceImpl::extractApiFromEvent);
         } catch (TechnicalException e) {

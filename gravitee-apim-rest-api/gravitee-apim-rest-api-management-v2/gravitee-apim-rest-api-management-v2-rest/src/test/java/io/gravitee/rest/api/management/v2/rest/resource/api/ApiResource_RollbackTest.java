@@ -108,6 +108,9 @@ class ApiResource_RollbackTest extends ApiResourceTest {
         SoftAssertions.assertSoftly(soft -> {
             var input = captor.getValue();
             soft.assertThat(input.eventId()).isEqualTo(EVENT_ID);
+            // The API of the path, the one the permission filter checked, so the use case can refuse an event of
+            // another API instead of restoring it on this authorization.
+            soft.assertThat(input.apiId()).as("the api the caller was authorized on").isEqualTo(API);
             soft.assertThat(input.auditInfo()).isInstanceOf(AuditInfo.class);
         });
     }
