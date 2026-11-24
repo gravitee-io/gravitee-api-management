@@ -99,7 +99,7 @@ public class ApiMongo extends DeprecatedAuditable {
 
     private Set<String> categories;
 
-    private Set<String> guardians;
+    private Set<String> guardrails;
 
     private List<String> labels;
 

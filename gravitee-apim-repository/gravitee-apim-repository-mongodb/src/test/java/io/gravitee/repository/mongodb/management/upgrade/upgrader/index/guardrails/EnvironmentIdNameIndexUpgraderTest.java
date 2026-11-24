@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.upgrade.upgrader.index.guardians;
+package io.gravitee.repository.mongodb.management.upgrade.upgrader.index.guardrails;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,10 +27,10 @@ import org.junit.jupiter.api.Test;
 class EnvironmentIdNameIndexUpgraderTest {
 
     @Test
-    void should_index_the_name_of_a_guardian_within_its_environment() {
+    void should_index_the_name_of_a_guardrail_within_its_environment() {
         Index index = new EnvironmentIdNameIndexUpgrader().buildIndex();
 
-        assertThat(index.getCollection()).isEqualTo("guardians");
+        assertThat(index.getCollection()).isEqualTo("guardrails");
         assertThat(index.options().getName()).isEqualTo("e1n1");
 
         Document keys = index.toIndexDefinition().getIndexKeys();
@@ -45,7 +45,7 @@ class EnvironmentIdNameIndexUpgraderTest {
      * contract and would take a running server to assert.
      */
     @Test
-    void should_refuse_two_guardians_of_one_environment_sharing_a_name() {
+    void should_refuse_two_guardrails_of_one_environment_sharing_a_name() {
         Document options = new EnvironmentIdNameIndexUpgrader()
             .buildIndex()
             .toIndexDefinition()

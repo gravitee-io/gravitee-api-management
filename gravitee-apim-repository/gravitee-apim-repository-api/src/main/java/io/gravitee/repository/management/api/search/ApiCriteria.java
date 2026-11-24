@@ -51,7 +51,7 @@ public class ApiCriteria {
     private List<ApiType> apiTypes;
     private List<ApiType> notApiTypes;
     private Date updatedAtFrom;
-    private String guardian;
+    private String guardrail;
 
     ApiCriteria(ApiCriteria.Builder builder) {
         this.ids = builder.ids;
@@ -71,7 +71,7 @@ public class ApiCriteria {
         this.apiTypes = builder.apiTypes;
         this.notApiTypes = builder.notApiTypes;
         this.updatedAtFrom = builder.updatedAtFrom;
-        this.guardian = builder.guardian;
+        this.guardrail = builder.guardrail;
     }
 
     public Collection<String> getIds() {
@@ -154,8 +154,8 @@ public class ApiCriteria {
         return updatedAtFrom;
     }
 
-    public String getGuardian() {
-        return guardian;
+    public String getGuardrail() {
+        return guardrail;
     }
 
     @Override
@@ -181,7 +181,7 @@ public class ApiCriteria {
             Objects.equals(apiTypes, that.apiTypes) &&
             Objects.equals(notApiTypes, that.notApiTypes) &&
             Objects.equals(updatedAtFrom, that.updatedAtFrom) &&
-            Objects.equals(guardian, that.guardian)
+            Objects.equals(guardrail, that.guardrail)
         );
     }
 
@@ -205,7 +205,7 @@ public class ApiCriteria {
             apiTypes,
             notApiTypes,
             updatedAtFrom,
-            guardian
+            guardrail
         );
     }
 
@@ -228,7 +228,7 @@ public class ApiCriteria {
         private List<ApiType> apiTypes;
         private List<ApiType> notApiTypes;
         private Date updatedAtFrom;
-        private String guardian;
+        private String guardrail;
 
         public ApiCriteria.Builder ids(final String... id) {
             this.ids = Set.of(id);
@@ -325,8 +325,8 @@ public class ApiCriteria {
             return this;
         }
 
-        public ApiCriteria.Builder guardian(final String guardian) {
-            this.guardian = guardian;
+        public ApiCriteria.Builder guardrail(final String guardrail) {
+            this.guardrail = guardrail;
             return this;
         }
 

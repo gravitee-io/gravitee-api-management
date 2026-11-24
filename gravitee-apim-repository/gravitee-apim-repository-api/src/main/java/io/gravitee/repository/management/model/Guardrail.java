@@ -26,12 +26,12 @@ import lombok.ToString;
 import lombok.With;
 
 /**
- * A Guardian is a reusable, independently deployed sequence of guardrail policies and the resources they need,
+ * A Guardrail is a reusable, independently deployed sequence of guardrail policies and the resources they need,
  * defined at environment level and attached to APIs.
  *
- * <p>It follows the {@link SharedPolicyGroup} model: the Guardian definition the gateway reads is kept
+ * <p>It follows the {@link SharedPolicyGroup} model: the Guardrail definition the gateway reads is kept
  * serialized in {@link #definition}, while the fields the console searches, filters and sorts on stay
- * columns. The API types a Guardian is designed for are not among them: the definition carries them as a
+ * columns. The API types a Guardrail is designed for are not among them: the definition carries them as a
  * set, nothing queries them, and sorting on a set has no defined order.</p>
  *
  * @author GraviteeSource Team
@@ -43,10 +43,10 @@ import lombok.With;
 @Setter
 @ToString
 @With
-public class Guardian {
+public class Guardrail {
 
     /**
-     * Identifier of the Guardian, which is also its EntityID.
+     * Identifier of the Guardrail, which is also its EntityID.
      */
     private String id;
 
@@ -73,19 +73,19 @@ public class Guardian {
 
     private Date deployedAt;
 
-    private GuardianLifecycleState lifecycleState;
+    private GuardrailLifecycleState lifecycleState;
 
     /**
      * How many times the draft was written, starting at 1. What a writer states to have its write refused
-     * when the draft changed since it was read — see {@code GuardianRepository#updateIfVersionMatches}.
+     * when the draft changed since it was read — see {@code GuardrailRepository#updateIfVersionMatches}.
      *
-     * <p>The Guardians stored before the counter existed are given version 1 by the upgrade. {@code null}
+     * <p>The Guardrails stored before the counter existed are given version 1 by the upgrade. {@code null}
      * is left to one written since by a node older than the counter, which cannot be guarded until its next
      * write gives it one. A deployment does not count: it publishes the draft without changing it.
      */
     private Integer version;
 
-    public Guardian(Guardian cloned) {
+    public Guardrail(Guardrail cloned) {
         this.id = cloned.id;
         this.environmentId = cloned.environmentId;
         this.name = cloned.name;
@@ -103,8 +103,8 @@ public class Guardian {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Guardian guardian = (Guardian) o;
-        return Objects.equals(id, guardian.id);
+        Guardrail guardrail = (Guardrail) o;
+        return Objects.equals(id, guardrail.id);
     }
 
     @Override
@@ -113,7 +113,7 @@ public class Guardian {
     }
 
     public boolean isDeployed() {
-        return lifecycleState == GuardianLifecycleState.DEPLOYED;
+        return lifecycleState == GuardrailLifecycleState.DEPLOYED;
     }
 
     public enum Phase {
@@ -122,15 +122,15 @@ public class Guardian {
     }
 
     /**
-     * Mirrors the events the gamma Guardian use cases record: the audit event listing only discovers
+     * Mirrors the events the gamma Guardrail use cases record: the audit event listing only discovers
      * the {@link Audit.AuditEvent} enums of this package.
      */
     public enum AuditEvent implements Audit.AuditEvent {
-        GUARDIAN_CREATED,
-        GUARDIAN_UPDATED,
-        GUARDIAN_DEPLOYED,
-        GUARDIAN_UNDEPLOYED,
-        GUARDIAN_ROLLED_BACK,
-        GUARDIAN_DELETED,
+        GUARDRAIL_CREATED,
+        GUARDRAIL_UPDATED,
+        GUARDRAIL_DEPLOYED,
+        GUARDRAIL_UNDEPLOYED,
+        GUARDRAIL_ROLLED_BACK,
+        GUARDRAIL_DELETED,
     }
 }

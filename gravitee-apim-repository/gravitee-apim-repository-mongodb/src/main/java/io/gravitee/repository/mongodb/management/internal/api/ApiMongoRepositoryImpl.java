@@ -161,8 +161,8 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
                     if (apiCriteria.getCategory() != null && !apiCriteria.getCategory().isEmpty()) {
                         criteria.add(where("categories").in(apiCriteria.getCategory()));
                     }
-                    if (apiCriteria.getGuardian() != null && !apiCriteria.getGuardian().isEmpty()) {
-                        criteria.add(where("guardians").is(apiCriteria.getGuardian()));
+                    if (apiCriteria.getGuardrail() != null && !apiCriteria.getGuardrail().isEmpty()) {
+                        criteria.add(where("guardrails").is(apiCriteria.getGuardrail()));
                     }
                     if (apiCriteria.getVisibility() != null) {
                         criteria.add(where("visibility").is(apiCriteria.getVisibility()));
@@ -252,14 +252,14 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
     }
 
     @Override
-    public boolean updateDefinition(String apiId, String definition, Set<String> guardianIds, Date updatedAt, Date expectedUpdatedAt) {
+    public boolean updateDefinition(String apiId, String definition, Set<String> guardrailIds, Date updatedAt, Date expectedUpdatedAt) {
         // The update date is part of the filter, not of the document read back: no document matches once another
         // writer has advanced it, and the whole write is then a no-op rather than a rollback of their fields.
         var result = mongoTemplate.updateFirst(
             Query.query(where("_id").is(apiId).and("updatedAt").is(expectedUpdatedAt)),
             new Update()
                 .set("definition", definition)
-                .set("guardians", guardianIds == null ? Set.of() : guardianIds)
+                .set("guardrails", guardrailIds == null ? Set.of() : guardrailIds)
                 .set("updatedAt", updatedAt),
             ApiMongo.class
         );

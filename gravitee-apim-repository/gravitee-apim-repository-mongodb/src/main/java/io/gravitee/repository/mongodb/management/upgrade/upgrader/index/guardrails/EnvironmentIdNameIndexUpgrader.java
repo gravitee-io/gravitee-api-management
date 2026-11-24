@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.upgrade.upgrader.index.guardians;
+package io.gravitee.repository.mongodb.management.upgrade.upgrader.index.guardrails;
 
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
 import org.springframework.stereotype.Component;
 
 /**
- * Guardians are always looked up inside an environment, and listed or searched by name, so the
+ * Guardrails are always looked up inside an environment, and listed or searched by name, so the
  * environment is the prefix every query shares.
  *
- * <p>Unique, because two Guardians of one environment may not share a name. It is a backstop, not the
+ * <p>Unique, because two Guardrails of one environment may not share a name. It is a backstop, not the
  * enforcement: the rule users meet is the domain check, which refuses a duplicate with a 409 and
  * ignores case, while this index is exact and case-sensitive. It also only reaches a store that does
  * not already carry the non-unique version of it — {@link IndexUpgrader} skips a creation that
@@ -32,13 +32,13 @@ import org.springframework.stereotype.Component;
  *
  * @author GraviteeSource Team
  */
-@Component("GuardianEnvironmentIdNameIndexUpgrader")
+@Component("GuardrailEnvironmentIdNameIndexUpgrader")
 public class EnvironmentIdNameIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("guardians")
+            .collection("guardrails")
             .name("e1n1")
             .key("environmentId", ascending())
             .key("name", ascending())

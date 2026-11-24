@@ -17,10 +17,10 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.search.GuardianCriteria;
+import io.gravitee.repository.management.api.search.GuardrailCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
-import io.gravitee.repository.management.model.Guardian;
+import io.gravitee.repository.management.model.Guardrail;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -29,52 +29,52 @@ import java.util.Set;
 /**
  * @author GraviteeSource Team
  */
-public interface GuardianRepository extends CrudRepository<Guardian, String> {
+public interface GuardrailRepository extends CrudRepository<Guardrail, String> {
     /**
-     * Returns requested Guardians in the environment; missing ids are ignored and empty ids return no rows.
+     * Returns requested Guardrails in the environment; missing ids are ignored and empty ids return no rows.
      *
      * <p>Not paged: its caller validates a sequence and needs every answer to decide, so half of it decides nothing.
      * The length of that sequence is bounded where it is built, but a store still batches the ids rather than relying
      * on a bound that belongs to a caller and not to this contract.
      */
-    List<Guardian> findByEnvironmentIdAndIds(String environmentId, Set<String> guardianIds) throws TechnicalException;
+    List<Guardrail> findByEnvironmentIdAndIds(String environmentId, Set<String> guardrailIds) throws TechnicalException;
 
     /** Atomically advances updatedAt within the environment without replacing any other field. */
-    void updateUpdatedAt(String environmentId, String guardianId, Date updatedAt) throws TechnicalException;
+    void updateUpdatedAt(String environmentId, String guardrailId, Date updatedAt) throws TechnicalException;
 
     /**
-     * Replaces the Guardian only if its stored {@code version} is still {@code expectedVersion}, and
-     * returns empty when it is not, or when the Guardian no longer exists.
+     * Replaces the Guardrail only if its stored {@code version} is still {@code expectedVersion}, and
+     * returns empty when it is not, or when the Guardrail no longer exists.
      *
      * <p>Separate from {@link #update(Object)} rather than layered on top of it: the comparison and the
      * write have to be the same query — comparing in one round trip and writing in another is the race
      * this closes — and {@code update} comes from the shared {@code CrudRepository} contract, which
      * means the same unconditional write for every entity.
      *
-     * <p>{@code expectedVersion} is a primitive: a Guardian whose stored version is {@code null}, written
+     * <p>{@code expectedVersion} is a primitive: a Guardrail whose stored version is {@code null}, written
      * before the counter existed, cannot be guarded, and a null would not compare the same way in each
      * backend — SQL's {@code = NULL} never matches, Mongo's does.
      *
-     * @param guardian the Guardian to store, carrying the version it has once written
-     * @param expectedVersion the version the stored Guardian must still have
-     * @return the Guardian as stored, or empty when nothing was written
+     * @param guardrail the Guardrail to store, carrying the version it has once written
+     * @param expectedVersion the version the stored Guardrail must still have
+     * @return the Guardrail as stored, or empty when nothing was written
      */
-    Optional<Guardian> updateIfVersionMatches(Guardian guardian, int expectedVersion) throws TechnicalException;
+    Optional<Guardrail> updateIfVersionMatches(Guardrail guardrail, int expectedVersion) throws TechnicalException;
 
     /**
-     * Search for Guardians matching the given criteria.
+     * Search for Guardrails matching the given criteria.
      *
      * @param criteria the criteria to match, never {@code null}
      * @param pageable the page to return
      * @param sortable the sort to apply
-     * @return a page of matching Guardians
+     * @return a page of matching Guardrails
      */
-    Page<Guardian> search(GuardianCriteria criteria, Pageable pageable, Sortable sortable) throws TechnicalException;
+    Page<Guardrail> search(GuardrailCriteria criteria, Pageable pageable, Sortable sortable) throws TechnicalException;
 
     /**
-     * Every Guardian of this environment whose name matches, ignoring case.
+     * Every Guardrail of this environment whose name matches, ignoring case.
      *
-     * <p>Ignoring case because that is the rule the domain enforces: two Guardians of one environment
+     * <p>Ignoring case because that is the rule the domain enforces: two Guardrails of one environment
      * may not share a name, and "Credential leakage" and "credential leakage" are the same name to a
      * person reading a list.
      *
@@ -88,15 +88,15 @@ public interface GuardianRepository extends CrudRepository<Guardian, String> {
      *
      * @param environmentId the environment to look in, never {@code null}
      * @param name the name to match, compared without regard to case
-     * @return the Guardians with that name, empty when the environment has none
+     * @return the Guardrails with that name, empty when the environment has none
      */
-    List<Guardian> findByEnvironmentIdAndNameIgnoreCase(String environmentId, String name) throws TechnicalException;
+    List<Guardrail> findByEnvironmentIdAndNameIgnoreCase(String environmentId, String name) throws TechnicalException;
 
     /**
-     * Delete every Guardian of an environment.
+     * Delete every Guardrail of an environment.
      *
      * @param environmentId the environment to purge
-     * @return the identifiers of the deleted Guardians
+     * @return the identifiers of the deleted Guardrails
      */
     List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
 }

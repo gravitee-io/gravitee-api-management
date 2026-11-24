@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.guardians;
+package io.gravitee.repository.mongodb.management.internal.guardrails;
 
-import io.gravitee.repository.mongodb.management.internal.model.GuardianMongo;
+import io.gravitee.repository.mongodb.management.internal.model.GuardrailMongo;
 import java.util.List;
 import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -26,16 +26,16 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface GuardianMongoRepository extends MongoRepository<GuardianMongo, String>, GuardianMongoRepositoryCustom {
-    List<GuardianMongo> findByEnvironmentIdAndIdIn(String environmentId, Set<String> guardianIds);
+public interface GuardrailMongoRepository extends MongoRepository<GuardrailMongo, String>, GuardrailMongoRepositoryCustom {
+    List<GuardrailMongo> findByEnvironmentIdAndIdIn(String environmentId, Set<String> guardrailIds);
 
     @Query(value = "{ 'environmentId': ?0 }", fields = "{ _id : 1 }", delete = true)
-    List<GuardianMongo> deleteByEnvironmentId(String environmentId);
+    List<GuardrailMongo> deleteByEnvironmentId(String environmentId);
 
     /**
      * A list rather than an Optional on purpose: the unique index arrives with this change, so a store
-     * written before it can still hold two Guardians of one name and Spring Data would throw on the
+     * written before it can still hold two Guardrails of one name and Spring Data would throw on the
      * second instead of letting the caller refuse the name.
      */
-    List<GuardianMongo> findByEnvironmentIdAndNameIgnoreCase(String environmentId, String name);
+    List<GuardrailMongo> findByEnvironmentIdAndNameIgnoreCase(String environmentId, String name);
 }
