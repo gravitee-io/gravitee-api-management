@@ -16,7 +16,6 @@
 package io.gravitee.apim.core.portal.model;
 
 import jakarta.annotation.Nonnull;
-import java.net.URL;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -58,8 +57,8 @@ public class Portal {
     // Before the console could create portals, every portal that is not the default one came from the Automation API.
     private final boolean createdFromConsole;
 
-    @Nonnull
-    private URL url;
+    /** The access point this portal is served at; null while its environment has no usable portal URL. */
+    private String accessPointId;
 
     private Portal(
         PortalId id,
@@ -70,7 +69,7 @@ public class Portal {
         String activeThemeId,
         boolean defaultPortal,
         boolean createdFromConsole,
-        URL url
+        String accessPointId
     ) {
         this.id = id;
         this.environmentId = environmentId;
@@ -80,31 +79,31 @@ public class Portal {
         this.activeThemeId = activeThemeId;
         this.defaultPortal = defaultPortal;
         this.createdFromConsole = createdFromConsole;
-        this.url = url;
+        this.accessPointId = accessPointId;
     }
 
-    /** New portal served at {@code url}, with a random id and no navigation. */
-    public static Portal create(String environmentId, String organizationId, String name, @Nonnull URL url) {
-        return newPortal(environmentId, organizationId, name, false, url);
+    /** New portal served at this access point, with a random id and no navigation. */
+    public static Portal create(String environmentId, String organizationId, String name, @Nonnull String accessPointId) {
+        return newPortal(environmentId, organizationId, name, false, accessPointId);
     }
 
-    /** New default portal of the environment, served at {@code url}, with a random id and no navigation. */
-    public static Portal createDefault(String environmentId, String organizationId, String name, @Nonnull URL url) {
-        return newPortal(environmentId, organizationId, name, true, url);
+    /** New default portal of the environment, served at this access point, with a random id and no navigation. */
+    public static Portal createDefault(String environmentId, String organizationId, String name, @Nonnull String accessPointId) {
+        return newPortal(environmentId, organizationId, name, true, accessPointId);
     }
 
-    /** New portal with a known id (HRID-derived), served at {@code url}, with no navigation. */
-    public static Portal create(PortalId id, String environmentId, String organizationId, String name, @Nonnull URL url) {
-        return newPortal(id, environmentId, organizationId, name, false, false, url);
+    /** New portal with a known id (HRID-derived), served at this access point, with no navigation. */
+    public static Portal create(PortalId id, String environmentId, String organizationId, String name, @Nonnull String accessPointId) {
+        return newPortal(id, environmentId, organizationId, name, false, false, accessPointId);
     }
 
-    /** New portal created from the console, served at {@code url}, with a random id and no navigation: the console manages it. */
-    public static Portal createFromConsole(String environmentId, String organizationId, String name, @Nonnull URL url) {
-        return newPortal(PortalId.random(), environmentId, organizationId, name, false, true, url);
+    /** New portal created from the console, served at this access point, with a random id and no navigation: the console manages it. */
+    public static Portal createFromConsole(String environmentId, String organizationId, String name, @Nonnull String accessPointId) {
+        return newPortal(PortalId.random(), environmentId, organizationId, name, false, true, accessPointId);
     }
 
-    private static Portal newPortal(String environmentId, String organizationId, String name, boolean defaultPortal, URL url) {
-        return newPortal(PortalId.random(), environmentId, organizationId, name, defaultPortal, false, url);
+    private static Portal newPortal(String environmentId, String organizationId, String name, boolean defaultPortal, String accessPointId) {
+        return newPortal(PortalId.random(), environmentId, organizationId, name, defaultPortal, false, accessPointId);
     }
 
     private static Portal newPortal(
@@ -114,7 +113,7 @@ public class Portal {
         String name,
         boolean defaultPortal,
         boolean createdFromConsole,
-        URL url
+        String accessPointId
     ) {
         return new Portal(
             id,
@@ -125,7 +124,7 @@ public class Portal {
             null,
             defaultPortal,
             createdFromConsole,
-            Objects.requireNonNull(url, "url")
+            Objects.requireNonNull(accessPointId, "accessPointId")
         );
     }
 
@@ -138,9 +137,9 @@ public class Portal {
         PortalNavigationStructure navigationStructure,
         String activeThemeId,
         boolean defaultPortal,
-        URL url
+        String accessPointId
     ) {
-        return of(id, environmentId, organizationId, name, navigationStructure, activeThemeId, defaultPortal, false, url);
+        return of(id, environmentId, organizationId, name, navigationStructure, activeThemeId, defaultPortal, false, accessPointId);
     }
 
     /** Reconstitute a persisted portal with all its fields, including whether the console created it. */
@@ -153,7 +152,7 @@ public class Portal {
         String activeThemeId,
         boolean defaultPortal,
         boolean createdFromConsole,
-        URL url
+        String accessPointId
     ) {
         return new Portal(
             id,
@@ -164,7 +163,7 @@ public class Portal {
             activeThemeId,
             defaultPortal,
             createdFromConsole,
-            url
+            accessPointId
         );
     }
 
@@ -199,8 +198,8 @@ public class Portal {
         this.activeThemeId = activeThemeId;
     }
 
-    public void changeUrl(@Nonnull URL url) {
-        this.url = Objects.requireNonNull(url, "url");
+    public void linkAccessPoint(@Nonnull String accessPointId) {
+        this.accessPointId = Objects.requireNonNull(accessPointId, "accessPointId");
     }
 
     /** @deprecated Portal is a mutable entity: use {@link #update(String, PortalNavigationStructure, String)}. */
@@ -215,7 +214,7 @@ public class Portal {
             this.activeThemeId,
             this.defaultPortal,
             this.createdFromConsole,
-            this.url
+            this.accessPointId
         );
     }
 
@@ -231,7 +230,7 @@ public class Portal {
             activeThemeId,
             this.defaultPortal,
             this.createdFromConsole,
-            this.url
+            this.accessPointId
         );
     }
 

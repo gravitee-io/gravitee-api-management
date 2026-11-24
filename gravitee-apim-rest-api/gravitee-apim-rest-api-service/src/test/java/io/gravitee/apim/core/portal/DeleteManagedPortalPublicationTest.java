@@ -26,6 +26,8 @@ import static fixtures.core.model.PortalNavigationItemFixtures.anApi;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.PortalFixtures;
+import inmemory.InstallationAccessQueryServiceInMemory;
+import inmemory.PortalAddressDomainServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalListingCrudServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
@@ -63,7 +65,8 @@ class DeleteManagedPortalPublicationTest {
         contents,
         contentQuery,
         apiNavigation,
-        listings
+        listings,
+        new PortalAddressDomainServiceInMemory(portals, new InstallationAccessQueryServiceInMemory())
     );
 
     @Test

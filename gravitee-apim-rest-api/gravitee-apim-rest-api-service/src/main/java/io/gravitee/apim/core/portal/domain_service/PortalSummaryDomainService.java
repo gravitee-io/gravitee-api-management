@@ -39,6 +39,7 @@ public class PortalSummaryDomainService {
 
     private final PortalLogoDomainService portalLogoDomainService;
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
+    private final PortalAddressDomainService portalAddressDomainService;
 
     /** Summaries of {@code portals}, all of {@code environmentId}, in the same order. */
     public List<PortalSummary> summarize(String environmentId, List<Portal> portals) {
@@ -47,9 +48,17 @@ public class PortalSummaryDomainService {
         }
         var hasLogo = portalLogoDomainService.findLogo(environmentId).isPresent();
         var publishedApiIdsByPortal = publishedApiIdsByPortal(environmentId);
+        var urls = portalAddressDomainService.resolveUrls(environmentId, portals);
         return portals
             .stream()
-            .map(portal -> new PortalSummary(portal, hasLogo, publishedApiIdsByPortal.getOrDefault(portal.getId(), Set.of()).size()))
+            .map(portal ->
+                new PortalSummary(
+                    portal,
+                    urls.get(portal.getId()),
+                    hasLogo,
+                    publishedApiIdsByPortal.getOrDefault(portal.getId(), Set.of()).size()
+                )
+            )
             .toList();
     }
 

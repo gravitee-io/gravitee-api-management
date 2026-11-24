@@ -157,6 +157,29 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
         }
     }
 
+    @Override
+    public AccessPoint create(final AccessPoint accessPoint) {
+        try {
+            var newAccessPoint = AccessPointAdapter.INSTANCE.fromEntity(accessPoint);
+            createAccessPoint(newAccessPoint);
+            return AccessPointAdapter.INSTANCE.toEntity(newAccessPoint);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurs while creating an access point", e);
+        }
+    }
+
+    @Override
+    public void delete(final String accessPointId) {
+        try {
+            var accessPoint = accessPointRepository.findById(accessPointId);
+            if (accessPoint.isPresent()) {
+                deleteAccessPoint(accessPoint.get());
+            }
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurs while deleting access point " + accessPointId, e);
+        }
+    }
+
     // Checked right before each delete, to keep the window with a portal being linked concurrently as short as possible.
     private void deleteUnlessServingPortal(io.gravitee.repository.management.model.AccessPoint accessPoint) throws TechnicalException {
         if (portalRepository.findByAccessPointId(accessPoint.getId()).isEmpty()) {

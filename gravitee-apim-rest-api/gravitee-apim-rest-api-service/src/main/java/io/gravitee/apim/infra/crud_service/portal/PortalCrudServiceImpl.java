@@ -129,6 +129,18 @@ public class PortalCrudServiceImpl implements PortalCrudService {
     }
 
     @Override
+    public List<Portal> findByAccessPointId(String accessPointId) {
+        try {
+            return portalRepository.findByAccessPointId(accessPointId).stream().map(portalAdapter::toEntity).toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format("An error occurred while trying to find Portals by access point (%s)", accessPointId),
+                e
+            );
+        }
+    }
+
+    @Override
     public void delete(PortalId portalId) {
         try {
             portalRepository.delete(portalId.toString());

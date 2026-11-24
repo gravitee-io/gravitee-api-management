@@ -427,7 +427,7 @@ class ConfigServiceTest {
     }
 
     @Test
-    void should_sync_default_portal_url_when_saving_environment_portal_settings() {
+    void should_link_unlinked_portals_when_saving_environment_portal_settings() {
         PortalSettingsEntity portalSettingsEntity = new PortalSettingsEntity();
         portalSettingsEntity.getPortal().setUrl("https://portal.acme.io");
 
@@ -444,22 +444,22 @@ class ConfigServiceTest {
                 ParameterReferenceType.ENVIRONMENT
             );
         inOrder.verify(defaultPortalDomainService).ensureDefault("DEFAULT", "DEFAULT");
-        inOrder.verify(defaultPortalDomainService).syncUrl("DEFAULT");
+        inOrder.verify(defaultPortalDomainService).linkUnlinkedPortals("DEFAULT");
     }
 
     @Test
-    void should_save_settings_and_sync_the_url_when_the_environment_has_several_portals() {
+    void should_save_settings_and_link_unlinked_portals_when_the_environment_has_several_portals() {
         when(defaultPortalDomainService.ensureDefault("DEFAULT", "DEFAULT")).thenThrow(
             new SeveralPortalsInEnvironmentException("DEFAULT", List.of("[p1] \"One\"", "[p2] \"Two\""))
         );
 
         configService.save(GraviteeContext.getExecutionContext(), new PortalSettingsEntity());
 
-        verify(defaultPortalDomainService).syncUrl("DEFAULT");
+        verify(defaultPortalDomainService).linkUnlinkedPortals("DEFAULT");
     }
 
     @Test
-    void should_not_sync_default_portal_url_when_saving_organization_settings() {
+    void should_not_link_portals_when_saving_organization_settings() {
         configService.save(GraviteeContext.getExecutionContext(), new ConsoleSettingsEntity());
 
         verifyNoInteractions(defaultPortalDomainService);

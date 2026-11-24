@@ -16,11 +16,14 @@
 package io.gravitee.apim.core.portal.model;
 
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
+import java.net.URL;
 
 /**
  * A portal with the figures shown about it in the console.
  *
+ * @param url the URL the portal is served at; null while it has no access point
  * @param hasLogo whether the portal's theme has a logo
  * @param publishedApisCount the number of distinct APIs listed in the portal's navigation and published to the portal
  */
-public record PortalSummary(@Nonnull Portal portal, boolean hasLogo, int publishedApisCount) {}
+public record PortalSummary(@Nonnull Portal portal, @Nullable URL url, boolean hasLogo, int publishedApisCount) {}

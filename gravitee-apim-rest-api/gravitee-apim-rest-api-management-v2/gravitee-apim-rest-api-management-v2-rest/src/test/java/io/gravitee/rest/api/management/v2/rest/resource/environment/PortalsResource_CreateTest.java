@@ -49,10 +49,8 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
-import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -108,14 +106,14 @@ class PortalsResource_CreateTest extends AbstractResourceTest {
     }
 
     @Test
-    void should_create_a_portal_served_at_the_url_sent() {
-        var response = rootTarget().request().post(json(new CreatePortal().name("Partners").url("https://partners.example.com")));
+    void should_create_a_portal_served_at_the_environment_portal_url() {
+        var response = rootTarget().request().post(json(new CreatePortal().name("Partners")));
 
         assertThat(response.getStatus()).isEqualTo(CREATED_201);
         var body = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Portal.class);
         assertThat(body.getId()).isNotNull();
         assertThat(body.getName()).isEqualTo("Partners");
-        assertThat(body.getUrl()).isEqualTo("https://partners.example.com");
+        assertThat(body.getUrl()).isEqualTo("https://portal.acme.io/next");
         assertThat(body.getDefault()).isFalse();
         assertThat(body.getLogoUrl()).isNull();
         assertThat(body.getPublishedApisCount()).isZero();
@@ -128,16 +126,6 @@ class PortalsResource_CreateTest extends AbstractResourceTest {
             ENVIRONMENT,
             new NavigationItemReference.PortalReference(PortalId.of(body.getId().toString()))
         );
-    }
-
-    @Test
-    void should_create_a_portal_served_at_a_generated_url_when_none_is_sent() {
-        var response = rootTarget().request().post(json(new CreatePortal().name("Partners")));
-
-        assertThat(response.getStatus()).isEqualTo(CREATED_201);
-        var body = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Portal.class);
-        assertThat(body.getUrl()).isEqualTo("https://portal.acme.io/next");
-        assertThat(body.getDefault()).isFalse();
     }
 
     @Test
@@ -174,11 +162,11 @@ class PortalsResource_CreateTest extends AbstractResourceTest {
     }
 
     @Test
-    void should_return_400_for_a_refused_url() {
-        var response = rootTarget().request().post(json(new CreatePortal().name("Partners").url("https://partners.example.com?a=b")));
+    void should_return_400_for_a_url_until_portal_urls_can_be_chosen() {
+        var response = rootTarget().request().post(json(new CreatePortal().name("Partners").url("https://partners.example.com")));
 
         assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
-        assertThat(response.readEntity(Error.class).getMessage()).contains("absolute http or https URL");
+        assertThat(response.readEntity(Error.class).getMessage()).contains("cannot be chosen yet");
         assertThat(portalCrudService.storage()).hasSize(1);
         verify(portalStarterContentDomainService, never()).seed(any(), any(), any());
     }
@@ -233,7 +221,6 @@ class PortalsResource_CreateTest extends AbstractResourceTest {
         assertThat(portalCrudService.storage()).hasSize(2);
     }
 
-    @SneakyThrows
     private static Portal defaultPortal() {
         return Portal.of(
             DEFAULT_PORTAL_ID,
@@ -243,7 +230,7 @@ class PortalsResource_CreateTest extends AbstractResourceTest {
             PortalNavigationStructure.empty(),
             null,
             true,
-            URI.create("https://portal.acme.io/next").toURL()
+            "default-portal-access-point"
         );
     }
 }

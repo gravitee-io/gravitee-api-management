@@ -56,7 +56,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
-import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -99,7 +98,7 @@ class PortalNavigationAccessDomainServiceTest {
     @BeforeEach
     void set_up() throws Exception {
         when(portals.findByIdAndEnvironmentId(PORTAL_ID, ENV_ID)).thenReturn(
-            Optional.of(Portal.create(PORTAL_ID, ENV_ID, ORG_ID, "Portal A", URI.create("https://portal.example.test").toURL()))
+            Optional.of(Portal.create(PORTAL_ID, ENV_ID, ORG_ID, "Portal A", "portal-access-point"))
         );
         when(apis.findById(API.apiId())).thenReturn(Optional.of(Api.builder().id(API.apiId()).environmentId(ENV_ID).build()));
     }
@@ -238,7 +237,7 @@ class PortalNavigationAccessDomainServiceTest {
                 PortalNavigationStructure.empty(),
                 null,
                 defaultPortal,
-                URI.create("https://portal.example.test").toURL()
+                "portal-access-point"
             );
         }
     }

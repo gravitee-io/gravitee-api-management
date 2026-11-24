@@ -23,6 +23,7 @@ import static org.mockito.Mockito.mock;
 import fixtures.core.model.PortalFixtures;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.InstallationAccessQueryServiceInMemory;
+import inmemory.PortalAddressDomainServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalListingCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
@@ -58,7 +59,7 @@ import io.gravitee.apim.core.theme.domain_service.CurrentThemeDomainService;
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.core.theme.model.ThemeType;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
-import java.net.URI;
+import java.net.URL;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.AfterEach;
@@ -91,6 +92,7 @@ class CreateOrUpdatePortalUseCaseTest {
     private final PortalListingCrudServiceInMemory portalListingCrudService = new PortalListingCrudServiceInMemory();
     private final ThemeCrudServiceInMemory themeCrudService = new ThemeCrudServiceInMemory();
     private final ThemeQueryServiceInMemory themeQueryService = new ThemeQueryServiceInMemory(themeCrudService);
+    private PortalAddressDomainServiceInMemory addresses;
     private CreateOrUpdatePortalUseCase useCase;
 
     @BeforeEach
@@ -102,6 +104,7 @@ class CreateOrUpdatePortalUseCaseTest {
 
     private CreateOrUpdatePortalUseCase aUseCase(PortalCrudServiceInMemory portals, PortalAutomationProperties properties) {
         var scopeEnforcer = new PortalAutomationScopeDomainService(portals, properties);
+        addresses = new PortalAddressDomainServiceInMemory(portals, installationAccessQueryService);
         return new CreateOrUpdatePortalUseCase(
             new ValidatePortalDomainService(scopeEnforcer, new PortalUrlDomainService(installationAccessQueryService)),
             portals,
@@ -121,7 +124,7 @@ class CreateOrUpdatePortalUseCaseTest {
             scopeEnforcer,
             themeCrudService,
             new CurrentThemeDomainService(themeQueryService, themeCrudService),
-            new PortalUrlDomainService(installationAccessQueryService),
+            addresses,
             new PortalContentOwnershipDomainService(portals, navCrudService)
         );
     }
@@ -211,7 +214,7 @@ class CreateOrUpdatePortalUseCaseTest {
             PortalNavigationStructure.empty(),
             null,
             true,
-            URI.create("https://portal.acme.io/next").toURL()
+            "default-portal-access-point"
         );
         // Not alone, so the default portal is kept rather than replaced
         var otherPortal = PortalFixtures.aPortal(
@@ -239,8 +242,8 @@ class CreateOrUpdatePortalUseCaseTest {
     }
 
     @Test
-    void should_keep_stored_default_marker_and_url_on_update() throws Exception {
-        var storedUrl = URI.create("https://portal.example").toURL();
+    void should_keep_stored_default_marker_and_access_point_on_update() throws Exception {
+        var storedAccessPointId = "stored-access-point";
         var stored = Portal.of(
             PortalFixtures.PORTAL_ID,
             "environment-id",
@@ -249,7 +252,7 @@ class CreateOrUpdatePortalUseCaseTest {
             PortalNavigationStructure.empty(),
             null,
             true,
-            storedUrl
+            storedAccessPointId
         );
         portalCrudService.initWith(List.of(stored));
         var upsert = PortalFixtures.aPortal(stored.getId(), stored.getEnvironmentId(), stored.getOrganizationId(), "Renamed Portal");
@@ -258,13 +261,13 @@ class CreateOrUpdatePortalUseCaseTest {
 
         assertThat(output.portal().getName()).isEqualTo("Renamed Portal");
         assertThat(output.portal().isDefault()).isTrue();
-        assertThat(output.portal().getUrl()).isEqualTo(storedUrl);
+        assertThat(output.portal().getAccessPointId()).isEqualTo(storedAccessPointId);
         assertThat(portalCrudService.storage())
             .singleElement()
             .satisfies(saved -> {
                 assertThat(saved.getName()).isEqualTo("Renamed Portal");
                 assertThat(saved.isDefault()).isTrue();
-                assertThat(saved.getUrl()).isEqualTo(storedUrl);
+                assertThat(saved.getAccessPointId()).isEqualTo(storedAccessPointId);
             });
     }
 
@@ -273,10 +276,10 @@ class CreateOrUpdatePortalUseCaseTest {
         var output = useCase.execute(inputFor(AUDIT_INFO, PortalFixtures.aPortal()));
 
         assertThat(output.portal().isDefault()).isFalse();
-        assertThat(output.portal().getUrl()).hasToString("https://portal.acme.io/next");
+        assertThat(urlOf(output.portal())).hasToString("https://portal.acme.io/next");
         assertThat(portalCrudService.storage())
             .singleElement()
-            .satisfies(saved -> assertThat(saved.getUrl()).hasToString("https://portal.acme.io/next"));
+            .satisfies(saved -> assertThat(saved.getAccessPointId()).isEqualTo(output.portal().getAccessPointId()));
     }
 
     @Test
@@ -303,7 +306,7 @@ class CreateOrUpdatePortalUseCaseTest {
         );
 
         assertThat(output.portal().getName()).isEqualTo("Renamed Portal");
-        assertThat(output.portal().getUrl()).isEqualTo(existing.getUrl());
+        assertThat(output.portal().getAccessPointId()).isEqualTo(existing.getAccessPointId());
     }
 
     @Test
@@ -472,7 +475,7 @@ class CreateOrUpdatePortalUseCaseTest {
             structure,
             activeThemeId,
             true,
-            PortalFixtures.PORTAL_URL
+            PortalFixtures.PORTAL_ACCESS_POINT_ID
         );
     }
 
@@ -724,5 +727,9 @@ class CreateOrUpdatePortalUseCaseTest {
             .singleElement()
             .extracting(Theme::isEnabled)
             .isEqualTo(true);
+    }
+
+    private URL urlOf(Portal portal) {
+        return addresses.resolveUrls(portal.getEnvironmentId(), List.of(portal)).get(portal.getId());
     }
 }

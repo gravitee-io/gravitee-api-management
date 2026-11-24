@@ -20,7 +20,6 @@ import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.exception.DefaultPortalNotFoundException;
 import io.gravitee.apim.core.portal.exception.SeveralPortalsInEnvironmentException;
 import io.gravitee.apim.core.portal.model.Portal;
-import java.net.URL;
 import java.util.List;
 import java.util.Optional;
 import lombok.CustomLog;
@@ -34,14 +33,14 @@ public class DefaultPortalDomainService {
     static final String DEFAULT_PORTAL_NAME = "Developer Portal";
 
     private final PortalCrudService portalCrudService;
-    private final PortalUrlDomainService portalUrlDomainService;
+    private final PortalAddressDomainService portalAddressDomainService;
     private final PortalContentOwnershipDomainService portalContentOwnershipDomainService;
 
     /**
      * Creates the environment's default portal when it has no portal at all; an existing default portal is
      * returned whatever other portals the environment holds. A portal the environment already has is never
      * marked default: one created by the Automation API stays as it is. The portal is
-     * created with its real URL only: while that URL cannot be resolved (a Cloud environment whose access
+     * created at its environment's shared access point only: while the portal URL cannot be resolved (a Cloud environment whose access
      * points are not stored yet, an invalid portal URL setting), creation is postponed to a later call.
      * A portal created here receives the environment's content that names no existing portal.
      *
@@ -59,16 +58,23 @@ public class DefaultPortalDomainService {
             throw severalPortals(environmentId, portals);
         }
         if (portals.isEmpty()) {
-            var url = portalUrlDomainService.resolveDefaultPortalUrl(environmentId);
-            if (url.isEmpty()) {
+            var accessPointId = portalAddressDomainService.sharedAccessPoint(environmentId);
+            if (accessPointId.isEmpty()) {
                 log.warn(
                     "Default portal of environment [{}] not created yet: its portal URL is not set or is not an absolute http(s) URL without credentials",
                     environmentId
                 );
                 return Optional.empty();
             }
-            var created = portalCrudService.create(Portal.createDefault(environmentId, organizationId, DEFAULT_PORTAL_NAME, url.get()));
-            log.info("Default portal [{}] created for environment [{}] with URL [{}]", created.getId(), environmentId, created.getUrl());
+            var created = portalCrudService.create(
+                Portal.createDefault(environmentId, organizationId, DEFAULT_PORTAL_NAME, accessPointId.get())
+            );
+            log.info(
+                "Default portal [{}] created for environment [{}] at access point [{}]",
+                created.getId(),
+                environmentId,
+                created.getAccessPointId()
+            );
             var moved = portalContentOwnershipDomainService.moveOrphansTo(created);
             if (!moved.isEmpty()) {
                 log.info(
@@ -115,43 +121,35 @@ public class DefaultPortalDomainService {
         findAtMostOnePortal(environmentId);
     }
 
-    /** Stores the resolved URL on the environment's default portal when it differs from the stored one. */
-    public void syncUrl(String environmentId) {
-        portalCrudService
-            .findDefaultByEnvironmentId(environmentId)
-            .ifPresent(portal ->
-                resolveUrl(environmentId)
-                    .filter(url -> !sameUrl(url, portal.getUrl()))
-                    .ifPresent(url -> {
-                        portal.changeUrl(url);
-                        portalCrudService.update(portal);
-                    })
-            );
-    }
-
     /**
-     * Replaces {@code staleUrl} on every portal of the environment, the default one or not, with the resolved URL.
+     * Links the environment's portals that have no access point yet, because its portal URL could not be resolved when they
+     * were stored, to the access point the environment's portals share. A portal already linked keeps its access point.
      *
-     * @return the number of portals changed
+     * @return the number of portals linked
      */
-    public int replaceUrl(String environmentId, URL staleUrl) {
-        var portalsWithStaleUrl = portalCrudService
+    public int linkUnlinkedPortals(String environmentId) {
+        var unlinked = portalCrudService
             .findByEnvironmentId(environmentId)
             .stream()
-            .filter(portal -> sameUrl(portal.getUrl(), staleUrl))
+            .filter(portal -> portal.getAccessPointId() == null)
             .toList();
-        if (portalsWithStaleUrl.isEmpty()) {
+        if (unlinked.isEmpty()) {
             return 0;
         }
-        return resolveUrl(environmentId)
-            .map(url -> {
-                portalsWithStaleUrl.forEach(portal -> {
-                    portal.changeUrl(url);
-                    portalCrudService.update(portal);
-                });
-                return portalsWithStaleUrl.size();
-            })
-            .orElse(0);
+        var accessPointId = portalAddressDomainService.sharedAccessPoint(environmentId);
+        if (accessPointId.isEmpty()) {
+            log.warn(
+                "Portal URL of environment [{}] is not set or is not an absolute http(s) URL: its {} portal(s) stay without an access point",
+                environmentId,
+                unlinked.size()
+            );
+            return 0;
+        }
+        unlinked.forEach(portal -> {
+            portal.linkAccessPoint(accessPointId.get());
+            portalCrudService.update(portal);
+        });
+        return unlinked.size();
     }
 
     private List<Portal> findAtMostOnePortal(String environmentId) {
@@ -170,21 +168,5 @@ public class DefaultPortalDomainService {
                 .map(portal -> "[%s] \"%s\"".formatted(portal.getId(), portal.getName()))
                 .toList()
         );
-    }
-
-    private Optional<URL> resolveUrl(String environmentId) {
-        var url = portalUrlDomainService.resolveDefaultPortalUrl(environmentId);
-        if (url.isEmpty()) {
-            log.warn(
-                "Portal URL of environment [{}] is not set or is not an absolute http(s) URL: the URL stored on its portal is left as it is until the portal URL can be resolved",
-                environmentId
-            );
-        }
-        return url;
-    }
-
-    // URL.equals resolves host names; comparing the external forms does not touch the network.
-    private static boolean sameUrl(URL a, URL b) {
-        return a.toExternalForm().equals(b.toExternalForm());
     }
 }

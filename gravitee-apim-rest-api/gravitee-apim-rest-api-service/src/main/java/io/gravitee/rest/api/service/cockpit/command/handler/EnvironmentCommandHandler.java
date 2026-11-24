@@ -105,7 +105,7 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
             GraviteeContext.cleanContext();
             try {
                 ensureDefaultPortal(environment);
-                defaultPortalDomainService.syncUrl(environment.getId());
+                defaultPortalDomainService.linkUnlinkedPortals(environment.getId());
             } finally {
                 GraviteeContext.cleanContext();
             }

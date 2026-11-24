@@ -25,9 +25,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.CustomLog;
@@ -35,18 +32,12 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * Gives every environment its default portal and replaces the placeholder URL on every portal. It
+ * Gives every environment its default portal. It
  * refuses to change anything while an environment has several portals, which stops the start-up.
  */
 @Component
 @CustomLog
 public class DefaultPortalUpgrader implements Upgrader {
-
-    /**
-     * The URL stored on portals created before they had a real one (the column is mandatory), replaced here by the
-     * environment's portal URL.
-     */
-    static final URL URL_PLACEHOLDER = placeholderUrl();
 
     private final EnvironmentRepository environmentRepository;
     private final DefaultPortalDomainService defaultPortalDomainService;
@@ -75,10 +66,6 @@ public class DefaultPortalUpgrader implements Upgrader {
             GraviteeContext.cleanContext();
             try {
                 defaultPortalDomainService.ensureDefault(environment.getOrganizationId(), environment.getId());
-                var replacedUrls = defaultPortalDomainService.replaceUrl(environment.getId(), URL_PLACEHOLDER);
-                if (replacedUrls > 0) {
-                    log.info("Placeholder URL replaced on {} portal(s) of environment [{}]", replacedUrls, environment.getId());
-                }
             } finally {
                 GraviteeContext.cleanContext();
             }
@@ -97,14 +84,6 @@ public class DefaultPortalUpgrader implements Upgrader {
         }
         if (!failures.isEmpty()) {
             throw new IllegalStateException("No default portal was created and no portal was changed. " + String.join("; ", failures));
-        }
-    }
-
-    private static URL placeholderUrl() {
-        try {
-            return URI.create("https://example.com/to-be-implemented").toURL();
-        } catch (MalformedURLException e) {
-            throw new ExceptionInInitializerError(e);
         }
     }
 }

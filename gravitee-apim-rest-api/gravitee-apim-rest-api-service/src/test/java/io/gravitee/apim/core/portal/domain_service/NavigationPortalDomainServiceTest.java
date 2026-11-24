@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.InstallationAccessQueryServiceInMemory;
+import inmemory.PortalAddressDomainServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -26,10 +27,8 @@ import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
-import java.net.URI;
 import java.net.URL;
 import java.util.List;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -54,29 +53,15 @@ class NavigationPortalDomainServiceTest {
         cut = new NavigationPortalDomainService(
             new DefaultPortalDomainService(
                 portalCrudService,
-                new PortalUrlDomainService(installationAccessQueryService),
+                new PortalAddressDomainServiceInMemory(portalCrudService, installationAccessQueryService),
                 new PortalContentOwnershipDomainService(portalCrudService, new PortalNavigationItemsCrudServiceInMemory())
             ),
             portalCrudService
         );
     }
 
-    @SneakyThrows
-    private static URL url(String value) {
-        return URI.create(value).toURL();
-    }
-
     private static Portal aPortal(PortalId id, String name, boolean defaultPortal) {
-        return Portal.of(
-            id,
-            ENV_ID,
-            ORG_ID,
-            name,
-            PortalNavigationStructure.empty(),
-            null,
-            defaultPortal,
-            url("https://portal.acme.io/next")
-        );
+        return Portal.of(id, ENV_ID, ORG_ID, name, PortalNavigationStructure.empty(), null, defaultPortal, "portal-access-point");
     }
 
     @Test
@@ -125,7 +110,7 @@ class NavigationPortalDomainServiceTest {
 
     @Test
     void should_require_a_portal_created_from_the_console() {
-        var consolePortal = Portal.createFromConsole(ENV_ID, ORG_ID, "Partners", url("https://partners.acme.io"));
+        var consolePortal = Portal.createFromConsole(ENV_ID, ORG_ID, "Partners", "partners-access-point");
         portalCrudService.initWith(List.of(aPortal(DEFAULT_PORTAL_ID, "Developer Portal", true), consolePortal));
 
         assertThat(cut.requireReference(ENV_ID, consolePortal.getId())).isEqualTo(
@@ -135,7 +120,7 @@ class NavigationPortalDomainServiceTest {
 
     @Test
     void should_list_the_portals_created_from_the_console() {
-        var consolePortal = Portal.createFromConsole(ENV_ID, ORG_ID, "Partners", url("https://partners.acme.io"));
+        var consolePortal = Portal.createFromConsole(ENV_ID, ORG_ID, "Partners", "partners-access-point");
         portalCrudService.initWith(
             List.of(
                 consolePortal,

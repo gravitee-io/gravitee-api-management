@@ -400,7 +400,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
         Object[] objects = getObjectArray(portalSettingsEntity);
         saveConfigByReference(executionContext, objects, executionContext.getEnvironmentId(), ParameterReferenceType.ENVIRONMENT);
         ensureDefaultPortal(executionContext);
-        defaultPortalDomainService.syncUrl(executionContext.getEnvironmentId());
+        defaultPortalDomainService.linkUnlinkedPortals(executionContext.getEnvironmentId());
     }
 
     /**

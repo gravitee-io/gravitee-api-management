@@ -23,10 +23,6 @@ import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -50,16 +46,8 @@ public interface PortalAdapter {
             portal.getActiveThemeId(),
             portal.isDefaultPortal(),
             portal.isCreatedFromConsole(),
-            parseUrl(portal.getId(), portal.getUrl())
+            portal.getAccessPointId()
         );
-    }
-
-    default URL parseUrl(String portalId, String url) {
-        try {
-            return new URI(url).toURL();
-        } catch (URISyntaxException | MalformedURLException | IllegalArgumentException e) {
-            throw new IllegalArgumentException(String.format("Invalid URL stored for portal %s: %s", portalId, url), e);
-        }
     }
 
     default io.gravitee.repository.management.model.Portal toRepository(Portal portal) {
@@ -75,7 +63,7 @@ public interface PortalAdapter {
             .activeThemeId(portal.getActiveThemeId())
             .defaultPortal(portal.isDefault())
             .createdFromConsole(portal.isCreatedFromConsole())
-            .url(portal.getUrl().toString())
+            .accessPointId(portal.getAccessPointId())
             .build();
     }
 
