@@ -281,6 +281,21 @@ class ApisResourceTest extends AbstractResourceTest {
             assertThat(state.getFlowExecution().getMode()).isEqualTo(FlowMode.BEST_MATCH);
         }
 
+        @ParameterizedTest
+        @ValueSource(strings = { "best-match", "BEST-MATCH", "Best-Match", "best_match" })
+        void should_read_every_spelling_of_best_match_gko_4_11_accepted(String mode) {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", false)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-with-hyphenated-flow-mode.json").replace("best-match", mode)))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(200);
+                assertThat(response.readEntity(ApiV4State.class).getFlowExecution().getMode()).isEqualTo(FlowMode.BEST_MATCH);
+            }
+        }
+
         @Test
         void should_reject_an_unknown_flow_mode() {
             try (
