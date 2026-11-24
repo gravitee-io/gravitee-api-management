@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.guardian;
+package io.gravitee.definition.model.guardrail;
 
 import io.gravitee.policy.api.PolicyConfiguration;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Configuration of the {@code guardian-policy} step: the id of the Guardian to execute.
+ * Configuration of the {@code guardrail-policy} step: the id of the Guardrail to execute.
  *
  * @author GraviteeSource Team
  */
 @Getter
 @Setter
-public class GuardianPolicyConfiguration implements PolicyConfiguration {
+public class GuardrailPolicyConfiguration implements PolicyConfiguration {
 
-    String guardianId;
+    String guardrailId;
 }

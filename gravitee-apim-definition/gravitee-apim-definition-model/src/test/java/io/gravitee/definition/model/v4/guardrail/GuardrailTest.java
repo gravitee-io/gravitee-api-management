@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.v4.guardian;
+package io.gravitee.definition.model.v4.guardrail;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -28,16 +28,16 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class GuardianTest {
+class GuardrailTest {
 
     @Test
     void should_return_no_plugin_when_policies_are_null() {
-        assertThat(Guardian.builder().policies(null).build().getPlugins()).isEmpty();
+        assertThat(Guardrail.builder().policies(null).build().getPlugins()).isEmpty();
     }
 
     @Test
     void should_return_plugins_of_enabled_policies_only() {
-        Guardian guardian = Guardian.builder()
+        Guardrail guardrail = Guardrail.builder()
             .policies(
                 List.of(
                     Step.builder().policy("policy-enabled").enabled(true).build(),
@@ -46,12 +46,12 @@ class GuardianTest {
             )
             .build();
 
-        assertThat(guardian.getPlugins()).containsExactly(new Plugin("policy", "policy-enabled"));
+        assertThat(guardrail.getPlugins()).containsExactly(new Plugin("policy", "policy-enabled"));
     }
 
     @Test
     void should_return_plugins_of_enabled_resources_and_policies() {
-        Guardian guardian = Guardian.builder()
+        Guardrail guardrail = Guardrail.builder()
             .resources(
                 List.of(
                     Resource.builder().name("cache").type("cache").enabled(true).build(),
@@ -61,24 +61,24 @@ class GuardianTest {
             .policies(List.of(Step.builder().policy("policy-enabled").enabled(true).build()))
             .build();
 
-        assertThat(guardian.getPlugins()).containsExactly(new Plugin("resource", "cache"), new Plugin("policy", "policy-enabled"));
+        assertThat(guardrail.getPlugins()).containsExactly(new Plugin("resource", "cache"), new Plugin("policy", "policy-enabled"));
     }
 
     @Test
     void should_be_compatible_with_any_api_type_when_no_api_type_is_declared() {
-        assertThat(Guardian.builder().build().isCompatibleWith(ApiType.LLM_PROXY)).isTrue();
-        assertThat(Guardian.builder().apiTypes(Set.of()).build().isCompatibleWith(ApiType.MCP_PROXY)).isTrue();
-        assertThat(Guardian.builder().build().isCompatibleWith(null)).isTrue();
+        assertThat(Guardrail.builder().build().isCompatibleWith(ApiType.LLM_PROXY)).isTrue();
+        assertThat(Guardrail.builder().apiTypes(Set.of()).build().isCompatibleWith(ApiType.MCP_PROXY)).isTrue();
+        assertThat(Guardrail.builder().build().isCompatibleWith(null)).isTrue();
     }
 
     @Test
     void should_be_compatible_only_with_the_declared_api_types() {
-        Guardian guardian = Guardian.builder().apiTypes(Set.of(ApiType.LLM_PROXY, ApiType.A2A_PROXY)).build();
+        Guardrail guardrail = Guardrail.builder().apiTypes(Set.of(ApiType.LLM_PROXY, ApiType.A2A_PROXY)).build();
 
-        assertThat(guardian.isCompatibleWith(ApiType.LLM_PROXY)).isTrue();
-        assertThat(guardian.isCompatibleWith(ApiType.A2A_PROXY)).isTrue();
-        assertThat(guardian.isCompatibleWith(ApiType.MCP_PROXY)).isFalse();
-        assertThat(guardian.isCompatibleWith(ApiType.PROXY)).isFalse();
-        assertThat(guardian.isCompatibleWith(null)).isFalse();
+        assertThat(guardrail.isCompatibleWith(ApiType.LLM_PROXY)).isTrue();
+        assertThat(guardrail.isCompatibleWith(ApiType.A2A_PROXY)).isTrue();
+        assertThat(guardrail.isCompatibleWith(ApiType.MCP_PROXY)).isFalse();
+        assertThat(guardrail.isCompatibleWith(ApiType.PROXY)).isFalse();
+        assertThat(guardrail.isCompatibleWith(null)).isFalse();
     }
 }
