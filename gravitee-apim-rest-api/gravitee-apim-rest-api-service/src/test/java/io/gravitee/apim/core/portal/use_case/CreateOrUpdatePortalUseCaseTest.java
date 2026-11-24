@@ -46,6 +46,7 @@ import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyn
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalHostTemplate;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
@@ -284,7 +285,46 @@ class CreateOrUpdatePortalUseCaseTest {
     }
 
     @Test
+    void should_create_a_portal_on_a_generated_host_when_a_template_is_configured() {
+        installationAccessQueryService.withPortalHostTemplate(PortalHostTemplate.parse("{portal-slug}.portals.acme.io"));
+        var portal = Portal.create(
+            PortalId.random(),
+            AUDIT_INFO.environmentId(),
+            AUDIT_INFO.organizationId(),
+            "Partners",
+            PortalFixtures.PORTAL_ACCESS_POINT_ID
+        );
+
+        var output = useCase.execute(inputFor(AUDIT_INFO, portal));
+
+        assertThat(urlOf(output.portal())).hasToString("https://partners.portals.acme.io/next");
+    }
+
+    @Test
+    void should_keep_the_access_point_of_the_default_portal_it_replaces_when_a_template_is_configured() {
+        installationAccessQueryService.withPortalHostTemplate(PortalHostTemplate.parse("{portal-slug}.portals.acme.io"));
+        portalCrudService.initWith(List.of(aDefaultPortal()));
+
+        var output = useCase.execute(inputFor(AUDIT_INFO, PortalFixtures.aPortal()));
+
+        assertThat(output.portal().getAccessPointId()).isEqualTo(PortalFixtures.PORTAL_ACCESS_POINT_ID);
+        assertThat(addresses.accessPoints().storage()).isEmpty();
+    }
+
+    @Test
+    void should_keep_the_access_point_of_an_existing_portal_when_a_template_is_configured() {
+        var portal = PortalFixtures.aPortal();
+        portalCrudService.initWith(List.of(portal));
+        installationAccessQueryService.withPortalHostTemplate(PortalHostTemplate.parse("{portal-slug}.portals.acme.io"));
+
+        var output = useCase.execute(inputFor(AUDIT_INFO, portal));
+
+        assertThat(output.portal().getAccessPointId()).isEqualTo(portal.getAccessPointId());
+    }
+
+    @Test
     void should_create_a_portal_without_access_point_on_a_multi_tenant_installation() {
+        installationAccessQueryService.withPortalHostTemplate(PortalHostTemplate.parse("{portal-slug}.portals.acme.io"));
         addresses.installationType().set(InstallationType.MULTI_TENANT);
 
         var output = useCase.execute(inputFor(AUDIT_INFO, PortalFixtures.aPortal()));

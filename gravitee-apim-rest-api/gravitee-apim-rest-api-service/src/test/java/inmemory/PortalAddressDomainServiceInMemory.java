@@ -38,6 +38,7 @@ public class PortalAddressDomainServiceInMemory extends PortalAddressDomainServi
             portals,
             accessPoints,
             new AccessPointCrudServiceInMemory(accessPoints),
+            installation,
             new PortalUrlDomainService(installation),
             installationType
         );

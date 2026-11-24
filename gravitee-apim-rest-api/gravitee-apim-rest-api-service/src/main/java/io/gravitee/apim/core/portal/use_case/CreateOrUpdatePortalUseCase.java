@@ -145,7 +145,7 @@ public class CreateOrUpdatePortalUseCase {
         var accessPointId = portalAutomationScopeEnforcer
             .findReplaceableDefault(input.auditInfo(), input.portalId())
             .map(Portal::getAccessPointId)
-            .or(() -> portalAddressDomainService.sharedAccessPoint(environmentId));
+            .or(() -> portalAddressDomainService.newPortalAccessPoint(environmentId, input.name()));
         if (accessPointId.isEmpty() && portalAddressDomainService.assignsAccessPoints()) {
             throw new ValidationDomainException("Portal URL of environment [" + environmentId + "] cannot be resolved");
         }

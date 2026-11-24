@@ -186,6 +186,22 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
     }
 
     @Override
+    public List<AccessPoint> findPortalInstancesByHost(final String host) {
+        try {
+            return accessPointRepository
+                .findByTargetAndHost(AccessPointAdapter.INSTANCE.fromEntity(AccessPoint.Target.PORTAL_INSTANCE), host)
+                .stream()
+                .map(AccessPointAdapter.INSTANCE::toEntity)
+                .toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                String.format("An error occurs while getting portal access points on host '%s'", host),
+                e
+            );
+        }
+    }
+
+    @Override
     public List<AccessPoint> getGatewayAccessPoints(final String environmentId) {
         try {
             return findAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, environmentId, AccessPoint.Target.GATEWAY, false).toList();
