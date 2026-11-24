@@ -18,7 +18,7 @@ package io.gravitee.apim.core.api.model;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.ApiFixtures;
-import io.gravitee.definition.model.guardian.GuardianSteps;
+import io.gravitee.definition.model.guardrail.GuardrailSteps;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.property.Property;
 import java.util.List;
@@ -80,31 +80,31 @@ class ApiTest {
     }
 
     /**
-     * A rollback restores the definition a revision was deployed with, and the Guardians an API runs are part of that
-     * definition: keeping the current internal flow would roll back everything but the Guardians.
+     * A rollback restores the definition a revision was deployed with, and the Guardrails an API runs are part of that
+     * definition: keeping the current internal flow would roll back everything but the Guardrails.
      */
     @Test
     void should_restore_the_internal_flow_of_the_revision_rolled_back_to() {
         final Api api = ApiFixtures.aProxyApiV4();
-        api.getApiDefinitionHttpV4().setInternalFlow(Flow.builder().request(List.of(GuardianSteps.of("guardian-2", "Toxicity"))).build());
+        api.getApiDefinitionHttpV4().setInternalFlow(Flow.builder().request(List.of(GuardrailSteps.of("guardrail-2", "Toxicity"))).build());
         var revision = io.gravitee.definition.model.v4.Api.builder()
             .id(api.getId())
             .name(api.getName())
             .apiVersion("1.0")
-            .internalFlow(Flow.builder().request(List.of(GuardianSteps.of("guardian-1", "Credential leakage"))).build())
+            .internalFlow(Flow.builder().request(List.of(GuardrailSteps.of("guardrail-1", "Credential leakage"))).build())
             .build();
 
         var rolledBack = api.rollbackTo(revision);
 
         assertThat(rolledBack.getApiDefinitionHttpV4().getInternalFlow().getRequest())
             .as("internal flow of the rolled back API")
-            .containsExactly(GuardianSteps.of("guardian-1", "Credential leakage"));
+            .containsExactly(GuardrailSteps.of("guardrail-1", "Credential leakage"));
     }
 
     @Test
     void should_restore_an_absent_internal_flow_of_the_revision_rolled_back_to() {
         final Api api = ApiFixtures.aProxyApiV4();
-        api.getApiDefinitionHttpV4().setInternalFlow(Flow.builder().request(List.of(GuardianSteps.of("guardian-2", "Toxicity"))).build());
+        api.getApiDefinitionHttpV4().setInternalFlow(Flow.builder().request(List.of(GuardrailSteps.of("guardrail-2", "Toxicity"))).build());
         var revision = io.gravitee.definition.model.v4.Api.builder().id(api.getId()).name(api.getName()).apiVersion("1.0").build();
 
         var rolledBack = api.rollbackTo(revision);

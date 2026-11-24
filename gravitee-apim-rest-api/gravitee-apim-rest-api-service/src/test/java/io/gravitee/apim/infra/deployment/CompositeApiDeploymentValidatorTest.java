@@ -103,7 +103,7 @@ class CompositeApiDeploymentValidatorTest {
         }
     }
 
-    /** A validator that refuses whatever it is asked, as a module whose Guardian is gone does. */
+    /** A validator that refuses whatever it is asked, as a module whose Guardrail is gone does. */
     private record Refusing(ApiNotDeployableException refusal) implements ApiDeploymentValidator {
         @Override
         public void validateDeployable(Api api) {
@@ -122,8 +122,8 @@ class CompositeApiDeploymentValidatorTest {
 
         @Bean
         @Order(2)
-        ApiDeploymentValidator guardianValidator(Asked asked) {
-            return new Recording("guardian", asked);
+        ApiDeploymentValidator guardrailValidator(Asked asked) {
+            return new Recording("guardrail", asked);
         }
 
         @Bean
@@ -152,8 +152,8 @@ class CompositeApiDeploymentValidatorTest {
      * The candidates of the context the installation runs, which the validators declared above cannot attest: the
      * cluster binding check reaches every deployment and every start because its service is an
      * {@link ApiDeploymentValidator} the core scan registers, and nothing else would notice it stopping being one.
-     * The Guardians validator of a Gamma module is a bean of the module's own context, which
-     * {@code GammaGuardiansConfigurationTest} pins against this composite.
+     * The Guardrails validator of a Gamma module is a bean of the module's own context, which
+     * {@code GammaGuardrailsConfigurationTest} pins against this composite.
      */
     @Test
     void should_hold_the_validators_of_the_rest_api_wiring_among_its_candidates() {
@@ -195,7 +195,7 @@ class CompositeApiDeploymentValidatorTest {
         try (var context = contextHoldingTheValidators()) {
             question.askOf(context.getBean(ApiDeploymentGate.class));
 
-            assertThat(asked.entries()).as("validators asked").containsExactly(question.askedOf("cluster"), question.askedOf("guardian"));
+            assertThat(asked.entries()).as("validators asked").containsExactly(question.askedOf("cluster"), question.askedOf("guardrail"));
         }
     }
 
@@ -215,9 +215,9 @@ class CompositeApiDeploymentValidatorTest {
                     .as("validators asked")
                     .containsExactly(
                         question.askedOf("cluster"),
-                        question.askedOf("guardian"),
+                        question.askedOf("guardrail"),
                         question.askedOf("cluster"),
-                        question.askedOf("guardian"),
+                        question.askedOf("guardrail"),
                         question.askedOf("late")
                     );
                 softly
@@ -239,10 +239,10 @@ class CompositeApiDeploymentValidatorTest {
     @ParameterizedTest
     @EnumSource(Question.class)
     void should_raise_the_refusal_of_a_validator_and_ask_none_of_the_validators_after_it(Question question) {
-        var refusal = new ApiNotDeployableException("Guardian 'guardian-1' is not deployed");
+        var refusal = new ApiNotDeployableException("Guardrail 'guardrail-1' is not deployed");
         var validators = new MutableObjectProvider<ApiDeploymentValidator>();
         var composite = new CompositeApiDeploymentValidator(validators);
-        validators.add(new Recording("cluster", asked)).add(new Refusing(refusal)).add(new Recording("guardian", asked));
+        validators.add(new Recording("cluster", asked)).add(new Refusing(refusal)).add(new Recording("guardrail", asked));
 
         var throwable = catchThrowable(() -> question.askOf(composite));
 

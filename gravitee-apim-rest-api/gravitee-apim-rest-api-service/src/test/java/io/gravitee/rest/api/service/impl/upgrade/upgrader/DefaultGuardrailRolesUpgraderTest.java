@@ -56,10 +56,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-public class DefaultGuardianRolesUpgraderTest {
+public class DefaultGuardrailRolesUpgraderTest {
 
     private static final String ORGANIZATION_ID = "DEFAULT";
-    private static final String GUARDIAN = EnvironmentPermission.GUARDIAN.getName();
+    private static final String GUARDRAIL = EnvironmentPermission.GUARDRAIL.getName();
 
     @Mock
     RoleService roleService;
@@ -70,15 +70,15 @@ public class DefaultGuardianRolesUpgraderTest {
     @Captor
     ArgumentCaptor<UpdateRoleEntity> roleCaptor;
 
-    DefaultGuardianRolesUpgrader upgrader;
+    DefaultGuardrailRolesUpgrader upgrader;
 
     @BeforeEach
     public void setUp() {
-        upgrader = new DefaultGuardianRolesUpgrader(roleService, organizationRepository);
+        upgrader = new DefaultGuardrailRolesUpgrader(roleService, organizationRepository);
     }
 
     @Test
-    public void should_grant_the_full_guardian_permission_to_the_api_publisher() throws TechnicalException, UpgraderException {
+    public void should_grant_the_full_guardrail_permission_to_the_api_publisher() throws TechnicalException, UpgraderException {
         givenAnOrganizationWhereBothDefaultRolesExist();
 
         upgrader.upgrade();
@@ -145,7 +145,7 @@ public class DefaultGuardianRolesUpgraderTest {
     @Test
     void should_leave_a_role_that_already_holds_the_permission_alone() throws Exception {
         var publisher = aRoleNamed(ROLE_ENVIRONMENT_API_PUBLISHER.getName());
-        publisher.getPermissions().put(EnvironmentPermission.GUARDIAN.getName(), new char[] { READ.getId() });
+        publisher.getPermissions().put(EnvironmentPermission.GUARDRAIL.getName(), new char[] { READ.getId() });
         givenTheseRoles(publisher, aRoleNamed(DEFAULT_ROLE_ENVIRONMENT_USER.getName()));
 
         upgrader.upgrade();
@@ -167,7 +167,7 @@ public class DefaultGuardianRolesUpgraderTest {
 
         verify(roleService, times(2)).update(any(), roleCaptor.capture());
 
-        assertThat(publisher.getPermissions()).isEqualTo(readOnly).doesNotContainKey(EnvironmentPermission.GUARDIAN.getName());
+        assertThat(publisher.getPermissions()).isEqualTo(readOnly).doesNotContainKey(EnvironmentPermission.GUARDRAIL.getName());
         assertThat(permissionsGrantedTo(ROLE_ENVIRONMENT_API_PUBLISHER.getName())).isNotEmpty();
     }
 
@@ -185,8 +185,8 @@ public class DefaultGuardianRolesUpgraderTest {
             .findFirst()
             .orElseThrow(() -> new AssertionError("no update captured for role " + roleName))
             .getPermissions()
-            .get(GUARDIAN);
-        assertThat(granted).as("the %s permission was never written on %s", GUARDIAN, roleName).isNotNull();
+            .get(GUARDRAIL);
+        assertThat(granted).as("the %s permission was never written on %s", GUARDRAIL, roleName).isNotNull();
         return new String(granted)
             .chars()
             .mapToObj(c -> (char) c)

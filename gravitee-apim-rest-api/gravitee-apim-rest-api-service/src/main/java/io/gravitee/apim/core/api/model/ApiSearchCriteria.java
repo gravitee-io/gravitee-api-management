@@ -44,5 +44,5 @@ public class ApiSearchCriteria {
     private List<ApiType> apiTypes;
     private List<ApiType> notApiTypes;
     private Instant updatedAtFrom;
-    private String guardian;
+    private String guardrail;
 }

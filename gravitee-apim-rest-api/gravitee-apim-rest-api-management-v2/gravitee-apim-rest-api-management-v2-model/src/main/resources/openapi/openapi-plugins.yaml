@@ -392,7 +392,7 @@ paths:
                           - A2A_PROXY
                           - MCP_PROXY
                           - LLM_PROXY
-                          - GUARDIAN
+                          - GUARDRAIL
             tags:
                 - Plugins - Policies
             summary: Get a policy schema
@@ -555,7 +555,7 @@ components:
                                 uniqueItems: true
                                 items:
                                   $ref: "#/components/schemas/FlowPhase"
-                              GUARDIAN:
+                              GUARDRAIL:
                                 type: array
                                 uniqueItems: true
                                 items:

@@ -133,7 +133,7 @@ public class RollbackApiUseCase {
                 keepStoredEncryption(toRollback.getApiDefinitionHttpV4(), rollbackedApi.getApiDefinitionHttpV4());
 
                 // What this rollback republishes is the internal flow of the revision and nothing else, so that is
-                // what is judged — and before anything is written, so an API whose revision names a Guardian that is
+                // what is judged — and before anything is written, so an API whose revision names a Guardrail that is
                 // gone stays exactly as it is, definition, index and gateways alike.
                 apiDeploymentValidator.validateInternalFlowDeployable(rollbackedApi);
                 deployApiInternalFlow.ensureRunningDeploymentReadable(input.auditInfo.environmentId(), toRollback.getId());
@@ -171,7 +171,7 @@ public class RollbackApiUseCase {
                 apiIndexerDomainService.index(indexerContext, rollbackedApi, apiPrimaryOwner);
 
                 var apiUpdatedV2 = apiCrudService.update(rollbackedApi);
-                // The V2 definition names no Guardian, and a full save of an API carries no index, so the index is
+                // The V2 definition names no Guardrail, and a full save of an API carries no index, so the index is
                 // emptied here by the write that owns it — which also stops the gateways running the steps the V4
                 // definition had. Nothing is left to refuse, which is why this branch asks no module to judge it.
                 if (
@@ -251,13 +251,13 @@ public class RollbackApiUseCase {
     }
 
     /**
-     * Writes the internal flow the rollback restores, the Guardian index that projects it, and hands it to the
-     * gateways — a Guardian applies as soon as it is written, so a rollback that takes one away must take it away
+     * Writes the internal flow the rollback restores, the Guardrail index that projects it, and hands it to the
+     * gateways — a Guardrail applies as soon as it is written, so a rollback that takes one away must take it away
      * from what they run too.
      *
      * <p>Two reasons the API update above does not do it. It takes the internal flow from the API <em>as stored</em>
      * rather than from the definition it is handed — the field is managed by the platform and travels in no
-     * payload — so the restored one would be dropped on the way. And the Guardian index travels with the definition
+     * payload — so the restored one would be dropped on the way. And the Guardrail index travels with the definition
      * it projects in this targeted write only: a full save of an API carries no index, by design, so nothing else
      * would bring the index back in step with the restored definition.
      *

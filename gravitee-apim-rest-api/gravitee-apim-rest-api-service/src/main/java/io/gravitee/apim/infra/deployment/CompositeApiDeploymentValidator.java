@@ -24,13 +24,13 @@ import org.springframework.stereotype.Service;
 
 /**
  * Runs every {@link ApiDeploymentValidator} the context holds, so what a module owns inside a definition — the
- * Guardians of an API, the cluster its endpoints bind to — is checked wherever a definition is about to reach the
+ * Guardrails of an API, the cluster its endpoints bind to — is checked wherever a definition is about to reach the
  * gateways.
  *
  * <p>An {@link ObjectProvider} and not a collection: a Gamma module registers its validator as a singleton in this
  * context after the context is refreshed, and a provider resolves the beans on every call. An injected collection
  * would not — not even a {@code @Lazy} one, whose proxy caches the beans it resolved the first time as soon as they
- * are all singletons, so the Guardian check would silently stop running until the next restart.
+ * are all singletons, so the Guardrail check would silently stop running until the next restart.
  *
  * @author GraviteeSource Team
  */

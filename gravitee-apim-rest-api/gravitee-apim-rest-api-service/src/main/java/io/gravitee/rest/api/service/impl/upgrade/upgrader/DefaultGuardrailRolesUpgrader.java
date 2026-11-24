@@ -40,11 +40,11 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * Grants the GUARDIAN environment permission to the default roles on an existing installation.
+ * Grants the GUARDRAIL environment permission to the default roles on an existing installation.
  *
  * <p>
  * {@link io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition} covers a fresh install only: the roles of an
- * installation that already exists are never rebuilt from it. Without this upgrader the guardian endpoints answer 403
+ * installation that already exists are never rebuilt from it. Without this upgrader the guardrail endpoints answer 403
  * to every caller but an organization admin, who bypasses the permission check.
  * </p>
  *
@@ -52,14 +52,14 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @CustomLog
-public class DefaultGuardianRolesUpgrader implements Upgrader {
+public class DefaultGuardrailRolesUpgrader implements Upgrader {
 
     private final RoleService roleService;
 
     private final OrganizationRepository organizationRepository;
 
     @Autowired
-    public DefaultGuardianRolesUpgrader(RoleService roleService, @Lazy OrganizationRepository organizationRepository) {
+    public DefaultGuardrailRolesUpgrader(RoleService roleService, @Lazy OrganizationRepository organizationRepository) {
         this.roleService = roleService;
         this.organizationRepository = organizationRepository;
     }
@@ -71,18 +71,18 @@ public class DefaultGuardianRolesUpgrader implements Upgrader {
                 .findAll()
                 .forEach(organization -> {
                     ExecutionContext executionContext = new ExecutionContext(organization);
-                    grantGuardianPermission(
+                    grantGuardrailPermission(
                         executionContext,
                         ROLE_ENVIRONMENT_API_PUBLISHER.getName(),
                         new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
                     );
-                    grantGuardianPermission(executionContext, DEFAULT_ROLE_ENVIRONMENT_USER.getName(), new char[] { READ.getId() });
+                    grantGuardrailPermission(executionContext, DEFAULT_ROLE_ENVIRONMENT_USER.getName(), new char[] { READ.getId() });
                 });
             return true;
         });
     }
 
-    private void grantGuardianPermission(ExecutionContext executionContext, String roleName, char[] permissions) {
+    private void grantGuardrailPermission(ExecutionContext executionContext, String roleName, char[] permissions) {
         Optional<RoleEntity> role = roleService.findByScopeAndName(ENVIRONMENT, roleName, executionContext.getOrganizationId());
         if (role.isEmpty()) {
             log.debug("Role {} not found for organization {}, nothing to grant", roleName, executionContext.getOrganizationId());
@@ -91,9 +91,9 @@ public class DefaultGuardianRolesUpgrader implements Upgrader {
 
         RoleEntity existingRole = role.get();
         Map<String, char[]> existingPermissions = existingRole.getPermissions() == null ? Map.of() : existingRole.getPermissions();
-        if (existingPermissions.containsKey(EnvironmentPermission.GUARDIAN.getName())) {
+        if (existingPermissions.containsKey(EnvironmentPermission.GUARDRAIL.getName())) {
             log.debug(
-                "Role {} already holds the GUARDIAN permission for organization {}, nothing to grant",
+                "Role {} already holds the GUARDRAIL permission for organization {}, nothing to grant",
                 roleName,
                 executionContext.getOrganizationId()
             );
@@ -104,17 +104,17 @@ public class DefaultGuardianRolesUpgrader implements Upgrader {
         // put() would change the role in place -- and would fail outright on a null or read-only map.
         // Same shape as GammaAuthzPdpPermissionUpgrader.
         Map<String, char[]> permissionsToGrant = new HashMap<>(existingPermissions);
-        permissionsToGrant.put(EnvironmentPermission.GUARDIAN.getName(), permissions);
+        permissionsToGrant.put(EnvironmentPermission.GUARDRAIL.getName(), permissions);
 
         UpdateRoleEntity roleToUpdate = UpdateRoleEntity.from(existingRole);
         roleToUpdate.setPermissions(permissionsToGrant);
 
-        log.info("Grant the GUARDIAN permission to role {} for organization {}", roleName, executionContext.getOrganizationId());
+        log.info("Grant the GUARDRAIL permission to role {} for organization {}", roleName, executionContext.getOrganizationId());
         roleService.update(executionContext, roleToUpdate);
     }
 
     @Override
     public int getOrder() {
-        return UpgraderOrder.GUARDIAN_ROLES_UPGRADER;
+        return UpgraderOrder.GUARDRAIL_ROLES_UPGRADER;
     }
 }

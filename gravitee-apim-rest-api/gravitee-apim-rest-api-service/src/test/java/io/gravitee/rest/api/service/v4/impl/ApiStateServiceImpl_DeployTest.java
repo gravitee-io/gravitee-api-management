@@ -290,7 +290,7 @@ public class ApiStateServiceImpl_DeployTest {
     public void should_not_deploy_when_a_validator_refuses_the_definition() throws TechnicalException {
         when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
         when(apiSearchService.findRepositoryApiById(any(), eq(API_ID))).thenReturn(api);
-        doThrow(new ApiNotDeployableException("Guardian 'guardian-1' is not deployed"))
+        doThrow(new ApiNotDeployableException("Guardrail 'guardrail-1' is not deployed"))
             .when(deploymentValidator)
             .validateDeployable(argThat(deployed -> API_ID.equals(deployed.getId())));
 

@@ -80,7 +80,7 @@ class EventLatestQueryServiceImplTest {
     @Test
     void should_return_every_requested_publication_beyond_the_jdbc_default_page_size() throws Exception {
         var ids = IntStream.range(0, 11)
-            .mapToObj(i -> "guardian-" + i)
+            .mapToObj(i -> "guardrail-" + i)
             .collect(Collectors.toSet());
         var stored = ids
             .stream()

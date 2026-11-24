@@ -317,7 +317,7 @@ class ApiExportDomainServiceImplTest {
         var definition = ((io.gravitee.definition.model.v4.Api) proxyApi.getApiDefinitionValue()).toBuilder()
             .internalFlow(
                 Flow.builder()
-                    .request(List.of(Step.builder().policy("guardian-policy").configuration("{\"guardianId\":\"guardian-1\"}").build()))
+                    .request(List.of(Step.builder().policy("guardrail-policy").configuration("{\"guardrailId\":\"guardrail-1\"}").build()))
                     .build()
             )
             .build();
@@ -327,9 +327,9 @@ class ApiExportDomainServiceImplTest {
         GraviteeDefinition export = sut.export(apiId, getAuditInfo(), EnumSet.noneOf(Excludable.class));
 
         assertThat(new GraviteeDefinitionJacksonJsonSerializer().serialize(export))
-            .as("exported definition of an API running a guardian")
+            .as("exported definition of an API running a guardrail")
             .doesNotContain("internalFlow")
-            .doesNotContain("guardian-policy");
+            .doesNotContain("guardrail-policy");
     }
 
     @Test

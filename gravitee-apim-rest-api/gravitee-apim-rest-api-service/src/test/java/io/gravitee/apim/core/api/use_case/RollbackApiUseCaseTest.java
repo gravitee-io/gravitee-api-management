@@ -97,7 +97,7 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.definition.model.guardian.GuardianSteps;
+import io.gravitee.definition.model.guardrail.GuardrailSteps;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
@@ -1022,13 +1022,13 @@ class RollbackApiUseCaseTest {
     class RollbackApiV4toV2Proxy {
 
         /**
-         * A V2 definition holds no internal flow, so the rolled-back API runs no Guardian: the index must say so,
+         * A V2 definition holds no internal flow, so the rolled-back API runs no Guardrail: the index must say so,
          * and the gateways must stop running the steps instead of keeping them until someone deploys the API.
          */
         @Test
-        void should_stop_running_the_guardians_of_the_v4_definition() throws JsonProcessingException {
+        void should_stop_running_the_guardrails_of_the_v4_definition() throws JsonProcessingException {
             apiCrudService.update(ApiAdapter.INSTANCE.toCoreModel(apiV4().build()));
-            givenTheStoredApiRuns(guardians("guardian-1"));
+            givenTheStoredApiRuns(guardrails("guardrail-1"));
             givenTheGatewaysRun(EventType.PUBLISH_API);
             var event = givenAV2Revision();
 
@@ -1045,7 +1045,7 @@ class RollbackApiUseCaseTest {
                     .assertThat(eventCrudService.storage())
                     .as("events written")
                     .singleElement()
-                    .satisfies(written -> assertThat(written.getPayload()).as("guardian sent").doesNotContain("guardian-1"));
+                    .satisfies(written -> assertThat(written.getPayload()).as("guardrail sent").doesNotContain("guardrail-1"));
             });
         }
 
@@ -1056,7 +1056,7 @@ class RollbackApiUseCaseTest {
         @Test
         void should_not_refuse_a_rollback_a_validator_refuses_the_definition_of() throws JsonProcessingException {
             apiCrudService.update(ApiAdapter.INSTANCE.toCoreModel(apiV4().build()));
-            givenTheStoredApiRuns(guardians("guardian-1"));
+            givenTheStoredApiRuns(guardrails("guardrail-1"));
             givenTheGatewaysRun(EventType.PUBLISH_API);
             var event = givenAV2Revision();
             givenEveryValidatorRefuses();
@@ -1829,16 +1829,16 @@ class RollbackApiUseCaseTest {
     }
 
     /**
-     * A rollback restores the internal flow, which is where the Guardians an API runs live. Two things must follow
-     * it: the index that answers "which APIs run this Guardian?", and the gateways — a Guardian applies as soon as it
+     * A rollback restores the internal flow, which is where the Guardrails an API runs live. Two things must follow
+     * it: the index that answers "which APIs run this Guardrail?", and the gateways — a Guardrail applies as soon as it
      * is written, so a rollback that takes one away must take it away from what they run too.
      */
     @Nested
-    class RestoringTheGuardians {
+    class RestoringTheGuardrails {
 
         @Test
-        void should_restore_the_guardians_the_revision_ran_in_the_index() throws JsonProcessingException {
-            var event = givenARevisionRunning(guardians("guardian-1"));
+        void should_restore_the_guardrails_the_revision_ran_in_the_index() throws JsonProcessingException {
+            var event = givenARevisionRunning(guardrails("guardrail-1"));
             givenTheApiUpdateKeepsTheStoredDefinition();
 
             useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
@@ -1847,14 +1847,14 @@ class RollbackApiUseCaseTest {
                 softly
                     .assertThat(apiCrudService.get(API_ID).getApiDefinitionHttpV4().getInternalFlow())
                     .as("internal flow of the stored definition")
-                    .isEqualTo(guardians("guardian-1"));
-                softly.assertThat(apisRunning("guardian-1")).as("APIs the index answers for guardian-1").containsExactly(API_ID);
+                    .isEqualTo(guardrails("guardrail-1"));
+                softly.assertThat(apisRunning("guardrail-1")).as("APIs the index answers for guardrail-1").containsExactly(API_ID);
             });
         }
 
         @Test
-        void should_empty_the_index_when_the_revision_ran_no_guardian() throws JsonProcessingException {
-            givenTheStoredApiRuns(guardians("guardian-1"));
+        void should_empty_the_index_when_the_revision_ran_no_guardrail() throws JsonProcessingException {
+            givenTheStoredApiRuns(guardrails("guardrail-1"));
             var event = givenARevisionRunning(null);
             givenTheApiUpdateKeepsTheStoredDefinition();
 
@@ -1865,18 +1865,18 @@ class RollbackApiUseCaseTest {
                     .assertThat(apiCrudService.get(API_ID).getApiDefinitionHttpV4().getInternalFlow())
                     .as("internal flow of the stored definition")
                     .isNull();
-                softly.assertThat(apisRunning("guardian-1")).as("APIs the index answers for guardian-1").isEmpty();
+                softly.assertThat(apisRunning("guardrail-1")).as("APIs the index answers for guardrail-1").isEmpty();
             });
         }
 
         /**
-         * The same guard as a Guardian write: what the gateways are given is their own deployment with the internal
+         * The same guard as a Guardrail write: what the gateways are given is their own deployment with the internal
          * flow replaced, so a plan the rollback restores in the store does not reach them before its publisher
          * deploys the API.
          */
         @Test
         void should_send_the_restored_internal_flow_to_the_gateways_and_nothing_else() throws JsonProcessingException {
-            var event = givenARevisionRunning(guardians("guardian-1"));
+            var event = givenARevisionRunning(guardrails("guardrail-1"));
             givenTheGatewaysRun(EventType.PUBLISH_API);
             givenTheApiUpdateKeepsTheStoredDefinition();
 
@@ -1888,7 +1888,7 @@ class RollbackApiUseCaseTest {
                 .satisfies(written ->
                     assertSoftly(softly -> {
                         softly.assertThat(written.getType()).as("event type").isEqualTo(EventType.PUBLISH_API);
-                        softly.assertThat(written.getPayload()).as("guardian sent").contains("guardian-1");
+                        softly.assertThat(written.getPayload()).as("guardrail sent").contains("guardrail-1");
                         softly.assertThat(written.getPayload()).as("plan of the deployment kept").contains("plan-deployed");
                         softly.assertThat(written.getPayload()).as("plan saved without being deployed").doesNotContain("plan-saved");
                     })
@@ -1901,7 +1901,7 @@ class RollbackApiUseCaseTest {
          */
         @Test
         void should_send_the_restored_internal_flow_under_a_new_deployment_number() throws JsonProcessingException {
-            var event = givenARevisionRunning(guardians("guardian-1"));
+            var event = givenARevisionRunning(guardrails("guardrail-1"));
             givenTheGatewaysRun(EventType.PUBLISH_API);
             givenTheApiUpdateKeepsTheStoredDefinition();
 
@@ -1917,7 +1917,7 @@ class RollbackApiUseCaseTest {
 
         @Test
         void should_send_nothing_for_an_api_the_gateways_do_not_run() throws JsonProcessingException {
-            var event = givenARevisionRunning(guardians("guardian-1"));
+            var event = givenARevisionRunning(guardrails("guardrail-1"));
             givenTheApiUpdateKeepsTheStoredDefinition();
 
             useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
@@ -1927,13 +1927,13 @@ class RollbackApiUseCaseTest {
                 softly
                     .assertThat(apiCrudService.get(API_ID).getApiDefinitionHttpV4().getInternalFlow())
                     .as("internal flow of the stored definition")
-                    .isEqualTo(guardians("guardian-1"));
+                    .isEqualTo(guardrails("guardrail-1"));
             });
         }
 
         @Test
         void should_send_nothing_for_a_stopped_api() throws JsonProcessingException {
-            var event = givenARevisionRunning(guardians("guardian-1"));
+            var event = givenARevisionRunning(guardrails("guardrail-1"));
             givenTheGatewaysRun(EventType.STOP_API);
             givenTheApiUpdateKeepsTheStoredDefinition();
 
@@ -1945,7 +1945,7 @@ class RollbackApiUseCaseTest {
         /** What the gateways run is read before anything is written, so a deployment that cannot be read stops it all. */
         @Test
         void should_write_nothing_when_the_deployment_the_gateways_run_cannot_be_read() throws JsonProcessingException {
-            var event = givenARevisionRunning(guardians("guardian-1"));
+            var event = givenARevisionRunning(guardrails("guardrail-1"));
             givenTheGatewaysRunAnUnreadableDeployment();
 
             var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO)));
@@ -1960,11 +1960,11 @@ class RollbackApiUseCaseTest {
 
         /**
          * Another writer moving the API between the rollback's two writes: the rollback answers so rather than
-         * reporting a success that lost the Guardians it restored.
+         * reporting a success that lost the Guardrails it restored.
          */
         @Test
         void should_fail_a_rollback_whose_internal_flow_another_writer_got_ahead_of() throws JsonProcessingException {
-            var event = givenARevisionRunning(guardians("guardian-1"));
+            var event = givenARevisionRunning(guardrails("guardrail-1"));
             givenTheApiUpdateKeepsTheStoredDefinition();
             definitions.beforeNextReplace = () -> {
                 var stored = apiCrudService.get(API_ID);
@@ -1997,7 +1997,7 @@ class RollbackApiUseCaseTest {
 
     /**
      * Of the definition it restores, a rollback hands the gateways the internal flow and that alone, so the internal
-     * flow is what the modules judge, before anything is written: a revision running a Guardian that has been
+     * flow is what the modules judge, before anything is written: a revision running a Guardrail that has been
      * undeployed or deleted since is one the gateways would answer with their fail-closed check.
      */
     @Nested
@@ -2005,7 +2005,7 @@ class RollbackApiUseCaseTest {
 
         @Test
         void should_validate_the_internal_flow_the_rollback_restores() throws JsonProcessingException {
-            var event = givenARevisionRunning(guardians("guardian-1"));
+            var event = givenARevisionRunning(guardrails("guardrail-1"));
             givenTheApiUpdateKeepsTheStoredDefinition();
 
             useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
@@ -2017,15 +2017,15 @@ class RollbackApiUseCaseTest {
                 softly
                     .assertThat(validated.getValue().getApiDefinitionHttpV4().getInternalFlow())
                     .as("internal flow of the validated definition")
-                    .isEqualTo(guardians("guardian-1"));
+                    .isEqualTo(guardrails("guardrail-1"));
             });
         }
 
         @Test
         void should_refuse_a_rollback_a_module_refuses_the_internal_flow_of_and_write_nothing() throws JsonProcessingException {
-            var event = givenARevisionRunning(guardians("guardian-1"));
+            var event = givenARevisionRunning(guardrails("guardrail-1"));
             givenTheGatewaysRun(EventType.PUBLISH_API);
-            doThrow(new ApiNotDeployableException("Guardian 'guardian-1' is not deployed"))
+            doThrow(new ApiNotDeployableException("Guardrail 'guardrail-1' is not deployed"))
                 .when(apiDeploymentValidator)
                 .validateInternalFlowDeployable(any());
 
@@ -2033,10 +2033,10 @@ class RollbackApiUseCaseTest {
 
             var stored = apiCrudService.get(API_ID);
             assertSoftly(softly -> {
-                softly.assertThat(throwable).isInstanceOf(ApiNotDeployableException.class).hasMessageContaining("guardian-1");
+                softly.assertThat(throwable).isInstanceOf(ApiNotDeployableException.class).hasMessageContaining("guardrail-1");
                 softly.assertThat(stored.getName()).as("name of the stored API").isEqualTo("api-name");
                 softly.assertThat(stored.getApiDefinitionHttpV4().getInternalFlow()).as("internal flow of the stored definition").isNull();
-                softly.assertThat(apisRunning("guardian-1")).as("APIs the index answers for guardian-1").isEmpty();
+                softly.assertThat(apisRunning("guardrail-1")).as("APIs the index answers for guardrail-1").isEmpty();
                 softly.assertThat(eventCrudService.storage()).as("events written").isEmpty();
                 softly.assertThat(auditCrudService.storage()).as("audits written").isEmpty();
                 softly.assertThat(indexer.storage()).as("search entries written").isEmpty();
@@ -2051,7 +2051,7 @@ class RollbackApiUseCaseTest {
          */
         @Test
         void should_not_refuse_a_rollback_over_the_rest_of_the_definition() throws JsonProcessingException {
-            var event = givenARevisionRunning(guardians("guardian-1"));
+            var event = givenARevisionRunning(guardrails("guardrail-1"));
             givenTheApiUpdateKeepsTheStoredDefinition();
             doThrow(new ApiNotDeployableException("bound virtual cluster is not deployed"))
                 .when(apiDeploymentValidator)
@@ -2061,7 +2061,7 @@ class RollbackApiUseCaseTest {
 
             assertThat(apiCrudService.get(API_ID).getApiDefinitionHttpV4().getInternalFlow())
                 .as("internal flow of the stored definition")
-                .isEqualTo(guardians("guardian-1"));
+                .isEqualTo(guardrails("guardrail-1"));
         }
 
         /**
@@ -2149,11 +2149,11 @@ class RollbackApiUseCaseTest {
     }
 
     /**
-     * Both questions of the SPI refused, as a module whose Guardian is gone answers them: a branch that asks neither
+     * Both questions of the SPI refused, as a module whose Guardrail is gone answers them: a branch that asks neither
      * rolls back all the same.
      */
     private void givenEveryValidatorRefuses() {
-        var refusal = new ApiNotDeployableException("Guardian 'guardian-1' is not deployed");
+        var refusal = new ApiNotDeployableException("Guardrail 'guardrail-1' is not deployed");
         doThrow(refusal).when(apiDeploymentValidator).validateDeployable(any());
         doThrow(refusal).when(apiDeploymentValidator).validateInternalFlowDeployable(any());
     }
@@ -2171,11 +2171,11 @@ class RollbackApiUseCaseTest {
         });
     }
 
-    private static io.gravitee.definition.model.v4.flow.Flow guardians(String... guardianIds) {
+    private static io.gravitee.definition.model.v4.flow.Flow guardrails(String... guardrailIds) {
         return io.gravitee.definition.model.v4.flow.Flow.builder()
             .request(
-                java.util.Arrays.stream(guardianIds)
-                    .map(id -> GuardianSteps.of(id, id))
+                java.util.Arrays.stream(guardrailIds)
+                    .map(id -> GuardrailSteps.of(id, id))
                     .toList()
             )
             .build();
@@ -2230,10 +2230,10 @@ class RollbackApiUseCaseTest {
         );
     }
 
-    private List<String> apisRunning(String guardianId) {
+    private List<String> apisRunning(String guardrailId) {
         return apiQueryService
             .search(
-                io.gravitee.apim.core.api.model.ApiSearchCriteria.builder().guardian(guardianId).build(),
+                io.gravitee.apim.core.api.model.ApiSearchCriteria.builder().guardrail(guardrailId).build(),
                 null,
                 io.gravitee.apim.core.api.model.ApiFieldFilter.builder().build()
             )

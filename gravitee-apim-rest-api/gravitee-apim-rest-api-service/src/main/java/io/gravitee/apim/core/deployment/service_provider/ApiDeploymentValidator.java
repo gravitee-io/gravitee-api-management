@@ -20,7 +20,7 @@ import io.gravitee.rest.api.service.exceptions.ApiNotDeployableException;
 
 /**
  * A check an API passes before the gateways are given a new definition to run. Every implementation runs on every
- * deployment and on every start, so a module that owns part of what the gateway loads — the Guardians of an API, the
+ * deployment and on every start, so a module that owns part of what the gateway loads — the Guardrails of an API, the
  * cluster its endpoints bind to — refuses a definition the gateway could not run.
  *
  * <p>Implementations are collected from the Spring context, including the ones a Gamma module contributes, and must
