@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api.use_case;
 import static io.gravitee.apim.core.api.use_case.MigrateApiUseCase.Input.UpgradeMode.DRY_RUN;
 import static io.gravitee.apim.core.api.use_case.MigrateApiUseCase.Input.UpgradeMode.FORCE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.mockito.ArgumentMatchers.any;
@@ -33,6 +34,7 @@ import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.CredentialCrudServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
@@ -62,8 +64,13 @@ import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainServ
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.membership.model.Role;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
+import io.gravitee.apim.core.secret.exception.SecretReferenceNotAllowedException;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
+import io.gravitee.apim.infra.credential.SpelSecretExpressionParser;
 import io.gravitee.apim.infra.domain_service.api.ApiStateDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.json.jackson.JsonMapperFactory;
@@ -184,7 +191,13 @@ class MigrateApiUseCaseTest {
         flowCrudService,
         apiStateDomainService,
         JsonMapperFactory.build(),
-        pageQueryService
+        pageQueryService,
+        new SecretReferencePermissionDomainService(
+            new SpelSecretExpressionParser(),
+            mock(PermissionDomainService.class),
+            new CredentialCrudServiceInMemory(),
+            GraviteeJacksonMapper.getInstance()
+        )
     );
 
     @BeforeEach
@@ -492,6 +505,28 @@ class MigrateApiUseCaseTest {
         assertThat(auditCrudService.storage()).isEmpty();
 
         assertThat(indexer.storage()).isEmpty();
+    }
+
+    @Test
+    void should_refuse_to_migrate_an_api_whose_flows_reference_a_store_secret_without_the_secret_read_permission() {
+        var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2Api
+            .getApiDefinition()
+            .getProxy()
+            .getGroups()
+            .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
+        apiCrudService.initWith(List.of(v2Api));
+        var flow = new io.gravitee.definition.model.flow.Flow();
+        flow.setName("{#secrets.get('/gravitee/db-password:value?envId=" + ENVIRONMENT_ID + "')}");
+        flowCrudService.saveApiFlowsV2(API_ID, List.of(flow));
+
+        assertThatThrownBy(() -> useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO))).isInstanceOf(
+            SecretReferenceNotAllowedException.class
+        );
+        assertThat(apiCrudService.findById(API_ID)).hasValueSatisfying(api ->
+            assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2)
+        );
     }
 
     @Test

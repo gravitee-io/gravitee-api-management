@@ -25,10 +25,12 @@ import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.exception.PlanInvalidException;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Function;
@@ -43,6 +45,7 @@ public class CreatePlanUseCase {
 
     private final CreatePlanDomainService createPlanDomainService;
     private final ApiCrudService apiCrudService;
+    private final SecretReferencePermissionDomainService secretReferencePermissionDomainService;
 
     public Output execute(Input input) {
         var api = apiCrudService.get(input.apiId());
@@ -65,6 +68,15 @@ public class CreatePlanUseCase {
         plan.setReferenceId(input.apiId);
 
         var flows = input.flowProvider.apply(api);
+        if (api.getDefinitionVersion() == DefinitionVersion.V4) {
+            secretReferencePermissionDomainService.validate(
+                input.auditInfo.organizationId(),
+                input.auditInfo.environmentId(),
+                input.auditInfo.actor().userId(),
+                null,
+                Arrays.asList(plan.getPlanDefinitionV4(), flows)
+            );
+        }
 
         PlanWithFlows createdPlan = createPlanDomainService.create(plan, flows, api, input.auditInfo);
 

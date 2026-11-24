@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -43,6 +44,7 @@ import io.gravitee.apim.core.cluster.exception.ClusterBindingNotAllowedException
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.definition.model.v4.ApiType;
@@ -130,6 +132,9 @@ class ValidateApiDomainServiceLegacyWrapperTest {
     @Mock
     ValidateApiClusterBindingService validateApiClusterBindingService;
 
+    @Mock
+    SecretReferencePermissionDomainService secretReferencePermissionDomainService;
+
     @InjectMocks
     ValidateApiDomainServiceLegacyWrapper service;
 
@@ -162,12 +167,32 @@ class ValidateApiDomainServiceLegacyWrapperTest {
             resourcesValidationService,
             apiLifecycleStateDomainService,
             clusterBindingPermissionDomainService,
-            validateApiClusterBindingService
+            validateApiClusterBindingService,
+            secretReferencePermissionDomainService
         );
     }
 
     @Nested
     class ValidateAndSanitizeForCreationApiHttpV4 {
+
+        @Test
+        void should_check_the_secret_references_of_the_whole_new_definition_against_the_authenticated_user() {
+            var api = ApiFixtures.aProxyApiV4();
+            authenticateAs("user-id");
+            try {
+                service.validateAndSanitizeForCreation(api, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID);
+            } finally {
+                SecurityContextHolder.clearContext();
+            }
+
+            verify(secretReferencePermissionDomainService).validate(
+                eq(ORGANIZATION_ID),
+                eq(ENVIRONMENT_ID),
+                eq("user-id"),
+                isNull(),
+                same(api.getApiDefinitionHttpV4())
+            );
+        }
 
         @Test
         void should_call_legacy_service() {
@@ -279,6 +304,26 @@ class ValidateApiDomainServiceLegacyWrapperTest {
 
     @Nested
     class ValidateAndSanitizeForCreationApiNativeV4 {
+
+        @Test
+        void should_check_the_secret_references_of_the_new_api_against_the_authenticated_user() {
+            var api = ApiFixtures.aNativeApi();
+            when(endpointGroupsValidationService.validateAndSanitizeNativeV4(any())).thenAnswer(invocation -> invocation.getArgument(0));
+            authenticateAs("user-id");
+            try {
+                service.validateAndSanitizeForCreation(api, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID);
+            } finally {
+                SecurityContextHolder.clearContext();
+            }
+
+            verify(secretReferencePermissionDomainService).validate(
+                eq(ORGANIZATION_ID),
+                eq(ENVIRONMENT_ID),
+                eq("user-id"),
+                isNull(),
+                any(NativeApi.class)
+            );
+        }
 
         @Test
         void should_check_the_cluster_bindings_of_the_new_api_against_the_authenticated_user() {

@@ -44,6 +44,7 @@ import io.gravitee.apim.core.notification.model.hook.ApiProductUpdatedHookContex
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
@@ -75,6 +76,7 @@ public class UpdateApiProductUseCase {
     private final ApiProductTagDomainService apiProductTagDomainService;
     private final DeployApiProductDomainService deployApiProductDomainService;
     private final ApiProductResourceValidationDomainService apiProductResourceValidationDomainService;
+    private final SecretReferencePermissionDomainService secretReferencePermissionDomainService;
 
     public Output execute(Input input) {
         if (!licenseDomainService.isApiProductDeploymentAllowed(input.auditInfo().organizationId())) {
@@ -98,6 +100,13 @@ public class UpdateApiProductUseCase {
             .build();
 
         UpdateApiProduct updateApiProduct = input.updateApiProduct();
+        secretReferencePermissionDomainService.validate(
+            input.auditInfo().organizationId(),
+            input.auditInfo().environmentId(),
+            input.auditInfo().actor().userId(),
+            beforeUpdate,
+            updateApiProduct
+        );
         Set<String> apiIds = updateApiProduct.getApiIds();
         if (apiIds != null) {
             Set<String> newApiIds = apiIds.isEmpty() ? Set.of() : Set.copyOf(apiIds);

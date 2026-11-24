@@ -16,8 +16,13 @@
 package io.gravitee.apim.plugin.secrets;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
+import io.gravitee.common.event.EventManager;
+import io.gravitee.gateway.api.genericevent.GenericEventRegistry;
 import io.gravitee.node.secrets.plugins.SecretProviderPluginManager;
 import io.gravitee.node.secrets.plugins.internal.DefaultSecretProviderClassLoaderFactory;
 import io.gravitee.node.secrets.plugins.internal.DefaultSecretProviderPluginManager;
@@ -34,6 +39,7 @@ import org.springframework.core.env.MapPropertySource;
 
 class GraviteeSecretProviderConfigurationTest {
 
+    private final GenericEventRegistry genericEventRegistry = mock(GenericEventRegistry.class);
     private final SecretProviderPluginManager pluginManager = new DefaultSecretProviderPluginManager(
         new DefaultSecretProviderClassLoaderFactory()
     );
@@ -131,9 +137,20 @@ class GraviteeSecretProviderConfigurationTest {
         }
     }
 
+    @Test
+    void should_subscribe_to_the_changes_of_the_secret_store() {
+        try (var context = gatewayContext()) {
+            context.refresh();
+
+            verify(genericEventRegistry).subscribe(eq("secret.changed"), any(GraviteeSecretChangeSubscriber.class));
+        }
+    }
+
     private AnnotationConfigApplicationContext gatewayContext() {
         var context = new AnnotationConfigApplicationContext();
         context.registerBean(SecretProviderPluginManager.class, () -> pluginManager);
+        context.registerBean(GenericEventRegistry.class, () -> genericEventRegistry);
+        context.registerBean(EventManager.class, () -> mock(EventManager.class));
         context.register(GraviteeSecretProviderConfiguration.class);
         return context;
     }

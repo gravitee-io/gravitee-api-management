@@ -16,6 +16,8 @@
 package io.gravitee.apim.core.plan.use_case;
 
 import static assertions.CoreAssertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -23,10 +25,12 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fakes.FakePolicyValidationDomainService;
 import fixtures.core.model.ApiFixtures;
+import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.PlanFixtures;
 import fixtures.definition.FlowFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.CredentialCrudServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
@@ -43,6 +47,7 @@ import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.json.JsonDiffProcessor;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
@@ -50,8 +55,13 @@ import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanUpdates;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
+import io.gravitee.apim.core.secret.exception.SecretReferenceNotAllowedException;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
+import io.gravitee.apim.infra.credential.SpelSecretExpressionParser;
 import io.gravitee.apim.infra.domain_service.plan.PlanSynchronizationLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Parameter;
@@ -126,7 +136,18 @@ class UpdatePlanUseCaseTest {
     );
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
 
-    UpdatePlanUseCase updatePlanUseCase = new UpdatePlanUseCase(updatePlanDomainService, planCrudService, apiCrudService);
+    UpdatePlanUseCase updatePlanUseCase = new UpdatePlanUseCase(
+        updatePlanDomainService,
+        planCrudService,
+        apiCrudService,
+        flowCrudService,
+        new SecretReferencePermissionDomainService(
+            new SpelSecretExpressionParser(),
+            mock(PermissionDomainService.class),
+            new CredentialCrudServiceInMemory(),
+            GraviteeJacksonMapper.getInstance()
+        )
+    );
 
     @BeforeEach
     void setUp() {
@@ -573,6 +594,41 @@ class UpdatePlanUseCaseTest {
 
     private static List<String> expectedExcludedGroups(PlanUpdates updates) {
         return updates.getExcludedGroups() != null ? updates.getExcludedGroups() : List.of();
+    }
+
+    @Nested
+    class SecretReferences {
+
+        private static final String REFERENCE = "{#secrets.get('/gravitee/db-password:value?envId=environment-id')}";
+        private static final AuditInfo A_USER = AuditInfoFixtures.anAuditInfo("organization-id", "environment-id", "user-id");
+
+        @Test
+        void should_refuse_flows_adding_a_store_secret_reference_without_the_secret_read_permission() {
+            var input = new UpdatePlanUseCase.Input(planMinimal(), _api -> List.of(Flow.builder().name(REFERENCE).build()), API_ID, A_USER);
+
+            assertThatThrownBy(() -> updatePlanUseCase.execute(input)).isInstanceOf(SecretReferenceNotAllowedException.class);
+        }
+
+        @Test
+        void should_refuse_a_security_configuration_adding_a_store_secret_reference_without_the_secret_read_permission() {
+            var input = new UpdatePlanUseCase.Input(
+                planMinimal().toBuilder().securityConfiguration("{\"key\":\"" + REFERENCE + "\"}").build(),
+                _api -> List.of(),
+                API_ID,
+                A_USER
+            );
+
+            assertThatThrownBy(() -> updatePlanUseCase.execute(input)).isInstanceOf(SecretReferenceNotAllowedException.class);
+        }
+
+        @Test
+        void should_keep_the_store_secret_references_the_stored_flows_had_without_the_secret_read_permission() {
+            var flows = List.of(Flow.builder().name(REFERENCE).build());
+            flowCrudService.savePlanFlows(PLAN_ID, flows);
+            var input = new UpdatePlanUseCase.Input(planMinimal(), _api -> flows, API_ID, A_USER);
+
+            assertThatCode(() -> updatePlanUseCase.execute(input)).doesNotThrowAnyException();
+        }
     }
 
     @Test

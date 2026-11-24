@@ -27,6 +27,7 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.ApiResourceNames;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -61,6 +62,7 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
     private final ApiLifecycleStateDomainService apiLifecycleStateDomainService;
     private final ClusterBindingPermissionDomainService clusterBindingPermissionDomainService;
     private final ValidateApiClusterBindingService validateApiClusterBindingService;
+    private final SecretReferencePermissionDomainService secretReferencePermissionDomainService;
 
     @Override
     public Api validateAndSanitizeForCreation(Api api, PrimaryOwnerEntity primaryOwner, String environmentId, String organizationId) {
@@ -146,6 +148,8 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         apiValidationService.validateDynamicProperties(
             api.getApiDefinitionHttpV4().getServices() != null ? api.getApiDefinitionHttpV4().getServices().getDynamicProperty() : null
         );
+        // NewApiEntity has no properties, resources, services or response templates, which an import or a promotion carries.
+        validateSecretReferences(new ExecutionContext(organizationId, environmentId), null, api.getApiDefinitionHttpV4());
     }
 
     private void validateAndSanitizeNativeV4ForCreation(
@@ -170,6 +174,7 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
             newApi.setApiDefinitionValue(validateAndSanitizeNativeV4Definition(nativeApi, executionContext));
 
             validateClusterBindingPermission(executionContext, null, nativeApi);
+            validateSecretReferences(executionContext, null, nativeApi);
             validateApiClusterBindingService.validateSavable(environmentId, ApiType.NATIVE, null, nativeApi.getEndpointGroups());
         } else {
             throw new ValidationDomainException("Api type not supported, should be NATIVE");
@@ -213,6 +218,7 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         NativeApi newDefinition = validateAndSanitizeNativeV4Definition(nativeApiToBeUpdated, executionContext);
 
         validateClusterBindingPermission(executionContext, existingApi.getApiDefinitionNativeV4(), newDefinition);
+        validateSecretReferences(executionContext, existingApi.getApiDefinitionNativeV4(), newDefinition);
         validateApiClusterBindingService.validateSavable(
             environmentId,
             ApiType.NATIVE,
@@ -228,6 +234,16 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
     // The caller is the authenticated user, as for the permission filter: an org admin passes, a system call is not checked.
     private void validateClusterBindingPermission(ExecutionContext executionContext, NativeApi previousDefinition, NativeApi definition) {
         clusterBindingPermissionDomainService.validate(
+            executionContext.getOrganizationId(),
+            executionContext.getEnvironmentId(),
+            authenticatedUsername(),
+            previousDefinition,
+            definition
+        );
+    }
+
+    private void validateSecretReferences(ExecutionContext executionContext, Object previousDefinition, Object definition) {
+        secretReferencePermissionDomainService.validate(
             executionContext.getOrganizationId(),
             executionContext.getEnvironmentId(),
             authenticatedUsername(),

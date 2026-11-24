@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.core.guardian.use_case;
 
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.A_STORE_SECRET_REFERENCE;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ENVIRONMENT_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDIAN_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDRAIL_POLICY;
@@ -26,15 +27,21 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianDef
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianUsage;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidator;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aPolicyPluginProvider;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aSecretReferenceValidator;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
+import io.gravitee.apim.core.secret.exception.SecretReferenceNotAllowedException;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.guardian.GuardianSteps;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -87,12 +94,14 @@ class RollbackGuardianUseCaseTest {
 
     private final ValidateGuardianDomainService validator = aGuardianValidator(repository, aPolicyPluginProvider(), policyValidation);
     private final GuardianUsageDomainService usage = aGuardianUsage();
+    private final PermissionDomainService permissions = mock(PermissionDomainService.class);
     private final GuardianDraftDomainService drafts = new GuardianDraftDomainService(
         repository,
         validator,
         audits.service,
         deploymentService,
-        usage
+        usage,
+        aSecretReferenceValidator(permissions)
     );
     private final DeployGuardianUseCase deploy = aDeployGuardianUseCase(repository, deploymentService, audits.service);
     private final UndeployGuardianUseCase undeploy = new UndeployGuardianUseCase(repository, deploymentService, audits.service, usage);
@@ -329,7 +338,14 @@ class RollbackGuardianUseCaseTest {
             repository,
             validator,
             publications.store(),
-            new GuardianDraftDomainService(repository, validator, audits.service, deploymentService, new GuardianUsageDomainService(apis))
+            new GuardianDraftDomainService(
+                repository,
+                validator,
+                audits.service,
+                deploymentService,
+                new GuardianUsageDomainService(apis),
+                aSecretReferenceValidator(permissions)
+            )
         );
 
         assertThatThrownBy(() -> rollbackWhereApisRun.execute(new RollbackGuardianUseCase.Input(actor, GUARDIAN_ID, first)))
@@ -472,6 +488,23 @@ class RollbackGuardianUseCaseTest {
 
         assertThatThrownBy(() -> rollback.execute(new RollbackGuardianUseCase.Input(foreign, GUARDIAN_ID, revision))).isInstanceOf(
             GuardianNotFoundException.class
+        );
+    }
+
+    @Test
+    void should_refuse_a_rollback_bringing_back_a_store_secret_reference_without_the_secret_read_permission() {
+        when(permissions.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
+        save(A_STORE_SECRET_REFERENCE, "description");
+        var withReference = deployRevision();
+        save("Plain name", "description");
+        when(permissions.hasPermission(any(), any(), any(), any(), any())).thenReturn(false);
+
+        assertThatThrownBy(() -> rollback.execute(new RollbackGuardianUseCase.Input(actor, GUARDIAN_ID, withReference))).isInstanceOf(
+            SecretReferenceNotAllowedException.class
+        );
+
+        assertThat(repository.findByEnvironmentId(ENVIRONMENT_ID, GUARDIAN_ID)).hasValueSatisfying(stored ->
+            assertThat(stored.getName()).isEqualTo("Plain name")
         );
     }
 

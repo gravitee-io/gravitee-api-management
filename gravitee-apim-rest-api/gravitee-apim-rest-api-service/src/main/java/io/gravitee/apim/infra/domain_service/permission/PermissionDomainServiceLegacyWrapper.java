@@ -19,9 +19,12 @@ import static io.gravitee.rest.api.service.impl.PermissionServiceImpl.ROLE_SCOPE
 import static io.gravitee.rest.api.service.impl.PermissionServiceImpl.isOrganizationAdmin;
 
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
+import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -76,5 +79,16 @@ public class PermissionDomainServiceLegacyWrapper implements PermissionDomainSer
         RolePermissionAction... acls
     ) {
         return this.permissionService.hasPermission(new ExecutionContext(organizationId), userId, permission, referenceId, acls);
+    }
+
+    @Override
+    public boolean isAdmin(String organizationId, String environmentId, String userId) {
+        return (
+            isOrganizationAdmin() ||
+            membershipService
+                .getRoles(MembershipReferenceType.ENVIRONMENT, environmentId, MembershipMemberType.USER, userId)
+                .stream()
+                .anyMatch(role -> role.getScope() == RoleScope.ENVIRONMENT && SystemRole.ADMIN.name().equals(role.getName()))
+        );
     }
 }

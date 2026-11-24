@@ -47,6 +47,11 @@ class PermissionDomainServiceTest {
         ) {
             return false;
         }
+
+        @Override
+        public boolean isAdmin(String organizationId, String environmentId, String userId) {
+            return false;
+        }
     };
 
     @Nested

@@ -29,6 +29,7 @@ import io.gravitee.apim.core.audit.model.event.ApiProductAuditEvent;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import java.util.Map;
@@ -50,6 +51,7 @@ public class UpdateApiProductFlowsUseCase {
     private final FlowValidationDomainService flowValidationDomainService;
     private final AuditDomainService auditService;
     private final LicenseDomainService licenseDomainService;
+    private final SecretReferencePermissionDomainService secretReferencePermissionDomainService;
 
     public Output execute(Input input) {
         if (!licenseDomainService.isApiProductDeploymentAllowed(input.auditInfo().organizationId())) {
@@ -63,6 +65,13 @@ public class UpdateApiProductFlowsUseCase {
         var flows = flowValidationDomainService.validateAndSanitizeApiProductFlows(requested.flows());
 
         var before = new ApiProductFlows(apiProduct.getFlowExecution(), flowCrudService.getApiProductFlows(apiProduct.getId()));
+        secretReferencePermissionDomainService.validate(
+            input.auditInfo().organizationId(),
+            input.auditInfo().environmentId(),
+            input.auditInfo().actor().userId(),
+            before,
+            requested
+        );
         var savedFlows = flowCrudService.saveApiProductFlows(apiProduct.getId(), flows);
         apiProduct.setFlowExecution(requested.flowExecution());
         apiProduct.setUpdatedAt(TimeProvider.now());

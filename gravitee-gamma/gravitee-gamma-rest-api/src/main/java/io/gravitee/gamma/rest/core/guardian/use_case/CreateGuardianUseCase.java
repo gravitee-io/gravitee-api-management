@@ -20,6 +20,7 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
 import io.gravitee.gamma.rest.core.guardian.model.CreateGuardian;
@@ -57,6 +58,7 @@ public class CreateGuardianUseCase {
     private final GuardianRepository guardianRepository;
     private final ValidateGuardianDomainService validateGuardian;
     private final AuditDomainService auditDomainService;
+    private final SecretReferencePermissionDomainService secretReferencePermissionDomainService;
 
     public Output execute(Input input) {
         var now = TimeProvider.instantNow();
@@ -91,6 +93,13 @@ public class CreateGuardianUseCase {
         validateGuardian.validateNameIsAvailable(input.auditInfo().environmentId(), guardianToCreate.getName(), guardianToCreate.getId());
 
         validateGuardian.validateDefinition(guardianToCreate.getDefinition());
+        secretReferencePermissionDomainService.validate(
+            input.auditInfo().organizationId(),
+            input.auditInfo().environmentId(),
+            input.auditInfo().actor().userId(),
+            null,
+            guardianToCreate.getDefinition()
+        );
 
         validateGuardian.validateAgainstInstalledPlugins(guardianToCreate);
 

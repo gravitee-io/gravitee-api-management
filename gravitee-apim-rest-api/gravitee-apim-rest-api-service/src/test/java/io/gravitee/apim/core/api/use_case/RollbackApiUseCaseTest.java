@@ -20,10 +20,12 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.assertj.core.groups.Tuple.tuple;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -38,6 +40,7 @@ import fixtures.definition.ApiDefinitionFixtures;
 import inmemory.*;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.CredentialCrudServiceInMemory;
 import inmemory.EventCrudInMemory;
 import inmemory.EventQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
@@ -77,10 +80,13 @@ import io.gravitee.apim.core.plan.domain_service.DeprecatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.search.model.IndexableApi;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
+import io.gravitee.apim.core.secret.exception.SecretReferenceNotAllowedException;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
+import io.gravitee.apim.infra.credential.SpelSecretExpressionParser;
 import io.gravitee.apim.infra.domain_service.api.ApiStateDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.domain_service.api.CategoryDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.api.UpdateApiDomainServiceImpl;
@@ -247,7 +253,13 @@ class RollbackApiUseCaseTest {
             new PropertyDomainService(dataEncryptor),
             new ClusterBindingPermissionDomainService(clusterQueryService, permissionDomainService, GraviteeJacksonMapper.getInstance()),
             new DeployApiInternalFlowDomainService(definitions, eventCrudService, eventLatestCrudService, deployments),
-            apiDeploymentValidator
+            apiDeploymentValidator,
+            new SecretReferencePermissionDomainService(
+                new SpelSecretExpressionParser(),
+                permissionDomainService,
+                new CredentialCrudServiceInMemory(),
+                GraviteeJacksonMapper.getInstance()
+            )
         );
 
         this.initializePrimaryOwnerData();
@@ -739,6 +751,40 @@ class RollbackApiUseCaseTest {
         assertThat(updateApiEntity.getValue().getProperties())
             .extracting(Property::getKey, Property::getValue, Property::isEncrypted)
             .containsExactly(tuple("secret", "old-ciphertext", true));
+    }
+
+    @Test
+    void should_refuse_a_rollback_bringing_back_a_store_secret_reference_without_the_secret_read_permission() throws Exception {
+        var eventApiDefinition = io.gravitee.definition.model.v4.Api.builder()
+            .id(existingApi.getId())
+            .name("api-previous-name")
+            .apiVersion("api-previous-version")
+            .properties(
+                List.of(
+                    Property.builder().key("db").value("{#secrets.get('/gravitee/db-password:value?envId=" + ENVIRONMENT_ID + "')}").build()
+                )
+            )
+            .build();
+        var apiRepositoryModel = io.gravitee.repository.management.model.Api.builder()
+            .id(eventApiDefinition.getId())
+            .name(eventApiDefinition.getName())
+            .version(eventApiDefinition.getApiVersion())
+            .definitionVersion(eventApiDefinition.getDefinitionVersion())
+            .visibility(io.gravitee.repository.management.model.Visibility.PUBLIC)
+            .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(eventApiDefinition))
+            .build();
+        var event = Event.builder()
+            .id("event-id")
+            .type(EventType.PUBLISH_API)
+            .environments(Set.of(ENVIRONMENT_ID))
+            .payload(GraviteeJacksonMapper.getInstance().writeValueAsString(apiRepositoryModel))
+            .build();
+        eventQueryService.initWith(List.of(event));
+
+        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO)));
+
+        assertThat(throwable).isInstanceOf(SecretReferenceNotAllowedException.class);
+        verify(delegateApiService, never()).update(any(), any(), any(), anyBoolean(), any());
     }
 
     @Test
