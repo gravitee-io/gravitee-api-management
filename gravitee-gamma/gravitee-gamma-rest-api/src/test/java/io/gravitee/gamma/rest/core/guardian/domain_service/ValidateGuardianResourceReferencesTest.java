@@ -50,7 +50,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 /**
  * A step whose policy schema declares a property naming a resource ({@code gioConfig.uiType: resource-type})
  * must name a resource the Guardian holds, enabled, and of a type the policy accepts there: the gateway
- * hands the policy the resource of that name, and a Guardian saved without one would deploy a guardrail
+ * hands the policy the resource of that name, and a Guardian saved without one would deploy a guardrail policy
  * that fails on every call.
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)

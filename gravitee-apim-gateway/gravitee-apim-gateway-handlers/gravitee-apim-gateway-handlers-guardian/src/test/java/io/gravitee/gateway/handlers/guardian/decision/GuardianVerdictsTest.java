@@ -52,7 +52,7 @@ class GuardianVerdictsTest {
     }
 
     @Test
-    void should_let_a_guardrail_record_a_verdict_while_the_verdicts_are_read() {
+    void should_let_a_guardrail_policy_record_a_verdict_while_the_verdicts_are_read() {
         GuardrailVerdict first = allow();
         cut.record("first", first);
         Iterator<GuardianVerdicts.Entry> reading = cut.entries().iterator();

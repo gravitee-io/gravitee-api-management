@@ -268,17 +268,17 @@ class GuardiansResourceTest extends AbstractResourceTest {
         /**
          * A row is a summary, not a Guardian. The sequence and the resources are the bulk of the
          * definition and no column renders one, so a page of twenty must not carry twenty copies of
-         * them; {@code guardrailCount} is what a row says about the sequence instead.
+         * them; {@code guardrailPolicyCount} is what a row says about the sequence instead.
          */
         @Test
-        void should_return_a_summary_row_without_the_guardrail_sequence() {
+        void should_return_a_summary_row_without_the_guardrail_policy_sequence() {
             guardianRepository.givenGuardian(guardian(GUARDIAN_ID, ENVIRONMENT, "Credential leakage"));
 
             JsonNode row = rootTarget().request().get().readEntity(JsonNode.class).get("data").get(0);
 
             assertThat(row.has("policies")).isFalse();
             assertThat(row.has("resources")).isFalse();
-            assertThat(row.get("guardrailCount").asInt()).isEqualTo(1);
+            assertThat(row.get("guardrailPolicyCount").asInt()).isEqualTo(1);
         }
 
         @Test
@@ -318,7 +318,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
 
             JsonNode row = rootTarget().request().get().readEntity(JsonNode.class).get("data").get(0);
 
-            assertThat(row.get("guardrailCount").asInt()).isZero();
+            assertThat(row.get("guardrailPolicyCount").asInt()).isZero();
         }
 
         @Test
@@ -456,7 +456,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_store_the_guardrail_sequence_the_payload_carries() {
+        void should_store_the_guardrail_policy_sequence_the_payload_carries() {
             JsonNode body = post(PAYLOAD).readEntity(JsonNode.class);
 
             assertThat(body.get("policies")).hasSize(1);
@@ -555,7 +555,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_refuse_a_guardrail_naming_a_resource_the_guardian_does_not_hold_with_400_naming_the_step() {
+        void should_refuse_a_guardrail_policy_naming_a_resource_the_guardian_does_not_hold_with_400_naming_the_step() {
             var response = post(payloadWith("policies", List.of(aDecisionStepNaming("missing"))));
 
             SoftAssertions.assertSoftly(softly -> {
@@ -568,7 +568,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_refuse_a_guardrail_naming_a_resource_of_the_wrong_type_with_400_naming_the_step() {
+        void should_refuse_a_guardrail_policy_naming_a_resource_of_the_wrong_type_with_400_naming_the_step() {
             var payload = payloadWith("policies", List.of(aDecisionStepNaming("classifier")));
             payload.put(
                 "resources",
@@ -592,7 +592,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_create_a_guardrail_naming_an_enabled_resource_of_the_accepted_type() {
+        void should_create_a_guardrail_policy_naming_an_enabled_resource_of_the_accepted_type() {
             var payload = payloadWith("policies", List.of(aDecisionStepNaming("judge")));
             payload.put(
                 "resources",
@@ -871,7 +871,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             JsonNode body = response.readEntity(JsonNode.class);
             assertThat(body.get("name").asText()).isEqualTo("Prompt injection shield");
-            // a PUT replaces: the guardrail the stored definition carried is gone because the payload
+            // a PUT replaces: the guardrail policy the stored definition carried is gone because the payload
             // did not carry it
             assertThat(body.get("policies")).isEmpty();
         }
@@ -1101,7 +1101,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_return_400_with_a_readable_message_when_the_sequence_has_no_enabled_guardrail() {
+        void should_return_400_with_a_readable_message_when_the_sequence_has_no_enabled_guardrail_policy() {
             guardianRepository.reset();
             guardianRepository.givenGuardian(
                 GuardianFixtures.aGuardian(d -> d.id(GUARDIAN_ID).environmentId(ENVIRONMENT).policies(List.of())).build()
@@ -1114,7 +1114,7 @@ class GuardiansResourceTest extends AbstractResourceTest {
                 softly
                     .assertThat(response.readEntity(JsonNode.class).at("/message").asText())
                     .as("readable message")
-                    .contains("at least one enabled guardrail");
+                    .contains("at least one enabled guardrail policy");
                 softly.assertThat(guardianPublications.publications()).as("no revision is published").isZero();
             });
         }

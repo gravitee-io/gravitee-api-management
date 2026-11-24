@@ -34,7 +34,7 @@ import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardedApiPort;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.ApiGuardian;
 import io.gravitee.gamma.rest.core.guardian.model.ApiGuardians;
-import io.gravitee.gamma.rest.core.guardian.model.GuardrailEffect;
+import io.gravitee.gamma.rest.core.guardian.model.GuardrailPolicyEffect;
 import java.time.Instant;
 import java.util.List;
 import java.util.function.UnaryOperator;
@@ -88,7 +88,7 @@ class DescribeApiGuardiansDomainServiceTest {
     }
 
     @Test
-    void should_report_what_the_guardrails_of_the_deployed_revision_do() {
+    void should_report_what_the_guardrail_policies_of_the_deployed_revision_do() {
         givenDeployed(d ->
             d
                 .id("blocking")
@@ -109,9 +109,9 @@ class DescribeApiGuardiansDomainServiceTest {
         assertThat(service.describe(ENVIRONMENT_ID, enabled))
             .as("described guardians")
             .singleElement()
-            .extracting(ApiGuardian::effects, InstanceOfAssertFactories.list(GuardrailEffect.class))
+            .extracting(ApiGuardian::effects, InstanceOfAssertFactories.list(GuardrailPolicyEffect.class))
             .as("effects of the sequence")
-            .containsExactly(GuardrailEffect.BLOCK, GuardrailEffect.CONTINUE);
+            .containsExactly(GuardrailPolicyEffect.BLOCK, GuardrailPolicyEffect.CONTINUE);
     }
 
     @Test

@@ -44,7 +44,7 @@ public interface GuardianReactor {
      *
      * @param ctx the execution context of the calling API.
      * @param source the policy of the API flow executing the Guardian.
-     * @param verdicts the collector of this run, where the guardrails of the Guardian record what they concluded.
+     * @param verdicts the collector of this run, where the guardrail policies of the Guardian record what they concluded.
      */
     Completable execute(HttpPlainExecutionContext ctx, BasePolicy source, GuardianVerdicts verdicts);
 }

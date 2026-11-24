@@ -26,11 +26,11 @@ import java.util.Set;
 /**
  * One row of the Guardian list: what a list screen shows, and nothing it does not.
  *
- * <p>The guardrail sequence and the resources are deliberately absent. They are the bulk of a
+ * <p>The guardrail policy sequence and the resources are deliberately absent. They are the bulk of a
  * Guardian and a list of twenty would carry twenty copies of them, while no list column renders one;
  * the whole definition stays on {@code GET /guardians/{guardianId}}.
  *
- * <p>{@code guardrailCount} replaces them for the one thing the list does say about the sequence —
+ * <p>{@code guardrailPolicyCount} replaces them for the one thing the list does say about the sequence —
  * how long it is. Without it the console would have to read every Guardian in full to render a
  * column, which is the cost this type exists to avoid.
  *
@@ -46,7 +46,7 @@ public record GuardianSummaryDto(
     io.gravitee.definition.model.v4.guardian.Guardian.Phase phase,
     Set<ApiType> apiTypes,
     GuardianLifecycleState lifecycleState,
-    int guardrailCount,
+    int guardrailPolicyCount,
     @JsonFormat(shape = JsonFormat.Shape.STRING) Instant createdAt,
     @JsonFormat(shape = JsonFormat.Shape.STRING) Instant updatedAt
 ) {
