@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.initializer;
 
+import io.gravitee.apim.common.secret.StaticKeyEncryptionKeyProvider;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.infra.secret.EnvelopeSecretValueEncryptor;
 import io.gravitee.node.api.initializer.Initializer;
@@ -42,7 +43,7 @@ public class SecretKeyEncryptionKeyInitializer implements Initializer {
         } catch (TechnicalDomainException e) {
             log.warn(
                 "Could not check {} against the stored secrets at startup, it is checked again before each new data key",
-                EnvelopeSecretValueEncryptor.KEY_PROPERTY,
+                StaticKeyEncryptionKeyProvider.KEY_PROPERTY,
                 e
             );
         }

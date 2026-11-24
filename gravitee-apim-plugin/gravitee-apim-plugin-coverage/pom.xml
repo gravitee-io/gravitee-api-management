@@ -88,6 +88,11 @@
             <artifactId>gravitee-apim-plugin-apiservice-dynamicproperties-http</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.plugin</groupId>
+            <artifactId>gravitee-apim-plugin-secrets</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- Engine -->
         <dependency>

@@ -118,6 +118,15 @@ class DeleteSecretUseCaseTest extends AbstractUseCaseTest {
         assertThat(auditCrudService.storage()).isEmpty();
     }
 
+    @Test
+    void should_delete_a_key_that_starts_with_credential_in_another_case() {
+        var secret = givenASecret(aSecret().toBuilder().key("Credential.prod").build());
+
+        useCase.execute(new DeleteSecretUseCase.Input(secret.id(), AUDIT_INFO));
+
+        assertThat(secretCrudService.encryptedValueOf(secret.id())).isEmpty();
+    }
+
     private Secret givenASecret(Secret secret) {
         return secretCrudService.create(secret, secretValueEncryptor.encrypt(secret, "sk-ant-123"));
     }
