@@ -274,6 +274,7 @@
     <!-- Authz plugins -->
     <gravitee-service-authz-pdp.version>5.2.0</gravitee-service-authz-pdp.version>
     <gravitee-policy-authz-pep.version>3.2.0</gravitee-policy-authz-pep.version>
+    <gravitee-policy-authz-list-filter.version>3.2.0</gravitee-policy-authz-list-filter.version>
     <gravitee-policy-authz-pdp-authzen.version>4.0.1</gravitee-policy-authz-pdp-authzen.version>
 
     <!-- Agent Provider plugins -->
