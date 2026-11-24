@@ -10,7 +10,8 @@
     "environmentId": "environment1",
     "organizationId": "organization1",
     "name": "Secondary Portal",
-    "activeThemeId": "theme-portal2"
+    "activeThemeId": "theme-portal2",
+    "createdFromConsole": true
   },
   {
     "id": "portal3",

@@ -166,6 +166,50 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void should_read_created_from_console_from_fixture() throws Exception {
+        assertThat(portalRepository.findById("portal2")).hasValueSatisfying(found -> assertThat(found.isCreatedFromConsole()).isTrue());
+    }
+
+    @Test
+    public void should_read_not_created_from_console_when_not_set() throws Exception {
+        assertThat(portalRepository.findById("portal1")).hasValueSatisfying(found -> assertThat(found.isCreatedFromConsole()).isFalse());
+    }
+
+    @Test
+    public void should_round_trip_created_from_console_on_create() throws Exception {
+        Portal toCreate = Portal.builder()
+            .id("console-portal")
+            .environmentId("environment3")
+            .organizationId("organization2")
+            .name("Console Portal")
+            .createdFromConsole(true)
+            .url("https://console-portal.example")
+            .build();
+
+        portalRepository.create(toCreate);
+
+        assertThat(portalRepository.findById("console-portal")).hasValueSatisfying(found -> {
+            assertThat(found.isCreatedFromConsole()).isTrue();
+            assertThat(found.isDefaultPortal()).isFalse();
+        });
+    }
+
+    @Test
+    public void should_round_trip_created_from_console_on_update() throws Exception {
+        Portal toUpdate = Portal.builder()
+            .id("portal1")
+            .environmentId("environment1")
+            .organizationId("organization1")
+            .name("Default Portal")
+            .createdFromConsole(true)
+            .build();
+
+        portalRepository.update(toUpdate);
+
+        assertThat(portalRepository.findById("portal1")).hasValueSatisfying(found -> assertThat(found.isCreatedFromConsole()).isTrue());
+    }
+
+    @Test
     public void should_find_default_by_environment() throws Exception {
         Optional<Portal> portal = portalRepository.findDefaultByEnvironmentId("environment2");
 
