@@ -42,6 +42,7 @@ import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -72,6 +73,7 @@ public class MigrateApiUseCase {
 
     private final V2toV4MigrationOperator migrationOperator;
     private final PageQueryService pageQueryService;
+    private final SecretReferencePermissionDomainService secretReferencePermissionDomainService;
 
     @Inject
     public MigrateApiUseCase(
@@ -83,7 +85,8 @@ public class MigrateApiUseCase {
         FlowCrudService flowCrudService,
         ApiStateDomainService apiStateService,
         JsonMapper jsonMapper,
-        PageQueryService pageQueryService
+        PageQueryService pageQueryService,
+        SecretReferencePermissionDomainService secretReferencePermissionDomainService
     ) {
         this.apiCrudService = apiCrudService;
         this.auditService = auditService;
@@ -94,6 +97,7 @@ public class MigrateApiUseCase {
         this.apiStateService = apiStateService;
         this.migrationOperator = new V2toV4MigrationOperator(jsonMapper);
         this.pageQueryService = pageQueryService;
+        this.secretReferencePermissionDomainService = secretReferencePermissionDomainService;
     }
 
     public Output execute(Input input) {
@@ -228,6 +232,14 @@ public class MigrateApiUseCase {
     }
 
     private void storeMigration(Input input, Migration migration, Api api) {
+        // A v2 API resolves no store references, so every reference the migration carries over goes live.
+        secretReferencePermissionDomainService.validate(
+            input.auditInfo().organizationId(),
+            input.auditInfo().environmentId(),
+            input.auditInfo().actor().userId(),
+            null,
+            List.of(migration.api().getApiDefinitionValue(), migration.plans(), migration.flows())
+        );
         if (
             migration.api().getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api v4 &&
             v4.getServices() != null &&
