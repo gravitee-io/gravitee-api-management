@@ -18,7 +18,6 @@ package io.gravitee.repository.mongodb.management;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.repository.management.AbstractManagementRepositoryTest;
-import io.gravitee.repository.management.model.Portal;
 import jakarta.inject.Inject;
 import org.bson.Document;
 import org.junit.jupiter.api.Test;
@@ -26,7 +25,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoOperations;
 
 /**
- * Portals stored before the default marker and the URL existed have neither field: a MongoDB specific test writing
+ * Portals stored before the default marker and the access point reference existed have neither field: a MongoDB specific test writing
  * such a document directly, since the repository always writes both.
  *
  * @author GraviteeSource Team
@@ -45,7 +44,7 @@ public class MongoPortalStoredDefaultsTest extends AbstractManagementRepositoryT
     }
 
     @Test
-    public void should_read_a_portal_stored_without_default_marker_and_url_as_not_default_with_placeholder_url() throws Exception {
+    public void should_read_a_portal_stored_without_default_marker_and_access_point_as_not_default_without_access_point() throws Exception {
         mongoOperations
             .getCollection(environment.getProperty("management.mongodb.prefix", "") + "portals")
             .insertOne(
@@ -57,7 +56,7 @@ public class MongoPortalStoredDefaultsTest extends AbstractManagementRepositoryT
 
         assertThat(portalRepository.findById("legacy-portal")).hasValueSatisfying(found -> {
             assertThat(found.isDefaultPortal()).isFalse();
-            assertThat(found.getUrl()).isEqualTo(Portal.URL_PLACEHOLDER);
+            assertThat(found.getAccessPointId()).isNull();
         });
     }
 }

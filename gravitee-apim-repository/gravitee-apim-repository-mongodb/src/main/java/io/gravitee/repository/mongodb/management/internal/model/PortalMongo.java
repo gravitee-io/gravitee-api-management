@@ -15,8 +15,6 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import io.gravitee.repository.management.model.Portal;
-import jakarta.annotation.Nonnull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.data.annotation.Id;
@@ -39,10 +37,6 @@ public class PortalMongo {
     private String portalNavigation;
     private String activeThemeId;
     private boolean defaultPortal;
-
-    @Nonnull
-    private String url = Portal.URL_PLACEHOLDER;
-
     private String accessPointId;
     private boolean createdFromConsole;
 }
