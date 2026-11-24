@@ -119,10 +119,10 @@ class SecretDomainServiceTest extends AbstractUseCaseTest {
     }
 
     @Test
-    void should_not_tell_the_gateways_about_a_new_secret_that_nothing_references_yet() {
+    void should_tell_the_gateways_when_a_secret_is_created_as_they_may_hold_it_as_not_found() {
         service.create("db-password", new SecretValue("s3cret"), AUDIT_INFO);
 
-        assertThat(eventLatestCrudService.storage()).isEmpty();
+        assertSecretChangedEvent("db-password");
     }
 
     @Test

@@ -66,6 +66,7 @@ public class SecretDomainService {
         }
         var created = secretCrudService.create(secret, secretValueEncryptor.encrypt(secret, value.plaintext()));
         audit(SecretAuditEvent.SECRET_CREATED, null, created, created.createdAt().atZone(TimeProvider.clock().getZone()), auditInfo);
+        tellGateways(created, auditInfo);
         return created;
     }
 
