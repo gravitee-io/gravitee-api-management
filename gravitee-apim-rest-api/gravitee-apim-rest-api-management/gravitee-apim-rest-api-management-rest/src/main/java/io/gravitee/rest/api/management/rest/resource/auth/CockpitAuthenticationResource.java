@@ -60,11 +60,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPublicKey;
-<<<<<<< HEAD
-=======
 import java.text.ParseException;
-import java.util.Map;
->>>>>>> 3c3b4d1 (fix: change for a private ticket (PORTAL-374))
 import java.util.Optional;
 import java.util.Set;
 import javax.inject.Singleton;

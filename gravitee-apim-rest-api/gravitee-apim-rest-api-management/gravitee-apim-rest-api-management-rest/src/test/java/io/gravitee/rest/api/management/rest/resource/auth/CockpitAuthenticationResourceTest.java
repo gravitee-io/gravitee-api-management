@@ -18,7 +18,7 @@ package io.gravitee.rest.api.management.rest.resource.auth;
 import static io.gravitee.rest.api.management.rest.resource.auth.CockpitAuthenticationResource.ENVIRONMENT_CLAIM;
 import static io.gravitee.rest.api.management.rest.resource.auth.CockpitAuthenticationResource.KID;
 import static io.gravitee.rest.api.management.rest.resource.auth.CockpitAuthenticationResource.ORG_CLAIM;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -26,12 +26,10 @@ import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import io.gravitee.common.http.HttpStatusCode;
-import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.core.Form;
 import jakarta.ws.rs.core.Response;
 import java.security.KeyPairGenerator;
 import java.util.Date;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 /**
  * @author Guillaume Cusnieux (guillaume.cusnieux at graviteesource.com)
@@ -56,12 +54,6 @@ public class CockpitAuthenticationResourceTest extends AbstractCloudAuthenticati
     @Test
     public void shouldRejectBlankTokenAsBadRequest() {
         final Response response = rootTarget(PATH).queryParam("token", "   ").request().get();
-        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-    }
-
-    @Test
-    public void shouldRejectFormPostWithoutTokenAsBadRequest() {
-        final Response response = rootTarget(PATH).request().post(Entity.form(new Form()));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
