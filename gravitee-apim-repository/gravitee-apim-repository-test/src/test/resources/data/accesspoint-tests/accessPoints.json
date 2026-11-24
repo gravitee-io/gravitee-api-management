@@ -108,5 +108,38 @@
         "target": "CONSOLE_API",
         "status": "CREATED",
         "updatedAt": 1486771200000
-    }
+    },
+	{
+		"id": "portal-instance-1",
+		"host": "partners.company.gravitee.io:4100",
+		"overriding": false,
+		"referenceId": "portal-instance-env-1",
+		"referenceType": "ENVIRONMENT",
+		"secured": false,
+		"target": "PORTAL_INSTANCE",
+		"status": "CREATED",
+		"updatedAt": 1486771200000
+	},
+	{
+		"id": "portal-instance-2",
+		"host": "partners.company.gravitee.io:4100",
+		"overriding": false,
+		"referenceId": "portal-instance-env-2",
+		"referenceType": "ENVIRONMENT",
+		"secured": false,
+		"target": "PORTAL_INSTANCE",
+		"status": "CREATED",
+		"updatedAt": 1486771200000
+	},
+	{
+		"id": "portal-instance-deleted",
+		"host": "partners.company.gravitee.io:4100",
+		"overriding": false,
+		"referenceId": "portal-instance-env-3",
+		"referenceType": "ENVIRONMENT",
+		"secured": false,
+		"target": "PORTAL_INSTANCE",
+		"status": "DELETED",
+		"updatedAt": 1486771200000
+	}
 ]

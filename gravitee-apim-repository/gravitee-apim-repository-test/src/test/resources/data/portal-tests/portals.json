@@ -18,12 +18,14 @@
     "organizationId": "organization1",
     "name": "Env2 Portal",
     "defaultPortal": true,
-    "url": "https://portal.env2.example"
+    "url": "https://portal.env2.example",
+    "accessPointId": "shared-access-point"
   },
   {
     "id": "portal4",
     "environmentId": "environment3",
     "organizationId": "organization2",
-    "name": "Org2 Portal"
+    "name": "Org2 Portal",
+    "accessPointId": "shared-access-point"
   }
 ]

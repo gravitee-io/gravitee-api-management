@@ -59,6 +59,8 @@ public class AccessPoint {
         CONSOLE_API,
         PORTAL,
         PORTAL_API,
+        /** The address of one portal of an environment, unlike {@link #PORTAL}, which is the environment's portal URL. */
+        PORTAL_INSTANCE,
         GATEWAY,
         TCP_GATEWAY,
         KAFKA_GATEWAY,
