@@ -42,6 +42,7 @@ import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalStarterContentDomainService;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
@@ -223,9 +224,12 @@ public class EnvironmentsDefaultPortalNavigationItemsUpgraderTest {
             realSeedingUpgrader = new EnvironmentsDefaultPortalNavigationItemsUpgrader(
                 environmentRepository,
                 new CreateDefaultPortalNavigationItemsUseCase(
-                    navigationItemDomainService,
-                    pageContentCrudService,
-                    navigationItemsQueryService,
+                    new PortalStarterContentDomainService(
+                        navigationItemDomainService,
+                        pageContentCrudService,
+                        navigationItemsQueryService,
+                        navigationItemsCrudService
+                    ),
                     navigationPortals
                 ),
                 navigationItemsQueryService

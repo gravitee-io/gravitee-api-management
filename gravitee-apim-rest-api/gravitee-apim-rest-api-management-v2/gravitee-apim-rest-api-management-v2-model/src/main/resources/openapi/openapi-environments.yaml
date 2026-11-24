@@ -1153,8 +1153,10 @@ paths:
                 $ref: "#/components/schemas/Portal"
         "400":
           description: |-
-            Invalid payload, an empty name, or a refused URL: one that is not an absolute `http` or `https` URL, or
-            that has a username or password, a query string or a fragment
+            Invalid payload, an empty name, or a refused URL: one that is not an absolute `http` or `https` URL, that
+            has a username or password, a query string or a fragment, or that is longer than 256 characters. Also returned when no URL is sent and the
+            environment's portal URL cannot be resolved, and when the environment has no default portal: its portal
+            URL is not set yet, or its portals are managed through the Automation API
           content:
             application/json:
               schema:
@@ -4237,7 +4239,7 @@ components:
             URL is generated. It cannot be changed yet.
 
             Refused: a scheme other than `http` or `https` (in any case), a relative URL, a username or password, a
-            query string, or a fragment.
+            query string, a fragment, or more than 256 characters.
           example: https://partners.example.com
       required: [ name ]
     UpdatePortal:

@@ -41,6 +41,7 @@ import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalStarterContentDomainService;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -61,6 +62,7 @@ import org.junit.jupiter.api.Test;
 class CreateDefaultPortalNavigationItemsUseCaseTest {
 
     private PortalNavigationItemDomainService portalNavigationItemDomainService;
+    private PortalStarterContentDomainService starterContent;
     private CreateDefaultPortalNavigationItemsUseCase useCase;
     private NavigationPortalDomainServiceInMemory navigationPortals;
     private PortalNavigationItemsCrudServiceInMemory crudService;
@@ -90,12 +92,13 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
             new ApiOwnedNavigationDomainService(queryService, crudService),
             navigationPortalDomainService
         );
-        return new CreateDefaultPortalNavigationItemsUseCase(
+        starterContent = new PortalStarterContentDomainService(
             portalNavigationItemDomainService,
             pageContentCrudService,
             queryService,
-            navigationPortalDomainService
+            crudService
         );
+        return new CreateDefaultPortalNavigationItemsUseCase(starterContent, navigationPortalDomainService);
     }
 
     @Test
@@ -163,7 +166,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         useCase.execute(ORG_ID, ENV_ID);
         var partners = new NavigationItemReference.PortalReference(navigationPortals.givenConsolePortal(ORG_ID, ENV_ID, "Partners"));
 
-        useCase.execute(ORG_ID, ENV_ID, partners);
+        starterContent.seed(ORG_ID, ENV_ID, partners);
 
         assertThat(itemsOf(partners))
             .extracting(PortalNavigationItem::getTitle, PortalNavigationItem::getType, PortalNavigationItem::getArea)
@@ -197,7 +200,7 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         var before = snapshotOf(itemsOf(defaultPortal));
         var partners = new NavigationItemReference.PortalReference(navigationPortals.givenConsolePortal(ORG_ID, ENV_ID, "Partners"));
 
-        useCase.execute(ORG_ID, ENV_ID, partners);
+        starterContent.seed(ORG_ID, ENV_ID, partners);
 
         assertThat(snapshotOf(itemsOf(defaultPortal))).isEqualTo(before);
         assertThat(pageContentCrudService.storage()).hasSize(8);
@@ -206,10 +209,10 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
     @Test
     void should_not_reseed_items_a_portal_already_has() {
         var partners = new NavigationItemReference.PortalReference(navigationPortals.givenConsolePortal(ORG_ID, ENV_ID, "Partners"));
-        useCase.execute(ORG_ID, ENV_ID, partners);
+        starterContent.seed(ORG_ID, ENV_ID, partners);
         var before = snapshotOf(itemsOf(partners));
 
-        useCase.execute(ORG_ID, ENV_ID, partners);
+        starterContent.seed(ORG_ID, ENV_ID, partners);
 
         assertThat(snapshotOf(itemsOf(partners))).isEqualTo(before);
         assertThat(pageContentCrudService.storage()).hasSize(4);
