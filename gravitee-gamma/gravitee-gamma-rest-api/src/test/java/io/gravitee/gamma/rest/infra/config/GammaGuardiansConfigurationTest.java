@@ -147,6 +147,7 @@ class GammaGuardiansConfigurationTest {
             parent.registerBean(ResourcePluginProvider.class, () -> mock(ResourcePluginProvider.class));
             parent.registerBean(EnvironmentCrudService.class, () -> mock(EnvironmentCrudService.class));
             parent.registerBean(AuditDomainService.class, () -> mock(AuditDomainService.class));
+            parent.registerBean(SecretReferencePermissionDomainService.class, () -> mock(SecretReferencePermissionDomainService.class));
             parent.refresh();
             gamma.setParent(parent);
             gamma.register(GammaGuardiansConfiguration.class);
@@ -207,6 +208,7 @@ class GammaGuardiansConfigurationTest {
             parent.registerBean(ResourcePluginProvider.class, () -> mock(ResourcePluginProvider.class));
             parent.registerBean(EnvironmentCrudService.class, () -> mock(EnvironmentCrudService.class));
             parent.registerBean(AuditDomainService.class, () -> mock(AuditDomainService.class));
+            parent.registerBean(SecretReferencePermissionDomainService.class, () -> mock(SecretReferencePermissionDomainService.class));
             // the bean of the rest-api context the core asks the SPI through, which the module never knows about
             parent.register(CompositeApiDeploymentValidator.class);
             parent.refresh();
