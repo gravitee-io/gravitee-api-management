@@ -186,6 +186,21 @@ public class PortalAddressDomainService {
         return createAccessPoint(environmentId, customUrl.getProtocol(), PortalHost.of(customUrl).value()).getId();
     }
 
+    /**
+     * @param scopeEnvironmentId limits the lookup to this environment; null searches all of them
+     * @return the one portal on this host; empty when there is none, or when portals stored before each portal had its own
+     *     address share it
+     */
+    public Optional<Portal> findByAddress(PortalHost host, @Nullable String scopeEnvironmentId) {
+        var candidates = accessPointQueryService
+            .findPortalInstancesByHost(host.value())
+            .stream()
+            .filter(accessPoint -> scopeEnvironmentId == null || scopeEnvironmentId.equals(accessPoint.getReferenceId()))
+            .flatMap(accessPoint -> portalCrudService.findByAccessPointId(accessPoint.getId()).stream())
+            .toList();
+        return candidates.size() == 1 ? Optional.of(candidates.getFirst()) : Optional.empty();
+    }
+
     /** Deletes the access point of a deleted or never stored portal, unless another portal is served at it. */
     public void release(Portal portal) {
         var accessPointId = portal.getAccessPointId();
