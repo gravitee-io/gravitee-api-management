@@ -18,9 +18,7 @@ package io.gravitee.rest.api.service.impl;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 
 import io.gravitee.apim.core.notification.model.*;
@@ -33,57 +31,38 @@ import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notifiers.WebNotifierService;
-import io.gravitee.rest.api.service.notifiers.WebhookNotifierService;
+import io.gravitee.rest.api.service.notifiers.WebhookNotifierPolicy;
 import io.gravitee.rest.api.service.notifiers.impl.WebhookNotifierServiceImpl;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.NestedTestConfiguration;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.env.MockEnvironment;
+import org.springframework.test.util.ReflectionTestUtils;
 
-/**
- * Calls the notifier as the application context wires it, so the {@code notifiers.webhook.*} settings reach it the
- * way they do in production.
- */
-@SpringJUnitConfig(WebhookNotifierServiceImplTest.TestConfig.class)
-@TestPropertySource(properties = "notifiers.webhook.whitelist[0]=http://example.com/webhook")
+@ExtendWith(MockitoExtension.class)
 public class WebhookNotifierServiceImplTest {
 
     private static final String ORGANIZATION_ID = "DEFAULT";
 
-    @Configuration
-    @Import(WebhookNotifierServiceImpl.class)
-    @ComponentScan(
-        basePackages = "io.gravitee.rest.api.service.notifiers",
-        useDefaultFilters = false,
-        includeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = ".*\\.WebhookNotifierPolicy")
-    )
-    static class TestConfig {
-
-        @Bean
-        WebNotifierService webNotifierService() {
-            return mock(WebNotifierService.class);
-        }
-    }
-
-    @Autowired
+    @Mock
     private WebNotifierService webNotifierService;
 
-    @Autowired
-    private WebhookNotifierService webhookNotifierService;
+    @InjectMocks
+    private WebhookNotifierServiceImpl webhookNotifierService;
 
     @BeforeEach
     void setUp() {
-        reset(webNotifierService);
+        useWebhookPolicy(new MockEnvironment().withProperty("notifiers.webhook.whitelist[0]", "http://example.com/webhook"));
+    }
+
+    private void useWebhookPolicy(MockEnvironment environment) {
+        ReflectionTestUtils.setField(webhookNotifierService, "webhookNotifierPolicy", new WebhookNotifierPolicy(environment));
     }
 
     @Test
@@ -223,20 +202,11 @@ public class WebhookNotifierServiceImplTest {
     }
 
     @Nested
-    @NestedTestConfiguration(NestedTestConfiguration.EnclosingConfiguration.OVERRIDE)
-    @SpringJUnitConfig(TestConfig.class)
-    @TestPropertySource(properties = "notifiers.webhook.enabled=false")
     class WithWebhookNotifiersDisabled {
-
-        @Autowired
-        private WebNotifierService webNotifierService;
-
-        @Autowired
-        private WebhookNotifierService webhookNotifierService;
 
         @BeforeEach
         void setUp() {
-            reset(webNotifierService);
+            useWebhookPolicy(new MockEnvironment().withProperty("notifiers.webhook.enabled", "false"));
         }
 
         @Test
