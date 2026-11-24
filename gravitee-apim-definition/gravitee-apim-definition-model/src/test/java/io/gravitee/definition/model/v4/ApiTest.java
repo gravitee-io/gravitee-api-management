@@ -63,7 +63,7 @@ class ApiTest {
 
     private static Flow anInternalFlow() {
         Flow flow = FlowFixtures.aProxyFlowV4();
-        flow.setRequest(List.of(Step.builder().policy("guardian-policy").configuration("{\"guardianId\":\"guardian-id\"}").build()));
+        flow.setRequest(List.of(Step.builder().policy("guardrail-policy").configuration("{\"guardrailId\":\"guardrail-id\"}").build()));
         return flow;
     }
 }
