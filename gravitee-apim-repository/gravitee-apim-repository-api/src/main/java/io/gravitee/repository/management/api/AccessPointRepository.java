@@ -32,6 +32,9 @@ public interface AccessPointRepository extends CrudRepository<AccessPoint, Strin
 
     List<AccessPoint> findByTarget(final AccessPointTarget target) throws TechnicalException;
 
+    /** @return the created access points of this target on this host: stored data may hold several */
+    List<AccessPoint> findByTargetAndHost(final AccessPointTarget target, final String host) throws TechnicalException;
+
     List<AccessPoint> findByReferenceAndTarget(
         final AccessPointReferenceType referenceType,
         final String referenceId,

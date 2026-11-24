@@ -96,6 +96,15 @@ public class MongoAccessPointRepository implements AccessPointRepository {
     }
 
     @Override
+    public List<AccessPoint> findByTargetAndHost(final AccessPointTarget target, final String host) {
+        return internalRepository
+            .findAllByTargetAndHostAndStatus(target.name(), host, AccessPointStatus.CREATED)
+            .stream()
+            .map(this::map)
+            .toList();
+    }
+
+    @Override
     public List<AccessPoint> findByTarget(final AccessPointTarget target) {
         final List<AccessPointMongo> accessPointMongos = internalRepository.findAllByTargetAndStatus(
             target.name(),

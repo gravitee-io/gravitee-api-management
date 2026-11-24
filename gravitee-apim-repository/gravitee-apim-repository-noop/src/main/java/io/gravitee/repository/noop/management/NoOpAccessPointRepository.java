@@ -37,6 +37,11 @@ public class NoOpAccessPointRepository extends AbstractNoOpManagementRepository<
     }
 
     @Override
+    public List<AccessPoint> findByTargetAndHost(AccessPointTarget target, String host) {
+        return List.of();
+    }
+
+    @Override
     public List<AccessPoint> findByReferenceAndTarget(
         AccessPointReferenceType referenceType,
         String referenceId,

@@ -46,4 +46,7 @@ public class Portal {
     @Nonnull
     @Builder.Default
     private String url = URL_PLACEHOLDER;
+
+    /** The {@link AccessPoint} this portal is served at; null while its environment has no usable portal URL. */
+    private String accessPointId;
 }
