@@ -222,10 +222,10 @@ class RollbackApiUseCaseTest {
         var eventId = "event-not-found-id";
 
         // When
-        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(eventId, AUDIT_INFO)));
+        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(API_ID, eventId, AUDIT_INFO)));
 
         // Then
-        assertThat(throwable).isInstanceOf(IllegalStateException.class).hasMessage("Cannot rollback an event that is not a publish event!");
+        assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining("is not a deployment of the api");
     }
 
     @Test
@@ -235,10 +235,42 @@ class RollbackApiUseCaseTest {
         eventQueryService.initWith(List.of(event));
 
         // When
-        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO)));
+        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO)));
 
         // Then
-        assertThat(throwable).isInstanceOf(IllegalStateException.class).hasMessage("Cannot rollback an event that is not a publish event!");
+        assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining("is not a deployment of the api");
+    }
+
+    /**
+     * The caller hands over an event id, and the permission filter checked the API of the URL: a deployment of
+     * another environment is another tenant's, and restoring it here would spend this authorization on it.
+     */
+    @Test
+    void should_not_rollback_api_from_an_event_of_another_environment() throws JsonProcessingException {
+        var event = givenARevision();
+        eventQueryService.initWith(List.of(event.toBuilder().environments(Set.of("another-environment")).build()));
+
+        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO)));
+
+        assertSoftly(softly -> {
+            softly.assertThat(throwable).as("an event of another environment").isInstanceOf(ValidationDomainException.class);
+            softly.assertThat(eventCrudService.storage()).as("events written").isEmpty();
+            softly.assertThat(apiCrudService.get(API_ID).getName()).as("stored api name").isEqualTo("api-name");
+        });
+    }
+
+    /** The event names the API to restore, and the permission filter checked another one: the two must be the same. */
+    @Test
+    void should_not_rollback_api_from_an_event_of_another_api() throws JsonProcessingException {
+        var event = givenARevision();
+
+        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input("another-api", event.getId(), AUDIT_INFO)));
+
+        assertSoftly(softly -> {
+            softly.assertThat(throwable).as("an event of another api").isInstanceOf(ValidationDomainException.class);
+            softly.assertThat(eventCrudService.storage()).as("events written").isEmpty();
+            softly.assertThat(apiCrudService.get(API_ID).getName()).as("stored api name").isEqualTo("api-name");
+        });
     }
 
     @Test
@@ -248,20 +280,25 @@ class RollbackApiUseCaseTest {
         eventQueryService.initWith(List.of(event));
 
         // When
-        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO)));
+        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO)));
 
         // Then
-        assertThat(throwable).isInstanceOf(IllegalStateException.class).hasMessage("Cannot rollback an event that is not a publish event!");
+        assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining("is not a deployment of the api");
     }
 
     @Test
     void should_not_rollback_api_when_api_definition_version_is_null() {
         // Given
-        var event = Event.builder().id("event-id").type(EventType.PUBLISH_API).environments(Set.of(ENVIRONMENT_ID)).payload("{}").build();
+        var event = Event.builder()
+            .id("event-id")
+            .type(EventType.PUBLISH_API)
+            .environments(Set.of(ENVIRONMENT_ID))
+            .payload("{\"id\":\"" + API_ID + "\"}")
+            .build();
         eventQueryService.initWith(List.of(event));
 
         // Whenx
-        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO)));
+        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO)));
 
         // Then
         assertThat(throwable)
@@ -276,12 +313,12 @@ class RollbackApiUseCaseTest {
             .id("event-id")
             .type(EventType.PUBLISH_API)
             .environments(Set.of(ENVIRONMENT_ID))
-            .payload("{\"definitionVersion\":\"FEDERATED\"}")
+            .payload("{\"id\":\"" + API_ID + "\",\"definitionVersion\":\"FEDERATED\"}")
             .build();
         eventQueryService.initWith(List.of(event));
 
         // When
-        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO)));
+        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO)));
 
         // Then
         assertThat(throwable).isInstanceOf(IllegalStateException.class).hasMessage("Cannot rollback a federated API");
@@ -294,12 +331,12 @@ class RollbackApiUseCaseTest {
             .id("event-id")
             .type(EventType.PUBLISH_API)
             .environments(Set.of(ENVIRONMENT_ID))
-            .payload("{\"definitionVersion\":\"1.0.0\"}")
+            .payload("{\"id\":\"" + API_ID + "\",\"definitionVersion\":\"1.0.0\"}")
             .build();
         eventQueryService.initWith(List.of(event));
 
         // When
-        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO)));
+        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO)));
 
         // Then
         assertThat(throwable).isInstanceOf(IllegalStateException.class).hasMessage("Cannot rollback an API that is not a V4 API");
@@ -366,7 +403,7 @@ class RollbackApiUseCaseTest {
         });
 
         // When
-        useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+        useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
         // Then
         verify(delegateApiService).update(
@@ -453,7 +490,7 @@ class RollbackApiUseCaseTest {
         });
 
         // When
-        useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+        useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
         // Then — null must be propagated, not replaced by empty-collection defaults
         verify(delegateApiService).update(
@@ -582,7 +619,7 @@ class RollbackApiUseCaseTest {
         });
 
         // When
-        useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+        useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
         // Then
         verify(delegateApiService).update(
@@ -719,7 +756,7 @@ class RollbackApiUseCaseTest {
             eventQueryService.initWith(List.of(event));
 
             // When
-            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+            useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
             // Then
             var rolledBackApi = apiCrudService.get(existingV4Api.getId());
@@ -839,7 +876,7 @@ class RollbackApiUseCaseTest {
             eventQueryService.initWith(List.of(event));
 
             // When
-            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+            useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
             // Then
             var rolledBackApi = apiCrudService.get(existingV4Api.getId());
@@ -940,7 +977,7 @@ class RollbackApiUseCaseTest {
             eventQueryService.initWith(List.of(event));
 
             // When
-            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+            useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
             // Then
             var rolledBackApi = apiCrudService.get(existingV4Api.getId());
@@ -1065,7 +1102,7 @@ class RollbackApiUseCaseTest {
             eventQueryService.initWith(List.of(event));
 
             // When
-            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+            useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
             // Then
             var rolledBackApi = apiCrudService.get(existingV4Api.getId());
@@ -1190,7 +1227,7 @@ class RollbackApiUseCaseTest {
             eventQueryService.initWith(List.of(event));
 
             // When
-            var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO)));
+            var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO)));
 
             // Then: the rollback is refused and the message names the plans that were removed
             // ValidationDomainException maps to a 400 - a deleted plan is a normal user-correctable condition,
@@ -1276,7 +1313,7 @@ class RollbackApiUseCaseTest {
             eventQueryService.initWith(List.of(event));
 
             // When
-            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+            useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
 
             // Then
             assertThat(indexer.storage()).hasSize(1);
@@ -1392,5 +1429,32 @@ class RollbackApiUseCaseTest {
             )
         );
         userCrudService.initWith(List.of(BaseUserEntity.builder().id("my-member-id").email("one_valid@email.com").build()));
+    }
+
+    private Event givenARevision() throws JsonProcessingException {
+        var revision = io.gravitee.definition.model.v4.Api.builder()
+            .id(API_ID)
+            .name("api-previous-name")
+            .apiVersion("api-previous-version")
+            .definitionVersion(DefinitionVersion.V4)
+            .build();
+        var event = Event.builder()
+            .id("event-id")
+            .type(EventType.PUBLISH_API)
+            .environments(Set.of(ENVIRONMENT_ID))
+            .payload(
+                GraviteeJacksonMapper.getInstance().writeValueAsString(
+                    Api.builder()
+                        .id(API_ID)
+                        .name(revision.getName())
+                        .version(revision.getApiVersion())
+                        .definitionVersion(DefinitionVersion.V4)
+                        .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(revision))
+                        .build()
+                )
+            )
+            .build();
+        eventQueryService.initWith(List.of(event));
+        return event;
     }
 }
