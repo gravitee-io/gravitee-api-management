@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.PortalRepository;
 import io.gravitee.repository.management.model.Portal;
 import java.sql.Types;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
@@ -111,6 +112,7 @@ public class JdbcPortalRepository extends JdbcAbstractCrudRepository<Portal, Str
 
     @Override
     public List<Portal> findByAccessPointId(String accessPointId) throws TechnicalException {
+        Objects.requireNonNull(accessPointId, "Access point id must not be null");
         log.debug("JdbcPortalRepository.findByAccessPointId({})", accessPointId);
         try {
             return jdbcTemplate.query(getOrm().getSelectAllSql() + " WHERE access_point_id = ?", getOrm().getRowMapper(), accessPointId);

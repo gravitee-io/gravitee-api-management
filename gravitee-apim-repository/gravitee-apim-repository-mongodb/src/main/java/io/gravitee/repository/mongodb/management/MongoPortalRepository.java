@@ -22,6 +22,7 @@ import io.gravitee.repository.mongodb.management.internal.model.PortalMongo;
 import io.gravitee.repository.mongodb.management.internal.portal.PortalMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -67,6 +68,7 @@ public class MongoPortalRepository implements PortalRepository {
 
     @Override
     public List<Portal> findByAccessPointId(String accessPointId) throws TechnicalException {
+        Objects.requireNonNull(accessPointId, "Access point id must not be null");
         log.debug("Find portals by access point [{}]", accessPointId);
         return mapper.mapPortals(internalPortalRepo.findByAccessPointId(accessPointId));
     }
