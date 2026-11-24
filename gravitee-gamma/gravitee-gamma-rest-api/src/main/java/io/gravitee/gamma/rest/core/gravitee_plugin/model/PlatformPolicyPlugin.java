@@ -18,7 +18,7 @@ package io.gravitee.gamma.rest.core.gravitee_plugin.model;
 /**
  * A policy plugin and the flows its manifest declares it can run in.
  *
- * @param guardrail policy whether the policy is a guardrail policy, the only kind of step that lets a Guardian deploy. Declaring the
- *     {@code guardian} flow does not make a policy one.
+ * @param guardrail policy whether the policy is a guardrail policy, the only kind of step that lets a Guardrail deploy. Declaring the
+ *     {@code guardrail} flow does not make a policy one.
  */
 public record PlatformPolicyPlugin(PlatformPlugin plugin, boolean guardrailPolicy, DeclaredFlows flows) {}

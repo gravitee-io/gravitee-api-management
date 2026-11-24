@@ -54,7 +54,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
- * The resource types a Guardian may hold. Mirrors the policies catalog, minus the flows: a resource declares none.
+ * The resource types a Guardrail may hold. Mirrors the policies catalog, minus the flows: a resource declares none.
  *
  * @author GraviteeSource Team
  */
@@ -64,7 +64,7 @@ class ResourcePluginResourceTest extends AbstractResourceTest {
 
     private static final String TYPE = "ai-model-token-classification";
     private static final String FEATURE = "apim-ai-resource-model-token-classification";
-    private static final String GUARDIANS_FEATURE = "apim-guardians";
+    private static final String GUARDRAILS_FEATURE = "apim-guardians";
 
     @Inject
     private ConfigurablePluginManager<ResourcePlugin<?>> resourcePluginManager;
@@ -84,14 +84,14 @@ class ResourcePluginResourceTest extends AbstractResourceTest {
         var license = mock(License.class);
         when(license.isFeatureEnabled(FEATURE)).thenReturn(true);
         when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION)).thenReturn(license);
-        givenGuardiansLicensed(true);
+        givenGuardrailsLicensed(true);
         when(resourcePluginManager.findAll(true)).thenReturn(installed);
     }
 
     /** The platform license gating the endpoints, distinct from the organization license the {@code deployed} flag reads. */
-    private void givenGuardiansLicensed(boolean licensed) {
+    private void givenGuardrailsLicensed(boolean licensed) {
         var platformLicense = mock(License.class);
-        when(platformLicense.isFeatureEnabled(GUARDIANS_FEATURE)).thenReturn(licensed);
+        when(platformLicense.isFeatureEnabled(GUARDRAILS_FEATURE)).thenReturn(licensed);
         when(licenseManager.getPlatformLicense()).thenReturn(platformLicense);
     }
 
@@ -252,12 +252,12 @@ class ResourcePluginResourceTest extends AbstractResourceTest {
     @Nested
     class Licensing {
 
-        /** Same gate as the Guardian endpoints: without the feature the catalog is not served at all. */
+        /** Same gate as the Guardrail endpoints: without the feature the catalog is not served at all. */
         @ParameterizedTest
         @ValueSource(strings = { "", TYPE, TYPE + "/schema", TYPE + "/documentation" })
-        void should_return_403_without_the_guardians_license_feature(String path) {
+        void should_return_403_without_the_guardrails_license_feature(String path) {
             given_a_resource(TYPE);
-            givenGuardiansLicensed(false);
+            givenGuardrailsLicensed(false);
 
             assertThat(rootTarget(path).request().get().getStatus()).as("GET /%s", path).isEqualTo(HttpStatusCode.FORBIDDEN_403);
         }

@@ -35,13 +35,13 @@ class ListPolicyPluginsUseCaseTest {
 
     @Test
     void should_keep_its_own_copy_of_the_requested_flows() {
-        var requested = new HashSet<>(Set.of(PolicyFlowType.GUARDIAN));
+        var requested = new HashSet<>(Set.of(PolicyFlowType.GUARDRAIL));
 
         var input = new ListPolicyPluginsUseCase.Input("org", requested, null);
         requested.add(PolicyFlowType.LLM_PROXY);
 
         SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(input.flows()).as("flows").containsExactly(PolicyFlowType.GUARDIAN);
+            softly.assertThat(input.flows()).as("flows").containsExactly(PolicyFlowType.GUARDRAIL);
             softly.assertThat(input.flows()).as("unmodifiable flows").isUnmodifiable();
         });
     }

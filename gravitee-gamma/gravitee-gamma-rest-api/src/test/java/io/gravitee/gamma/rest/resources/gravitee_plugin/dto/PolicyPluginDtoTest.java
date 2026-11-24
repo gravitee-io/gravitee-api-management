@@ -46,6 +46,6 @@ class PolicyPluginDtoTest {
         Iterable<String> keys = flow::fieldNames;
         assertThat(StreamSupport.stream(keys.spliterator(), false).toList())
             .as("flow keys")
-            .containsExactly("http-proxy", "http-message", "native-kafka", "mcp-proxy", "llm-proxy", "a2a-proxy", "guardian");
+            .containsExactly("http-proxy", "http-message", "native-kafka", "mcp-proxy", "llm-proxy", "a2a-proxy", "guardrail");
     }
 }

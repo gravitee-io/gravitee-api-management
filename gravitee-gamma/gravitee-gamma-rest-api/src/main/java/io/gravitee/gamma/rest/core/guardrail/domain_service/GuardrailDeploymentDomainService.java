@@ -1,0 +1,167 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.gamma.rest.core.guardrail.domain_service;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.json.JsonDeserializer;
+import io.gravitee.apim.core.json.JsonProcessingException;
+import io.gravitee.apim.core.json.JsonSerializer;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.gamma.rest.core.guardrail.model.Guardrail;
+import io.gravitee.gamma.rest.core.guardrail.model.GuardrailDeployment;
+import io.gravitee.gamma.rest.core.guardrail.model.GuardrailLifecycleState;
+import io.gravitee.gamma.rest.core.guardrail.port.repository.GuardrailRepository;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+
+/**
+ * Reconciles Guardrail drafts with their latest publication: deploying, withdrawing, and the lifecycle state a draft
+ * shows against what the gateways run.
+ */
+@DomainService
+@RequiredArgsConstructor
+public class GuardrailDeploymentDomainService {
+
+    /** Absent and empty mean the same: the UI saves empty lists, a revision published earlier may have none. */
+    private static final List<String> LISTS = List.of("policies", "resources");
+
+    /** Shown in the deployment history, where the restored revision would otherwise read as a deployment nobody made. */
+    private static final String RESTORED_LABEL = "Restored: an API runs it";
+
+    private final GuardrailRepository guardrailRepository;
+    private final GuardrailPublicationDomainService publications;
+    private final JsonSerializer jsonSerializer;
+    private final JsonDeserializer jsonDeserializer;
+
+    public GuardrailDeployment current(Guardrail guardrail) {
+        return current(guardrail.getEnvironmentId(), Set.of(guardrail.getId())).get(guardrail.getId());
+    }
+
+    /** The latest publication or withdrawal of each Guardrail, in one read, missing from the map when it has none. */
+    public Map<String, GuardrailDeployment> current(String environmentId, Set<String> guardrailIds) {
+        return publications.findAll(environmentId, guardrailIds);
+    }
+
+    /**
+     * The Guardrail as its latest publication shows it. The lifecycle state, the deployment date and revision come from the
+     * publication alone, never from the stored Guardrail, which no deployment writes; the update date is advanced to
+     * the publication, which is also what the store does once the deployment completes.
+     */
+    public Guardrail state(Guardrail guardrail, GuardrailDeployment publication) {
+        return switch (publication) {
+            case null -> guardrail
+                .toBuilder()
+                .lifecycleState(GuardrailLifecycleState.UNDEPLOYED)
+                .deployedAt(null)
+                .deployedRevisionId(null)
+                .build();
+            case GuardrailDeployment.Published published -> guardrail
+                .toBuilder()
+                .updatedAt(advancedTo(guardrail, published))
+                .lifecycleState(matches(guardrail, published) ? GuardrailLifecycleState.DEPLOYED : GuardrailLifecycleState.PENDING)
+                .deployedAt(published.at())
+                .deployedRevisionId(published.revisionId())
+                .build();
+            case GuardrailDeployment.Withdrawn withdrawn -> guardrail
+                .toBuilder()
+                .updatedAt(advancedTo(guardrail, withdrawn))
+                .lifecycleState(GuardrailLifecycleState.UNDEPLOYED)
+                .deployedAt(withdrawn.deployedAt())
+                .deployedRevisionId(null)
+                .build();
+        };
+    }
+
+    private static Instant advancedTo(Guardrail guardrail, GuardrailDeployment deployment) {
+        if (guardrail.getUpdatedAt() == null || guardrail.getUpdatedAt().isBefore(deployment.at())) {
+            return deployment.at();
+        }
+        return guardrail.getUpdatedAt();
+    }
+
+    public Guardrail state(Guardrail guardrail) {
+        return state(guardrail, current(guardrail));
+    }
+
+    public List<Guardrail> states(String environmentId, List<Guardrail> guardrails) {
+        var latest = publications.findAll(environmentId, guardrails.stream().map(Guardrail::getId).collect(Collectors.toSet()));
+        return guardrails
+            .stream()
+            .map(g -> state(g, latest.get(g.getId())))
+            .toList();
+    }
+
+    /**
+     * Publishes the definition as it stands, without judging it.
+     *
+     * <p>Whether the Guardrail is worth publishing is the caller's to decide, and one rule has to be
+     * decided before calling: a revision without an enabled guardrail policy enforces nothing, and it would
+     * replace the one the gateways run. {@code DeployGuardrailUseCase} refuses that case; any future
+     * publishing path owes the same check.
+     */
+    public GuardrailDeployment.Published publish(Guardrail guardrail, String label, AuditInfo auditInfo) {
+        return publications.publish(guardrail.getDefinition(), label, auditInfo);
+    }
+
+    /** Publishes again the revision a change replaced, which the change found an API running once written. */
+    public GuardrailDeployment.Published restore(GuardrailDeployment.Published replaced, AuditInfo auditInfo) {
+        return publications.publish(replaced.definition(), RESTORED_LABEL, auditInfo);
+    }
+
+    public GuardrailDeployment.Withdrawn withdraw(Guardrail guardrail, GuardrailDeployment.Published ended, AuditInfo auditInfo) {
+        return publications.withdraw(guardrail.getId(), ended, auditInfo);
+    }
+
+    /**
+     * Advances the draft's sorting timestamp to the deployment. Only the timestamp: writing the draft read before
+     * deploying would replace one saved meanwhile.
+     */
+    public void complete(Guardrail guardrail, GuardrailDeployment deployment) {
+        guardrailRepository.updateUpdatedAt(guardrail.getEnvironmentId(), guardrail.getId(), deployment.at());
+    }
+
+    private boolean matches(Guardrail guardrail, GuardrailDeployment.Published publication) {
+        var draft = guardrail.getDefinition();
+        var published = publication.definition();
+        return orEmpty(draft.getApiTypes()).equals(orEmpty(published.getApiTypes())) && content(draft).equals(content(published));
+    }
+
+    private static Set<ApiType> orEmpty(Set<ApiType> apiTypes) {
+        return Objects.requireNonNullElse(apiTypes, Set.of());
+    }
+
+    private JsonNode content(Object definition) {
+        try {
+            var tree = jsonDeserializer.deserialize(jsonSerializer.serialize(definition), ObjectNode.class);
+            tree.remove("apiTypes");
+            LISTS.stream()
+                .filter(list -> !tree.hasNonNull(list))
+                .forEach(tree::putArray);
+            return tree;
+        } catch (JsonProcessingException e) {
+            throw new TechnicalDomainException("Failed to compare Guardrail definitions", e);
+        }
+    }
+}

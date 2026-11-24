@@ -1,0 +1,1387 @@
+openapi: 3.0.3
+info:
+    title: Gravitee.io Gamma - Guardrails
+    description: |
+        Manage and deploy Guardrails: named, reusable guardrail policy sequences defined at environment
+        level and attached to LLM proxies. Saving a Guardrail updates its draft; the `_deploy`
+        endpoint publishes that draft to the gateway.
+
+        **The environment is carried by the path.** Request and response payloads expose the
+        guardrail policy sequence and resources as structured fields, rather than a serialized `definition`
+        blob. A `PUT` replaces the complete draft, including its sequence and resources.
+
+        **Nothing here is generated.** The gamma rest-api has no OpenAPI generator wired, so the
+        request and response bodies are hand-written Java records and this file is documentation
+        kept in step with them by hand. If the two ever disagree, the records are the truth.
+
+        **Timestamps are ISO 8601 strings in UTC** — `"2026-11-07T10:00:01.119Z"`. The host's object
+        mapper would write a date as a fractional epoch number, so the DTOs of this surface
+        set the format themselves; the offset is always `Z`, never the server's.
+
+        **A Guardrail is its definition.** Creation and update both carry the whole thing — name,
+        phase, API types, guardrail policy sequence and resources — and a `PUT` replaces it rather than
+        patching it. Five fields are the store's and not the caller's: `id`, which comes from the
+        path, `lifecycleState` and `deployedAt`, which come from the latest deployment, and `createdAt` and
+        `updatedAt`. An update accepts all five and ignores them, so the response of a `GET` can be
+        sent straight back.
+
+        **A name is unique within an environment**, compared without regard to case: a creation or a
+        rename onto a name another Guardrail of the environment carries answers 409.
+
+        **Only `llm-proxy` guardrails can be written** in 4.14; any other value in `apiTypes` is
+        refused. Reads accept every API type the platform knows, so a row written by another writer
+        never breaks the list.
+    contact:
+        email: team-apim@graviteesource.com
+    license:
+        name: Apache 2.0
+        url: http://www.apache.org/licenses/LICENSE-2.0.html
+    version: 1.0.0
+
+security:
+    - CookieAuth: []
+
+servers:
+    - url: "/gamma"
+      description: Gravitee.io Gamma host application
+
+tags:
+    - name: Guardrails
+      description: |
+          Reusable guardrail policy sequences of an environment. Every operation requires the
+          `ENVIRONMENT_GUARDRAIL` permission with the action matching the verb, so holding read
+          rights never grants creation. An organization admin bypasses the check.
+
+paths:
+    /organizations/{orgId}/environments/{envId}/guardrails:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+        get:
+            tags:
+                - Guardrails
+            summary: List the Guardrails of the environment
+            description: |
+                Paged and searchable by name. `q` is matched as **literal text**, not as a pattern:
+                the two storage backends match it differently under the hood, so it is escaped
+                before it reaches either.
+
+                `deployedFor` lists what an API of that type can turn on: the Guardrails the gateways
+                run whose deployed revision supports the type. It filters before the page is cut, so
+                `totalElements` counts the Guardrails offered, not the ones stored.
+            operationId: searchGuardrails
+            parameters:
+                - name: q
+                  in: query
+                  required: false
+                  description: Case-insensitive substring of the name. Literal text, not a pattern.
+                  schema:
+                      type: string
+                - name: page
+                  in: query
+                  required: false
+                  description: 1-based page number; a value of 0 or less serves the first page.
+                  schema:
+                      type: integer
+                      default: 1
+                - name: perPage
+                  in: query
+                  required: false
+                  description: |
+                      Rows per page. Capped at 100; a value above the cap is served as 100, and a
+                      value of 0 or less falls back to the default. The `perPage` reported in the
+                      response is always the size actually served, never the number of rows the
+                      page happens to hold.
+                  schema:
+                      type: integer
+                      default: 10
+                - name: sortBy
+                  in: query
+                  required: false
+                  description: |
+                      One of the sortable fields, prefixed with `-` for descending order. Any other
+                      value is refused with 400 rather than silently ignored.
+
+                      `apiType` is absent because a Guardrail carries its API types as a set: there is
+                      no single value to order rows by. `deployedAt` is derived from the latest
+                      publication when the page is read, so it is not a sortable stored draft field.
+                  schema:
+                      type: string
+                      default: "-updatedAt"
+                      enum:
+                          - name
+                          - "-name"
+                          - phase
+                          - "-phase"
+                          - createdAt
+                          - "-createdAt"
+                          - updatedAt
+                          - "-updatedAt"
+                - name: deployedFor
+                  in: query
+                  required: false
+                  description: |
+                      Label of an API type, such as `llm-proxy`. Only the Guardrails the gateways run
+                      whose deployed revision supports that type are listed. An unknown type answers 400.
+                  schema:
+                      type: string
+            responses:
+                "200":
+                    description: A page of Guardrails.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GuardrailsResponse"
+                "400":
+                    $ref: "#/components/responses/BadRequest"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+        post:
+            tags:
+                - Guardrails
+            summary: Create a Guardrail
+            description: |
+                The id comes from the request, as every resource-creation endpoint on this surface
+                does; omit it and the server assigns one. A Guardrail is created **undeployed**:
+                storing a definition is not deploying it.
+
+                The body is the whole definition: the guardrail policy sequence and the resources travel
+                with the general settings rather than through a second endpoint.
+            operationId: createGuardrail
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/CreateGuardrail"
+            responses:
+                "201":
+                    description: |
+                        The Guardrail as created, with a `Location` header pointing at it and the `ETag`
+                        its first update has to state.
+                    headers:
+                        ETag:
+                            $ref: "#/components/headers/GuardrailETag"
+                        Location:
+                            description: URL of the created Guardrail.
+                            schema:
+                                type: string
+                                format: uri
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Guardrail"
+                "400":
+                    description: |
+                        The payload is not acceptable: a missing or blank name, a name over 512
+                        characters, a missing phase, an empty `apiTypes` or one holding a type other
+                        than `llm-proxy`, an `id` that is not a UUID or is already taken, or a key
+                        the schema does not declare.
+
+                        A step is refused too: an enabled step whose policy is not installed, or
+                        whose plugin does not declare the Guardrail phase in its `guardrail` flow; one
+                        whose configuration is not a JSON object, or does not match the schema that
+                        policy declares — a step carrying no configuration at all being judged
+                        against an empty object, so a schema that requires a property refuses it; and
+                        for a guardrail policy, one whose plugin does not declare the Guardrail API types,
+                        whatever phases it lists for them, or that declares an incompatible
+                        `scope.protocol`; and one naming, in a property its policy schema marks as a
+                        resource picker, a resource the Guardrail does not hold, holds disabled, or holds
+                        of a type that property does not accept. Every refused step is named in the
+                        message, with the schema error when there is one.
+
+                        A resource is refused too: an enabled resource that carries no type, or whose
+                        type the catalog does not list as `deployed` — not installed, not deployed by
+                        the node, or not enabled by the license of the organization —, whose configuration is not a JSON object or does not match
+                        the schema that plugin declares — one carrying no configuration at all being
+                        judged against an empty object — or whose name another enabled resource of the
+                        Guardrail carries. A disabled resource is not read. Every refused resource is
+                        named in the message, with the schema error when there is one.
+
+                        A stored step or resource configuration is the one its plugin accepts, which
+                        is not always the one submitted: the schema validation drops null entries, injects
+                        the default of a missing required property and prunes properties a closed
+                        schema forbids, exactly as it does for an API flow. Read the created or
+                        updated Guardrail back to see what was stored.
+
+                        The body of a refusal carries `message` and `http_status`, except for the
+                        schema constraints — name, description, phase, `apiTypes`, `id` shape — which
+                        the host's bean-validation mapper answers with `message`, `path`,
+                        `invalid_value` and `details`. Those constraints are declared on the domain's
+                        own create and update commands rather than on the HTTP body, so they hold for
+                        any caller and not only for one arriving over HTTP.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "409":
+                    description: |
+                        Another Guardrail of this environment already carries that name. Names are
+                        compared without regard to case or to the whitespace around them, so
+                        `Credential leakage`, `credential leakage` and ` Credential leakage ` are the
+                        same name here.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+
+    /organizations/{orgId}/environments/{envId}/guardrails/{guardrailId}:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/guardrailIdParam"
+        get:
+            tags:
+                - Guardrails
+            summary: Get a Guardrail
+            operationId: getGuardrail
+            responses:
+                "200":
+                    description: The Guardrail.
+                    headers:
+                        ETag:
+                            $ref: "#/components/headers/GuardrailETag"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Guardrail"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+        put:
+            tags:
+                - Guardrails
+            summary: Replace the definition of a Guardrail
+            description: |
+                Carries the whole definition: the name, the phase, the API types, the guardrail policy
+                sequence and the resources.
+
+                **A `PUT` replaces, it does not patch.** A property the payload omits is left out of
+                the stored definition too, so a client that edits one setting sends back everything
+                it read — sending only `name` answers 400, because `phase` and `apiTypes` are
+                required.
+
+                **The response of `GET /guardrails/{guardrailId}` is a valid body here.** The fields only
+                the store owns — `id`, `lifecycleState`, `deployedAt`, `createdAt`, `updatedAt`, `version` — are
+                read and dropped, so a client need not strip them. They cannot be set this way: the id
+                comes from the path, the lifecycle and the deployment stamp belong to a deployment, and
+                the timestamps are the store's.
+
+                **An update states the version it was built on.** Every response carrying a Guardrail
+                names the version of its draft in `ETag`, and this operation requires that value back in
+                `If-Match`, so two writers — or two tabs — editing one Guardrail cannot silently undo each
+                other:
+
+                - no `If-Match` answers `428`: the update is refused rather than read as an overwrite;
+                - an `If-Match` naming another version than the stored one answers `412`, carrying the
+                  Guardrail as it is now and its `ETag`, and stores nothing;
+                - `If-Match: *` overwrites whatever version is stored: it is the deliberate way to
+                  overwrite. An overwrite overtaken by other writers on each of its attempts answers
+                  `409` rather than write blindly: no precondition failed, and trying again is the
+                  remedy.
+
+                Every Guardrail has a version: those stored before versions existed are given version 1
+                when the store is upgraded. Updates are only guarded once every management node is
+                upgraded: a node that predates versions writes a Guardrail without counting it, so a
+                stale `If-Match` can still pass while such a node is running.
+
+                A deployment, an undeployment and a rollback state no version. The first two publish the
+                draft without changing it, so they leave its version alone; a rollback replaces the draft
+                by design and counts as a write.
+            operationId: updateGuardrail
+            parameters:
+                - $ref: "#/components/parameters/ifMatchParam"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdateGuardrail"
+            responses:
+                "200":
+                    description: The Guardrail as updated.
+                    headers:
+                        ETag:
+                            $ref: "#/components/headers/GuardrailETag"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Guardrail"
+                "400":
+                    description: |
+                        The payload is not acceptable, for the same reasons as a creation.
+
+                        A step is refused too: an enabled step whose policy is not installed, or
+                        whose plugin does not declare the Guardrail phase in its `guardrail` flow; one
+                        whose configuration is not a JSON object, or does not match the schema that
+                        policy declares — a step carrying no configuration at all being judged
+                        against an empty object, so a schema that requires a property refuses it; and
+                        for a guardrail policy, one whose plugin does not declare the Guardrail API types,
+                        whatever phases it lists for them, or that declares an incompatible
+                        `scope.protocol`; and one naming, in a property its policy schema marks as a
+                        resource picker, a resource the Guardrail does not hold, holds disabled, or holds
+                        of a type that property does not accept. Every refused step is named in the
+                        message, with the schema error when there is one.
+
+                        A resource is refused too: an enabled resource that carries no type, or whose
+                        type the catalog does not list as `deployed` — not installed, not deployed by
+                        the node, or not enabled by the license of the organization —, whose configuration is not a JSON object or does not match
+                        the schema that plugin declares — one carrying no configuration at all being
+                        judged against an empty object — or whose name another enabled resource of the
+                        Guardrail carries. A disabled resource is not read. Every refused resource is
+                        named in the message, with the schema error when there is one.
+
+                        A stored step or resource configuration is the one its plugin accepts, which
+                        is not always the one submitted: the schema validation drops null entries, injects
+                        the default of a missing required property and prunes properties a closed
+                        schema forbids, exactly as it does for an API flow. Read the created or
+                        updated Guardrail back to see what was stored.
+
+                        An `If-Match` that is neither `*` nor a list of versions this API issued is
+                        refused too, as is one mixing the two.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "409":
+                    description: |
+                        Another Guardrail of this environment already carries that name. Names are
+                        compared without regard to case or to the whitespace around them, so
+                        `Credential leakage`, `credential leakage` and ` Credential leakage ` are the
+                        same name here.
+
+                        Also answered while an API runs the Guardrail and the payload moves it to
+                        another phase or to other API types: what decides where a Guardrail runs cannot
+                        change under the APIs running it. Every other part of the definition stays
+                        editable.
+
+                        **The message counts those APIs, it does not name them.** It is built in the
+                        domain, which has no caller to filter names against, and holding
+                        `ENVIRONMENT_GUARDRAIL` is not a right to read every API of the environment.
+                        `GET /guardrails/{guardrailId}/apis` names the ones the caller may read.
+
+                        Also answered to an `If-Match: *` update that other writers overtook on each
+                        of its attempts: nothing was stored, and the update can be tried again.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "412":
+                    description: |
+                        The Guardrail changed since the version `If-Match` names was read. Nothing was
+                        stored. The body carries the Guardrail as it is now, and the `ETag` header the
+                        version to state on the next attempt.
+                    headers:
+                        ETag:
+                            $ref: "#/components/headers/GuardrailETag"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GuardrailConflict"
+                "428":
+                    description: |
+                        No `If-Match` was sent. Send back the `ETag` the Guardrail was read with, or `*`
+                        to overwrite whatever version is stored.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+        delete:
+            tags:
+                - Guardrails
+            summary: Delete a Guardrail
+            description: |
+                Refuses deletion with 409 while the Guardrail has an active publication, whether its
+                draft is DEPLOYED or PENDING. Deleting an unpublished draft does not withdraw an event.
+                Refuses it with 409 as well while an API runs the Guardrail, counting those APIs in the
+                message: an API runs it as soon as its definition names it.
+            operationId: deleteGuardrail
+            responses:
+                "204":
+                    description: Deleted. The body is empty.
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+                "409":
+                    description: |
+                        The Guardrail has an active publication, or APIs run it, and cannot be deleted. A message about
+                        APIs counts them rather than naming them; `GET /guardrails/{guardrailId}/apis` names the ones
+                        the caller may read.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /organizations/{orgId}/environments/{envId}/guardrails/{guardrailId}/_deploy:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/guardrailIdParam"
+        post:
+            tags:
+                - Guardrails
+            summary: Publish the current Guardrail draft to the gateways
+            description: |
+                Requires ENVIRONMENT_GUARDRAIL UPDATE. Publishes a new revision, including when the
+                definition is unchanged, and records an audit entry. The returned state compares the
+                current draft with the latest publication; it is not an acknowledgement from each gateway.
+
+                **A Guardrail needs at least one enabled guardrail policy to be deployed**: a sequence that is
+                empty, holds only disabled steps, or names only policies that are not guardrail policies or are no
+                longer installed is refused with a 400, publishing nothing. A Guardrail already deployed
+                keeps the revision the gateways run. A draft may still be saved empty while its sequence is
+                being designed.
+
+                The stored draft is then validated again against the plugins installed at that moment —
+                the checks a creation or an update runs **against the installed policies and resource
+                plugins**, not the payload-shape ones nor the Guardrail name uniqueness, which a stored
+                draft already satisfied. The resource names are checked again: a draft stored before that
+                rule, holding two enabled resources of the same name, is refused. A draft saved before one of those checks, or written against a policy or a
+                resource type uninstalled, downgraded or re-scoped since, or carrying a configuration its
+                plugin's schema no longer accepts, is refused with the same 400 rather than published into
+                a revision no gateway can start.
+
+                That pass never rewrites the draft: a deployment publishes the definition as it is stored.
+                A step or a resource configuration its plugin would only accept **corrected** — a required
+                property that gained a default since the draft was saved, say — is therefore refused with
+                the same 400, naming the step or the resource, rather than published as it stands. Saving
+                the Guardrail again stores the configuration the plugin accepts, and that one deploys.
+            operationId: deployGuardrail
+            requestBody:
+                required: false
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/DeployGuardrail"
+            responses:
+                "200":
+                    description: The Guardrail with its current publication state and deployment date.
+                    headers:
+                        ETag:
+                            $ref: "#/components/headers/GuardrailETag"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Guardrail"
+                "400":
+                    $ref: "#/components/responses/BadRequest"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+                "409":
+                    description: |
+                        An API runs the Guardrail and the draft moves it to another phase or to other API
+                        types: publishing it would hand those APIs a Guardrail the gateways refuse to run
+                        there. The message counts those APIs, it does not name them.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /organizations/{orgId}/environments/{envId}/guardrails/{guardrailId}/_undeploy:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/guardrailIdParam"
+        post:
+            tags:
+                - Guardrails
+            summary: Withdraw the Guardrail publication from the gateways
+            description: |
+                Requires ENVIRONMENT_GUARDRAIL UPDATE. Withdraws the active publication and records
+                an audit entry, preserving the current draft and the last deployment date. Updates
+                updatedAt when a publication is withdrawn. Already undeployed Guardrails are returned
+                unchanged without another event or audit entry. The returned UNDEPLOYED state is
+                not an acknowledgement from each gateway.
+
+                Refused with 409 while an API runs the Guardrail, counting those APIs in the message:
+                withdrawing it would stop the traffic of every API the gateways run it for.
+            operationId: undeployGuardrail
+            responses:
+                "200":
+                    description: The Guardrail with no active publication and its last deployment date.
+                    headers:
+                        ETag:
+                            $ref: "#/components/headers/GuardrailETag"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Guardrail"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+                "409":
+                    description: An API enables the Guardrail, which therefore cannot be withdrawn.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /organizations/{orgId}/environments/{envId}/guardrails/{guardrailId}/apis:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/guardrailIdParam"
+        get:
+            tags:
+                - Guardrails
+            summary: List the APIs running the Guardrail
+            description: |
+                Requires ENVIRONMENT_GUARDRAIL READ. The APIs of the environment whose definition runs
+                this Guardrail, by name — an API runs it as soon as its definition names it.
+
+                These are the APIs the refusals count: while any API runs the Guardrail it cannot be
+                deleted, cannot be withdrawn, and cannot be moved to another phase or to other API
+                types.
+
+                **Only the APIs the caller may read are named.** Holding `ENVIRONMENT_GUARDRAIL` is not
+                a right to read every API of the environment, so a page drops the APIs the caller has
+                no `API_DEFINITION[READ]` on. `total` still counts every API running the Guardrail, so
+                a page can hold fewer rows than `total` and `perPage` suggest — a non-empty refusal
+                with an empty page means other people's APIs run it.
+            operationId: listGuardrailApis
+            parameters:
+                - name: page
+                  in: query
+                  required: false
+                  description: 1-based page number; a value of 0 or less serves the first page.
+                  schema:
+                      type: integer
+                      default: 1
+                - name: perPage
+                  in: query
+                  required: false
+                  description: |
+                      APIs per page. Capped at 100; a value above the cap is served as 100, and a value
+                      of 0 or less falls back to the default. The `perPage` reported in the response is
+                      always the size actually served.
+                  schema:
+                      type: integer
+                      default: 10
+            responses:
+                "200":
+                    description: A page of the APIs running the Guardrail.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GuardrailApisResponse"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /organizations/{orgId}/environments/{envId}/guardrails/{guardrailId}/deployments:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/guardrailIdParam"
+        get:
+            tags:
+                - Guardrails
+            summary: List the deployment history of the Guardrail
+            description: |
+                Requires ENVIRONMENT_GUARDRAIL READ. The revisions deployed to the gateways, newest
+                first. A withdrawal is not a revision and is left out. The history keeps only the
+                latest deployments the events cleanup leaves, so the oldest ones may be missing.
+            operationId: listGuardrailDeployments
+            parameters:
+                - name: page
+                  in: query
+                  required: false
+                  description: 1-based page number; a value of 0 or less serves the first page.
+                  schema:
+                      type: integer
+                      default: 1
+                - name: perPage
+                  in: query
+                  required: false
+                  description: |
+                      Revisions per page. Capped at 100; a value above the cap is served as 100, and a
+                      value of 0 or less falls back to the default. The `perPage` reported in the
+                      response is always the size actually served.
+                  schema:
+                      type: integer
+                      default: 10
+            responses:
+                "200":
+                    description: A page of deployed revisions.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GuardrailDeploymentsResponse"
+                "400":
+                    $ref: "#/components/responses/BadRequest"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /organizations/{orgId}/environments/{envId}/guardrails/{guardrailId}/deployments/{deploymentId}:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/guardrailIdParam"
+            - $ref: "#/components/parameters/deploymentIdParam"
+        get:
+            tags:
+                - Guardrails
+            summary: Get a deployment of the Guardrail
+            description: |
+                Requires ENVIRONMENT_GUARDRAIL READ. One revision with the definition it deployed. The
+                definition fields carry the names of `Guardrail`, so two revisions, or a revision and
+                the current draft, compare field by field; the comparison is left to the client.
+            operationId: getGuardrailDeployment
+            responses:
+                "200":
+                    description: The revision and its deployed definition.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GuardrailDeploymentDetail"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+                "404":
+                    description: |
+                        No Guardrail with this id in this environment, or no deployment with this id
+                        in its history: unknown, purged by the events cleanup, a withdrawal, or a
+                        deployment of another Guardrail.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /organizations/{orgId}/environments/{envId}/guardrails/{guardrailId}/deployments/{deploymentId}/_rollback:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/guardrailIdParam"
+            - $ref: "#/components/parameters/deploymentIdParam"
+        post:
+            tags:
+                - Guardrails
+            summary: Roll the Guardrail back to a deployment
+            description: |
+                Requires ENVIRONMENT_GUARDRAIL UPDATE. Replaces the draft with the definition the
+                revision deployed, the way an API is rolled back: nothing is deployed. The Guardrail
+                turns PENDING, or DEPLOYED when the revision is the one the gateways run, and
+                deploying it again records a new revision. The description is kept: it is not part
+                of a definition.
+
+                The checks of an update apply, since the revision may be out of date: a name
+                another Guardrail took since answers 409, a guardrail policy or a resource type no longer
+                installed 400, and so does a step or a resource configuration the schema of its plugin no
+                longer accepts — a plugin upgraded to a stricter schema since that revision was deployed
+                closes this way back, and the Guardrail has to be edited rather than rolled back. Refusing is deliberate:
+                restoring a draft the gateways could not start would only move the failure to the
+                next deployment.
+
+                The revision is restored as it was published, never rewritten, so the same 400 answers a
+                step or a resource configuration its plugin would only accept **corrected**. Storing the
+                corrected definition instead would store one no gateway ever ran, and leave the Guardrail
+                PENDING straight after the rollback; editing the Guardrail is then the way to store a
+                configuration its plugin accepts.
+            operationId: rollbackGuardrail
+            responses:
+                "200":
+                    description: The Guardrail with the rolled back draft.
+                    headers:
+                        ETag:
+                            $ref: "#/components/headers/GuardrailETag"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Guardrail"
+                "400":
+                    $ref: "#/components/responses/BadRequest"
+                "403":
+                    $ref: "#/components/responses/Forbidden"
+                "404":
+                    description: |
+                        No Guardrail with this id in this environment, or no deployment with this id
+                        in its history.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "409":
+                    description: |
+                        Another Guardrail of the environment holds the name of the revision. Also answered
+                        when other writers overtook the rollback on each of its attempts: the draft is
+                        left as they stored it, and the rollback can be tried again.
+
+                        Also answered while an API runs the Guardrail and the revision moves it to another
+                        phase or to other API types, as an update of the Guardrail would be. The message
+                        counts those APIs, it does not name them.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+components:
+    securitySchemes:
+        CookieAuth:
+            type: apiKey
+            in: cookie
+            name: GAMMA-SESSION
+            description: |
+                Gamma-host session cookie set by the parent rest-api login flow. The same scheme
+                used by every other gamma endpoint.
+
+    parameters:
+        orgIdParam:
+            name: orgId
+            in: path
+            required: true
+            description: Id of an organization.
+            schema:
+                type: string
+                default: DEFAULT
+        envIdParam:
+            name: envId
+            in: path
+            required: true
+            description: |
+                Id or hrid of an environment. The host resolves and validates it against the
+                organization, so a mismatch is refused before any Guardrail is read.
+            schema:
+                type: string
+                default: DEFAULT
+        guardrailIdParam:
+            name: guardrailId
+            in: path
+            required: true
+            description: Id of a Guardrail.
+            schema:
+                type: string
+                maxLength: 64
+        ifMatchParam:
+            name: If-Match
+            in: header
+            required: true
+            description: |
+                The version the update is built on: the `ETag` the Guardrail was read with, quoted, as in
+                `"4"`. A weak validator (`W/"4"`) and a list (`"3", "4"`) are read too. `*` overwrites
+                whatever version is stored.
+            schema:
+                type: string
+            example: '"4"'
+        deploymentIdParam:
+            name: deploymentId
+            in: path
+            required: true
+            description: Id of a revision, as the deployment history lists it.
+            schema:
+                type: string
+
+    headers:
+        GuardrailETag:
+            description: |
+                The version of the Guardrail's draft, quoted, to send back in `If-Match` when updating it.
+                Absent only for a Guardrail written by a node that predates versions, during a rolling upgrade.
+            schema:
+                type: string
+            example: '"4"'
+    responses:
+        BadRequest:
+            description: The request is not acceptable.
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"
+        Forbidden:
+            description: |
+                The caller lacks the `ENVIRONMENT_GUARDRAIL` permission for the action this verb
+                needs.
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"
+        NotFound:
+            description: |
+                No Guardrail with this id **in this environment**. One that exists in another
+                environment answers the same way, on purpose: the response does not distinguish
+                "absent" from "not yours".
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"
+
+    schemas:
+        Guardrail:
+            type: object
+            description: A Guardrail as this surface serves it.
+            properties:
+                id:
+                    type: string
+                    maxLength: 64
+                name:
+                    type: string
+                    maxLength: 512
+                    description: Stored without the whitespace around it.
+                description:
+                    type: string
+                    maxLength: 1024
+                    description: |
+                        Free text the console shows beside the name. Control-plane only: the gateway
+                        never reads it, so it is not part of the definition.
+                phase:
+                    $ref: "#/components/schemas/GuardrailPhase"
+                apiTypes:
+                    $ref: "#/components/schemas/ApiTypes"
+                policies:
+                    $ref: "#/components/schemas/Policies"
+                resources:
+                    $ref: "#/components/schemas/Resources"
+                lifecycleState:
+                    $ref: "#/components/schemas/GuardrailLifecycleState"
+                deployedAt:
+                    $ref: "#/components/schemas/Timestamp"
+                deployedRevisionId:
+                    type: string
+                    description: |
+                        Id of the revision the gateways run, as the deployment history lists it; it
+                        stays while the draft is PENDING. Absent when the Guardrail is not deployed.
+                createdAt:
+                    $ref: "#/components/schemas/Timestamp"
+                updatedAt:
+                    $ref: "#/components/schemas/Timestamp"
+                version:
+                    type: integer
+                    minimum: 1
+                    description: |
+                        How many times the draft was written, starting at 1 — the value the `ETag`
+                        header carries, readable by a client that only parses bodies. An update states it
+                        in `If-Match`. A deployment does not change it. Absent only for a Guardrail
+                        written by a node that predates versions, during a rolling upgrade.
+            required:
+                - id
+                - name
+                - phase
+                - apiTypes
+                - lifecycleState
+                - createdAt
+                - updatedAt
+            example:
+                id: cd7e491c-5398-483d-b24e-208d6ac197f1
+                name: Credential leakage guard
+                description: Blocks a reply that echoes an API key.
+                phase: RESPONSE
+                apiTypes:
+                    - llm-proxy
+                policies:
+                    - name: Mask credentials
+                      policy: guardrail-llm-rule
+                      enabled: true
+                lifecycleState: UNDEPLOYED
+                createdAt: "2026-11-07T10:00:01.119Z"
+                updatedAt: "2026-11-07T10:00:01.119Z"
+                version: 1
+
+        GuardrailConflict:
+            type: object
+            description: |
+                Body of the `412` answered when a Guardrail changed since the caller read it: the error
+                shape of this surface, plus what a client needs to recover without a second request.
+            properties:
+                message:
+                    type: string
+                http_status:
+                    type: integer
+                currentVersion:
+                    type: integer
+                    description: The version the Guardrail is at now, as the `ETag` header carries it.
+                guardrail:
+                    $ref: "#/components/schemas/Guardrail"
+            required:
+                - message
+                - http_status
+                - guardrail
+            example:
+                message: "Guardrail 'cd7e491c-5398-483d-b24e-208d6ac197f1' has been modified since it was read (version [3] was required, the current version is 4)."
+                http_status: 412
+                currentVersion: 4
+                guardrail:
+                    id: cd7e491c-5398-483d-b24e-208d6ac197f1
+                    name: Credential leakage guard
+                    phase: RESPONSE
+                    apiTypes:
+                        - llm-proxy
+                    lifecycleState: UNDEPLOYED
+                    createdAt: "2026-11-07T10:00:01.119Z"
+                    updatedAt: "2026-11-07T11:12:40.002Z"
+                    version: 4
+
+        GuardrailSummary:
+            type: object
+            description: |
+                One row of the Guardrail list: what a list screen shows, and nothing it does not.
+
+                The guardrail policy sequence (`policies`) and the `resources` are deliberately absent —
+                they are the bulk of a Guardrail, and a page of twenty would carry twenty copies of
+                them for columns that never render one. Read `GET /guardrails/{guardrailId}` for the
+                whole definition.
+
+                `guardrailPolicyCount` stands in for the one thing a row says about the sequence: its
+                length.
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                phase:
+                    $ref: "#/components/schemas/GuardrailPhase"
+                apiTypes:
+                    $ref: "#/components/schemas/ApiTypes"
+                lifecycleState:
+                    $ref: "#/components/schemas/GuardrailLifecycleState"
+                guardrailPolicyCount:
+                    type: integer
+                    format: int32
+                    description: How many guardrail policies the sequence holds.
+                createdAt:
+                    $ref: "#/components/schemas/Timestamp"
+                updatedAt:
+                    $ref: "#/components/schemas/Timestamp"
+            required:
+                - id
+                - name
+                - phase
+                - apiTypes
+                - lifecycleState
+                - guardrailPolicyCount
+                - createdAt
+                - updatedAt
+            example:
+                id: cd7e491c-5398-483d-b24e-208d6ac197f1
+                name: Credential leakage guard
+                description: Blocks a reply that echoes an API key.
+                phase: RESPONSE
+                apiTypes:
+                    - llm-proxy
+                lifecycleState: UNDEPLOYED
+                guardrailPolicyCount: 1
+                createdAt: "2026-11-07T10:00:01.119Z"
+                updatedAt: "2026-11-07T10:00:01.119Z"
+
+        CreateGuardrail:
+            type: object
+            description: |
+                The whole Guardrail definition, guardrail policy sequence included. Rejects any key it does
+                not declare, rather than ignoring it — an unknown property answers 400.
+
+                The environment is not a property: it comes from the path. Neither is `deployedAt`,
+                which only a deployment may write.
+            additionalProperties: false
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                    description: |
+                        Optional, and a UUID when given — anything else answers 400. Omit it and the
+                        server generates one. An id already in use is refused with 400.
+                name:
+                    type: string
+                    maxLength: 512
+                    description: Stored without the whitespace around it.
+                description:
+                    type: string
+                    maxLength: 1024
+                    description: |
+                        Free text the console shows beside the name. Control-plane only: the gateway
+                        never reads it, so it is not part of the definition.
+                phase:
+                    $ref: "#/components/schemas/GuardrailPhase"
+                apiTypes:
+                    $ref: "#/components/schemas/ApiTypes"
+                policies:
+                    $ref: "#/components/schemas/Policies"
+                resources:
+                    $ref: "#/components/schemas/Resources"
+            required:
+                - name
+                - phase
+                - apiTypes
+            example:
+                name: Credential leakage guard
+                description: Blocks a reply that echoes an API key.
+                phase: RESPONSE
+                apiTypes:
+                    - llm-proxy
+                policies:
+                    - name: Mask credentials
+                      policy: guardrail-llm-rule
+                      enabled: true
+
+        UpdateGuardrail:
+            type: object
+            description: |
+                The whole definition again: a `PUT` replaces, it does not patch. A property this body
+                leaves out is left out of the stored definition too, so a client that edits one
+                setting sends back everything it read.
+
+                `id` is accepted only to be ignored: the path owns the identity, so a value in the body
+                is never applied and never has to be stripped.
+
+                Rejects any key it does not declare. The seven `readOnly` properties below are
+                declared for exactly that reason: they are what a `GET` returns and only the store
+                writes them, so they are accepted here and ignored rather than refused, and the
+                response of a `GET` can be sent straight back.
+            additionalProperties: false
+            properties:
+                id:
+                    type: string
+                    readOnly: true
+                    description: Ignored — the path owns the identity.
+                lifecycleState:
+                    allOf:
+                        - $ref: "#/components/schemas/GuardrailLifecycleState"
+                    readOnly: true
+                    description: Ignored — derived from the latest deployment.
+                deployedAt:
+                    allOf:
+                        - $ref: "#/components/schemas/Timestamp"
+                    readOnly: true
+                    description: Ignored — the date of the latest deployment.
+                deployedRevisionId:
+                    type: string
+                    readOnly: true
+                    description: Ignored — the revision of the latest deployment.
+                createdAt:
+                    allOf:
+                        - $ref: "#/components/schemas/Timestamp"
+                    readOnly: true
+                    description: Ignored — the store owns it.
+                updatedAt:
+                    allOf:
+                        - $ref: "#/components/schemas/Timestamp"
+                    readOnly: true
+                    description: Ignored — the store owns it.
+                version:
+                    type: integer
+                    readOnly: true
+                    description: Ignored — the version an update is built on is stated in `If-Match`.
+                name:
+                    type: string
+                    maxLength: 512
+                    description: Stored without the whitespace around it.
+                description:
+                    type: string
+                    maxLength: 1024
+                    description: |
+                        Free text the console shows beside the name. Control-plane only: the gateway
+                        never reads it, so it is not part of the definition.
+                phase:
+                    $ref: "#/components/schemas/GuardrailPhase"
+                apiTypes:
+                    $ref: "#/components/schemas/ApiTypes"
+                policies:
+                    $ref: "#/components/schemas/Policies"
+                resources:
+                    $ref: "#/components/schemas/Resources"
+            required:
+                - name
+                - phase
+                - apiTypes
+            example:
+                name: Credential leakage guard v2
+                description: Blocks a reply that echoes an API key, v2.
+                phase: RESPONSE
+                apiTypes:
+                    - llm-proxy
+                policies: []
+
+        GuardrailsResponse:
+            type: object
+            description: |
+                The `{ data, pagination }` envelope the rest of this surface uses. 1-based `page`.
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/GuardrailSummary"
+                pagination:
+                    $ref: "#/components/schemas/Pagination"
+            required:
+                - data
+                - pagination
+
+        Pagination:
+            type: object
+            properties:
+                totalCount:
+                    type: integer
+                    format: int64
+                    description: Guardrails matching the query across every page.
+                page:
+                    type: integer
+                    description: 1-based number of the page served.
+                perPage:
+                    type: integer
+                    description: |
+                        The page size actually served, which is the default or the cap when the
+                        request asked for neither a valid size nor none. Not the number of rows
+                        this page holds — that is `pageItemsCount`.
+                pageCount:
+                    type: integer
+                    description: Pages needed for `totalCount` at `perPage` rows each.
+                pageItemsCount:
+                    type: integer
+                    description: Rows in `data`. Smaller than `perPage` on the last page.
+            required:
+                - totalCount
+                - page
+                - perPage
+                - pageCount
+                - pageItemsCount
+
+        ApiType:
+            type: string
+            description: |
+                The kind of API a Guardrail is designed for, spelled as the label the rest of APIM
+                uses — `llm-proxy`, not `LLM_PROXY`. **Creation accepts `llm-proxy` only** in 4.14;
+                the other values can be read but not written here.
+            enum:
+                - a2a-proxy
+                - authz
+                - edge
+                - llm-proxy
+                - mcp-proxy
+                - message
+                - native
+                - proxy
+            example: llm-proxy
+
+        ApiTypes:
+            type: array
+            description: |
+                The API types this Guardrail is designed for. **In 4.14 the only accepted value is
+                `llm-proxy`**, and the list may not be empty: the gateway runs a Guardrail on nothing
+                else, so storing another type would store a Guardrail nothing can execute.
+            minItems: 1
+            items:
+                $ref: "#/components/schemas/ApiType"
+            example:
+                - llm-proxy
+
+        Policies:
+            type: array
+            description: |
+                The guardrail policy sequence, in order. Each entry is a v4 definition-model `Step` — the
+                same shape a flow uses, carrying at least `policy`, plus `name`, `description`,
+                `configuration`, `condition` and `enabled`. Not enumerated here: the shape belongs to
+                `gravitee-apim-definition`, and restating it would let the two drift apart.
+
+                The `policy` of every enabled step must be an installed policy whose plugin declares
+                the Guardrail phase in its `guardrail` flow (`guardrail=REQUEST,RESPONSE` in its
+                manifest); `GET /organizations/{orgId}/plugins/policies?flow=guardrail&phase=` lists
+                them.
+
+                A property the policy schema marks as a resource picker (`gioConfig.uiType:
+                resource-type`) must name an enabled resource of the Guardrail, of a type listed in
+                `gioConfig.uiTypeProps.resourceType` — matched by prefix, as the console picker offers
+                them —, or the step is refused with a message naming it. Only a property holding a
+                single name is checked. The check runs on a deployment and a rollback too: a draft,
+                or a revision, naming a resource the Guardrail no longer holds is refused until edited.
+            items:
+                type: object
+                additionalProperties: true
+            example:
+                - name: Mask credentials
+                  policy: guardrail-llm-rule
+                  enabled: true
+
+        Resources:
+            type: array
+            description: |
+                The resources the guardrail policies need, as v4 definition-model `Resource` entries. Same
+                reasoning as `policies`: the shape lives in the definition model.
+
+                The `type` of every enabled resource must be a resource plugin the catalog lists as
+                `deployed` — installed, deployed by the node and enabled by the license of the
+                organization —, and its `configuration` must match the schema that plugin declares;
+                `GET /organizations/{orgId}/plugins/resources` lists the types. A type listed with
+                `deployed: false` is refused. A guardrail policy refers to a resource by its name, so no two enabled resources may
+                share one. The steps naming a resource are judged against these: see `policies`.
+                Nothing follows a rename, and an update renaming a resource a step still names is
+                refused as a whole.
+
+                **Secrets.** A `configuration` is stored and returned as it was sent, to any caller
+                allowed to read the Guardrail: nothing in it is masked. A secret therefore has to be given
+                as a reference — `{#secrets.get('/vault/secret/models:api-key')}` — which is stored and
+                returned as that expression and resolved by the gateway when the Guardrail is deployed. A
+                secret typed in clear is stored and returned in clear, as it is in the resource of an
+                API.
+            items:
+                type: object
+                additionalProperties: true
+            example: []
+
+        GuardrailPhase:
+            type: string
+            description: |
+                When the guardrail policy sequence runs. Chosen at creation and sent again on every update,
+                because a `PUT` replaces the whole definition.
+            enum:
+                - REQUEST
+                - RESPONSE
+
+        DeployGuardrail:
+            type: object
+            additionalProperties: false
+            properties:
+                deploymentLabel:
+                    type: string
+                    maxLength: 256
+                    description: Optional label retained with this deployment in the event history.
+
+        GuardrailApisResponse:
+            type: object
+            description: |
+                The `{ data, pagination }` envelope the rest of this surface uses. 1-based `page`.
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ApiReference"
+                pagination:
+                    $ref: "#/components/schemas/Pagination"
+            required:
+                - data
+                - pagination
+
+        ApiReference:
+            type: object
+            description: An API named in a Guardrail answer, enough to show it and to link to it.
+            properties:
+                id:
+                    type: string
+                    description: Id of the API.
+                name:
+                    type: string
+                    description: Name of the API.
+            required:
+                - id
+                - name
+
+        GuardrailDeploymentsResponse:
+            type: object
+            description: |
+                The `{ data, pagination }` envelope the rest of this surface uses. 1-based `page`.
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/GuardrailDeployment"
+                pagination:
+                    $ref: "#/components/schemas/Pagination"
+            required:
+                - data
+                - pagination
+
+        GuardrailDeployment:
+            type: object
+            description: A revision of the Guardrail deployed to the gateways.
+            properties:
+                id:
+                    type: string
+                    description: Id of the revision in the deployment history.
+                label:
+                    type: string
+                    description: The `deploymentLabel` given to `_deploy`; absent when none was.
+                deployedAt:
+                    $ref: "#/components/schemas/Timestamp"
+                deployedBy:
+                    type: object
+                    description: |
+                        The user who deployed the revision. A user unknown to the platform keeps its
+                        id, without a display name.
+                    properties:
+                        id:
+                            type: string
+                        displayName:
+                            type: string
+                    required:
+                        - id
+            required:
+                - id
+                - deployedAt
+            example:
+                id: 6f3c2b1e-9d84-4a7f-b2c5-0e1d7a9f4b36
+                label: Stricter credential patterns
+                deployedAt: "2026-11-14T09:30:00.000Z"
+                deployedBy:
+                    id: 2a9e1c4d-7b35-4f08-a6d2-5c8e0b1f3a97
+                    displayName: Ada Lovelace
+
+        GuardrailDeploymentDetail:
+            description: |
+                A revision with the definition it deployed. `description` is not part of the
+                definition and is not recorded.
+            allOf:
+                - $ref: "#/components/schemas/GuardrailDeployment"
+                - type: object
+                  properties:
+                      name:
+                          type: string
+                          maxLength: 512
+                          description: Stored without the whitespace around it.
+                      phase:
+                          $ref: "#/components/schemas/GuardrailPhase"
+                      apiTypes:
+                          $ref: "#/components/schemas/ApiTypes"
+                      policies:
+                          $ref: "#/components/schemas/Policies"
+                      resources:
+                          $ref: "#/components/schemas/Resources"
+                  required:
+                      - name
+                      - phase
+
+        GuardrailLifecycleState:
+            type: string
+            description: |
+                Whether the current draft matches its latest publication. UNDEPLOYED means no active
+                publication, DEPLOYED means the draft matches it, and PENDING means it differs.
+                This is not an acknowledgement that every gateway has started the revision.
+                A newly created Guardrail is UNDEPLOYED.
+            enum:
+                - DEPLOYED
+                - UNDEPLOYED
+                - PENDING
+
+        Timestamp:
+            type: string
+            format: date-time
+            description: |
+                An instant as an ISO 8601 string in UTC, so the offset does not depend on the server's
+                time zone.
+            example: "2026-11-07T10:00:01.119Z"
+
+        Error:
+            type: object
+            description: |
+                The error body of this surface. It carries a human-readable message and the status,
+                and **no technical code** — do not write a client against one.
+            properties:
+                message:
+                    type: string
+                http_status:
+                    type: integer
+            required:
+                - message
+                - http_status
+            example:
+                message: "Guardrail 'nope' not found"
+                http_status: 404

@@ -16,11 +16,11 @@
 package io.gravitee.gamma.rest.infra.service_provider.gravitee_plugin;
 
 import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.A2A_PROXY;
-import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.GUARDIAN;
+import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.GUARDRAIL;
 import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.HTTP_PROXY;
 import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.LLM_PROXY;
 import static io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyFlowType.MCP_PROXY;
-import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardianValidator;
+import static io.gravitee.gamma.rest.core.guardrail.GuardrailFixtures.aGuardrailValidator;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
@@ -33,14 +33,14 @@ import com.fasterxml.jackson.core.JsonPointer;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
-import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
+import io.gravitee.definition.model.v4.guardrail.Guardrail.Phase;
 import io.gravitee.gamma.rest.core.gravitee_plugin.inmemory.InMemoryPolicyValidation;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.DeclaredFlows;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.PolicyCapabilities;
 import io.gravitee.gamma.rest.core.gravitee_plugin.model.ResourceReference;
-import io.gravitee.gamma.rest.core.guardian.GuardianFixtures;
-import io.gravitee.gamma.rest.core.guardian.domain_service.ValidateGuardianDomainService;
-import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
+import io.gravitee.gamma.rest.core.guardrail.GuardrailFixtures;
+import io.gravitee.gamma.rest.core.guardrail.domain_service.ValidateGuardrailDomainService;
+import io.gravitee.gamma.rest.core.guardrail.inmemory.InMemoryGuardrailRepository;
 import io.gravitee.gateway.reactive.api.policy.guardrail.GuardrailPolicy;
 import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.node.api.license.License;
@@ -84,7 +84,7 @@ class DefaultPolicyPluginProviderTest {
     }
 
     @Test
-    void should_map_the_installed_guardrail_policy_protocols_without_imposing_a_guardian_phase() {
+    void should_map_the_installed_guardrail_policy_protocols_without_imposing_a_guardrail_phase() {
         given_installed_policies(
             a_policy(
                 "rule-guardrail",
@@ -120,7 +120,7 @@ class DefaultPolicyPluginProviderTest {
         );
 
         assertThat(provider.findAllCapabilities().get("rule-guardrail").flows())
-            .as("phases are trimmed, the ones a Guardian never runs in kept: the projection drops them")
+            .as("phases are trimmed, the ones a Guardrail never runs in kept: the projection drops them")
             .isEqualTo(
                 new DeclaredFlows(
                     Map.of(
@@ -142,7 +142,7 @@ class DefaultPolicyPluginProviderTest {
                 "rule-guardrail",
                 GuardrailPolicy.class,
                 "guardrail",
-                Map.of("proxy", "REQUEST", "llm_proxy", "REQUEST", "guardian", " REQUEST , INTERACT ")
+                Map.of("proxy", "REQUEST", "llm_proxy", "REQUEST", "guardrail", " REQUEST , INTERACT ")
             )
         );
         var license = mock(License.class);
@@ -153,18 +153,18 @@ class DefaultPolicyPluginProviderTest {
         SoftAssertions.assertSoftly(softly -> {
             softly
                 .assertThat(capabilities.flows())
-                .as("one manifest parser for the listing and the Guardian validation")
+                .as("one manifest parser for the listing and the Guardrail validation")
                 .isEqualTo(provider.findPolicyById("org", "rule-guardrail").flows());
             softly
                 .assertThat(capabilities.flows())
                 .as("the deprecated proxy key read for http-proxy")
                 .isEqualTo(
                     new DeclaredFlows(
-                        Map.of(HTTP_PROXY, List.of("REQUEST"), LLM_PROXY, List.of("REQUEST"), GUARDIAN, List.of("REQUEST", "INTERACT"))
+                        Map.of(HTTP_PROXY, List.of("REQUEST"), LLM_PROXY, List.of("REQUEST"), GUARDRAIL, List.of("REQUEST", "INTERACT"))
                     )
                 );
             softly.assertThat(capabilities.supports(Set.of(ApiType.LLM_PROXY))).as("supports llm-proxy").isTrue();
-            softly.assertThat(capabilities.guardianPhases()).as("guardian phases, INTERACT dropped").containsExactly(Phase.REQUEST);
+            softly.assertThat(capabilities.guardrailPhases()).as("guardrail phases, INTERACT dropped").containsExactly(Phase.REQUEST);
         });
     }
 
@@ -173,9 +173,9 @@ class DefaultPolicyPluginProviderTest {
     @ValueSource(strings = { "guardrail", "security" })
     void should_reject_an_incompatible_runtime_guardrail_policy_regardless_of_category(String category) {
         given_installed_policies(
-            a_policy("rule-guardrail", GuardrailPolicy.class, category, Map.of("llm_proxy", "REQUEST", "guardian", "REQUEST"))
+            a_policy("rule-guardrail", GuardrailPolicy.class, category, Map.of("llm_proxy", "REQUEST", "guardrail", "REQUEST"))
         );
-        var guardian = GuardianFixtures.aGuardian(definition ->
+        var guardrail = GuardrailFixtures.aGuardrail(definition ->
             definition.policies(
                 List.of(
                     Step.builder()
@@ -187,8 +187,8 @@ class DefaultPolicyPluginProviderTest {
             )
         ).build();
 
-        var result = aGuardianValidator(new InMemoryGuardianRepository(), provider, new InMemoryPolicyValidation()).validateAndSanitize(
-            new ValidateGuardianDomainService.Input(guardian)
+        var result = aGuardrailValidator(new InMemoryGuardrailRepository(), provider, new InMemoryPolicyValidation()).validateAndSanitize(
+            new ValidateGuardrailDomainService.Input(guardrail)
         );
 
         assertThat(result.severe()).as("every runtime guardrail policy is validated, including alternate or absent categories").isPresent();
@@ -210,12 +210,12 @@ class DefaultPolicyPluginProviderTest {
     @Test
     void should_refuse_a_policy_that_is_no_longer_installed_without_a_server_error() {
         given_installed_policies();
-        var guardian = GuardianFixtures.aGuardian(definition ->
+        var guardrail = GuardrailFixtures.aGuardrail(definition ->
             definition.policies(List.of(Step.builder().name("Removed step").policy("removed-policy").build()))
         ).build();
 
-        var result = aGuardianValidator(new InMemoryGuardianRepository(), provider, new InMemoryPolicyValidation()).validateAndSanitize(
-            new ValidateGuardianDomainService.Input(guardian)
+        var result = aGuardrailValidator(new InMemoryGuardrailRepository(), provider, new InMemoryPolicyValidation()).validateAndSanitize(
+            new ValidateGuardrailDomainService.Input(guardrail)
         );
 
         assertThat(result.severe().orElseThrow())
@@ -283,7 +283,7 @@ class DefaultPolicyPluginProviderTest {
             );
         }
 
-        /** No picker means any resource, but still a resource of the Guardian. */
+        /** No picker means any resource, but still a resource of the Guardrail. */
         @Test
         void should_accept_any_type_when_the_picker_names_none() throws Exception {
             given_the_schema(
