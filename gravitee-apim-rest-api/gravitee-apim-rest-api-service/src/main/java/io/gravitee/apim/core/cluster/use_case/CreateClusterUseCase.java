@@ -32,6 +32,7 @@ import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.membership.query_service.RoleQueryService;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.cluster.ClusterType;
@@ -52,6 +53,7 @@ public class CreateClusterUseCase {
     private final MembershipCrudService membershipCrudService;
     private final RoleQueryService roleQueryService;
     private final ObjectMapper objectMapper;
+    private final SecretReferencePermissionDomainService secretReferencePermissionDomainService;
 
     public record Input(CreateCluster createCluster, AuditInfo auditInfo) {}
 
@@ -82,6 +84,13 @@ public class CreateClusterUseCase {
             .lifecycleState(ClusterLifecycleState.UNDEPLOYED)
             .build();
 
+        secretReferencePermissionDomainService.validate(
+            input.auditInfo().organizationId(),
+            input.auditInfo().environmentId(),
+            input.auditInfo().actor().userId(),
+            null,
+            configuration
+        );
         validateClusterService.validateForCreate(clusterToCreate);
 
         Cluster createdCluster = clusterCrudService.create(clusterToCreate);

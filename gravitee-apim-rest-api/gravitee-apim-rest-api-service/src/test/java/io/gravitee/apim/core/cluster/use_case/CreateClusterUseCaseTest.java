@@ -18,11 +18,13 @@ package io.gravitee.apim.core.cluster.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import inmemory.AbstractUseCaseTest;
 import inmemory.ClusterCrudServiceInMemory;
 import inmemory.ClusterQueryServiceInMemory;
+import inmemory.CredentialCrudServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -38,6 +40,10 @@ import io.gravitee.apim.core.json.JsonSchemaChecker;
 import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.Role;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
+import io.gravitee.apim.core.secret.exception.SecretReferenceNotAllowedException;
+import io.gravitee.apim.infra.credential.SpelSecretExpressionParser;
 import io.gravitee.apim.infra.json.JsonSchemaCheckerImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
@@ -86,7 +92,13 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
             auditService,
             membershipCrudService,
             roleQueryService,
-            objectMapper
+            objectMapper,
+            new SecretReferencePermissionDomainService(
+                new SpelSecretExpressionParser(),
+                mock(PermissionDomainService.class),
+                new CredentialCrudServiceInMemory(),
+                objectMapper
+            )
         );
         clusterQueryService.reset();
         initRoles();
@@ -117,6 +129,26 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
             .build();
 
         assertThat(output.cluster()).usingRecursiveComparison().isEqualTo(expected);
+    }
+
+    @Test
+    void should_refuse_a_configuration_referencing_a_store_secret_without_the_secret_read_permission_and_create_nothing() {
+        Object configuration = Map.of(
+            "bootstrapServers",
+            "localhost:9092",
+            "security",
+            Map.of("protocol", "SASL_SSL", "password", "{#secrets.get('/gravitee/kafka-password:value?envId=" + ENV_ID + "')}")
+        );
+        var toCreate = CreateCluster.builder()
+            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+            .name("Cluster 1")
+            .configuration(configuration)
+            .build();
+
+        assertThatThrownBy(() -> createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO))).isInstanceOf(
+            SecretReferenceNotAllowedException.class
+        );
+        assertThat(clusterCrudService.storage()).isEmpty();
     }
 
     @Test
