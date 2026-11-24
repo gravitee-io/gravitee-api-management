@@ -149,7 +149,8 @@ export function CredentialAuthenticationFields({
             {draft.mode === 'reference' ? (
                 <p className="text-sm text-muted-foreground">
                     Gravitee saves a reference as you type it. Add <code>?renewable=true&amp;reloadOnChange=true</code> so that APIs pick up
-                    a rotated value without a redeploy.
+                    a rotated value without a redeploy. A reference that already has a query, such as a Gravitee secret with its{' '}
+                    <code>?envId=</code>, takes <code>&amp;renewable=true&amp;reloadOnChange=true</code> instead.
                 </p>
             ) : null}
             {secretsDisabledReason ? (

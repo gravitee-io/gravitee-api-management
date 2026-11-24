@@ -36,17 +36,20 @@ public record Secret(String id, String organizationId, String environmentId, Str
 
     /** Refuses the keys kept for credentials, which only the credential API may change. */
     public static void requireUserKey(String key) {
-        if (key != null && key.startsWith(CREDENTIAL_KEY_PREFIX)) {
+        if (key != null && isCredentialKey(key)) {
             throw new SecretKeptForCredentialException(key);
         }
+    }
+
+    public static boolean isCredentialKey(String key) {
+        return key.startsWith(CREDENTIAL_KEY_PREFIX);
     }
 
     public Secret withUpdatedAt(Instant now) {
         return toBuilder().updatedAt(now).build();
     }
 
-    /** The reference that an expression uses to resolve the value, in the environment where the expression runs. */
     public String path() {
-        return "/gravitee/" + key + ":value";
+        return "/gravitee/" + key + ":value?envId=" + environmentId;
     }
 }

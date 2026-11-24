@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.infra.secret;
 
+import static io.gravitee.apim.common.secret.StaticKeyEncryptionKeyProvider.KEY_PROPERTY;
+
 import io.gravitee.apim.common.secret.DataKey;
 import io.gravitee.apim.common.secret.DataKeyResolver;
 import io.gravitee.apim.common.secret.InvalidKeyEncryptionKeyException;
@@ -53,8 +55,6 @@ import org.springframework.stereotype.Service;
 @CustomLog
 @Service
 public class EnvelopeSecretValueEncryptor implements SecretValueEncryptor {
-
-    public static final String KEY_PROPERTY = "api.secrets.encryption.key";
 
     private static final String MISMATCH = "does not match the key that encrypted the stored secrets";
     private static final String KEY_HINT = "Set it to a base64-encoded 256-bit key.";

@@ -49,7 +49,7 @@ public class CreateCredentialUseCase {
         var owner = credentialOwnerDomainService.ownerFor(actor, command.ownerId());
         var credential = Credential.create(input.credentialId(), actor, command, owner, TimeProvider.instantNow());
         credentialExpressionDomainService.requireValidExpressions(credential);
-        credential.requireReferencesUsableBy(actor);
+        credential.requireValidStoreReferences(actor);
 
         if (command.isManaged()) {
             actor.requireSecretAccess(SecretAccess.CREATE);
