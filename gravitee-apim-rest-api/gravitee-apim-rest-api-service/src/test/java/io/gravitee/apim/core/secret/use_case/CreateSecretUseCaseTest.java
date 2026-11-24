@@ -66,7 +66,7 @@ class CreateSecretUseCaseTest extends AbstractUseCaseTest {
         assertThat(secret.organizationId()).isEqualTo(ORG_ID);
         assertThat(secret.environmentId()).isEqualTo(ENV_ID);
         assertThat(secret.key()).isEqualTo("anthropic-key");
-        assertThat(secret.path()).isEqualTo("/gravitee/anthropic-key:value");
+        assertThat(secret.path()).isEqualTo("/gravitee/anthropic-key:value?envId=" + ENV_ID);
         assertThat(secret.createdAt()).isEqualTo(INSTANT_NOW);
         assertThat(secret.updatedAt()).isEqualTo(INSTANT_NOW);
     }
@@ -156,9 +156,10 @@ class CreateSecretUseCaseTest extends AbstractUseCaseTest {
         assertThat(auditCrudService.storage()).isEmpty();
     }
 
-    @Test
-    void should_accept_a_key_that_only_contains_credential() {
-        assertThat(useCase.execute(create("my-credential.token", "v")).secret().key()).isEqualTo("my-credential.token");
+    @ParameterizedTest
+    @ValueSource(strings = { "my-credential.token", "Credential.cred-1.token", "CREDENTIAL.x" })
+    void should_accept_a_key_that_differs_from_the_credential_prefix(String key) {
+        assertThat(useCase.execute(create(key, "v")).secret().key()).isEqualTo(key);
     }
 
     @Test

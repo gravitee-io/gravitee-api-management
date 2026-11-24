@@ -40,9 +40,9 @@ class SecretReferenceTest {
 
     @Test
     void should_ask_the_gateway_to_renew_and_reload_a_managed_reference() {
-        var reference = SecretReference.managed("/gravitee/credential.c1.token:value", "secret-1");
+        var reference = SecretReference.managed("/gravitee/credential.c1.token:value?envId=env-1", "secret-1");
 
-        assertThat(reference.reference()).isEqualTo("/gravitee/credential.c1.token:value?renewable=true&reloadOnChange=true");
+        assertThat(reference.reference()).isEqualTo("/gravitee/credential.c1.token:value?renewable=true&reloadOnChange=true&envId=env-1");
         assertThat(reference.secretId()).isEqualTo("secret-1");
         assertThat(reference.isManaged()).isTrue();
     }
@@ -129,7 +129,10 @@ class SecretReferenceTest {
     @ParameterizedTest
     @ValueSource(
         strings = {
-            "/vault/secret/openai/:token", "/gravitee/my-secret//:value", "/vault/secret/openai/", "/vault/secret/openai/?renewable=true",
+            "/vault/secret/openai/:token",
+            "/gravitee/my-secret//:value?envId=env-1",
+            "/vault/secret/openai/",
+            "/vault/secret/openai/?renewable=true",
         }
     )
     void should_accept_a_reference_with_a_trailing_slash_as_the_gateway_trims_it(String reference) {
@@ -139,16 +142,55 @@ class SecretReferenceTest {
     @ParameterizedTest
     @ValueSource(
         strings = {
-            "/gravitee/credential.other.token:value",
-            "/GRAVITEE/credential.other.token:value?renewable=true",
-            "/gravitee/credential.other.token",
-            "/gravitee/credential.",
+            "/gravitee/my-secret:value",
+            "/gravitee/my-secret:value?renewable=true",
+            "/gravitee/my-secret:value?envId=",
+            "/gravitee/my-secret:value?envId=env-1&envId=env-2",
+            "/gravitee/my-secret:value?envid=env-1",
+            "/gravitee/env-1/my-secret:value?envId=env-1",
+            "/gravitee/my-secret?envId=env-1",
+            "/gravitee/my-secret:token?envId=env-1",
+            "/gravitee/credential.other.token?envId=env-1",
+        }
+    )
+    void should_reject_a_gravitee_store_reference_that_is_not_a_secret_id_then_one_environment(String reference) {
+        assertThatThrownBy(() -> SecretReference.external("token", reference))
+            .isInstanceOf(InvalidCredentialException.class)
+            .hasMessage(
+                "The reference of token must have the form /gravitee/{key}:value?envId={envId}, such as /gravitee/my-secret:value?envId=my-env."
+            );
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "/gravitee/my-secret:value?envId=env-1", "/gravitee/my-secret:value?renewable=true&envId=env-1" })
+    void should_read_the_environment_of_a_gravitee_store_reference(String reference) {
+        assertThat(SecretReference.external("token", reference).graviteeEnvironmentId()).isEqualTo("env-1");
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = {
+            "/gravitee/credential.other.token:value?envId=env-1",
+            "/GRAVITEE/credential.other.token:value?renewable=true&envId=env-1",
+            "/gravitee/credential.:value?envId=env-1",
         }
     )
     void should_reject_a_reference_to_the_secret_of_a_credential(String reference) {
         assertThatThrownBy(() -> SecretReference.external("token", reference))
             .isInstanceOf(InvalidCredentialException.class)
             .hasMessageContaining("another credential");
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = {
+            "/gravitee/my-credential.token:value?envId=env-1",
+            "/gravitee/Credential.x:value?envId=env-1",
+            "/vault/credential.other.token:value",
+        }
+    )
+    void should_accept_a_reference_that_only_looks_like_a_credential_secret(String reference) {
+        assertThat(SecretReference.external("token", reference).reference()).isEqualTo(reference);
     }
 
     @ParameterizedTest
@@ -170,16 +212,10 @@ class SecretReferenceTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "/gravitee/my-credential.token:value", "/vault/credential.other.token:value", "/gravitee/Credential.x:value" })
-    void should_accept_a_reference_that_only_looks_like_a_credential_secret(String reference) {
-        assertThat(SecretReference.external("token", reference).reference()).isEqualTo(reference);
-    }
-
-    @ParameterizedTest
     @CsvSource(
         {
-            "/gravitee/my-secret:value,true",
-            "/Gravitee/my-secret:value,true",
+            "/gravitee/my-secret:value?envId=env-1,true",
+            "/Gravitee/my-secret:value?envId=env-1,true",
             "/graviteeio/my-secret:value,false",
             "/vault/gravitee/x:y,false",
         }

@@ -69,6 +69,12 @@
         </dependency>
 
         <dependency>
+            <groupId>io.gravitee.apim.plugin</groupId>
+            <artifactId>gravitee-apim-plugin-secrets</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.gravitee.plugin</groupId>
             <artifactId>gravitee-plugin-common-configurations</artifactId>
         </dependency>

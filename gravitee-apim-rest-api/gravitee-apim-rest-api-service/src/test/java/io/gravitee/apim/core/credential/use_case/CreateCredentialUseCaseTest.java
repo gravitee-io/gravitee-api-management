@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.credential.use_case;
 
+import static io.gravitee.apim.core.credential.use_case.CredentialFixture.ENV_ID;
 import static io.gravitee.apim.core.credential.use_case.CredentialFixture.FOREIGN_USER_ID;
 import static io.gravitee.apim.core.credential.use_case.CredentialFixture.NEXT_YEAR;
 import static io.gravitee.apim.core.credential.use_case.CredentialFixture.OTHER_USER_ID;
@@ -108,7 +109,7 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { "/gravitee/other-secret:value", "/GRAVITEE/my-secret:value" })
+        @ValueSource(strings = { "/gravitee/other-secret:value?envId=" + ENV_ID, "/GRAVITEE/my-secret:value?envId=" + ENV_ID })
         void should_require_the_secret_read_permission_to_reference_a_secret_gravitee_stores(String reference) {
             var withoutRead = fixture.ownerWithSecretAccess(SecretAccess.CREATE, SecretAccess.UPDATE, SecretAccess.DELETE);
             var command = NewCredentialCommand.builder()
@@ -130,7 +131,7 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
             var command = NewCredentialCommand.builder()
                 .name("OpenAI")
                 .strategy(CredentialStrategy.BEARER)
-                .references(Map.of("token", "/gravitee/credential.other.token:value"))
+                .references(Map.of("token", "/gravitee/credential.other.token:value?envId=" + ENV_ID))
                 .build();
 
             assertThatThrownBy(() ->
@@ -138,6 +139,22 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
             )
                 .isInstanceOf(InvalidCredentialException.class)
                 .hasMessageContaining("another credential");
+            assertThat(fixture.credentialCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_not_reference_a_secret_of_another_environment() {
+            var command = NewCredentialCommand.builder()
+                .name("OpenAI")
+                .strategy(CredentialStrategy.BEARER)
+                .references(Map.of("token", "/gravitee/my-secret:value?envId=other-env"))
+                .build();
+
+            assertThatThrownBy(() ->
+                fixture.createCredentialUseCase.execute(new CreateCredentialUseCase.Input("credential-1", fixture.admin(), command))
+            )
+                .isInstanceOf(InvalidCredentialException.class)
+                .hasMessageContaining("another environment");
             assertThat(fixture.credentialCrudService.storage()).isEmpty();
         }
 
@@ -151,7 +168,7 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
                         NewCredentialCommand.builder()
                             .name("OpenAI")
                             .strategy(CredentialStrategy.BEARER)
-                            .references(Map.of("token", "/gravitee/my-secret:value"))
+                            .references(Map.of("token", "/gravitee/my-secret:value?envId=" + ENV_ID))
                             .build()
                     )
                 )
@@ -240,7 +257,7 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
             var command = NewCredentialCommand.builder()
                 .name("OpenAI")
                 .strategy(CredentialStrategy.BEARER)
-                .references(Map.of("token", "{#secrets.get('/gravitee/credential.other.token', 'value')}"))
+                .references(Map.of("token", "{#secrets.get('/gravitee/credential.other.token', 'value?envId=" + ENV_ID + "')}"))
                 .build();
 
             assertThatThrownBy(() ->
@@ -289,12 +306,15 @@ class CreateCredentialUseCaseTest extends AbstractUseCaseTest {
             assertThat(credential.secretReferences()).containsOnly(
                 Map.entry(
                     "clientId",
-                    new SecretReference("/gravitee/credential.credential-1.clientId:value?renewable=true&reloadOnChange=true", "secret-1")
+                    new SecretReference(
+                        "/gravitee/credential.credential-1.clientId:value?renewable=true&reloadOnChange=true&envId=" + ENV_ID,
+                        "secret-1"
+                    )
                 ),
                 Map.entry(
                     "clientSecret",
                     new SecretReference(
-                        "/gravitee/credential.credential-1.clientSecret:value?renewable=true&reloadOnChange=true",
+                        "/gravitee/credential.credential-1.clientSecret:value?renewable=true&reloadOnChange=true&envId=" + ENV_ID,
                         "secret-2"
                     )
                 )

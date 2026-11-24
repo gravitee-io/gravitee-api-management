@@ -308,7 +308,7 @@ class EnvelopeSecretValueEncryptorTest {
 
             assertThatThrownBy(() -> unavailable.encrypt(SECRET, "sk-ant-123"))
                 .isInstanceOf(SecretEncryptionUnavailableException.class)
-                .hasMessageContaining(EnvelopeSecretValueEncryptor.KEY_PROPERTY);
+                .hasMessageContaining(StaticKeyEncryptionKeyProvider.KEY_PROPERTY);
             assertThatThrownBy(() -> unavailable.decrypt(SECRET, "v1:key:AAAA")).isInstanceOf(SecretEncryptionUnavailableException.class);
             assertThat(keys.all()).isEmpty();
         }
@@ -320,7 +320,7 @@ class EnvelopeSecretValueEncryptorTest {
             assertThat(appender.list).hasSize(1);
             assertThat(appender.list.getFirst().getLevel()).isEqualTo(Level.WARN);
             assertThat(appender.list.getFirst().getFormattedMessage()).contains(
-                EnvelopeSecretValueEncryptor.KEY_PROPERTY,
+                StaticKeyEncryptionKeyProvider.KEY_PROPERTY,
                 "is not set",
                 "Set it to a base64-encoded 256-bit key."
             );
@@ -336,7 +336,7 @@ class EnvelopeSecretValueEncryptorTest {
             assertThat(appender.list.getFirst().getLevel()).isEqualTo(Level.ERROR);
             assertThat(appender.list.getFirst().getFormattedMessage())
                 .contains(
-                    EnvelopeSecretValueEncryptor.KEY_PROPERTY,
+                    StaticKeyEncryptionKeyProvider.KEY_PROPERTY,
                     "must decode to 32 bytes, not 16",
                     "Set it to a base64-encoded 256-bit key."
                 )
@@ -352,7 +352,7 @@ class EnvelopeSecretValueEncryptorTest {
             assertThat(appender.list).hasSize(1);
             assertThat(appender.list.getFirst().getLevel()).isEqualTo(Level.ERROR);
             assertThat(appender.list.getFirst().getFormattedMessage())
-                .contains(EnvelopeSecretValueEncryptor.KEY_PROPERTY, "does not match")
+                .contains(StaticKeyEncryptionKeyProvider.KEY_PROPERTY, "does not match")
                 .doesNotContain(OTHER_KEK, KEK);
         }
 
