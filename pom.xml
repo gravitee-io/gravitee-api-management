@@ -70,7 +70,7 @@
     <gravitee-node.version>9.20.1</gravitee-node.version>
     <gravitee-notifier-api.version>2.0.2</gravitee-notifier-api.version>
     <gravitee-platform-repository-api.version>2.0.0</gravitee-platform-repository-api.version>
-    <gravitee-plugin.version>5.2.0-alpha.1</gravitee-plugin.version>
+    <gravitee-plugin.version>5.2.0</gravitee-plugin.version>
     <gravitee-plugin-common-configurations.version>1.5.1</gravitee-plugin-common-configurations.version>
     <gravitee-policy-api.version>2.0.0</gravitee-policy-api.version>
     <gravitee-reporter-api.version>3.6.0</gravitee-reporter-api.version>
