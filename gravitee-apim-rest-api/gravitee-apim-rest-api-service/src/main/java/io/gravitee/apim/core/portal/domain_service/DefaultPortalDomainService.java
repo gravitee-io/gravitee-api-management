@@ -38,18 +38,26 @@ public class DefaultPortalDomainService {
     private final PortalContentOwnershipDomainService portalContentOwnershipDomainService;
 
     /**
-     * Creates the environment's default portal when it has no portal at all. A portal the environment
-     * already has is never marked default: one created by the Automation API stays as it is. The portal is
+     * Creates the environment's default portal when it has no portal at all; an existing default portal is
+     * returned whatever other portals the environment holds. A portal the environment already has is never
+     * marked default: one created by the Automation API stays as it is. The portal is
      * created with its real URL only: while that URL cannot be resolved (a Cloud environment whose access
      * points are not stored yet, an invalid portal URL setting), creation is postponed to a later call.
      * A portal created here receives the environment's content that names no existing portal.
      *
      * @return the default portal, or empty when the environment's only portal is not the default one or
      *     its creation is postponed
-     * @throws SeveralPortalsInEnvironmentException when the environment has several portals
+     * @throws SeveralPortalsInEnvironmentException when the environment has several portals and no default one
      */
     public Optional<Portal> ensureDefault(String organizationId, String environmentId) {
-        var portals = findAtMostOnePortal(environmentId);
+        var portals = portalCrudService.findByEnvironmentId(environmentId);
+        var existingDefault = portals.stream().filter(Portal::isDefault).findFirst();
+        if (existingDefault.isPresent()) {
+            return existingDefault;
+        }
+        if (portals.size() > 1) {
+            throw severalPortals(environmentId, portals);
+        }
         if (portals.isEmpty()) {
             var url = portalUrlDomainService.resolveDefaultPortalUrl(environmentId);
             if (url.isEmpty()) {
@@ -73,9 +81,6 @@ public class DefaultPortalDomainService {
             return Optional.of(created);
         }
         var portal = portals.getFirst();
-        if (portal.isDefault()) {
-            return Optional.of(portal);
-        }
         log.debug(
             "Environment [{}] has a single portal [{}] that is not the default one: no default portal created",
             environmentId,
@@ -152,15 +157,19 @@ public class DefaultPortalDomainService {
     private List<Portal> findAtMostOnePortal(String environmentId) {
         var portals = portalCrudService.findByEnvironmentId(environmentId);
         if (portals.size() > 1) {
-            throw new SeveralPortalsInEnvironmentException(
-                environmentId,
-                portals
-                    .stream()
-                    .map(portal -> "[%s] \"%s\"".formatted(portal.getId(), portal.getName()))
-                    .toList()
-            );
+            throw severalPortals(environmentId, portals);
         }
         return portals;
+    }
+
+    private static SeveralPortalsInEnvironmentException severalPortals(String environmentId, List<Portal> portals) {
+        return new SeveralPortalsInEnvironmentException(
+            environmentId,
+            portals
+                .stream()
+                .map(portal -> "[%s] \"%s\"".formatted(portal.getId(), portal.getName()))
+                .toList()
+        );
     }
 
     private Optional<URL> resolveUrl(String environmentId) {

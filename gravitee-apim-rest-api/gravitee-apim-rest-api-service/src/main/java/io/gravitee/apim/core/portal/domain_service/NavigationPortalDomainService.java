@@ -40,7 +40,7 @@ public class NavigationPortalDomainService {
     /**
      * @return the environment's default portal, created when the environment has no portal and its URL resolves
      * @throws NavigationPortalNotResolvedException when the environment's only portal comes from the Automation
-     *     API, while its default portal is postponed, or when it has several portals
+     *     API, while its default portal is postponed, or when it has several portals and no default one
      */
     public Portal resolve(String organizationId, String environmentId) {
         try {
