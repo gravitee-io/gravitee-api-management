@@ -100,7 +100,7 @@
 
         <dependency>
             <groupId>io.gravitee.apim.gateway.handlers</groupId>
-            <artifactId>gravitee-apim-gateway-handlers-guardian</artifactId>
+            <artifactId>gravitee-apim-gateway-handlers-guardrail</artifactId>
             <version>${project.version}</version>
         </dependency>
 

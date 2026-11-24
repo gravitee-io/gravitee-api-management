@@ -40,7 +40,7 @@ class InternalFlowResolverTest {
 
     @Test
     void should_provide_the_internal_flow() {
-        final Flow internalFlow = Flow.builder().name("guardians").build();
+        final Flow internalFlow = Flow.builder().name("guardrails").build();
         when(api.getInternalFlow()).thenReturn(internalFlow);
 
         final InternalFlowResolver cut = new InternalFlowResolver(api);
@@ -50,7 +50,7 @@ class InternalFlowResolverTest {
 
     @Test
     void should_name_the_internal_flow_internal_when_it_has_no_name() {
-        final Step step = Step.builder().policy("guardian-policy").build();
+        final Step step = Step.builder().policy("guardrail-policy").build();
         when(api.getInternalFlow()).thenReturn(Flow.builder().request(List.of(step)).build());
 
         final InternalFlowResolver cut = new InternalFlowResolver(api);
@@ -83,7 +83,7 @@ class InternalFlowResolverTest {
     void should_resolve_the_internal_flow_without_evaluating_its_selectors_or_condition() {
         // The context is not stubbed: neither the selector nor the condition can be evaluated against it.
         final Flow internalFlow = Flow.builder()
-            .name("guardians")
+            .name("guardrails")
             .selectors(
                 List.of(
                     HttpSelector.builder().path("/never-called").build(),

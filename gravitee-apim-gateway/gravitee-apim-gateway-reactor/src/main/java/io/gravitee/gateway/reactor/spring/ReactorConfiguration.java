@@ -44,7 +44,7 @@ import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPre
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactoryManager;
 import io.gravitee.gateway.reactive.reactor.v4.secrets.ApiV4DefinitionSecretRefsFinder;
-import io.gravitee.gateway.reactive.reactor.v4.secrets.GuardianDefinitionSecretRefsFinder;
+import io.gravitee.gateway.reactive.reactor.v4.secrets.GuardrailDefinitionSecretRefsFinder;
 import io.gravitee.gateway.reactive.reactor.v4.secrets.NativeApiV4DefinitionSecretRefsFinder;
 import io.gravitee.gateway.reactive.reactor.v4.secrets.SharedPolicyGroupDefinitionSecretRefsFinder;
 import io.gravitee.gateway.reactor.Reactor;
@@ -291,8 +291,8 @@ public class ReactorConfiguration {
     }
 
     @Bean
-    public DefinitionSecretRefsFinder<?> guardianDefinitionSecretRefsFinder() {
-        return new GuardianDefinitionSecretRefsFinder();
+    public DefinitionSecretRefsFinder<?> guardrailDefinitionSecretRefsFinder() {
+        return new GuardrailDefinitionSecretRefsFinder();
     }
 
     @Bean
