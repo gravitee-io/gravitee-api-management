@@ -275,7 +275,8 @@ public class GraviteeCorsConfiguration extends CorsConfiguration {
         private boolean isPortalTarget(final Event<AccessPointEvent, AccessPoint> event) {
             return (
                 graviteeCorsConfiguration.parameterReferenceType == ParameterReferenceType.ENVIRONMENT &&
-                event.content().getTarget() == AccessPoint.Target.PORTAL
+                (event.content().getTarget() == AccessPoint.Target.PORTAL ||
+                    event.content().getTarget() == AccessPoint.Target.PORTAL_INSTANCE)
             );
         }
 

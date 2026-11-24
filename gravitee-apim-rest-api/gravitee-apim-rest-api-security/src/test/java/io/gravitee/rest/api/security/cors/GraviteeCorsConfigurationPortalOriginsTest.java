@@ -21,8 +21,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.access_point.model.AccessPoint;
+import io.gravitee.apim.core.access_point.model.AccessPointEvent;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
@@ -92,14 +95,64 @@ class GraviteeCorsConfigurationPortalOriginsTest {
         assertThat(cors.checkOrigin("https://docs.acme.io")).isNull();
     }
 
+    @Test
+    void should_allow_a_portal_access_point_created_after_startup() {
+        var events = new EventManagerImpl();
+        var cors = corsFor(UNDEFINED_REFERENCE_ID, events);
+
+        events.publishEvent(AccessPointEvent.CREATED, portalAccessPoint("env-id", "partners.acme.io"));
+
+        assertThat(cors.checkOrigin("https://partners.acme.io")).isEqualTo("https://partners.acme.io");
+    }
+
+    @Test
+    void should_allow_a_portal_access_point_of_the_environment_created_after_startup() {
+        when(
+            parameterService.find(any(), eq(Key.PORTAL_HTTP_CORS_ALLOW_ORIGIN), eq("env-id"), eq(ParameterReferenceType.ENVIRONMENT))
+        ).thenReturn(RESTRICTED_ORIGIN);
+        var events = new EventManagerImpl();
+        var cors = corsFor("env-id", events);
+
+        events.publishEvent(AccessPointEvent.CREATED, portalAccessPoint("env-id", "partners.acme.io"));
+        events.publishEvent(AccessPointEvent.CREATED, portalAccessPoint("another-env-id", "docs.acme.io"));
+
+        assertThat(cors.checkOrigin("https://partners.acme.io")).isEqualTo("https://partners.acme.io");
+        assertThat(cors.checkOrigin("https://docs.acme.io")).isNull();
+    }
+
+    @Test
+    void should_refuse_a_portal_access_point_once_it_is_deleted() {
+        when(installationAccessQueryService.getPortalInstanceUrls()).thenReturn(List.of("https://partners.acme.io"));
+        var events = new EventManagerImpl();
+        var cors = corsFor(UNDEFINED_REFERENCE_ID, events);
+
+        events.publishEvent(AccessPointEvent.DELETED, portalAccessPoint("env-id", "partners.acme.io"));
+
+        assertThat(cors.checkOrigin("https://partners.acme.io")).isNull();
+    }
+
     private GraviteeCorsConfiguration corsFor(String referenceId) {
+        return corsFor(referenceId, eventManager);
+    }
+
+    private GraviteeCorsConfiguration corsFor(String referenceId, EventManager events) {
         return new GraviteeCorsConfiguration(
             environment,
             parameterService,
             installationAccessQueryService,
-            eventManager,
+            events,
             referenceId,
             ParameterReferenceType.ENVIRONMENT
         );
+    }
+
+    private static AccessPoint portalAccessPoint(String environmentId, String host) {
+        return AccessPoint.builder()
+            .referenceType(AccessPoint.ReferenceType.ENVIRONMENT)
+            .referenceId(environmentId)
+            .target(AccessPoint.Target.PORTAL_INSTANCE)
+            .host(host)
+            .secured(true)
+            .build();
     }
 }
