@@ -49,7 +49,7 @@ public class SecretReferencePermissionDomainService {
 
     // Mirrors the gateway's RefParser, which finds a reference anywhere in a string, plugin configurations included.
     private static final Pattern SECRETS_GET = Pattern.compile("\\{#secrets\\.get\\(.*?\\)}", Pattern.DOTALL);
-    private static final Pattern GATEWAY_TRIMMED = Pattern.compile("^[ ']+|[ ']+$");
+    private static final Pattern GATEWAY_TRIMMED = Pattern.compile("(^[ ']+)|([ ']+$)");
     private static final String SECRET_SCHEME = "secret://";
 
     private final SecretExpressionParser expressionParser;
