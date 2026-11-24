@@ -19,6 +19,7 @@ import static io.gravitee.gateway.reactive.api.ExecutionPhase.MESSAGE_REQUEST;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.MESSAGE_RESPONSE;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.REQUEST;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
+import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_RESOLVED_PATH;
 import static io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChain.INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
@@ -29,6 +30,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpMessageExecutionContext;
@@ -58,6 +61,8 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -319,6 +324,110 @@ class FlowChainTest {
             "policy5-onResponse",
             "policy6-onResponse"
         );
+    }
+
+    @Test
+    void should_expose_the_http_selector_path_of_each_flow_to_its_request_policies() {
+        final Flow flowA = flowOnPath("/a", List.of(step()), List.of());
+        final Flow flowB = flowOnPath("/b", List.of(step()), List.of());
+        when(flowResolver.resolve(ctx)).thenReturn(Flowable.just(flowA, flowB));
+        buildPolicyChain("pc-flowA", flowA, REQUEST, resolvedPathRecorder("policyA"));
+        buildPolicyChain("pc-flowB", flowB, REQUEST, resolvedPathRecorder("policyB"));
+
+        cut.execute(ctx, REQUEST).test().assertResult();
+
+        assertThat(executionOrder).containsExactly("policyA-sees-/a", "policyB-sees-/b");
+    }
+
+    @Test
+    void should_expose_the_http_selector_path_of_the_flow_to_its_response_policies() {
+        final Flow flowA = flowOnPath("/a", List.of(), List.of(step()));
+        ctx.setInternalAttribute("flow." + FLOW_CHAIN_ID, List.of(flowA));
+        buildPolicyChain("pc-flowA", flowA, REQUEST);
+        buildPolicyChain("pc-flowA", flowA, RESPONSE, resolvedPathRecorder("policyA"));
+
+        cut.execute(ctx, RESPONSE).test().assertResult();
+
+        assertThat(executionOrder).containsExactly("policyA-sees-/a");
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = ExecutionPhase.class, names = { "MESSAGE_REQUEST", "MESSAGE_RESPONSE" })
+    void should_not_expose_the_http_selector_path_on_message_phases(final ExecutionPhase phase) {
+        final Flow flowA = Flow.builder()
+            .selectors(List.of(HttpSelector.builder().path("/a").build()))
+            .publish(List.of(step()))
+            .subscribe(List.of(step()))
+            .build();
+        when(flowResolver.resolve(ctx)).thenReturn(Flowable.just(flowA));
+        buildPolicyChain("pc-flowA", flowA, phase, resolvedPathRecorder("policyA"));
+
+        cut.execute(ctx, phase).test().assertResult();
+
+        assertThat(executionOrder).containsExactly("policyA-sees-null");
+    }
+
+    @Test
+    void should_not_expose_the_path_of_a_previous_flow_to_a_flow_without_http_selector() {
+        final Flow flowA = flowOnPath("/a", List.of(step()), List.of());
+        final Flow flowWithoutHttpSelector = Flow.builder().selectors(List.of()).request(List.of(step())).build();
+        when(flowResolver.resolve(ctx)).thenReturn(Flowable.just(flowA, flowWithoutHttpSelector));
+        buildPolicyChain("pc-flowA", flowA, REQUEST, resolvedPathRecorder("policyA"));
+        buildPolicyChain("pc-flow-without-http-selector", flowWithoutHttpSelector, REQUEST, resolvedPathRecorder("policyB"));
+
+        cut.execute(ctx, REQUEST).test().assertResult();
+
+        assertThat(executionOrder).containsExactly("policyA-sees-/a", "policyB-sees-null");
+    }
+
+    @Test
+    void should_keep_the_resolved_path_when_a_flow_has_no_step_for_the_phase() {
+        final Flow flowA = flowOnPath("/a", List.of(step()), List.of());
+        final Flow flowWithResponseStepsOnly = flowOnPath("/b", List.of(), List.of(step()));
+        when(flowResolver.resolve(ctx)).thenReturn(Flowable.just(flowA, flowWithResponseStepsOnly));
+        buildPolicyChain("pc-flowA", flowA, REQUEST, resolvedPathRecorder("policyA"));
+        buildPolicyChain("pc-flowB", flowWithResponseStepsOnly, REQUEST);
+
+        cut.execute(ctx, REQUEST).test().assertResult();
+
+        assertThat((String) ctx.getAttribute(ATTR_RESOLVED_PATH)).isEqualTo("/a");
+    }
+
+    private static Flow flowOnPath(final String path, final List<Step> request, final List<Step> response) {
+        return Flow.builder().selectors(List.of(HttpSelector.builder().path(path).build())).request(request).response(response).build();
+    }
+
+    private static Step step() {
+        return Step.builder().policy("rate-limit").enabled(true).build();
+    }
+
+    private static HttpPolicy resolvedPathRecorder(final String id) {
+        return new HttpPolicy() {
+            @Override
+            public String id() {
+                return id;
+            }
+
+            @Override
+            public Completable onRequest(final HttpPlainExecutionContext ctx) {
+                return Completable.fromRunnable(() -> executionOrder.add(id + "-sees-" + ctx.getAttribute(ATTR_RESOLVED_PATH)));
+            }
+
+            @Override
+            public Completable onResponse(final HttpPlainExecutionContext ctx) {
+                return onRequest(ctx);
+            }
+
+            @Override
+            public Completable onMessageRequest(final HttpMessageExecutionContext ctx) {
+                return Completable.fromRunnable(() -> executionOrder.add(id + "-sees-" + ctx.getAttribute(ATTR_RESOLVED_PATH)));
+            }
+
+            @Override
+            public Completable onMessageResponse(final HttpMessageExecutionContext ctx) {
+                return onMessageRequest(ctx);
+            }
+        };
     }
 
     private static @NonNull DefaultExecutionContext buildExecutionContext() {
