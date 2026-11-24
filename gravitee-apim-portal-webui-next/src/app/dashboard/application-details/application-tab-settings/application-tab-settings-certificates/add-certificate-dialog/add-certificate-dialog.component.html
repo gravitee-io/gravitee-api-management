@@ -93,6 +93,25 @@
 
           <div class="add-certificate-dialog__certificate-input">
             <div class="add-certificate-dialog__section">
+              <span class="next-gen-h4" i18n="@@addCertificateCsrPasteLabel">Paste CSR</span>
+              <mat-form-field appearance="outline" class="add-certificate-dialog__field">
+                <mat-label i18n="@@addCertificateCsrPemLabel">CSR (PEM)</mat-label>
+                <textarea
+                  matInput
+                  formControlName="certificate"
+                  rows="6"
+                  placeholder="-----BEGIN CERTIFICATE REQUEST-----&#10;...&#10;-----END CERTIFICATE REQUEST-----"
+                  aria-label="PEM-encoded CSR"
+                  i18n-aria-label="@@addCertificateCsrPemAriaLabel"
+                  data-testid="csr-pem-input"
+                ></textarea>
+                @if (uploadForm.controls.certificate.hasError('required') && uploadForm.controls.certificate.touched) {
+                  <mat-error i18n="@@addCertificateCsrPemRequired">CSR is required.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="add-certificate-dialog__section">
               <span class="next-gen-h4" i18n="@@addCertificateCsrUploadFileLabel">Upload CSR file</span>
               <label class="add-certificate-dialog__file-label">
                 <input
@@ -110,25 +129,6 @@
               @if (fileName(); as name) {
                 <p class="add-certificate-dialog__file-name next-gen-small" data-testid="csr-file-name">{{ name }}</p>
               }
-            </div>
-
-            <div class="add-certificate-dialog__section">
-              <span class="next-gen-h4" i18n="@@addCertificateCsrPasteLabel">Or paste CSR</span>
-              <mat-form-field appearance="outline" class="add-certificate-dialog__field">
-                <mat-label i18n="@@addCertificateCsrPemLabel">CSR (PEM)</mat-label>
-                <textarea
-                  matInput
-                  formControlName="certificate"
-                  rows="6"
-                  placeholder="-----BEGIN CERTIFICATE REQUEST-----&#10;...&#10;-----END CERTIFICATE REQUEST-----"
-                  aria-label="PEM-encoded CSR"
-                  i18n-aria-label="@@addCertificateCsrPemAriaLabel"
-                  data-testid="csr-pem-input"
-                ></textarea>
-                @if (uploadForm.controls.certificate.hasError('required') && uploadForm.controls.certificate.touched) {
-                  <mat-error i18n="@@addCertificateCsrPemRequired">CSR is required.</mat-error>
-                }
-              </mat-form-field>
             </div>
           </div>
         }
@@ -288,7 +288,17 @@
   </mat-stepper>
 </mat-dialog-content>
 
-<mat-dialog-actions align="end">
+<mat-dialog-actions class="add-certificate-dialog__actions">
+  <button
+    mat-stroked-button
+    class="add-certificate-dialog__cancel"
+    [mat-dialog-close]="undefined"
+    type="button"
+    data-testid="certificate-cancel-button"
+    i18n="@@addCertificateCancelButton"
+  >
+    Cancel
+  </button>
   @if ((stepper()?.selectedIndex ?? 0) > 0) {
     <button
       mat-stroked-button
@@ -300,15 +310,6 @@
       Previous
     </button>
   }
-  <button
-    mat-stroked-button
-    [mat-dialog-close]="undefined"
-    type="button"
-    data-testid="certificate-cancel-button"
-    i18n="@@addCertificateCancelButton"
-  >
-    Cancel
-  </button>
   @if ((stepper()?.selectedIndex ?? 0) === 0) {
     <button
       mat-flat-button

@@ -16,6 +16,16 @@
 @use '../../../../../../scss/theme' as app-theme;
 
 .add-certificate-dialog {
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  &__cancel {
+    margin-right: auto;
+  }
+
   &__content {
     display: flex;
     flex-direction: column;
