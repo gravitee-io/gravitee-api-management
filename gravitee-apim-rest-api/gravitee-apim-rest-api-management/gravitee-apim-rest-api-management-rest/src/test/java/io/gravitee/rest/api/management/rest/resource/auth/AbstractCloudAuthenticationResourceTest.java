@@ -51,6 +51,8 @@ import io.gravitee.rest.api.service.common.JWTHelper;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Form;
 import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
@@ -297,8 +299,6 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
     }
 
     @Test
-<<<<<<< HEAD
-=======
     public void shouldNotAuthenticateWithFormPostIfCockpitIsNotEnabled() {
         System.clearProperty(getPropertyPrefix() + ".enabled");
         final Response response = postToken("test");
@@ -336,7 +336,6 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
     }
 
     @Test
->>>>>>> 3c3b4d1 (fix: change for a private ticket (PORTAL-374))
     public void shouldRecordConnectionWhenAuthenticatingToConsole() {
         UserEntity userEntity = mockUserEntity();
 
@@ -388,6 +387,10 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
         final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
         verify(cookieGenerator, never()).generate(any(), any());
+    }
+
+    private Response postToken(String token) {
+        return rootTarget(PATH).request().post(Entity.form(new Form().param("token", token)));
     }
 
     /** The cookie generator is a mock in the test context, so the session cookie is read from what the resource asked it to build. */
