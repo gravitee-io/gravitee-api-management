@@ -245,8 +245,9 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
             .orElseThrow(() -> new ApiNotFoundException(apiId));
     }
 
+    // A blank portalId names no portal, like a missing one
     private static PortalId toPortalId(String portalId) {
-        return portalId == null ? null : PortalMapper.INSTANCE.toPortalId(portalId);
+        return portalId == null || portalId.isBlank() ? null : PortalMapper.INSTANCE.toPortalId(portalId);
     }
 
     @Path("{navId}")

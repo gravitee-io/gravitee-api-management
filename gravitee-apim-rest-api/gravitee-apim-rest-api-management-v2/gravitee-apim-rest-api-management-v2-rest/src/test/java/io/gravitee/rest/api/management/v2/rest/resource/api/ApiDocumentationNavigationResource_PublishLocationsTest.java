@@ -190,6 +190,21 @@ class ApiDocumentationNavigationResource_PublishLocationsTest extends AbstractRe
     }
 
     @Test
+    void should_return_400_when_the_portal_is_blank() {
+        assertThat(rootTarget().queryParam("portalId", "").request().get()).hasStatus(BAD_REQUEST_400);
+        assertThat(rootTarget().queryParam("portalId", " ").request().get()).hasStatus(BAD_REQUEST_400);
+    }
+
+    @Test
+    void should_return_400_for_a_portal_managed_through_the_automation_api() {
+        var automationPortalId = portalCrudService
+            .create(Portal.create(ENVIRONMENT, ORGANIZATION, "Automation Portal", PortalFixtures.PORTAL_URL))
+            .getId();
+
+        assertThat(rootTarget().queryParam("portalId", automationPortalId.toString()).request().get()).hasStatus(BAD_REQUEST_400);
+    }
+
+    @Test
     void should_return_404_for_an_unknown_portal() {
         assertThat(rootTarget().queryParam("portalId", PortalId.random().toString()).request().get()).hasStatus(NOT_FOUND_404);
         assertThat(rootTarget().queryParam("portalId", "not-a-uuid").request().get()).hasStatus(NOT_FOUND_404);

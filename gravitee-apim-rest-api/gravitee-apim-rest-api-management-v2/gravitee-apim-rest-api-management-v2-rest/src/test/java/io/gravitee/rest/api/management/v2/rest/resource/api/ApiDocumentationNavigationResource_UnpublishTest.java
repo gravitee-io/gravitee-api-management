@@ -229,6 +229,26 @@ class ApiDocumentationNavigationResource_UnpublishTest extends AbstractResourceT
     }
 
     @Test
+    void should_return_400_when_the_portal_is_blank() {
+        var section = aSection();
+        var listing = aListing(section);
+        portalNavigationItemCrudService.initWith(List.of(section, listing));
+
+        assertThat(unpublishFrom("")).hasStatus(BAD_REQUEST_400);
+        assertThat(unpublishFrom(" ")).hasStatus(BAD_REQUEST_400);
+        assertThat(listing.getPublished()).isTrue();
+    }
+
+    @Test
+    void should_return_400_for_a_portal_managed_through_the_automation_api() {
+        var automationPortalId = portalCrudService
+            .create(Portal.create(ENVIRONMENT, ORGANIZATION, "Automation Portal", PortalFixtures.PORTAL_URL))
+            .getId();
+
+        assertThat(unpublishFrom(automationPortalId.toString())).hasStatus(BAD_REQUEST_400);
+    }
+
+    @Test
     void should_return_404_for_an_unknown_portal() {
         var section = aSection();
         var listing = aListing(section);
