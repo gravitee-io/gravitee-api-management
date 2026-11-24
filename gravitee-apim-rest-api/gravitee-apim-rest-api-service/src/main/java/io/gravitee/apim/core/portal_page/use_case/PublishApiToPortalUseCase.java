@@ -52,10 +52,8 @@ public class PublishApiToPortalUseCase {
             throw InvalidPortalNavigationItemDataException.fieldIsEmpty("sectionId");
         }
         var section = apiOwnedNavigationDomainService.requirePublishLocation(input.environmentId(), input.sectionId());
-        var portal = navigationPortalDomainService.requireReference(
-            input.environmentId(),
-            ((NavigationItemReference.PortalReference) section.getReference()).portalId()
-        );
+        var sectionPortalId = ((NavigationItemReference.PortalReference) section.getReference()).portalId();
+        var portal = navigationPortalDomainService.requireReference(input.environmentId(), sectionPortalId);
         var listings = apiOwnedNavigationDomainService.findStandaloneListings(input.environmentId(), input.apiId(), portal);
         if (listings.stream().anyMatch(listing -> Boolean.TRUE.equals(listing.getPublished()))) {
             throw InvalidPortalNavigationItemDataException.apiIdAlreadyExists(input.apiId());
