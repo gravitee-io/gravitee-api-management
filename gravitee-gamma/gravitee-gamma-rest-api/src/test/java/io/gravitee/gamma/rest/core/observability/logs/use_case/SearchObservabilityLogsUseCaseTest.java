@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
@@ -655,12 +656,13 @@ class SearchObservabilityLogsUseCaseTest {
         @Test
         void should_reject_a_malformed_additional_metric_name_naming_it() {
             var malformed = "additional-metrics.keyword_bad\"name";
+            when(filterRegistry.nameRefusal(malformed)).thenReturn(DYNAMIC_SPECS.nameRefusal(malformed));
             var filters = List.of(new FilterCondition(malformed, FilterOperator.EQ, List.of("x")));
 
             assertThatThrownBy(() -> useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20)))
-                .hasMessage("Filter '" + malformed + "' is not supported by this backend")
+                .hasMessage("Filter '" + malformed + "' is not a valid field name: " + AdditionalMetricField.ADDITIONAL_METRIC_NAME_RULE)
                 .extracting("technicalCode")
-                .isEqualTo("observability.filter.unknown_name");
+                .isEqualTo("observability.filter.invalid_name");
             verifyNoInteractions(logsDataPort);
         }
 

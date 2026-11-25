@@ -129,7 +129,14 @@ public class ObservabilityFilterValidator {
         if (spec != null) {
             return spec;
         }
-        return filterRegistry.specFor(name).orElseThrow(() -> UnsupportedObservabilityFilterException.unknownName(name));
+        return filterRegistry
+            .specFor(name)
+            .orElseThrow(() ->
+                filterRegistry
+                    .nameRefusal(name)
+                    .map(rule -> UnsupportedObservabilityFilterException.invalidName(name, rule))
+                    .orElseGet(() -> UnsupportedObservabilityFilterException.unknownName(name))
+            );
     }
 
     private FilterSpec applicableSpec(FilterCondition condition, Signal signal, Map<String, FilterSpec> specsByName) {
