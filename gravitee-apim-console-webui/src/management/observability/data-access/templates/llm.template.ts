@@ -61,8 +61,8 @@ export const LLM_TEMPLATE: DashboardTemplate = {
       },
       {
         id: 'llm-average-cost-per-request',
-        title: 'Average cost per request',
-        description: 'Average cost incurred per LLM request.',
+        title: 'Average cost per LLM call',
+        description: 'Average cost incurred per LLM call.',
         type: 'stats',
         layout: { cols: 1, rows: 1, y: 3, x: 2 },
         request: {
@@ -72,8 +72,8 @@ export const LLM_TEMPLATE: DashboardTemplate = {
       },
       {
         id: 'llm-average-tokens-per-request',
-        title: 'Average tokens per request',
-        description: 'Average number of tokens consumed per LLM request.',
+        title: 'Average tokens per LLM call',
+        description: 'Average number of tokens consumed per LLM call.',
         type: 'stats',
         layout: { cols: 1, rows: 1, y: 1, x: 0 },
         request: {

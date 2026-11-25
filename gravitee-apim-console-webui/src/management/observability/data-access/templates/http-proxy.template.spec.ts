@@ -67,4 +67,15 @@ describe('Dashboard templates', () => {
       'llm-total-tokens-per-model': ['SUM', 'SUM'],
     });
   });
+
+  it('should label every average of the LLM dashboard per LLM call', () => {
+    const averages = widgetsOf(LLM_TEMPLATE).filter(widget =>
+      (widget.request?.metrics ?? []).some(metric => metric.measures.includes('AVG')),
+    );
+
+    expect(averages.map(({ title, description }) => ({ title, description }))).toEqual([
+      { title: 'Average cost per LLM call', description: 'Average cost incurred per LLM call.' },
+      { title: 'Average tokens per LLM call', description: 'Average number of tokens consumed per LLM call.' },
+    ]);
+  });
 });
