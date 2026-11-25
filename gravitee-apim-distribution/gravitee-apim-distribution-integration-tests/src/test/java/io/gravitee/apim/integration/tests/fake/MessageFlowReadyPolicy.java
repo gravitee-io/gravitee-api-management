@@ -59,20 +59,16 @@ public class MessageFlowReadyPolicy implements Policy {
      * @return the observable indicating that the message flow is ready.
      */
     public static Completable readyObs(Object id) {
-        return Completable.defer(() -> {
-            while (true) {
-                final ReplaySubject<Void> obs = readyObsMap.get(id);
-                if (obs != null) {
-                    // Even if we capture the message flow subscription, it could take time to effectively be connected to the backend. Apply a small delay to avoid side effects.
-                    return obs
-                        .ignoreElements()
-                        .doOnComplete(() -> log.info("Message flow should be ready"))
-                        .delaySubscription(100, TimeUnit.MILLISECONDS, Schedulers.newThread());
-                } else {
-                    Thread.sleep(5);
-                }
-            }
-        }).subscribeOn(Schedulers.newThread());
+        // Never wait in a loop here: a gateway replaces the newThread scheduler with its event loop for the whole JVM,
+        // so a sleeping wait blocks the event loop that has to start the message flow.
+        return Completable.defer(() ->
+            readyObsMap
+                .computeIfAbsent(id, key -> ReplaySubject.create())
+                .ignoreElements()
+                .doOnComplete(() -> log.info("Message flow should be ready"))
+                // Even if we capture the message flow subscription, it could take time to effectively be connected to the backend. Apply a small delay to avoid side effects.
+                .delay(100, TimeUnit.MILLISECONDS, Schedulers.newThread())
+        );
     }
 
     private void completeReadyObs(MessageExecutionContext ctx) {
