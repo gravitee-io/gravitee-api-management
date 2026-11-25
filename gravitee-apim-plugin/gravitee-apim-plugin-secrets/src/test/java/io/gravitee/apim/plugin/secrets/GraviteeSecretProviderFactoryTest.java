@@ -167,6 +167,19 @@ class GraviteeSecretProviderFactoryTest {
             .assertError(err -> err instanceof SecretManagerException && err.getMessage().contains("bridge client"));
     }
 
+    @Test
+    void should_create_a_provider_over_the_decrypting_bean_the_gateway_already_has() throws TechnicalException {
+        connect();
+        givenSecretRepositories();
+        var secretValues = mock(DecryptingSecretValueRepository.class);
+        when(secretValues.findValue("env-1", "s-1")).thenReturn(Optional.of("sk-live-123"));
+        gateway.getBeanFactory().registerSingleton("graviteeSecretValueRepository", secretValues);
+
+        var provider = factory.create(configuration("not-a-key")).start();
+
+        assertThat(provider.resolve(LLM_KEY).blockingGet().asMap().get("value").asString()).isEqualTo("sk-live-123");
+    }
+
     private void connect() {
         factory.connect(
             gateway.getBeanProvider(SecretRepository.class),

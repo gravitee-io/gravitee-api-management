@@ -75,6 +75,9 @@ public class GraviteeSecretProviderFactory implements SecretProviderFactory<Grav
             SecretValueRepository bridge = connected.secretValueRepository().getIfAvailable();
             return bridge == null ? GraviteeSecretProvider.refusing(NO_BRIDGE_SECRETS) : GraviteeSecretProvider.throughBridge(bridge);
         }
+        if (connected.secretValueRepository().getIfAvailable() instanceof DecryptingSecretValueRepository secretValues) {
+            return GraviteeSecretProvider.decrypting(secretValues);
+        }
         return GraviteeSecretProvider.decrypting(
             encryptionKey(configuration, connected.sharedEncryptionKey()),
             connected.secretRepository().getIfAvailable(),
