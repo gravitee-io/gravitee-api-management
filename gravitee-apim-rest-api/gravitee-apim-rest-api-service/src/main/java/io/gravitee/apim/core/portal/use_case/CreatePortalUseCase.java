@@ -65,11 +65,13 @@ public class CreatePortalUseCase {
             throw new PortalLimitReachedException(quota.limit());
         }
         portalNameDomainService.ensureUnique(environmentId, name, null);
-        var accessPointId = portalAddressDomainService
-            .sharedAccessPoint(environmentId)
-            .orElseThrow(() -> new ValidationDomainException("The environment has no valid portal URL to serve the portal at"));
+        // On a multi-tenant installation, Cloud owns the access points: the portal gets none.
+        var accessPointId = portalAddressDomainService.sharedAccessPoint(environmentId);
+        if (accessPointId.isEmpty() && portalAddressDomainService.assignsAccessPoints()) {
+            throw new ValidationDomainException("The environment has no valid portal URL to serve the portal at");
+        }
 
-        var created = portalCrudService.create(Portal.createFromConsole(environmentId, organizationId, name, accessPointId));
+        var created = portalCrudService.create(Portal.createFromConsole(environmentId, organizationId, name, accessPointId.orElse(null)));
         seedOrUndo(organizationId, environmentId, created);
         return new Output(portalSummaryDomainService.summarize(environmentId, List.of(created)).getFirst());
     }

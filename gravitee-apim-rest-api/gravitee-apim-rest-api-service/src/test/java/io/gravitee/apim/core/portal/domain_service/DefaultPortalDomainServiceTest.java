@@ -22,6 +22,8 @@ import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.PortalAddressDomainServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
+import io.gravitee.apim.core.access_point.model.AccessPoint;
+import io.gravitee.apim.core.installation.model.InstallationType;
 import io.gravitee.apim.core.portal.exception.DefaultPortalNotFoundException;
 import io.gravitee.apim.core.portal.exception.SeveralPortalsInEnvironmentException;
 import io.gravitee.apim.core.portal.model.Portal;
@@ -95,6 +97,17 @@ class DefaultPortalDomainServiceTest {
         return aPortal(AUTOMATION_PORTAL_ID, ENV_ID, "Automation Portal", false, accessPointId);
     }
 
+    private static AccessPoint aPortalAccessPoint(String id, String host) {
+        return AccessPoint.builder()
+            .id(id)
+            .referenceType(AccessPoint.ReferenceType.ENVIRONMENT)
+            .referenceId(ENV_ID)
+            .target(AccessPoint.Target.PORTAL_INSTANCE)
+            .host(host)
+            .secured(true)
+            .build();
+    }
+
     /** A comparable snapshot of every stored field, since Portal equality is by id only. */
     private List<String> storedState() {
         return portalCrudService
@@ -136,6 +149,18 @@ class DefaultPortalDomainServiceTest {
             assertThat(result).hasValueSatisfying(portal ->
                 assertThat(portal.getId()).isEqualTo(portalCrudService.storage().getFirst().getId())
             );
+        }
+
+        @Test
+        void should_create_the_default_portal_without_access_point_on_a_multi_tenant_installation() {
+            installationAccessQueryService.withPortalUrl(ENV_ID, "https://portal.acme.io");
+            addresses.installationType().set(InstallationType.MULTI_TENANT);
+
+            var result = cut.ensureDefault(ORG_ID, ENV_ID);
+
+            assertThat(result).hasValueSatisfying(portal -> assertThat(portal.isDefault()).isTrue());
+            assertThat(portalCrudService.storage()).singleElement().extracting(Portal::getAccessPointId).isNull();
+            assertThat(addresses.accessPoints().storage()).isEmpty();
         }
 
         @Test
@@ -399,12 +424,43 @@ class DefaultPortalDomainServiceTest {
         @Test
         void should_keep_the_access_point_of_a_linked_portal() {
             installationAccessQueryService.withPortalUrl(ENV_ID, "https://new.acme.io");
+            addresses.accessPoints().initWith(List.of(aPortalAccessPoint("old-access-point", "old.acme.io")));
             portalCrudService.initWith(List.of(aDefaultPortal("old-access-point")));
 
             var linked = cut.linkUnlinkedPortals(ENV_ID);
 
             assertThat(linked).isZero();
             assertThat(portalCrudService.storage()).singleElement().extracting(Portal::getAccessPointId).isEqualTo("old-access-point");
+            assertThat(addresses.accessPoints().storage()).extracting(AccessPoint::getId).containsExactly("old-access-point");
+        }
+
+        @Test
+        void should_relink_a_portal_whose_access_point_was_deleted() {
+            installationAccessQueryService.withPortalUrl(ENV_ID, "https://portal.acme.io");
+            portalCrudService.initWith(List.of(anAutomationPortal("released-access-point")));
+
+            var linked = cut.linkUnlinkedPortals(ENV_ID);
+
+            assertThat(linked).isEqualTo(1);
+            assertThat(addresses.accessPoints().storage())
+                .singleElement()
+                .satisfies(accessPoint -> {
+                    assertThat(accessPoint.getHost()).isEqualTo("portal.acme.io");
+                    assertThat(portalCrudService.storage())
+                        .singleElement()
+                        .extracting(Portal::getAccessPointId)
+                        .isEqualTo(accessPoint.getId());
+                });
+        }
+
+        @Test
+        void should_link_no_portal_on_a_multi_tenant_installation() {
+            installationAccessQueryService.withPortalUrl(ENV_ID, "https://portal.acme.io");
+            addresses.installationType().set(InstallationType.MULTI_TENANT);
+            portalCrudService.initWith(List.of(aDefaultPortal(null)));
+
+            assertThat(cut.linkUnlinkedPortals(ENV_ID)).isZero();
+            assertThat(portalCrudService.storage()).singleElement().extracting(Portal::getAccessPointId).isNull();
             assertThat(addresses.accessPoints().storage()).isEmpty();
         }
 

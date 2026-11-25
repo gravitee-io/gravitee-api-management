@@ -89,9 +89,9 @@ class PortalTest {
         }
 
         @Test
-        void create_and_create_default_refuse_a_missing_access_point() {
-            assertThatThrownBy(() -> Portal.createDefault("env", "org", "Developer Portal", null)).isInstanceOf(NullPointerException.class);
-            assertThatThrownBy(() -> Portal.create("env", "org", "Portal", null)).isInstanceOf(NullPointerException.class);
+        void create_and_create_default_accept_a_missing_access_point() {
+            assertThat(Portal.createDefault("env", "org", "Developer Portal", null).getAccessPointId()).isNull();
+            assertThat(Portal.create("env", "org", "Portal", null).getAccessPointId()).isNull();
         }
 
         @Test
@@ -106,8 +106,8 @@ class PortalTest {
         }
 
         @Test
-        void create_with_an_id_refuses_a_missing_access_point() {
-            assertThatThrownBy(() -> Portal.create(PORTAL_ID, "env", "org", "Portal", null)).isInstanceOf(NullPointerException.class);
+        void create_with_an_id_accepts_a_missing_access_point() {
+            assertThat(Portal.create(PORTAL_ID, "env", "org", "Portal", null).getAccessPointId()).isNull();
         }
 
         @Test
@@ -126,8 +126,8 @@ class PortalTest {
         }
 
         @Test
-        void create_from_console_refuses_a_missing_access_point() {
-            assertThatThrownBy(() -> Portal.createFromConsole("env", "org", "Partners", null)).isInstanceOf(NullPointerException.class);
+        void create_from_console_accepts_a_missing_access_point() {
+            assertThat(Portal.createFromConsole("env", "org", "Partners", null).getAccessPointId()).isNull();
         }
 
         @Test

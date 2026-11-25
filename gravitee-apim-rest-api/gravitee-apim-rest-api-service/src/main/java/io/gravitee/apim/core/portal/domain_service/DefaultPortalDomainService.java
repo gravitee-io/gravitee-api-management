@@ -40,8 +40,8 @@ public class DefaultPortalDomainService {
      * Creates the environment's default portal when it has no portal at all; an existing default portal is
      * returned whatever other portals the environment holds. A portal the environment already has is never
      * marked default: one created by the Automation API stays as it is. The portal is
-     * created at its environment's shared access point only: while the portal URL cannot be resolved (a Cloud environment whose access
-     * points are not stored yet, an invalid portal URL setting), creation is postponed to a later call.
+     * created at its environment's shared access point only: while the portal URL cannot be resolved (an invalid portal URL
+     * setting), creation is postponed to a later call. On a multi-tenant installation, it is created without an access point.
      * A portal created here receives the environment's content that names no existing portal.
      *
      * @return the default portal, or empty when the environment's only portal is not the default one or
@@ -59,7 +59,7 @@ public class DefaultPortalDomainService {
         }
         if (portals.isEmpty()) {
             var accessPointId = portalAddressDomainService.sharedAccessPoint(environmentId);
-            if (accessPointId.isEmpty()) {
+            if (accessPointId.isEmpty() && portalAddressDomainService.assignsAccessPoints()) {
                 log.warn(
                     "Default portal of environment [{}] not created yet: its portal URL is not set or is not an absolute http(s) URL without credentials",
                     environmentId
@@ -67,7 +67,7 @@ public class DefaultPortalDomainService {
                 return Optional.empty();
             }
             var created = portalCrudService.create(
-                Portal.createDefault(environmentId, organizationId, DEFAULT_PORTAL_NAME, accessPointId.get())
+                Portal.createDefault(environmentId, organizationId, DEFAULT_PORTAL_NAME, accessPointId.orElse(null))
             );
             log.info(
                 "Default portal [{}] created for environment [{}] at access point [{}]",
@@ -122,16 +122,22 @@ public class DefaultPortalDomainService {
     }
 
     /**
-     * Links the environment's portals that have no access point yet, because its portal URL could not be resolved when they
-     * were stored, to the access point the environment's portals share. A portal already linked keeps its access point.
+     * Links the environment's portals that have no access point, to the access point the environment's portals share. A
+     * portal has none when its portal URL could not be resolved when it was stored, or when its access point was released
+     * while it was being linked to it. A portal at an existing access point keeps it. Links nothing on a multi-tenant
+     * installation.
      *
      * @return the number of portals linked
      */
     public int linkUnlinkedPortals(String environmentId) {
+        if (!portalAddressDomainService.assignsAccessPoints()) {
+            return 0;
+        }
+        var accessPointIds = portalAddressDomainService.accessPointIds(environmentId);
         var unlinked = portalCrudService
             .findByEnvironmentId(environmentId)
             .stream()
-            .filter(portal -> portal.getAccessPointId() == null)
+            .filter(portal -> portal.getAccessPointId() == null || !accessPointIds.contains(portal.getAccessPointId()))
             .toList();
         if (unlinked.isEmpty()) {
             return 0;
