@@ -69,6 +69,10 @@ export class PortalAuthenticationHarness extends ComponentHarness {
     await (await this.saveBar()).clickSubmit();
   }
 
+  async reset(): Promise<void> {
+    await (await this.saveBar()).clickReset();
+  }
+
   async search(term: string): Promise<void> {
     await (await this.tableWrapper()).setSearchValue(term);
   }

@@ -414,9 +414,146 @@ describe('PortalAuthenticationComponent', () => {
       expect(helpText).toContain('login form');
       expect(helpText).toContain('registration');
     });
+
+    it('should display the stored skip login value', async () => {
+      await init();
+      await load(
+        [google],
+        [fakeIdentityProviderActivation({ identityProvider: 'google' })],
+        settingsWith({ skipLoginWithSingleIdp: true }),
+      );
+
+      expect(await (await harness.getSkipLoginToggle()).isChecked()).toBe(true);
+    });
+
+    it('should save the skip login setting and preserve unrelated settings', async () => {
+      await init();
+      const settings = settingsWith({ skipLoginWithSingleIdp: false });
+      await load([google], [fakeIdentityProviderActivation({ identityProvider: 'google' })], settings);
+
+      await (await harness.getSkipLoginToggle()).toggle();
+      await harness.submit();
+
+      expectGetSettings(settings);
+      const saveRequest = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.env.baseURL}/settings` });
+      expect(saveRequest.request.body).toEqual({
+        ...settings,
+        authentication: {
+          ...settings.authentication,
+          forceLogin: { ...settings.authentication.forceLogin, enabled: false },
+          localLogin: { ...settings.authentication.localLogin, enabled: true },
+        },
+        portalNext: { ...settings.portalNext, skipLoginWithSingleIdp: { enabled: true } },
+      });
+      saveRequest.flush(saveRequest.request.body);
+      expectEnvironmentSettingsReload();
+
+      await load([google], [fakeIdentityProviderActivation({ identityProvider: 'google' })], saveRequest.request.body);
+      expect(await (await harness.getSkipLoginToggle()).isChecked()).toBe(true);
+      expect(fixture.componentInstance.hasUnsavedChanges()).toBe(false);
+    });
+
+    it('should keep the stored skip login value while the toggle is hidden', async () => {
+      await init();
+      const settings = settingsWith({ skipLoginWithSingleIdp: true });
+      const activations = [
+        fakeIdentityProviderActivation({ identityProvider: 'google' }),
+        fakeIdentityProviderActivation({ identityProvider: 'github' }),
+      ];
+      await load([google, github], activations, settings);
+      expect(await harness.getSkipLoginToggle()).toBeNull();
+
+      await (await harness.getForceLoginToggle()).toggle();
+      await harness.submit();
+
+      expectGetSettings(settings);
+      const saveRequest = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.env.baseURL}/settings` });
+      expect(saveRequest.request.body.authentication.forceLogin.enabled).toBe(true);
+      expect(saveRequest.request.body.portalNext.skipLoginWithSingleIdp.enabled).toBe(true);
+      saveRequest.flush(saveRequest.request.body);
+      expectEnvironmentSettingsReload();
+      await load([google, github], activations, saveRequest.request.body);
+    });
+
+    it('should keep the skip login value on while a second identity provider is active', async () => {
+      await init();
+      const settings = settingsWith({ skipLoginWithSingleIdp: true });
+      await load([google, github], [fakeIdentityProviderActivation({ identityProvider: 'google' })], settings);
+      expect(await (await harness.getSkipLoginToggle()).isChecked()).toBe(true);
+
+      await harness.clickActivation('github');
+      await (await rootLoader.getHarness(GioConfirmDialogHarness)).confirm();
+      httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/identities` }).flush([]);
+      await load(
+        [google, github],
+        [fakeIdentityProviderActivation({ identityProvider: 'google' }), fakeIdentityProviderActivation({ identityProvider: 'github' })],
+        settings,
+      );
+      expect(await harness.getSkipLoginToggle()).toBeNull();
+      httpTestingController.expectNone({ method: 'POST', url: `${CONSTANTS_TESTING.env.baseURL}/settings` });
+
+      await harness.clickActivation('github');
+      await (await rootLoader.getHarness(GioConfirmDialogHarness)).confirm();
+      httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/identities` }).flush([]);
+      await load([google, github], [fakeIdentityProviderActivation({ identityProvider: 'google' })], settings);
+      expect(await (await harness.getSkipLoginToggle()).isChecked()).toBe(true);
+    });
+
+    it('should keep the stored skip login value when the login form is forced on', async () => {
+      await init();
+      const settings = settingsWith({ localLogin: false, skipLoginWithSingleIdp: true });
+      await load([google], [], settings);
+
+      expectGetSettings(settings);
+      const saveRequest = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.env.baseURL}/settings` });
+      expect(saveRequest.request.body.authentication.localLogin.enabled).toBe(true);
+      expect(saveRequest.request.body.portalNext.skipLoginWithSingleIdp.enabled).toBe(true);
+      saveRequest.flush(saveRequest.request.body);
+      expectEnvironmentSettingsReload();
+      await load([google], [], saveRequest.request.body);
+    });
+
+    it('should reset the skip login toggle', async () => {
+      await init();
+      await load(
+        [google],
+        [fakeIdentityProviderActivation({ identityProvider: 'google' })],
+        settingsWith({ skipLoginWithSingleIdp: true }),
+      );
+
+      await (await harness.getSkipLoginToggle()).toggle();
+      expect(await (await harness.getSkipLoginToggle()).isChecked()).toBe(false);
+      await harness.reset();
+
+      expect(await (await harness.getSkipLoginToggle()).isChecked()).toBe(true);
+    });
+
+    it('should report unsaved changes after switching the skip login toggle', async () => {
+      await init();
+      await load([google], [fakeIdentityProviderActivation({ identityProvider: 'google' })], settingsWith({}));
+
+      await (await harness.getSkipLoginToggle()).toggle();
+
+      expect(fixture.componentInstance.hasUnsavedChanges()).toBe(true);
+    });
+
+    it('should disable the skip login toggle without environment settings update permission', async () => {
+      await init(['organization-identity_provider-r', 'environment-identity_provider_activation-r', 'environment-settings-r']);
+      await load([google], [fakeIdentityProviderActivation({ identityProvider: 'google' })], settingsWith({}));
+
+      expect(await (await harness.getSkipLoginToggle()).isDisabled()).toBe(true);
+    });
   });
 
-  function settingsWith({ forceLogin = false, localLogin = true }: { forceLogin?: boolean; localLogin?: boolean }): PortalSettings {
+  function settingsWith({
+    forceLogin = false,
+    localLogin = true,
+    skipLoginWithSingleIdp = false,
+  }: {
+    forceLogin?: boolean;
+    localLogin?: boolean;
+    skipLoginWithSingleIdp?: boolean;
+  }): PortalSettings {
     const settings = fakePortalSettings();
     return {
       ...settings,
@@ -425,6 +562,10 @@ describe('PortalAuthenticationComponent', () => {
         ...settings.authentication,
         forceLogin: { enabled: forceLogin },
         localLogin: { enabled: localLogin },
+      },
+      portalNext: {
+        ...settings.portalNext,
+        skipLoginWithSingleIdp: { enabled: skipLoginWithSingleIdp },
       },
     };
   }

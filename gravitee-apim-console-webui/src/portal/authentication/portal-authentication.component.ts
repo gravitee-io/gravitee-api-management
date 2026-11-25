@@ -268,6 +268,10 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
               forceLogin: { ...settings.authentication?.forceLogin, enabled: formValue.forceLogin },
               localLogin: { ...settings.authentication?.localLogin, enabled: formValue.localLogin },
             },
+            portalNext: {
+              ...settings.portalNext,
+              skipLoginWithSingleIdp: { ...settings.portalNext?.skipLoginWithSingleIdp, enabled: formValue.skipLoginWithSingleIdp },
+            },
           }),
         ),
         tap(() => this.snackBarService.success('Authentication configuration successfully updated.')),
@@ -285,15 +289,17 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
   }
 
   private applySettings(settings: PortalSettings, hasPortalLoginProvider: boolean): void {
-    const { forceLogin, localLogin } = this.authenticationForm.controls;
+    const { forceLogin, localLogin, skipLoginWithSingleIdp } = this.authenticationForm.controls;
     setDisabled(forceLogin, !this.canUpdateSettings || PortalSettingsService.isReadonly(settings, FORCE_LOGIN_PROPERTY));
     setDisabled(
       localLogin,
       !this.canUpdateSettings || PortalSettingsService.isReadonly(settings, LOCAL_LOGIN_PROPERTY) || !hasPortalLoginProvider,
     );
+    setDisabled(skipLoginWithSingleIdp, !this.canUpdateSettings);
     this.authenticationForm.reset({
       forceLogin: settings.authentication?.forceLogin?.enabled ?? false,
       localLogin: settings.authentication?.localLogin?.enabled ?? true,
+      skipLoginWithSingleIdp: settings.portalNext?.skipLoginWithSingleIdp?.enabled ?? false,
     });
   }
 }
