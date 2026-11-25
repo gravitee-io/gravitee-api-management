@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Guardians are renamed Guardrails: the step through which the internal flow of an API runs one changes from
- * {@code guardian-policy} with a {@code guardianId} to {@code guardrail-policy} with a {@code guardrailId}.
+ * {@code guardian-policy} with a {@code guardianId} to {@code guardrail-run} with a {@code guardrailId}.
  *
  * <p>Only the stored definitions are rewritten. The deployed ones keep the former step, which the gateway no longer
  * runs: the APIs listed in the log have to be redeployed.
@@ -86,7 +86,7 @@ public class GuardrailStepsUpgrader implements Upgrader {
         }
         if (!migrated.isEmpty()) {
             log.warn(
-                "{} moved the Guardian steps of {} API(s) to the guardrail-policy; redeploy them to run their Guardrails: {}",
+                "{} moved the Guardian steps of {} API(s) to the guardrail-run policy; redeploy them to run their Guardrails: {}",
                 getClass().getSimpleName(),
                 migrated.size(),
                 migrated

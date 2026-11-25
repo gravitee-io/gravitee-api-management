@@ -50,7 +50,7 @@ class InternalFlowResolverTest {
 
     @Test
     void should_name_the_internal_flow_internal_when_it_has_no_name() {
-        final Step step = Step.builder().policy("guardrail-policy").build();
+        final Step step = Step.builder().policy("guardrail-run").build();
         when(api.getInternalFlow()).thenReturn(Flow.builder().request(List.of(step)).build());
 
         final InternalFlowResolver cut = new InternalFlowResolver(api);

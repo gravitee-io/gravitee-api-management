@@ -30,7 +30,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.guardrail.Guardrail;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.handlers.guardrail.ReactableGuardrail;
-import io.gravitee.gateway.handlers.guardrail.policy.GuardrailPolicy;
+import io.gravitee.gateway.handlers.guardrail.policy.GuardrailRunPolicy;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
@@ -303,7 +303,7 @@ class GuardrailDecisionReporterTest {
                 guardrail(),
                 Guardrail.Phase.REQUEST,
                 verdicts,
-                new ExecutionFailure(503).key(GuardrailPolicy.NOT_DEPLOYED_KEY),
+                new ExecutionFailure(503).key(GuardrailRunPolicy.NOT_DEPLOYED_KEY),
                 42L
             );
 
@@ -312,7 +312,7 @@ class GuardrailDecisionReporterTest {
 
         @Test
         void should_report_an_error_when_a_guardrail_policy_has_no_typed_view() {
-            ExecutionFailure unsupported = new ExecutionFailure(500).key(GuardrailPolicy.GUARDRAIL_POLICY_UNSUPPORTED_API_TYPE_KEY);
+            ExecutionFailure unsupported = new ExecutionFailure(500).key(GuardrailRunPolicy.GUARDRAIL_POLICY_UNSUPPORTED_API_TYPE_KEY);
 
             cut.denied(ctx, STEP, guardrail(), Guardrail.Phase.REQUEST, verdicts, unsupported, 42L);
 
@@ -354,14 +354,14 @@ class GuardrailDecisionReporterTest {
 
     @Test
     void should_report_an_error_when_the_api_type_is_incompatible() {
-        cut.incompatible(ctx, STEP, guardrail(), Guardrail.Phase.REQUEST, GuardrailPolicy.INCOMPATIBLE_API_TYPE_KEY);
+        cut.incompatible(ctx, STEP, guardrail(), Guardrail.Phase.REQUEST, GuardrailRunPolicy.INCOMPATIBLE_API_TYPE_KEY);
 
         assertUndecided(reported(), IndeterminateCause.ERROR, "GUARDRAIL_INCOMPATIBLE_API_TYPE");
     }
 
     @Test
     void should_report_an_error_when_the_phase_is_incompatible() {
-        cut.incompatible(ctx, STEP, guardrail(), Guardrail.Phase.RESPONSE, GuardrailPolicy.INCOMPATIBLE_PHASE_KEY);
+        cut.incompatible(ctx, STEP, guardrail(), Guardrail.Phase.RESPONSE, GuardrailRunPolicy.INCOMPATIBLE_PHASE_KEY);
 
         assertUndecided(reported(), IndeterminateCause.ERROR, "GUARDRAIL_INCOMPATIBLE_PHASE");
     }

@@ -20,13 +20,13 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Configuration of the {@code guardrail-policy} step: the id of the Guardrail to execute.
+ * Configuration of the {@code guardrail-run} step: the id of the Guardrail to execute.
  *
  * @author GraviteeSource Team
  */
 @Getter
 @Setter
-public class GuardrailPolicyConfiguration implements PolicyConfiguration {
+public class GuardrailRunPolicyConfiguration implements PolicyConfiguration {
 
     String guardrailId;
 }

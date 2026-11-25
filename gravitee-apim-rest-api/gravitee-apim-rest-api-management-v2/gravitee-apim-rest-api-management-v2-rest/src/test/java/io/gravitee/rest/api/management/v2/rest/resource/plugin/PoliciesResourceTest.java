@@ -115,8 +115,8 @@ class PoliciesResourceTest extends AbstractResourceTest {
         policyPluginQueryServiceInMemory.initWith(
             List.of(
                 io.gravitee.apim.core.plugin.model.PolicyPlugin.builder()
-                    .id("guardrail-policy")
-                    .name("guardrail-policy")
+                    .id("guardrail-run")
+                    .name("guardrail-run")
                     .feature("feature-1")
                     .deployed(true)
                     .flowPhaseCompatibility(
@@ -141,7 +141,7 @@ class PoliciesResourceTest extends AbstractResourceTest {
 
         assertThat(policyPlugins)
             .as("guardrail policy guardrail phases")
-            .filteredOn(policy -> "guardrail-policy".equals(policy.getId()))
+            .filteredOn(policy -> "guardrail-run".equals(policy.getId()))
             .singleElement()
             .extracting(policy -> policy.getFlowPhaseCompatibility().getGUARDRAIL())
             .isEqualTo(

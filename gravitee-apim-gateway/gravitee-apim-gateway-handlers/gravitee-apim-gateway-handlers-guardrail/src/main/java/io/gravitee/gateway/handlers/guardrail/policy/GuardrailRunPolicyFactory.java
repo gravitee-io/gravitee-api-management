@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.handlers.guardrail.policy;
 
-import io.gravitee.definition.model.guardrail.GuardrailPolicyConfiguration;
+import io.gravitee.definition.model.guardrail.GuardrailRunPolicyConfiguration;
 import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
@@ -29,14 +29,14 @@ import io.gravitee.policy.api.PolicyConfiguration;
 import org.springframework.util.StringUtils;
 
 /**
- * Builds {@link GuardrailPolicy} instances named after their flow step, so traces and logs show the step rather than
+ * Builds {@link GuardrailRunPolicy} instances named after their flow step, so traces and logs show the step rather than
  * the generic policy id.
  *
  * @author GraviteeSource Team
  */
-public class GuardrailPolicyFactory extends HttpPolicyFactory {
+public class GuardrailRunPolicyFactory extends HttpPolicyFactory {
 
-    public GuardrailPolicyFactory(
+    public GuardrailRunPolicyFactory(
         Configuration configuration,
         PolicyPluginFactory policyPluginFactory,
         ExpressionLanguageConditionFilter<HttpConditionalPolicy> filter
@@ -46,7 +46,7 @@ public class GuardrailPolicyFactory extends HttpPolicyFactory {
 
     @Override
     public boolean accept(PolicyManifest policyManifest) {
-        return GuardrailPolicy.POLICY_ID.equals(policyManifest.id());
+        return GuardrailRunPolicy.POLICY_ID.equals(policyManifest.id());
     }
 
     @Override
@@ -56,13 +56,13 @@ public class GuardrailPolicyFactory extends HttpPolicyFactory {
         PolicyConfiguration policyConfiguration,
         PolicyMetadata policyMetadata
     ) {
-        GuardrailPolicyConfiguration configuration = (GuardrailPolicyConfiguration) policyConfiguration;
+        GuardrailRunPolicyConfiguration configuration = (GuardrailRunPolicyConfiguration) policyConfiguration;
         if (configuration == null || !StringUtils.hasText(configuration.getGuardrailId())) {
             // Without an id, every call would answer that the Guardrail is not deployed, pointing to the sync rather than to the step.
             throw new IllegalArgumentException(String.format("Guardrail step [%s] has no guardrailId", policyMetadata.getName()));
         }
         String stepName = (String) policyMetadata.metadata().get(PolicyMetadata.MetadataKeys.STEP_NAME);
-        HttpPolicy policy = new GuardrailPolicy(policyMetadata.getName(), stepName, configuration);
+        HttpPolicy policy = new GuardrailRunPolicy(policyMetadata.getName(), stepName, configuration);
         return decoratePolicy(policyMetadata, policy);
     }
 }

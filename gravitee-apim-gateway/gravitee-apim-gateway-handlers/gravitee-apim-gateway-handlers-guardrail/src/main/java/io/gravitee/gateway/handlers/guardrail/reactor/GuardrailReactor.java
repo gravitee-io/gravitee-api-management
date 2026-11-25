@@ -23,10 +23,10 @@ import io.reactivex.rxjava3.core.Completable;
 
 /**
  * What the Guardrail reactor plugin exposes to the gateway for one deployed Guardrail: the execution of its policies by
- * the {@code guardrail-policy}. The plugin's {@link io.gravitee.gateway.reactor.handler.ReactorHandler} implements it and
+ * the {@code guardrail-run} policy. The plugin's {@link io.gravitee.gateway.reactor.handler.ReactorHandler} implements it and
  * registers itself in the {@link io.gravitee.gateway.handlers.guardrail.registry.GuardrailRegistry} while started.
  * <p>
- * The {@code guardrail-policy} looks the reactor up when it executes the Guardrail, so a call that has not executed it yet
+ * The {@code guardrail-run} policy looks the reactor up when it executes the Guardrail, so a call that has not executed it yet
  * runs the latest deployed revision. Stopping a reactor, when its Guardrail is updated or undeployed, must let the
  * executions already started finish before releasing the policies and resources they use.
  *
