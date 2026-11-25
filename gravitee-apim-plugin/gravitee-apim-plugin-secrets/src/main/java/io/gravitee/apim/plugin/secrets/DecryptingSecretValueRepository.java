@@ -1,0 +1,219 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.apim.plugin.secrets;
+
+import io.gravitee.apim.common.secret.DataKeyResolver;
+import io.gravitee.apim.common.secret.InvalidKeyEncryptionKeyException;
+import io.gravitee.apim.common.secret.KeyEncryptionKeyMismatchException;
+import io.gravitee.apim.common.secret.KeyEncryptionKeyProvider;
+import io.gravitee.apim.common.secret.SecretCryptoException;
+import io.gravitee.apim.common.secret.SecretEnvelope;
+import io.gravitee.apim.common.secret.SecretScope;
+import io.gravitee.apim.common.secret.StaticKeyEncryptionKeyProvider;
+import io.gravitee.apim.common.secret.StoredDataKey;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.EnvironmentRepository;
+import io.gravitee.repository.management.api.OrganizationKeyRepository;
+import io.gravitee.repository.management.api.SecretRepository;
+import io.gravitee.repository.management.api.SecretValueRepository;
+import io.gravitee.repository.management.model.Environment;
+import io.gravitee.repository.management.model.Secret;
+import io.gravitee.secrets.api.errors.SecretManagerException;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import lombok.CustomLog;
+
+/**
+ * Decrypts secrets from the management repository with the key encryption key. A misconfigured key or a key that wrapped
+ * none of the stored data keys logs why once and refuses every secret.
+ */
+@CustomLog
+public class DecryptingSecretValueRepository implements SecretValueRepository {
+
+    private static final String ID = GraviteeSecretProvider.ID;
+    private static final String KEY_SETTING =
+        "Secret provider [" +
+        ID +
+        "] " +
+        GraviteeSecretManagerConfiguration.ENCRYPTION_KEY_PROPERTY +
+        " (or " +
+        StaticKeyEncryptionKeyProvider.KEY_PROPERTY +
+        ")";
+
+    private final String base64Kek;
+    private final SecretRepository secretRepository;
+    private final OrganizationKeyRepository organizationKeyRepository;
+    private final EnvironmentRepository environmentRepository;
+    private final Map<String, String> organizationOfEnvironment = new ConcurrentHashMap<>();
+    private volatile KeyEncryptionKeyProvider kek;
+    private volatile DataKeyResolver dataKeys;
+    private volatile boolean storedDataKeysVerified;
+    private volatile boolean storedDataKeysRechecked;
+    private volatile String refusal;
+
+    public DecryptingSecretValueRepository(
+        String base64Kek,
+        SecretRepository secretRepository,
+        OrganizationKeyRepository organizationKeyRepository,
+        EnvironmentRepository environmentRepository
+    ) {
+        this.base64Kek = base64Kek;
+        this.secretRepository = secretRepository;
+        this.organizationKeyRepository = organizationKeyRepository;
+        this.environmentRepository = environmentRepository;
+    }
+
+    void start() {
+        try {
+            verifyStoredDataKeys();
+        } catch (SecretManagerException e) {
+            if (refusal == null) {
+                log.warn("{}: it checks them again on the next secret", e.getMessage(), e.getCause());
+            }
+        }
+    }
+
+    void verify() {
+        String reason = refusal;
+        if (reason != null) {
+            throw new SecretManagerException(reason);
+        }
+        if (!storedDataKeysVerified) {
+            verifyStoredDataKeys();
+        }
+    }
+
+    @Override
+    public Optional<String> findValue(String environmentId, String key) throws TechnicalException {
+        verify();
+        Optional<String> organizationId = organizationOf(environmentId);
+        if (organizationId.isEmpty()) {
+            return Optional.empty();
+        }
+        Optional<Secret> secret = secretRepository.findByKey(organizationId.get(), environmentId, key);
+        if (secret.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(decrypt(secret.get()));
+    }
+
+    private synchronized void verifyStoredDataKeys() {
+        if (refusal != null) {
+            throw new SecretManagerException(refusal);
+        }
+        if (storedDataKeysVerified) {
+            return;
+        }
+        if (kek == null) {
+            kek = configuredKeyEncryptionKey();
+            dataKeys = new DataKeyResolver(kek, this::findStoredDataKey);
+        }
+        Set<String> storedKekIds = findKekIds();
+        refuseIfNoneMatches(storedKekIds);
+        if (!storedKekIds.stream().allMatch(kek::canUnwrap)) {
+            log.warn(
+                "{} did not wrap the data key of every organization: the organizations it did not wrap cannot read their secrets",
+                KEY_SETTING
+            );
+        }
+        storedDataKeysVerified = true;
+    }
+
+    private KeyEncryptionKeyProvider configuredKeyEncryptionKey() {
+        if (secretRepository == null || organizationKeyRepository == null || environmentRepository == null) {
+            throw refuse(GraviteeSecretProvider.NO_SECRET_STORE);
+        }
+        try {
+            return StaticKeyEncryptionKeyProvider.fromBase64(base64Kek);
+        } catch (InvalidKeyEncryptionKeyException e) {
+            throw refuse(KEY_SETTING + " " + e.getMessage());
+        }
+    }
+
+    private synchronized void refuseIfNoStoredDataKeyMatches() {
+        if (refusal == null && !storedDataKeysRechecked) {
+            refuseIfNoneMatches(findKekIds());
+            storedDataKeysRechecked = true;
+        }
+    }
+
+    private void refuseIfNoneMatches(Set<String> storedKekIds) {
+        if (!noDataKeyStoredYet(storedKekIds) && storedKekIds.stream().noneMatch(kek::canUnwrap)) {
+            throw refuse(KEY_SETTING + " does not match the key that encrypted the stored secrets");
+        }
+    }
+
+    private static boolean noDataKeyStoredYet(Set<String> storedKekIds) {
+        return storedKekIds.isEmpty();
+    }
+
+    private Set<String> findKekIds() {
+        try {
+            return organizationKeyRepository.findKekIds();
+        } catch (TechnicalException | RuntimeException e) {
+            throw new SecretManagerException("Secret provider [" + ID + "] failed to read the stored data keys", e);
+        }
+    }
+
+    private SecretManagerException refuse(String reason) {
+        refusal = reason;
+        log.error("{}: it refuses every secret until this is fixed", reason);
+        return new SecretManagerException(reason);
+    }
+
+    private String decrypt(Secret secret) {
+        try {
+            var dataKey = dataKeys
+                .resolve(secret.getOrganizationId())
+                .orElseThrow(() ->
+                    new SecretManagerException(
+                        "Organization [" + secret.getOrganizationId() + "] has no data key to decrypt secret [" + secret.getId() + "]"
+                    )
+                );
+            var scope = new SecretScope(secret.getOrganizationId(), secret.getEnvironmentId(), secret.getId());
+            return SecretEnvelope.open(dataKey, scope, secret.getEncryptedValue());
+        } catch (KeyEncryptionKeyMismatchException e) {
+            if (!storedDataKeysRechecked) {
+                refuseIfNoStoredDataKeyMatches();
+            }
+            throw new SecretManagerException(e.getMessage(), e);
+        } catch (SecretCryptoException e) {
+            throw new SecretManagerException(e.getMessage(), e);
+        }
+    }
+
+    private Optional<String> organizationOf(String environmentId) throws TechnicalException {
+        String cached = organizationOfEnvironment.get(environmentId);
+        if (cached != null) {
+            return Optional.of(cached);
+        }
+        Optional<String> organizationId = environmentRepository.findById(environmentId).map(Environment::getOrganizationId);
+        organizationId.ifPresent(id -> organizationOfEnvironment.put(environmentId, id));
+        return organizationId;
+    }
+
+    private Optional<StoredDataKey> findStoredDataKey(String organizationId) {
+        try {
+            return organizationKeyRepository
+                .findByOrganizationId(organizationId)
+                .map(key -> new StoredDataKey(key.getId(), key.getKekId(), key.getWrappedKey()));
+        } catch (TechnicalException e) {
+            throw new SecretManagerException("Failed to read the data key of organization [" + organizationId + "]", e);
+        }
+    }
+}
