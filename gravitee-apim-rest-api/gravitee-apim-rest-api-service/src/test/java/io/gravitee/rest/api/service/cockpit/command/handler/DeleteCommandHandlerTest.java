@@ -28,6 +28,7 @@ import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.FindAllRepository;
 import io.gravitee.repository.management.api.InstallationRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
+import io.gravitee.repository.management.api.SecretValueRepository;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Set;
@@ -48,7 +49,9 @@ public class DeleteCommandHandlerTest {
         OrganizationRepository.class,
         EnvironmentRepository.class,
         AlertTriggerRepository.class,
-        AlertEventRepository.class
+        AlertEventRepository.class,
+        // Read ports that store nothing
+        SecretValueRepository.class
     );
 
     /**
