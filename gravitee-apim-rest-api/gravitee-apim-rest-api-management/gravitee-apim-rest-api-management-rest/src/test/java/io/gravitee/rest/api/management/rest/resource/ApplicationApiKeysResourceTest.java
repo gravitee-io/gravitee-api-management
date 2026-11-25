@@ -22,7 +22,9 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.RenewApplicationApiKeyEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
@@ -70,7 +72,7 @@ public class ApplicationApiKeysResourceTest extends AbstractResourceTest {
 
         ApiKeyEntity apiKey = new ApiKeyEntity();
         apiKey.setId("my-api-key");
-        when(apiKeyService.renew(eq(GraviteeContext.getExecutionContext()), any(ApplicationEntity.class))).thenReturn(apiKey);
+        when(apiKeyService.renew(eq(GraviteeContext.getExecutionContext()), any(ApplicationEntity.class), any())).thenReturn(apiKey);
 
         Response response = envTarget("/_renew").request().post(null);
 
@@ -83,11 +85,29 @@ public class ApplicationApiKeysResourceTest extends AbstractResourceTest {
 
         ApiKeyEntity apiKey = new ApiKeyEntity();
         apiKey.setId("my-api-key");
-        when(apiKeyService.renew(eq(GraviteeContext.getExecutionContext()), any(ApplicationEntity.class))).thenReturn(apiKey);
+        when(apiKeyService.renew(eq(GraviteeContext.getExecutionContext()), any(ApplicationEntity.class), isNull())).thenReturn(apiKey);
 
         Response response = envTarget("/_renew").request().post(null);
 
-        verify(apiKeyService, times(1)).renew(GraviteeContext.getExecutionContext(), applicationEntity);
+        verify(apiKeyService, times(1)).renew(GraviteeContext.getExecutionContext(), applicationEntity, null);
+        assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
+    }
+
+    @Test
+    public void post_renew_should_pass_a_custom_value() {
+        ApplicationEntity applicationEntity = mockExistingApplication(ApiKeyMode.SHARED);
+
+        ApiKeyEntity apiKey = new ApiKeyEntity();
+        apiKey.setId("my-api-key");
+        when(apiKeyService.renew(eq(GraviteeContext.getExecutionContext()), any(ApplicationEntity.class), eq("custom-key-1"))).thenReturn(
+            apiKey
+        );
+
+        RenewApplicationApiKeyEntity body = new RenewApplicationApiKeyEntity();
+        body.setCustomApiKey("custom-key-1");
+        Response response = envTarget("/_renew").request().post(Entity.json(body));
+
+        verify(apiKeyService, times(1)).renew(GraviteeContext.getExecutionContext(), applicationEntity, "custom-key-1");
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
     }
 

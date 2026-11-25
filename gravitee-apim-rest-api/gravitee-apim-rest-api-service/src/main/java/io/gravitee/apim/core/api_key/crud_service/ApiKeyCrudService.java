@@ -16,8 +16,17 @@
 package io.gravitee.apim.core.api_key.crud_service;
 
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
+import java.util.Optional;
 
 public interface ApiKeyCrudService {
     ApiKeyEntity create(ApiKeyEntity apiKey);
     ApiKeyEntity update(ApiKeyEntity apiKey);
+
+    /**
+     * Attaches a subscription to a key without rewriting the rest of the key, so concurrent writers do not drop each
+     * other's links.
+     *
+     * @return the key as stored after the change, or empty when no key has this id
+     */
+    Optional<ApiKeyEntity> addSubscription(String apiKeyId, String subscriptionId);
 }
