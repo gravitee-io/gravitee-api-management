@@ -16,6 +16,7 @@
 package io.gravitee.apim.plugin.secrets;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -170,6 +171,64 @@ class GraviteeSecretProviderConfigurationTest {
             context.getBeanFactory().registerSingleton("environmentRepository", mock(EnvironmentRepository.class));
 
             assertThat(context.getBean(SecretValueRepository.class)).isInstanceOf(DecryptingSecretValueRepository.class);
+        }
+    }
+
+    @Test
+    void should_give_a_bridge_server_the_key_of_the_gravitee_entry_when_the_gateway_has_no_shared_key() {
+        try (var context = gatewayContext()) {
+            context
+                .getEnvironment()
+                .getPropertySources()
+                .addFirst(
+                    new MapPropertySource(
+                        "gateway",
+                        Map.of(
+                            "api.secrets.providers[0].plugin",
+                            "gravitee",
+                            "api.secrets.providers[0].configuration.encryption.key",
+                            "not-a-key"
+                        )
+                    )
+                );
+            context.refresh();
+            context.getBeanFactory().registerSingleton("secretRepository", mock(SecretRepository.class));
+            context.getBeanFactory().registerSingleton("organizationKeyRepository", mock(OrganizationKeyRepository.class));
+            context.getBeanFactory().registerSingleton("environmentRepository", mock(EnvironmentRepository.class));
+
+            assertThatThrownBy(() -> context.getBean(SecretValueRepository.class).findValue("env-1", "s-1")).hasMessageContaining(
+                "is not valid base64"
+            );
+        }
+    }
+
+    @Test
+    void should_give_a_bridge_server_the_key_of_the_gravitee_entry_over_the_shared_key() {
+        try (var context = gatewayContext()) {
+            context
+                .getEnvironment()
+                .getPropertySources()
+                .addFirst(
+                    new MapPropertySource(
+                        "gateway",
+                        Map.of(
+                            "api.secrets.encryption.key",
+                            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                            "api.secrets.providers[0].plugin",
+                            "gravitee",
+                            "api.secrets.providers[0].configuration.encryption.key",
+                            "not-a-key"
+                        )
+                    )
+                );
+            context.refresh();
+            context.getBeanFactory().registerSingleton("secretRepository", mock(SecretRepository.class));
+            context.getBeanFactory().registerSingleton("organizationKeyRepository", mock(OrganizationKeyRepository.class));
+            context.getBeanFactory().registerSingleton("environmentRepository", mock(EnvironmentRepository.class));
+
+            assertThatThrownBy(() -> context.getBean(SecretValueRepository.class).findValue("env-1", "s-1")).hasMessageContaining(
+                "is not valid base64"
+            );
         }
     }
 

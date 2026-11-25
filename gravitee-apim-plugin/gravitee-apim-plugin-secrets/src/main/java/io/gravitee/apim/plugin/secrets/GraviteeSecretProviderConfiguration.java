@@ -82,7 +82,9 @@ public class GraviteeSecretProviderConfiguration {
         ObjectProvider<EnvironmentRepository> environmentRepository
     ) {
         return new DecryptingSecretValueRepository(
-            environment.getProperty(StaticKeyEncryptionKeyProvider.KEY_PROPERTY),
+            GraviteeSecretProviderEntries.encryptionKey(environment).orElseGet(() ->
+                environment.getProperty(StaticKeyEncryptionKeyProvider.KEY_PROPERTY)
+            ),
             secretRepository.getIfAvailable(),
             organizationKeyRepository.getIfAvailable(),
             environmentRepository.getIfAvailable()
