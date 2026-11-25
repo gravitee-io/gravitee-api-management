@@ -219,12 +219,195 @@ class PortalScopedResourcesTest extends AbstractPortalNavigationResourceTest {
     }
 
     @Test
-    void should_not_substitute_the_only_portal_when_the_default_is_missing() {
+    void should_use_the_only_portal_when_the_default_is_missing() {
+        givenTwoPortalMenus();
         var partners = portalCrudService.findByIdAndEnvironmentId(OTHER_PORTAL_ID, NAVIGATION_ENVIRONMENT).orElseThrow();
         portalCrudService.initWith(List.of(partners));
         try (var response = rootTarget("portal-navigation-items").request().get()) {
-            assertThat(response.getStatus()).isEqualTo(404);
+            assertThat(response.getStatus()).isEqualTo(200);
+            var body = response.readEntity(PortalNavigationItemsResponse.class);
+            assertThat(body.getItems()).hasSize(2);
+            assertThat(body.getItems().toString()).contains("Partners folder").doesNotContain("Default folder");
         }
+        assertThat(portalCrudService.findByIdAndEnvironmentId(OTHER_PORTAL_ID, NAVIGATION_ENVIRONMENT).orElseThrow().isDefault()).isFalse();
+    }
+
+    @Test
+    void should_list_homepage_of_the_only_nondefault_portal() {
+        var partners = portalCrudService.findByIdAndEnvironmentId(OTHER_PORTAL_ID, NAVIGATION_ENVIRONMENT).orElseThrow();
+        portalCrudService.initWith(List.of(partners));
+        var homepage = page(OTHER_PORTAL_ID.toString(), PortalPageContentId.of(CONTENT_ID)).toBuilder().area(PortalArea.HOMEPAGE).build();
+        homepage.markAsRoot();
+        navigationQueryService.initWith(List.of(homepage));
+
+        try (var response = rootTarget("portal-navigation-items").queryParam("area", "HOMEPAGE").request().get()) {
+            assertThat(response.getStatus()).isEqualTo(200);
+            assertThat(response.readEntity(PortalNavigationItemsResponse.class).getItems()).hasSize(1);
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "CREATE", "BULK", "IMPORT", "UPDATE", "DELETE", "FETCH", "SEED", "GET", "PUT", "PATCH" })
+    void should_manage_the_only_nondefault_portal_using_legacy_paths(String operation) {
+        givenTwoPortalMenus();
+        var partners = portalCrudService.findByIdAndEnvironmentId(OTHER_PORTAL_ID, NAVIGATION_ENVIRONMENT).orElseThrow();
+        portalCrudService.initWith(List.of(partners));
+        if ("SEED".equals(operation)) {
+            givenListings();
+        }
+        var untouched = snapshot(DEFAULT_MENU);
+        var menu = PARTNERS_MENU;
+        switch (operation) {
+            case "CREATE" -> {
+                var result = request("POST", "portal-navigation-items", createFolder("Created", menu.folderId()), 201);
+                assertThat(item(result.path("id").asText()).getReference()).isEqualTo(menu.reference());
+            }
+            case "BULK" -> {
+                var result = request(
+                    "POST",
+                    "portal-navigation-items/_bulk",
+                    Map.of("items", List.of(createFolder("Bulk", menu.folderId()))),
+                    200
+                );
+                assertThat(item(result.path("items").get(0).path("id").asText()).getReference()).isEqualTo(menu.reference());
+            }
+            case "IMPORT" -> {
+                sourceService.givenRemoteFile("/guide.md", "# Imported guide");
+                var result = request("POST", "portal-navigation-items/_import", importRequest(menu.folderId()), 200);
+                assertThat(item(result.path("rootFolder").path("id").asText()).getReference()).isEqualTo(menu.reference());
+            }
+            case "UPDATE" -> {
+                request("PUT", "portal-navigation-items/" + menu.pageId(), updatePage("Updated", menu.folderId()), 200);
+                assertThat(item(menu.pageId()).getTitle()).isEqualTo("Updated");
+            }
+            case "DELETE" -> {
+                request("DELETE", "portal-navigation-items/" + menu.pageId(), null, 204);
+                assertThat(
+                    navigationQueryService.findByIdAndEnvironmentId(NAVIGATION_ENVIRONMENT, PortalNavigationItemId.of(menu.pageId()))
+                ).isNull();
+            }
+            case "FETCH" -> {
+                givenSourcedPage(menu);
+                portalPageContentCrudService.update(
+                    PortalPageContentFixtures.aGraviteeMarkdownPageContent(
+                        PortalPageContentId.of(menu.contentId()),
+                        ORGANIZATION,
+                        NAVIGATION_ENVIRONMENT,
+                        "Before fetch"
+                    )
+                );
+                request("POST", "portal-navigation-items/" + menu.pageId() + "/_fetch", null, 200);
+                assertThat(((GraviteeMarkdownPageContent) content(menu.contentId())).getContent().value()).isEqualTo(
+                    PortalNavigationItemSourceDomainServiceInMemory.MARKDOWN
+                );
+            }
+            case "SEED" -> {
+                request("POST", "portal-navigation-items/_default-pages", Map.of("ids", List.of(menu.listingId())), 204);
+                assertThat(
+                    navigationQueryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
+                        NAVIGATION_ENVIRONMENT,
+                        PortalArea.TOP_NAVBAR,
+                        new NavigationItemReference.ApiReference(menu.apiId())
+                    )
+                ).hasSize(1);
+            }
+            case "GET", "PUT", "PATCH" -> {
+                var result = request(operation, contentPath(true, menu.contentId(), operation), contentBody(operation), 200);
+                assertThat(result.path("id").asText()).isEqualTo(menu.contentId());
+                var stored = (OpenApiPageContent) content(menu.contentId());
+                assertThat(stored.getContent().value()).isEqualTo("PUT".equals(operation) ? UPDATED_OPENAPI_CONTENT : OPENAPI_CONTENT);
+                if ("PATCH".equals(operation)) {
+                    assertThat(((RedocConfiguration) stored.getViewerSettings()).tryItUrl()).isEqualTo("https://changed.example.com");
+                }
+            }
+            default -> throw new IllegalArgumentException(operation);
+        }
+        assertThat(snapshot(DEFAULT_MENU)).isEqualTo(untouched);
+        assertThat(portalCrudService.findByIdAndEnvironmentId(OTHER_PORTAL_ID, NAVIGATION_ENVIRONMENT).orElseThrow().isDefault()).isFalse();
+    }
+
+    @Test
+    void should_reject_legacy_requests_when_no_default_and_multiple_portals_exist() throws Exception {
+        givenTwoPortalMenus();
+        var partners = portalCrudService.findByIdAndEnvironmentId(OTHER_PORTAL_ID, NAVIGATION_ENVIRONMENT).orElseThrow();
+        var other = Portal.of(
+            PortalId.of(UUID.randomUUID().toString()),
+            NAVIGATION_ENVIRONMENT,
+            ORGANIZATION,
+            "Other",
+            PortalNavigationStructure.empty(),
+            null,
+            false,
+            URI.create("https://other.example.com").toURL()
+        );
+        portalCrudService.initWith(List.of(partners, other));
+        request("GET", "portal-navigation-items", null, 404);
+        request("POST", "portal-navigation-items", createFolder("No target", null), 404);
+        var response = request("GET", "portal-page-contents/" + PARTNERS_MENU.contentId(), null, 404);
+        assertThat(response.path("message").asText()).isEqualTo(
+            "Default portal of environment [ " + NAVIGATION_ENVIRONMENT + " ] not found"
+        );
+    }
+
+    @Test
+    void should_reject_legacy_requests_when_no_portal_exists() {
+        givenTwoPortalMenus();
+        portalCrudService.initWith(List.of());
+        request("GET", "portal-navigation-items", null, 404);
+        var response = request("GET", "portal-page-contents/" + PARTNERS_MENU.contentId(), null, 404);
+        assertThat(response.path("message").asText()).isEqualTo(
+            "Default portal of environment [ " + NAVIGATION_ENVIRONMENT + " ] not found"
+        );
+    }
+
+    @Test
+    void should_reject_legacy_requests_when_multiple_defaults_exist() throws Exception {
+        var current = portalCrudService.findByIdAndEnvironmentId(PortalId.of(NAVIGATION_PORTAL_ID), NAVIGATION_ENVIRONMENT).orElseThrow();
+        var other = Portal.of(
+            PortalId.of(UUID.randomUUID().toString()),
+            NAVIGATION_ENVIRONMENT,
+            ORGANIZATION,
+            "Other",
+            PortalNavigationStructure.empty(),
+            null,
+            true,
+            URI.create("https://other.example.com").toURL()
+        );
+        portalCrudService.initWith(List.of(current, other));
+        request("GET", "portal-navigation-items", null, 404);
+    }
+
+    @ParameterizedTest
+    @MethodSource("operations")
+    void should_enforce_legacy_permissions_for_the_only_nondefault_portal(
+        String method,
+        String path,
+        RolePermissionAction action,
+        Object body
+    ) {
+        var partners = portalCrudService.findByIdAndEnvironmentId(OTHER_PORTAL_ID, NAVIGATION_ENVIRONMENT).orElseThrow();
+        portalCrudService.initWith(List.of(partners));
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.ENVIRONMENT_DOCUMENTATION,
+                NAVIGATION_ENVIRONMENT,
+                action
+            )
+        ).thenReturn(false);
+        var legacyPath = "portal-" + path;
+        request(method, legacyPath, body, 403);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "GET", "PUT", "PATCH" })
+    void should_refuse_foreign_content_with_only_one_nondefault_portal(String method) {
+        givenTwoPortalMenus();
+        var partners = portalCrudService.findByIdAndEnvironmentId(OTHER_PORTAL_ID, NAVIGATION_ENVIRONMENT).orElseThrow();
+        portalCrudService.initWith(List.of(partners));
+        var before = snapshot();
+        request(method, contentPath(true, DEFAULT_MENU.contentId(), method), contentBody(method), 404);
+        assertThat(snapshot()).isEqualTo(before);
     }
 
     @Test
