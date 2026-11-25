@@ -19,6 +19,7 @@ export * from './frontend/index';
 export * from './helm/index';
 export * from './job-aikido-scan-docker-images';
 export * from './job-build-docker-image';
+export * from './job-close-jira-release';
 export * from './job-danger-js';
 export * from './job-deploy-on-azure';
 export * from './job-deploy-on-next-gen-integration';

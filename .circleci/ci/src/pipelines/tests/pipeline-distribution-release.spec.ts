@@ -87,6 +87,31 @@ describe('Distribution release tests', () => {
     expect(guardOf('4.13.0-alpha.1')).toContain('"${PIN_BASE%.*}" != "4.13"');
   });
 
+  it('should only rehearse the Jira release in a dry run', () => {
+    // A rehearsal pushed no tag, so the version it names is not released and must stay open.
+    const closeStep = (isDryRun: boolean) =>
+      parse(
+        generateDistributionReleaseConfig({
+          action: 'distribution_release',
+          baseBranch: '4.12.x',
+          branch: '',
+          sha1: '784ff35ca',
+          changedFiles: [],
+          buildNum: '1234',
+          buildId: '1234',
+          graviteeioVersion: '4.12.16',
+          tag: '4.12.16',
+          isDryRun,
+          apimVersionPath: './src/pipelines/tests/resources/common/pom.xml',
+          supportBranches: ['4.13.x', '4.12.x'],
+        }).stringify(),
+      ).jobs['job-close-jira-release'].steps.find((s: { run?: { name?: string } }) => s.run?.name === 'Close the release in Jira').run
+        .command;
+
+    expect(closeStep(true)).toContain('--version=4.12.16 --dry-run');
+    expect(closeStep(false)).not.toContain('--dry-run');
+  });
+
   it.each`
     baseBranch | isDryRun | dockerTagAsLatest | graviteeioVersion   | apimVersionPath                                              | expectedResult
     ${'4.2.x'} | ${true}  | ${false}          | ${'4.2.0'}          | ${'./src/pipelines/tests/resources/common/pom-snapshot.xml'} | ${'release-4-2-0-dry-run.yml'}

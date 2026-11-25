@@ -21,6 +21,7 @@ import {
   BuildDockerChainguardImageJob,
   BuildDockerChainguardFipsImageJob,
   BuildDockerWebUiImageJob,
+  CloseJiraReleaseJob,
   ConsoleWebuiBuildJob,
   DeployDistributionResourcesJob,
   GammaWebuiBuildJob,
@@ -107,6 +108,9 @@ export class DistributionReleaseWorkflow {
 
     const releaseNoteApimJob = ReleaseNotesApimJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(releaseNoteApimJob);
+
+    const closeJiraReleaseJob = CloseJiraReleaseJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(closeJiraReleaseJob);
 
     // The two newest lines only: an older one is not deployed on SaaS any more.
     const triggerSaas = triggersSaasDockerImages(environment.branch, environment.supportBranches);
@@ -376,6 +380,18 @@ export class DistributionReleaseWorkflow {
       new workflow.WorkflowJob(releaseNoteApimJob, {
         context: config.jobContext,
         name: 'Create release note pull request',
+        requires: [
+          'Release Helm Chart',
+          `Build and push RPM packages for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+        ],
+      }),
+
+      // Close the version in Jira and open the next one. Same wait as the changelog, not after it:
+      // releasing a version does not change which tickets it carries, and a failed changelog must
+      // not leave the next version uncreated.
+      new workflow.WorkflowJob(closeJiraReleaseJob, {
+        context: config.jobContext,
+        name: 'Close the release in Jira',
         requires: [
           'Release Helm Chart',
           `Build and push RPM packages for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,

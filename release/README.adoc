@@ -129,6 +129,8 @@ Four read-only checks run locally first, so they refuse in a second rather than 
 
 Which images take the `latest` tag is not asked any more. A final release takes it when nothing higher has been released, read from the tags the repository carries; a qualified version never takes it.
 
+Nothing is left to do in Jira either. Once the chart and the RPMs are published, the *Close the release in Jira* job marks the APIM version `4.13.1` released and creates `4.13.2`, which the automation that sets fix versions on merge needs. It also lists the tickets of `4.13.1` that are not closed, in its log and on Slack, without moving or transitioning them: they have shipped, so read that list. The list comes out even when Jira refuses to update the versions; the job then fails after it. A pre-release or a hotfix leaves Jira untouched.
+
 === If a release stops halfway
 
 Nothing resumes it. In the CircleCI workflow, *Rerun from failed* restarts the failed job **and everything that depends on it** — which is not always what you want.
