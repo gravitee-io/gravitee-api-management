@@ -54,6 +54,12 @@ public class BaseConnectionLog {
     private String errorComponentType;
     private List<ConnectionDiagnosticModel> warnings;
     private Map<String, Object> additionalMetrics;
+    /**
+     * Custom metrics of the request, as the assign-metrics policy writes them under {@code custom}: keyed by name,
+     * without the {@code custom.} prefix. Null when the document has no {@code custom} object.
+     * Read for the Gamma logs search only: the Management API v2 log use cases do not copy it.
+     */
+    private Map<String, String> customMetrics;
     private String mcpMethod;
     private String host;
     private String subscriptionId;

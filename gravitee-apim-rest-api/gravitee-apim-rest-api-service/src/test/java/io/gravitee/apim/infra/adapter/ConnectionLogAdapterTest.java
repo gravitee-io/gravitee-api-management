@@ -89,6 +89,20 @@ class ConnectionLogAdapterTest {
     }
 
     @Test
+    void should_carry_the_custom_metrics_apart_from_the_additional_metrics() {
+        final Metrics toConvert = Metrics.builder()
+            .requestId("request-id")
+            .customMetrics(Map.of("customer-tier", "gold"))
+            .additionalMetrics(Map.of("keyword_fraud-check_tier", "high"))
+            .build();
+
+        final BaseConnectionLog result = ConnectionLogAdapter.INSTANCE.toEntity(toConvert);
+
+        assertThat(result.getCustomMetrics()).containsExactly(Map.entry("customer-tier", "gold"));
+        assertThat(result.getAdditionalMetrics()).containsExactly(Map.entry("keyword_fraud-check_tier", "high"));
+    }
+
+    @Test
     void should_convert_connection_logs_to_connection_log_entities() {
         final Metrics toConvert = Metrics.builder()
             .apiId("api-id")

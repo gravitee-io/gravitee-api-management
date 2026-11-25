@@ -867,7 +867,9 @@ paths:
                                         apiName: "Petstore API"
                                         apiType: "HTTP_PROXY"
                                         transactionId: "txn-xyz-789"
-                                        timestamp: "2026-06-10T14:32:01Z"
+                                        timestampEpochMs: 1781101921000
+                                        additionalMetrics: {}
+                                        customMetrics: { "customer-tier": "gold" }
                                         requestEnded: true
                                         method: "GET"
                                         uri: "/pets/42"
@@ -1112,7 +1114,9 @@ paths:
                                             - apiId: "67e246cb-ab02-4da4-8f47-f9fa3e061d6b"
                                               apiName: "Petstore API"
                                               apiType: "HTTP_PROXY"
-                                              timestamp: "2026-06-10T14:32:01Z"
+                                              timestampEpochMs: 1781101921000
+                                              additionalMetrics: {}
+                                              customMetrics: { "customer-tier": "gold" }
                                               requestId: "req-abc-123"
                                               transactionId: "txn-xyz-789"
                                               method: "GET"
@@ -1139,7 +1143,9 @@ paths:
                                         data:
                                             - apiId: "67e246cb-ab02-4da4-8f47-f9fa3e061d6b"
                                               apiName: "Petstore API"
-                                              timestamp: "2026-06-10T14:33:00Z"
+                                              timestampEpochMs: 1781101980000
+                                              additionalMetrics: {}
+                                              customMetrics: {}
                                               requestId: "req-def-456"
                                               method: "POST"
                                               uri: "/pets"
@@ -3084,6 +3090,9 @@ components:
                 Full merged log detail combining enriched metadata from the `v4-metrics` index
                 and HTTP payloads (headers + body) from the `v4-log` index. Returned by
                 `GET /observability/logs/{requestId}?apiId=`.
+            required:
+                - additionalMetrics
+                - customMetrics
             properties:
                 requestId:
                     type: string
@@ -3121,11 +3130,11 @@ components:
                 clientIdentifier:
                     type: string
                     description: Client identifier extracted by the gateway.
-                timestamp:
-                    type: string
-                    format: date-time
-                    description: ISO-8601 instant the request was received.
-                    example: "2026-06-10T14:32:01Z"
+                timestampEpochMs:
+                    type: integer
+                    format: int64
+                    description: Instant the request was received, in milliseconds since the epoch.
+                    example: 1781101921000
                 requestEnded:
                     type: boolean
                     description: Whether the full request/response cycle completed.
@@ -3231,8 +3240,20 @@ components:
                         $ref: "#/components/schemas/LogEntryWarning"
                 additionalMetrics:
                     type: object
-                    description: Extra metrics attached by plugins or custom policies.
+                    description: |
+                        Extra metrics attached by plugins or custom policies. An empty object when the request
+                        carries none; never omitted.
                     additionalProperties: true
+                customMetrics:
+                    type: object
+                    description: |
+                        Custom metrics of the request, as the assign-metrics policy writes them: the value of the
+                        field `custom.<name>` is keyed by `<name>`, without the `custom.` prefix, as stored. An empty
+                        object when the request carries none; never omitted.
+                    additionalProperties:
+                        type: string
+                    example:
+                        customer-tier: "gold"
                 subscriptionId:
                     type: string
                     description: Identifier of the subscription the request was matched to.
@@ -3257,6 +3278,29 @@ components:
                     type: string
                     description: Kafka `client.id` reported by the client (native rows only).
                     example: "orders-consumer"
+                clientSoftwareName:
+                    type: string
+                    description: |
+                        Kafka client library advertised at the handshake (native rows only); the literal `unknown`
+                        when the client advertises none.
+                    example: "librdkafka"
+                clientSoftwareVersion:
+                    type: string
+                    description: Version of the Kafka client library advertised at the handshake (native rows only).
+                    example: "2.3.0"
+                securityType:
+                    type: string
+                    description: |
+                        Credential type the native Kafka connection authenticated with (native rows only); a root
+                        field of the document, not an additional metric.
+                    example: "OAUTH2"
+                securityToken:
+                    type: string
+                    description: |
+                        Credential identifier of a native Kafka connection (native rows only), served only when
+                        `securityType` is `OAUTH2` or `JWT`, whose token is a client id; never for any other type, an
+                        API key included.
+                    example: "orders-client"
                 brokerId:
                     type: string
                     description: Identifier of the Kafka broker involved (native rows only).
@@ -3315,6 +3359,9 @@ components:
                 Light log row from the `v4-metrics` Elasticsearch index. Fields are enriched
                 server-side with display names so the UI can render without additional round-trips.
                 Null fields are omitted from the JSON response (`@JsonInclude(NON_NULL)`).
+            required:
+                - additionalMetrics
+                - customMetrics
             properties:
                 apiId:
                     type: string
@@ -3331,11 +3378,11 @@ components:
                         that belongs to another kind through its entrypoint: an MCP call on an `HTTP_PROXY`
                         API reads `HTTP_PROXY`.
                     example: "HTTP_PROXY"
-                timestamp:
-                    type: string
-                    format: date-time
-                    description: ISO-8601 instant the request was received by the gateway.
-                    example: "2026-06-10T14:32:01Z"
+                timestampEpochMs:
+                    type: integer
+                    format: int64
+                    description: Instant the request was received by the gateway, in milliseconds since the epoch.
+                    example: 1781101921000
                 requestId:
                     type: string
                     description: Unique identifier of the gateway request.
@@ -3433,8 +3480,20 @@ components:
                         $ref: "#/components/schemas/LogEntryWarning"
                 additionalMetrics:
                     type: object
-                    description: Extra metrics attached by plugins or custom policies.
+                    description: |
+                        Extra metrics attached by plugins or custom policies. An empty object when the request
+                        carries none; never omitted.
                     additionalProperties: true
+                customMetrics:
+                    type: object
+                    description: |
+                        Custom metrics of the request, as the assign-metrics policy writes them: the value of the
+                        field `custom.<name>` is keyed by `<name>`, without the `custom.` prefix, as stored. An empty
+                        object when the request carries none; never omitted.
+                    additionalProperties:
+                        type: string
+                    example:
+                        customer-tier: "gold"
                 mcpMethod:
                     type: string
                     description: MCP method name (present only for `MCP` API type requests).
@@ -3460,6 +3519,16 @@ components:
                     type: string
                     description: Kafka `client.id` reported by the client (native rows only).
                     example: "orders-consumer"
+                clientSoftwareName:
+                    type: string
+                    description: |
+                        Kafka client library advertised at the handshake (native rows only); the literal `unknown`
+                        when the client advertises none.
+                    example: "librdkafka"
+                clientSoftwareVersion:
+                    type: string
+                    description: Version of the Kafka client library advertised at the handshake (native rows only).
+                    example: "2.3.0"
                 brokerId:
                     type: string
                     description: Identifier of the Kafka broker involved (native rows only).
