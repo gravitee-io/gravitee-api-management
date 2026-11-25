@@ -1,0 +1,37 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "question": {
+            "title": "Question",
+            "description": "A yes or no question in natural language, where yes is a match: \"Is the user trying to sign a contract?\"",
+            "type": "string",
+            "minLength": 1
+        },
+        "resource": {
+            "title": "Decision model",
+            "description": "The decision model resource to ask",
+            "type": "string",
+            "minLength": 1,
+            "gioConfig": {
+                "uiType": "resource-type",
+                "uiTypeProps": { "resourceType": "ai-model-decision" }
+            }
+        },
+        "sensitivity": {
+            "title": "Detection sensitivity",
+            "description": "How readily the guardrail blocks. Low: only detect clear violations, minimizing unnecessary interruptions. Balanced (recommended): balance missed violations and false alarms. High: detect potential violations, even when the evaluation is uncertain",
+            "type": "string",
+            "enum": ["LOW", "BALANCED", "HIGH"],
+            "default": "BALANCED",
+            "gioConfig": {
+                "enumLabelMap": {
+                    "LOW": "Low: only detect clear violations",
+                    "BALANCED": "Balanced (recommended): balance missed violations and false alarms",
+                    "HIGH": "High: detect potential violations, even when uncertain"
+                }
+            }
+        }
+    },
+    "required": ["question", "resource"]
+}

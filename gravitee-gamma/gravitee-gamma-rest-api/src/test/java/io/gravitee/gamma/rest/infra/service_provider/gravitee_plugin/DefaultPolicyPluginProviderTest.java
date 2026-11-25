@@ -312,10 +312,11 @@ class DefaultPolicyPluginProviderTest {
             assertThat(provider.findResourceReferences("guardrail-decision")).isEmpty();
         }
 
-        /** The schema the distribution bundles, so that a marker renamed in the policy is caught here. */
-        @Test
-        void should_read_the_resource_picker_of_the_bundled_guardrail_decision_policy() throws Exception {
-            given_the_schema(the_bundled_schema("guardrail-decision-1.0.0-alpha.7.json"));
+        /** The schemas the distribution bundles, so that a marker renamed in a policy is caught here. */
+        @ParameterizedTest
+        @ValueSource(strings = { "guardrail-llm-decision-binary-1.0.0-alpha.9.json", "guardrail-llm-decision-scoring-1.0.0-alpha.9.json" })
+        void should_read_the_resource_picker_of_the_bundled_guardrail_decision_policies(String schema) throws Exception {
+            given_the_schema(the_bundled_schema(schema));
 
             assertThat(provider.findResourceReferences("guardrail-decision")).containsExactly(
                 new ResourceReference(JsonPointer.compile("/resource"), List.of("ai-model-decision"))
