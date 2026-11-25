@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -93,7 +94,8 @@ public class UnlinkInstallationCommandHandlerTest {
         obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
-        verify(accessPointCrudService, times(1)).deleteAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, envId);
+        verify(accessPointCrudService, times(1)).deleteUnreferencedAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, envId);
+        verify(accessPointCrudService, never()).deleteAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, envId);
         verify(accessPointCrudService, times(1)).deleteAccessPoints(AccessPoint.ReferenceType.ORGANIZATION, orgId);
     }
 
