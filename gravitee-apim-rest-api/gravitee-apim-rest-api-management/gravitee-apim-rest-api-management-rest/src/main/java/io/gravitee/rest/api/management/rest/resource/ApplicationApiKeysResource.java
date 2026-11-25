@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.RenewApplicationApiKeyEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
@@ -102,10 +103,11 @@ public class ApplicationApiKeysResource extends AbstractApiKeyResource {
         }
     )
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })
-    public Response renewApiKeyForApplicationSubscription() {
+    public Response renewApiKeyForApplicationSubscription(RenewApplicationApiKeyEntity renew) {
         ApplicationEntity applicationEntity = getApplication();
         checkApplicationUsesSharedApiKey(applicationEntity);
-        ApiKeyEntity apiKeyEntity = apiKeyService.renew(GraviteeContext.getExecutionContext(), applicationEntity);
+        String customApiKey = renew == null ? null : renew.getCustomApiKey();
+        ApiKeyEntity apiKeyEntity = apiKeyService.renew(GraviteeContext.getExecutionContext(), applicationEntity, customApiKey);
         URI location = URI.create(uriInfo.getPath().replace("_renew", apiKeyEntity.getId()));
         return Response.created(location).entity(apiKeyEntity).build();
     }
