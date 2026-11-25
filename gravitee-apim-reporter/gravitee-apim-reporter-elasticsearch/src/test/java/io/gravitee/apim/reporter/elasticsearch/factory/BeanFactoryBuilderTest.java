@@ -34,6 +34,7 @@ import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.elasticsearch.version.Version;
 import io.reactivex.rxjava3.core.Single;
 import java.util.stream.Stream;
+import javax.net.ssl.SSLHandshakeException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -238,6 +239,19 @@ class BeanFactoryBuilderTest {
 
             assertThatThrownBy(() -> BeanFactoryBuilder.buildFactory(client, reporterConfiguration)).isInstanceOf(
                 ElasticsearchException.class
+            );
+
+            verify(client, times(1)).getInfo();
+        }
+
+        @Test
+        void should_fail_immediately_when_the_cluster_certificate_is_rejected() {
+            when(client.getInfo()).thenReturn(
+                Single.error(new RuntimeException(new SSLHandshakeException("(certificate_unknown) PKIX path building failed")))
+            );
+
+            assertThatThrownBy(() -> BeanFactoryBuilder.buildFactory(client, reporterConfiguration)).hasRootCauseInstanceOf(
+                SSLHandshakeException.class
             );
 
             verify(client, times(1)).getInfo();
