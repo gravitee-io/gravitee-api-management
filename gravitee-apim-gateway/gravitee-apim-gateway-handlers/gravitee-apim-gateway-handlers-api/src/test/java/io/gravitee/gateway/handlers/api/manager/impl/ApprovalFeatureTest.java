@@ -42,7 +42,7 @@ class ApprovalFeatureTest {
     @Test
     void should_be_enabled_for_a_licensed_organization_when_gamma_is_enabled() {
         when(licenseManager.getOrganizationLicenseOrPlatform("org-1")).thenReturn(license);
-        when(license.isFeatureEnabled("apim-hitl")).thenReturn(true);
+        when(license.isFeatureEnabled("gamma-aim-hitl")).thenReturn(true);
 
         assertThat(new ApprovalFeature(licenseManager, true).isEnabledFor("org-1")).isTrue();
     }
@@ -58,7 +58,7 @@ class ApprovalFeatureTest {
     @Test
     void should_be_disabled_for_an_organization_whose_license_lacks_the_feature() {
         when(licenseManager.getOrganizationLicenseOrPlatform("org-1")).thenReturn(license);
-        when(license.isFeatureEnabled("apim-hitl")).thenReturn(false);
+        when(license.isFeatureEnabled("gamma-aim-hitl")).thenReturn(false);
 
         assertThat(new ApprovalFeature(licenseManager, true).isEnabledFor("org-1")).isFalse();
     }
@@ -67,7 +67,7 @@ class ApprovalFeatureTest {
     void should_be_disabled_for_a_license_that_has_the_ai_management_module_but_not_the_feature() {
         when(licenseManager.getOrganizationLicenseOrPlatform("org-1")).thenReturn(license);
         lenient().when(license.isFeatureEnabled("gamma-aim-module")).thenReturn(true);
-        when(license.isFeatureEnabled("apim-hitl")).thenReturn(false);
+        when(license.isFeatureEnabled("gamma-aim-hitl")).thenReturn(false);
 
         assertThat(new ApprovalFeature(licenseManager, true).isEnabledFor("org-1")).isFalse();
     }
