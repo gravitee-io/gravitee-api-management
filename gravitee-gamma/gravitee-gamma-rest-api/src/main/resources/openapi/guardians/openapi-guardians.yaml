@@ -880,7 +880,7 @@ components:
                     - llm-proxy
                 policies:
                     - name: Mask credentials
-                      policy: guardrail-rule
+                      policy: guardrail-llm-rule
                       enabled: true
                 lifecycleState: UNDEPLOYED
                 createdAt: "2026-11-07T10:00:01.119Z"
@@ -1021,7 +1021,7 @@ components:
                     - llm-proxy
                 policies:
                     - name: Mask credentials
-                      policy: guardrail-rule
+                      policy: guardrail-llm-rule
                       enabled: true
 
         UpdateGuardian:
@@ -1199,7 +1199,7 @@ components:
                 additionalProperties: true
             example:
                 - name: Mask credentials
-                  policy: guardrail-rule
+                  policy: guardrail-llm-rule
                   enabled: true
 
         Resources:
