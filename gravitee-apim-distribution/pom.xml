@@ -81,7 +81,7 @@
             Versions of artifacts the distribution uses directly and the APIM core does not manage
             through gravitee-apim-bom; anything it does manage takes its version from the BOM.
         -->
-        <gravitee-connector-http.version>6.0.5</gravitee-connector-http.version>
+        <gravitee-connector-http.version>6.0.6</gravitee-connector-http.version>
 
         <!-- Build plugins the distribution drives itself -->
         <maven-dependency-plugin.version>3.11.0</maven-dependency-plugin.version>
