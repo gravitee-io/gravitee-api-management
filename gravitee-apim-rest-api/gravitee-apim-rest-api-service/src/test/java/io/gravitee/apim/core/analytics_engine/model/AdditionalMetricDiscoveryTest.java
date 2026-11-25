@@ -17,6 +17,7 @@ package io.gravitee.apim.core.analytics_engine.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.apim.core.observability.model.AdditionalMetricField.Root;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -57,8 +58,8 @@ class AdditionalMetricDiscoveryTest {
     @Test
     void should_never_count_nor_leave_out_a_key_listed_under_another_origin() {
         var metrics = seenKeys(202);
-        var builtInSeenLast = metrics.get(201).rawKey();
-        var declaredSeenFirst = metrics.get(0).rawKey();
+        var builtInSeenLast = metrics.get(201).name();
+        var declaredSeenFirst = metrics.get(0).name();
         var discovery = new AdditionalMetricDiscovery(metrics, REFRESHED_AT, false);
 
         var capped = discovery.capDiscovered(Set.of(builtInSeenLast, declaredSeenFirst));
@@ -84,7 +85,7 @@ class AdditionalMetricDiscoveryTest {
     @Test
     void should_drop_the_keys_refused_before_capping_so_they_take_no_one_s_place() {
         var metrics = seenKeys(201);
-        var refused = metrics.get(0).rawKey();
+        var refused = metrics.get(0).name();
         var discovery = new AdditionalMetricDiscovery(metrics, REFRESHED_AT, false);
 
         var capped = discovery.retainKeys(key -> !key.equals(refused)).capDiscovered(Set.of());
@@ -98,6 +99,32 @@ class AdditionalMetricDiscoveryTest {
         var discovery = new AdditionalMetricDiscovery(seenKeys(3), REFRESHED_AT, true);
 
         assertThat(discovery.capDiscovered(Set.of()).truncated()).isTrue();
+    }
+
+    @Test
+    void should_count_a_custom_key_spelt_like_a_key_listed_under_another_origin() {
+        var metrics = new ArrayList<>(seenKeys(201));
+        var custom = new DiscoveredAdditionalMetric(Root.CUSTOM, metrics.get(0).rawKey(), REFRESHED_AT.minus(Duration.ofDays(1)));
+        metrics.add(custom);
+        var discovery = new AdditionalMetricDiscovery(metrics, REFRESHED_AT, false);
+
+        var capped = discovery.capDiscovered(Set.of(metrics.get(0).name()));
+
+        assertThat(custom.name()).isEqualTo("custom.long_key-000");
+        assertThat(capped.metrics()).doesNotContain(custom).hasSize(201);
+        assertThat(capped.truncated()).isTrue();
+    }
+
+    @Test
+    void should_retain_keys_by_wire_name() {
+        var additional = new DiscoveredAdditionalMetric("keyword_tier", REFRESHED_AT);
+        var custom = new DiscoveredAdditionalMetric(Root.CUSTOM, "keyword_tier", REFRESHED_AT);
+
+        var retained = new AdditionalMetricDiscovery(List.of(additional, custom), REFRESHED_AT, false).retainKeys(
+            "custom.keyword_tier"::equals
+        );
+
+        assertThat(retained.metrics()).containsExactly(custom);
     }
 
     @Test

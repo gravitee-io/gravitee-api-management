@@ -25,6 +25,7 @@ import com.google.common.util.concurrent.ListenableFutureTask;
 import io.gravitee.apim.core.analytics_engine.model.AdditionalMetricDiscovery;
 import io.gravitee.apim.core.analytics_engine.model.DiscoveredAdditionalMetric;
 import io.gravitee.apim.core.analytics_engine.query_service.AdditionalMetricDiscoveryQueryService;
+import io.gravitee.apim.infra.adapter.AnalyticsMeasuresAdapter;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
@@ -118,7 +119,13 @@ public class AdditionalMetricDiscoveryQueryServiceImpl implements AdditionalMetr
             var metrics = result
                 .metrics()
                 .stream()
-                .map(metric -> new DiscoveredAdditionalMetric(metric.rawKey(), metric.lastSeen()))
+                .map(metric ->
+                    new DiscoveredAdditionalMetric(
+                        AnalyticsMeasuresAdapter.INSTANCE.fromRoot(metric.root()),
+                        metric.rawKey(),
+                        metric.lastSeen()
+                    )
+                )
                 .toList();
             return new Pass(new AdditionalMetricDiscovery(metrics, now, result.truncated()), ticker.read(), false);
         } catch (RuntimeException e) {

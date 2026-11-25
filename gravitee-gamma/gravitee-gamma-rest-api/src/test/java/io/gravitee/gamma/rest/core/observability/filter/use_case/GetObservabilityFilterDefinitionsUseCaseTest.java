@@ -17,8 +17,10 @@ package io.gravitee.gamma.rest.core.observability.filter.use_case;
 
 import static io.gravitee.gamma.rest.core.observability.analytics.model.MetricDefinitionFixtures.aMetric;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 import io.gravitee.gamma.rest.core.observability.catalog.inmemory.MetricDefinitionFixture;
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricField;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricValueType;
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogFlags;
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
@@ -710,17 +712,65 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
         }
 
         @Test
-        void should_leave_out_detail_only_and_reserved_keys() {
+        void should_leave_out_detail_only_keys() {
             metricDefinitions.ports.givenDiscovered(
                 List.of(
                     discovered("json_fraud-signals", AdditionalMetricValueType.JSON),
-                    discovered("string_note", AdditionalMetricValueType.STRING),
-                    discovered("double_custom_basket-value", AdditionalMetricValueType.DOUBLE)
+                    discovered("string_note", AdditionalMetricValueType.STRING)
                 ),
                 false
             );
 
             assertThat(dynamic(all())).isEmpty();
+        }
+
+        @Test
+        void should_list_custom_keys_of_both_forms_in_the_custom_namespace_tied_to_no_kind() {
+            metricDefinitions.ports.givenDiscovered(
+                List.of(
+                    discovered("double_custom_basket-value", AdditionalMetricValueType.DOUBLE),
+                    new DiscoveredAdditionalMetric(AdditionalMetricField.Root.CUSTOM, "fraud-tier", AdditionalMetricValueType.KEYWORD, SEEN)
+                ),
+                false
+            );
+
+            assertThat(dynamic(all()))
+                .extracting(
+                    FilterSpec::name,
+                    FilterSpec::label,
+                    FilterSpec::type,
+                    FilterSpec::operators,
+                    FilterSpec::apiTypes,
+                    spec -> spec.catalog().rawKey(),
+                    spec -> spec.catalog().namespace(),
+                    spec -> spec.catalog().origin(),
+                    spec -> spec.catalog().lastSeen()
+                )
+                .containsExactly(
+                    tuple(
+                        "additional-metrics.double_custom_basket-value",
+                        "Custom basket value",
+                        FilterType.NUMBER,
+                        List.of(FilterOperator.EQ, FilterOperator.GTE, FilterOperator.LTE),
+                        Set.of(),
+                        "double_custom_basket-value",
+                        "custom",
+                        CatalogOrigin.DISCOVERED,
+                        SEEN
+                    ),
+                    tuple(
+                        "custom.fraud-tier",
+                        "Fraud tier",
+                        FilterType.KEYWORD,
+                        List.of(FilterOperator.EQ, FilterOperator.IN),
+                        Set.of(),
+                        "custom.fraud-tier",
+                        "custom",
+                        CatalogOrigin.DISCOVERED,
+                        SEEN
+                    )
+                );
+            assertThat(dynamicNames(Set.of(ApiType.NATIVE))).contains("custom.fraud-tier");
         }
 
         @Test
@@ -761,8 +811,8 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
             assertThat(spec(output.filters(), "MCP_PROXY_TOOL").catalog().lastSeen()).isEqualTo(SEEN.minusSeconds(600));
             assertThat(output.truncated()).isTrue();
             assertThat(metricDefinitions.ports.lastUncountedKeys()).containsExactlyInAnyOrder(
-                "keyword_fraud_verdict",
-                "keyword_mcp-proxy_tools/call"
+                "additional-metrics.keyword_fraud_verdict",
+                "additional-metrics.keyword_mcp-proxy_tools/call"
             );
         }
 

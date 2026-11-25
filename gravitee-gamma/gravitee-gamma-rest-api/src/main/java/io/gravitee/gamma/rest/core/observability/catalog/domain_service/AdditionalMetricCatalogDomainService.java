@@ -102,11 +102,14 @@ public class AdditionalMetricCatalogDomainService {
         return new AdditionalMetricCatalog(entries, discovery.refreshedAt(), readsTraffic && discovery.truncated());
     }
 
-    /** The keys listed under another origin than {@code DISCOVERED}: they neither count against the cap nor are left out. */
+    /**
+     * The wire names of the keys listed under another origin than {@code DISCOVERED}: they neither count against the cap
+     * nor are left out. Compared by wire name, so a custom key spelt like one of them is not one.
+     */
     public Set<String> keysListedElsewhere(Map<String, Set<String>> builtInNamesByRawKey, List<AdditionalMetricDefinition> records) {
-        Set<String> keys = new HashSet<>(builtInNamesByRawKey.keySet());
-        records.forEach(record -> keys.add(record.field().rawKey()));
-        return keys;
+        Set<String> names = builtInWireNames(builtInNamesByRawKey);
+        records.forEach(record -> names.add(record.field().name()));
+        return names;
     }
 
     /**
@@ -295,10 +298,10 @@ public class AdditionalMetricCatalogDomainService {
     }
 
     /**
-     * Every key once: the keys built-ins read, by key, then the records, then the discovered keys of the grammar that
-     * are not reserved, when a discovery is given. A key a built-in reads is never declared nor discovered, a declared
-     * key never discovered. {@code lastSeen} comes from the discovery. A built-in key outside the grammar yields no
-     * entry but stays taken.
+     * Every key once, by wire name: the keys built-ins read, by key, then the records, then the discovered keys of the
+     * grammar, both forms of custom keys included, when a discovery is given. A key a built-in reads is never declared
+     * nor discovered, a declared key never discovered; a custom key spelt like one of them is a key of its own.
+     * {@code lastSeen} comes from the discovery. A built-in key outside the grammar yields no entry but stays taken.
      */
     private List<Resolved> resolve(
         Map<String, Set<String>> builtInNamesByRawKey,
@@ -307,24 +310,23 @@ public class AdditionalMetricCatalogDomainService {
     ) {
         Map<String, Instant> lastSeen = discovery.map(AdditionalMetricCatalogDomainService::lastSeen).orElse(Map.of());
         List<Resolved> resolved = new ArrayList<>();
-        Set<String> taken = new HashSet<>(builtInNamesByRawKey.keySet());
+        Set<String> taken = builtInWireNames(builtInNamesByRawKey);
         new TreeMap<>(builtInNamesByRawKey).forEach((rawKey, names) ->
             keys
                 .fieldOfKey(rawKey)
-                .ifPresent(field -> resolved.add(new Resolved(field, CatalogOrigin.BUILT_IN, names, null, lastSeen.get(rawKey))))
+                .ifPresent(field -> resolved.add(new Resolved(field, CatalogOrigin.BUILT_IN, names, null, lastSeen.get(field.name()))))
         );
         for (AdditionalMetricDefinition record : records) {
-            if (taken.add(record.field().rawKey())) {
-                resolved.add(new Resolved(record.field(), CatalogOrigin.DECLARED, Set.of(), record, lastSeen.get(record.field().rawKey())));
+            if (taken.add(record.field().name())) {
+                resolved.add(new Resolved(record.field(), CatalogOrigin.DECLARED, Set.of(), record, lastSeen.get(record.field().name())));
             }
         }
         discovery
             .stream()
             .flatMap(found -> found.fields().stream())
-            .filter(discovered -> taken.add(discovered.rawKey()))
-            .flatMap(discovered -> keys.discovered(discovered.rawKey(), discovered.valueType()).stream())
-            .filter(field -> !field.isReserved())
-            .forEach(field -> resolved.add(new Resolved(field, CatalogOrigin.DISCOVERED, Set.of(), null, lastSeen.get(field.rawKey()))));
+            .filter(discovered -> taken.add(discovered.name()))
+            .flatMap(discovered -> keys.discovered(discovered).stream())
+            .forEach(field -> resolved.add(new Resolved(field, CatalogOrigin.DISCOVERED, Set.of(), null, lastSeen.get(field.name()))));
         return resolved;
     }
 
@@ -357,15 +359,22 @@ public class AdditionalMetricCatalogDomainService {
         return kinds.isEmpty() ? Optional.empty() : Optional.of(kinds);
     }
 
+    /** The keys built-ins read are keys of the {@code additional-metrics} map: their wire names, in a set the caller may add to. */
+    private static Set<String> builtInWireNames(Map<String, Set<String>> builtInNamesByRawKey) {
+        Set<String> names = new HashSet<>();
+        builtInNamesByRawKey.keySet().forEach(rawKey -> names.add(AdditionalMetricField.NAME_PREFIX + rawKey));
+        return names;
+    }
+
     private static Map<String, Instant> lastSeen(AdditionalMetricDiscovery discovery) {
         return discovery
             .fields()
             .stream()
-            .collect(Collectors.toMap(DiscoveredAdditionalMetric::rawKey, DiscoveredAdditionalMetric::lastSeen, (a, b) -> a));
+            .collect(Collectors.toMap(DiscoveredAdditionalMetric::name, DiscoveredAdditionalMetric::lastSeen, (a, b) -> a));
     }
 
     private static CatalogFlags flags(Resolved key) {
-        return new CatalogFlags(key.origin(), key.field().rawKey(), key.field().valueType(), key.lastSeen(), true, key.namespace());
+        return new CatalogFlags(key.origin(), key.field().servedRawKey(), key.field().valueType(), key.lastSeen(), true, key.namespace());
     }
 
     /**

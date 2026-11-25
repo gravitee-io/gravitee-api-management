@@ -23,6 +23,8 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricValueType;
+import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogFlags;
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.filter.exception.ObservabilityFilterNotFoundException;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
@@ -45,6 +47,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -128,6 +131,44 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
             assertThat(first.get("signals")).extracting(JsonNode::asText).containsExactlyInAnyOrder("LOGS", "ANALYTICS");
             assertThat(first.get("apiTypes")).extracting(JsonNode::asText).containsExactlyInAnyOrder("HTTP_PROXY", "LLM");
             assertThat(first.has("range")).isFalse();
+        }
+
+        @Test
+        void should_serve_a_custom_entry_with_its_wire_name_as_raw_key_the_custom_namespace_and_no_api_kind() {
+            FilterSpec spec = new FilterSpec(
+                "custom.fraud-tier",
+                "Fraud tier",
+                null,
+                FilterType.KEYWORD,
+                List.of(FilterOperator.EQ, FilterOperator.IN),
+                null,
+                null,
+                Set.of(Signal.LOGS, Signal.ANALYTICS),
+                Set.of(),
+                new CatalogFlags(
+                    CatalogOrigin.DISCOVERED,
+                    "custom.fraud-tier",
+                    AdditionalMetricValueType.KEYWORD,
+                    Instant.parse("2026-11-25T15:14:42Z"),
+                    true,
+                    "custom"
+                )
+            );
+            when(getFilterDefinitionsUseCase.execute(any())).thenReturn(
+                new GetObservabilityFilterDefinitionsUseCase.Output(List.of(spec), false)
+            );
+
+            JsonNode entry = rootTarget("definition").request().get().readEntity(JsonNode.class).get("data").get(0);
+
+            assertThat(entry.get("name").asText()).isEqualTo("custom.fraud-tier");
+            assertThat(entry.get("label").asText()).isEqualTo("Fraud tier");
+            assertThat(entry.get("type").asText()).isEqualTo("keyword");
+            assertThat(entry.get("rawKey").asText()).isEqualTo("custom.fraud-tier");
+            assertThat(entry.get("namespace").asText()).isEqualTo("custom");
+            assertThat(entry.get("origin").asText()).isEqualTo("DISCOVERED");
+            assertThat(entry.get("valueType").asText()).isEqualTo("KEYWORD");
+            assertThat(entry.get("lastSeen").asText()).isEqualTo("2026-11-25T15:14:42Z");
+            assertThat(entry.get("apiTypes")).isEmpty();
         }
 
         @Test

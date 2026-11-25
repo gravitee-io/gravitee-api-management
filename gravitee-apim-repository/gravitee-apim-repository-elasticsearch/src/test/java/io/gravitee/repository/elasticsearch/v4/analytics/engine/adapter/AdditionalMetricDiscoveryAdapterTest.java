@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.elasticsearch.model.SearchResponse;
+import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField.Root;
 import io.gravitee.repository.log.v4.model.analytics.AdditionalMetricLastSeen;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -59,7 +60,7 @@ class AdditionalMetricDiscoveryAdapterTest {
         void should_keep_a_key_stored_under_the_type_its_prefix_declares(String rawKey, String esType) {
             var candidates = AdditionalMetricDiscoveryAdapter.candidates(Map.of("additional-metrics." + rawKey, Set.of(esType)));
 
-            assertThat(candidates.rawKeys()).containsExactly(rawKey);
+            assertThat(candidates.names()).containsExactly("additional-metrics." + rawKey);
             assertThat(candidates.truncated()).isFalse();
         }
 
@@ -76,11 +77,11 @@ class AdditionalMetricDiscoveryAdapterTest {
                 )
             );
 
-            assertThat(candidates.rawKeys()).isEmpty();
+            assertThat(candidates.names()).isEmpty();
         }
 
         @Test
-        void should_drop_objects_reserved_keys_unknown_prefixes_and_fields_outside_additional_metrics() {
+        void should_drop_objects_unknown_prefixes_and_fields_outside_both_maps_and_keep_the_typed_custom_form() {
             var candidates = AdditionalMetricDiscoveryAdapter.candidates(
                 Map.of(
                     "additional-metrics",
@@ -97,14 +98,60 @@ class AdditionalMetricDiscoveryAdapterTest {
                     Set.of("text"),
                     "additional-metrics.foo_bar.keyword",
                     Set.of("keyword"),
-                    "custom.tier",
-                    Set.of("keyword"),
                     "api-id",
                     Set.of("keyword")
                 )
             );
 
-            assertThat(candidates.rawKeys()).containsExactly("long_a.b");
+            assertThat(candidates.names()).containsExactly(
+                "additional-metrics.double_custom_basket-value",
+                "additional-metrics.keyword_custom_tier",
+                "additional-metrics.long_a.b"
+            );
+        }
+
+        @Test
+        void should_keep_a_custom_key_stored_as_a_keyword_only() {
+            var candidates = AdditionalMetricDiscoveryAdapter.candidates(
+                Map.of(
+                    "custom.fraud-tier",
+                    Set.of("keyword"),
+                    "custom.Merchant ID",
+                    Set.of("keyword"),
+                    "custom.a",
+                    Set.of("object"),
+                    "custom.a.b",
+                    Set.of("keyword"),
+                    "custom.signup-date",
+                    Set.of("date"),
+                    "custom.mixed",
+                    Set.of("keyword", "date"),
+                    "custom.tier*",
+                    Set.of("keyword"),
+                    "custom",
+                    Set.of("object")
+                )
+            );
+
+            assertThat(candidates.names()).containsExactly("custom.Merchant ID", "custom.a.b", "custom.fraud-tier");
+        }
+
+        @Test
+        void should_drop_a_key_holding_a_star_which_an_exists_query_reads_as_a_pattern() {
+            var candidates = AdditionalMetricDiscoveryAdapter.candidates(
+                Map.of("additional-metrics.keyword_a*", Set.of("keyword"), "custom.*", Set.of("keyword"))
+            );
+
+            assertThat(candidates.names()).isEmpty();
+        }
+
+        @Test
+        void should_keep_a_custom_key_apart_from_the_additional_key_of_the_same_spelling() {
+            var candidates = AdditionalMetricDiscoveryAdapter.candidates(
+                Map.of("additional-metrics.keyword_tier", Set.of("keyword"), "custom.keyword_tier", Set.of("keyword"))
+            );
+
+            assertThat(candidates.names()).containsExactly("additional-metrics.keyword_tier", "custom.keyword_tier");
         }
 
         @Test
@@ -116,8 +163,71 @@ class AdditionalMetricDiscoveryAdapterTest {
 
             var candidates = AdditionalMetricDiscoveryAdapter.candidates(typesByField);
 
-            assertThat(candidates.rawKeys()).hasSize(AdditionalMetricDiscoveryAdapter.MAX_PROBED_KEYS);
+            assertThat(candidates.names()).hasSize(AdditionalMetricDiscoveryAdapter.MAX_PROBED_KEYS);
             assertThat(candidates.truncated()).isTrue();
+        }
+
+        @Test
+        void should_still_probe_the_custom_keys_of_an_index_busy_with_additional_metric_keys() {
+            var typesByField = keys("additional-metrics.long_key-%04d", "long", AdditionalMetricDiscoveryAdapter.MAX_PROBED_KEYS);
+            typesByField.put("custom.fraud-tier", Set.of("keyword"));
+
+            var candidates = AdditionalMetricDiscoveryAdapter.candidates(typesByField);
+
+            assertThat(candidates.names()).hasSize(AdditionalMetricDiscoveryAdapter.MAX_PROBED_KEYS).contains("custom.fraud-tier");
+            assertThat(candidates.names())
+                .filteredOn(name -> name.startsWith("additional-metrics."))
+                .hasSize(999);
+            assertThat(candidates.truncated()).isTrue();
+        }
+
+        @Test
+        void should_still_probe_the_additional_metric_keys_of_an_index_busy_with_custom_keys() {
+            var typesByField = keys("custom.key-%04d", "keyword", AdditionalMetricDiscoveryAdapter.MAX_PROBED_KEYS);
+            typesByField.put("additional-metrics.long_failover_count", Set.of("long"));
+
+            var candidates = AdditionalMetricDiscoveryAdapter.candidates(typesByField);
+
+            assertThat(candidates.names())
+                .hasSize(AdditionalMetricDiscoveryAdapter.MAX_PROBED_KEYS)
+                .contains("additional-metrics.long_failover_count");
+            assertThat(candidates.names())
+                .filteredOn(name -> name.startsWith("custom."))
+                .hasSize(999);
+            assertThat(candidates.truncated()).isTrue();
+        }
+
+        @Test
+        void should_cut_each_map_to_its_share_when_both_exceed_it() {
+            var typesByField = keys("additional-metrics.long_key-%04d", "long", AdditionalMetricDiscoveryAdapter.MAX_PROBED_KEYS);
+            typesByField.putAll(keys("custom.key-%04d", "keyword", AdditionalMetricDiscoveryAdapter.MAX_PROBED_KEYS));
+
+            var candidates = AdditionalMetricDiscoveryAdapter.candidates(typesByField);
+
+            assertThat(candidates.names()).hasSize(AdditionalMetricDiscoveryAdapter.MAX_PROBED_KEYS);
+            assertThat(candidates.names())
+                .filteredOn(name -> name.startsWith("custom."))
+                .hasSize(AdditionalMetricDiscoveryAdapter.CUSTOM_PROBED_KEYS)
+                .first()
+                .isEqualTo("custom.key-0000");
+            assertThat(candidates.truncated()).isTrue();
+        }
+
+        @Test
+        void should_probe_every_key_of_both_maps_within_the_cap_without_saying_it_is_truncated() {
+            var typesByField = keys("additional-metrics.long_key-%04d", "long", 700);
+            typesByField.putAll(keys("custom.key-%04d", "keyword", 300));
+
+            var candidates = AdditionalMetricDiscoveryAdapter.candidates(typesByField);
+
+            assertThat(candidates.names()).hasSize(1_000);
+            assertThat(candidates.truncated()).isFalse();
+        }
+
+        private static Map<String, Set<String>> keys(String pattern, String esType, int count) {
+            var typesByField = new HashMap<String, Set<String>>();
+            IntStream.range(0, count).forEach(i -> typesByField.put(pattern.formatted(i), Set.of(esType)));
+            return typesByField;
         }
     }
 
@@ -134,7 +244,11 @@ class AdditionalMetricDiscoveryAdapterTest {
                     "env-1",
                     from,
                     to,
-                    List.of("long_failover_count", "keyword_mcp-proxy_tools/call"),
+                    List.of(
+                        "additional-metrics.long_failover_count",
+                        "additional-metrics.keyword_mcp-proxy_tools/call",
+                        "custom.fraud-tier"
+                    ),
                     Duration.ofMillis(1500)
                 )
             );
@@ -157,7 +271,8 @@ class AdditionalMetricDiscoveryAdapterTest {
                             "filters",
                             JsonArray.of(
                                 JsonObject.of("exists", JsonObject.of("field", "additional-metrics.long_failover_count")),
-                                JsonObject.of("exists", JsonObject.of("field", "additional-metrics.keyword_mcp-proxy_tools/call"))
+                                JsonObject.of("exists", JsonObject.of("field", "additional-metrics.keyword_mcp-proxy_tools/call")),
+                                JsonObject.of("exists", JsonObject.of("field", "custom.fraud-tier"))
                             )
                         ),
                         "aggs",
@@ -182,7 +297,8 @@ class AdditionalMetricDiscoveryAdapterTest {
                       "buckets": [
                         { "doc_count": 2, "last_seen": { "value": 1793174700000, "value_as_string": "2026-10-28T08:05:00.000Z" } },
                         { "doc_count": 0, "last_seen": { "value": null } },
-                        { "doc_count": 1, "last_seen": { "value": 1793174400000, "value_as_string": "2026-10-28T08:00:00.000Z" } }
+                        { "doc_count": 1, "last_seen": { "value": 1793174400000, "value_as_string": "2026-10-28T08:00:00.000Z" } },
+                        { "doc_count": 3, "last_seen": { "value": 1793174100000, "value_as_string": "2026-10-28T07:55:00.000Z" } }
                       ]
                     }
                   }
@@ -191,22 +307,33 @@ class AdditionalMetricDiscoveryAdapterTest {
                 SearchResponse.class
             );
 
-            var found = AdditionalMetricDiscoveryAdapter.found(List.of("long_failover_count", "keyword_never", "bool_cache_hit"), response);
+            var found = AdditionalMetricDiscoveryAdapter.found(
+                List.of(
+                    "additional-metrics.long_failover_count",
+                    "additional-metrics.keyword_never",
+                    "additional-metrics.bool_cache_hit",
+                    "custom.fraud-tier"
+                ),
+                response
+            );
 
             assertThat(found).containsExactly(
                 new AdditionalMetricLastSeen("long_failover_count", Instant.parse("2026-10-28T08:05:00Z")),
-                new AdditionalMetricLastSeen("bool_cache_hit", Instant.parse("2026-10-28T08:00:00Z"))
+                new AdditionalMetricLastSeen("bool_cache_hit", Instant.parse("2026-10-28T08:00:00Z")),
+                new AdditionalMetricLastSeen(Root.CUSTOM, "fraud-tier", Instant.parse("2026-10-28T07:55:00Z"))
             );
         }
 
         @Test
         void should_find_nothing_in_a_response_without_aggregations() {
-            assertThat(AdditionalMetricDiscoveryAdapter.found(List.of("long_failover_count"), new SearchResponse())).isEmpty();
+            assertThat(
+                AdditionalMetricDiscoveryAdapter.found(List.of("additional-metrics.long_failover_count"), new SearchResponse())
+            ).isEmpty();
         }
     }
 
     @Test
-    void should_order_most_recently_seen_first_then_by_key() {
+    void should_order_most_recently_seen_first_then_by_wire_name() {
         var t1 = Instant.parse("2026-10-28T08:00:00Z");
         var t2 = Instant.parse("2026-10-28T09:00:00Z");
 
@@ -214,10 +341,13 @@ class AdditionalMetricDiscoveryAdapterTest {
             List.of(
                 new AdditionalMetricLastSeen("long_b", t1),
                 new AdditionalMetricLastSeen("long_c", t2),
-                new AdditionalMetricLastSeen("long_a", t1)
+                new AdditionalMetricLastSeen("long_a", t1),
+                new AdditionalMetricLastSeen(Root.CUSTOM, "a", t1)
             )
         );
 
-        assertThat(ordered).extracting(AdditionalMetricLastSeen::rawKey).containsExactly("long_c", "long_a", "long_b");
+        assertThat(ordered)
+            .extracting(AdditionalMetricLastSeen::name)
+            .containsExactly("additional-metrics.long_c", "additional-metrics.long_a", "additional-metrics.long_b", "custom.a");
     }
 }

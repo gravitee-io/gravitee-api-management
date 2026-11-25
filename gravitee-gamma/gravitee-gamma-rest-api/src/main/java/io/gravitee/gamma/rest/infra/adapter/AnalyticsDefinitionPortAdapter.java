@@ -96,12 +96,20 @@ public class AnalyticsDefinitionPortAdapter implements AnalyticsDefinitionPort {
             .map(kind -> ApiType.valueOf(kind.name()))
             .toList();
         var analyticsFilters = analyticsFilters();
+        var groupedByFields = Arrays.stream(ApiSpec.Name.values())
+            .flatMap(kind -> metricSpecsOf(kind.name()).stream())
+            .map(MetricSpec::name)
+            .filter(queryContextProvider::groupsByAdditionalMetricsLike)
+            .map(Enum::name)
+            .distinct()
+            .toList();
         return new AdditionalMetricSupport(
             apiTypes,
             AdditionalMetricName.MEASURES.stream().map(Enum::name).toList(),
             facetsOf(dimensionsOf.name(), builtInDimensions()),
             filtersOf(dimensionsOf.name(), analyticsFilters),
-            dimensionsOf.name().name()
+            dimensionsOf.name().name(),
+            groupedByFields
         );
     }
 

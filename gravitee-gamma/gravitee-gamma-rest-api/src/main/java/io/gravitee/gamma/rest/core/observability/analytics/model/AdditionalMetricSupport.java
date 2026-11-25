@@ -24,8 +24,11 @@ import java.util.List;
  * it. The definition publishes each numeric field of the environment with exactly these, narrowed to the kinds its
  * namespace ties it to.
  *
- * @param dimensionsOf the built-in metric whose facets every additional metric field takes, read like them from the
- *                     request documents; the environment's keyword and bool keys are added to its facets as well
+ * @param dimensionsOf     the built-in metric whose facets every additional metric field takes, read like them from
+ *                         the request documents
+ * @param groupedByFields  the built-in metrics read from the request documents, {@code dimensionsOf} included: the
+ *                         engine groups each of them by any keyword or bool field, so the environment's keyword and bool
+ *                         keys, custom ones included, are added to their facets, one rule for every such metric
  * @author GraviteeSource Team
  */
 public record AdditionalMetricSupport(
@@ -33,13 +36,15 @@ public record AdditionalMetricSupport(
     List<String> measures,
     List<DimensionDefinition> facets,
     List<String> filters,
-    String dimensionsOf
+    String dimensionsOf,
+    List<String> groupedByFields
 ) {
     public AdditionalMetricSupport {
         apiTypes = List.copyOf(apiTypes);
         measures = List.copyOf(measures);
         facets = List.copyOf(facets);
         filters = List.copyOf(filters);
+        groupedByFields = List.copyOf(groupedByFields);
     }
 
     /** Whether a request on these kinds admits additional metrics: one of them is a kind they are served for. */

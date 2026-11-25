@@ -21,15 +21,32 @@ import java.util.Objects;
 /**
  * A key found in the environment's documents by a discovery pass.
  *
+ * @param root     the map the key is written under
  * @param lastSeen most recent time a document of the environment carried the key within the discovery window; a key
  *                 without one was not found and is not reported.
  *
  * @author GraviteeSource Team
  */
-public record DiscoveredAdditionalMetric(String rawKey, AdditionalMetricValueType valueType, Instant lastSeen) {
+public record DiscoveredAdditionalMetric(
+    AdditionalMetricField.Root root,
+    String rawKey,
+    AdditionalMetricValueType valueType,
+    Instant lastSeen
+) {
     public DiscoveredAdditionalMetric {
+        Objects.requireNonNull(root, "A discovered additional metric needs its root");
         Objects.requireNonNull(rawKey, "A discovered additional metric needs its key");
         Objects.requireNonNull(valueType, "A discovered additional metric needs its value type");
         Objects.requireNonNull(lastSeen, "A discovered additional metric needs the time it was last seen");
+    }
+
+    /** A key of the {@code additional-metrics} map. */
+    public DiscoveredAdditionalMetric(String rawKey, AdditionalMetricValueType valueType, Instant lastSeen) {
+        this(AdditionalMetricField.Root.ADDITIONAL_METRICS, rawKey, valueType, lastSeen);
+    }
+
+    /** The wire name, which tells a custom key from an additional key of the same spelling. */
+    public String name() {
+        return root.prefix() + rawKey;
     }
 }

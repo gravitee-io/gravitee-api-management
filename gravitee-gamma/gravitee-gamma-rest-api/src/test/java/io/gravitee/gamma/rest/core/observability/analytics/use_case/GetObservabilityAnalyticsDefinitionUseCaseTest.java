@@ -29,6 +29,7 @@ import io.gravitee.gamma.rest.core.observability.analytics.model.DimensionDefini
 import io.gravitee.gamma.rest.core.observability.analytics.model.MetricDefinition;
 import io.gravitee.gamma.rest.core.observability.analytics.model.MetricFamily;
 import io.gravitee.gamma.rest.core.observability.catalog.inmemory.MetricDefinitionFixture;
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricField;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricValueType;
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.catalog.model.DiscoveredAdditionalMetric;
@@ -310,7 +311,7 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
             var additional = additionalMetrics(execute(Set.of(ApiType.LLM)));
 
             assertThat(additional).extracting(MetricDefinition::name).containsExactly(FAILOVER);
-            assertThat(fixture.ports.lastUncountedKeys()).contains("long_llm-proxy_tokens-sent");
+            assertThat(fixture.ports.lastUncountedKeys()).contains("additional-metrics.long_llm-proxy_tokens-sent");
         }
 
         @Test
@@ -356,16 +357,21 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
         }
 
         @Test
-        void should_skip_a_discovered_key_outside_the_grammar_or_reserved() {
+        void should_skip_a_discovered_key_outside_the_grammar_and_list_the_typed_custom_form() {
             fixture.ports.givenDiscovered(
                 List.of(
                     discovered("double_custom_basket-value", AdditionalMetricValueType.DOUBLE),
+                    discovered("long_a..b", AdditionalMetricValueType.LONG),
                     discovered("long_failover_count", AdditionalMetricValueType.LONG)
                 ),
                 false
             );
 
-            assertThat(additionalMetrics(execute(Set.of(ApiType.HTTP_PROXY)))).extracting(MetricDefinition::name).containsExactly(FAILOVER);
+            var additional = additionalMetrics(execute(Set.of(ApiType.HTTP_PROXY)));
+
+            assertThat(additional)
+                .extracting(MetricDefinition::name, MetricDefinition::namespace)
+                .containsExactly(tuple("additional-metrics.double_custom_basket-value", "custom"), tuple(FAILOVER, "failover"));
         }
     }
 
@@ -462,9 +468,10 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
     class DynamicFacets {
 
         @Test
-        void should_add_them_to_the_facets_of_the_built_in_the_additional_metrics_take_theirs_from_and_of_every_additional_metric() {
+        void should_add_them_to_the_facets_of_every_built_in_read_from_the_request_documents_and_of_every_additional_metric() {
             givenBuiltIn(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF, HTTP_KINDS, "API", "HTTP_STATUS");
             givenBuiltIn("HTTP_ERRORS", HTTP_KINDS, "API");
+            givenBuiltIn("MESSAGE_COUNT", HTTP_KINDS, "API");
             fixture.givenDeclared(PROTOCOL_VERSION);
             fixture.ports.givenDiscovered(
                 List.of(
@@ -483,7 +490,8 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
                 PROTOCOL_VERSION,
                 "additional-metrics.bool_pii_detected"
             );
-            assertThat(facetsOf.get("HTTP_ERRORS")).containsExactly("API");
+            assertThat(facetsOf.get("HTTP_ERRORS")).containsExactly("API", PROTOCOL_VERSION, "additional-metrics.bool_pii_detected");
+            assertThat(facetsOf.get("MESSAGE_COUNT")).containsExactly("API");
             assertThat(facetsOf.get(FAILOVER)).containsExactly(
                 "API",
                 "HTTP_STATUS",
@@ -665,12 +673,51 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
         }
 
         @Test
-        void should_leave_out_a_record_that_is_not_exposed_and_a_reserved_key() {
+        void should_leave_out_a_record_that_is_not_exposed_and_list_custom_keys_of_both_forms() {
             givenBuiltIn(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF, HTTP_KINDS, "API");
             fixture.givenDeclared(ENVIRONMENT, PROTOCOL_VERSION, null, null, false);
-            fixture.ports.givenDiscovered(List.of(discovered("keyword_custom_tier", AdditionalMetricValueType.KEYWORD)), false);
+            fixture.ports.givenDiscovered(
+                List.of(discovered("keyword_custom_tier", AdditionalMetricValueType.KEYWORD), custom("fraud-tier")),
+                false
+            );
 
-            assertThat(execute(Set.of(ApiType.MCP)).dimensions()).extracting(DimensionDefinition::name).containsExactly("API");
+            assertThat(execute(Set.of(ApiType.MCP)).dimensions())
+                .extracting(
+                    DimensionDefinition::name,
+                    DimensionDefinition::label,
+                    DimensionDefinition::namespace,
+                    dimension -> Set.copyOf(dimension.apiTypes()),
+                    DimensionDefinition::lastSeen,
+                    DimensionDefinition::origin
+                )
+                .containsExactly(
+                    tuple("API", "API label", null, Set.copyOf(HTTP_KINDS), null, CatalogOrigin.BUILT_IN),
+                    tuple("additional-metrics.keyword_custom_tier", "Custom tier", "custom", Set.of(), SEEN, CatalogOrigin.DISCOVERED),
+                    tuple("custom.fraud-tier", "Fraud tier", "custom", Set.of(), SEEN, CatalogOrigin.DISCOVERED)
+                );
+        }
+
+        /** One rule: the engine groups every metric of the request documents by any keyword field, so all list them. */
+        @Test
+        void should_offer_a_custom_key_on_every_built_in_read_from_the_request_documents_only() {
+            givenBuiltIn(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF, HTTP_KINDS, "API");
+            givenBuiltIn("HTTP_GATEWAY_RESPONSE_TIME", HTTP_KINDS, "API");
+            givenBuiltIn("HTTP_RESPONSE_CONTENT_LENGTH", HTTP_KINDS, "API");
+            givenBuiltIn("MESSAGE_COUNT", HTTP_KINDS, "API");
+            fixture.ports.givenDiscovered(List.of(custom("fraud-tier")), false);
+
+            var facetsByMetric = execute(Set.of(ApiType.HTTP_PROXY))
+                .families()
+                .stream()
+                .flatMap(family -> family.metrics().stream())
+                .collect(
+                    Collectors.toMap(MetricDefinition::name, metric -> metric.facets().stream().map(DimensionDefinition::name).toList())
+                );
+
+            assertThat(facetsByMetric).containsEntry(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF, List.of("API", "custom.fraud-tier"));
+            assertThat(facetsByMetric).containsEntry("HTTP_GATEWAY_RESPONSE_TIME", List.of("API", "custom.fraud-tier"));
+            assertThat(facetsByMetric).containsEntry("HTTP_RESPONSE_CONTENT_LENGTH", List.of("API", "custom.fraud-tier"));
+            assertThat(facetsByMetric).containsEntry("MESSAGE_COUNT", List.of("API"));
         }
     }
 
@@ -837,5 +884,9 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
 
     private static DiscoveredAdditionalMetric discovered(String rawKey, AdditionalMetricValueType valueType) {
         return new DiscoveredAdditionalMetric(rawKey, valueType, SEEN);
+    }
+
+    private static DiscoveredAdditionalMetric custom(String rawKey) {
+        return new DiscoveredAdditionalMetric(AdditionalMetricField.Root.CUSTOM, rawKey, AdditionalMetricValueType.KEYWORD, SEEN);
     }
 }

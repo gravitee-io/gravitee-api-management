@@ -18,7 +18,7 @@ package io.gravitee.gamma.rest.core.observability.catalog.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.gamma.rest.core.observability.catalog.exception.InvalidMetricDefinitionException;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricField;
-import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricValueType;
+import io.gravitee.gamma.rest.core.observability.catalog.model.DiscoveredAdditionalMetric;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.AdditionalMetricGrammarPort;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.BuiltInAdditionalMetricsPort;
 import java.util.Optional;
@@ -52,11 +52,11 @@ public class MetricDefinitionKeyDomainService {
     }
 
     /**
-     * A key read from documents, kept only when it is of the grammar and its value type is the one its prefix states:
-     * discovered keys come from traffic, not from a validated write.
+     * A key read from documents, kept only when its wire name is of the grammar and its value type is the one the grammar
+     * reads: discovered keys come from traffic, not from a validated write.
      */
-    public Optional<AdditionalMetricField> discovered(String rawKey, AdditionalMetricValueType valueType) {
-        return fieldOfKey(rawKey).filter(field -> field.valueType() == valueType);
+    public Optional<AdditionalMetricField> discovered(DiscoveredAdditionalMetric discovered) {
+        return grammar.parse(discovered.name()).filter(field -> field.valueType() == discovered.valueType());
     }
 
     /** The field of a key, type prefix included; empty when the key is outside the grammar. */
