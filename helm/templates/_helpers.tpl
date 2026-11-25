@@ -605,9 +605,11 @@ Usage:
 trustAll: {{ $ssl.trustAll }}
 {{- end }}
 {{- with $ssl.truststore }}
-{{- if .type }}
+{{- if or .type .path }}
 truststore:
-  type: {{ .type }}
+  {{- with .type }}
+  type: {{ . }}
+  {{- end }}
   {{- with .path }}
   path: {{ . }}
   {{- end }}

@@ -16,6 +16,7 @@
 package io.gravitee.apim.reporter.elasticsearch.spring;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.apim.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.elasticsearch.client.http.HttpClientConfiguration;
@@ -60,6 +61,18 @@ class ElasticsearchReporterConfigurationTlsTest {
                 HttpClientTrustStoreConfiguration::getPassword
             )
             .containsExactly("pem", "/path/to/ca.pem", "unused");
+    }
+
+    @Test
+    void should_reject_a_truststore_path_without_a_type() {
+        final HttpClientConfiguration configuration = clientConfiguration(
+            Map.of("reporters.elasticsearch.ssl.truststore.path", "/path/to/ca.pem")
+        );
+
+        assertThat(configuration.getTrustStoreConfig()).isNotNull();
+        assertThatThrownBy(configuration.getTrustStoreConfig()::getVertxWebClientTrustOptions)
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("truststore type");
     }
 
     private static HttpClientConfiguration clientConfiguration(Map<String, Object> properties) {
