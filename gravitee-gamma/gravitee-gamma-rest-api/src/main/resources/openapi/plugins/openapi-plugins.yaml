@@ -428,7 +428,7 @@ components:
                 id: guardrail-llm-rule
                 name: Guardrail - Rule
                 category: guardrail
-                version: 1.0.0-alpha.9
+                version: 1.0.0-alpha.10
                 feature: gamma-aim-guardrails-policy-llm-rule
                 deployed: true
                 guardrail: true
