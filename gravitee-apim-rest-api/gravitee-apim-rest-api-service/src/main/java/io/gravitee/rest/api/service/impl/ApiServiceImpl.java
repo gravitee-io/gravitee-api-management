@@ -52,6 +52,7 @@ import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.exception.MaskedApiPropertyValueException;
 import io.gravitee.apim.core.api.model.Path;
+import io.gravitee.apim.core.event.model.DeploymentNumber;
 import io.gravitee.apim.core.flow.domain_service.XmlValidationPolicyChecker;
 import io.gravitee.apim.core.portal_page.domain_service.ApiDocumentationCleanupDomainService;
 import io.gravitee.apim.core.subscription_form.domain_service.RemoveApiFromSubscriptionFormDomainService;
@@ -1972,15 +1973,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 .property(Event.EventProperties.API_ID.getValue(), apiId)
                 .build();
 
-            String lastDeployNumber = eventLatestRepository
+            DeploymentNumber lastDeployNumber = eventLatestRepository
                 .search(criteria, Event.EventProperties.API_ID, 0L, 1L)
                 .stream()
                 .findFirst()
-                .map(eventEntity -> eventEntity.getProperties().getOrDefault(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0"))
-                .orElse("0");
+                .map(eventEntity ->
+                    DeploymentNumber.of(eventEntity.getProperties().get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue()))
+                )
+                .orElse(DeploymentNumber.NONE);
 
-            String newDeployNumber = Long.toString(Long.parseLong(lastDeployNumber) + 1);
-            properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), newDeployNumber);
+            properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), lastDeployNumber.next().asProperty());
 
             if (apiDeploymentEntity != null && StringUtils.isNotEmpty(apiDeploymentEntity.getDeploymentLabel())) {
                 properties.put(Event.EventProperties.DEPLOYMENT_LABEL.getValue(), apiDeploymentEntity.getDeploymentLabel());
