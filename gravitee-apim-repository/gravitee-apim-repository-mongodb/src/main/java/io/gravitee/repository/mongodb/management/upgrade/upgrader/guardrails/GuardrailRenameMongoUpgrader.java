@@ -24,6 +24,7 @@ import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUp
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.subscriptionform.SubscriptionFormGlobalDefaultMongoUpgrader;
 import java.util.stream.StreamSupport;
 import lombok.CustomLog;
+import org.bson.Document;
 import org.springframework.stereotype.Component;
 
 /**
@@ -32,8 +33,8 @@ import org.springframework.stereotype.Component;
  *
  * <p>The index upgraders run first, so the {@code guardrails} collection usually exists already, empty, holding
  * only the indexes they created. It is dropped to make room for the renamed one, which carries the same indexes.
- * A {@code guardrails} collection holding documents is left alone, with the {@code guardians} one, rather than lose
- * either.
+ * A {@code guardrails} collection holding documents fails the upgrade, both collections left as they are, rather
+ * than lose either: an operator has to merge them before the platform starts.
  *
  * @author GraviteeSource Team
  */
@@ -72,8 +73,13 @@ public class GuardrailRenameMongoUpgrader extends MongoUpgrader {
         }
         if (template.collectionExists(target)) {
             if (template.getCollection(target).estimatedDocumentCount() > 0) {
-                log.warn("Both '{}' and '{}' hold documents, skipping the rename to avoid data loss", legacy, target);
-                return;
+                throw new IllegalStateException(
+                    "Both the '%s' and '%s' collections hold documents: merge them into '%s' or drop one of them, then start again".formatted(
+                        legacy,
+                        target,
+                        target
+                    )
+                );
             }
             template.getCollection(target).drop();
         }
@@ -86,17 +92,15 @@ public class GuardrailRenameMongoUpgrader extends MongoUpgrader {
         boolean indexed = StreamSupport.stream(apis.listIndexes().spliterator(), false).anyMatch(index ->
             LEGACY_API_INDEX.equals(index.getString("name"))
         );
-        if (!indexed) {
-            // the field only ever existed alongside its index
-            return;
-        }
-        // through the legacy index: the databases the tests run against forbid collection scans
+        // through an index: the databases the tests run against forbid collection scans
         apis.updateMany(
             Filters.exists(LEGACY_API_FIELD),
             Updates.rename(LEGACY_API_FIELD, API_FIELD),
-            new UpdateOptions().hintString(LEGACY_API_INDEX)
+            indexed ? new UpdateOptions().hintString(LEGACY_API_INDEX) : new UpdateOptions().hint(new Document("_id", 1))
         );
-        apis.dropIndex(LEGACY_API_INDEX);
+        if (indexed) {
+            apis.dropIndex(LEGACY_API_INDEX);
+        }
     }
 
     @Override
