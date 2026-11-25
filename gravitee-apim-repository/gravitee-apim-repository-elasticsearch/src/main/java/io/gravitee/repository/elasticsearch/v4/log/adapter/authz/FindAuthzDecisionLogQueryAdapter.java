@@ -15,16 +15,10 @@
  */
 package io.gravitee.repository.elasticsearch.v4.log.adapter.authz;
 
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.BOOL;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.FILTER;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.QUERY;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.SIZE;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.TERM;
+import static io.gravitee.repository.elasticsearch.v4.log.adapter.decision.DecisionQueryClauses.addTerm;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.repository.common.query.QueryContext;
+import io.gravitee.repository.elasticsearch.v4.log.adapter.decision.DecisionQueryClauses;
 
 /**
  * Reads one decision by its event id. The organization, the environment and the api are part of the
@@ -35,27 +29,13 @@ import io.gravitee.repository.common.query.QueryContext;
  */
 public final class FindAuthzDecisionLogQueryAdapter {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
-
     private FindAuthzDecisionLogQueryAdapter() {}
 
-    private static void addTerm(ArrayNode filters, String field, String value) {
-        filters.add(MAPPER.createObjectNode().set(TERM, MAPPER.createObjectNode().put(field, value)));
-    }
-
     public static String adapt(QueryContext queryContext, String apiId, String eventId) {
-        ArrayNode filters = MAPPER.createArrayNode();
-        addTerm(filters, AuthzDecisionLogFields.ORG_ID, queryContext.getOrgId());
-        addTerm(filters, AuthzDecisionLogFields.ENV_ID, queryContext.getEnvId());
-        addTerm(filters, AuthzDecisionLogFields.DECISION_POINT_TYPE, AuthzDecisionLogFields.AUTHZ);
+        var filters = DecisionQueryClauses.scopedFilters(queryContext, AuthzDecisionLogFields.AUTHZ);
         addTerm(filters, AuthzDecisionLogFields.PHASE, AuthzDecisionLogFields.RESOLVED);
         addTerm(filters, AuthzDecisionLogFields.API_ID, apiId);
         addTerm(filters, AuthzDecisionLogFields.EVENT_ID, eventId);
-
-        ObjectNode root = MAPPER.createObjectNode();
-        root.set(QUERY, MAPPER.createObjectNode().set(BOOL, MAPPER.createObjectNode().set(FILTER, filters)));
-        root.put(SIZE, 1);
-
-        return root.toString();
+        return DecisionQueryClauses.singleHit(filters);
     }
 }

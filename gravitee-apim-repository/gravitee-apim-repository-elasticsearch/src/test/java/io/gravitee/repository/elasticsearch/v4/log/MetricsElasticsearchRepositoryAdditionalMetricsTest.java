@@ -16,6 +16,7 @@
 package io.gravitee.repository.elasticsearch.v4.log;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
@@ -148,6 +149,16 @@ class MetricsElasticsearchRepositoryAdditionalMetricsTest extends AbstractElasti
 
         assertThat(response.total()).isZero();
         assertThat(response.data()).isEmpty();
+    }
+
+    /** How a reader joins what it knows by request id, a decision for one, with the tags the call carries. */
+    @Test
+    void should_return_the_additional_metrics_of_the_calls_whose_request_ids_are_given() {
+        var response = search(Filter.builder().requestIds(Set.of("am-log-001", "am-log-003")));
+
+        assertThat(response.data())
+            .extracting(Metrics::getRequestId, metrics -> metrics.getAdditionalMetrics().get(TIER.rawKey()))
+            .containsExactly(tuple("am-log-003", "low"), tuple("am-log-001", "high"));
     }
 
     private static AdditionalMetricCondition condition(AdditionalMetricField field, Operator operator, String... values) {

@@ -98,6 +98,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public GuardianDecisionQueryServiceInMemory guardianDecisionQueryService() {
+        return new GuardianDecisionQueryServiceInMemory();
+    }
+
+    @Bean
     public DashboardCrudServiceInMemory dashboardCrudService() {
         return new DashboardCrudServiceInMemory();
     }

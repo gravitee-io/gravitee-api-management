@@ -16,9 +16,9 @@
 package io.gravitee.repository.elasticsearch.v4.log.adapter.authz;
 
 import io.gravitee.elasticsearch.model.SearchResponse;
+import io.gravitee.repository.elasticsearch.v4.log.adapter.decision.DecisionLogResponses;
 import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.authz.AuthzDecisionLog;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -30,26 +30,10 @@ public final class SearchAuthzDecisionLogsResponseAdapter {
 
     /** First hit of a by-id lookup; empty when no decision matches within the caller's api scope. */
     public static Optional<AuthzDecisionLog> adaptFirst(SearchResponse response) {
-        var hits = response.getSearchHits();
-        if (hits == null || hits.getHits() == null || hits.getHits().isEmpty()) {
-            return Optional.empty();
-        }
-        return Optional.of(AuthzDecisionLogSourceMapper.from(hits.getHits().getFirst().getSource()));
+        return DecisionLogResponses.first(response, AuthzDecisionLogSourceMapper::from);
     }
 
     public static LogResponse<AuthzDecisionLog> adapt(SearchResponse response) {
-        var hits = response.getSearchHits();
-        if (hits == null || hits.getHits() == null) {
-            return new LogResponse<>(0, List.of());
-        }
-        var total = hits.getTotal() == null ? 0 : hits.getTotal().getValue();
-        return new LogResponse<>(
-            total,
-            hits
-                .getHits()
-                .stream()
-                .map(hit -> AuthzDecisionLogSourceMapper.from(hit.getSource()))
-                .toList()
-        );
+        return DecisionLogResponses.page(response, AuthzDecisionLogSourceMapper::from);
     }
 }

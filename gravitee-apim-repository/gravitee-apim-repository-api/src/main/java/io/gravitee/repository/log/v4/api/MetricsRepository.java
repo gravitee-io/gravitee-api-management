@@ -25,6 +25,8 @@ import io.gravitee.repository.log.v4.model.connection.Metrics;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetrics;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetricsQuery;
+import io.gravitee.repository.log.v4.model.guardian.GuardianDecisionLog;
+import io.gravitee.repository.log.v4.model.guardian.GuardianDecisionLogQuery;
 import io.gravitee.repository.log.v4.model.message.MessageMetrics;
 import io.gravitee.repository.log.v4.model.message.MessageMetricsQuery;
 import java.util.Collection;
@@ -56,4 +58,11 @@ public interface MetricsRepository {
      * same request id, so the event id is the only key that identifies a single one.
      */
     Optional<AuthzDecisionLog> findAuthzDecisionLog(QueryContext queryContext, String apiId, String eventId) throws AnalyticsException;
+
+    /** The decisions of Guardians in the organization and environment of the context, newest first. */
+    LogResponse<GuardianDecisionLog> searchGuardianDecisionLogs(QueryContext queryContext, GuardianDecisionLogQuery query)
+        throws AnalyticsException;
+
+    /** One decision of a Guardian by its event id, within the organization and environment of the context. */
+    Optional<GuardianDecisionLog> findGuardianDecisionLog(QueryContext queryContext, String eventId) throws AnalyticsException;
 }

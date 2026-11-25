@@ -15,48 +15,50 @@
  */
 package io.gravitee.repository.elasticsearch.v4.log.adapter.authz;
 
+import io.gravitee.repository.elasticsearch.v4.log.adapter.decision.DecisionReportFields;
+
 /**
  * Indexed field names of an authz {@code DecisionReport} document, as written by the reporter's
- * FreeMarker templates. Kept in one place so the query and the response adapter cannot drift.
+ * FreeMarker templates, under the names the authz model gives them. Kept in one place so the query
+ * and the response adapter cannot drift.
  *
  * @author GraviteeSource Team
  */
 public final class AuthzDecisionLogFields {
 
-    static final String TIMESTAMP = "@timestamp";
-    static final String API_ID = "api-id";
-    static final String ORG_ID = "org-id";
-    static final String ENV_ID = "env-id";
-    static final String GW_ID = "gw-id";
-    static final String EVENT_ID = "event-id";
-    static final String REQUEST_ID = "request-id";
-    static final String STATUS = "status";
-    static final String CALLER = "caller";
-    static final String REASONS = "reasons";
-    static final String SUBJECT_TYPE = "subject-type";
-    static final String SUBJECT_ID = "subject-id";
-    static final String ACTION = "action";
-    static final String RESOURCE_TYPE = "resource-type";
-    static final String RESOURCE_ID = "resource-id";
-    static final String BATCH_ID = "batch-id";
-    static final String DURATION_NANOS = "duration-nanos";
-    static final String ERROR_TYPE = "error-type";
-    static final String MATCHED_RULE_ID = "id";
-    static final String MATCHED_RULE_NAME = "name";
-    static final String MATCHED_RULE_VERSION = "version";
-    static final String MATCHED_RULE_EFFECT = "effect";
-    static final String DECISION_POINT_TYPE = "decision-point-type";
+    static final String TIMESTAMP = DecisionReportFields.TIMESTAMP;
+    static final String API_ID = DecisionReportFields.API_ID;
+    static final String ORG_ID = DecisionReportFields.ORG_ID;
+    static final String ENV_ID = DecisionReportFields.ENV_ID;
+    static final String GW_ID = DecisionReportFields.GW_ID;
+    static final String EVENT_ID = DecisionReportFields.EVENT_ID;
+    static final String REQUEST_ID = DecisionReportFields.REQUEST_ID;
+    static final String STATUS = DecisionReportFields.STATUS;
+    static final String CALLER = DecisionReportFields.CALLER;
+    static final String REASONS = DecisionReportFields.REASONS;
+    static final String SUBJECT_TYPE = DecisionReportFields.SUBJECT_TYPE;
+    static final String SUBJECT_ID = DecisionReportFields.SUBJECT_ID;
+    static final String ACTION = DecisionReportFields.ACTION;
+    static final String RESOURCE_TYPE = DecisionReportFields.RESOURCE_TYPE;
+    static final String RESOURCE_ID = DecisionReportFields.RESOURCE_ID;
+    static final String BATCH_ID = DecisionReportFields.BATCH_ID;
+    static final String DURATION_NANOS = DecisionReportFields.DURATION_NANOS;
+    static final String ERROR_TYPE = DecisionReportFields.ERROR_TYPE;
+    static final String MATCHED_RULE_ID = DecisionReportFields.MATCHED_RULE_ID;
+    static final String MATCHED_RULE_NAME = DecisionReportFields.MATCHED_RULE_NAME;
+    static final String MATCHED_RULE_VERSION = DecisionReportFields.MATCHED_RULE_VERSION;
+    static final String MATCHED_RULE_EFFECT = DecisionReportFields.MATCHED_RULE_EFFECT;
     static final String AUTHZ = "authz";
-    static final String PHASE = "phase";
+    static final String PHASE = DecisionReportFields.PHASE;
     static final String RESOLVED = "RESOLVED";
-    static final String DECISION = "verdict";
-    static final String OUTCOME = "outcome";
-    static final String ENFORCED = "enforced";
-    static final String INDETERMINATE_CAUSE = "indeterminate-cause";
-    static final String TARGET_PDP_ID = "decision-point-id";
-    static final String POLICY_GENERATION = "decision-point-version";
-    static final String MATCHED_RULES = "matched-rules";
-    static final String ADDITIONAL_METRICS = "additional-metrics";
+    static final String DECISION = DecisionReportFields.VERDICT;
+    static final String OUTCOME = DecisionReportFields.OUTCOME;
+    static final String ENFORCED = DecisionReportFields.ENFORCED;
+    static final String INDETERMINATE_CAUSE = DecisionReportFields.INDETERMINATE_CAUSE;
+    static final String TARGET_PDP_ID = DecisionReportFields.DECISION_POINT_ID;
+    static final String POLICY_GENERATION = DecisionReportFields.DECISION_POINT_VERSION;
+    static final String MATCHED_RULES = DecisionReportFields.MATCHED_RULES;
+    static final String ADDITIONAL_METRICS = DecisionReportFields.ADDITIONAL_METRICS;
     public static final String BATCH_INDEX = ADDITIONAL_METRICS + ".int_authz_batch-index";
     public static final String BATCH_SIZE = ADDITIONAL_METRICS + ".int_authz_batch-size";
 

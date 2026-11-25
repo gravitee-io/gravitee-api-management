@@ -15,25 +15,21 @@
  */
 package io.gravitee.repository.elasticsearch.v4.log.adapter.authz;
 
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.SORT;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.BOOL;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.FILTER;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.QUERY;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.SIZE;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.TIMESTAMP;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.TRACK_TOTAL_HITS;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.GTE;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.LTE;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.RANGE;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.TERM;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Sort.DESC;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Tokens.TERMS;
+import static io.gravitee.repository.elasticsearch.v4.log.adapter.decision.DecisionQueryClauses.addContainsIfAny;
+import static io.gravitee.repository.elasticsearch.v4.log.adapter.decision.DecisionQueryClauses.addTerm;
+import static io.gravitee.repository.elasticsearch.v4.log.adapter.decision.DecisionQueryClauses.addTerms;
+import static io.gravitee.repository.elasticsearch.v4.log.adapter.decision.DecisionQueryClauses.addTermsIfAny;
+import static io.gravitee.repository.elasticsearch.v4.log.adapter.decision.DecisionQueryClauses.addTimeRange;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.util.RawValue;
 import io.gravitee.repository.common.query.QueryContext;
+import io.gravitee.repository.elasticsearch.v4.log.adapter.decision.DecisionQueryClauses;
 import io.gravitee.repository.elasticsearch.v4.shared.AuthzEntityRefClauses;
 import io.gravitee.repository.log.v4.model.authz.AuthzDecisionLogQuery;
 import java.util.Set;
@@ -44,33 +40,15 @@ import java.util.Set;
 public final class SearchAuthzDecisionLogsQueryAdapter {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final String FROM = "from";
-    private static final String ORDER = "order";
-    private static final String ASC = "asc";
-    private static final String UNMAPPED_TYPE = "unmapped_type";
-    private static final String KEYWORD = "keyword";
     private static final String NESTED = "nested";
     private static final String IGNORE_UNMAPPED = "ignore_unmapped";
     private static final String PATH = "path";
-    private static final String WILDCARD = "wildcard";
-    private static final String VALUE = "value";
-    private static final String CASE_INSENSITIVE = "case_insensitive";
     private static final String PREFIX = "prefix";
     private static final String SHOULD = "should";
     private static final String MINIMUM_SHOULD_MATCH = "minimum_should_match";
     private static final String RULE_INDEX_SEPARATOR = "#";
 
     private SearchAuthzDecisionLogsQueryAdapter() {}
-
-    /** Omitted entirely when nothing is selected: an empty terms clause matches no document. */
-    private static void addTermsIfAny(ArrayNode filters, String field, Set<String> values) {
-        if (values == null || values.isEmpty()) {
-            return;
-        }
-        ArrayNode node = MAPPER.createArrayNode();
-        values.forEach(node::add);
-        filters.add(MAPPER.createObjectNode().set(TERMS, MAPPER.createObjectNode().set(field, node)));
-    }
 
     private static void addEntityRefsIfAny(
         ArrayNode filters,
@@ -118,40 +96,10 @@ public final class SearchAuthzDecisionLogsQueryAdapter {
         return MAPPER.createObjectNode().set(PREFIX, prefix);
     }
 
-    /**
-     * Reasons are sentences: the user filters on a fragment, never the whole string.
-     *
-     * <p>The needle is escaped. {@code *} and {@code ?} are wildcard syntax, so an unescaped one turns
-     * the filter into no filter at all while the caller still sees an active filter chip.
-     */
-    private static void addContainsIfAny(ArrayNode filters, String field, String needle) {
-        if (needle == null || needle.isBlank()) {
-            return;
-        }
-        ObjectNode wildcard = MAPPER.createObjectNode();
-        wildcard.put(VALUE, "*" + escapeWildcard(needle) + "*");
-        wildcard.put(CASE_INSENSITIVE, true);
-        filters.add(MAPPER.createObjectNode().set(WILDCARD, MAPPER.createObjectNode().set(field, wildcard)));
-    }
-
-    /** Backslash first, or the escapes inserted below would be escaped in turn. */
-    private static String escapeWildcard(String needle) {
-        return needle.replace("\\", "\\\\").replace("*", "\\*").replace("?", "\\?");
-    }
-
-    private static void addTerm(ArrayNode filters, String field, String value) {
-        filters.add(MAPPER.createObjectNode().set(TERM, MAPPER.createObjectNode().put(field, value)));
-    }
-
     public static String adapt(QueryContext queryContext, AuthzDecisionLogQuery query) {
-        ArrayNode filters = MAPPER.createArrayNode();
-        addTerm(filters, AuthzDecisionLogFields.ORG_ID, queryContext.getOrgId());
-        addTerm(filters, AuthzDecisionLogFields.ENV_ID, queryContext.getEnvId());
-        addTerm(filters, AuthzDecisionLogFields.DECISION_POINT_TYPE, AuthzDecisionLogFields.AUTHZ);
+        ArrayNode filters = DecisionQueryClauses.scopedFilters(queryContext, AuthzDecisionLogFields.AUTHZ);
         addTerm(filters, AuthzDecisionLogFields.PHASE, AuthzDecisionLogFields.RESOLVED);
-        ArrayNode apiIds = MAPPER.createArrayNode();
-        query.getApiIds().forEach(apiIds::add);
-        filters.add(MAPPER.createObjectNode().set(TERMS, MAPPER.createObjectNode().set(AuthzDecisionLogFields.API_ID, apiIds)));
+        addTerms(filters, AuthzDecisionLogFields.API_ID, query.getApiIds());
 
         // Keyword fields: exact term matching is the whole translation, once a subject or resource is split into type and id.
         addTermsIfAny(filters, AuthzDecisionLogFields.DECISION, query.getDecisions());
@@ -184,38 +132,10 @@ public final class SearchAuthzDecisionLogsQueryAdapter {
             AuthzDecisionLogFields.MATCHED_RULE_NAME,
             query.getMatchedPolicyNames()
         );
+        // Reasons are sentences: the user filters on a fragment, never the whole string.
         addContainsIfAny(filters, AuthzDecisionLogFields.REASONS, query.getReasonContains());
+        addTimeRange(filters, query.getFrom(), query.getTo());
 
-        if (query.getFrom() != null || query.getTo() != null) {
-            ObjectNode bounds = MAPPER.createObjectNode();
-            if (query.getFrom() != null) {
-                bounds.put(GTE, query.getFrom());
-            }
-            if (query.getTo() != null) {
-                bounds.put(LTE, query.getTo());
-            }
-            filters.add(MAPPER.createObjectNode().set(RANGE, MAPPER.createObjectNode().set(TIMESTAMP, bounds)));
-        }
-
-        ObjectNode root = MAPPER.createObjectNode();
-        root.set(QUERY, MAPPER.createObjectNode().set(BOOL, MAPPER.createObjectNode().set(FILTER, filters)));
-        root.put(FROM, (query.getPage() - 1) * query.getSize());
-        root.put(SIZE, query.getSize());
-        root.put(TRACK_TOTAL_HITS, true);
-        // event-id breaks ties: a batch stamps every decision with the same millisecond, and ordering
-        // within a tie is not stable across shards, so paging without it repeats and skips rows.
-        root.set(
-            SORT,
-            MAPPER.createArrayNode()
-                .add(MAPPER.createObjectNode().set(TIMESTAMP, MAPPER.createObjectNode().put(ORDER, DESC)))
-                .add(
-                    MAPPER.createObjectNode().set(
-                        AuthzDecisionLogFields.EVENT_ID,
-                        MAPPER.createObjectNode().put(ORDER, ASC).put(UNMAPPED_TYPE, KEYWORD)
-                    )
-                )
-        );
-
-        return root.toString();
+        return DecisionQueryClauses.newestFirstPage(filters, query.getPage(), query.getSize());
     }
 }

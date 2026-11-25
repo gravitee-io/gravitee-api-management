@@ -17,11 +17,13 @@ package io.gravitee.repository.elasticsearch.v4.log.adapter.authz;
 
 import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asMapOrNull;
 import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asTextOrNull;
+import static io.gravitee.repository.elasticsearch.v4.log.adapter.decision.DecisionSourceValues.epochMillis;
+import static io.gravitee.repository.elasticsearch.v4.log.adapter.decision.DecisionSourceValues.intOrNull;
+import static io.gravitee.repository.elasticsearch.v4.log.adapter.decision.DecisionSourceValues.longOrNull;
+import static io.gravitee.repository.elasticsearch.v4.log.adapter.decision.DecisionSourceValues.textList;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.repository.log.v4.model.authz.AuthzDecisionLog;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,16 +52,16 @@ final class AuthzDecisionLogSourceMapper {
             .enforced(asTextOrNull(source.get(AuthzDecisionLogFields.ENFORCED)))
             .indeterminateCause(asTextOrNull(source.get(AuthzDecisionLogFields.INDETERMINATE_CAUSE)))
             .matchedRules(matchedRules(source.get(AuthzDecisionLogFields.MATCHED_RULES)))
-            .reasons(asTextList(source.get(AuthzDecisionLogFields.REASONS)))
+            .reasons(textList(source.get(AuthzDecisionLogFields.REASONS)))
             .subjectType(asTextOrNull(source.get(AuthzDecisionLogFields.SUBJECT_TYPE)))
             .subjectId(asTextOrNull(source.get(AuthzDecisionLogFields.SUBJECT_ID)))
             .action(asTextOrNull(source.get(AuthzDecisionLogFields.ACTION)))
             .resourceType(asTextOrNull(source.get(AuthzDecisionLogFields.RESOURCE_TYPE)))
             .resourceId(asTextOrNull(source.get(AuthzDecisionLogFields.RESOURCE_ID)))
             .batchId(asTextOrNull(source.get(AuthzDecisionLogFields.BATCH_ID)))
-            .batchIndex(asIntOrNull(at(source, AuthzDecisionLogFields.BATCH_INDEX)))
-            .batchSize(asIntOrNull(at(source, AuthzDecisionLogFields.BATCH_SIZE)))
-            .durationNanos(asLongOrNull(source.get(AuthzDecisionLogFields.DURATION_NANOS)))
+            .batchIndex(intOrNull(at(source, AuthzDecisionLogFields.BATCH_INDEX)))
+            .batchSize(intOrNull(at(source, AuthzDecisionLogFields.BATCH_SIZE)))
+            .durationNanos(longOrNull(source.get(AuthzDecisionLogFields.DURATION_NANOS)))
             .errorType(asTextOrNull(source.get(AuthzDecisionLogFields.ERROR_TYPE)))
             .additionalMetrics(asMapOrNull(source.get(AuthzDecisionLogFields.ADDITIONAL_METRICS)))
             .build();
@@ -88,38 +90,5 @@ final class AuthzDecisionLogSourceMapper {
             }
         });
         return rules;
-    }
-
-    private static List<String> asTextList(JsonNode node) {
-        if (node == null || !node.isArray()) {
-            return List.of();
-        }
-        var values = new ArrayList<String>(node.size());
-        node.forEach(value -> {
-            if (!value.isNull()) {
-                values.add(value.asText());
-            }
-        });
-        return values;
-    }
-
-    private static Long epochMillis(String timestamp) {
-        if (timestamp == null) {
-            return null;
-        }
-        try {
-            // the reporter writes an offset date-time ("…+02:00"), not a bare instant
-            return OffsetDateTime.parse(timestamp).toInstant().toEpochMilli();
-        } catch (DateTimeParseException e) {
-            return null;
-        }
-    }
-
-    private static Long asLongOrNull(JsonNode node) {
-        return node == null || node.isNull() ? null : node.asLong();
-    }
-
-    private static Integer asIntOrNull(JsonNode node) {
-        return node == null || node.isNull() || node.isMissingNode() ? null : node.asInt();
     }
 }
