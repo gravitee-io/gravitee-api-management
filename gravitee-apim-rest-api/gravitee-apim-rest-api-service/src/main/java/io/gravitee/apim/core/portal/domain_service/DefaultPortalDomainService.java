@@ -97,6 +97,14 @@ public class DefaultPortalDomainService {
         return findDefault(environmentId).orElseThrow(() -> new DefaultPortalNotFoundException(environmentId));
     }
 
+    public Portal getDefaultOrOnlyForLegacyNavigation(String environmentId) {
+        var portals = portalCrudService.findByEnvironmentId(environmentId);
+        if (portals.stream().filter(Portal::isDefault).count() > 1) {
+            throw new DefaultPortalNotFoundException(environmentId);
+        }
+        return Portal.defaultOrOnly(portals).orElseThrow(() -> new DefaultPortalNotFoundException(environmentId));
+    }
+
     /** @throws SeveralPortalsInEnvironmentException when the environment has several portals */
     public void checkSinglePortal(String environmentId) {
         findAtMostOnePortal(environmentId);
