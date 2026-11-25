@@ -30,6 +30,7 @@ import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.core.endpoint.EndpointException;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleHandler;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpVersion;
@@ -133,7 +134,15 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
             httpClientOptions.setSsl(true).setUseAlpn(true);
 
             if (sslOptions != null) {
-                httpClientOptions.setVerifyHost(sslOptions.isHostnameVerifier()).setTrustAll(sslOptions.isTrustAll());
+                if (sslOptions.isTrustAll()) {
+                    // Not the Vert.x trustAll flag: its trust manager is not an X509ExtendedTrustManager, which Netty
+                    // 4.2.17+ refuses with OpenSSL on Java 25. With any certificate accepted, checking the hostname adds nothing.
+                    httpClientOptions
+                        .setVerifyHost(false)
+                        .setTrustOptions(TrustOptions.wrap(InsecureTrustManagerFactory.INSTANCE.getTrustManagers()[0]));
+                } else {
+                    httpClientOptions.setVerifyHost(sslOptions.isHostnameVerifier());
+                }
 
                 // Client trust configuration
                 if (!sslOptions.isTrustAll() && sslOptions.getTrustStore() != null) {
