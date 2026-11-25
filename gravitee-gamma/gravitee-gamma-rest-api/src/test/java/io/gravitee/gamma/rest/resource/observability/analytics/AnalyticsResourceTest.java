@@ -222,6 +222,74 @@ class AnalyticsResourceTest extends AbstractResourceTest {
         }
     }
 
+    /** {@code custom.<name>} through Jersey and the real filter catalog; only the engine behind the data port is mocked. */
+    @Nested
+    class CustomMetrics {
+
+        private static final String FRAUD_TIER = "custom.fraud-tier";
+
+        @Test
+        void should_hand_a_custom_condition_and_facet_no_request_carries_yet_over_by_their_custom_names() {
+            var body = Map.of(
+                "timeRange",
+                TIME_RANGE,
+                "filters",
+                List.of(Map.of("name", "custom.never-written", "operator", "IN", "value", List.of("gold"))),
+                "by",
+                List.of(FRAUD_TIER),
+                "metrics",
+                List.of(Map.of("name", "HTTP_GATEWAY_RESPONSE_TIME", "measures", List.of("AVG")))
+            );
+
+            var response = post("facets", body);
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            var captor = ArgumentCaptor.forClass(ObservabilityAnalyticsDataPort.FacetsQuery.class);
+            verify(analyticsDataPort).computeFacets(captor.capture());
+            assertThat(captor.getValue().facets()).containsExactly(FRAUD_TIER);
+            assertThat(captor.getValue().scope().filters()).anyMatch(condition -> "custom.never-written".equals(condition.name()));
+        }
+
+        @Test
+        void should_answer_400_naming_a_blank_custom_condition() {
+            var response = post(
+                "measures",
+                Map.of(
+                    "timeRange",
+                    TIME_RANGE,
+                    "metrics",
+                    REQUEST_COUNT,
+                    "filters",
+                    List.of(Map.of("name", "custom. ", "operator", "EQ", "value", "gold"))
+                )
+            );
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            var body = response.readEntity(JsonNode.class);
+            assertThat(body.get("technicalCode").asText()).isEqualTo("observability.filter.unknown_name");
+            assertThat(body.get("message").asText()).contains("custom. ");
+        }
+
+        @Test
+        void should_answer_400_naming_a_custom_field_measured_as_a_metric() {
+            var notAMetric = InvalidObservabilityQueryException.notAMetric(FRAUD_TIER, "KEYWORD");
+            doThrow(notAMetric).when(analyticsDataPort).validate(any(MeasuresQuery.class));
+            when(analyticsDataPort.computeMeasures(any())).thenThrow(notAMetric);
+
+            var response = post(
+                "measures",
+                Map.of("timeRange", TIME_RANGE, "metrics", List.of(Map.of("name", FRAUD_TIER, "measures", List.of("COUNT"))))
+            );
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            var body = response.readEntity(JsonNode.class);
+            assertThat(body.get("technicalCode").asText()).isEqualTo("observability.query.not_a_metric");
+            assertThat(body.get("message").asText()).isEqualTo(
+                "'" + FRAUD_TIER + "' is not a metric: it holds KEYWORD values, not numbers"
+            );
+        }
+    }
+
     @Nested
     class FilterContract {
 

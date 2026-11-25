@@ -24,6 +24,7 @@ import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.metric.MetricName;
 import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
+import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField.Root;
 import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField.ValueType;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.FacetName;
@@ -48,6 +49,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
@@ -72,6 +74,19 @@ class AnalyticsElasticsearchRepositoryAdditionalMetricsTest extends AbstractElas
     private static final AdditionalMetricField SCORE = new AdditionalMetricField(ValueType.DOUBLE, "double_fraud-check_score");
     private static final AdditionalMetricField CACHE_HIT = new AdditionalMetricField(ValueType.BOOL, "bool_cache_hit");
     private static final AdditionalMetricField NEVER_WRITTEN = new AdditionalMetricField(ValueType.KEYWORD, "keyword_never_written");
+    private static final AdditionalMetricField FRAUD_TIER = new AdditionalMetricField(Root.CUSTOM, ValueType.KEYWORD, "fraud-tier");
+    private static final AdditionalMetricField MERCHANT = new AdditionalMetricField(Root.CUSTOM, ValueType.KEYWORD, "merchant-id");
+    private static final AdditionalMetricField CUSTOM_NEVER_WRITTEN = new AdditionalMetricField(
+        Root.CUSTOM,
+        ValueType.KEYWORD,
+        "never-written"
+    );
+    /** A custom key spelt like the raw key of {@link #TIER}: a field of its own. */
+    private static final AdditionalMetricField CUSTOM_TIER = new AdditionalMetricField(
+        Root.CUSTOM,
+        ValueType.KEYWORD,
+        "keyword_fraud-check_tier"
+    );
 
     private static final AdditionalMetric FAILOVER_METRIC = new AdditionalMetric(FAILOVERS);
     private static final AdditionalMetric SCORE_METRIC = new AdditionalMetric(SCORE);
@@ -400,6 +415,115 @@ class AnalyticsElasticsearchRepositoryAdditionalMetricsTest extends AbstractElas
             .map(bucket -> tuple(bucket.key(), bucket.measures().get(Measure.AVG).doubleValue()))
             .toList();
         assertThat(averages).containsExactlyInAnyOrder(tuple("high", 1.0), tuple("low", 5.0));
+    }
+
+    @Nested
+    class CustomFields {
+
+        @Test
+        void should_count_only_the_requests_matching_a_custom_value() {
+            assertThat(count(List.of(BY_API, new Filter(FRAUD_TIER, Filter.Operator.EQ, "gold")))).isEqualTo(2L);
+            assertThat(count(List.of(BY_API, new Filter(MERCHANT, Filter.Operator.IN, List.of("m-1", "m-2"))))).isEqualTo(3L);
+        }
+
+        @Test
+        void should_count_nothing_on_a_custom_key_no_document_carries() {
+            assertThat(count(List.of(BY_API, new Filter(CUSTOM_NEVER_WRITTEN, Filter.Operator.EQ, "anything")))).isZero();
+        }
+
+        @Test
+        void should_read_a_custom_key_apart_from_the_additional_metric_of_the_same_raw_key() {
+            assertThat(count(List.of(BY_API, new Filter(CUSTOM_TIER, Filter.Operator.EQ, "spoofed")))).isEqualTo(1L);
+            assertThat(count(List.of(BY_API, new Filter(CUSTOM_TIER, Filter.Operator.EQ, "high")))).isZero();
+            assertThat(count(List.of(BY_API, new Filter(TIER, Filter.Operator.EQ, "spoofed")))).isZero();
+        }
+
+        /** The reporter writes a dotted key as nested objects: the leaf is the field, its parent no field at all. */
+        @Test
+        void should_read_a_dotted_custom_key_as_its_leaf_and_its_object_parent_as_no_field() {
+            var orderChannel = new AdditionalMetricField(Root.CUSTOM, ValueType.KEYWORD, "order.channel");
+            var order = new AdditionalMetricField(Root.CUSTOM, ValueType.KEYWORD, "order");
+
+            assertThat(count(List.of(BY_API, new Filter(orderChannel, Filter.Operator.EQ, "web")))).isEqualTo(1L);
+            assertThat(
+                cut
+                    .searchHTTPFacets(QUERY_CONTEXT, new FacetsQuery(TIME_RANGE, List.of(BY_API), List.of(REQUESTS), List.of(orderChannel)))
+                    .metrics()
+                    .getFirst()
+                    .buckets()
+            )
+                .extracting(FacetBucketResult::key)
+                .containsExactly("web");
+            assertThat(count(List.of(BY_API, new Filter(order, Filter.Operator.EQ, "web")))).isZero();
+            assertThat(
+                cut
+                    .searchHTTPFacets(QUERY_CONTEXT, new FacetsQuery(TIME_RANGE, List.of(BY_API), List.of(REQUESTS), List.of(order)))
+                    .metrics()
+                    .getFirst()
+                    .buckets()
+            ).isEmpty();
+        }
+
+        @Test
+        void should_return_one_bucket_per_observed_custom_value() {
+            var result = cut.searchHTTPFacets(
+                QUERY_CONTEXT,
+                new FacetsQuery(TIME_RANGE, List.of(BY_API), List.of(REQUESTS), List.of(FRAUD_TIER))
+            );
+
+            assertThat(result.metrics().getFirst().buckets())
+                .extracting(FacetBucketResult::key, bucket -> bucket.measures().get(Measure.COUNT).longValue())
+                .containsExactlyInAnyOrder(tuple("gold", 2L), tuple("silver", 1L));
+        }
+
+        @Test
+        void should_return_no_bucket_for_a_custom_key_no_document_carries() {
+            var result = cut.searchHTTPFacets(
+                QUERY_CONTEXT,
+                new FacetsQuery(TIME_RANGE, List.of(BY_API), List.of(REQUESTS), List.of(CUSTOM_NEVER_WRITTEN))
+            );
+
+            assertThat(result.metrics().getFirst().buckets()).isEmpty();
+        }
+
+        @Test
+        void should_measure_the_latency_per_custom_value() {
+            var latency = new MetricMeasuresQuery(Metric.HTTP_GATEWAY_RESPONSE_TIME, Set.of(Measure.AVG, Measure.MIN, Measure.MAX));
+
+            var result = cut.searchHTTPFacets(
+                QUERY_CONTEXT,
+                new FacetsQuery(TIME_RANGE, List.of(BY_API), List.of(latency), List.of(FRAUD_TIER))
+            );
+
+            // response times: gold 10 and 20, silver 30
+            assertThat(result.metrics().getFirst().buckets())
+                .extracting(
+                    FacetBucketResult::key,
+                    bucket -> bucket.measures().get(Measure.AVG).doubleValue(),
+                    bucket -> bucket.measures().get(Measure.MIN).doubleValue(),
+                    bucket -> bucket.measures().get(Measure.MAX).doubleValue()
+                )
+                .containsExactlyInAnyOrder(tuple("gold", 15.0, 10.0, 20.0), tuple("silver", 30.0, 30.0, 30.0));
+        }
+
+        @Test
+        void should_break_a_time_series_down_by_a_custom_value() {
+            var result = cut.searchHTTPTimeSeries(
+                QUERY_CONTEXT,
+                new TimeSeriesQuery(TIME_RANGE, List.of(BY_API), Duration.ofDays(1).toMillis(), List.of(REQUESTS), List.of(MERCHANT))
+            );
+
+            var keys = result
+                .metrics()
+                .getFirst()
+                .buckets()
+                .stream()
+                .flatMap(bucket -> bucket.buckets() == null ? Stream.empty() : bucket.buckets().stream())
+                .map(FacetBucketResult::key)
+                .distinct()
+                .toList();
+            assertThat(keys).containsExactlyInAnyOrder("m-1", "m-2");
+        }
     }
 
     private static Map<Measure, Number> measuresOf(MeasuresResult result, MetricName metric) {

@@ -23,7 +23,7 @@ import java.util.Optional;
  * or the gateway attaches to a request, which enters through {@link AdditionalMetricName} only (OBS-70).
  */
 public sealed interface FacetName permits FacetSpec.Name, AdditionalMetricName {
-    /** The wire name: the constant of a built-in, {@code additional-metrics.<rawKey>} otherwise. */
+    /** The wire name: the constant of a built-in, {@code additional-metrics.<rawKey>} or {@code custom.<rawKey>} otherwise. */
     String name();
 
     /** The built-in of that name, else the additional metric field it designates; empty when it is neither. */

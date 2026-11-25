@@ -20,12 +20,15 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
+import io.gravitee.apim.infra.query_service.analytics_engine.HTTPDataPlaneAnalyticsQueryService;
 import io.gravitee.gamma.rest.core.observability.analytics.model.DataKind;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
@@ -42,6 +45,9 @@ import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleA
 import io.gravitee.gamma.rest.core.observability.logs.model.TrafficScope;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
 import io.gravitee.gamma.rest.infra.adapter.EntrypointScopeProviderAdapter;
+import io.gravitee.gamma.rest.infra.adapter.SpiFilterRegistry;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.BuiltInAdditionalMetricKeys;
+import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
@@ -57,6 +63,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -156,6 +163,60 @@ class AnalyticsRequestPipelineTest {
                     )
                 )
             );
+    }
+
+    /**
+     * The production chain behind {@code dataKindOf}: the registry asks the analytics engine whether a field holds the
+     * values of a built-in identifying a caller, the engine compares wire names against every key a built-in reads.
+     */
+    @Nested
+    class CustomFieldDataKind {
+
+        private AnalyticsRequestPipeline realPipeline;
+
+        @BeforeEach
+        void setUpRealRegistry() {
+            var repository = mock(AnalyticsRepository.class);
+            lenient().when(repository.builtInAdditionalMetricKeys()).thenReturn(BuiltInAdditionalMetricKeys.all());
+            var engine = new AnalyticsQueryContextProvider(List.of(new HTTPDataPlaneAnalyticsQueryService(repository)));
+            realPipeline = new AnalyticsRequestPipeline(
+                new ObservabilityFilterValidator(new SpiFilterRegistry(engine::identifiesCaller)),
+                new AccessibleApiScopeDomainService(),
+                new EntrypointScopeProviderAdapter()
+            );
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "custom.fraud-tier", "custom.keyword_native-kafka_client-id" })
+        void should_read_the_aggregates_for_a_custom_condition_or_facet(String name) {
+            var byCustom = new FilterCondition(name, FilterOperator.EQ, List.of("gold"));
+
+            assertThat(realPipeline.dataKindOf(List.of(byCustom), List.of(), List.of())).isEqualTo(DataKind.AGGREGATES);
+            assertThat(realPipeline.dataKindOf(List.of(), List.of(List.of(byCustom)), List.of())).isEqualTo(DataKind.AGGREGATES);
+            assertThat(realPipeline.dataKindOf(List.of(), List.of(), List.of(name))).isEqualTo(DataKind.AGGREGATES);
+        }
+
+        @Test
+        void should_still_read_the_requests_for_the_additional_key_a_custom_key_is_spelt_like() {
+            assertThat(
+                realPipeline.dataKindOf(List.of(), List.of(), List.of("additional-metrics.keyword_native-kafka_client-id"))
+            ).isEqualTo(DataKind.PER_REQUEST);
+        }
+
+        /** Over every key a built-in reads, identifying ones included: spelt as a custom key, none identifies a caller. */
+        @Test
+        void should_read_the_aggregates_for_a_custom_key_spelt_like_any_built_in_key() {
+            var builtInKeys = BuiltInAdditionalMetricKeys.all().keySet();
+
+            assertThat(builtInKeys)
+                .isNotEmpty()
+                .anyMatch(
+                    key -> realPipeline.dataKindOf(List.of(), List.of(), List.of("additional-metrics." + key)) == DataKind.PER_REQUEST
+                );
+            assertThat(builtInKeys).allSatisfy(key ->
+                assertThat(realPipeline.dataKindOf(List.of(), List.of(), List.of("custom." + key))).as(key).isEqualTo(DataKind.AGGREGATES)
+            );
+        }
     }
 
     @Nested

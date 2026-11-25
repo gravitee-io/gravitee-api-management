@@ -100,8 +100,8 @@ public record SearchLogsFilters(
     }
 
     /**
-     * A condition on an additional metric field, by its wire name {@code additional-metrics.<rawKey>}: the request
-     * phase reads it with the platform's grammar, the body phase never sees it.
+     * A condition on an additional metric field, by its wire name {@code additional-metrics.<rawKey>} or
+     * {@code custom.<rawKey>}: the request phase reads it with the platform's grammar, the body phase never sees it.
      */
     public record AdditionalMetricCondition(String name, Operator operator, List<String> values) {
         public AdditionalMetricCondition {

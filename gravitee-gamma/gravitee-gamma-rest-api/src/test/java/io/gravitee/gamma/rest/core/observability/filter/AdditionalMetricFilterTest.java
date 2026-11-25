@@ -43,8 +43,9 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
- * An additional metric field ({@code additional-metrics.<type>_<key>}, OBS-70) is off the catalog: the registry types
- * it by its prefix, so the validator checks a condition on it as it checks a built-in, discovery never consulted.
+ * An additional metric field ({@code additional-metrics.<type>_<key>}, OBS-70, or {@code custom.<key>}, OBS-171) is off
+ * the catalog: the registry types it by its prefix or its root, so the validator checks a condition on it as it checks
+ * a built-in, discovery never consulted.
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class AdditionalMetricFilterTest {
@@ -54,6 +55,7 @@ class AdditionalMetricFilterTest {
     private static final String SCORE = "additional-metrics.double_fraud-check_score";
     private static final String CACHE_HIT = "additional-metrics.bool_cache_hit";
     private static final String SIGNALS = "additional-metrics.json_fraud-signals";
+    private static final String FRAUD_TIER = "custom.fraud-tier";
 
     private final FilterRegistry registry = new SpiFilterRegistry(List.of());
     private final ObservabilityFilterValidator validator = new ObservabilityFilterValidator(registry);
@@ -104,8 +106,21 @@ class AdditionalMetricFilterTest {
             assertThat(registry.specFor(SIGNALS).orElseThrow().operators()).isEmpty();
         }
 
+        @Test
+        void should_type_a_custom_field_as_a_keyword_on_both_signals_served_under_its_wire_name() {
+            var spec = registry.specFor(FRAUD_TIER).orElseThrow();
+
+            assertThat(spec.name()).isEqualTo(FRAUD_TIER);
+            assertThat(spec.type()).isEqualTo(FilterType.KEYWORD);
+            assertThat(spec.operators()).containsExactlyInAnyOrder(FilterOperator.EQ, FilterOperator.IN);
+            assertThat(spec.signals()).containsExactlyInAnyOrder(Signal.ANALYTICS, Signal.LOGS);
+            assertThat(spec.apiTypes()).isEmpty();
+            assertThat(spec.valueType()).isEqualTo(AdditionalMetricValueType.KEYWORD);
+            assertThat(spec.catalog().rawKey()).isEqualTo(FRAUD_TIER);
+        }
+
         @ParameterizedTest
-        @ValueSource(strings = { "custom.basket-value", "UNKNOWN", "additional-metrics.float_ratio", "additional-metrics.long_a..b" })
+        @ValueSource(strings = { "custom.", "custom.a..b", "UNKNOWN", "additional-metrics.float_ratio", "additional-metrics.long_a..b" })
         void should_answer_nothing_for_a_name_neither_in_the_catalog_nor_well_formed(String name) {
             assertThat(registry.specFor(name)).isEmpty();
         }
@@ -155,9 +170,27 @@ class AdditionalMetricFilterTest {
                 .isEqualTo("observability.filter.unknown_name");
         }
 
+        @ParameterizedTest
+        @CsvSource({ "ANALYTICS, EQ", "ANALYTICS, IN", "LOGS, EQ", "LOGS, IN" })
+        void should_accept_a_custom_field_no_request_carries_yet(Signal signal, FilterOperator operator) {
+            var conditions = List.of(new FilterCondition(FRAUD_TIER, operator, List.of("gold")));
+
+            assertThatCode(() -> validator.validate(conditions, signal)).doesNotThrowAnyException();
+        }
+
         @Test
-        void should_refuse_the_assign_metrics_form_as_unknown() {
-            var conditions = List.of(new FilterCondition("custom.basket-value", FilterOperator.EQ, List.of("1")));
+        void should_refuse_a_bound_on_a_custom_field_naming_it() {
+            var conditions = List.of(new FilterCondition(FRAUD_TIER, FilterOperator.GTE, List.of("1")));
+
+            assertThatThrownBy(() -> validator.validate(conditions, Signal.ANALYTICS))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .hasMessageContaining(FRAUD_TIER);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "custom.tier*", "custom. ", "custom.\t" })
+        void should_refuse_a_custom_name_outside_the_grammar_as_unknown(String name) {
+            var conditions = List.of(new FilterCondition(name, FilterOperator.EQ, List.of("1")));
 
             assertThatThrownBy(() -> validator.validate(conditions, Signal.ANALYTICS))
                 .extracting("technicalCode")
@@ -213,7 +246,10 @@ class AdditionalMetricFilterTest {
 
         @Test
         void should_accept_a_field_among_a_dashboard_filters() {
-            var conditions = List.of(new FilterCondition(TIER, FilterOperator.EQ, List.of()));
+            var conditions = List.of(
+                new FilterCondition(TIER, FilterOperator.EQ, List.of()),
+                new FilterCondition(FRAUD_TIER, FilterOperator.IN, List.of("gold"))
+            );
 
             assertThatCode(() -> validator.validateDashboardFilters(conditions)).doesNotThrowAnyException();
         }
