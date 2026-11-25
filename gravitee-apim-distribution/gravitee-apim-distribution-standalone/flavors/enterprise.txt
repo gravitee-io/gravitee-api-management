@@ -107,6 +107,7 @@ gravitee-policy-native-ipfiltering
 gravitee-policy-guardrail-llm-rule
 gravitee-policy-guardrail-llm-decision-binary
 gravitee-policy-guardrail-llm-decision-scoring
+gravitee-policy-guardrail-llm-http-evaluator
 gravitee-policy-human-approval
 gravitee-policy-authz-pep
 gravitee-policy-authz-list-filter
