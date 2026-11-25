@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation;
 
+import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query;
 import io.gravitee.repository.elasticsearch.v4.shared.ConnectionPhaseClause;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -52,17 +53,25 @@ public class HttpErrorRateBuilder {
         return json().put("source", SCRIPT_SOURCE);
     }
 
+    /** Shared so that the error count and the error rate agree on what an error is. */
+    public static JsonObject errorStatus() {
+        return status(400, 600);
+    }
+
     private JsonObject successCount() {
-        return json().put("filter", statusFilter(100, 400)).put("aggs", json().put("count", valueCount()));
+        return json().put("filter", notEnd(status(100, 400))).put("aggs", json().put("count", valueCount()));
     }
 
     private JsonObject errorCount() {
-        return json().put("filter", statusFilter(400, 600)).put("aggs", json().put("count", valueCount()));
+        return json().put("filter", notEnd(errorStatus())).put("aggs", json().put("count", valueCount()));
+    }
+
+    private static JsonObject status(int gte, int lt) {
+        return JsonObject.of(Query.RANGE, JsonObject.of("status", JsonObject.of(Query.GTE, gte, Query.LT, lt)));
     }
 
     /** A message API connection counts once, as it opens: its end is left out. */
-    private JsonObject statusFilter(int gte, int lt) {
-        var status = json().put("range", json().put("status", json().put("gte", gte).put("lt", lt)));
+    private JsonObject notEnd(JsonObject status) {
         var filter = ConnectionPhaseClause.notEnd();
         filter.getJsonObject("bool").put("filter", JsonArray.of(status));
         return filter;

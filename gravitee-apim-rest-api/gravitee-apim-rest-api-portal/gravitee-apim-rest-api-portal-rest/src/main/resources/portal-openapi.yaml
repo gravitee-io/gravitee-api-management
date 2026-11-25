@@ -7319,7 +7319,9 @@ components:
                 - MESSAGES
                 - MESSAGE_ERRORS
                 - MESSAGE_GATEWAY_LATENCY
-            description: Available metric names for analytics queries
+            description: |
+                Available metric names for analytics queries. `HTTP_ERRORS` counts the requests answered with a
+                4xx or 5xx status.
         AnalyticsFacetName:
             type: string
             enum:
@@ -7751,7 +7753,9 @@ components:
                         Measure value. `AVG`, `MIN`, `MAX` and the percentiles are computed over the documents carrying
                         the metric's value; over a window or bucket without any such document they are `null`, where
                         `COUNT`, `SUM` and `PERCENTAGE` are 0, on every metric. A facet ranked by `AVG`, `MIN`, `MAX` or a
-                        percentile holds only the groups carrying the value.
+                        percentile holds only the groups carrying the value. A facet or time-series group of `HTTP_ERRORS`
+                        is computed over the requests answered with a 4xx or 5xx status only: a terms facet holds only
+                        their groups, a range facet still lists every range, at 0 when none of them falls in it.
                     type: number
                     nullable: true
         AnalyticsMeasuresResponse:

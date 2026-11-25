@@ -88,6 +88,7 @@ spec:
               - MCP_PROXY_PROMPT
               - API_PRODUCT
 
+        # The requests answered with a 4xx or 5xx status: the errors HTTP_ERROR_RATE counts.
         - name: HTTP_ERRORS
           label: HTTP Errors
           apis:
@@ -1071,6 +1072,7 @@ spec:
               - EDGE_CLIENT
               - EDGE_TYPE
 
+        # The heartbeats an Edge agent sends (EDGE_TYPE heartbeat): its detections are left out.
         - name: EDGE_HEARTBEAT_COUNT
           label: Edge Heartbeat Count
           apis:

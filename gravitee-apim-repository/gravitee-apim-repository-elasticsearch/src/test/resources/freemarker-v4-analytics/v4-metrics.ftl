@@ -190,3 +190,33 @@
 { "entrypoint-id": "http-get", "gateway": "2c99d50d-d318-42d3-99d5-0dd31862d3d2", "@timestamp": "${dateToday}T08:00:00.000Z", "request-id": "d6e7f8a9-0000-4000-8000-000000000101", "transaction-id": "d6e7f8a9-0000-4000-8000-000000000101", "api-id": "c3d4e5f6-0000-4000-8000-0000000000e5", "plan-id": "d4e5f6a7-0000-4000-8000-0000000000f6", "application-id": "e5f6a7b8-0000-4000-8000-0000000000a7", "local-address": "10.0.2.208", "remote-address": "127.0.0.1", "host": "apim-master-gateway.team-apim.gravitee.dev", "uri": "/message-api", "path-info": "/message-api", "user-agent": "", "request-ended": "true", "connection-phase": "end", "status": 200, "response-content-length": 50, "gateway-response-time-ms": 1000, "endpoint-response-time-ms": 900, "gateway-latency-ms": 100 }
 { "index" :{ ${indexNameToday}, "_id": "d6e7f8a9-0000-4000-8000-000000000102:open"}}
 { "entrypoint-id": "http-get", "gateway": "2c99d50d-d318-42d3-99d5-0dd31862d3d2", "@timestamp": "${dateToday}T08:30:00.000Z", "request-id": "d6e7f8a9-0000-4000-8000-000000000102", "transaction-id": "d6e7f8a9-0000-4000-8000-000000000102", "api-id": "c3d4e5f6-0000-4000-8000-0000000000e5", "plan-id": "d4e5f6a7-0000-4000-8000-0000000000f6", "application-id": "e5f6a7b8-0000-4000-8000-0000000000a7", "local-address": "10.0.2.208", "remote-address": "127.0.0.1", "host": "apim-master-gateway.team-apim.gravitee.dev", "uri": "/message-api", "path-info": "/message-api", "user-agent": "", "request-ended": "false", "connection-phase": "open", "status": 200, "response-content-length": 0, "gateway-response-time-ms": 0, "endpoint-response-time-ms": 0, "gateway-latency-ms": 0 }
+{ "index" :{ ${indexNameDaysAgo["14"]}, "_id": "ec-001"}}
+{ "entrypoint-id": "http-proxy", "@timestamp": "${dateDaysAgo["14"]}T08:01:00.000Z", "request-id": "ec-001", "api-id": "error-counts-api-001", "status": 200 }
+{ "index" :{ ${indexNameDaysAgo["14"]}, "_id": "ec-002"}}
+{ "entrypoint-id": "http-proxy", "@timestamp": "${dateDaysAgo["14"]}T08:02:00.000Z", "request-id": "ec-002", "api-id": "error-counts-api-001", "status": 200 }
+{ "index" :{ ${indexNameDaysAgo["14"]}, "_id": "ec-003"}}
+{ "entrypoint-id": "http-proxy", "@timestamp": "${dateDaysAgo["14"]}T08:03:00.000Z", "request-id": "ec-003", "api-id": "error-counts-api-001", "status": 200 }
+{ "index" :{ ${indexNameDaysAgo["14"]}, "_id": "ec-004"}}
+{ "entrypoint-id": "http-proxy", "@timestamp": "${dateDaysAgo["14"]}T08:04:00.000Z", "request-id": "ec-004", "api-id": "error-counts-api-001", "status": 302 }
+{ "index" :{ ${indexNameDaysAgo["14"]}, "_id": "ec-005"}}
+{ "entrypoint-id": "http-proxy", "@timestamp": "${dateDaysAgo["14"]}T08:05:00.000Z", "request-id": "ec-005", "api-id": "error-counts-api-001", "status": 401 }
+{ "index" :{ ${indexNameDaysAgo["14"]}, "_id": "ec-006"}}
+{ "entrypoint-id": "http-proxy", "@timestamp": "${dateDaysAgo["14"]}T08:06:00.000Z", "request-id": "ec-006", "api-id": "error-counts-api-001", "status": 404 }
+{ "index" :{ ${indexNameDaysAgo["14"]}, "_id": "ec-007"}}
+{ "entrypoint-id": "http-proxy", "@timestamp": "${dateDaysAgo["14"]}T08:07:00.000Z", "request-id": "ec-007", "api-id": "error-counts-api-001", "status": 500 }
+{ "index" :{ ${indexNameDaysAgo["14"]}, "_id": "ec-008"}}
+{ "entrypoint-id": "http-proxy", "@timestamp": "${dateDaysAgo["14"]}T08:08:00.000Z", "request-id": "ec-008", "api-id": "error-counts-api-001", "status": 503 }
+{ "index" :{ ${indexNameDaysAgo["14"]}, "_id": "ec-009:open"}}
+{ "entrypoint-id": "http-get", "@timestamp": "${dateDaysAgo["14"]}T08:09:00.000Z", "request-id": "ec-009", "api-id": "error-counts-api-001", "connection-phase": "open", "status": 500 }
+{ "index" :{ ${indexNameDaysAgo["14"]}, "_id": "ec-009"}}
+{ "entrypoint-id": "http-get", "@timestamp": "${dateDaysAgo["14"]}T08:09:00.000Z", "request-id": "ec-009", "api-id": "error-counts-api-001", "connection-phase": "end", "status": 500, "gateway-response-time-ms": 20 }
+{ "index" :{ ${indexNameDaysAgo["14"]}, "_id": "hb-001"}}
+{ "entrypoint-id": "edge", "@timestamp": "${dateDaysAgo["14"]}T08:01:00.000Z", "request-id": "hb-001", "api-id": "edge-counts-api-001", "client-identifier": "device-a", "status": 200, "additional-metrics": { "keyword_edge_type": "heartbeat" } }
+{ "index" :{ ${indexNameDaysAgo["14"]}, "_id": "hb-002"}}
+{ "entrypoint-id": "edge", "@timestamp": "${dateDaysAgo["14"]}T08:31:00.000Z", "request-id": "hb-002", "api-id": "edge-counts-api-001", "client-identifier": "device-a", "status": 200, "additional-metrics": { "keyword_edge_type": "heartbeat" } }
+{ "index" :{ ${indexNameDaysAgo["14"]}, "_id": "hb-003"}}
+{ "entrypoint-id": "edge", "@timestamp": "${dateDaysAgo["14"]}T08:02:00.000Z", "request-id": "hb-003", "api-id": "edge-counts-api-001", "client-identifier": "device-b", "status": 200, "additional-metrics": { "keyword_edge_type": "heartbeat" } }
+{ "index" :{ ${indexNameDaysAgo["14"]}, "_id": "hb-004"}}
+{ "entrypoint-id": "edge", "@timestamp": "${dateDaysAgo["14"]}T08:03:00.000Z", "request-id": "hb-004", "api-id": "edge-counts-api-001", "client-identifier": "device-a", "status": 200, "additional-metrics": { "keyword_edge_type": "detection", "long_edge_count": 3 } }
+{ "index" :{ ${indexNameDaysAgo["14"]}, "_id": "hb-005"}}
+{ "entrypoint-id": "edge", "@timestamp": "${dateDaysAgo["14"]}T08:04:00.000Z", "request-id": "hb-005", "api-id": "edge-counts-api-001", "client-identifier": "device-c", "status": 200, "additional-metrics": { "keyword_edge_type": "detection", "long_edge_count": 3 } }
