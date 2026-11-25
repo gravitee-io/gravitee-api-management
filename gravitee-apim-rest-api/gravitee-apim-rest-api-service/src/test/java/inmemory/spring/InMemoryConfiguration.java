@@ -193,6 +193,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public InstallationTypeDomainServiceInMemory installationTypeDomainService() {
+        return new InstallationTypeDomainServiceInMemory();
+    }
+
+    @Bean
     public ParametersDomainServiceInMemory parametersDomainService() {
         return new ParametersDomainServiceInMemory();
     }

@@ -137,16 +137,19 @@ public class CreateOrUpdatePortalUseCase {
 
     /**
      * Validation has already refused a new portal whose URL cannot be resolved. A portal replacing the default one takes
-     * over its access point, so the address already in use keeps opening a portal.
+     * over its access point, so the address already in use keeps opening a portal. On a multi-tenant installation, the
+     * portal gets no access point.
      */
     private Portal newPortal(Input input) {
         var environmentId = input.auditInfo().environmentId();
         var accessPointId = portalAutomationScopeEnforcer
             .findReplaceableDefault(input.auditInfo(), input.portalId())
             .map(Portal::getAccessPointId)
-            .or(() -> portalAddressDomainService.sharedAccessPoint(environmentId))
-            .orElseThrow(() -> new ValidationDomainException("Portal URL of environment [" + environmentId + "] cannot be resolved"));
-        return Portal.create(input.portalId(), environmentId, input.auditInfo().organizationId(), input.name(), accessPointId);
+            .or(() -> portalAddressDomainService.sharedAccessPoint(environmentId));
+        if (accessPointId.isEmpty() && portalAddressDomainService.assignsAccessPoints()) {
+            throw new ValidationDomainException("Portal URL of environment [" + environmentId + "] cannot be resolved");
+        }
+        return Portal.create(input.portalId(), environmentId, input.auditInfo().organizationId(), input.name(), accessPointId.orElse(null));
     }
 
     private String resolveActiveThemeId(Input input, String currentActiveThemeId) {
