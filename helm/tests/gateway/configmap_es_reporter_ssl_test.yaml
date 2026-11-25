@@ -44,6 +44,20 @@ tests:
           path: data["gravitee.yml"]
           pattern: "keystore"
 
+  - it: Renders a truststore path without a type, so the gateway rejects it at startup
+    set:
+      es:
+        ssl:
+          truststore:
+            path: /opt/graviteeio-gateway/security/es-ca.pem
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            [ ]+ssl:
+            [ ]+truststore:
+            [ ]+path: /opt/graviteeio-gateway/security/es-ca.pem
+
   - it: Renders the truststore along with the keystore
     set:
       es:

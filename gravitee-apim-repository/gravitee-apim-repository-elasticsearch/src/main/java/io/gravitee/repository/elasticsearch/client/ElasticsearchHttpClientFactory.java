@@ -141,11 +141,12 @@ public class ElasticsearchHttpClientFactory {
     private void configureTrust(HttpClientConfiguration cfg) {
         cfg.setTrustAll(readProperty("ssl.trustAll", Boolean.class, false));
         String truststoreType = readProperty("ssl.truststore.type", String.class, null);
-        if (truststoreType != null) {
+        String truststorePath = readProperty("ssl.truststore.path", String.class, null);
+        if (truststoreType != null || truststorePath != null) {
             cfg.setTrustStoreConfig(
                 new HttpClientTrustStoreConfiguration(
                     truststoreType,
-                    readProperty("ssl.truststore.path", String.class, null),
+                    truststorePath,
                     readProperty("ssl.truststore.password", String.class, null)
                 )
             );
