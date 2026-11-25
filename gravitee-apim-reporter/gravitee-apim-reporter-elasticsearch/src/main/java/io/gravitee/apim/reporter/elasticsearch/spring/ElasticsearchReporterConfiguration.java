@@ -85,7 +85,7 @@ public class ElasticsearchReporterConfiguration {
         }
 
         clientConfiguration.setTrustAll(reporterConfiguration.isSslTrustAll());
-        if (reporterConfiguration.getSslTruststoreType() != null) {
+        if (reporterConfiguration.getSslTruststoreType() != null || reporterConfiguration.getSslTruststorePath() != null) {
             clientConfiguration.setTrustStoreConfig(
                 new HttpClientTrustStoreConfiguration(
                     reporterConfiguration.getSslTruststoreType(),
