@@ -95,6 +95,7 @@ class PermissionsAnnotationGuardTest {
         Map.entry("CategoryResource#GET /{categoryId}/background", "portal / configuration read"),
         Map.entry("CategoryResource#GET /{categoryId}/picture", "portal / configuration read"),
         Map.entry("CockpitAuthenticationResource#GET /auth/cockpit", "authentication / registration"),
+        Map.entry("CockpitAuthenticationResource#POST /auth/cockpit", "authentication / registration"),
         Map.entry("ConsoleResource#GET /console", "pre-existing, not reviewed yet"),
         Map.entry("CurrentUserResource#DELETE /user", "current-user self-service"),
         Map.entry("CurrentUserResource#GET /user", "current-user self-service"),
