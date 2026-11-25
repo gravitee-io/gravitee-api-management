@@ -55,9 +55,11 @@ import lombok.RequiredArgsConstructor;
  *
  * The republished event <strong>is an entry of the API's deployment history</strong>: that history is a plain search
  * over the events of an API, with no filter on who wrote them, and a rollback accepts any publish event. So the
- * entry shows up, carries the deployment number of the deployment it patches rather than opening a new one, and can
- * be rolled back to — which restores that deployment with these Guardians, the two being what it holds. Its label
- * says so, since an unlabelled entry would read as a deployment its publisher never made.
+ * entry shows up under a deployment number of its own, the one after the deployment it patches — a gateway ignores an
+ * event of the deployment number it already runs — and can be rolled back to, which restores that deployment with
+ * these Guardians, the two being what it holds. Its label says so, since an unlabelled entry would read as a
+ * deployment its publisher never made. The deployment that follows takes the number after it, and the out-of-sync
+ * state, which compares the API with the payload of its latest event and not with a number, is left as it was.
  *
  * <h2>One call, because the order is not a caller's business</h2>
  *
@@ -195,8 +197,12 @@ public class DeployApiInternalFlowDomainService {
     }
 
     /**
-     * The deployment number is the one of the deployment patched, so the event belongs to it rather than opening a new
-     * one. The user is left out for a caller that is none, a technical call, as the deployment of an API does.
+     * The deployment number is the one after the deployment patched. A gateway reads that number as the revision of
+     * the API it runs and replaces what it runs only with an event of another revision, however recent: an event
+     * keeping the number would be ignored until the next deployment. It is the number a deployment of the API would
+     * take, the one after its latest event, which the deployment patched is; and the event becomes that latest event,
+     * so the deployment that follows takes the number after this one. The user is left out for a caller that is none,
+     * a technical call, as the deployment of an API does.
      */
     private static Map<Event.EventProperties, String> propertiesOf(AuditInfo auditInfo, String apiId, ApiDeployment running, String label) {
         var properties = new EnumMap<Event.EventProperties, String>(Event.EventProperties.class);
@@ -204,11 +210,13 @@ public class DeployApiInternalFlowDomainService {
             properties.put(Event.EventProperties.USER, auditInfo.actor().userId());
         }
         properties.put(Event.EventProperties.API_ID, apiId);
-        properties.put(
-            Event.EventProperties.DEPLOYMENT_NUMBER,
-            Objects.requireNonNullElse(running.deploymentNumber(), NO_DEPLOYMENT_NUMBER)
-        );
+        properties.put(Event.EventProperties.DEPLOYMENT_NUMBER, nextDeploymentNumber(running));
         properties.put(Event.EventProperties.DEPLOYMENT_LABEL, label);
         return properties;
+    }
+
+    /** A deployment carrying no number counts as number 0, as it does when the API is deployed. */
+    private static String nextDeploymentNumber(ApiDeployment running) {
+        return Long.toString(Long.parseLong(Objects.requireNonNullElse(running.deploymentNumber(), NO_DEPLOYMENT_NUMBER)) + 1);
     }
 }
