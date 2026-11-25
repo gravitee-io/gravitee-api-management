@@ -53,6 +53,14 @@ public record AdditionalMetricField(Root root, String rawKey, AdditionalMetricVa
         return rawKey.startsWith(valueType.prefix() + RESERVED_SEGMENT);
     }
 
+    /**
+     * {@code additional-metrics.<type>_custom.<name>}: parses, but reads another map than the policy's
+     * {@code custom.<name>}, so a record of it would be a decoy that never matches the custom metric it looks like.
+     */
+    public boolean namesCustomMetric() {
+        return root == Root.ADDITIONAL_METRICS && rawKey.startsWith(valueType.prefix() + Root.CUSTOM.prefix());
+    }
+
     public String derivedLabel() {
         return AdditionalMetricLabel.derive(this);
     }
