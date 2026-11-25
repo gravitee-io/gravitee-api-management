@@ -52,6 +52,12 @@
             <version>${apim.core.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.gravitee.apim.gateway.standalone</groupId>
+            <artifactId>gravitee-apim-gateway-standalone-vertx-patch</artifactId>
+            <version>${apim.core.version}</version>
+        </dependency>
+
         <!-- APIM Gateway plugins -->
         <dependency>
             <groupId>io.gravitee.apim.gateway.services</groupId>
