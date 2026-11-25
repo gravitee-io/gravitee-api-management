@@ -90,7 +90,9 @@ public class ApiSubscriptionApikeysResourceTest extends AbstractResourceTest {
         ApiKeyEntity renewedApiKey = new ApiKeyEntity();
         renewedApiKey.setId("test-id");
 
-        when(apiKeyService.renew(eq(GraviteeContext.getExecutionContext()), any(), any())).thenReturn(renewedApiKey);
+        when(apiKeyService.renew(eq(GraviteeContext.getExecutionContext()), any(SubscriptionEntity.class), any())).thenReturn(
+            renewedApiKey
+        );
 
         Response response = envTarget("/_renew").request().post(null);
 

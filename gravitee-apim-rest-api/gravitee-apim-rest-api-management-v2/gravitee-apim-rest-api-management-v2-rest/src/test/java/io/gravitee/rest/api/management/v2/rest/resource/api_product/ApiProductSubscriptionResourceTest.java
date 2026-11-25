@@ -631,12 +631,16 @@ class ApiProductSubscriptionResourceTest extends AbstractResourceTest {
                 ApplicationFixtures.anApplicationEntity().toBuilder().id("app-1").apiKeyMode(ApiKeyMode.EXCLUSIVE).build()
             );
             io.gravitee.rest.api.model.ApiKeyEntity renewed = SubscriptionFixtures.anApiKeyEntity().toBuilder().id("new-key").build();
-            when(apiKeyService.renew(any(), any(), any())).thenReturn(renewed);
+            when(apiKeyService.renew(any(), any(io.gravitee.rest.api.model.SubscriptionEntity.class), any())).thenReturn(renewed);
 
             Response response = rootTarget().path("api-keys/_renew").request().post(json(SubscriptionFixtures.aRenewApiKey()));
 
             assertThat(response.getStatus()).isEqualTo(OK_200);
-            verify(apiKeyService).renew(eq(GraviteeContext.getExecutionContext()), any(), eq("custom"));
+            verify(apiKeyService).renew(
+                eq(GraviteeContext.getExecutionContext()),
+                any(io.gravitee.rest.api.model.SubscriptionEntity.class),
+                eq("custom")
+            );
         }
 
         @Test
