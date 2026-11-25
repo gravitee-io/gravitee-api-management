@@ -154,10 +154,10 @@ public class UnsupportedObservabilityFilterException extends ValidationDomainExc
         );
     }
 
-    public static UnsupportedObservabilityFilterException requiresGuardianDecisionRecordType(String filterName) {
+    public static UnsupportedObservabilityFilterException requiresGuardrailDecisionRecordType(String filterName) {
         return new UnsupportedObservabilityFilterException(
-            "Filter '" + filterName + "' applies to Guardian decision records only: add the condition RECORD_TYPE = GUARDIAN_DECISION",
-            "observability.filter.requires_guardian_decision_record_type"
+            "Filter '" + filterName + "' applies to Guardrail decision records only: add the condition RECORD_TYPE = GUARDRAIL_DECISION",
+            "observability.filter.requires_guardrail_decision_record_type"
         );
     }
 

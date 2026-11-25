@@ -19,14 +19,14 @@ import java.util.Set;
 import lombok.Builder;
 
 /**
- * What a search of Guardian decisions can narrow on.
+ * What a search of Guardrail decisions can narrow on.
  */
 @Builder
-public record GuardianDecisionLogFilters(
+public record GuardrailDecisionLogFilters(
     Set<String> apiIds,
     Long from,
     Long to,
-    Set<String> guardianIds,
+    Set<String> guardrailIds,
     Set<String> outcomes,
     String text,
     Set<String> textApiIds
