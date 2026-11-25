@@ -61,6 +61,28 @@ final class GraviteeSecretProviderEntries {
         return Optional.empty();
     }
 
+    static Optional<String> encryptionKey(ConfigurableEnvironment environment) {
+        Map<String, Object> secrets = ConfigHelper.removePrefix(secretsProperties(environment), SECRETS);
+        for (int index = 0; secrets.containsKey(entry(index) + ".plugin"); index++) {
+            Map<String, Object> entry = ConfigHelper.removePrefix(secrets, entry(index));
+            if (!isGraviteeEntry(entry)) {
+                continue;
+            }
+            String key;
+            try {
+                if (!isEnabled(entry)) {
+                    continue;
+                }
+                key = new GraviteeSecretManagerConfiguration(ConfigHelper.removePrefix(entry, "configuration")).encryptionKey();
+            } catch (RuntimeException e) {
+                // misconfiguration() reports the entry, and a fallback key that is wrong fails the stored data key check.
+                continue;
+            }
+            return key == null || key.isBlank() ? Optional.empty() : Optional.of(key);
+        }
+        return Optional.empty();
+    }
+
     // removePrefix cuts the separator off each key, so the bare api.secrets key of an empty block would throw.
     private static Map<String, Object> secretsProperties(ConfigurableEnvironment environment) {
         Map<String, Object> properties = new HashMap<>(EnvironmentUtils.getAllProperties(environment));
