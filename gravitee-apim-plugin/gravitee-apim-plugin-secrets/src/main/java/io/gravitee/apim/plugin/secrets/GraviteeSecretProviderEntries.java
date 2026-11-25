@@ -65,10 +65,20 @@ final class GraviteeSecretProviderEntries {
         Map<String, Object> secrets = ConfigHelper.removePrefix(secretsProperties(environment), SECRETS);
         for (int index = 0; secrets.containsKey(entry(index) + ".plugin"); index++) {
             Map<String, Object> entry = ConfigHelper.removePrefix(secrets, entry(index));
-            if (isGraviteeEntry(entry) && isEnabled(entry)) {
-                String key = new GraviteeSecretManagerConfiguration(ConfigHelper.removePrefix(entry, "configuration")).encryptionKey();
-                return key == null || key.isBlank() ? Optional.empty() : Optional.of(key);
+            if (!isGraviteeEntry(entry)) {
+                continue;
             }
+            String key;
+            try {
+                if (!isEnabled(entry)) {
+                    continue;
+                }
+                key = new GraviteeSecretManagerConfiguration(ConfigHelper.removePrefix(entry, "configuration")).encryptionKey();
+            } catch (RuntimeException e) {
+                // misconfiguration() reports the entry, and a fallback key that is wrong fails the stored data key check.
+                continue;
+            }
+            return key == null || key.isBlank() ? Optional.empty() : Optional.of(key);
         }
         return Optional.empty();
     }

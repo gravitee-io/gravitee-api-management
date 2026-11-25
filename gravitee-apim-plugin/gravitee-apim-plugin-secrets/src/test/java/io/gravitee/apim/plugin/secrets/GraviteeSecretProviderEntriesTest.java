@@ -139,6 +139,17 @@ class GraviteeSecretProviderEntriesTest {
         assertThat(encryptionKey()).isEmpty();
     }
 
+    @Test
+    void should_skip_a_gravitee_entry_whose_key_it_cannot_read_rather_than_throw() {
+        gravitee.put("api.secrets.providers[0].plugin", "gravitee");
+        gravitee.put("api.secrets.providers[0].configuration.enabled", 2024);
+        gravitee.put("api.secrets.providers[0].configuration.encryption.key", "unread-key");
+        gravitee.put("api.secrets.providers[1].plugin", "gravitee");
+        gravitee.put("api.secrets.providers[1].configuration.encryption.key", "entry-key");
+
+        assertThat(encryptionKey()).contains("entry-key");
+    }
+
     private Optional<String> misconfiguration() {
         return GraviteeSecretProviderEntries.misconfiguration(environment());
     }
