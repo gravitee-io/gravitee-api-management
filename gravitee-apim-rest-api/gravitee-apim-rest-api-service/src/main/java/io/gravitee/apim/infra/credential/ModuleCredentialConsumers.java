@@ -21,6 +21,8 @@ import io.gravitee.apim.core.credential.service_provider.CredentialConsumers;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.stream.Stream;
+import lombok.CustomLog;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +32,7 @@ import org.springframework.stereotype.Service;
  * <p>The ports are looked up on each call: a module's beans reach this context only once its plugin is loaded, which is
  * after this context starts. A port copied into this context can be seen under two names, so each instance is asked once.
  */
+@CustomLog
 @Service
 public class ModuleCredentialConsumers implements CredentialConsumers {
 
@@ -41,10 +44,7 @@ public class ModuleCredentialConsumers implements CredentialConsumers {
 
     @Override
     public List<CredentialConsumer> of(String environmentId, String credentialId) {
-        var asked = Collections.newSetFromMap(new IdentityHashMap<CredentialConsumerPort, Boolean>());
-        return ports
-            .stream()
-            .filter(asked::add)
+        return distinctPorts()
             .flatMap(port ->
                 port
                     .consumersOf(environmentId, credentialId)
@@ -52,5 +52,21 @@ public class ModuleCredentialConsumers implements CredentialConsumers {
                     .map(consumer -> new CredentialConsumer(port.module(), consumer.type(), consumer.id(), consumer.name()))
             )
             .toList();
+    }
+
+    @Override
+    public void changed(CredentialConsumerPort.Change change) {
+        distinctPorts().forEach(port -> {
+            try {
+                port.changed(change);
+            } catch (RuntimeException e) {
+                log.warn("Module {} did not take the change of credential {}", port.module(), change.credentialId(), e);
+            }
+        });
+    }
+
+    private Stream<CredentialConsumerPort> distinctPorts() {
+        var asked = Collections.newSetFromMap(new IdentityHashMap<CredentialConsumerPort, Boolean>());
+        return ports.stream().filter(asked::add);
     }
 }

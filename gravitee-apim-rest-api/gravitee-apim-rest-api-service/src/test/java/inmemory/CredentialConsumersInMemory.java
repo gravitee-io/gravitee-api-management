@@ -16,6 +16,7 @@
 package inmemory;
 
 import io.gravitee.apim.core.credential.model.CredentialConsumer;
+import io.gravitee.apim.core.credential.service_provider.CredentialConsumerPort;
 import io.gravitee.apim.core.credential.service_provider.CredentialConsumers;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,6 +26,7 @@ import java.util.Map;
 public class CredentialConsumersInMemory implements CredentialConsumers {
 
     private final Map<String, List<CredentialConsumer>> byCredential = new HashMap<>();
+    private final List<CredentialConsumerPort.Change> changes = new ArrayList<>();
 
     public void given(String environmentId, String credentialId, CredentialConsumer consumer) {
         byCredential.computeIfAbsent(environmentId + "/" + credentialId, k -> new ArrayList<>()).add(consumer);
@@ -32,10 +34,20 @@ public class CredentialConsumersInMemory implements CredentialConsumers {
 
     public void reset() {
         byCredential.clear();
+        changes.clear();
+    }
+
+    public List<CredentialConsumerPort.Change> changes() {
+        return List.copyOf(changes);
     }
 
     @Override
     public List<CredentialConsumer> of(String environmentId, String credentialId) {
         return List.copyOf(byCredential.getOrDefault(environmentId + "/" + credentialId, List.of()));
+    }
+
+    @Override
+    public void changed(CredentialConsumerPort.Change change) {
+        changes.add(change);
     }
 }
