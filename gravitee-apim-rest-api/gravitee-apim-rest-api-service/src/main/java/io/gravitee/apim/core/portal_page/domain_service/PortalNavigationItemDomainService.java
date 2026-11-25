@@ -440,8 +440,8 @@ public class PortalNavigationItemDomainService {
 
     /**
      * @return the owner the item takes at the destination, null when it keeps the one it has. An item of the
-     *         portal stays with its portal wherever it goes in the portal: only an API takes or gives an item,
-     *         and an item an API gives up joins the default portal, the only one the console manages.
+     *         portal stays with its portal wherever it goes in the portal: only an API takes or gives an item.
+     *         An item given up by an API joins the supplied portal, or the portal resolved for unnamed writes.
      * @throws NavigationPortalNotResolvedException when that item lands under a folder of another portal
      */
     @Nullable
