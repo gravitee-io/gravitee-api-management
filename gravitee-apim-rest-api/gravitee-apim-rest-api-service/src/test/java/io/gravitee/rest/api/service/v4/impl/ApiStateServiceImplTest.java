@@ -51,6 +51,7 @@ import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventQuery;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -306,6 +307,38 @@ public class ApiStateServiceImplTest {
             argThat(argApi -> argApi.getId().equals(API_ID))
         );
         verify(searchEngineService, times(1)).index(eq(executionContext), argThat(argApi -> argApi.getId().equals(API_ID)), eq(false));
+    }
+
+    /**
+     * A Guardian change republishes the deployment the gateways run under a number of its own, written to the latest
+     * event of the API ({@code DeployApiInternalFlowDomainService}): the deployment that follows takes the number
+     * after it, so no two deployments share one.
+     */
+    @Test
+    public void should_deploy_under_the_number_after_the_one_of_the_latest_event() throws TechnicalException {
+        when(apiSearchService.findRepositoryApiById(executionContext, API_ID)).thenReturn(api);
+        when(apiValidationService.canDeploy(executionContext, API_ID)).thenReturn(true);
+        when(eventLatestRepository.search(any(), eq(Event.EventProperties.API_ID), eq(0L), eq(1L))).thenReturn(
+            List.of(
+                Event.builder()
+                    .type(io.gravitee.repository.management.model.EventType.PUBLISH_API)
+                    .properties(
+                        Map.of(Event.EventProperties.API_ID.getValue(), API_ID, Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "8")
+                    )
+                    .build()
+            )
+        );
+
+        apiStateService.deploy(executionContext, API_ID, USER_NAME, new ApiDeploymentEntity());
+
+        verify(eventService).createApiEvent(
+            eq(executionContext),
+            any(),
+            any(),
+            eq(EventType.PUBLISH_API),
+            any(Api.class),
+            argThat(properties -> "9".equals(properties.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue())))
+        );
     }
 
     @Test
