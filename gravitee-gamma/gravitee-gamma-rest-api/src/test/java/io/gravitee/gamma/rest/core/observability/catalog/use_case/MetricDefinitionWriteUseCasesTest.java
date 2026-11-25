@@ -32,6 +32,8 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class MetricDefinitionWriteUseCasesTest {
@@ -103,6 +105,32 @@ class MetricDefinitionWriteUseCasesTest {
                 .isEqualTo("observability.metric_definition.reserved_key");
         }
 
+        /** E2E finding S1: such a record reads another map than the policy's custom.<name>, a decoy matching nothing. */
+        @ParameterizedTest
+        @ValueSource(
+            strings = {
+                "additional-metrics.keyword_custom.fraud-tier",
+                "additional-metrics.long_custom.retries",
+                "additional-metrics.keyword_custom.a.b",
+            }
+        )
+        void should_refuse_a_key_naming_a_custom_metric_after_its_type_prefix(String name) {
+            assertThatThrownBy(() -> fixture.givenDeclared(name))
+                .hasMessage(
+                    "'" + name + "' is reserved: custom metrics (custom.<name>) come from the Assign metrics policy and are read-only here"
+                )
+                .extracting("technicalCode")
+                .isEqualTo("observability.metric_definition.reserved_key");
+            assertThat(fixture.repository.all()).isEmpty();
+        }
+
+        @Test
+        void should_still_declare_a_key_whose_segment_merely_starts_with_custom() {
+            fixture.givenDeclared("additional-metrics.keyword_customer.tier");
+
+            assertThat(fixture.repository.all()).hasSize(1);
+        }
+
         @Test
         void should_refuse_a_key_with_a_double_quote() {
             assertThatThrownBy(() -> fixture.givenDeclared("additional-metrics.keyword_my\"key"))
@@ -122,6 +150,23 @@ class MetricDefinitionWriteUseCasesTest {
             assertThat(output.created()).isTrue();
             assertThat(output.definition().exposed()).isFalse();
             assertThat(fixture.repository.all()).containsExactly(output.definition());
+        }
+
+        @Test
+        void should_refuse_a_key_naming_a_custom_metric_after_its_type_prefix() {
+            var input = new SaveMetricDefinitionUseCase.Input(
+                ENVIRONMENT,
+                "additional-metrics.keyword_custom.fraud-tier",
+                null,
+                null,
+                null,
+                false
+            );
+
+            assertThatThrownBy(() -> fixture.save.execute(input))
+                .extracting("technicalCode")
+                .isEqualTo("observability.metric_definition.reserved_key");
+            assertThat(fixture.repository.all()).isEmpty();
         }
 
         @Test

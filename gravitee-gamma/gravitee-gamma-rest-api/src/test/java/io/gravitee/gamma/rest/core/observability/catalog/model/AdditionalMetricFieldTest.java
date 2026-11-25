@@ -103,6 +103,21 @@ class AdditionalMetricFieldTest {
     }
 
     @Test
+    void should_tell_a_key_naming_a_custom_metric_after_its_type_prefix() {
+        assertThat(keys.field("additional-metrics.keyword_custom.fraud-tier").namesCustomMetric()).isTrue();
+        assertThat(keys.field("additional-metrics.long_custom.retries").namesCustomMetric()).isTrue();
+        assertThat(keys.field("additional-metrics.keyword_customer.tier").namesCustomMetric()).isFalse();
+        assertThat(keys.field("additional-metrics.double_custom_basket-value").namesCustomMetric()).isFalse();
+        assertThat(
+            new AdditionalMetricField(
+                AdditionalMetricField.Root.CUSTOM,
+                "keyword_custom.x",
+                AdditionalMetricValueType.KEYWORD
+            ).namesCustomMetric()
+        ).isFalse();
+    }
+
+    @Test
     void should_tell_the_reserved_custom_form() {
         assertThat(keys.field("additional-metrics.double_custom_basket-value").isReserved()).isTrue();
         assertThat(keys.field("additional-metrics.double_customer_basket").isReserved()).isFalse();
