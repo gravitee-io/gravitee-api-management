@@ -15,9 +15,11 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.guardrail.GuardrailSteps;
 import io.gravitee.node.api.upgrader.Upgrader;
@@ -31,7 +33,10 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Environment;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -75,14 +80,21 @@ public class GuardrailStepsUpgrader implements Upgrader {
     private boolean applyUpgrade() throws TechnicalException {
         List<String> migrated = new ArrayList<>();
         for (Environment environment : environmentRepository.findAll()) {
-            apiRepository
-                .search(
+            try (
+                Stream<Api> apis = apiRepository.search(
                     new ApiCriteria.Builder().environmentId(environment.getId()).definitionVersion(List.of(DefinitionVersion.V4)).build(),
                     null,
                     new ApiFieldFilter.Builder().excludePicture().build()
                 )
-                .filter(this::migrate)
-                .forEach(api -> migrated.add(api.getId()));
+            ) {
+                Iterator<Api> iterator = apis.iterator();
+                while (iterator.hasNext()) {
+                    Api api = iterator.next();
+                    if (migrate(api)) {
+                        migrated.add(api.getId());
+                    }
+                }
+            }
         }
         if (!migrated.isEmpty()) {
             log.warn(
@@ -95,31 +107,46 @@ public class GuardrailStepsUpgrader implements Upgrader {
         return true;
     }
 
-    private boolean migrate(Api api) {
+    /**
+     * A repository failure propagates, so the upgrader runs again on the next start; an unreadable definition is
+     * skipped, since no later run could read it either and it must not keep the platform from starting.
+     */
+    private boolean migrate(Api api) throws TechnicalException {
+        Optional<String> definition = migratedDefinition(api);
+        if (definition.isEmpty()) {
+            return false;
+        }
+        api.setDefinition(definition.get());
+        api.setUpdatedAt(new Date());
+        apiRepository.update(api);
+        return true;
+    }
+
+    private Optional<String> migratedDefinition(Api api) {
         try {
             JsonNode definition = objectMapper.readTree(api.getDefinition());
             JsonNode flow = definition.path("internalFlow");
             boolean request = migrateSteps(flow.path("request"));
             boolean response = migrateSteps(flow.path("response"));
             if (!request && !response) {
-                return false;
+                return Optional.empty();
             }
-            api.setDefinition(objectMapper.writeValueAsString(definition));
-            api.setUpdatedAt(new Date());
-            apiRepository.update(api);
-            return true;
-        } catch (Exception e) {
-            // one unreadable definition must not keep the platform from starting: the API is left as it is
-            log.warn("Unable to move the Guardian steps of the API [{}], skipping it", api.getId(), e);
-            return false;
+            return Optional.of(objectMapper.writeValueAsString(definition));
+        } catch (JsonProcessingException e) {
+            log.warn("Unable to read the definition of the API [{}], its Guardian steps are left as they are", api.getId(), e);
+            return Optional.empty();
         }
     }
 
-    private static boolean migrateSteps(JsonNode steps) {
+    private boolean migrateSteps(JsonNode steps) throws JsonProcessingException {
         boolean migrated = false;
         for (JsonNode step : steps) {
             if (step instanceof ObjectNode stepNode && LEGACY_POLICY.equals(stepNode.path("policy").asText())) {
                 stepNode.put("policy", GuardrailSteps.POLICY);
+                if (stepNode.get("configuration") instanceof TextNode textual) {
+                    // Step keeps a configuration sent as a JSON string as it is
+                    stepNode.set("configuration", objectMapper.readTree(textual.asText()));
+                }
                 if (stepNode.get("configuration") instanceof ObjectNode configuration && configuration.has(LEGACY_ID_KEY)) {
                     configuration.set(ID_KEY, configuration.remove(LEGACY_ID_KEY));
                 }
