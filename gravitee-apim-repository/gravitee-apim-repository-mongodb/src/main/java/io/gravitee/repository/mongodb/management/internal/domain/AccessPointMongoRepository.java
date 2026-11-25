@@ -29,7 +29,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface AccessPointMongoRepository extends MongoRepository<AccessPointMongo, String>, AccessPointMongoRepositoryCustom {
     @Query(value = "{ 'host': ?0, 'status': ?1 }")
-    AccessPointMongo findByHostAndStatus(String host, AccessPointStatus status);
+    List<AccessPointMongo> findAllByHostAndStatus(String host, AccessPointStatus status);
 
     @Query(value = "{ 'target': ?0, 'status': ?1 }")
     List<AccessPointMongo> findAllByTargetAndStatus(final String target, AccessPointStatus status);
