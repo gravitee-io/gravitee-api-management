@@ -18,6 +18,7 @@ package io.gravitee.apim.plugin.secrets;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.OrganizationKeyRepository;
 import io.gravitee.repository.management.api.SecretRepository;
+import io.gravitee.repository.management.api.SecretValueRepository;
 import io.gravitee.secrets.api.errors.SecretManagerException;
 import io.gravitee.secrets.api.plugin.SecretProvider;
 import io.gravitee.secrets.api.plugin.SecretProviderFactory;
@@ -32,17 +33,32 @@ import org.springframework.beans.factory.ObjectProvider;
  */
 public class GraviteeSecretProviderFactory implements SecretProviderFactory<GraviteeSecretManagerConfiguration> {
 
+    static final String NO_BRIDGE_SECRETS =
+        "Secret provider [" +
+        GraviteeSecretProvider.ID +
+        "] cannot read secrets: the bridge client does not serve secrets, it must be version 10.1.0 or later";
+
     private final AtomicReference<Connection> connection = new AtomicReference<>();
 
     void connect(
         ObjectProvider<SecretRepository> secretRepository,
         ObjectProvider<OrganizationKeyRepository> organizationKeyRepository,
         ObjectProvider<EnvironmentRepository> environmentRepository,
+        ObjectProvider<SecretValueRepository> secretValueRepository,
+        boolean throughBridge,
         Supplier<String> sharedEncryptionKey,
         Optional<String> misconfiguration
     ) {
         connection.set(
-            new Connection(secretRepository, organizationKeyRepository, environmentRepository, sharedEncryptionKey, misconfiguration)
+            new Connection(
+                secretRepository,
+                organizationKeyRepository,
+                environmentRepository,
+                secretValueRepository,
+                throughBridge,
+                sharedEncryptionKey,
+                misconfiguration
+            )
         );
     }
 
@@ -55,7 +71,14 @@ public class GraviteeSecretProviderFactory implements SecretProviderFactory<Grav
         if (connected.misconfiguration().isPresent()) {
             return GraviteeSecretProvider.refusing(connected.misconfiguration().get());
         }
-        return new GraviteeSecretProvider(
+        if (connected.throughBridge()) {
+            SecretValueRepository bridge = connected.secretValueRepository().getIfAvailable();
+            return bridge == null ? GraviteeSecretProvider.refusing(NO_BRIDGE_SECRETS) : GraviteeSecretProvider.throughBridge(bridge);
+        }
+        if (connected.secretValueRepository().getIfAvailable() instanceof DecryptingSecretValueRepository secretValues) {
+            return GraviteeSecretProvider.decrypting(secretValues);
+        }
+        return GraviteeSecretProvider.decrypting(
             encryptionKey(configuration, connected.sharedEncryptionKey()),
             connected.secretRepository().getIfAvailable(),
             connected.organizationKeyRepository().getIfAvailable(),
@@ -72,6 +95,8 @@ public class GraviteeSecretProviderFactory implements SecretProviderFactory<Grav
         ObjectProvider<SecretRepository> secretRepository,
         ObjectProvider<OrganizationKeyRepository> organizationKeyRepository,
         ObjectProvider<EnvironmentRepository> environmentRepository,
+        ObjectProvider<SecretValueRepository> secretValueRepository,
+        boolean throughBridge,
         Supplier<String> sharedEncryptionKey,
         Optional<String> misconfiguration
     ) {}
