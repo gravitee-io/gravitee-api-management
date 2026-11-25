@@ -37,9 +37,11 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -131,6 +133,49 @@ class AdditionalMetricDiscoveryDeadlineTest {
         assertThat(result.metrics()).noneMatch(metric -> metric.root() == AdditionalMetricField.Root.ADDITIONAL_METRICS);
     }
 
+    /**
+     * E2E finding A5: the mapping is shared by every environment, so another environment's keys sorting first used to
+     * push this environment's late key out of the probes.
+     */
+    @Test
+    void should_find_an_environment_s_late_key_behind_a_thousand_keys_of_other_environments() {
+        var typesByField = new HashMap<String, Set<String>>();
+        IntStream.range(0, 1_200).forEach(i -> typesByField.put("custom.other-env-%04d".formatted(i), Set.of("keyword")));
+        typesByField.put("custom.zzz-late", Set.of("keyword"));
+        when(client.getFieldCapabilities(anyString(), eq("custom.*"))).thenReturn(Single.just(typesByField));
+        when(client.getFieldCapabilities(anyString(), eq("additional-metrics.*"))).thenReturn(Single.just(Map.of()));
+        when(client.search(anyString(), any(), anyString())).thenAnswer(invocation ->
+            Single.just(found(invocation.<String>getArgument(2).contains("\"custom.zzz-late\"")))
+        );
+
+        var result = cut.discoverAdditionalMetrics(QUERY_CONTEXT, query(Duration.ofSeconds(30)));
+
+        assertThat(result.metrics()).extracting(AdditionalMetricLastSeen::name).containsExactly("custom.zzz-late");
+        assertThat(result.truncated()).isFalse();
+    }
+
+    /**
+     * Each environment runs its own pass: one that runs out of time says so for itself only, and a mapping holding more
+     * keys than one environment lists no longer marks every environment truncated.
+     */
+    @Test
+    void should_say_truncated_only_for_the_environment_whose_pass_ran_out_of_time() {
+        var otherEnvironmentsKeys = new HashMap<String, Set<String>>();
+        IntStream.range(0, 1_200).forEach(i -> otherEnvironmentsKeys.put("custom.other-env-%04d".formatted(i), Set.of("keyword")));
+        when(client.getFieldCapabilities(anyString(), eq("custom.*"))).thenReturn(Single.just(otherEnvironmentsKeys));
+        when(client.search(anyString(), any(), anyString())).thenAnswer(invocation -> {
+            String esQuery = invocation.getArgument(2);
+            return esQuery.contains("\"env-slow\"") ? Single.never() : Single.just(found(esQuery.contains("\"additional-metrics.long_")));
+        });
+
+        var slow = cut.discoverAdditionalMetrics(new QueryContext("DEFAULT", "env-slow"), query(Duration.ofMillis(300)));
+        var other = cut.discoverAdditionalMetrics(new QueryContext("DEFAULT", "env-other"), query(Duration.ofSeconds(30)));
+
+        assertThat(slow.truncated()).isTrue();
+        assertThat(other.truncated()).isFalse();
+        assertThat(other.metrics()).hasSize(3);
+    }
+
     @Test
     void should_keep_what_it_found_and_say_it_is_truncated_when_a_search_outlives_the_deadline() {
         when(client.search(anyString(), any(), anyString())).thenReturn(Single.just(seen(false)), Single.never());
@@ -170,6 +215,20 @@ class AdditionalMetricDiscoveryDeadlineTest {
 
     private static AdditionalMetricDiscoveryQuery query(Duration timeout) {
         return new AdditionalMetricDiscoveryQuery(NOW.minus(Duration.ofDays(30)), NOW, timeout);
+    }
+
+    /** A one-key search answering whether the environment carries the key. */
+    private static SearchResponse found(boolean carried) {
+        try {
+            return MAPPER.readValue(
+                """
+                { "timed_out": false, "aggregations": { "keys": { "buckets": [ { "doc_count": %d, "last_seen": { "value": %d } } ] } } }
+                """.formatted(carried ? 1 : 0, SEEN.toEpochMilli()),
+                SearchResponse.class
+            );
+        } catch (Exception e) {
+            throw new IllegalStateException("Unreadable test response", e);
+        }
     }
 
     /** A one-key search answering the key as seen. */

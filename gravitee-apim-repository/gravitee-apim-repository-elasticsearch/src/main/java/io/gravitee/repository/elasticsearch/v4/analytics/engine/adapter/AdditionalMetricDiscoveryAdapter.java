@@ -43,20 +43,13 @@ import java.util.Set;
 public final class AdditionalMetricDiscoveryAdapter {
 
     /**
-     * Keys probed per pass at most, whatever {@code index.mapping.total_fields.limit} operators set. The cut applies to
-     * the mapping, shared by every environment, before the per-environment pass: above it, the first keys by name are
-     * probed and the others are never discovered, in any environment, until the mapping holds fewer typed keys; the
+     * A safety bound on the keys one environment's pass probes, for a mapping far above the default
+     * {@code index.mapping.total_fields.limit} (1 000 per index). Below it every key of the mapping is probed, so no
+     * environment loses a key it carries to another environment's keys; the pass's deadline bounds the cost. Above it the
      * pass says it is truncated. The cap on listed entries (200) is applied by the caller after the per-environment
      * pass, never here.
      */
-    public static final int MAX_PROBED_KEYS = 1_000;
-
-    /**
-     * The share of {@link #MAX_PROBED_KEYS} kept for the {@code custom} keys, the rest for the {@code additional-metrics}
-     * ones: neither map can starve the other. A map that needs less than its share gives the rest to the other one, so a
-     * pass never probes more than {@link #MAX_PROBED_KEYS} keys in all.
-     */
-    public static final int CUSTOM_PROBED_KEYS = 200;
+    public static final int MAX_PROBED_KEYS = 5_000;
 
     /** The type each prefix is stored under by the v4 metrics index templates (es7x, es8x, es9x, opensearch). */
     private static final Map<String, String> ES_TYPE_BY_PREFIX = Map.of(
@@ -90,14 +83,14 @@ public final class AdditionalMetricDiscoveryAdapter {
 
     /**
      * @param names     the wire names to probe
-     * @param truncated true when a map had more keys than its share of {@link #MAX_PROBED_KEYS}
+     * @param truncated true when the mapping had more keys than {@link #MAX_PROBED_KEYS}
      */
     public record Candidates(List<String> names, boolean truncated) {}
 
     /**
-     * The keys worth probing among the fields of the mapping, by wire name, sorted: the {@code additional-metrics} keys,
-     * then the {@code custom} ones, each map cut to its share of {@link #MAX_PROBED_KEYS} ({@link #CUSTOM_PROBED_KEYS}
-     * for the custom keys), the first by name kept. A key is left out when it holds a {@code *}, which
+     * The keys worth probing among the fields of the mapping, by wire name: the {@code additional-metrics} and the
+     * {@code custom} keys, each sorted, taken in turn so that a deadline cutting the probes batch by batch leaves both
+     * maps probed, then cut to {@link #MAX_PROBED_KEYS}. A key is left out when it holds a {@code *}, which
      * an {@code exists} query reads as a pattern; an additional metric key when its prefix is unknown or when any index
      * stores it under another type than its prefix declares: only the {@code long_} template is bound to the JSON type of
      * the value, so a {@code long_} key written as a decimal is mapped as a floating-point field; a custom key when any
@@ -123,12 +116,18 @@ public final class AdditionalMetricDiscoveryAdapter {
             .stream()
             .filter(name -> Root.of(name).orElseThrow() == Root.CUSTOM)
             .toList();
-        int additionalShare = MAX_PROBED_KEYS - CUSTOM_PROBED_KEYS;
-        int additionalKept = Math.min(additional.size(), additionalShare + Math.max(0, CUSTOM_PROBED_KEYS - custom.size()));
-        int customKept = Math.min(custom.size(), CUSTOM_PROBED_KEYS + Math.max(0, additionalShare - additional.size()));
-        var kept = new ArrayList<String>(additional.subList(0, additionalKept));
-        kept.addAll(custom.subList(0, customKept));
-        return new Candidates(List.copyOf(kept), additionalKept < additional.size() || customKept < custom.size());
+        var alternated = new ArrayList<String>(names.size());
+        for (int i = 0; i < Math.max(additional.size(), custom.size()); i++) {
+            if (i < additional.size()) {
+                alternated.add(additional.get(i));
+            }
+            if (i < custom.size()) {
+                alternated.add(custom.get(i));
+            }
+        }
+        return alternated.size() > MAX_PROBED_KEYS
+            ? new Candidates(List.copyOf(alternated.subList(0, MAX_PROBED_KEYS)), true)
+            : new Candidates(List.copyOf(alternated), false);
     }
 
     private static boolean isTypedAsDeclared(String name, Set<String> esTypes) {
