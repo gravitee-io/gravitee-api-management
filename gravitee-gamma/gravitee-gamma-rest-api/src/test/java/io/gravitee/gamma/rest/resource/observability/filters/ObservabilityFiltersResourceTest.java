@@ -301,6 +301,23 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_read_a_custom_name_from_the_query() {
+            when(getFilterValuesUseCase.execute(any())).thenReturn(
+                new GetObservabilityFilterValuesUseCase.Output(new FilterValuesPage(List.of(new FilterValue("gold", null)), 1L), 1, 10)
+            );
+
+            Response response = rootTarget("values").queryParam("name", "custom.fraud-tier").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            assertThat(response.readEntity(JsonNode.class).get("data").get(0).get("value").asText()).isEqualTo("gold");
+            ArgumentCaptor<GetObservabilityFilterValuesUseCase.Input> captor = ArgumentCaptor.forClass(
+                GetObservabilityFilterValuesUseCase.Input.class
+            );
+            Mockito.verify(getFilterValuesUseCase).execute(captor.capture());
+            assertThat(captor.getValue().filterName()).isEqualTo("custom.fraud-tier");
+        }
+
+        @Test
         void should_return_400_without_a_name() {
             Response response = rootTarget("values").request().get();
 

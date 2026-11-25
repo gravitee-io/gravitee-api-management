@@ -108,6 +108,46 @@ class AdditionalMetricQueryServiceTest {
             assertThatCode(() -> provider.resolve(facets(MetricSpec.Name.EDGE_DETECTION_COUNT, List.of(TIER)))).doesNotThrowAnyException();
         }
 
+        /** Every metric of the request documents, as the engine serves them: the v2 table grouped by a custom value. */
+        @Test
+        void should_group_every_metric_of_the_request_documents_by_a_custom_field() {
+            var fraudTier = new AdditionalMetricName(AdditionalMetricField.parse("custom.fraud-tier").orElseThrow());
+            var definition = new AnalyticsDefinitionYAMLQueryService();
+            var validator = new AnalyticsQueryValidator(definition);
+            var httpMetrics = new HTTPDataPlaneAnalyticsQueryService(repository).metrics();
+
+            assertThat(httpMetrics)
+                .isNotEmpty()
+                .contains(
+                    MetricSpec.Name.HTTP_REQUESTS,
+                    MetricSpec.Name.HTTP_ERRORS,
+                    MetricSpec.Name.HTTP_ERROR_RATE,
+                    MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME,
+                    MetricSpec.Name.HTTP_ENDPOINT_RESPONSE_TIME,
+                    MetricSpec.Name.HTTP_GATEWAY_LATENCY,
+                    MetricSpec.Name.HTTP_REQUEST_CONTENT_LENGTH,
+                    MetricSpec.Name.HTTP_RESPONSE_CONTENT_LENGTH
+                );
+            assertThat(httpMetrics).allSatisfy(metric -> {
+                var measure = definition.findMetric(metric).orElseThrow().measures().getFirst();
+                var request = new FacetsRequest(
+                    TIME_RANGE,
+                    List.of(),
+                    List.of(new FacetMetricMeasuresRequest(metric, List.of(measure), List.of())),
+                    List.of(fraudTier),
+                    null,
+                    List.of()
+                );
+                assertThatCode(() -> validator.validateFacetsRequest(request))
+                    .as(metric.name())
+                    .doesNotThrowAnyException();
+                assertThat(provider.resolve(request).keySet())
+                    .as(metric.name())
+                    .singleElement()
+                    .isInstanceOf(HTTPDataPlaneAnalyticsQueryService.class);
+            });
+        }
+
         @Test
         void should_refuse_to_group_a_metric_read_from_other_documents_naming_the_field() {
             var metrics = List.of(MetricSpec.Name.NATIVE_CONNECTIONS_SUMMARY, MetricSpec.Name.MESSAGES, MetricSpec.Name.AUTHZ_OPERATIONS);
@@ -311,6 +351,30 @@ class AdditionalMetricQueryServiceTest {
         }
 
         @Test
+        void should_report_a_custom_condition_the_path_skips_under_its_custom_name() {
+            var fraudTier = new AdditionalMetricName(AdditionalMetricField.parse("custom.fraud-tier").orElseThrow());
+            var engineFraudTier = AnalyticsMeasuresAdapter.INSTANCE.toFilterName(fraudTier);
+            when(repository.filterOutcome(any(), any())).thenReturn(FilterOutcome.APPLIED);
+            when(repository.filterOutcome(eq(AnalyticsSearchPath.MESSAGE), eq(engineFraudTier))).thenReturn(FilterOutcome.IGNORED);
+
+            var ignored = IgnoredFilters.of(
+                repository,
+                AnalyticsSearchPath.MESSAGE,
+                AnalyticsMeasuresAdapter.INSTANCE.fromRequest(
+                    new io.gravitee.apim.core.analytics_engine.model.MeasuresRequest(
+                        TIME_RANGE,
+                        List.of(new Filter(fraudTier, FilterOperator.EQ, "high")),
+                        List.of()
+                    )
+                )
+            );
+
+            assertThat(engineFraudTier.name()).isEqualTo("custom.fraud-tier");
+            assertThat(ignored).containsExactly(fraudTier);
+            assertThat(ignored.getFirst().name()).isEqualTo("custom.fraud-tier");
+        }
+
+        @Test
         void should_report_nothing_when_the_condition_empties_the_result() {
             when(repository.filterOutcome(any(), any())).thenReturn(FilterOutcome.APPLIED);
             when(repository.filterOutcome(eq(AnalyticsSearchPath.AUTHZ_TRAFFIC), eq(engineTier))).thenReturn(FilterOutcome.EMPTIES);
@@ -365,6 +429,15 @@ class AdditionalMetricQueryServiceTest {
             when(repository.builtInAdditionalMetricKeys()).thenReturn(Map.of("keyword_llm-proxy_model", Set.of("LLM_PROXY_MODEL")));
 
             assertThat(provider.identifiesCaller(MODEL)).isFalse();
+        }
+
+        @Test
+        void should_not_identify_a_caller_through_a_custom_key_spelt_like_an_identifying_built_in_key() {
+            when(repository.builtInAdditionalMetricKeys()).thenReturn(Map.of("keyword_native-kafka_client-id", Set.of("NATIVE_CLIENT_ID")));
+            var custom = AdditionalMetricField.parse("custom.keyword_native-kafka_client-id").orElseThrow();
+
+            assertThat(provider.identifiesCaller(custom)).isFalse();
+            assertThat(provider.identifiesCaller(CLIENT_ID)).isTrue();
         }
 
         @Test

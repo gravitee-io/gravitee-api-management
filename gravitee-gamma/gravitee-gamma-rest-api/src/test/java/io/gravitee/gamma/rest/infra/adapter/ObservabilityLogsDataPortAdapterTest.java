@@ -741,6 +741,22 @@ class ObservabilityLogsDataPortAdapterTest {
         }
 
         @Test
+        void should_carry_a_custom_condition_by_its_custom_name() {
+            stubEmptySearchResult();
+            var query = queryWith(
+                new FilterCondition("custom.fraud-tier", FilterOperator.IN, List.of("high", "medium")),
+                new FilterCondition("custom.merchant-id", FilterOperator.EQ, List.of("m-42"))
+            );
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().additionalMetrics()).containsExactly(
+                new AdditionalMetricCondition("custom.fraud-tier", AdditionalMetricCondition.Operator.IN, List.of("high", "medium")),
+                new AdditionalMetricCondition("custom.merchant-id", AdditionalMetricCondition.Operator.EQ, List.of("m-42"))
+            );
+        }
+
+        @Test
         void should_keep_them_next_to_the_built_in_filters() {
             stubEmptySearchResult();
             var query = queryWith(

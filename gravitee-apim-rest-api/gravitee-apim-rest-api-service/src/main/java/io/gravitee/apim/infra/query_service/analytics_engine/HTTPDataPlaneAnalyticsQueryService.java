@@ -76,10 +76,19 @@ public class HTTPDataPlaneAnalyticsQueryService implements AnalyticsEngineQueryS
         return true;
     }
 
-    /** The repository names the built-in metrics, filters and facets reading each key: the filters among them count. */
+    /**
+     * The repository names the built-in metrics, filters and facets reading each key of the {@code additional-metrics}
+     * map: the filters among them count. Compared by wire name, so a custom key spelt like a built-in key is not one.
+     */
     @Override
     public Set<FilterSpec.Name> builtInsStoredAs(AdditionalMetricField field) {
-        var names = analyticsRepository.builtInAdditionalMetricKeys().getOrDefault(field.rawKey(), Set.of());
+        var names = analyticsRepository
+            .builtInAdditionalMetricKeys()
+            .entrySet()
+            .stream()
+            .filter(builtIn -> (AdditionalMetricField.NAME_PREFIX + builtIn.getKey()).equals(field.name()))
+            .flatMap(builtIn -> builtIn.getValue().stream())
+            .collect(toUnmodifiableSet());
         return Arrays.stream(FilterSpec.Name.values())
             .filter(filter -> names.contains(filter.name()))
             .collect(toUnmodifiableSet());

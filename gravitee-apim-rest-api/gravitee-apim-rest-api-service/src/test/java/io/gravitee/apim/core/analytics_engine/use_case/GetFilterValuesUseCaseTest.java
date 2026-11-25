@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -1848,6 +1849,37 @@ class GetFilterValuesUseCaseTest {
             );
 
             verify(contextLoader).load(any(), any(), eq(ApiDataKind.PER_REQUEST));
+        }
+
+        @Test
+        void should_list_the_values_stored_under_a_custom_key_no_document_may_carry_yet_read_as_an_aggregate() {
+            when(
+                filterValuesQueryService.searchFilterValues(any(), any(), any(), any(), any(), anyInt(), eq(10), any(), any(), any())
+            ).thenReturn(new FilterValuesPage(List.of(), null));
+
+            var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "custom.fraud-tier", null, null, 1, 10, null));
+
+            assertThat(output.valuesPage().data()).isEmpty();
+            verify(filterValuesQueryService).searchFilterValues(
+                eq("org-id"),
+                eq("env-id"),
+                argThat(name -> name != null && name.name().equals("custom.fraud-tier")),
+                eq(null),
+                eq(null),
+                eq(1),
+                eq(10),
+                eq(null),
+                eq(null),
+                eq(Set.of())
+            );
+            verify(contextLoader).load(any(), any(), eq(ApiDataKind.AGGREGATES));
+        }
+
+        @Test
+        void should_refuse_a_custom_name_outside_the_grammar() {
+            assertThatThrownBy(() -> useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "custom.a..b", null, null, 1, 10, null)))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Invalid filter name");
         }
 
         @Test

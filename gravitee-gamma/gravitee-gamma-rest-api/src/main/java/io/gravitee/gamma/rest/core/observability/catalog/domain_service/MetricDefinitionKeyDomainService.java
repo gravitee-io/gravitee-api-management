@@ -40,9 +40,15 @@ public class MetricDefinitionKeyDomainService {
     private final AdditionalMetricGrammarPort grammar;
     private final BuiltInAdditionalMetricsPort builtInAdditionalMetrics;
 
-    /** The field a name designates, or a refusal saying which part of the grammar it breaks. */
+    /**
+     * The field a name designates, or a refusal saying which part of the grammar it breaks. Records are kept for the
+     * {@code additional-metrics} map only: a {@code custom.<name>} is refused like any name outside that map.
+     */
     public AdditionalMetricField field(String name) {
-        return grammar.parse(name).orElseThrow(() -> refusal(name));
+        return grammar
+            .parse(name)
+            .filter(field -> field.root() == AdditionalMetricField.Root.ADDITIONAL_METRICS)
+            .orElseThrow(() -> refusal(name));
     }
 
     /**

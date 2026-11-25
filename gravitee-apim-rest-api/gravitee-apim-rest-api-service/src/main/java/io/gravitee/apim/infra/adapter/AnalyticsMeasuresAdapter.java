@@ -112,9 +112,7 @@ public interface AnalyticsMeasuresAdapter {
     default FilterName fromFilterName(io.gravitee.repository.analytics.engine.api.query.FilterName name) {
         return switch (name) {
             case Filter.Name builtIn -> fromFilterName(builtIn);
-            case AdditionalMetricField field -> new AdditionalMetricName(
-                new io.gravitee.apim.core.observability.model.AdditionalMetricField(fromValueType(field.valueType()), field.rawKey())
-            );
+            case AdditionalMetricField field -> new AdditionalMetricName(fromAdditionalMetricField(field));
         };
     }
 
@@ -143,8 +141,21 @@ public interface AnalyticsMeasuresAdapter {
     }
 
     default AdditionalMetricField toAdditionalMetricField(io.gravitee.apim.core.observability.model.AdditionalMetricField field) {
-        return new AdditionalMetricField(toValueType(field.valueType()), field.rawKey());
+        return new AdditionalMetricField(toRoot(field.root()), toValueType(field.valueType()), field.rawKey());
     }
+
+    default io.gravitee.apim.core.observability.model.AdditionalMetricField fromAdditionalMetricField(AdditionalMetricField field) {
+        return new io.gravitee.apim.core.observability.model.AdditionalMetricField(
+            fromRoot(field.root()),
+            fromValueType(field.valueType()),
+            field.rawKey()
+        );
+    }
+
+    /** One root per reporter map on both sides; MapStruct fails the build if they drift apart. */
+    AdditionalMetricField.Root toRoot(io.gravitee.apim.core.observability.model.AdditionalMetricField.Root root);
+
+    io.gravitee.apim.core.observability.model.AdditionalMetricField.Root fromRoot(AdditionalMetricField.Root root);
 
     /** One value type per prefix on both sides; MapStruct fails the build if they drift apart. */
     AdditionalMetricField.ValueType toValueType(io.gravitee.apim.core.observability.model.AdditionalMetricField.ValueType valueType);
@@ -154,12 +165,7 @@ public interface AnalyticsMeasuresAdapter {
     default MetricName fromResult(io.gravitee.repository.analytics.engine.api.metric.MetricName result) {
         return switch (result) {
             case Metric builtIn -> fromMetric(builtIn);
-            case AdditionalMetric additionalMetric -> new AdditionalMetricName(
-                new io.gravitee.apim.core.observability.model.AdditionalMetricField(
-                    fromValueType(additionalMetric.field().valueType()),
-                    additionalMetric.field().rawKey()
-                )
-            );
+            case AdditionalMetric additionalMetric -> new AdditionalMetricName(fromAdditionalMetricField(additionalMetric.field()));
         };
     }
 

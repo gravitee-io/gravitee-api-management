@@ -18,6 +18,7 @@ package io.gravitee.apim.core.observability.model;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.gravitee.apim.core.observability.model.AdditionalMetricField.Root;
 import io.gravitee.apim.core.observability.model.AdditionalMetricField.ValueType;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -56,7 +57,6 @@ class AdditionalMetricFieldTest {
         @ValueSource(
             strings = {
                 "API",
-                "custom.my-metric",
                 "additional-metrics.",
                 "additional-metrics.long_",
                 "additional-metrics.long",
@@ -102,6 +102,73 @@ class AdditionalMetricFieldTest {
     }
 
     @Nested
+    class ParseCustom {
+
+        @ParameterizedTest
+        @CsvSource(
+            delimiter = '|',
+            value = {
+                "custom.fraud-tier|fraud-tier",
+                "custom.merchant-id|merchant-id",
+                "custom.Merchant ID|Merchant ID",
+                "'custom. tier '|' tier '",
+                "custom.a/b|a/b",
+                "custom.a.b|a.b",
+                "custom.é|é",
+                "custom.keyword_native-kafka_client-id|keyword_native-kafka_client-id",
+                "custom.custom.x|custom.x",
+            }
+        )
+        void should_read_a_keyword_field_under_the_custom_root(String name, String key) {
+            var field = AdditionalMetricField.parse(name);
+
+            assertThat(field).contains(new AdditionalMetricField(Root.CUSTOM, ValueType.KEYWORD, key));
+            assertThat(field.orElseThrow().name()).isEqualTo(name);
+        }
+
+        @ParameterizedTest
+        @ValueSource(
+            strings = {
+                "custom.",
+                "custom. ",
+                "custom.   ",
+                "custom.\t",
+                "custom",
+                "Custom.tier",
+                "custom..tier",
+                "custom.tier.",
+                "custom.a..b",
+                "custom.a\"b",
+                "custom.a\\b",
+                "custom.tier*",
+                "custom.*",
+            }
+        )
+        void should_refuse_a_custom_name_outside_the_grammar(String name) {
+            assertThat(AdditionalMetricField.parse(name)).isEmpty();
+        }
+
+        @Test
+        void should_accept_a_custom_key_of_256_characters_and_refuse_one_longer() {
+            var longest = "custom." + "a".repeat(AdditionalMetricField.MAX_CUSTOM_KEY_LENGTH);
+
+            assertThat(AdditionalMetricField.MAX_CUSTOM_KEY_LENGTH).isEqualTo(256);
+            assertThat(AdditionalMetricField.parse(longest)).isPresent();
+            assertThat(AdditionalMetricField.parse(longest + "a")).isEmpty();
+        }
+
+        @Test
+        void should_keep_a_custom_key_apart_from_the_additional_metric_of_the_same_raw_key() {
+            var custom = AdditionalMetricField.parse("custom.keyword_tier").orElseThrow();
+            var additional = AdditionalMetricField.parse("additional-metrics.keyword_tier").orElseThrow();
+
+            assertThat(custom.rawKey()).isEqualTo(additional.rawKey());
+            assertThat(custom).isNotEqualTo(additional);
+            assertThat(custom.name()).isNotEqualTo(additional.name());
+        }
+    }
+
+    @Nested
     class Construction {
 
         @Test
@@ -116,6 +183,26 @@ class AdditionalMetricFieldTest {
             assertThatThrownBy(() -> new AdditionalMetricField(ValueType.LONG, "keyword_tier")).isInstanceOf(
                 IllegalArgumentException.class
             );
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "LONG", "INT", "DOUBLE", "BOOL", "STRING", "JSON" })
+        void should_refuse_a_custom_field_other_than_a_keyword(ValueType valueType) {
+            assertThatThrownBy(() -> new AdditionalMetricField(Root.CUSTOM, valueType, "tier")).isInstanceOf(
+                IllegalArgumentException.class
+            );
+        }
+
+        @Test
+        void should_refuse_a_custom_key_outside_the_grammar() {
+            assertThatThrownBy(() -> new AdditionalMetricField(Root.CUSTOM, ValueType.KEYWORD, "a..b")).isInstanceOf(
+                IllegalArgumentException.class
+            );
+        }
+
+        @Test
+        void should_root_a_field_built_from_a_raw_key_under_the_additional_metrics() {
+            assertThat(new AdditionalMetricField(ValueType.KEYWORD, "keyword_tier").root()).isEqualTo(Root.ADDITIONAL_METRICS);
         }
 
         @Test

@@ -35,7 +35,7 @@ import java.util.Set;
  */
 public final class AdditionalMetricNamespace {
 
-    /** The namespace of a user key, the one {@link AdditionalMetricField#isReserved} reserves. */
+    /** The namespace of a user key of either form: {@code custom.<name>}, or the {@link AdditionalMetricField#isReserved} one. */
     public static final String CUSTOM = "custom";
 
     private static final Set<ApiType> HTTP_FAMILY = Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MESSAGE, ApiType.MCP, ApiType.A2A);
@@ -63,9 +63,13 @@ public final class AdditionalMetricNamespace {
 
     /**
      * The namespace segment of a key: what follows the type prefix up to the next {@code _}, when a name follows that
-     * {@code _}. Empty for a key of one segment, which has no namespace, and for a key with nothing after it.
+     * {@code _}. Empty for a key of one segment, which has no namespace, for a key with nothing after it, and for a
+     * {@code custom.<name>} key, which has no type prefix to count from.
      */
     public static Optional<String> segmentOf(AdditionalMetricField field) {
+        if (field.root() == AdditionalMetricField.Root.CUSTOM) {
+            return Optional.empty();
+        }
         String rawKey = field.rawKey();
         String prefix = field.valueType().prefix();
         if (!rawKey.startsWith(prefix)) {
@@ -80,11 +84,14 @@ public final class AdditionalMetricNamespace {
     }
 
     /**
-     * The namespace served on a catalog entry: a Gravitee namespace the map knows, {@value #CUSTOM} on a user key,
-     * nothing otherwise. An unknown namespace is served as none, its segment kept in the derived label: the entry
+     * The namespace served on a catalog entry: a Gravitee namespace the map knows, {@value #CUSTOM} on a user key of
+     * either form ({@code <type>_custom_<name>} or {@code custom.<name>}), nothing otherwise. An unknown namespace is served as none, its segment kept in the derived label: the entry
      * reads as one of the "other fields".
      */
     public static Optional<String> of(AdditionalMetricField field) {
+        if (field.root() == AdditionalMetricField.Root.CUSTOM) {
+            return Optional.of(CUSTOM);
+        }
         return segmentOf(field).filter(segment -> segment.equals(CUSTOM) || GRAVITEE_API_TYPES.containsKey(segment));
     }
 

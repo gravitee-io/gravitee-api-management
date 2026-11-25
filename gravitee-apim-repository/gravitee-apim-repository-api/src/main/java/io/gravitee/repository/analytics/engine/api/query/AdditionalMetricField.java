@@ -16,18 +16,47 @@
 package io.gravitee.repository.analytics.engine.api.query;
 
 /**
- * A field a plugin or the gateway attaches to a request as an additional metric, stored under the
- * reporter's {@code additional-metrics} map with its raw key.
+ * A field a plugin, the gateway or a policy attaches to a request, stored under one of the reporter's maps with its raw
+ * key: {@code additional-metrics} (typed by the key's prefix) or {@code custom} (assign-metrics values, keywords).
  *
- * @param valueType what the type prefix of {@code rawKey} declares
- * @param rawKey    the additional metric key, type prefix included ({@code long_failover_count})
+ * @param root      the map the reporter writes the key under
+ * @param valueType what the type prefix of {@code rawKey} declares; a keyword under {@link Root#CUSTOM}
+ * @param rawKey    the key under its root, type prefix included for an additional metric ({@code long_failover_count})
  */
-public record AdditionalMetricField(ValueType valueType, String rawKey) implements FilterName, FacetName {
-    public static final String NAME_PREFIX = "additional-metrics.";
+public record AdditionalMetricField(Root root, ValueType valueType, String rawKey) implements FilterName, FacetName {
+    public static final String NAME_PREFIX = Root.ADDITIONAL_METRICS.prefix();
 
+    /** A custom key holds keywords only: an engine would type any other value as a number on a keyword field. */
+    public AdditionalMetricField {
+        if (root == Root.CUSTOM && valueType != ValueType.KEYWORD) {
+            throw new IllegalArgumentException("Custom metric key " + rawKey + " holds keywords, not " + valueType);
+        }
+    }
+
+    /** A field of the {@code additional-metrics} map. */
+    public AdditionalMetricField(ValueType valueType, String rawKey) {
+        this(Root.ADDITIONAL_METRICS, valueType, rawKey);
+    }
+
+    /** The wire name, which is also the path of the field on a request document. */
     @Override
     public String name() {
-        return NAME_PREFIX + rawKey;
+        return root.prefix() + rawKey;
+    }
+
+    public enum Root {
+        ADDITIONAL_METRICS("additional-metrics."),
+        CUSTOM("custom.");
+
+        private final String prefix;
+
+        Root(String prefix) {
+            this.prefix = prefix;
+        }
+
+        public String prefix() {
+            return prefix;
+        }
     }
 
     public enum ValueType {

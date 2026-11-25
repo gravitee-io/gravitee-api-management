@@ -21,8 +21,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * The analytics name of an additional metric field: a filter, a facet or a metric the closed vocabularies do not hold,
- * read by the engines from its value type and raw key alone. Discovery is never consulted, so a well-formed name with
+ * The analytics name of an additional metric or custom field: a filter, a facet or a metric the closed vocabularies do
+ * not hold, read by the engines from its root, value type and raw key alone. Discovery is never consulted, so a well-formed name with
  * no data reads as an empty result.
  */
 public record AdditionalMetricName(AdditionalMetricField field) implements FilterName, FacetName, MetricName {

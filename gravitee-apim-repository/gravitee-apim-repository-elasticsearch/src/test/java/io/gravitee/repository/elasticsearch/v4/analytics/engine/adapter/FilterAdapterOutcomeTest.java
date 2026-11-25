@@ -50,7 +50,7 @@ import org.junit.jupiter.params.provider.MethodSource;
  * every filter name, the query built with a condition on that name either carries it (APPLIED), is the
  * same as without it (IGNORED), or matches nothing (EMPTIES). The answer is what analytics responses
  * report as ignored filters, so a list edited without the other is caught here. Additional metric fields are
- * checked alongside the built-in names, one per value type a condition can take.
+ * checked alongside the built-in names, one per value type a condition can take and one under the custom root.
  */
 class FilterAdapterOutcomeTest {
 
@@ -92,12 +92,18 @@ class FilterAdapterOutcomeTest {
     private static final AdditionalMetricField INT_FIELD = new AdditionalMetricField(ValueType.INT, "int_retry_attempts");
     private static final AdditionalMetricField DOUBLE_FIELD = new AdditionalMetricField(ValueType.DOUBLE, "double_llm-proxy_sent-cost");
     private static final AdditionalMetricField BOOL_FIELD = new AdditionalMetricField(ValueType.BOOL, "bool_cache_hit");
+    private static final AdditionalMetricField CUSTOM_FIELD = new AdditionalMetricField(
+        AdditionalMetricField.Root.CUSTOM,
+        ValueType.KEYWORD,
+        "fraud-tier"
+    );
     private static final List<AdditionalMetricField> ADDITIONAL_METRIC_FIELDS = List.of(
         KEYWORD_FIELD,
         LONG_FIELD,
         INT_FIELD,
         DOUBLE_FIELD,
-        BOOL_FIELD
+        BOOL_FIELD,
+        CUSTOM_FIELD
     );
 
     static Stream<Arguments> everyPathAndName() {

@@ -45,8 +45,9 @@ public interface FilterRegistry {
 
     /**
      * The spec a condition on {@code name} is checked against: the catalog entry of that name, else, for a
-     * well-formed additional metric field name ({@code additional-metrics.<type>_<key>}, OBS-70), a validation
-     * spec (type, operators, signals, value type, no label) typed by the field's prefix: not a catalog entry.
+     * well-formed additional metric field name ({@code additional-metrics.<type>_<key>}, OBS-70, typed by its prefix)
+     * or custom field name ({@code custom.<name>}, OBS-171, a keyword), a validation spec (type, operators, signals,
+     * value type, no label): not a catalog entry.
      * Discovery is never consulted, so a field no request carries yet still has one.
      *
      * @return empty when the name is neither in the catalog nor well-formed

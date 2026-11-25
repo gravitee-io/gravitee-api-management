@@ -52,7 +52,8 @@ import lombok.AllArgsConstructor;
  * </ul>
  *
  * <p>A name is looked up in the catalog first; a well-formed additional metric field name the catalog does not list
- * (OBS-70) is typed by its prefix, so the values of a discovered field are served without discovery. Anything else
+ * (OBS-70) is typed by its prefix, a custom field name ({@code custom.<name>}) as a keyword, so the values of a field
+ * are served without discovery. Anything else
  * yields {@link ObservabilityFilterNotFoundException} → HTTP 404. Pagination is <b>1-based</b>: {@code perPage} is clamped
  * to {@value #MAX_PER_PAGE}, while a {@code page} outside 1..{@value #MAX_PAGE} is refused (HTTP 400)
  * rather than clamped — serving a different page than the caller asked for would hide their bug. An

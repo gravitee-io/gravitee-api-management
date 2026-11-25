@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
+import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField.Root;
 import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField.ValueType;
 import io.gravitee.repository.analytics.engine.api.query.Filter.Operator;
 import io.gravitee.repository.common.query.QueryContext;
@@ -50,6 +51,12 @@ class MetricsElasticsearchRepositoryAdditionalMetricsTest extends AbstractElasti
     private static final AdditionalMetricField RETRIES = new AdditionalMetricField(ValueType.INT, "int_retry_count");
     private static final AdditionalMetricField SCORE = new AdditionalMetricField(ValueType.DOUBLE, "double_fraud-check_score");
     private static final AdditionalMetricField FLAGGED = new AdditionalMetricField(ValueType.BOOL, "bool_fraud-check_flagged");
+    private static final AdditionalMetricField FRAUD_TIER = new AdditionalMetricField(Root.CUSTOM, ValueType.KEYWORD, "fraud-tier");
+    private static final AdditionalMetricField CUSTOM_NEVER_WRITTEN = new AdditionalMetricField(
+        Root.CUSTOM,
+        ValueType.KEYWORD,
+        "never-written"
+    );
 
     private final QueryContext queryContext = new QueryContext("org#1", "env#1");
 
@@ -123,6 +130,24 @@ class MetricsElasticsearchRepositoryAdditionalMetricsTest extends AbstractElasti
     @Test
     void should_return_the_rows_holding_a_boolean_value() {
         assertThat(requestIds(Filter.builder(), condition(FLAGGED, Operator.EQ, "false"))).containsExactly("am-log-002");
+    }
+
+    @Test
+    void should_return_only_the_rows_holding_a_custom_value() {
+        assertThat(requestIds(Filter.builder(), condition(FRAUD_TIER, Operator.EQ, "gold"))).containsExactlyInAnyOrder(
+            "am-log-001",
+            "am-log-002"
+        );
+        assertThat(requestIds(Filter.builder(), condition(FRAUD_TIER, Operator.IN, "gold", "silver"))).containsExactlyInAnyOrder(
+            "am-log-001",
+            "am-log-002",
+            "am-log-003"
+        );
+    }
+
+    @Test
+    void should_return_no_row_for_a_custom_key_no_document_carries() {
+        assertThat(requestIds(Filter.builder(), condition(CUSTOM_NEVER_WRITTEN, Operator.EQ, "gold"))).isEmpty();
     }
 
     @Test
