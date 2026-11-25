@@ -22,4 +22,7 @@ public interface AccessPointCrudService {
     void updateAccessPoints(final AccessPoint.ReferenceType referenceType, String referenceId, final List<AccessPoint> accessPoints);
 
     void deleteAccessPoints(final AccessPoint.ReferenceType referenceType, String referenceId);
+
+    /** Deletes the access points of this reference, except those a portal is served at. */
+    void deleteUnreferencedAccessPoints(final AccessPoint.ReferenceType referenceType, String referenceId);
 }

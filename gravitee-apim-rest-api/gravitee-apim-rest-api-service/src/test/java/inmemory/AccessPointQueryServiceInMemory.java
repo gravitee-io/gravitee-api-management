@@ -18,10 +18,15 @@ package inmemory;
 import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.rest.api.service.common.ReferenceContext;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
-public class AccessPointQueryServiceInMemory implements AccessPointQueryService {
+public class AccessPointQueryServiceInMemory implements AccessPointQueryService, InMemoryAlternative<AccessPoint> {
+
+    final ArrayList<AccessPoint> storage = new ArrayList<>();
 
     @Override
     public Optional<ReferenceContext> getReferenceContext(String host) {
@@ -96,5 +101,37 @@ public class AccessPointQueryServiceInMemory implements AccessPointQueryService 
     @Override
     public AccessPoint getGammaApiAccessPoint(final String organizationId) {
         return null;
+    }
+
+    @Override
+    public List<AccessPoint> getPortalInstanceAccessPoints() {
+        return portalInstances().toList();
+    }
+
+    @Override
+    public List<AccessPoint> getPortalInstanceAccessPoints(final String environmentId) {
+        return portalInstances()
+            .filter(accessPoint -> environmentId.equals(accessPoint.getReferenceId()))
+            .toList();
+    }
+
+    @Override
+    public void initWith(List<AccessPoint> items) {
+        storage.clear();
+        storage.addAll(items);
+    }
+
+    @Override
+    public void reset() {
+        storage.clear();
+    }
+
+    @Override
+    public List<AccessPoint> storage() {
+        return Collections.unmodifiableList(storage);
+    }
+
+    private Stream<AccessPoint> portalInstances() {
+        return storage.stream().filter(accessPoint -> accessPoint.getTarget() == AccessPoint.Target.PORTAL_INSTANCE);
     }
 }

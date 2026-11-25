@@ -119,6 +119,16 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
         }
     }
 
+    @Override
+    public List<String> getPortalInstanceUrls() {
+        return accessPointQueryService.getPortalInstanceAccessPoints().stream().map(this::buildHttpUrl).toList();
+    }
+
+    @Override
+    public List<String> getPortalInstanceUrls(final String environmentId) {
+        return accessPointQueryService.getPortalInstanceAccessPoints(environmentId).stream().map(this::buildHttpUrl).toList();
+    }
+
     private void validateApiUrl(String apiURL) {
         if (apiURL != null) {
             try {

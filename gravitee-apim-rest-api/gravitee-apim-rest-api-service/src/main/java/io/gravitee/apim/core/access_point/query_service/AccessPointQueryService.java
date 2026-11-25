@@ -35,6 +35,10 @@ public interface AccessPointQueryService {
     AccessPoint getPortalAccessPoint(final String environmentId);
     AccessPoint getPortalApiAccessPoint(String environmentId);
 
+    List<AccessPoint> getPortalInstanceAccessPoints();
+
+    List<AccessPoint> getPortalInstanceAccessPoints(final String environmentId);
+
     List<AccessPoint> getGatewayAccessPoints(final String environmentId);
 
     List<AccessPoint> getKafkaGatewayAccessPoints(final String environmentId);
