@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright © 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.gravitee.apim.gateway.standalone</groupId>
+        <artifactId>gravitee-apim-gateway-standalone</artifactId>
+        <version>${revision}${sha1}${changelist}</version>
+    </parent>
+
+    <artifactId>gravitee-apim-gateway-standalone-vertx-patch</artifactId>
+    <name>Gravitee.io APIM - Gateway - Standalone - Vert.x patch</name>
+    <description>
+        Patched copies of Vert.x core classes. The distribution unpacks them at the root of lib/ext,
+        which the bootstrap puts on the extension classpath ahead of every jar, so they shadow the
+        vertx-core originals. Remove a class once the Vert.x version in use ships the fix.
+    </description>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-core</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <!-- The patched classes are verbatim copies of Vert.x sources: keep their formatting so they diff cleanly against upstream -->
+                <groupId>com.hubspot.maven.plugins</groupId>
+                <artifactId>prettier-maven-plugin</artifactId>
+                <configuration>
+                    <inputGlobs combine.self="override">
+                        <inputGlob>src/test/**/*.java</inputGlob>
+                    </inputGlobs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <!-- The patched classes are copies of Vert.x sources and keep their original Eclipse license header -->
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <licenseSets>
+                        <licenseSet>
+                            <excludes combine.children="append">
+                                <exclude>src/main/java/io/vertx/**</exclude>
+                            </excludes>
+                        </licenseSet>
+                    </licenseSets>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
