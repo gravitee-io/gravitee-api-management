@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -24,6 +25,8 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.node.api.upgrader.UpgraderException;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Api;
@@ -124,6 +127,58 @@ class GuardrailStepsUpgraderTest {
         assertThat(upgrader.upgrade()).isTrue();
 
         verify(apiRepository, never()).update(any());
+    }
+
+    @Test
+    void should_rename_the_guardian_key_of_a_textual_configuration() throws Exception {
+        givenApis(
+            anApi(
+                """
+                {"type":"llm-proxy","internalFlow":{"request":[{"policy":"guardian-policy","configuration":"{\\"guardianId\\":\\"guardian-1\\"}"}]}}
+                """
+            )
+        );
+
+        assertThat(upgrader.upgrade()).isTrue();
+
+        JsonNode step = updatedDefinition().at("/internalFlow/request/0");
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(step.at("/policy").asText()).as("step policy").isEqualTo("guardrail-run");
+            softly.assertThat(step.at("/configuration/guardrailId").asText()).as("guardrail").isEqualTo("guardian-1");
+            softly.assertThat(step.at("/configuration/guardianId").isMissingNode()).as("guardian key left").isTrue();
+        });
+    }
+
+    @Test
+    void should_skip_an_unreadable_definition_and_migrate_the_others() throws Exception {
+        givenApis(
+            anApi("not a definition"),
+            anApi(
+                """
+                {"type":"llm-proxy","internalFlow":{"request":[{"policy":"guardian-policy","configuration":{"guardianId":"guardian-1"}}]}}
+                """
+            )
+        );
+
+        assertThat(upgrader.upgrade()).isTrue();
+
+        assertThat(updatedDefinition().at("/internalFlow/request/0/configuration/guardrailId").asText()).isEqualTo("guardian-1");
+    }
+
+    @Test
+    void should_fail_when_a_migrated_definition_cannot_be_stored() throws Exception {
+        givenApis(
+            anApi(
+                """
+                {"type":"llm-proxy","internalFlow":{"request":[{"policy":"guardian-policy","configuration":{"guardianId":"guardian-1"}}]}}
+                """
+            )
+        );
+        when(apiRepository.update(any())).thenThrow(new TechnicalException("database unavailable"));
+
+        assertThatThrownBy(() -> upgrader.upgrade())
+            .isInstanceOf(UpgraderException.class)
+            .hasRootCauseInstanceOf(TechnicalException.class);
     }
 
     private void givenApis(Api... apis) throws Exception {
