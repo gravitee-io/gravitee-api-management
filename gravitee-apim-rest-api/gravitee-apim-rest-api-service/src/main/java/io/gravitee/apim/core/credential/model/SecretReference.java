@@ -181,6 +181,9 @@ public record SecretReference(String reference, String secretId) {
     /** Puts the flags first, in the order gravitee-service-secrets formats a spec: it looks an expression up by that exact text. */
     public static SecretReference managed(String path, String secretId) {
         var query = path.indexOf('?');
+        if (query < 0) {
+            return new SecretReference(path + "?" + MANAGED_FLAGS, secretId);
+        }
         return new SecretReference(path.substring(0, query + 1) + MANAGED_FLAGS + "&" + path.substring(query + 1), secretId);
     }
 
