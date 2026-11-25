@@ -43,6 +43,7 @@ import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EventLatestRepository;
+import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Event;
@@ -310,35 +311,96 @@ public class ApiStateServiceImplTest {
     }
 
     /**
-     * A Guardian change republishes the deployment the gateways run under a number of its own, written to the latest
-     * event of the API ({@code DeployApiInternalFlowDomainService}): the deployment that follows takes the number
-     * after it, so no two deployments share one.
+     * A Guardian change republishes the deployment the gateways run, published or started, under a number of its own
+     * written to the latest event of the API ({@code DeployApiInternalFlowDomainService}): the deployment that follows
+     * takes the number after it, whatever the type of that event.
      */
     @Test
     public void should_deploy_under_the_number_after_the_one_of_the_latest_event() throws TechnicalException {
         when(apiSearchService.findRepositoryApiById(executionContext, API_ID)).thenReturn(api);
         when(apiValidationService.canDeploy(executionContext, API_ID)).thenReturn(true);
-        when(eventLatestRepository.search(any(), eq(Event.EventProperties.API_ID), eq(0L), eq(1L))).thenReturn(
+        var criteria = givenTheLatestEvent(io.gravitee.repository.management.model.EventType.START_API, "8");
+
+        apiStateService.deploy(executionContext, API_ID, USER_NAME, new ApiDeploymentEntity());
+
+        assertSoftly(softly -> {
+            softly.assertThat(deploymentNumberWritten(EventType.PUBLISH_API)).as("deployment number").isEqualTo("9");
+            softly
+                .assertThat(criteria.getValue().getTypes())
+                .as("types of the latest event read")
+                .contains(
+                    io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                    io.gravitee.repository.management.model.EventType.START_API
+                );
+            softly
+                .assertThat(criteria.getValue().getProperties())
+                .as("properties of the latest event read")
+                .containsEntry(Event.EventProperties.API_ID.getValue(), API_ID);
+        });
+    }
+
+    /**
+     * A gateway that missed the stop, the two falling within one synchronization, sees the start alone: it replaces
+     * the API it runs only under another number, so a start keeping the number would leave a Guardian changed while
+     * the API was stopped unseen.
+     */
+    @Test
+    public void should_start_under_the_number_after_the_one_of_the_latest_event() throws Exception {
+        givenTheStoredDefinition(guardianDefinition("guardian-2"));
+        givenTheLastPublishedDefinition(guardianDefinition("guardian-1"), "7");
+        givenTheLatestEvent(io.gravitee.repository.management.model.EventType.STOP_API, "8");
+
+        apiStateService.start(executionContext, API_ID, USER_NAME);
+
+        assertThat(deploymentNumberWritten(EventType.START_API)).as("deployment number").isEqualTo("9");
+    }
+
+    /**
+     * The latest event may be a Guardian change republished on a started API, which is no published event: a stop
+     * taking the number of the last published one would hand the deployment that follows a number already used.
+     */
+    @Test
+    public void should_stop_under_the_number_of_the_latest_event() throws Exception {
+        api.setApiLifecycleState(ApiLifecycleState.CREATED);
+        api.setLifecycleState(LifecycleState.STARTED);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        updatedApi.setLifecycleState(LifecycleState.STOPPED);
+        when(apiRepository.update(any())).thenReturn(updatedApi);
+        givenTheLastPublishedDefinition(guardianDefinition("guardian-1"), "7");
+        givenTheLatestEvent(io.gravitee.repository.management.model.EventType.START_API, "8");
+
+        apiStateService.stop(executionContext, API_ID, USER_NAME);
+
+        assertThat(deploymentNumberWritten(EventType.STOP_API)).as("deployment number").isEqualTo("8");
+    }
+
+    private ArgumentCaptor<EventCriteria> givenTheLatestEvent(
+        io.gravitee.repository.management.model.EventType type,
+        String deploymentNumber
+    ) {
+        var criteria = ArgumentCaptor.forClass(EventCriteria.class);
+        when(eventLatestRepository.search(criteria.capture(), eq(Event.EventProperties.API_ID), eq(0L), eq(1L))).thenReturn(
             List.of(
                 Event.builder()
-                    .type(io.gravitee.repository.management.model.EventType.PUBLISH_API)
+                    .type(type)
                     .properties(
-                        Map.of(Event.EventProperties.API_ID.getValue(), API_ID, Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "8")
+                        Map.of(
+                            Event.EventProperties.API_ID.getValue(),
+                            API_ID,
+                            Event.EventProperties.DEPLOYMENT_NUMBER.getValue(),
+                            deploymentNumber
+                        )
                     )
                     .build()
             )
         );
+        return criteria;
+    }
 
-        apiStateService.deploy(executionContext, API_ID, USER_NAME, new ApiDeploymentEntity());
-
-        verify(eventService).createApiEvent(
-            eq(executionContext),
-            any(),
-            any(),
-            eq(EventType.PUBLISH_API),
-            any(Api.class),
-            argThat(properties -> "9".equals(properties.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue())))
-        );
+    private String deploymentNumberWritten(EventType type) {
+        var properties = ArgumentCaptor.<Map<String, String>>captor();
+        verify(eventService).createApiEvent(eq(executionContext), any(), any(), eq(type), any(Api.class), properties.capture());
+        return properties.getValue().get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue());
     }
 
     @Test
@@ -367,7 +429,7 @@ public class ApiStateServiceImplTest {
 
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
-        properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0");
+        properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "1");
 
         verify(eventService).createApiEvent(
             eq(executionContext),
@@ -427,10 +489,17 @@ public class ApiStateServiceImplTest {
     }
 
     private void givenTheLastPublishedDefinition(String definition) throws JsonProcessingException {
+        givenTheLastPublishedDefinition(definition, null);
+    }
+
+    private void givenTheLastPublishedDefinition(String definition, String deploymentNumber) throws JsonProcessingException {
         var published = new Api(api);
         published.setDefinition(definition);
         final EventEntity event = new EventEntity();
         event.setType(PUBLISH_API);
+        if (deploymentNumber != null) {
+            event.setProperties(Map.of(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), deploymentNumber));
+        }
         event.setPayload(objectMapper.writeValueAsString(published));
         final EventQuery query = new EventQuery();
         query.setApi(API_ID);
