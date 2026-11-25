@@ -25,11 +25,14 @@ import static io.gravitee.repository.management.model.Audit.AuditProperties.API_
 import static io.gravitee.repository.management.model.Audit.AuditProperties.APPLICATION;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
+import static java.util.Comparator.nullsFirst;
 import static java.util.Comparator.nullsLast;
 import static java.util.Comparator.reverseOrder;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.ApiProductsRepository;
@@ -45,6 +48,8 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.key.ApiKeyQuery;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -53,14 +58,18 @@ import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyActivatedException;
 import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyExistingException;
 import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyExpiredException;
+import io.gravitee.rest.api.service.exceptions.ApiKeyCannotBeUsedException;
 import io.gravitee.rest.api.service.exceptions.ApiKeyNotFoundException;
+import io.gravitee.rest.api.service.exceptions.CustomApiKeyNotAllowedException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionClosedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotActiveException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -69,6 +78,7 @@ import io.gravitee.rest.api.service.notification.ApiProductTemplateModel;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -76,10 +86,14 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
+import java.util.regex.Pattern;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -94,6 +108,12 @@ import org.springframework.util.DigestUtils;
 @CustomLog
 @Component
 public class ApiKeyServiceImpl extends TransactionalService implements ApiKeyService {
+
+    private static final String REPLACEMENT_SHARED_KEY_ID_PREFIX = "shared-api-key-replacement:";
+    private static final int CUSTOM_API_KEY_MIN_LENGTH = 8;
+    private static final int CUSTOM_API_KEY_MAX_LENGTH = 128;
+    /** Same characters and length as {@code @CustomApiKey}. A blank value is not checked: it means generate a key. */
+    private static final Pattern CUSTOM_API_KEY_PATTERN = Pattern.compile("[^#%@/;=?|^~, \\\\]*");
 
     @Lazy
     @Autowired
@@ -116,6 +136,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
     @Autowired
     private NotifierService notifierService;
+
+    @Autowired
+    private ParameterService parameterService;
 
     @Autowired
     private ApiTemplateService apiTemplateService;
@@ -192,14 +215,44 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
     @Override
     public ApiKeyEntity renew(ExecutionContext executionContext, ApplicationEntity application) {
+        return renew(executionContext, application, null);
+    }
+
+    @Override
+    public ApiKeyEntity renew(ExecutionContext executionContext, ApplicationEntity application, String customApiKey) {
         if (!application.hasApiKeySharedMode()) {
             throw new InvalidApplicationApiKeyModeException("Can't renew an API Key on application that doesn't use shared API Key mode");
         }
 
+        String value = customApiKey == null ? null : customApiKey.trim();
+        if (!isNotEmpty(value)) {
+            return renewGeneratedKey(executionContext, application, null);
+        }
+        if (
+            !parameterService.findAsBoolean(executionContext, Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)
+        ) {
+            throw new CustomApiKeyNotAllowedException();
+        }
+        validateCustomApiKeyFormat(value);
+        try {
+            return renewWithCustomValue(executionContext, application, value);
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to renew an API Key for application %s", application.getId()),
+                ex
+            );
+        }
+    }
+
+    /**
+     * Random renewal, and a custom value this application has never used. The two-hour deadline comes from the new
+     * key's creation time, which is now.
+     */
+    private ApiKeyEntity renewGeneratedKey(ExecutionContext executionContext, ApplicationEntity application, String customApiKey) {
         try {
             log.debug("Renew API Key for application {}", application.getId());
 
-            ApiKey newApiKey = generateForApplication(application, executionContext.getEnvironmentId());
+            ApiKey newApiKey = generateForApplication(application.getId(), customApiKey, executionContext.getEnvironmentId());
             newApiKey = apiKeyRepository.create(newApiKey);
 
             // Expire previously generated keys
@@ -230,14 +283,107 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         }
     }
 
+    private ApiKeyEntity renewWithCustomValue(ExecutionContext executionContext, ApplicationEntity application, String value)
+        throws TechnicalException {
+        log.debug("Renew API Key for application {}", application.getId());
+        Date now = new Date();
+        List<ApiKey> keysWithValue = apiKeyRepository.findByKeyAndEnvironmentId(value, executionContext.getEnvironmentId());
+        boolean ownedByAnotherApplication = keysWithValue.stream().anyMatch(apiKey -> !application.getId().equals(apiKey.getApplication()));
+        if (ownedByAnotherApplication) {
+            throw new ApiKeyCannotBeUsedException();
+        }
+
+        List<ApiKey> applicationKeys = apiKeyRepository.findByApplication(application.getId());
+        ApiKey currentKey = selectCurrentKey(applicationKeys, now);
+        if (currentKey != null && value.equals(currentKey.getKey())) {
+            throw new ApiKeyCannotBeUsedException();
+        }
+
+        List<ApiKey> rowsOfThisApplication = keysWithValue
+            .stream()
+            .filter(apiKey -> application.getId().equals(apiKey.getApplication()))
+            .toList();
+        if (rowsOfThisApplication.isEmpty()) {
+            return renewGeneratedKey(executionContext, application, value);
+        }
+
+        ApiKey toRestore = selectRowToRestore(rowsOfThisApplication, now);
+        toRestore.setRevoked(false);
+        toRestore.setRevokedAt(null);
+        toRestore.setExpireAt(null);
+        toRestore.setUpdatedAt(now);
+        ApiKey restored = apiKeyRepository.update(toRestore);
+
+        List<ApiKey> allApiKeys = apiKeyRepository.findByApplication(application.getId());
+        expireApiKeysAt(executionContext, allApiKeys, restored, Date.from(now.toInstant().plus(Duration.ofHours(2))));
+        addSharedSubscriptions(allApiKeys, restored);
+
+        ApiKeyEntity restoredEntity = convert(executionContext, restored);
+        createAuditLog(executionContext, restoredEntity, null, APIKEY_RENEWED, restored.getUpdatedAt());
+        triggerNotifierService(
+            executionContext,
+            ApiHook.APIKEY_RENEWED,
+            restored,
+            restoredEntity.getApplication(),
+            restoredEntity.getSubscriptions()
+        );
+        return restoredEntity;
+    }
+
+    private ApiKey selectCurrentKey(Collection<ApiKey> keys, Date now) {
+        return keys
+            .stream()
+            .filter(apiKey -> isLive(apiKey, now))
+            .max(comparing(ApiKey::getExpireAt, nullsLast(naturalOrder())))
+            .orElse(null);
+    }
+
+    /**
+     * A live row that is not the current key is the previous key, still inside its two-hour window. Otherwise the most
+     * recently updated revoked or expired row is restored, and no second row is inserted.
+     */
+    private ApiKey selectRowToRestore(List<ApiKey> candidates, Date now) {
+        return candidates
+            .stream()
+            .max(comparing((ApiKey apiKey) -> isLive(apiKey, now)).thenComparing(ApiKey::getUpdatedAt, nullsFirst(naturalOrder())))
+            .orElseThrow();
+    }
+
+    private boolean isLive(ApiKey apiKey, Date now) {
+        return !apiKey.isRevoked() && (apiKey.getExpireAt() == null || !apiKey.getExpireAt().before(now));
+    }
+
+    /**
+     * The gateway keeps one cache entry per API and key value. Writing another row that still carries the active value
+     * publishes that row by {@code updatedAt} and can unload the value that this renewal just made current.
+     */
+    private boolean sameKeyValue(ApiKey apiKey, ApiKey activeApiKey) {
+        return apiKey.getKey() != null && apiKey.getKey().equals(activeApiKey.getKey());
+    }
+
+    private void validateCustomApiKeyFormat(String value) {
+        if (value.length() < CUSTOM_API_KEY_MIN_LENGTH || value.length() > CUSTOM_API_KEY_MAX_LENGTH) {
+            throw new InvalidDataException("Should have length between 8 and 128 characters");
+        }
+        if (!CUSTOM_API_KEY_PATTERN.matcher(value).matches()) {
+            throw new InvalidDataException("Should not contain: ^ # % @ \\ / ; = ? | ~ , (space)");
+        }
+    }
+
     private void expireApiKeys(ExecutionContext executionContext, Collection<ApiKey> apiKeys, ApiKey activeApiKey)
         throws TechnicalException {
         Instant expirationInst = activeApiKey.getCreatedAt().toInstant().plus(Duration.ofHours(2));
-        Date expirationDate = Date.from(expirationInst);
+        expireApiKeysAt(executionContext, apiKeys, activeApiKey, Date.from(expirationInst));
+    }
 
+    private void expireApiKeysAt(ExecutionContext executionContext, Collection<ApiKey> apiKeys, ApiKey activeApiKey, Date expirationDate)
+        throws TechnicalException {
         for (ApiKey apiKey : apiKeys) {
+            if (apiKey.equals(activeApiKey) || sameKeyValue(apiKey, activeApiKey)) {
+                continue;
+            }
             ApiKeyEntity apiKeyEntity = convert(executionContext, apiKey);
-            if (!apiKey.equals(activeApiKey) && !apiKeyEntity.isExpired()) {
+            if (!apiKeyEntity.isExpired()) {
                 updateExpirationDate(executionContext, expirationDate, apiKeyEntity, apiKey);
             }
         }
@@ -257,11 +403,129 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         SubscriptionEntity subscription,
         String customApiKey
     ) {
+        try {
+            List<ApiKey> keys = apiKeyRepository.findByApplication(application.getId());
+            if (keys == null || keys.isEmpty()) {
+                return generate(executionContext, subscription, customApiKey);
+            }
+            Date now = new Date();
+            if (keys.stream().anyMatch(apiKey -> isLive(apiKey, now))) {
+                return attachSubscriptionToExistingKeys(executionContext, application, subscription, customApiKey);
+            }
+            return createSharedKeyWhenNoneIsLive(executionContext, application, subscription, keys);
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to generate an API Key for %s", subscription),
+                ex
+            );
+        }
+    }
+
+    /**
+     * While a live key exists, a new subscription is attached to every key of the application, including the previous
+     * key during the two-hour overlap and keys that are already revoked.
+     */
+    private ApiKeyEntity attachSubscriptionToExistingKeys(
+        ExecutionContext executionContext,
+        ApplicationEntity application,
+        SubscriptionEntity subscription,
+        String customApiKey
+    ) {
         return findByApplication(executionContext, application.getId())
             .stream()
             .map(apiKey -> addSubscription(executionContext, apiKey, subscription))
             .max(comparing(ApiKeyEntity::isRevoked, reverseOrder()).thenComparing(ApiKeyEntity::getExpireAt, nullsLast(naturalOrder())))
             .orElseGet(() -> generate(executionContext, subscription, customApiKey));
+    }
+
+    /**
+     * Every existing key is revoked or expired. The new subscription is not attached to those rows, and none of them is
+     * turned back on. One new shared key, with no expiry, carries the subscriptions already stored on the application
+     * plus this subscription. A value supplied on the subscription is ignored: a chosen value is set by renewing the
+     * application key.
+     * <p>
+     * The id is derived from the application and every existing key id, so two accepts that read the same keys insert
+     * one key, and a later accept after that key has died gets a different id. A duplicate insert is reused only when
+     * the existing row is live. A dead row is left alone and a new key is created.
+     */
+    private ApiKeyEntity createSharedKeyWhenNoneIsLive(
+        ExecutionContext executionContext,
+        ApplicationEntity application,
+        SubscriptionEntity subscription,
+        List<ApiKey> existingKeys
+    ) throws TechnicalException {
+        Set<String> subscriptionIds = new LinkedHashSet<>();
+        for (ApiKey existing : existingKeys) {
+            if (existing.getSubscriptions() != null) {
+                subscriptionIds.addAll(existing.getSubscriptions());
+            }
+        }
+        subscriptionIds.add(subscription.getId());
+
+        String replacementId = replacementSharedKeyId(application.getId(), existingKeys);
+        try {
+            return storeSharedKeyWhenNoneIsLive(executionContext, application, subscriptionIds, replacementId);
+        } catch (TechnicalException e) {
+            if (!isDuplicateKey(e)) {
+                throw e;
+            }
+            return reuseLiveReplacementOrCreateAnother(executionContext, application, subscription, subscriptionIds, replacementId);
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            return reuseLiveReplacementOrCreateAnother(executionContext, application, subscription, subscriptionIds, replacementId);
+        }
+    }
+
+    private ApiKeyEntity reuseLiveReplacementOrCreateAnother(
+        ExecutionContext executionContext,
+        ApplicationEntity application,
+        SubscriptionEntity subscription,
+        Set<String> subscriptionIds,
+        String replacementId
+    ) throws TechnicalException {
+        Optional<ApiKey> existing = apiKeyRepository
+            .findById(replacementId)
+            .filter(row -> application.getId().equals(row.getApplication()));
+        if (existing.isPresent() && isLive(existing.get(), new Date())) {
+            log.debug("The shared API Key of application {} was created by another request meanwhile, reusing it", application.getId());
+            ApiKey reused = apiKeyRepository
+                .addSubscription(existing.get().getId(), subscription.getId())
+                .orElseThrow(ApiKeyNotFoundException::new);
+            return convert(executionContext, reused);
+        }
+        return storeSharedKeyWhenNoneIsLive(executionContext, application, subscriptionIds, null);
+    }
+
+    private static boolean isDuplicateKey(Throwable error) {
+        for (Throwable cause = error; cause != null; cause = cause.getCause()) {
+            if (cause instanceof DuplicateKeyException || cause instanceof org.springframework.dao.DuplicateKeyException) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private ApiKeyEntity storeSharedKeyWhenNoneIsLive(
+        ExecutionContext executionContext,
+        ApplicationEntity application,
+        Set<String> subscriptionIds,
+        String replacementId
+    ) throws TechnicalException {
+        ApiKey apiKey = generateForApplication(application.getId(), null, executionContext.getEnvironmentId());
+        if (replacementId != null) {
+            apiKey.setId(replacementId);
+        }
+        apiKey.setSubscriptions(new ArrayList<>(subscriptionIds));
+        apiKey = apiKeyRepository.create(apiKey);
+        ApiKeyEntity apiKeyEntity = convert(executionContext, apiKey);
+        createAuditLog(executionContext, apiKeyEntity, null, APIKEY_CREATED, apiKey.getCreatedAt());
+        return apiKeyEntity;
+    }
+
+    private static String replacementSharedKeyId(String applicationId, List<ApiKey> existingKeys) {
+        String keyIds = existingKeys.stream().map(ApiKey::getId).filter(Objects::nonNull).sorted().collect(joining(","));
+        return UUID.nameUUIDFromBytes(
+            (REPLACEMENT_SHARED_KEY_ID_PREFIX + applicationId + ":" + keyIds).getBytes(StandardCharsets.UTF_8)
+        ).toString();
     }
 
     private ApiKeyEntity addSubscription(ExecutionContext executionContext, ApiKeyEntity apiKeyEntity, SubscriptionEntity subscription) {

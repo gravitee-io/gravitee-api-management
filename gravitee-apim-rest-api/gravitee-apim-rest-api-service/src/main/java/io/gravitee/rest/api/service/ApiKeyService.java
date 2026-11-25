@@ -37,6 +37,12 @@ public interface ApiKeyService {
 
     ApiKeyEntity renew(ExecutionContext executionContext, ApplicationEntity application);
 
+    /**
+     * Renews the shared API key of an application. A blank {@code customApiKey} generates a random key, as
+     * {@link #renew(ExecutionContext, ApplicationEntity)} does.
+     */
+    ApiKeyEntity renew(ExecutionContext executionContext, ApplicationEntity application, String customApiKey);
+
     ApiKeyEntity renew(ExecutionContext executionContext, SubscriptionEntity subscription);
 
     ApiKeyEntity renew(ExecutionContext executionContext, SubscriptionEntity subscription, String customApiKey);

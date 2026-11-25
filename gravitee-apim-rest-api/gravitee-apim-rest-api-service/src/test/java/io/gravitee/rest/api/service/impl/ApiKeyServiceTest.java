@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl;
 import static io.gravitee.repository.management.model.ApiKey.AuditEvent.APIKEY_EXPIRED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
@@ -35,6 +36,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.ApiProductsRepository;
@@ -51,6 +53,8 @@ import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanSecurityType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.ApiKeyGenerator;
@@ -60,18 +64,23 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyActivatedException;
 import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyExistingException;
+import io.gravitee.rest.api.service.exceptions.ApiKeyCannotBeUsedException;
 import io.gravitee.rest.api.service.exceptions.ApiKeyNotFoundException;
+import io.gravitee.rest.api.service.exceptions.CustomApiKeyNotAllowedException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotActiveException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -141,6 +150,9 @@ public class ApiKeyServiceTest {
 
     @Mock
     private NotifierService notifierService;
+
+    @Mock
+    private ParameterService parameterService;
 
     @Mock
     private ApiProductsRepository apiProductsRepository;
@@ -1225,6 +1237,344 @@ public class ApiKeyServiceTest {
     }
 
     @Test
+    public void renew_for_application_with_blank_value_generates_a_random_key() throws TechnicalException {
+        ApplicationEntity application = sharedApplication();
+        when(apiKeyGenerator.generate()).thenReturn("random-key");
+        when(apiKeyRepository.findByApplication(application.getId())).thenReturn(List.of());
+        when(apiKeyRepository.create(any())).thenAnswer(returnsFirstArg());
+
+        apiKeyService.renew(GraviteeContext.getExecutionContext(), application, "   ");
+
+        verify(apiKeyRepository).create(argThat(apiKey -> "random-key".equals(apiKey.getKey())));
+        verify(apiKeyRepository, never()).findByKeyAndEnvironmentId(anyString(), anyString());
+    }
+
+    @Test
+    public void renew_for_application_rejects_a_custom_value_when_custom_keys_are_disabled() throws TechnicalException {
+        ApplicationEntity application = sharedApplication();
+
+        assertThrows(CustomApiKeyNotAllowedException.class, () ->
+            apiKeyService.renew(GraviteeContext.getExecutionContext(), application, "custom-key-1")
+        );
+        verifyNoInteractions(apiKeyRepository);
+    }
+
+    @Test
+    public void renew_for_application_rejects_a_custom_value_with_a_bad_format() throws TechnicalException {
+        ApplicationEntity application = sharedApplication();
+        allowCustomApiKeys();
+
+        assertThrows(InvalidDataException.class, () -> apiKeyService.renew(GraviteeContext.getExecutionContext(), application, "short"));
+        assertThrows(InvalidDataException.class, () ->
+            apiKeyService.renew(GraviteeContext.getExecutionContext(), application, "bad#key!!")
+        );
+        verifyNoInteractions(apiKeyRepository);
+    }
+
+    @Test
+    public void renew_for_application_with_a_new_value_creates_one_key_and_keeps_the_previous_for_two_hours() throws TechnicalException {
+        ApplicationEntity application = sharedApplication();
+        allowCustomApiKeys();
+        ApiKey current = buildTestApiKey("current-key");
+        current.setKey("current-key1");
+        current.setSubscriptions(List.of("sub1"));
+        when(apiKeyRepository.findByKeyAndEnvironmentId(eq("custom-key-1"), anyString())).thenReturn(List.of());
+        when(apiKeyRepository.findByApplication(application.getId())).thenReturn(List.of(current));
+        when(apiKeyRepository.create(any())).thenAnswer(returnsFirstArg());
+        when(apiKeyRepository.update(any())).thenAnswer(returnsFirstArg());
+
+        Date before = new Date();
+        apiKeyService.renew(GraviteeContext.getExecutionContext(), application, "custom-key-1");
+
+        verify(apiKeyRepository).create(argThat(apiKey -> "custom-key-1".equals(apiKey.getKey()) && apiKey.getExpireAt() == null));
+        ArgumentCaptor<ApiKey> updated = ArgumentCaptor.forClass(ApiKey.class);
+        verify(apiKeyRepository, times(2)).update(updated.capture());
+        ApiKey expired = updated
+            .getAllValues()
+            .stream()
+            .filter(apiKey -> "current-key".equals(apiKey.getId()))
+            .findFirst()
+            .orElseThrow();
+        assertNotNull(expired.getExpireAt());
+        assertTrue(expired.getExpireAt().after(new Date(before.getTime() + 90 * 60 * 1000)));
+    }
+
+    @Test
+    public void renew_for_application_restores_a_revoked_value_and_expires_the_current_key_in_two_hours() throws TechnicalException {
+        ApplicationEntity application = sharedApplication();
+        allowCustomApiKeys();
+        ApiKey current = buildTestApiKey("current-key");
+        current.setKey("current-key1");
+        current.setApplication(application.getId());
+        current.setSubscriptions(List.of("sub1", "sub2"));
+        ApiKey revoked = buildTestApiKey("revoked-key");
+        revoked.setKey("apigee-old-1");
+        revoked.setApplication(application.getId());
+        revoked.setRevoked(true);
+        revoked.setRevokedAt(new Date());
+        revoked.setCreatedAt(Date.from(Instant.parse("2020-01-01T00:00:00Z")));
+        revoked.setSubscriptions(List.of("sub1"));
+        when(apiKeyRepository.findByKeyAndEnvironmentId(eq("apigee-old-1"), anyString())).thenReturn(List.of(revoked));
+        when(apiKeyRepository.findByApplication(application.getId())).thenReturn(List.of(current, revoked));
+        when(apiKeyRepository.update(any())).thenAnswer(returnsFirstArg());
+
+        Date before = new Date();
+        apiKeyService.renew(GraviteeContext.getExecutionContext(), application, "apigee-old-1");
+
+        verify(apiKeyRepository, never()).create(any());
+        ArgumentCaptor<ApiKey> updated = ArgumentCaptor.forClass(ApiKey.class);
+        verify(apiKeyRepository, times(3)).update(updated.capture());
+        ApiKey restored = updated
+            .getAllValues()
+            .stream()
+            .filter(apiKey -> "revoked-key".equals(apiKey.getId()))
+            .findFirst()
+            .orElseThrow();
+        assertFalse(restored.isRevoked());
+        assertNull(restored.getRevokedAt());
+        assertNull(restored.getExpireAt());
+        ApiKey expired = updated
+            .getAllValues()
+            .stream()
+            .filter(apiKey -> "current-key".equals(apiKey.getId()))
+            .findFirst()
+            .orElseThrow();
+        assertTrue(expired.getExpireAt().after(new Date(before.getTime() + 90 * 60 * 1000)));
+        assertTrue(
+            updated
+                .getAllValues()
+                .stream()
+                .filter(apiKey -> "revoked-key".equals(apiKey.getId()))
+                .anyMatch(apiKey -> apiKey.getSubscriptions() != null && apiKey.getSubscriptions().contains("sub2"))
+        );
+    }
+
+    @Test
+    public void renew_for_application_does_not_publish_a_revoked_duplicate_of_the_restored_value() throws TechnicalException {
+        ApplicationEntity application = sharedApplication();
+        allowCustomApiKeys();
+        ApiKey current = buildTestApiKey("current-key");
+        current.setKey("current-key1");
+        current.setApplication(application.getId());
+        current.setSubscriptions(List.of("sub1"));
+        ApiKey restored = buildTestApiKey("restored-key");
+        restored.setKey("apigee-old-1");
+        restored.setApplication(application.getId());
+        restored.setRevoked(true);
+        restored.setUpdatedAt(new Date());
+        restored.setSubscriptions(List.of("sub1"));
+        ApiKey duplicate = buildTestApiKey("duplicate-key");
+        duplicate.setKey("apigee-old-1");
+        duplicate.setApplication(application.getId());
+        duplicate.setRevoked(true);
+        duplicate.setUpdatedAt(Date.from(Instant.parse("2020-01-01T00:00:00Z")));
+        duplicate.setSubscriptions(List.of("old-sub"));
+        when(apiKeyRepository.findByKeyAndEnvironmentId(eq("apigee-old-1"), anyString())).thenReturn(List.of(restored, duplicate));
+        when(apiKeyRepository.findByApplication(application.getId())).thenReturn(List.of(current, restored, duplicate));
+        when(apiKeyRepository.update(any())).thenAnswer(returnsFirstArg());
+
+        apiKeyService.renew(GraviteeContext.getExecutionContext(), application, "apigee-old-1");
+
+        verify(apiKeyRepository, never()).update(argThat(apiKey -> "duplicate-key".equals(apiKey.getId())));
+        verify(apiKeyRepository, never()).create(any());
+    }
+
+    @Test
+    public void renew_for_application_restores_the_previous_key_during_the_two_hour_window() throws TechnicalException {
+        ApplicationEntity application = sharedApplication();
+        allowCustomApiKeys();
+        ApiKey current = buildTestApiKey("current-key");
+        current.setKey("current-key1");
+        current.setApplication(application.getId());
+        current.setSubscriptions(List.of("sub1", "sub2"));
+        ApiKey previous = buildTestApiKey("previous-key");
+        previous.setKey("previous-key");
+        previous.setApplication(application.getId());
+        previous.setCreatedAt(Date.from(Instant.parse("2020-01-01T00:00:00Z")));
+        previous.setExpireAt(Date.from(Instant.now().plus(30, ChronoUnit.MINUTES)));
+        previous.setSubscriptions(List.of("sub1"));
+        when(apiKeyRepository.findByKeyAndEnvironmentId(eq("previous-key"), anyString())).thenReturn(List.of(previous));
+        when(apiKeyRepository.findByApplication(application.getId())).thenReturn(List.of(current, previous));
+        when(apiKeyRepository.update(any())).thenAnswer(returnsFirstArg());
+
+        apiKeyService.renew(GraviteeContext.getExecutionContext(), application, "previous-key");
+
+        verify(apiKeyRepository, never()).create(any());
+        ArgumentCaptor<ApiKey> updated = ArgumentCaptor.forClass(ApiKey.class);
+        verify(apiKeyRepository, times(3)).update(updated.capture());
+        ApiKey restored = updated
+            .getAllValues()
+            .stream()
+            .filter(apiKey -> "previous-key".equals(apiKey.getId()))
+            .findFirst()
+            .orElseThrow();
+        assertNull(restored.getExpireAt());
+        assertFalse(restored.isRevoked());
+        assertTrue(
+            updated
+                .getAllValues()
+                .stream()
+                .filter(apiKey -> "previous-key".equals(apiKey.getId()))
+                .anyMatch(apiKey -> apiKey.getSubscriptions() != null && apiKey.getSubscriptions().contains("sub2"))
+        );
+    }
+
+    @Test
+    public void renew_for_application_rejects_the_current_value_and_a_value_owned_by_another_application() throws TechnicalException {
+        ApplicationEntity application = sharedApplication();
+        allowCustomApiKeys();
+        ApiKey current = buildTestApiKey("current-key");
+        current.setKey("current-key1");
+        current.setApplication(application.getId());
+        when(apiKeyRepository.findByKeyAndEnvironmentId(eq("current-key1"), anyString())).thenReturn(List.of(current));
+        when(apiKeyRepository.findByApplication(application.getId())).thenReturn(List.of(current));
+
+        ApiKeyCannotBeUsedException currentValue = assertThrows(ApiKeyCannotBeUsedException.class, () ->
+            apiKeyService.renew(GraviteeContext.getExecutionContext(), application, "current-key1")
+        );
+
+        ApiKey other = buildTestApiKey("other-key");
+        other.setKey("other-app-key");
+        other.setApplication("other-application");
+        other.setRevoked(true);
+        when(apiKeyRepository.findByKeyAndEnvironmentId(eq("other-app-key"), anyString())).thenReturn(List.of(other));
+        ApiKeyCannotBeUsedException otherApplication = assertThrows(ApiKeyCannotBeUsedException.class, () ->
+            apiKeyService.renew(GraviteeContext.getExecutionContext(), application, "other-app-key")
+        );
+
+        assertEquals(currentValue.getMessage(), otherApplication.getMessage());
+        assertEquals(currentValue.getTechnicalCode(), otherApplication.getTechnicalCode());
+        verify(apiKeyRepository, never()).create(any());
+        verify(apiKeyRepository, never()).update(any());
+    }
+
+    @Test
+    public void generate_for_shared_application_with_only_revoked_keys_creates_a_new_key_and_leaves_the_revoked_row()
+        throws TechnicalException {
+        ApplicationEntity application = new ApplicationEntity();
+        application.setId(APPLICATION_ID);
+        application.setApiKeyMode(ApiKeyMode.SHARED);
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
+        when(subscriptionService.findByIdIn(any())).thenReturn(Set.of());
+        when(apiKeyGenerator.generate()).thenReturn("random-key");
+
+        ApiKey revoked = buildTestApiKey("revoked-key");
+        revoked.setKey("apigee-old-1");
+        revoked.setRevoked(true);
+        revoked.setApplication(APPLICATION_ID);
+        revoked.setSubscriptions(List.of("old-sub"));
+        when(apiKeyRepository.findByApplication(APPLICATION_ID)).thenReturn(List.of(revoked));
+        when(apiKeyRepository.create(any())).thenAnswer(returnsFirstArg());
+
+        SubscriptionEntity newSubscription = new SubscriptionEntity();
+        newSubscription.setId("new-sub");
+        newSubscription.setApplication(APPLICATION_ID);
+
+        ApiKeyEntity created = apiKeyService.generate(GraviteeContext.getExecutionContext(), application, newSubscription, "apigee-old-1");
+
+        assertEquals("random-key", created.getKey());
+        assertEquals(replacementSharedKeyId(APPLICATION_ID, "revoked-key"), created.getId());
+        assertNull(created.getExpireAt());
+        verify(apiKeyRepository).create(
+            argThat(
+                apiKey ->
+                    "random-key".equals(apiKey.getKey()) &&
+                    apiKey.getExpireAt() == null &&
+                    apiKey.getSubscriptions().containsAll(List.of("old-sub", "new-sub"))
+            )
+        );
+        verify(apiKeyRepository, never()).update(any());
+        verify(apiKeyRepository, never()).addSubscription(anyString(), anyString());
+        assertTrue(revoked.isRevoked());
+        assertEquals(List.of("old-sub"), revoked.getSubscriptions());
+    }
+
+    @Test
+    public void generate_for_shared_application_reuses_the_key_when_another_request_created_it() throws TechnicalException {
+        ApplicationEntity application = new ApplicationEntity();
+        application.setId(APPLICATION_ID);
+        application.setApiKeyMode(ApiKeyMode.SHARED);
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
+        when(subscriptionService.findByIdIn(any())).thenReturn(Set.of());
+
+        ApiKey revoked = buildTestApiKey("revoked-key");
+        revoked.setKey("apigee-old-1");
+        revoked.setRevoked(true);
+        revoked.setApplication(APPLICATION_ID);
+        revoked.setSubscriptions(List.of("old-sub"));
+        when(apiKeyRepository.findByApplication(APPLICATION_ID)).thenReturn(List.of(revoked));
+        String replacementId = replacementSharedKeyId(APPLICATION_ID, "revoked-key");
+        when(apiKeyRepository.create(any())).thenThrow(new DuplicateKeyException("exists"));
+        ApiKey createdByTheOtherRequest = buildTestApiKey(replacementId);
+        createdByTheOtherRequest.setKey("other-node-key");
+        createdByTheOtherRequest.setApplication(APPLICATION_ID);
+        createdByTheOtherRequest.setSubscriptions(new ArrayList<>(List.of("old-sub", "other-sub")));
+        when(apiKeyRepository.findById(replacementId)).thenReturn(Optional.of(createdByTheOtherRequest));
+        when(apiKeyRepository.addSubscription(eq(replacementId), eq("new-sub"))).thenAnswer(invocation -> {
+            createdByTheOtherRequest.getSubscriptions().add("new-sub");
+            return Optional.of(createdByTheOtherRequest);
+        });
+
+        SubscriptionEntity newSubscription = new SubscriptionEntity();
+        newSubscription.setId("new-sub");
+        newSubscription.setApplication(APPLICATION_ID);
+
+        ApiKeyEntity created = apiKeyService.generate(GraviteeContext.getExecutionContext(), application, newSubscription, "apigee-old-1");
+
+        assertEquals(replacementId, created.getId());
+        assertEquals("other-node-key", created.getKey());
+        verify(apiKeyRepository).addSubscription(replacementId, "new-sub");
+        verify(apiKeyRepository, never()).update(any());
+        assertTrue(revoked.isRevoked());
+        assertEquals(List.of("old-sub"), revoked.getSubscriptions());
+    }
+
+    @Test
+    public void generate_for_shared_application_creates_a_new_key_when_the_matching_id_is_expired() throws TechnicalException {
+        ApplicationEntity application = new ApplicationEntity();
+        application.setId(APPLICATION_ID);
+        application.setApiKeyMode(ApiKeyMode.SHARED);
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
+        when(subscriptionService.findByIdIn(any())).thenReturn(Set.of());
+        when(apiKeyGenerator.generate()).thenReturn("fresh-key");
+
+        ApiKey revoked = buildTestApiKey("revoked-key");
+        revoked.setKey("apigee-old-1");
+        revoked.setRevoked(true);
+        revoked.setRevokedAt(new Date(System.currentTimeMillis() - 3_600_000));
+        revoked.setApplication(APPLICATION_ID);
+        revoked.setSubscriptions(List.of("old-sub"));
+        ApiKey expiredReplacement = buildTestApiKey(replacementSharedKeyId(APPLICATION_ID, "revoked-key"));
+        expiredReplacement.setKey("expired-replacement");
+        expiredReplacement.setApplication(APPLICATION_ID);
+        expiredReplacement.setExpireAt(new Date(System.currentTimeMillis() - 60_000));
+        expiredReplacement.setSubscriptions(List.of("old-sub"));
+        when(apiKeyRepository.findByApplication(APPLICATION_ID)).thenReturn(List.of(revoked, expiredReplacement));
+        when(apiKeyRepository.create(any())).thenAnswer(returnsFirstArg());
+
+        SubscriptionEntity newSubscription = new SubscriptionEntity();
+        newSubscription.setId("new-sub");
+        newSubscription.setApplication(APPLICATION_ID);
+
+        ApiKeyEntity created = apiKeyService.generate(GraviteeContext.getExecutionContext(), application, newSubscription, "apigee-old-1");
+
+        assertNotEquals(expiredReplacement.getId(), created.getId());
+        assertEquals("fresh-key", created.getKey());
+        assertNull(created.getExpireAt());
+        verify(apiKeyRepository, never()).addSubscription(anyString(), anyString());
+        verify(apiKeyRepository, never()).update(any());
+        assertEquals(List.of("old-sub"), expiredReplacement.getSubscriptions());
+        assertTrue(revoked.isRevoked());
+        assertEquals(List.of("old-sub"), revoked.getSubscriptions());
+    }
+
+    private static String replacementSharedKeyId(String applicationId, String anchorKeyId) {
+        return UUID.nameUUIDFromBytes(
+            ("shared-api-key-replacement:" + applicationId + ":" + anchorKeyId).getBytes(StandardCharsets.UTF_8)
+        ).toString();
+    }
+
+    @Test
     public void should_not_duplicate_subscription_and_update_updatedAt_when_adding_existing_subscription() throws TechnicalException {
         ApiKey existingApiKey = new ApiKey();
         existingApiKey.setId("id-of-apikey-2");
@@ -1430,6 +1780,25 @@ public class ApiKeyServiceTest {
                 assertNull(auditedApiKey.getHash());
             }
         }
+    }
+
+    private ApplicationEntity sharedApplication() throws TechnicalException {
+        ApplicationEntity application = new ApplicationEntity();
+        application.setId("my-test-app");
+        application.setApiKeyMode(ApiKeyMode.SHARED);
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(application.getId()))).thenReturn(application);
+        when(subscriptionService.findByIdIn(any())).thenReturn(Set.of());
+        return application;
+    }
+
+    private void allowCustomApiKeys() {
+        when(
+            parameterService.findAsBoolean(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        ).thenReturn(true);
     }
 
     private ApiKey buildTestApiKey(String id) {
