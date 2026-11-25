@@ -28,20 +28,24 @@ import java.util.regex.Pattern;
  */
 public final class AdditionalMetricLabel {
 
-    private static final Pattern SEPARATOR_RUNS = Pattern.compile("[_-]+");
+    private static final Pattern SEPARATOR_RUNS = Pattern.compile("[._-]+");
     private static final Pattern WHITESPACE_RUNS = Pattern.compile("\\s+", Pattern.UNICODE_CHARACTER_CLASS);
 
     private AdditionalMetricLabel() {}
 
     /**
-     * The key without its type prefix, each run of {@code _} / {@code -} read as one space, trimmed, first character
-     * upper case and the rest as written; the key as given when nothing is left. A namespace naming the one API kind
+     * The key without its type prefix, each run of {@code .} / {@code _} / {@code -} read as one space, trimmed, first
+     * character upper case and the rest as written; the key as given when nothing is left. A namespace naming the one API kind
      * the key is listed under is left out as well, the group naming it ({@link AdditionalMetricNamespace#namesOneKind}):
      * {@code long_llm-proxy_tokens-cached} reads "Tokens cached". Any other namespace is kept: {@code long_failover_count}
      * reads "Failover count", {@code keyword_fraud-check_tier} "Fraud check tier". The field's value type is the one
-     * the grammar read, so no prefix is parsed here.
+     * the grammar read, so no prefix is parsed here. A custom key has no type prefix nor namespace: its whole name
+     * reads by the same rule, {@code customer.tier} "Customer tier", {@code keyword_tier} "Keyword tier".
      */
     public static String derive(AdditionalMetricField field) {
+        if (field.root() == AdditionalMetricField.Root.CUSTOM) {
+            return capitalized(words(field.rawKey()), field.rawKey());
+        }
         String name = nameOf(field);
         String words = AdditionalMetricNamespace.segmentOf(field)
             .filter(AdditionalMetricNamespace::namesOneKind)

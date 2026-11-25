@@ -41,6 +41,8 @@ class AdditionalMetricLabelTest {
             "json_fraud-signals | JSON | Fraud signals",
             "keyword_fraud-check_tier | KEYWORD | Fraud check tier",
             "keyword_action | KEYWORD | Action",
+            "long_a.b | LONG | A b",
+            "keyword_order.channel-id | KEYWORD | Order channel id",
             "double__checkout--basket__value_ | DOUBLE | Checkout basket value",
             "bool_-_ | BOOL | bool_-_",
         }
@@ -121,5 +123,34 @@ class AdditionalMetricLabelTest {
         String label
     ) {
         assertThat(AdditionalMetricLabel.derive(new AdditionalMetricField(rawKey, valueType))).isEqualTo(label);
+    }
+
+    /** The same rule as an additional key's name, applied to the whole custom name: it has no type prefix nor namespace. */
+    @ParameterizedTest(name = "{0} -> {1}")
+    @CsvSource(
+        delimiter = '|',
+        value = {
+            "customer.tier | Customer tier",
+            "fraud-tier | Fraud tier",
+            "Merchant ID | Merchant ID",
+            "merchant_id | Merchant id",
+            "keyword_llm-proxy_model | Keyword llm proxy model",
+            "order..channel--Web | Order channel Web",
+            "'._-' | '._-'",
+        }
+    )
+    void should_label_a_custom_key_by_the_additional_metric_rule_over_its_whole_name(String rawKey, String label) {
+        var field = new AdditionalMetricField(AdditionalMetricField.Root.CUSTOM, rawKey, AdditionalMetricValueType.KEYWORD);
+
+        assertThat(AdditionalMetricLabel.derive(field)).isEqualTo(label);
+        assertThat(field.derivedLabel()).isEqualTo(label);
+    }
+
+    @Test
+    void should_serve_the_raw_key_of_an_additional_field_and_the_wire_name_of_a_custom_one() {
+        assertThat(new AdditionalMetricField("keyword_tier", AdditionalMetricValueType.KEYWORD).servedRawKey()).isEqualTo("keyword_tier");
+        assertThat(
+            new AdditionalMetricField(AdditionalMetricField.Root.CUSTOM, "keyword_tier", AdditionalMetricValueType.KEYWORD).servedRawKey()
+        ).isEqualTo("custom.keyword_tier");
     }
 }

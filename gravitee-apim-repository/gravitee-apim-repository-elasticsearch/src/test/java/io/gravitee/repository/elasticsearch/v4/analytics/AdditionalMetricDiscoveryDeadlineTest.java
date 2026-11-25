@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.v4.analytics;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -26,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.index.IndexNameGenerator;
 import io.gravitee.elasticsearch.model.SearchResponse;
+import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.log.v4.model.analytics.AdditionalMetricDiscoveryQuery;
@@ -76,7 +78,7 @@ class AdditionalMetricDiscoveryDeadlineTest {
                 this.discoveryBatchSize = 1;
             }
         };
-        when(client.getFieldCapabilities(anyString(), anyString())).thenReturn(
+        when(client.getFieldCapabilities(anyString(), eq("additional-metrics.*"))).thenReturn(
             Single.just(
                 Map.of(
                     "additional-metrics.long_a",
@@ -88,6 +90,45 @@ class AdditionalMetricDiscoveryDeadlineTest {
                 )
             )
         );
+        when(client.getFieldCapabilities(anyString(), eq("custom.*"))).thenReturn(Single.just(Map.of()));
+    }
+
+    @Test
+    void should_probe_the_keys_of_both_maps_by_wire_name() {
+        when(client.getFieldCapabilities(anyString(), eq("custom.*"))).thenReturn(
+            Single.just(Map.of("custom.fraud-tier", Set.of("keyword")))
+        );
+        when(client.search(anyString(), any(), anyString())).thenReturn(Single.just(seen(false)));
+
+        var result = cut.discoverAdditionalMetrics(QUERY_CONTEXT, query(Duration.ofSeconds(30)));
+
+        assertThat(result.metrics())
+            .extracting(AdditionalMetricLastSeen::name)
+            .containsExactly("additional-metrics.long_a", "additional-metrics.long_b", "additional-metrics.long_c", "custom.fraud-tier");
+        assertThat(result.truncated()).isFalse();
+    }
+
+    @Test
+    void should_say_it_is_truncated_when_the_custom_keys_cannot_be_listed_before_the_deadline() {
+        when(client.getFieldCapabilities(anyString(), eq("custom.*"))).thenReturn(Single.never());
+
+        var result = cut.discoverAdditionalMetrics(QUERY_CONTEXT, query(Duration.ofMillis(300)));
+
+        assertThat(result.truncated()).isTrue();
+        assertThat(result.metrics()).noneMatch(metric -> metric.root() == AdditionalMetricField.Root.CUSTOM);
+    }
+
+    @Test
+    void should_say_it_is_truncated_when_the_additional_metric_keys_cannot_be_listed_before_the_deadline() {
+        when(client.getFieldCapabilities(anyString(), eq("additional-metrics.*"))).thenReturn(Single.never());
+        when(client.getFieldCapabilities(anyString(), eq("custom.*"))).thenReturn(
+            Single.just(Map.of("custom.fraud-tier", Set.of("keyword")))
+        );
+
+        var result = cut.discoverAdditionalMetrics(QUERY_CONTEXT, query(Duration.ofMillis(300)));
+
+        assertThat(result.truncated()).isTrue();
+        assertThat(result.metrics()).noneMatch(metric -> metric.root() == AdditionalMetricField.Root.ADDITIONAL_METRICS);
     }
 
     @Test

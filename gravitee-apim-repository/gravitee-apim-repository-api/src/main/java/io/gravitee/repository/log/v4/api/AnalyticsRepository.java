@@ -150,12 +150,14 @@ public interface AnalyticsRepository {
 
     /**
      * The additional metrics the requests of the query context's environment carried over the window, each with the
-     * time it was last seen. Typed keys only: a key whose prefix is unknown, a reserved {@code <type>_custom_<name>}
-     * key, or a key stored under another type than its prefix declares is left out. The type is checked across every
-     * retained index, not only the window's, because searches read every retained index and filter the window inside the
-     * query: a key stored under another type in any one of them, by any environment, could fail a typed filter or
-     * aggregation on it, so it is left out until that index is gone. The keys are not checked against the rest of the
-     * additional metric grammar: callers drop what their parser refuses.
+     * time it was last seen: the keys of the {@code additional-metrics} map, typed by their prefix, and those of the
+     * {@code custom} map (assign-metrics values), keywords. A key whose prefix is unknown, a key stored under another type
+     * than its prefix declares, a custom key not stored as a keyword, and a key holding a {@code *} (a pattern to the
+     * search probing it) are left out. The type is checked across every retained index, not only the window's, because
+     * searches read every retained index and filter the window inside the query: a key stored under another type in any
+     * one of them, by any environment, could fail a typed filter or aggregation on it, so it is left out until that index
+     * is gone. The keys are not checked against the rest of the additional metric grammar: callers drop what their
+     * parser refuses.
      *
      * <p>The default answers none: an implementation that does not say discovers nothing.
      *

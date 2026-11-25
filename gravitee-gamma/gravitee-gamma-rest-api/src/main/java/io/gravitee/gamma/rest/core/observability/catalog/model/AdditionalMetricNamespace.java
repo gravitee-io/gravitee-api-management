@@ -29,13 +29,14 @@ import java.util.Set;
  * <p>The kinds come from a static map of the namespaces Gravitee components write under. The map is interim: OBS-194
  * (the plugin metrics descriptor) has each plugin describe the keys it writes, every descriptor replaces its entries
  * here, and OBS-194 deletes this map once none is left. A namespace the map does not know ties the key to no kind;
- * {@value #CUSTOM} is the user's own, the reserved {@code <type>_custom_<name>} keys of assign-metrics.
+ * {@value #CUSTOM} is the user's own: the {@code custom.<name>} keys of assign-metrics and the typed
+ * {@code <type>_custom_<name>} ones, listed alike, tied to no kind.
  *
  * @author GraviteeSource Team
  */
 public final class AdditionalMetricNamespace {
 
-    /** The namespace of a user key of either form: {@code custom.<name>}, or the {@link AdditionalMetricField#isReserved} one. */
+    /** The namespace of a user key of either form, {@code custom.<name>} or {@code <type>_custom_<name>}. */
     public static final String CUSTOM = "custom";
 
     private static final Set<ApiType> HTTP_FAMILY = Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MESSAGE, ApiType.MCP, ApiType.A2A);

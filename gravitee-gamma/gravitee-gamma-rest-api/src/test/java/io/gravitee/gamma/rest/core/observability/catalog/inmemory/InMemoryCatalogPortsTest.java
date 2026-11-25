@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.core.observability.catalog.inmemory;
 
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricField;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricValueType;
 import io.gravitee.gamma.rest.core.observability.catalog.model.DiscoveredAdditionalMetric;
 import io.gravitee.gamma.rest.core.observability.catalog.port.AdditionalMetricDiscoveryPortContractTest;
@@ -32,7 +33,11 @@ class InMemoryCatalogPortsTest extends AdditionalMetricDiscoveryPortContractTest
     protected AdditionalMetricDiscoveryPort portServing(List<Seen> found, boolean truncated) {
         var fields = found
             .stream()
-            .map(seen -> new DiscoveredAdditionalMetric(seen.rawKey(), typeStatedBy(seen.rawKey()), seen.lastSeen()))
+            .map(seen ->
+                seen.root() == AdditionalMetricField.Root.CUSTOM
+                    ? new DiscoveredAdditionalMetric(seen.root(), seen.rawKey(), AdditionalMetricValueType.KEYWORD, seen.lastSeen())
+                    : new DiscoveredAdditionalMetric(seen.rawKey(), typeStatedBy(seen.rawKey()), seen.lastSeen())
+            )
             .toList();
         return ports.givenDiscovered(fields, truncated);
     }

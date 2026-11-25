@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.core.observability.catalog.port;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricField;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricValueType;
 import io.gravitee.gamma.rest.core.observability.catalog.model.DiscoveredAdditionalMetric;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.AdditionalMetricDiscoveryPort;
@@ -40,8 +41,8 @@ public abstract class AdditionalMetricDiscoveryPortContractTest {
     protected static final Instant REFRESHED_AT = Instant.parse("2026-10-30T09:00:00Z");
     private static final Instant SEEN = Instant.parse("2026-10-30T08:00:00Z");
 
-    /** A key the pass found, with the time it was last seen. */
-    protected record Seen(String rawKey, Instant lastSeen) {}
+    /** A key the pass found, under its root, with the time it was last seen. */
+    protected record Seen(AdditionalMetricField.Root root, String rawKey, Instant lastSeen) {}
 
     /** When the pass of {@link #portServing} ran. */
     protected Instant refreshedAt() {
@@ -88,13 +89,53 @@ public abstract class AdditionalMetricDiscoveryPortContractTest {
         IntStream.range(0, 201).forEach(i -> found.add(seen("long_key-%03d".formatted(i), i)));
         found.add(seen("keyword_mcp-proxy_tools/call", 300));
 
-        var discovery = portServing(found, false).discover("org", "env", Set.of("keyword_mcp-proxy_tools/call"));
+        var discovery = portServing(found, false).discover("org", "env", Set.of("additional-metrics.keyword_mcp-proxy_tools/call"));
 
         assertThat(discovery.fields())
             .hasSize(201)
             .extracting(DiscoveredAdditionalMetric::rawKey)
             .contains("keyword_mcp-proxy_tools/call")
             .doesNotContain("long_key-200");
+        assertThat(discovery.truncated()).isTrue();
+    }
+
+    @Test
+    void should_type_a_custom_key_as_a_keyword_under_the_custom_root() {
+        var discovery = portServing(List.of(seenCustom("fraud-tier", 0), seenCustom("keyword_tier", 1)), false).discover(
+            "org",
+            "env",
+            Set.of()
+        );
+
+        assertThat(discovery.fields())
+            .extracting(DiscoveredAdditionalMetric::root, DiscoveredAdditionalMetric::rawKey, DiscoveredAdditionalMetric::valueType)
+            .containsExactly(
+                tuple(AdditionalMetricField.Root.CUSTOM, "fraud-tier", AdditionalMetricValueType.KEYWORD),
+                tuple(AdditionalMetricField.Root.CUSTOM, "keyword_tier", AdditionalMetricValueType.KEYWORD)
+            );
+    }
+
+    @Test
+    void should_drop_a_custom_key_outside_the_grammar() {
+        var discovery = portServing(List.of(seenCustom("a..b", 0), seenCustom("fraud-tier", 1)), false).discover("org", "env", Set.of());
+
+        assertThat(discovery.fields()).extracting(DiscoveredAdditionalMetric::name).containsExactly("custom.fraud-tier");
+    }
+
+    @Test
+    void should_count_a_custom_key_spelt_like_a_key_listed_elsewhere() {
+        List<Seen> found = new ArrayList<>();
+        IntStream.range(0, 200).forEach(i -> found.add(seen("long_key-%03d".formatted(i), i)));
+        found.add(seen("keyword_mcp-proxy_tools/call", 300));
+        found.add(seenCustom("keyword_mcp-proxy_tools/call", 301));
+
+        var discovery = portServing(found, false).discover("org", "env", Set.of("additional-metrics.keyword_mcp-proxy_tools/call"));
+
+        assertThat(discovery.fields())
+            .hasSize(201)
+            .extracting(DiscoveredAdditionalMetric::name)
+            .contains("additional-metrics.keyword_mcp-proxy_tools/call")
+            .doesNotContain("custom.keyword_mcp-proxy_tools/call");
         assertThat(discovery.truncated()).isTrue();
     }
 
@@ -106,6 +147,10 @@ public abstract class AdditionalMetricDiscoveryPortContractTest {
     }
 
     private static Seen seen(String rawKey, int secondsBefore) {
-        return new Seen(rawKey, SEEN.minusSeconds(secondsBefore));
+        return new Seen(AdditionalMetricField.Root.ADDITIONAL_METRICS, rawKey, SEEN.minusSeconds(secondsBefore));
+    }
+
+    private static Seen seenCustom(String rawKey, int secondsBefore) {
+        return new Seen(AdditionalMetricField.Root.CUSTOM, rawKey, SEEN.minusSeconds(secondsBefore));
     }
 }

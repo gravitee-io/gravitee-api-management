@@ -25,7 +25,7 @@ import java.util.function.Predicate;
 /**
  * The additional metrics found on the requests of an environment by one discovery pass.
  *
- * @param metrics     most recently seen first, then by key
+ * @param metrics     most recently seen first, then by wire name
  * @param refreshedAt when the pass ran
  * @param truncated   true when some keys may be missing: the pass did not probe every key of the mapping, ran out of
  *                    time or failed, or {@link #capDiscovered} left some out
@@ -39,12 +39,14 @@ public record AdditionalMetricDiscovery(List<DiscoveredAdditionalMetric> metrics
         return new AdditionalMetricDiscovery(List.of(), refreshedAt, true);
     }
 
-    /** The keys {@code kept} accepts, before any cap: a key a caller cannot list must take no one's place. */
+    /**
+     * The keys whose wire name {@code kept} accepts, before any cap: a key a caller cannot list must take no one's place.
+     */
     public AdditionalMetricDiscovery retainKeys(Predicate<String> kept) {
         return new AdditionalMetricDiscovery(
             metrics
                 .stream()
-                .filter(metric -> kept.test(metric.rawKey()))
+                .filter(metric -> kept.test(metric.name()))
                 .toList(),
             refreshedAt,
             truncated
@@ -53,19 +55,19 @@ public record AdditionalMetricDiscovery(List<DiscoveredAdditionalMetric> metrics
 
     /**
      * Keeps every key of {@code uncountedKeys} and the {@link #MAX_DISCOVERED_ENTRIES} most recently seen of the
-     * others, most recently seen first, then by key. Applied once the keys of the environment are known, never on the
+     * others, most recently seen first, then by wire name. Applied once the keys of the environment are known, never on the
      * keys of the whole cluster, so an environment whose keys sort late is not starved. Gamma's discovery port applies it,
      * given the built-in and declared keys, for the filter catalog and the metric definitions list.
      *
-     * @param uncountedKeys keys listed under another origin, which never count against the cap and are never left out:
-     *                      the keys built-ins read and the declared ones
+     * @param uncountedKeys wire names of the keys listed under another origin, which never count against the cap and are
+     *                      never left out: the keys built-ins read and the declared ones
      */
     public AdditionalMetricDiscovery capDiscovered(Set<String> uncountedKeys) {
         var kept = new ArrayList<DiscoveredAdditionalMetric>();
         var discovered = 0;
         var leftOut = false;
         for (var metric : mostRecentFirst(metrics)) {
-            if (uncountedKeys.contains(metric.rawKey())) {
+            if (uncountedKeys.contains(metric.name())) {
                 kept.add(metric);
             } else if (discovered < MAX_DISCOVERED_ENTRIES) {
                 kept.add(metric);
@@ -80,7 +82,7 @@ public record AdditionalMetricDiscovery(List<DiscoveredAdditionalMetric> metrics
     private static List<DiscoveredAdditionalMetric> mostRecentFirst(List<DiscoveredAdditionalMetric> metrics) {
         return metrics
             .stream()
-            .sorted(Comparator.comparing(DiscoveredAdditionalMetric::lastSeen).reversed().thenComparing(DiscoveredAdditionalMetric::rawKey))
+            .sorted(Comparator.comparing(DiscoveredAdditionalMetric::lastSeen).reversed().thenComparing(DiscoveredAdditionalMetric::name))
             .toList();
     }
 }

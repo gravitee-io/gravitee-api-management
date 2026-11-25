@@ -15,12 +15,12 @@
  */
 package io.gravitee.gamma.rest.core.observability.catalog.inmemory;
 
+import io.gravitee.apim.core.observability.model.AdditionalMetricField.Root;
 import io.gravitee.gamma.rest.core.observability.analytics.inmemory.InMemoryAnalyticsDefinitionPort;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AdditionalMetricSupport;
 import io.gravitee.gamma.rest.core.observability.analytics.model.MetricDefinition;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.AnalyticsDefinitionPort;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricDiscovery;
-import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricField;
 import io.gravitee.gamma.rest.core.observability.catalog.model.DiscoveredAdditionalMetric;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.AdditionalMetricDiscoveryPort;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.AdditionalMetricGrammarPort;
@@ -108,15 +108,15 @@ public class InMemoryCatalogPorts
             discovery
                 .fields()
                 .stream()
-                .filter(field -> grammar.parse(AdditionalMetricField.NAME_PREFIX + field.rawKey()).isPresent())
-                .map(field -> new PlatformDiscoveryCap.Key(field.rawKey(), field.lastSeen()))
+                .filter(field -> grammar.parse(field.name()).isPresent())
+                .map(field -> new PlatformDiscoveryCap.Key(Root.valueOf(field.root().name()), field.rawKey(), field.lastSeen()))
                 .toList(),
             discovery.truncated(),
             uncountedKeys
         );
-        Map<String, DiscoveredAdditionalMetric> byKey = new HashMap<>();
-        discovery.fields().forEach(field -> byKey.putIfAbsent(field.rawKey(), field));
-        var kept = capped.rawKeys().stream().map(byKey::get).toList();
+        Map<String, DiscoveredAdditionalMetric> byName = new HashMap<>();
+        discovery.fields().forEach(field -> byName.putIfAbsent(field.name(), field));
+        var kept = capped.names().stream().map(byName::get).toList();
         return new AdditionalMetricDiscovery(kept, discovery.refreshedAt(), capped.truncated());
     }
 
@@ -125,7 +125,7 @@ public class InMemoryCatalogPorts
         return discoveries;
     }
 
-    /** The keys the last discovery was told never count against the cap. */
+    /** The wire names of the keys the last discovery was told never count against the cap. */
     public Set<String> lastUncountedKeys() {
         return lastUncountedKeys;
     }

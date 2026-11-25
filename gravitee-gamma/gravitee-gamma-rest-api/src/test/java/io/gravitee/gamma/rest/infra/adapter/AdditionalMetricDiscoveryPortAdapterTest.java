@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest.infra.adapter;
 
 import io.gravitee.apim.core.analytics_engine.model.AdditionalMetricDiscovery;
 import io.gravitee.apim.core.analytics_engine.model.DiscoveredAdditionalMetric;
+import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.gamma.rest.core.observability.catalog.port.AdditionalMetricDiscoveryPortContractTest;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.AdditionalMetricDiscoveryPort;
 import java.util.List;
@@ -29,7 +30,9 @@ class AdditionalMetricDiscoveryPortAdapterTest extends AdditionalMetricDiscovery
         var pass = new AdditionalMetricDiscovery(
             found
                 .stream()
-                .map(seen -> new DiscoveredAdditionalMetric(seen.rawKey(), seen.lastSeen()))
+                .map(seen ->
+                    new DiscoveredAdditionalMetric(AdditionalMetricField.Root.valueOf(seen.root().name()), seen.rawKey(), seen.lastSeen())
+                )
                 .toList(),
             REFRESHED_AT,
             truncated

@@ -15,6 +15,9 @@
  */
 package io.gravitee.repository.analytics.engine.api.query;
 
+import java.util.Arrays;
+import java.util.Optional;
+
 /**
  * A field a plugin, the gateway or a policy attaches to a request, stored under one of the reporter's maps with its raw
  * key: {@code additional-metrics} (typed by the key's prefix) or {@code custom} (assign-metrics values, keywords).
@@ -56,6 +59,13 @@ public record AdditionalMetricField(Root root, ValueType valueType, String rawKe
 
         public String prefix() {
             return prefix;
+        }
+
+        /** The root a wire name starts with; empty for a name under neither map. */
+        public static Optional<Root> of(String name) {
+            return Arrays.stream(values())
+                .filter(root -> name != null && name.startsWith(root.prefix))
+                .findFirst();
         }
     }
 
