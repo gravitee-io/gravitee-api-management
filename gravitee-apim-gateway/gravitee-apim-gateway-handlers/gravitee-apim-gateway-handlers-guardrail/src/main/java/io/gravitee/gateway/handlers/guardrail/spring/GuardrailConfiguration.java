@@ -21,8 +21,8 @@ import io.gravitee.gateway.api.genericevent.GenericEventRegistry;
 import io.gravitee.gateway.handlers.guardrail.decision.GuardrailDecisionReporter;
 import io.gravitee.gateway.handlers.guardrail.manager.GuardrailManager;
 import io.gravitee.gateway.handlers.guardrail.manager.impl.GuardrailManagerImpl;
-import io.gravitee.gateway.handlers.guardrail.policy.GuardrailPolicyFactory;
-import io.gravitee.gateway.handlers.guardrail.policy.plugin.GuardrailPolicyPlugin;
+import io.gravitee.gateway.handlers.guardrail.policy.GuardrailRunPolicyFactory;
+import io.gravitee.gateway.handlers.guardrail.policy.plugin.GuardrailRunPolicyPlugin;
 import io.gravitee.gateway.handlers.guardrail.registry.GuardrailRegistry;
 import io.gravitee.gateway.handlers.guardrail.sync.GuardrailGenericEventSubscriber;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
@@ -54,7 +54,7 @@ public class GuardrailConfiguration {
     ApplicationContext applicationContext;
 
     @PostConstruct
-    void registerGuardrailPolicyPlugin() {
+    void registerGuardrailRunPolicyPlugin() {
         String[] beanNamesForType = applicationContext.getBeanNamesForType(
             ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)
         );
@@ -63,7 +63,7 @@ public class GuardrailConfiguration {
             PolicyPlugin<?>
         >) applicationContext.getBean(beanNamesForType[0]);
 
-        policyPluginManager.register(new GuardrailPolicyPlugin());
+        policyPluginManager.register(new GuardrailRunPolicyPlugin());
     }
 
     @Bean
@@ -111,6 +111,6 @@ public class GuardrailConfiguration {
         final io.gravitee.node.api.configuration.Configuration configuration,
         final PolicyPluginFactory policyPluginFactory
     ) {
-        return new GuardrailPolicyFactory(configuration, policyPluginFactory, new ExpressionLanguageConditionFilter<>());
+        return new GuardrailRunPolicyFactory(configuration, policyPluginFactory, new ExpressionLanguageConditionFilter<>());
     }
 }

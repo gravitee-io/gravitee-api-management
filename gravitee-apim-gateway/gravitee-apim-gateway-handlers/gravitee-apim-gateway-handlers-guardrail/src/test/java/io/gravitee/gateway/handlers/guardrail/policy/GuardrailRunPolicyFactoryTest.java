@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.guardrail.GuardrailPolicyConfiguration;
+import io.gravitee.definition.model.guardrail.GuardrailRunPolicyConfiguration;
 import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
@@ -38,7 +38,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class GuardrailPolicyFactoryTest {
+class GuardrailRunPolicyFactoryTest {
 
     @Mock
     private Configuration configuration;
@@ -49,44 +49,44 @@ class GuardrailPolicyFactoryTest {
     @Mock
     private PolicyManifest policyManifest;
 
-    private GuardrailPolicyFactory cut;
+    private GuardrailRunPolicyFactory cut;
 
     @BeforeEach
     void setUp() {
-        cut = new GuardrailPolicyFactory(configuration, policyPluginFactory, new ExpressionLanguageConditionFilter<>());
+        cut = new GuardrailRunPolicyFactory(configuration, policyPluginFactory, new ExpressionLanguageConditionFilter<>());
     }
 
     @Test
-    void should_only_accept_the_guardrail_policy() {
-        when(policyManifest.id()).thenReturn(GuardrailPolicy.POLICY_ID, "transform-headers");
+    void should_only_accept_the_guardrail_run_policy() {
+        when(policyManifest.id()).thenReturn(GuardrailRunPolicy.POLICY_ID, "transform-headers");
 
         assertThat(cut.accept(policyManifest)).isTrue();
         assertThat(cut.accept(policyManifest)).isFalse();
     }
 
     @Test
-    void should_create_guardrail_policy_named_after_its_step() {
+    void should_create_guardrail_run_policy_named_after_its_step() {
         PolicyMetadata metadata = new PolicyMetadata("my-guardrail-step", "{}", null);
 
         HttpPolicy policy = cut.create(ExecutionPhase.REQUEST, policyManifest, configurationOf("guardrail-id"), metadata);
 
-        assertThat(policy).isInstanceOf(GuardrailPolicy.class);
+        assertThat(policy).isInstanceOf(GuardrailRunPolicy.class);
         assertThat(policy.id()).isEqualTo("my-guardrail-step");
     }
 
     @Test
     void should_keep_the_step_name_apart_from_the_id_of_the_policy() throws Exception {
-        PolicyMetadata metadata = new PolicyMetadata(GuardrailPolicy.POLICY_ID, "{}", null);
+        PolicyMetadata metadata = new PolicyMetadata(GuardrailRunPolicy.POLICY_ID, "{}", null);
         metadata.metadata().put(PolicyMetadata.MetadataKeys.STEP_NAME, "my step");
 
         HttpPolicy policy = cut.create(ExecutionPhase.REQUEST, policyManifest, configurationOf("guardrail-id"), metadata);
 
-        assertThat(policy.id()).isEqualTo(GuardrailPolicy.POLICY_ID);
+        assertThat(policy.id()).isEqualTo(GuardrailRunPolicy.POLICY_ID);
         assertThat(policy).extracting("stepName").isEqualTo("my step");
     }
 
     @Test
-    void should_wrap_guardrail_policy_in_a_conditional_policy_when_step_has_a_condition() {
+    void should_wrap_guardrail_run_policy_in_a_conditional_policy_when_step_has_a_condition() {
         PolicyMetadata metadata = new PolicyMetadata("my-guardrail-step", "{}", "{#request.headers['X-Guard'] != null}");
 
         HttpPolicy policy = cut.create(ExecutionPhase.REQUEST, policyManifest, configurationOf("guardrail-id"), metadata);
@@ -106,8 +106,8 @@ class GuardrailPolicyFactoryTest {
             .hasMessage("Guardrail step [my-guardrail-step] has no guardrailId");
     }
 
-    private static GuardrailPolicyConfiguration configurationOf(String guardrailId) {
-        GuardrailPolicyConfiguration configuration = new GuardrailPolicyConfiguration();
+    private static GuardrailRunPolicyConfiguration configurationOf(String guardrailId) {
+        GuardrailRunPolicyConfiguration configuration = new GuardrailRunPolicyConfiguration();
         configuration.setGuardrailId(guardrailId);
         return configuration;
     }

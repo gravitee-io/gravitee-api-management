@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * The Guardrails an API runs: the {@code guardrail-policy} steps of its internal flow, request ones before response
+ * The Guardrails an API runs: the {@code guardrail-run} steps of its internal flow, request ones before response
  * ones, each phase in execution order.
  *
  * <p>The internal flow belongs to the platform, not to Guardrails alone: any other step it holds is left where it is.

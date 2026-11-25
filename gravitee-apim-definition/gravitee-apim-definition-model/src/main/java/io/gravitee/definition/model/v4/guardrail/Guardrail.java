@@ -39,7 +39,7 @@ import lombok.ToString;
 
 /**
  * A Guardrail is a named group of policies deployed on its own and executed from an API flow through the
- * {@code guardrail-policy}. It follows the Shared Policy Group model, but is executed by the Guardrail reactor plugin.
+ * {@code guardrail-run} policy. It follows the Shared Policy Group model, but is executed by the Guardrail reactor plugin.
  *
  * @author GraviteeSource Team
  */

@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.handlers.guardrail.policy.plugin;
 
-import io.gravitee.definition.model.guardrail.GuardrailPolicyConfiguration;
-import io.gravitee.gateway.handlers.guardrail.policy.GuardrailPolicy;
+import io.gravitee.definition.model.guardrail.GuardrailRunPolicyConfiguration;
+import io.gravitee.gateway.handlers.guardrail.policy.GuardrailRunPolicy;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.policy.api.PolicyContext;
@@ -24,15 +24,15 @@ import java.net.URL;
 import java.nio.file.Path;
 
 /**
- * Registers the {@code guardrail-policy} as an internal policy, available to API flows without a plugin zip.
+ * Registers the {@code guardrail-run} policy as an internal policy, available to API flows without a plugin zip.
  *
  * @author GraviteeSource Team
  */
-public class GuardrailPolicyPlugin implements PolicyPlugin<GuardrailPolicyConfiguration> {
+public class GuardrailRunPolicyPlugin implements PolicyPlugin<GuardrailRunPolicyConfiguration> {
 
     @Override
     public Class<?> policy() {
-        return GuardrailPolicy.class;
+        return GuardrailRunPolicy.class;
     }
 
     @Override
@@ -41,18 +41,18 @@ public class GuardrailPolicyPlugin implements PolicyPlugin<GuardrailPolicyConfig
     }
 
     @Override
-    public Class<GuardrailPolicyConfiguration> configuration() {
-        return GuardrailPolicyConfiguration.class;
+    public Class<GuardrailRunPolicyConfiguration> configuration() {
+        return GuardrailRunPolicyConfiguration.class;
     }
 
     @Override
     public String id() {
-        return GuardrailPolicy.POLICY_ID;
+        return GuardrailRunPolicy.POLICY_ID;
     }
 
     @Override
     public String clazz() {
-        return GuardrailPolicy.class.getName();
+        return GuardrailRunPolicy.class.getName();
     }
 
     @Override
@@ -65,7 +65,7 @@ public class GuardrailPolicyPlugin implements PolicyPlugin<GuardrailPolicyConfig
         return new PluginManifest() {
             @Override
             public String id() {
-                return GuardrailPolicy.POLICY_ID;
+                return GuardrailRunPolicy.POLICY_ID;
             }
 
             @Override
@@ -90,7 +90,7 @@ public class GuardrailPolicyPlugin implements PolicyPlugin<GuardrailPolicyConfig
 
             @Override
             public String plugin() {
-                return GuardrailPolicy.class.getName();
+                return GuardrailRunPolicy.class.getName();
             }
 
             @Override

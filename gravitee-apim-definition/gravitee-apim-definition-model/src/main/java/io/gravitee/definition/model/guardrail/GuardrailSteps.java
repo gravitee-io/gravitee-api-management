@@ -29,16 +29,16 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * The {@code guardrail-policy} steps through which a flow runs Guardrails: one step per Guardrail, carrying its id.
+ * The {@code guardrail-run} steps through which a flow runs Guardrails: one step per Guardrail, carrying its id.
  *
  * @author GraviteeSource Team
  */
 public final class GuardrailSteps {
 
-    public static final String POLICY = "guardrail-policy";
+    public static final String POLICY = "guardrail-run";
 
     /**
-     * Reads and writes the step configuration through {@link GuardrailPolicyConfiguration}, the class the gateway
+     * Reads and writes the step configuration through {@link GuardrailRunPolicyConfiguration}, the class the gateway
      * deserialises it into, so the two cannot drift: renaming its field renames the key on both sides at once.
      * Unknown properties are ignored, since the policy may carry more of them than the management side knows about.
      */
@@ -47,7 +47,7 @@ public final class GuardrailSteps {
     private GuardrailSteps() {}
 
     public static Step of(String guardrailId, String name) {
-        var configuration = new GuardrailPolicyConfiguration();
+        var configuration = new GuardrailRunPolicyConfiguration();
         configuration.setGuardrailId(guardrailId);
         try {
             return Step.builder().name(name).policy(POLICY).configuration(MAPPER.writeValueAsString(configuration)).build();
@@ -56,13 +56,13 @@ public final class GuardrailSteps {
         }
     }
 
-    /** The Guardrail a step runs, empty when it is not a {@code guardrail-policy} step or does not name one. */
+    /** The Guardrail a step runs, empty when it is not a {@code guardrail-run} step or does not name one. */
     public static Optional<String> guardrailIdOf(Step step) {
         if (step == null || !POLICY.equals(step.getPolicy()) || step.getConfiguration() == null) {
             return Optional.empty();
         }
         try {
-            var guardrailId = MAPPER.readValue(step.getConfiguration(), GuardrailPolicyConfiguration.class).getGuardrailId();
+            var guardrailId = MAPPER.readValue(step.getConfiguration(), GuardrailRunPolicyConfiguration.class).getGuardrailId();
             return guardrailId == null || guardrailId.isBlank() ? Optional.empty() : Optional.of(guardrailId);
         } catch (JsonProcessingException e) {
             // The gateway refuses such a step when it loads the API; it runs no Guardrail either way.
