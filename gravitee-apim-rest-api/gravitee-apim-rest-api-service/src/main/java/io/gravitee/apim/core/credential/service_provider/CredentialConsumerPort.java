@@ -28,5 +28,10 @@ public interface CredentialConsumerPort {
     /** Every object of this module, in this environment, that references the credential; empty when none does. */
     List<Consumer> consumersOf(String environmentId, String credentialId);
 
+    /** Called after the references or the configuration of a credential changed, for a module that copies them into what it deploys. */
+    default void changed(Change change) {}
+
     record Consumer(String type, String id, String name) {}
+
+    record Change(String organizationId, String environmentId, String credentialId, String userId) {}
 }

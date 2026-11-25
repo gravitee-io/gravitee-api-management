@@ -21,4 +21,7 @@ import java.util.List;
 /** The objects of every Gamma module that use a credential. */
 public interface CredentialConsumers {
     List<CredentialConsumer> of(String environmentId, String credentialId);
+
+    /** Tells every module; a module that fails is logged, so the change it reacts to stands. */
+    void changed(CredentialConsumerPort.Change change);
 }
