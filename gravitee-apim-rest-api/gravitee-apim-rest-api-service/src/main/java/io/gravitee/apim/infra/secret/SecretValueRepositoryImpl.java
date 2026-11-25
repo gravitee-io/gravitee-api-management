@@ -17,6 +17,8 @@ package io.gravitee.apim.infra.secret;
 
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.secret.crud_service.SecretCrudService;
+import io.gravitee.apim.core.secret.exception.SecretNotFoundException;
+import io.gravitee.apim.core.secret.model.Secret;
 import io.gravitee.apim.core.secret.service_provider.SecretValueEncryptor;
 import io.gravitee.repository.management.api.SecretValueRepository;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
@@ -48,8 +50,16 @@ public class SecretValueRepositoryImpl implements SecretValueRepository {
         } catch (EnvironmentNotFoundException e) {
             return Optional.empty();
         }
-        return secretCrudService
-            .findByKey(organizationId, environmentId, key)
-            .map(secret -> secretValueEncryptor.decrypt(secret, secretCrudService.getEncryptedValue(secret)));
+        return secretCrudService.findByKey(organizationId, environmentId, key).flatMap(this::decryptedValue);
+    }
+
+    private Optional<String> decryptedValue(Secret secret) {
+        String encryptedValue;
+        try {
+            encryptedValue = secretCrudService.getEncryptedValue(secret);
+        } catch (SecretNotFoundException e) {
+            return Optional.empty();
+        }
+        return Optional.of(secretValueEncryptor.decrypt(secret, encryptedValue));
     }
 }

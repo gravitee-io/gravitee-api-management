@@ -27,6 +27,7 @@ import io.gravitee.apim.core.secret.model.Secret;
 import io.gravitee.repository.exceptions.TechnicalException;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -64,6 +65,24 @@ class SecretValueRepositoryImplTest {
     @Test
     void should_find_nothing_for_an_environment_that_does_not_exist() throws TechnicalException {
         assertThat(repository.findValue("unknown", "llm-key")).isEmpty();
+    }
+
+    @Test
+    void should_find_nothing_when_the_secret_is_deleted_after_it_was_found() throws TechnicalException {
+        var deletingCrudService = new SecretCrudServiceInMemory() {
+            @Override
+            public Optional<Secret> findByKey(String organizationId, String environmentId, String key) {
+                Optional<Secret> found = super.findByKey(organizationId, environmentId, key);
+                found.ifPresent(this::delete);
+                return found;
+            }
+        };
+        var secret = Secret.create("s-1", ORG, ENV, "llm-key", Instant.now());
+        deletingCrudService.create(secret, encryptor.encrypt(secret, "sk-live-123"));
+
+        var racingRepository = new SecretValueRepositoryImpl(environmentCrudService, deletingCrudService, encryptor);
+
+        assertThat(racingRepository.findValue(ENV, "llm-key")).isEmpty();
     }
 
     @Test
