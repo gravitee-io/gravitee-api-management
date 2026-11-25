@@ -104,8 +104,18 @@ class AnalyticsNameTest {
         assertThat(FilterName.parse("additional-metrics.double_custom_basket-value")).isPresent();
     }
 
+    @Test
+    void should_read_a_custom_name_as_a_filter_a_facet_and_a_metric_name() {
+        var basket = new AdditionalMetricName(AdditionalMetricField.parse("custom.basket-value").orElseThrow());
+
+        assertThat(FilterName.parse("custom.basket-value")).contains(basket);
+        assertThat(FacetName.parse("custom.basket-value")).contains(basket);
+        assertThat(MetricName.parse("custom.basket-value")).contains(basket);
+        assertThat(basket.name()).isEqualTo("custom.basket-value");
+    }
+
     @ParameterizedTest
-    @ValueSource(strings = { "custom.basket-value", "UNKNOWN_NAME", "additional-metrics.float_ratio", "api" })
+    @ValueSource(strings = { "custom.", "custom.a..b", "UNKNOWN_NAME", "additional-metrics.float_ratio", "api" })
     void should_read_nothing_from_a_name_that_is_neither(String name) {
         assertThat(FilterName.parse(name)).isEmpty();
         assertThat(FacetName.parse(name)).isEmpty();

@@ -26,7 +26,10 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public interface AdditionalMetricGrammarPort {
-    /** The field a well-formed {@code additional-metrics.<rawKey>} name designates; empty for anything else. */
+    /**
+     * The field a well-formed {@code additional-metrics.<rawKey>} or {@code custom.<rawKey>} name designates; empty for
+     * anything else.
+     */
     Optional<AdditionalMetricField> parse(String name);
 
     /**

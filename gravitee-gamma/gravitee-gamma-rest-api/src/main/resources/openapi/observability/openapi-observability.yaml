@@ -292,8 +292,8 @@ paths:
                 `NATIVE_OPERATION` are the exception: their values live in a stream the store does not
                 aggregate over, and they return 400.
                 NUMBER and STRING filters have no enumerable values and return 400. `page` is capped at
-                10000; a larger page returns 400. An additional metric field name holding a `/` cannot travel
-                in this path: use `GET /filters/values?name=`.
+                10000; a larger page returns 400. An additional metric or custom field name holding a `/`
+                cannot travel in this path: use `GET /filters/values?name=`.
             operationId: getObservabilityFilterValues
             parameters:
                 - name: filterName
@@ -453,12 +453,14 @@ paths:
                 distinct values found in the calls of the APIs whose aggregates the caller reads (whose logs
                 they read when the field holds the values of a built-in identifying callers); a `bool_` field
                 returns `true` and `false`; `long_`, `int_`, `double_`, `string_` and `json_` fields return 400.
+                A custom metric `custom.<name>` (a value the assign-metrics policy writes) is a keyword field:
+                its distinct values, read as aggregates; a name no call carries yet returns no value.
             operationId: getObservabilityFilterValuesByName
             parameters:
                 - name: name
                   in: query
                   required: true
-                  description: The filter name, built-in or `additional-metrics.<rawKey>`.
+                  description: The filter name, built-in, `additional-metrics.<rawKey>` or `custom.<name>`.
                   example: additional-metrics.keyword_mcp-proxy_tools/call
                   schema:
                       type: string
@@ -960,7 +962,8 @@ paths:
                 **Additional metric fields**: a condition may also name an additional metric field,
                 `additional-metrics.<type>_<key>`, with the operators its type prefix takes: `EQ`/`IN` on
                 `keyword_`, `EQ`/`GTE`/`LTE` on `long_`, `int_` and `double_` (decimals on `double_` only),
-                `EQ` on `bool_`, none on `string_` and `json_`. One `GTE` and one `LTE` on the same field
+                `EQ` on `bool_`, none on `string_` and `json_`. A custom metric `custom.<name>` takes `EQ`/`IN`
+                like a `keyword_` field. One `GTE` and one `LTE` on the same field
                 select the values between them. A row matches only when it carries the field; a
                 well-formed name no row carries answers an empty page, whether or not the field is listed
                 by `GET /observability/filters/definition`. Native connection rows are matched like any
@@ -2454,7 +2457,7 @@ components:
                 - `interval` is missing or not positive, on time-series (`observability.query.invalid_interval`)
                 - `limit` is above 100, on time-series (`observability.query.invalid_limit`)
                 - A metric, measure, facet or sort order the engine does not know (`observability.query.unknown_metric`, `unknown_measure`, `unknown_facet`, `unknown_sort_order`)
-                - A metric naming an additional metric field that holds no number, a `keyword_`, `bool_`, `string_` or `json_` one (`observability.query.not_a_metric`)
+                - A metric naming an additional metric field that holds no number, a `keyword_`, `bool_`, `string_` or `json_` one, or a custom metric `custom.<name>` (`observability.query.not_a_metric`)
                 - An array of the body holds a null entry (`observability.query.null_entry`)
                 - A combination the engine refuses, such as a facet a metric does not support (no technical code)
                 - A key the schema does not declare, at any depth: the message names it (no technical code)
@@ -2806,7 +2809,9 @@ components:
                         built-in filter serves is `additional-metrics.<rawKey>`, a key a built-in metric reads
                         included (`origin: BUILT_IN`), where `rawKey` is a type prefix followed by one or more
                         segments of letters, digits, `-`, `_` and `/` joined by single dots, 256 characters at
-                        most. The two forms never collide.
+                        most. A custom metric, a value the assign-metrics policy writes, is `custom.<name>`, where
+                        `name` is the key as written, 1 to 256 characters, not blank, with no leading or trailing
+                        dot, no `..`, and none of `"`, `\` and `*`. The three forms never collide.
                     example: HTTP_GATEWAY_RESPONSE_TIME
                 label:
                     type: string
@@ -3006,8 +3011,8 @@ components:
                     type: array
                     description: |
                         Filter conditions to apply, all ANDed. Validated against the LOGS signal catalog; an
-                        additional metric field `additional-metrics.<type>_<key>` is accepted off the catalog
-                        (see the operation).
+                        additional metric field `additional-metrics.<type>_<key>` or a custom metric
+                        `custom.<name>` is accepted off the catalog (see the operation).
                     items:
                         $ref: "#/components/schemas/FilterCondition"
 
@@ -3040,11 +3045,11 @@ components:
 
                 - `name` is in the catalog and applies to the signal (`unknown_name`, `signal_mismatch`). On
                   analytics and the logs search, a well-formed additional metric field
-                  `additional-metrics.<type>_<key>` is accepted off the catalog, typed by its prefix, whether
-                  or not any request carries it yet;
+                  `additional-metrics.<type>_<key>` is accepted off the catalog, typed by its prefix, and so is
+                  a custom metric `custom.<name>`, a keyword, whether or not any request carries it yet;
                 - `operator` is one the filter advertises, or the value type of an additional metric field
-                  takes (`unsupported_operator`): `EQ`/`IN` on `keyword_`, `EQ`/`GTE`/`LTE` on `long_`,
-                  `int_` and `double_`, `EQ` on `bool_`, none on `string_` and `json_`;
+                  takes (`unsupported_operator`): `EQ`/`IN` on `keyword_` and `custom.<name>`, `EQ`/`GTE`/`LTE`
+                  on `long_`, `int_` and `double_`, `EQ` on `bool_`, none on `string_` and `json_`;
                 - `value` is a scalar or an array of scalars, with no null element (`invalid_value_shape`);
                 - `IN` and `NOT_IN` take one or more values, every other operator exactly one
                   (`invalid_arity`, `blank_value`);
@@ -3060,7 +3065,7 @@ components:
             properties:
                 name:
                     type: string
-                    description: Canonical filter name from the catalog, or an additional metric field name on analytics and the logs search.
+                    description: Canonical filter name from the catalog, or an additional metric or custom field name on analytics and the logs search.
                     example: HTTP_STATUS
                 operator:
                     $ref: "#/components/schemas/FilterOperator"
@@ -3642,7 +3647,8 @@ components:
                         `long_`, `int_` or `double_` key (`additional-metrics.long_failover_count`). Such a
                         field is measured over the requests carrying it, on the HTTP request documents,
                         and a well-formed one no request carries answers like an empty window. A field of
-                        another type is refused (`observability.query.not_a_metric`).
+                        another type, and a custom metric `custom.<name>`, is refused
+                        (`observability.query.not_a_metric`).
                     example: "HTTP_REQUESTS"
                 measures:
                     type: array
@@ -3783,8 +3789,9 @@ components:
                         Facet dimensions to break down by (e.g. `API`, `HTTP_STATUS`,
                         `HTTP_METHOD`, `APPLICATION`, `PLAN`, `GATEWAY`, `LLM_PROXY_MODEL`), or additional
                         metric fields `additional-metrics.<type>_<key>` on the request metrics: a `keyword_` or
-                        `bool_` field at any level, a number field as the last one with `ranges`. A malformed
-                        name is refused with a 400 naming it.
+                        `bool_` field at any level, a number field as the last one with `ranges`. A custom
+                        metric `custom.<name>` groups by its values at any level, like a `keyword_` field. A
+                        malformed name is refused with a 400 naming it.
                     items:
                         type: string
                     example: ["API"]

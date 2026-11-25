@@ -199,8 +199,8 @@ public class SpiFilterRegistry implements FilterRegistry {
     }
 
     /**
-     * The validation spec of an additional metric field, typed by its prefix (OBS-70, §2). No label: deriving one here
-     * would be a second label rule.
+     * The validation spec of an additional metric field, typed by its prefix (OBS-70, §2), or of a custom field, a
+     * keyword (OBS-171). No label: deriving one here would be a second label rule.
      */
     private static FilterSpec specOf(AdditionalMetricField field) {
         var type = switch (field.valueType()) {
@@ -231,7 +231,14 @@ public class SpiFilterRegistry implements FilterRegistry {
             range,
             Set.of(Signal.ANALYTICS, Signal.LOGS),
             Set.of(),
-            new CatalogFlags(null, field.rawKey(), AdditionalMetricValueType.valueOf(field.valueType().name()), null, true, null)
+            new CatalogFlags(
+                null,
+                AdditionalMetricGrammarPortAdapter.toCatalogField(field).servedRawKey(),
+                AdditionalMetricValueType.valueOf(field.valueType().name()),
+                null,
+                true,
+                null
+            )
         );
     }
 

@@ -21,38 +21,71 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
- * A field a plugin or the gateway attaches to a request as an additional metric, named on the wire
- * {@code additional-metrics.<rawKey>} (OBS-70). The raw key is the key the reporter writes, its type prefix
- * up to the first {@code _} gives the value type, so the name reads back without a lookup.
+ * A field a plugin, the gateway or a policy attaches to a request, stored under one of the two maps the reporter
+ * writes (OBS-70, OBS-171):
+ * <ul>
+ *   <li>{@code additional-metrics.<rawKey>}: the raw key's type prefix up to the first {@code _} gives the value type,
+ *       so the name reads back without a lookup;</li>
+ *   <li>{@code custom.<rawKey>}: a value the assign-metrics policy writes, always a keyword.</li>
+ * </ul>
  *
  * <p>{@link #parse(String)} is the one reader of that grammar: every surface accepting a dynamic name, analytics
  * or logs, goes through it.
  *
- * @param valueType what the type prefix of {@code rawKey} declares
- * @param rawKey    the additional metric key, type prefix included ({@code long_failover_count})
+ * @param root      the map the reporter writes the key under
+ * @param valueType what the type prefix of {@code rawKey} declares; {@link ValueType#KEYWORD} under {@link Root#CUSTOM}
+ * @param rawKey    the key as the reporter writes it under its root ({@code long_failover_count}, {@code fraud-tier})
  */
-public record AdditionalMetricField(ValueType valueType, String rawKey) {
-    public static final String NAME_PREFIX = "additional-metrics.";
+public record AdditionalMetricField(Root root, ValueType valueType, String rawKey) {
+    public static final String NAME_PREFIX = Root.ADDITIONAL_METRICS.prefix();
     public static final int MAX_NAME_LENGTH = 256;
+    public static final int MAX_CUSTOM_KEY_LENGTH = 256;
 
     // Possessive: a segment never gives characters back, so matching cannot backtrack nor recurse per segment.
     private static final Pattern RAW_KEY = Pattern.compile(
         "(?:long|int|double|bool|keyword|string|json)_[A-Za-z0-9_/-]++(?:\\.[A-Za-z0-9_/-]++)*+"
     );
 
-    /** Holds only a key of the grammar, typed by its own prefix: the field path derives from nothing else. */
+    /** Holds only a key of its root's grammar, typed by its own prefix or a keyword: the field path derives from nothing else. */
     public AdditionalMetricField {
-        if (rawKey == null || NAME_PREFIX.length() + rawKey.length() > MAX_NAME_LENGTH || !RAW_KEY.matcher(rawKey).matches()) {
-            throw new IllegalArgumentException("Not an additional metric key: " + rawKey);
+        if (root == null) {
+            throw new IllegalArgumentException("No root for additional metric key " + rawKey);
         }
-        if (valueType != ValueType.ofRawKey(rawKey)) {
-            throw new IllegalArgumentException("Additional metric key " + rawKey + " is not of type " + valueType);
+        switch (root) {
+            case ADDITIONAL_METRICS -> {
+                if (rawKey == null || NAME_PREFIX.length() + rawKey.length() > MAX_NAME_LENGTH || !RAW_KEY.matcher(rawKey).matches()) {
+                    throw new IllegalArgumentException("Not an additional metric key: " + rawKey);
+                }
+                if (valueType != ValueType.ofRawKey(rawKey)) {
+                    throw new IllegalArgumentException("Additional metric key " + rawKey + " is not of type " + valueType);
+                }
+            }
+            case CUSTOM -> {
+                if (!isCustomKey(rawKey)) {
+                    throw new IllegalArgumentException("Not a custom metric key: " + rawKey);
+                }
+                if (valueType != ValueType.KEYWORD) {
+                    throw new IllegalArgumentException("Custom metric key " + rawKey + " holds keywords, not " + valueType);
+                }
+            }
         }
+    }
+
+    /** A field of the {@code additional-metrics} map, typed by the prefix of its raw key. */
+    public AdditionalMetricField(ValueType valueType, String rawKey) {
+        this(Root.ADDITIONAL_METRICS, valueType, rawKey);
     }
 
     /** The field a well-formed dynamic name designates; empty for anything else, built-in names included. */
     public static Optional<AdditionalMetricField> parse(String name) {
-        if (name == null || name.length() > MAX_NAME_LENGTH || !name.startsWith(NAME_PREFIX)) {
+        if (name == null) {
+            return Optional.empty();
+        }
+        if (name.startsWith(Root.CUSTOM.prefix())) {
+            var key = name.substring(Root.CUSTOM.prefix().length());
+            return isCustomKey(key) ? Optional.of(new AdditionalMetricField(Root.CUSTOM, ValueType.KEYWORD, key)) : Optional.empty();
+        }
+        if (name.length() > MAX_NAME_LENGTH || !name.startsWith(NAME_PREFIX)) {
             return Optional.empty();
         }
         var rawKey = name.substring(NAME_PREFIX.length());
@@ -62,9 +95,43 @@ public record AdditionalMetricField(ValueType valueType, String rawKey) {
         return Optional.of(new AdditionalMetricField(ValueType.ofRawKey(rawKey), rawKey));
     }
 
-    /** The wire name, {@code additional-metrics.<rawKey>}. */
+    /** The wire name, {@code <root>.<rawKey>}: the path of the field on a request document. */
     public String name() {
-        return NAME_PREFIX + rawKey;
+        return root.prefix() + rawKey;
+    }
+
+    /**
+     * Any key the reporter can index as a field, kept as written: Elasticsearch refuses an empty segment, the template
+     * writes the key unescaped (a quote or a backslash breaks the document), {@code *} reads as a pattern in a field
+     * query, and the policy never writes a blank name.
+     */
+    private static boolean isCustomKey(String key) {
+        return (
+            key != null &&
+            !key.isBlank() &&
+            key.length() <= MAX_CUSTOM_KEY_LENGTH &&
+            !key.startsWith(".") &&
+            !key.endsWith(".") &&
+            !key.contains("..") &&
+            key.chars().noneMatch(c -> c == '"' || c == '\\' || c == '*')
+        );
+    }
+
+    /** The map of a request document the reporter writes a key under. */
+    public enum Root {
+        ADDITIONAL_METRICS("additional-metrics."),
+        CUSTOM("custom.");
+
+        private final String prefix;
+
+        Root(String prefix) {
+            this.prefix = prefix;
+        }
+
+        /** The start of the wire name of a key under this root, the {@code .} included. */
+        public String prefix() {
+            return prefix;
+        }
     }
 
     public enum ValueType {

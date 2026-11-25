@@ -51,6 +51,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
@@ -243,6 +245,41 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
             .asEntity(FilterValuesResponse.class)
             .extracting(FilterValuesResponse::getData)
             .satisfies(data -> assertThat(data).extracting(FilterValueItem::getValue).containsExactly("high", "low"));
+    }
+
+    /** The wider core grammar also opens assign-metrics values to the Console (OBS-175): aggregates, like any keyword field. */
+    @Test
+    void should_return_the_values_of_a_custom_field() {
+        when(
+            filterValuesQueryService.searchFilterValues(
+                any(),
+                any(),
+                argThat(name -> name != null && name.name().equals("custom.fraud-tier")),
+                any(),
+                any(),
+                anyInt(),
+                eq(10),
+                any(),
+                any(),
+                any()
+            )
+        ).thenReturn(new FilterValuesPage(List.of(new FilterValue("gold"), new FilterValue("silver")), null));
+
+        var response = rootTarget("custom.fraud-tier/values").request().get();
+
+        assertThat(response)
+            .hasStatus(200)
+            .asEntity(FilterValuesResponse.class)
+            .extracting(FilterValuesResponse::getData)
+            .satisfies(data -> assertThat(data).extracting(FilterValueItem::getValue).containsExactly("gold", "silver"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "custom.tier*", "custom. " })
+    void should_return_400_for_a_custom_name_outside_the_grammar(String name) {
+        var response = rootTarget(name + "/values").request().get();
+
+        assertThat(response).hasStatus(400).asError().hasHttpStatus(400).hasMessage("Invalid filter name");
     }
 
     @Test

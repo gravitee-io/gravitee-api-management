@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.resource.observability.logs;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -376,6 +377,18 @@ class LogsResourceTest extends AbstractResourceTest {
                 "observability.filter.unknown_enum_value"
             ),
             arguments(
+                "a blank custom name",
+                List.of(Map.of("name", "custom. ", "operator", "EQ", "value", "x")),
+                "Filter 'custom. ' is not supported by this backend",
+                "observability.filter.unknown_name"
+            ),
+            arguments(
+                "a bound on a custom field",
+                List.of(Map.of("name", "custom.fraud-tier", "operator", "GTE", "value", "1")),
+                "Operator 'GTE' is not supported yet for filter 'custom.fraud-tier'",
+                "observability.filter.unsupported_operator"
+            ),
+            arguments(
                 "the decision search",
                 List.of(
                     Map.of("name", "RECORD_TYPE", "operator", "EQ", "value", "AUTHZ_DECISION"),
@@ -440,6 +453,27 @@ class LogsResourceTest extends AbstractResourceTest {
             var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
             verify(logsDataPort).searchLogs(any(), any(), captor.capture());
             assertThat(captor.getValue().conditions()).extracting(FilterCondition::values).containsExactly(List.of(value));
+        }
+
+        @Test
+        void should_search_on_a_custom_key_no_row_carries_yet_with_its_custom_name() {
+            when(searchLogsUseCase.execute(any())).thenAnswer(invocation -> realUseCase.execute(invocation.getArgument(0)));
+            when(logsDataPort.loadAccessibleApis(any(), any())).thenReturn(
+                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
+            );
+            when(logsDataPort.searchLogs(any(), any(), any())).thenReturn(LogsPage.EMPTY);
+            var filters = List.of(Map.of("name", "custom.never-written", "operator", "IN", "value", List.of("gold", "silver")));
+
+            Response response = rootTarget("search")
+                .request()
+                .post(Entity.entity(Map.of("timeRange", TIME_RANGE, "filters", filters), MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
+            verify(logsDataPort).searchLogs(any(), any(), captor.capture());
+            assertThat(captor.getValue().conditions())
+                .extracting(FilterCondition::name, FilterCondition::values)
+                .containsExactly(tuple("custom.never-written", List.of("gold", "silver")));
         }
 
         @Test

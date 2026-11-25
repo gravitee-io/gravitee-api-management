@@ -277,6 +277,31 @@ class GetObservabilityFilterValuesUseCaseTest {
     }
 
     @Test
+    void should_list_the_values_of_a_custom_field_no_catalog_lists() {
+        var name = "custom.fraud-tier";
+        dataPort.givenKeywordValues(name, List.of(new FilterValue("gold", null), new FilterValue("silver", null)));
+
+        var output = useCase.execute(new GetObservabilityFilterValuesUseCase.Input(name, null, null, null, null, null));
+
+        assertThat(output.values().data()).extracting(FilterValue::value).containsExactly("gold", "silver");
+        assertThat(dataPort.lastCall()).hasValueSatisfying(call -> assertThat(call.filterName()).isEqualTo(name));
+    }
+
+    @Test
+    void should_list_no_value_for_a_custom_key_no_document_carries_yet() {
+        var output = useCase.execute(new GetObservabilityFilterValuesUseCase.Input("custom.never-written", null, null, null, null, null));
+
+        assertThat(output.values().data()).isEmpty();
+    }
+
+    @Test
+    void should_not_find_a_custom_name_outside_the_grammar() {
+        assertThatThrownBy(() ->
+            useCase.execute(new GetObservabilityFilterValuesUseCase.Input("custom.a..b", null, null, null, null, null))
+        ).isInstanceOf(ObservabilityFilterNotFoundException.class);
+    }
+
+    @Test
     void should_answer_true_and_false_for_a_boolean_additional_metric_field() {
         var all = useCase.execute(
             new GetObservabilityFilterValuesUseCase.Input("additional-metrics.bool_cache_hit", null, null, null, null, null)

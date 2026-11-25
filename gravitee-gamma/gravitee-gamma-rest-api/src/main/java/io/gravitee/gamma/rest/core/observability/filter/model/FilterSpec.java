@@ -94,7 +94,10 @@ public record FilterSpec(
         this(name, label, null, type, operators, enumValues, range, signals, apiTypes, catalog);
     }
 
-    /** The value type of the additional metric field this spec reads, named by its type prefix (OBS-70); null for a built-in filter. */
+    /**
+     * The value type of the additional metric field this spec reads, named by its type prefix (OBS-70), a keyword for a
+     * custom field; null for a built-in filter.
+     */
     public AdditionalMetricValueType valueType() {
         return catalog == null ? null : catalog.valueType();
     }

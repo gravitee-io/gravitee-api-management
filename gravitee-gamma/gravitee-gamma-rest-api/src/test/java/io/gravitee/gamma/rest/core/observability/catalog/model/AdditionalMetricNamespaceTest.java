@@ -29,6 +29,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Pins the interim namespace map (OBS-194 deletes it) and what the catalog reads from a key's namespace. The map
@@ -109,6 +110,17 @@ class AdditionalMetricNamespaceTest {
         assertThat(field.isReserved()).isTrue();
         assertThat(field.namespace()).contains("custom");
         assertThat(field.apiTypes()).isEmpty();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "fraud-tier", "keyword_llm-proxy_model", "keyword_custom_tier", "long_quota_remaining" })
+    void should_serve_the_custom_namespace_of_a_custom_root_key_with_no_kind_whatever_it_spells(String rawKey) {
+        var field = new AdditionalMetricField(AdditionalMetricField.Root.CUSTOM, rawKey, AdditionalMetricValueType.KEYWORD);
+
+        assertThat(field.namespace()).contains("custom");
+        assertThat(AdditionalMetricNamespace.segmentOf(field)).isEmpty();
+        assertThat(field.apiTypes()).isEmpty();
+        assertThat(field.name()).isEqualTo("custom." + rawKey);
     }
 
     @ParameterizedTest
