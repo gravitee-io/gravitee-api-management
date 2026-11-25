@@ -19,10 +19,12 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.API_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ENVIRONMENT_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDIAN_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ORGANIZATION_ID;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aConditionSyntax;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardedApi;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
@@ -32,6 +34,7 @@ import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.definition.model.guardian.GuardianSteps;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.GuardianBuilder;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import io.gravitee.gamma.rest.core.guardian.GuardianAuditFixture;
@@ -44,10 +47,12 @@ import io.gravitee.gamma.rest.core.guardian.exception.GuardianIncompatibleApiTyp
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotDeployedException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianNotFoundException;
 import io.gravitee.gamma.rest.core.guardian.exception.GuardianPhaseMismatchException;
+import io.gravitee.gamma.rest.core.guardian.exception.InvalidApiGuardianConditionException;
 import io.gravitee.gamma.rest.core.guardian.exception.TooManyApiGuardiansException;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardedApiPort;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.ApiGuardian;
+import io.gravitee.gamma.rest.core.guardian.model.ApiGuardianAttachment;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import java.time.Instant;
 import java.util.List;
@@ -55,6 +60,7 @@ import java.util.Set;
 import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class SetApiGuardiansDomainServiceTest {
@@ -86,9 +92,9 @@ class SetApiGuardiansDomainServiceTest {
                 .assertThat(enabled)
                 .as("guardians enabled on the API")
                 .containsExactly(
-                    new ApiGuardian(GUARDIAN_ID, "Credential leakage", Phase.REQUEST, 1, List.of()),
-                    new ApiGuardian("guardian-0", "Prompt injection", Phase.REQUEST, 2, List.of()),
-                    new ApiGuardian("guardian-2", "Toxicity", Phase.RESPONSE, 1, List.of())
+                    new ApiGuardian(GUARDIAN_ID, "Credential leakage", Phase.REQUEST, 1, List.of(), null),
+                    new ApiGuardian("guardian-0", "Prompt injection", Phase.REQUEST, 2, List.of(), null),
+                    new ApiGuardian("guardian-2", "Toxicity", Phase.RESPONSE, 1, List.of(), null)
                 );
             var stored = apis.findById(ENVIRONMENT_ID, API_ID).orElseThrow().internalFlow();
             softly
@@ -155,7 +161,7 @@ class SetApiGuardiansDomainServiceTest {
             softly
                 .assertThat(enabled)
                 .as("guardians enabled on the API, named as the revision the gateways run names them")
-                .containsExactly(new ApiGuardian(GUARDIAN_ID, "Credential leakage", Phase.RESPONSE, 1, List.of()));
+                .containsExactly(new ApiGuardian(GUARDIAN_ID, "Credential leakage", Phase.RESPONSE, 1, List.of(), null));
             softly
                 .assertThat(apis.findById(ENVIRONMENT_ID, API_ID).orElseThrow().internalFlow().getResponse())
                 .as("stored response steps, named as the deployed revision is")
@@ -427,10 +433,212 @@ class SetApiGuardiansDomainServiceTest {
             .isEmpty();
     }
 
+    /** The calls each Guardian runs on: an expression the gateway evaluates before the Guardian's step. */
+    @Nested
+    class Conditions {
+
+        private static final String TEAM_A = "{#context.attributes['aihub.team'] == 'team-a'}";
+        private static final String TEAM_B = "{#context.attributes['aihub.team'] == 'team-b'}";
+
+        @Test
+        void should_run_each_guardian_under_its_condition() {
+            givenDeployedGuardian(d -> d.id("guardian-0").name("Prompt injection").phase(Phase.REQUEST));
+            givenDeployedGuardian(d -> d.name("Credential leakage").phase(Phase.REQUEST));
+            givenDeployedGuardian(d -> d.id("guardian-2").name("Toxicity").phase(Phase.RESPONSE));
+            apis.givenApi(aGuardedApi().build());
+
+            var enabled = service.setAttachments(
+                API_ID,
+                List.of(new ApiGuardianAttachment(GUARDIAN_ID, TEAM_A), new ApiGuardianAttachment("guardian-0", null)),
+                List.of(new ApiGuardianAttachment("guardian-2", TEAM_B)),
+                actor
+            );
+
+            assertSoftly(softly -> {
+                softly
+                    .assertThat(enabled)
+                    .as("guardians enabled on the API")
+                    .containsExactly(
+                        new ApiGuardian(GUARDIAN_ID, "Credential leakage", Phase.REQUEST, 1, List.of(), TEAM_A),
+                        new ApiGuardian("guardian-0", "Prompt injection", Phase.REQUEST, 2, List.of(), null),
+                        new ApiGuardian("guardian-2", "Toxicity", Phase.RESPONSE, 1, List.of(), TEAM_B)
+                    );
+                softly
+                    .assertThat(storedInternalFlow().getRequest())
+                    .as("stored request steps")
+                    .containsExactly(
+                        GuardianSteps.of(GUARDIAN_ID, "Credential leakage", TEAM_A),
+                        GuardianSteps.of("guardian-0", "Prompt injection")
+                    );
+                softly
+                    .assertThat(storedInternalFlow().getResponse())
+                    .as("stored response steps")
+                    .containsExactly(GuardianSteps.of("guardian-2", "Toxicity", TEAM_B));
+            });
+        }
+
+        /** A caller setting the Guardians by id does not make a Guardian that runs on some calls run on all of them. */
+        @Test
+        void should_keep_the_condition_a_guardian_runs_under_when_the_guardians_are_set_by_id() {
+            givenDeployedGuardian(d -> d.name("Credential leakage").phase(Phase.REQUEST));
+            givenDeployedGuardian(d -> d.id("guardian-0").name("Prompt injection").phase(Phase.REQUEST));
+            apis.givenApi(
+                aGuardedApi()
+                    .internalFlow(Flow.builder().request(List.of(GuardianSteps.of(GUARDIAN_ID, "Credential leakage", TEAM_A))).build())
+                    .build()
+            );
+
+            var enabled = service.set(API_ID, List.of("guardian-0", GUARDIAN_ID), List.of(), actor);
+
+            assertSoftly(softly -> {
+                softly
+                    .assertThat(enabled)
+                    .as("guardians enabled on the API")
+                    .extracting(ApiGuardian::guardianId, ApiGuardian::condition)
+                    .containsExactly(tuple("guardian-0", null), tuple(GUARDIAN_ID, TEAM_A));
+                softly
+                    .assertThat(storedInternalFlow().getRequest())
+                    .as("stored request steps")
+                    .containsExactly(
+                        GuardianSteps.of("guardian-0", "Prompt injection"),
+                        GuardianSteps.of(GUARDIAN_ID, "Credential leakage", TEAM_A)
+                    );
+            });
+        }
+
+        @Test
+        void should_change_or_drop_the_condition_a_guardian_runs_under() {
+            givenDeployedGuardian(d -> d.name("Credential leakage").phase(Phase.REQUEST));
+            givenDeployedGuardian(d -> d.id("guardian-0").name("Prompt injection").phase(Phase.REQUEST));
+            givenDeployedGuardian(d -> d.id("guardian-3").name("Secrets").phase(Phase.REQUEST));
+            apis.givenApi(
+                aGuardedApi()
+                    .internalFlow(
+                        Flow.builder()
+                            .request(
+                                List.of(
+                                    GuardianSteps.of(GUARDIAN_ID, "Credential leakage", TEAM_A),
+                                    GuardianSteps.of("guardian-0", "Prompt injection", TEAM_A),
+                                    GuardianSteps.of("guardian-3", "Secrets", TEAM_A)
+                                )
+                            )
+                            .build()
+                    )
+                    .build()
+            );
+
+            service.setAttachments(
+                API_ID,
+                List.of(
+                    new ApiGuardianAttachment(GUARDIAN_ID, TEAM_B),
+                    new ApiGuardianAttachment("guardian-0", null),
+                    new ApiGuardianAttachment("guardian-3", "  ")
+                ),
+                List.of(),
+                actor
+            );
+
+            assertThat(storedInternalFlow().getRequest())
+                .as("stored request steps, a blank condition dropped like a missing one")
+                .containsExactly(
+                    GuardianSteps.of(GUARDIAN_ID, "Credential leakage", TEAM_B),
+                    GuardianSteps.of("guardian-0", "Prompt injection"),
+                    GuardianSteps.of("guardian-3", "Secrets")
+                );
+        }
+
+        /** The condition reads attributes the leading steps set, so a first Guardian goes after them. */
+        @Test
+        void should_run_a_first_guardian_after_the_steps_already_in_the_phase() {
+            givenDeployedGuardian(d -> d.name("Credential leakage").phase(Phase.REQUEST));
+            apis.givenApi(aGuardedApi().internalFlow(Flow.builder().request(List.of(anAiHubStep())).build()).build());
+
+            service.setAttachments(API_ID, List.of(new ApiGuardianAttachment(GUARDIAN_ID, TEAM_A)), List.of(), actor);
+
+            assertThat(storedInternalFlow().getRequest())
+                .as("stored request steps")
+                .containsExactly(anAiHubStep(), GuardianSteps.of(GUARDIAN_ID, "Credential leakage", TEAM_A));
+        }
+
+        @Test
+        void should_leave_a_block_of_guardians_running_before_the_other_steps_where_it_is() {
+            givenDeployedGuardian(d -> d.name("Credential leakage").phase(Phase.REQUEST));
+            apis.givenApi(
+                aGuardedApi()
+                    .internalFlow(
+                        Flow.builder().request(List.of(GuardianSteps.of(GUARDIAN_ID, "Credential leakage"), anAiHubStep())).build()
+                    )
+                    .build()
+            );
+
+            service.setAttachments(API_ID, List.of(new ApiGuardianAttachment(GUARDIAN_ID, TEAM_A)), List.of(), actor);
+
+            assertThat(storedInternalFlow().getRequest())
+                .as("stored request steps")
+                .containsExactly(GuardianSteps.of(GUARDIAN_ID, "Credential leakage", TEAM_A), anAiHubStep());
+        }
+
+        /** The gateway answers every call of the API with an error when a condition does not parse. */
+        @Test
+        void should_refuse_a_condition_that_does_not_parse_naming_the_guardian_and_leave_the_api_as_it_was() {
+            givenDeployedGuardian(d -> d.name("Credential leakage").phase(Phase.REQUEST));
+            var ran = Flow.builder().request(List.of(GuardianSteps.of(GUARDIAN_ID, "Credential leakage", TEAM_A))).build();
+            apis.givenApi(aGuardedApi().internalFlow(ran).build());
+            var broken = List.of(new ApiGuardianAttachment(GUARDIAN_ID, "{#context.attributes['aihub.team'] == }"));
+
+            assertSoftly(softly -> {
+                softly
+                    .assertThatThrownBy(() -> service.setAttachments(API_ID, broken, List.of(), actor))
+                    .as("a condition that does not parse")
+                    .isInstanceOf(InvalidApiGuardianConditionException.class)
+                    .hasMessageContaining(GUARDIAN_ID);
+                softly.assertThat(storedInternalFlow()).as("the API, left as it was").isEqualTo(ran);
+                softly.assertThat(audits.storage()).as("nothing audited").isEmpty();
+            });
+        }
+
+        /** The gateway reads {@code {!…}} as text rather than as an expression, and then skips the Guardian on every call. */
+        @Test
+        void should_refuse_a_condition_the_gateway_would_read_as_text() {
+            givenDeployedGuardian(d -> d.name("Credential leakage").phase(Phase.REQUEST));
+            apis.givenApi(aGuardedApi().build());
+            var negated = List.of(new ApiGuardianAttachment(GUARDIAN_ID, "{!(#context.attributes['aihub.team'] == 'team-a')}"));
+
+            assertThatThrownBy(() -> service.setAttachments(API_ID, negated, List.of(), actor))
+                .as("a negation outside of parentheses")
+                .isInstanceOf(InvalidApiGuardianConditionException.class)
+                .hasMessageContaining(GUARDIAN_ID);
+        }
+
+        @Test
+        void should_tell_an_invalid_condition_apart_from_the_other_faults_in_one_refusal() {
+            givenDeployedGuardian(d -> d.name("Credential leakage").phase(Phase.REQUEST));
+            apis.givenApi(aGuardedApi().build());
+            var attachments = List.of(new ApiGuardianAttachment(GUARDIAN_ID, "{#a ==}"), new ApiGuardianAttachment("ghost", null));
+
+            assertThatThrownBy(() -> service.setAttachments(API_ID, attachments, List.of(), actor))
+                .as("an invalid condition and an unknown id")
+                .isInstanceOf(ApiGuardianSequenceRefusedException.class)
+                .asInstanceOf(InstanceOfAssertFactories.throwable(ApiGuardianSequenceRefusedException.class))
+                .extracting(ApiGuardianSequenceRefusedException::getParameters, InstanceOfAssertFactories.map(String.class, String.class))
+                .as("what each refusal is")
+                .containsEntry("invalidConditionGuardianIds", GUARDIAN_ID)
+                .containsEntry("notFoundGuardianIds", "ghost");
+        }
+
+        private Flow storedInternalFlow() {
+            return apis.findById(ENVIRONMENT_ID, API_ID).orElseThrow().internalFlow();
+        }
+
+        private static Step anAiHubStep() {
+            return Step.builder().name("AI Hub").policy("ai-hub").build();
+        }
+    }
+
     private SetApiGuardiansDomainService serviceOn(InMemoryGuardedApiPort port) {
         return new SetApiGuardiansDomainService(
             port,
-            new ValidateApiGuardiansDomainService(guardians, publications.service(guardians)),
+            new ValidateApiGuardiansDomainService(guardians, publications.service(guardians), aConditionSyntax()),
             new DescribeApiGuardiansDomainService(publications.service(guardians), port),
             audits.service
         );

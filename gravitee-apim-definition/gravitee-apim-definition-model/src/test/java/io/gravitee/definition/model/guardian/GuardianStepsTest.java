@@ -40,6 +40,29 @@ class GuardianStepsTest {
     }
 
     @Test
+    void should_build_a_step_running_the_guardian_only_on_the_calls_its_condition_selects() {
+        var step = GuardianSteps.of("guardian-1", "Credential leakage", "{#context.attributes['team'] == 'team-a'}");
+
+        assertSoftly(softly -> {
+            softly.assertThat(step.getCondition()).as("condition").isEqualTo("{#context.attributes['team'] == 'team-a'}");
+            softly.assertThat(GuardianSteps.guardianIdOf(step)).as("guardian id").contains("guardian-1");
+        });
+    }
+
+    @Test
+    void should_build_a_step_running_the_guardian_on_every_call_without_a_condition() {
+        assertSoftly(softly -> {
+            softly
+                .assertThat(GuardianSteps.of("guardian-1", "Credential leakage").getCondition())
+                .as("condition of the short form")
+                .isNull();
+            softly
+                .assertThat(GuardianSteps.of("guardian-1", "Credential leakage", null))
+                .isEqualTo(GuardianSteps.of("guardian-1", "Credential leakage"));
+        });
+    }
+
+    @Test
     void should_read_the_guardians_of_both_phases_in_execution_order() {
         var flow = Flow.builder()
             .request(List.of(GuardianSteps.of("guardian-1", "One"), aPolicy(), GuardianSteps.of("guardian-2", "Two")))

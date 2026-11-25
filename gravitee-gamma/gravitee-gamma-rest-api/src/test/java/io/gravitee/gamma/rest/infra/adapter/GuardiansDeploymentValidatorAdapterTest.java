@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.infra.adapter;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.API_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.ENVIRONMENT_ID;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.GUARDIAN_ID;
+import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aConditionSyntax;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -70,7 +71,7 @@ class GuardiansDeploymentValidatorAdapterTest {
     private final InMemoryGuardianRepository guardians = new InMemoryGuardianRepository();
     private final GuardianPublicationFixture publications = new GuardianPublicationFixture();
     private final GuardiansDeploymentValidatorAdapter validator = new GuardiansDeploymentValidatorAdapter(
-        new ValidateApiGuardiansDomainService(guardians, publications.service(guardians))
+        new ValidateApiGuardiansDomainService(guardians, publications.service(guardians), aConditionSyntax())
     );
 
     private Flow deployedInternalFlow;

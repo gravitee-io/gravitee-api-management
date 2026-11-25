@@ -24,6 +24,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.definition.model.guardian.GuardianSteps;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.gamma.rest.core.guardian.exception.ApiInternalFlowChangedException;
 import io.gravitee.gamma.rest.core.guardian.model.ApiReference;
 import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardedApiPort;
@@ -152,6 +153,27 @@ public abstract class GuardedApiPortContractTest {
                 .get()
                 .satisfies(api -> assertThat(api.internalFlow()).isEqualTo(replacement));
         });
+    }
+
+    /** A condition dropped on the way to the store would run a Guardian meant for some calls on every call. */
+    @Test
+    void should_keep_the_condition_of_a_guardian_step_it_writes() {
+        givenApi(ENVIRONMENT_ID, API_ID, API_NAME, null);
+        var conditional = Flow.builder()
+            .request(List.of(GuardianSteps.of("guardian-1", "guardian-1", "{#context.attributes['aihub.team'] == 'team-a'}")))
+            .build();
+
+        port().updateInternalFlow(CALLER, API_ID, null, conditional);
+
+        assertThat(port().findById(ENVIRONMENT_ID, API_ID))
+            .as("API read back")
+            .get()
+            .satisfies(api ->
+                assertThat(api.internalFlow().getRequest())
+                    .singleElement()
+                    .extracting(Step::getCondition)
+                    .isEqualTo("{#context.attributes['aihub.team'] == 'team-a'}")
+            );
     }
 
     /** The write is what feeds whatever {@code findByGuardian} reads; nothing else may have to be written by hand. */

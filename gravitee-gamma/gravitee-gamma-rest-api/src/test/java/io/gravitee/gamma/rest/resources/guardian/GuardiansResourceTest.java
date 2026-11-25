@@ -53,6 +53,7 @@ import io.gravitee.gamma.rest.core.guardian.GuardianPublicationFixture;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardedApiPort;
 import io.gravitee.gamma.rest.core.guardian.inmemory.InMemoryGuardianRepository;
 import io.gravitee.gamma.rest.core.guardian.model.Guardian;
+import io.gravitee.gamma.rest.core.guardian.port.service_provider.ConditionSyntaxPort;
 import io.gravitee.gamma.rest.core.guardian.port.service_provider.GuardedApiReadPermissionPort;
 import io.gravitee.gamma.rest.infra.adapter.GuardedApiReadPermissionPortAdapter;
 import io.gravitee.gamma.rest.resource.AbstractResourceTest;
@@ -1718,6 +1719,11 @@ class GuardiansResourceTest extends AbstractResourceTest {
         @Bean
         InMemoryGuardedApiPort guardedApiPort() {
             return new InMemoryGuardedApiPort();
+        }
+
+        @Bean
+        ConditionSyntaxPort conditionSyntaxPort() {
+            return GuardianFixtures.aConditionSyntax();
         }
 
         @Bean

@@ -48,7 +48,8 @@ public class ApiGuardianSequenceRefusedException extends ValidationDomainExcepti
         NOT_DEPLOYED("notDeployedGuardianIds", "no revision of them is deployed"),
         INCOMPATIBLE_API_TYPE("incompatibleApiTypeGuardianIds", "their deployed revision does not support this API's type"),
         PHASE_MISMATCH("phaseMismatchGuardianIds", "their deployed revision runs in the other phase"),
-        LISTED_TWICE("duplicateGuardianIds", "they are listed twice on the same phase");
+        LISTED_TWICE("duplicateGuardianIds", "they are listed twice on the same phase"),
+        INVALID_CONDITION("invalidConditionGuardianIds", "their condition is not an expression the gateway can evaluate");
 
         private final String parameterKey;
         private final String wording;

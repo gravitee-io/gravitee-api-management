@@ -54,7 +54,9 @@ import io.gravitee.gamma.rest.core.guardian.model.Guardian;
 import io.gravitee.gamma.rest.core.guardian.model.GuardianLifecycleState;
 import io.gravitee.gamma.rest.core.guardian.model.UpdateGuardianCommand;
 import io.gravitee.gamma.rest.core.guardian.port.repository.GuardianRepository;
+import io.gravitee.gamma.rest.core.guardian.port.service_provider.ConditionSyntaxPort;
 import io.gravitee.gamma.rest.core.guardian.use_case.DeployGuardianUseCase;
+import io.gravitee.gamma.rest.infra.adapter.ConditionSyntaxPortAdapter;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -395,6 +397,14 @@ public final class GuardianFixtures {
             .name("Support assistant")
             .type(ApiType.LLM_PROXY)
             .supportsGuardians(true);
+    }
+
+    /**
+     * The real reading of a step condition rather than a double: it parses with the gateway's own expression
+     * language and touches nothing else, and a double would have to re-implement that parser to answer the same.
+     */
+    public static ConditionSyntaxPort aConditionSyntax() {
+        return new ConditionSyntaxPortAdapter();
     }
 
     public static Guardian.GuardianBuilder aGuardian() {

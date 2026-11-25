@@ -47,10 +47,23 @@ public final class GuardianSteps {
     private GuardianSteps() {}
 
     public static Step of(String guardianId, String name) {
+        return of(guardianId, name, null);
+    }
+
+    /**
+     * @param condition the expression the gateway evaluates before running the step, which runs the Guardian only on
+     *     the calls it holds for; {@code null} runs it on every call.
+     */
+    public static Step of(String guardianId, String name, String condition) {
         var configuration = new GuardianPolicyConfiguration();
         configuration.setGuardianId(guardianId);
         try {
-            return Step.builder().name(name).policy(POLICY).configuration(MAPPER.writeValueAsString(configuration)).build();
+            return Step.builder()
+                .name(name)
+                .policy(POLICY)
+                .configuration(MAPPER.writeValueAsString(configuration))
+                .condition(condition)
+                .build();
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Unable to write the configuration of a " + POLICY + " step", e);
         }

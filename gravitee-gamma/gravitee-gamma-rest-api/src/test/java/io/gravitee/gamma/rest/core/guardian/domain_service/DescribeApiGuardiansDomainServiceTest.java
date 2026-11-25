@@ -21,6 +21,7 @@ import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardedApi;
 import static io.gravitee.gamma.rest.core.guardian.GuardianFixtures.aGuardian;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
@@ -67,10 +68,27 @@ class DescribeApiGuardiansDomainServiceTest {
         assertThat(service.describe(ENVIRONMENT_ID, enabled))
             .as("guardians of the API, named by the revision the gateways run")
             .containsExactly(
-                new ApiGuardian("first", "Prompt injection", Phase.REQUEST, 1, List.of()),
-                new ApiGuardian("missing", null, Phase.REQUEST, 2, List.of()),
-                new ApiGuardian("second", "Toxicity", Phase.RESPONSE, 1, List.of())
+                new ApiGuardian("first", "Prompt injection", Phase.REQUEST, 1, List.of(), null),
+                new ApiGuardian("missing", null, Phase.REQUEST, 2, List.of(), null),
+                new ApiGuardian("second", "Toxicity", Phase.RESPONSE, 1, List.of(), null)
             );
+    }
+
+    /** What a module compares its own conditions with, to know whether the API needs them written again. */
+    @Test
+    void should_return_the_condition_each_guardian_runs_under() {
+        givenDeployed(d -> d.id("first").name("Prompt injection"));
+        var teamA = "{#context.attributes['aihub.team'] == 'team-a'}";
+        var enabled = ApiGuardians.of(
+            Flow.builder()
+                .request(List.of(GuardianSteps.of("first", "Prompt injection", teamA), GuardianSteps.of("missing", "Missing", teamA)))
+                .build()
+        );
+
+        assertThat(service.describe(ENVIRONMENT_ID, enabled))
+            .as("conditions of the guardians, also of one the environment no longer runs")
+            .extracting(ApiGuardian::guardianId, ApiGuardian::condition)
+            .containsExactly(tuple("first", teamA), tuple("missing", teamA));
     }
 
     /** A rename nobody deployed changes nothing the calls of the API meet, so it changes nothing here either. */
@@ -122,7 +140,7 @@ class DescribeApiGuardiansDomainServiceTest {
         assertThat(service.describe(ENVIRONMENT_ID, enabled))
             .as("guardian without a deployed revision")
             .singleElement()
-            .isEqualTo(new ApiGuardian("withdrawn", null, Phase.REQUEST, 1, List.of()));
+            .isEqualTo(new ApiGuardian("withdrawn", null, Phase.REQUEST, 1, List.of(), null));
     }
 
     @Test
@@ -176,7 +194,7 @@ class DescribeApiGuardiansDomainServiceTest {
 
             assertThat(describeByApi.describe(ENVIRONMENT_ID, API_ID))
                 .as("guardians of the API, named by the revision the gateways run")
-                .containsExactly(new ApiGuardian("first", "Prompt injection", Phase.REQUEST, 1, List.of()));
+                .containsExactly(new ApiGuardian("first", "Prompt injection", Phase.REQUEST, 1, List.of(), null));
         }
 
         @Test

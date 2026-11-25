@@ -21,7 +21,6 @@ import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardian.Guardian.Phase;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * The Guardians an API runs: the {@code guardian-policy} steps of its internal flow, request ones before response
@@ -48,9 +47,10 @@ public final class ApiGuardians {
     }
 
     /**
-     * The Guardians of a phase, run in this order and no other — those the API ran on that phase and the list leaves
-     * out stop running. The Guardians take the place of the block they already held, the first position of the phase
-     * when the API ran none, so the other steps of the internal flow keep their order around them.
+     * The Guardians of a phase, run in this order and no other, each under its condition — those the API ran on that
+     * phase and the list leaves out stop running. The Guardians take the place of the block they already held, so the
+     * other steps of the internal flow keep their order around them. A phase that ran none runs them after its other
+     * steps: those set the attributes a condition reads, and a condition evaluated before them reads nothing.
      */
     public ApiGuardians replace(Phase phase, List<GuardianRef> guardians) {
         var steps = steps(phase);
@@ -66,10 +66,10 @@ public final class ApiGuardians {
             }
         }
         others.addAll(
-            Math.max(runsAt, 0),
+            runsAt < 0 ? others.size() : runsAt,
             guardians
                 .stream()
-                .map(ref -> GuardianSteps.of(ref.guardianId(), ref.name()))
+                .map(ref -> GuardianSteps.of(ref.guardianId(), ref.name(), ref.condition()))
                 .toList()
         );
         return withSteps(phase, others);
@@ -84,21 +84,29 @@ public final class ApiGuardians {
 
     /** The Guardians of a phase, in execution order. */
     public List<Enabled> list(Phase phase) {
-        var guardianIds = idsOf(phase);
+        var attachments = attachmentsOf(phase);
         var enabled = new ArrayList<Enabled>();
-        for (int i = 0; i < guardianIds.size(); i++) {
-            enabled.add(new Enabled(guardianIds.get(i), phase, i + 1));
+        for (int i = 0; i < attachments.size(); i++) {
+            enabled.add(new Enabled(attachments.get(i).guardianId(), phase, i + 1, attachments.get(i).condition()));
         }
         return enabled;
     }
 
     /** The ids of the Guardians of a phase, in execution order. */
     public List<String> idsOf(Phase phase) {
-        return guardianIdsOf(steps(phase));
+        return attachmentsOf(phase).stream().map(ApiGuardianAttachment::guardianId).toList();
     }
 
-    private static List<String> guardianIdsOf(List<Step> steps) {
-        return steps.stream().map(GuardianSteps::guardianIdOf).flatMap(Optional::stream).toList();
+    /** The Guardians of a phase and the condition each runs under, in execution order. */
+    public List<ApiGuardianAttachment> attachmentsOf(Phase phase) {
+        return steps(phase)
+            .stream()
+            .flatMap(step ->
+                GuardianSteps.guardianIdOf(step)
+                    .map(guardianId -> new ApiGuardianAttachment(guardianId, step.getCondition()))
+                    .stream()
+            )
+            .toList();
     }
 
     private ApiGuardians withSteps(Phase phase, List<Step> steps) {
@@ -118,9 +126,16 @@ public final class ApiGuardians {
         return steps == null ? List.of() : steps;
     }
 
-    /** @param order the 1-based position of the Guardian among those of its phase. */
-    public record Enabled(String guardianId, Phase phase, int order) {}
+    /**
+     * @param order the 1-based position of the Guardian among those of its phase.
+     * @param condition what the step runs the Guardian under, {@code null} on every call.
+     */
+    public record Enabled(String guardianId, Phase phase, int order, String condition) {}
 
-    /** A Guardian to run, named as the revision the gateways run names it. */
-    public record GuardianRef(String guardianId, String name) {}
+    /**
+     * A Guardian to run, named as the revision the gateways run names it.
+     *
+     * @param condition what its step runs it under, {@code null} on every call.
+     */
+    public record GuardianRef(String guardianId, String name, String condition) {}
 }

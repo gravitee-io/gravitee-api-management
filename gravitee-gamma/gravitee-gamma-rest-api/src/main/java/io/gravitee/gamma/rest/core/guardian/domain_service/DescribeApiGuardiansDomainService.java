@@ -30,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 /**
  * Names the Guardians an API runs, the way the API lists them.
  *
- * <p>Everything but the order comes from the revision the gateways run, like the validation that let the Guardian be
+ * <p>Everything but the order and the condition, which the API's steps carry, comes from the revision the gateways run, like the validation that let the Guardian be
  * turned on: a name and effects read from a draft nobody deployed would describe something the calls of the API do not
  * meet. A Guardian whose revision was withdrawn, or whose Guardian the environment no longer holds, is therefore
  * listed without a name and without effects — the step is still there, and the API no longer deploys.
@@ -72,9 +72,17 @@ public class DescribeApiGuardiansDomainService {
                         deployed.getName(),
                         enabled.phase(),
                         enabled.order(),
-                        GuardrailEffects.of(deployed)
+                        GuardrailEffects.of(deployed),
+                        enabled.condition()
                     );
-                    case null, default -> new ApiGuardian(enabled.guardianId(), null, enabled.phase(), enabled.order(), List.of());
+                    case null, default -> new ApiGuardian(
+                        enabled.guardianId(),
+                        null,
+                        enabled.phase(),
+                        enabled.order(),
+                        List.of(),
+                        enabled.condition()
+                    );
                 }
             )
             .toList();
