@@ -3954,11 +3954,15 @@ components:
                         Computed value. `AVG`, `MIN`, `MAX` and the percentiles are computed over the documents carrying
                         the metric's value. On a built-in or an additional metric, `value` is absent for them over a
                         window or bucket without any such document, while `COUNT`, `SUM` and `PERCENTAGE` are 0, with
-                        three exceptions: a Native operation duration reads 0 over Native events without an operation
+                        four exceptions: a Native operation duration reads 0 over Native events without an operation
                         sample; an HTTP or message facet ranked by `AVG`, `MIN`, `MAX` or a percentile, and any facet of
-                        an additional metric field, holds only the groups carrying the value; and an AuthZ facet or
-                        time-series group the metric never counted is left out. Values are numbers of double precision,
-                        so a whole number above 2^53 is rounded.
+                        an additional metric field, holds only the groups carrying the value; a facet or time-series
+                        group of `HTTP_ERRORS` (requests answered with a 4xx or 5xx status) or `EDGE_HEARTBEAT_COUNT`
+                        (Edge heartbeats) is computed over the requests the metric counts only, so a terms facet holds
+                        only their groups while a range facet such as `HTTP_STATUS_CODE_GROUP` still lists every
+                        range, at 0 when none of them falls in it; and an AuthZ facet or time-series group the metric
+                        never counted is left out. Values are numbers of double precision, so a whole number above 2^53
+                        is rounded.
                     example: 42
 
         MetricResult:
