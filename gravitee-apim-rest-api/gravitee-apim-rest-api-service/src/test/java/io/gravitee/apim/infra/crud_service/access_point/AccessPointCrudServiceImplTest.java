@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.crud_service.access_point;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.apim.core.access_point.model.AccessPoint;
@@ -24,10 +25,12 @@ import io.gravitee.apim.core.access_point.model.AccessPointEvent;
 import io.gravitee.apim.infra.adapter.AccessPointAdapter;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.management.api.AccessPointRepository;
+import io.gravitee.repository.management.api.PortalRepository;
 import io.gravitee.repository.management.api.search.AccessPointCriteria;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
 import io.gravitee.repository.management.model.AccessPointStatus;
 import io.gravitee.repository.management.model.AccessPointTarget;
+import io.gravitee.repository.management.model.Portal;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Instant;
 import java.util.Arrays;
@@ -50,6 +53,8 @@ class AccessPointCrudServiceImplTest {
     @Mock
     EventManager eventManager;
 
+    PortalRepository portalRepository;
+
     AccessPointCrudServiceImpl service;
 
     @BeforeAll
@@ -65,7 +70,8 @@ class AccessPointCrudServiceImplTest {
     @BeforeEach
     void setUp() {
         accessPointRepository = mock(AccessPointRepository.class);
-        service = new AccessPointCrudServiceImpl(accessPointRepository, eventManager);
+        portalRepository = mock(PortalRepository.class);
+        service = new AccessPointCrudServiceImpl(accessPointRepository, portalRepository, eventManager);
     }
 
     @Nested
@@ -105,6 +111,103 @@ class AccessPointCrudServiceImplTest {
     }
 
     @Nested
+    class PortalLock {
+
+        private final io.gravitee.repository.management.model.AccessPoint portalAccessPoint = aPortalAccessPoint(
+            "portal-ap",
+            AccessPointStatus.CREATED
+        );
+        private final io.gravitee.repository.management.model.AccessPoint unusedPortalAccessPoint = aPortalAccessPoint(
+            "unused-ap",
+            AccessPointStatus.CREATED
+        );
+
+        @BeforeEach
+        void givenAPortalServedAtPortalAp() throws Exception {
+            lenient().when(portalRepository.findByAccessPointId("portal-ap")).thenReturn(List.of(Portal.builder().id("portal-1").build()));
+        }
+
+        @Test
+        void should_keep_an_access_point_a_portal_is_served_at_when_cockpit_omits_it() throws Exception {
+            givenStored(AccessPointStatus.CREATED, portalAccessPoint, unusedPortalAccessPoint);
+
+            service.updateAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, "env-id", List.of());
+
+            var deleted = ArgumentCaptor.forClass(io.gravitee.repository.management.model.AccessPoint.class);
+            verify(accessPointRepository).update(deleted.capture());
+            assertThat(deleted.getValue().getId()).isEqualTo("unused-ap");
+            assertThat(portalAccessPoint.getStatus()).isEqualTo(AccessPointStatus.CREATED);
+            verify(eventManager, times(1)).publishEvent(eq(AccessPointEvent.DELETED), any());
+        }
+
+        @Test
+        void should_keep_the_access_point_of_a_portal_when_cockpit_changes_its_host() throws Exception {
+            givenStored(AccessPointStatus.CREATED, portalAccessPoint);
+            var moved = AccessPointAdapter.INSTANCE.toEntity(portalAccessPoint).toBuilder().id(null).host("new.acme.io").build();
+
+            service.updateAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, "env-id", List.of(moved));
+
+            verify(accessPointRepository).create(argThat(created -> "new.acme.io".equals(created.getHost())));
+            verify(accessPointRepository, never()).update(any());
+            verify(eventManager, never()).publishEvent(eq(AccessPointEvent.DELETED), any());
+        }
+
+        @Test
+        void should_restore_a_deleted_access_point_a_portal_is_still_served_at() throws Exception {
+            var deletedPortalAccessPoint = aPortalAccessPoint("portal-ap", AccessPointStatus.DELETED);
+            givenStored(AccessPointStatus.CREATED);
+            givenStored(AccessPointStatus.DELETED, deletedPortalAccessPoint, aPortalAccessPoint("unused-ap", AccessPointStatus.DELETED));
+            when(accessPointRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            service.updateAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, "env-id", List.of());
+
+            var restored = ArgumentCaptor.forClass(io.gravitee.repository.management.model.AccessPoint.class);
+            verify(accessPointRepository).update(restored.capture());
+            assertThat(restored.getValue().getId()).isEqualTo("portal-ap");
+            assertThat(restored.getValue().getStatus()).isEqualTo(AccessPointStatus.CREATED);
+            verify(eventManager).publishEvent(eq(AccessPointEvent.CREATED), any());
+        }
+
+        @Test
+        void should_delete_only_the_access_points_no_portal_is_served_at() throws Exception {
+            givenStored(AccessPointStatus.CREATED, portalAccessPoint, unusedPortalAccessPoint);
+
+            service.deleteUnreferencedAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, "env-id");
+
+            verify(accessPointRepository).update(argThat(updated -> "unused-ap".equals(updated.getId())));
+            verify(accessPointRepository, never()).update(argThat(updated -> "portal-ap".equals(updated.getId())));
+        }
+
+        @Test
+        void should_still_delete_every_access_point_when_the_environment_goes_away() throws Exception {
+            givenStored(AccessPointStatus.CREATED, portalAccessPoint, unusedPortalAccessPoint);
+
+            service.deleteAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, "env-id");
+
+            verify(accessPointRepository, times(2)).update(any());
+        }
+
+        private void givenStored(AccessPointStatus status, io.gravitee.repository.management.model.AccessPoint... accessPoints)
+            throws Exception {
+            when(
+                accessPointRepository.findByCriteria(argThat(criteria -> criteria != null && criteria.getStatus() == status), any(), any())
+            ).thenReturn(List.of(accessPoints));
+        }
+
+        private static io.gravitee.repository.management.model.AccessPoint aPortalAccessPoint(String id, AccessPointStatus status) {
+            return io.gravitee.repository.management.model.AccessPoint.builder()
+                .id(id)
+                .referenceType(AccessPointReferenceType.ENVIRONMENT)
+                .referenceId("env-id")
+                .target(AccessPointTarget.PORTAL_INSTANCE)
+                .host(id + ".acme.io")
+                .secured(true)
+                .status(status)
+                .build();
+        }
+    }
+
+    @Nested
     class UpdateAccessPoints {
 
         @ParameterizedTest
@@ -117,7 +220,11 @@ class AccessPointCrudServiceImplTest {
             service.updateAccessPoints(referenceType, "ref-id", accessPoints);
 
             // Then
-            verify(accessPointRepository).findByCriteria(any(AccessPointCriteria.class), any(), any());
+            verify(accessPointRepository).findByCriteria(
+                argThat(criteria -> criteria.getStatus() == AccessPointStatus.CREATED),
+                any(),
+                any()
+            );
             verify(accessPointRepository, never()).update(any());
             verifyNoInteractions(eventManager);
         }

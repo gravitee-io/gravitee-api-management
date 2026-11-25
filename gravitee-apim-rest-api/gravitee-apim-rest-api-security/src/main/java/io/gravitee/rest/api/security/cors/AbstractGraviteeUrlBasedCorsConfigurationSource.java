@@ -71,15 +71,16 @@ public abstract class AbstractGraviteeUrlBasedCorsConfigurationSource extends Ur
 
     @Override
     public CorsConfiguration getCorsConfiguration(final @NonNull HttpServletRequest request) {
-        String referenceId = getReferenceId();
+        String referenceId = Optional.ofNullable(getReferenceId()).orElse(UNDEFINED_REFERENCE_ID);
 
-        return corsConfigurationByUrl.computeIfAbsent(extractUrl(request), id ->
+        // Scoped by reference too: before its environment is known, a page is allowed every portal origin of the installation.
+        return corsConfigurationByUrl.computeIfAbsent(referenceId + " " + extractUrl(request), key ->
             new GraviteeCorsConfiguration(
                 environment,
                 parameterService,
                 installationAccessQueryService,
                 eventManager,
-                referenceId != null ? referenceId : UNDEFINED_REFERENCE_ID,
+                referenceId,
                 parameterReferenceType
             )
         );

@@ -32,6 +32,8 @@ import io.gravitee.rest.api.service.ParameterService;
 import io.reactivex.rxjava3.annotations.NonNull;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -84,6 +86,22 @@ class AbstractGraviteeUrlBasedCorsConfigurationSourceTest {
     }
 
     @Test
+    void should_not_share_a_cached_cors_configuration_between_reference_scopes() {
+        var referenceId = new AtomicReference<String>();
+        cut = buildCut(referenceId::get);
+        var request = buildRequest("mapi.gravitee.dev", "https://portal.acme.io/next", null);
+
+        var beforeEnvironmentIsKnown = cut.getCorsConfiguration(request);
+        referenceId.set("env-id");
+        var environmentScoped = cut.getCorsConfiguration(request);
+
+        assertThat(environmentScoped).isNotSameAs(beforeEnvironmentIsKnown);
+        assertThat(cut.getCorsConfiguration(request)).isSameAs(environmentScoped);
+        referenceId.set(null);
+        assertThat(cut.getCorsConfiguration(request)).isSameAs(beforeEnvironmentIsKnown);
+    }
+
+    @Test
     void should_evict_from_cache_and_unregister_from_event_manager_when_entry_expires() {
         // Expires after 2000ms.
         fakeEnvironment.setProperty("cors.cache.ttl", "2000");
@@ -123,6 +141,10 @@ class AbstractGraviteeUrlBasedCorsConfigurationSourceTest {
     }
 
     private @NonNull AbstractGraviteeUrlBasedCorsConfigurationSource buildCut() {
+        return buildCut(() -> "env-id");
+    }
+
+    private @NonNull AbstractGraviteeUrlBasedCorsConfigurationSource buildCut(Supplier<String> referenceId) {
         return new AbstractGraviteeUrlBasedCorsConfigurationSource(
             fakeEnvironment,
             mock(ParameterService.class),
@@ -132,7 +154,7 @@ class AbstractGraviteeUrlBasedCorsConfigurationSourceTest {
         ) {
             @Override
             protected String getReferenceId() {
-                return "env-id";
+                return referenceId.get();
             }
         };
     }

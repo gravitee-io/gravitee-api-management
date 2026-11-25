@@ -160,6 +160,32 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
     }
 
     @Override
+    public List<AccessPoint> getPortalInstanceAccessPoints() {
+        try {
+            return findAccessPoints(AccessPoint.Target.PORTAL_INSTANCE);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurs while getting all portal instance access points", e);
+        }
+    }
+
+    @Override
+    public List<AccessPoint> getPortalInstanceAccessPoints(final String environmentId) {
+        try {
+            return findAccessPoints(
+                AccessPoint.ReferenceType.ENVIRONMENT,
+                environmentId,
+                AccessPoint.Target.PORTAL_INSTANCE,
+                true
+            ).toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                String.format("An error occurs while getting portal instance access points for environment '%s'", environmentId),
+                e
+            );
+        }
+    }
+
+    @Override
     public List<AccessPoint> getGatewayAccessPoints(final String environmentId) {
         try {
             return findAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, environmentId, AccessPoint.Target.GATEWAY, false).toList();
