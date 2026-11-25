@@ -168,6 +168,16 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
 
     @Test
     void shouldValidateOverHttpsWithTrustAll(Vertx vertx, VertxTestContext context) throws Throwable {
+        validateOverHttpsWithTrustAll(vertx, context, false);
+    }
+
+    @Test
+    void shouldValidateOverHttpsWithTrustAllAndHostnameVerifier(Vertx vertx, VertxTestContext context) throws Throwable {
+        // With trustAll, any certificate is accepted: the hostname must not be checked.
+        validateOverHttpsWithTrustAll(vertx, context, true);
+    }
+
+    private void validateOverHttpsWithTrustAll(Vertx vertx, VertxTestContext context, boolean hostnameVerifier) throws Exception {
         // Prepare HTTPS endpoint with a self-signed certificate
         wmHttps.stubFor(get(urlEqualTo("/")).willReturn(ok("{\"status\": \"green\"}")));
 
@@ -178,7 +188,7 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         EndpointRule rule = createEndpointRule(wmHttps.baseUrl(), null, false);
         HttpClientSslOptions sslOptions = new HttpClientSslOptions();
         sslOptions.setTrustAll(true);
-        sslOptions.setHostnameVerifier(false);
+        sslOptions.setHostnameVerifier(hostnameVerifier);
         ((HttpEndpoint) rule.endpoint()).setHttpClientSslOptions(sslOptions);
 
         HealthCheckStep step = new HealthCheckStep();

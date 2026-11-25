@@ -39,6 +39,7 @@ import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.secrets.api.discovery.DefinitionMetadata;
 import io.gravitee.secrets.api.event.SecretDiscoveryEvent;
 import io.gravitee.secrets.api.event.SecretDiscoveryEventType;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.MultiMap;
@@ -47,6 +48,7 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.net.OpenSSLEngineOptions;
+import io.vertx.core.net.TrustOptions;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.security.GeneralSecurityException;
@@ -268,7 +270,9 @@ public class DebugReactorEventListener extends ReactorEventListener {
         options.setVerifyHost(false);
         if (debugHttpClientConfiguration.isSecured()) {
             options.setSsl(debugHttpClientConfiguration.isSecured());
-            options.setTrustAll(true);
+            // Not the Vert.x trustAll flag: its trust manager is not an X509ExtendedTrustManager, which Netty 4.2.17+
+            // refuses with OpenSSL on Java 25.
+            options.setTrustOptions(TrustOptions.wrap(InsecureTrustManagerFactory.INSTANCE.getTrustManagers()[0]));
             options.setVerifyHost(false);
             if (debugHttpClientConfiguration.isOpenssl()) {
                 options.setSslEngineOptions(new OpenSSLEngineOptions());
