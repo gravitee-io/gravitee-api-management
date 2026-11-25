@@ -425,11 +425,11 @@ components:
                 - guardrail
                 - flow
             example:
-                id: guardrail-rule
-                name: Guardrail rule
+                id: guardrail-llm-rule
+                name: Guardrail - Rule
                 category: guardrail
-                version: 1.0.0
-                feature: apim-guardian-policy-rule
+                version: 1.0.0-alpha.9
+                feature: gamma-aim-guardrails-policy-llm-rule
                 deployed: true
                 guardrail: true
                 flow:
