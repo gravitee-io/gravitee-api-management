@@ -123,6 +123,10 @@ function sectionPicker() {
     return screen.getByRole('combobox', { name: 'Section' }) as HTMLButtonElement;
 }
 
+function portalPicker() {
+    return screen.getByRole('combobox', { name: 'Portal' }) as HTMLButtonElement;
+}
+
 function publishButton() {
     return screen.getByRole('button', { name: /^Publish/ }) as HTMLButtonElement;
 }
@@ -131,7 +135,7 @@ describe('PublishToPortalDialog', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         jest.mocked(useEnvironment).mockReturnValue({ id: 'env-1' } as ReturnType<typeof useEnvironment>);
-        mockPortals.mockResolvedValue({ data: [DEVELOPER_PORTAL, PARTNERS_PORTAL] });
+        mockPortals.mockResolvedValue({ data: [DEVELOPER_PORTAL] });
         mockLocations.mockResolvedValue({ data: [GUIDES, APIS, PARTNERS] });
         mockPublish.mockImplementation(async (_envId, _apiId, { sectionId }) =>
             publication(sectionId, [GUIDES, APIS, PARTNERS].find(location => location.id === sectionId)!.name, true),
@@ -296,6 +300,136 @@ describe('PublishToPortalDialog', () => {
         expect(publishButton().disabled).toBe(false);
         expect(onClose).not.toHaveBeenCalled();
         expect(notify.success).not.toHaveBeenCalled();
+    });
+
+    it('shows no portal picker when the environment has a single portal', async () => {
+        renderDialog();
+
+        await waitFor(() => expect(sectionPicker().textContent).toBe('APIs'));
+        expect(screen.queryByRole('combobox', { name: 'Portal' })).toBeNull();
+        expect(screen.getByRole('heading', { name: 'Publish to the developer portal' })).not.toBeNull();
+    });
+
+    describe('when the environment has several portals', () => {
+        const PARTNER_GUIDES: ApiPortalPublishLocation = { id: 'partner-guides', name: 'Partner guides' };
+        const SECTIONS: Record<string, ApiPortalPublishLocation[]> = {
+            [DEVELOPER_PORTAL.id]: [GUIDES, APIS],
+            [PARTNERS_PORTAL.id]: [PARTNER_GUIDES, PARTNERS],
+        };
+
+        async function choosePortal(user: ReturnType<typeof userEvent.setup>, name: string) {
+            await user.click(portalPicker());
+            await user.click(await screen.findByRole('option', { name }));
+        }
+
+        beforeEach(() => {
+            mockPortals.mockResolvedValue({ data: [DEVELOPER_PORTAL, PARTNERS_PORTAL] });
+            mockLocations.mockImplementation(async (_envId, _apiId, portalId) => ({ data: SECTIONS[portalId] ?? [] }));
+            mockPublish.mockImplementation(async (_envId, _apiId, { sectionId }) => {
+                const [portalId, sections] = Object.entries(SECTIONS).find(([, candidates]) =>
+                    candidates.some(location => location.id === sectionId),
+                )!;
+                return publication(sectionId, sections.find(location => location.id === sectionId)!.name, true, portalId);
+            });
+        });
+
+        it('offers the portals, the default one chosen first', async () => {
+            const { user } = renderDialog();
+
+            await waitFor(() => expect(portalPicker().textContent).toBe('Developer Portal (default)'));
+            expect(screen.getByRole('heading', { name: 'Publish to a developer portal' })).not.toBeNull();
+            await user.click(portalPicker());
+
+            expect((await screen.findAllByRole('option')).map(option => option.textContent)).toEqual([
+                'Developer Portal (default)',
+                'Partners',
+            ]);
+        });
+
+        it('offers only the sections of the chosen portal', async () => {
+            const { user } = renderDialog();
+
+            await waitFor(() => expect(sectionPicker().textContent).toBe('APIs'));
+            await choosePortal(user, 'Partners');
+
+            await waitFor(() => expect(sectionPicker().textContent).toBe('Partner guides'));
+            expect(mockLocations).toHaveBeenCalledWith('env-1', 'api-1', PARTNERS_PORTAL.id);
+            await user.click(sectionPicker());
+            expect((await screen.findAllByRole('option')).map(option => option.textContent)).toEqual(['Partner guides', 'Partner APIs']);
+        });
+
+        it('publishes to the section of the portal chosen instead of the default, and names that portal', async () => {
+            const { user, onClose } = renderDialog();
+
+            await waitFor(() => expect(sectionPicker().textContent).toBe('APIs'));
+            await choosePortal(user, 'Partners');
+            await waitFor(() => expect(sectionPicker().textContent).toBe('Partner guides'));
+            await user.click(sectionPicker());
+            await user.click(await screen.findByRole('option', { name: 'Partner APIs' }));
+            await user.click(publishButton());
+
+            await waitFor(() => expect(onClose).toHaveBeenCalled());
+            expect(mockPublish).toHaveBeenCalledTimes(1);
+            expect(mockPublish).toHaveBeenCalledWith('env-1', 'api-1', { sectionId: 'partners' });
+            expect(notify.success).toHaveBeenCalledWith("Published in 'Partner APIs' of 'Partners'");
+        });
+
+        it('forgets the section chosen in another portal', async () => {
+            const { user } = renderDialog();
+
+            await waitFor(() => expect(sectionPicker().textContent).toBe('APIs'));
+            await user.click(sectionPicker());
+            await user.click(await screen.findByRole('option', { name: 'Guides' }));
+            await choosePortal(user, 'Partners');
+            await waitFor(() => expect(sectionPicker().textContent).toBe('Partner guides'));
+            await user.click(publishButton());
+
+            await waitFor(() => expect(mockPublish).toHaveBeenCalledWith('env-1', 'api-1', { sectionId: 'partner-guides' }));
+        });
+
+        it('does not offer a portal the API is already published in, and chooses the first one left', async () => {
+            const { user } = renderDialog([publication('apis', 'APIs', true)]);
+
+            await waitFor(() => expect(portalPicker().textContent).toBe('Partners'));
+            await waitFor(() => expect(sectionPicker().textContent).toBe('Partner guides'));
+            await user.click(portalPicker());
+
+            expect((await screen.findAllByRole('option')).map(option => option.textContent)).toEqual(['Partners']);
+            expect(mockLocations).not.toHaveBeenCalledWith('env-1', 'api-1', DEVELOPER_PORTAL.id);
+        });
+
+        it('offers a portal holding a hidden listing, and the section that listing is in', async () => {
+            const { user } = renderDialog([publication('partners', 'Partner APIs', false, PARTNERS_PORTAL.id)]);
+
+            await waitFor(() => expect(sectionPicker().textContent).toBe('APIs'));
+            await choosePortal(user, 'Partners');
+
+            await waitFor(() => expect(sectionPicker().textContent).toBe('Partner APIs'));
+        });
+
+        it('clears a refusal when another portal is chosen', async () => {
+            mockPublish.mockRejectedValue(new ApimApiError(400, 'The section is no longer published'));
+            const { user } = renderDialog();
+
+            await waitFor(() => expect(sectionPicker().textContent).toBe('APIs'));
+            await user.click(publishButton());
+            expect(await screen.findByText('The section is no longer published')).not.toBeNull();
+            await choosePortal(user, 'Partners');
+
+            expect(screen.queryByText('The section is no longer published')).toBeNull();
+        });
+
+        it('says the API becomes visible in the chosen portal', () => {
+            renderDialog();
+
+            return waitFor(() =>
+                expect(
+                    screen.getByText(
+                        'The API and its documentation will become visible in the chosen portal. Every page, folder and link will be published, including those unpublished individually.',
+                    ),
+                ).not.toBeNull(),
+            );
+        });
     });
 
     describe('when the API has no page', () => {

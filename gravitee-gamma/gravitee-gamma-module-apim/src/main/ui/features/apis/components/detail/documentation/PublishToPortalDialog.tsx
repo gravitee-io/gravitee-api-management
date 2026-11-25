@@ -43,8 +43,13 @@ import {
     useCreateApiOverviewPage,
     usePublishApiToPortal,
 } from '../../../hooks/useApiDocumentation';
-import type { ApiPortalPublication, PortalNavigationPage, PublishApiToPortal } from '../../../types/apiDocumentation';
-import { defaultPublishSectionId, getHiddenListing } from '../../../utils/documentationTree';
+import type {
+    ApiPortalPublication,
+    ApiPortalPublishPortal,
+    PortalNavigationPage,
+    PublishApiToPortal,
+} from '../../../types/apiDocumentation';
+import { defaultPublishSectionId, getHiddenListing, portalsToPublishTo } from '../../../utils/documentationTree';
 
 export function PublishToPortalDialog({
     open,
@@ -57,7 +62,10 @@ export function PublishToPortalDialog({
 }: Readonly<{
     open: boolean;
     apiId: string;
-    /** Where the API is listed: a hidden listing is reused, and moved if needed, rather than another one added. */
+    /**
+     * Where the API is listed. A portal showing the API is not offered again, and a hidden listing is reused, and moved
+     * if needed, rather than another one added.
+     */
     publications: ApiPortalPublication[];
     /** Listed with no page, the API would have nothing to open in the portal. */
     hasPage: boolean;
@@ -174,10 +182,14 @@ function PublishToPortalForm({
     isPublishing: boolean;
     onClose: () => void;
 }>) {
+    const portalFieldId = useId();
     const sectionId = useId();
     const portalsQuery = useApiPublishPortals(apiId);
-    // The developer portal is the environment's default portal
-    const portal = portalsQuery.data?.data.find(candidate => candidate.default);
+    const portals = portalsQuery.data?.data ?? [];
+    const hasSeveralPortals = portals.length > 1;
+    const [chosenPortalId, setChosenPortalId] = useState<string | undefined>(undefined);
+    const offeredPortals = hasSeveralPortals ? portalsToPublishTo(publications, portals) : portals.filter(candidate => candidate.default);
+    const portal = offeredPortals.find(candidate => candidate.id === chosenPortalId) ?? defaultPublishPortal(offeredPortals);
     const locationsQuery = useApiPublishLocations(apiId, portal?.id);
     const [chosenSectionId, setChosenSectionId] = useState<string | undefined>(undefined);
     const [refusal, setRefusal] = useState<string | null>(null);
@@ -195,6 +207,15 @@ function PublishToPortalForm({
     const isLoadingSections = portalsQuery.isPending || (portal !== undefined && locationsQuery.isPending);
     const canPublish = portal !== undefined && selectedSectionId !== undefined && !isPublishing;
 
+    function handlePortalChange(next: string) {
+        // Inside a form, the select's hidden native twin reports an empty value before the portals arrive.
+        if (next === '' || next === portal?.id) return;
+        setChosenPortalId(next);
+        // A section belongs to one portal
+        setChosenSectionId(undefined);
+        setRefusal(null);
+    }
+
     function handleSectionChange(next: string) {
         // Inside a form, the select's hidden native twin reports an empty value before the sections arrive.
         if (next === '') return;
@@ -207,7 +228,11 @@ function PublishToPortalForm({
         if (!canPublish || selectedSectionId === undefined) return;
         try {
             const published = await publishApi({ sectionId: selectedSectionId });
-            notify.success(`Published in '${published.sectionName}'`);
+            notify.success(
+                hasSeveralPortals
+                    ? `Published in '${published.sectionName}' of '${portal.name}'`
+                    : `Published in '${published.sectionName}'`,
+            );
             onClose();
         } catch (error) {
             setRefusal(extractErrorMessage(error));
@@ -217,10 +242,10 @@ function PublishToPortalForm({
     return (
         <>
             <DialogHeader>
-                <DialogTitle>Publish to the developer portal</DialogTitle>
+                <DialogTitle>{hasSeveralPortals ? 'Publish to a developer portal' : 'Publish to the developer portal'}</DialogTitle>
                 <DialogDescription>
-                    The API and its documentation will become visible in the developer portal. Every page, folder and link will be
-                    published, including those unpublished individually.
+                    The API and its documentation will become visible in the {hasSeveralPortals ? 'chosen' : 'developer'} portal. Every
+                    page, folder and link will be published, including those unpublished individually.
                 </DialogDescription>
             </DialogHeader>
 
@@ -247,6 +272,24 @@ function PublishToPortalForm({
                         <AlertCircleIcon aria-hidden />
                         <AlertDescription>{refusal}</AlertDescription>
                     </Alert>
+                ) : null}
+
+                {hasSeveralPortals ? (
+                    <Field orientation="vertical" className="gap-1.5">
+                        <FieldLabel htmlFor={portalFieldId}>Portal</FieldLabel>
+                        <Select value={portal?.id ?? ''} onValueChange={handlePortalChange} disabled={isPublishing}>
+                            <SelectTrigger id={portalFieldId} className="w-full">
+                                <SelectValue placeholder="Choose a portal" />
+                            </SelectTrigger>
+                            <SelectContent position="popper" style={{ width: 'var(--radix-select-trigger-width)', minWidth: 'unset' }}>
+                                {offeredPortals.map(offered => (
+                                    <SelectItem key={offered.id} value={offered.id}>
+                                        {offered.default ? `${offered.name} (default)` : offered.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </Field>
                 ) : null}
 
                 <Field orientation="vertical" className="gap-1.5">
@@ -290,6 +333,11 @@ function PublishToPortalForm({
             </DialogFooter>
         </>
     );
+}
+
+/** The portal to offer first: the environment's default one, else the first of those offered. */
+function defaultPublishPortal(portals: ApiPortalPublishPortal[]): ApiPortalPublishPortal | undefined {
+    return portals.find(candidate => candidate.default) ?? portals[0];
 }
 
 function sectionPlaceholder(isLoading: boolean, hasNoSection: boolean): string {
