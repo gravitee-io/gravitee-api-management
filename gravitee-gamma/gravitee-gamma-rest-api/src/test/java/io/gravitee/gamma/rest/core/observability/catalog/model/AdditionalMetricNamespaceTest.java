@@ -44,6 +44,7 @@ class AdditionalMetricNamespaceTest {
         assertThat(AdditionalMetricNamespace.GRAVITEE_API_TYPES).containsExactlyInAnyOrderEntriesOf(
             Map.ofEntries(
                 Map.entry("llm-proxy", Set.of(ApiType.LLM)),
+                Map.entry("aihub", Set.of(ApiType.LLM)),
                 Map.entry("pii", Set.of(ApiType.LLM)),
                 Map.entry("semantic-caching", Set.of(ApiType.LLM)),
                 Map.entry("mcp-proxy", Set.of(ApiType.MCP)),

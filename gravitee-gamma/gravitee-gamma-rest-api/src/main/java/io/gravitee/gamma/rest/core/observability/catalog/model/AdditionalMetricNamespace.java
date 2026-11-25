@@ -42,12 +42,13 @@ public final class AdditionalMetricNamespace {
 
     /**
      * The API kinds each Gravitee namespace writes for, every entry pinned by {@code AdditionalMetricNamespaceTest}:
-     * the LLM endpoint and the PII and semantic-caching policies, the MCP entrypoint and endpoints, the native Kafka
-     * reactor, the webhook entrypoint, the Edge gateway, the AuthZ enforcement point, and the gateway core's failover
-     * and quota, written on every kind of the HTTP family.
+     * the LLM endpoint, the AI Hub and the PII and semantic-caching policies, the MCP entrypoint and endpoints, the
+     * native Kafka reactor, the webhook entrypoint, the Edge gateway, the AuthZ enforcement point, and the gateway
+     * core's failover and quota, written on every kind of the HTTP family.
      */
     public static final Map<String, Set<ApiType>> GRAVITEE_API_TYPES = Map.ofEntries(
         Map.entry("llm-proxy", Set.of(ApiType.LLM)),
+        Map.entry("aihub", Set.of(ApiType.LLM)),
         Map.entry("pii", Set.of(ApiType.LLM)),
         Map.entry("semantic-caching", Set.of(ApiType.LLM)),
         Map.entry("mcp-proxy", Set.of(ApiType.MCP)),
