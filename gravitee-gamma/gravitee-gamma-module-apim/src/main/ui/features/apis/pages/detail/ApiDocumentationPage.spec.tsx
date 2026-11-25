@@ -543,6 +543,158 @@ describe('ApiDocumentationPage', () => {
         });
     });
 
+    describe('when the environment has several portals', () => {
+        const PARTNERS_PORTAL_ID = 'partners-portal';
+        const inDeveloperPortal = publication(true);
+        const inPartnersPortal: ApiPortalPublication = { ...publication(true, PARTNERS_PORTAL_ID), sectionName: 'Partner APIs' };
+        const hiddenInPartnersPortal: ApiPortalPublication = { ...publication(false, PARTNERS_PORTAL_ID), sectionName: 'Partner APIs' };
+
+        function publishedList() {
+            return screen.getByRole('list', { name: 'Published in' });
+        }
+
+        beforeEach(() => {
+            mockUseApiDetailContext.mockReturnValue({
+                api: { id: 'api-1', name: 'Payment API' },
+                isLoading: false,
+                permissionsReady: true,
+            });
+            mockUseApiPublishPortals.mockReturnValue({
+                data: {
+                    data: [
+                        { id: 'DEFAULT', name: 'Developer Portal', default: true },
+                        { id: PARTNERS_PORTAL_ID, name: 'Partners', default: false },
+                    ],
+                },
+                isSuccess: true,
+            });
+            givenDocumentation({ items: [GUIDES, GETTING_STARTED, CHANGELOG], publications: [inPartnersPortal, inDeveloperPortal] });
+        });
+
+        it('lists both portals, each with its section, when the API is published in two', () => {
+            renderPage();
+
+            const rows = within(publishedList()).getAllByRole('listitem');
+            expect(rows).toHaveLength(2);
+            expect(rows[0]).toHaveTextContent('Developer Portal');
+            expect(rows[0]).toHaveTextContent('Section: APIs');
+            expect(rows[1]).toHaveTextContent('Partners');
+            expect(rows[1]).toHaveTextContent('Section: Partner APIs');
+        });
+
+        it('says in how many portals the API is published', () => {
+            renderPage();
+
+            expect(screen.getByText('Published in 2 portals')).toHaveAttribute('data-variant', 'success');
+            expect(screen.queryByText('Published in APIs')).not.toBeInTheDocument();
+        });
+
+        it('no longer offers to publish once every portal shows the API', () => {
+            renderPage();
+
+            expect(screen.queryByRole('button', { name: 'Publish' })).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', { name: 'Unpublish' })).not.toBeInTheDocument();
+        });
+
+        it('still offers to publish while a portal does not show the API, handing every listing to the dialog', async () => {
+            givenDocumentation({ items: [GUIDES], publications: [inPartnersPortal] });
+            const user = userEvent.setup();
+            renderPage();
+
+            expect(screen.getByText('Published in 1 portal')).toBeInTheDocument();
+            expect(within(publishedList()).getAllByRole('listitem')).toHaveLength(1);
+            await user.click(screen.getByRole('button', { name: 'Publish' }));
+
+            expect(screen.getByRole('dialog', { name: 'Publish to the developer portal' })).toHaveTextContent('listed in [Partner APIs]');
+        });
+
+        it('shows no list of portals, and offers to publish, when the API is published nowhere', () => {
+            givenDocumentation({ items: [GUIDES], publications: [hiddenInPartnersPortal] });
+            renderPage();
+
+            expect(screen.getByText('Not published')).toBeInTheDocument();
+            expect(screen.queryByRole('list', { name: 'Published in' })).not.toBeInTheDocument();
+            expect(screen.getByRole('button', { name: 'Publish' })).toBeInTheDocument();
+        });
+
+        it('asks first, naming the portal and saying the API stays in the others', async () => {
+            const user = userEvent.setup();
+            renderPage();
+
+            await user.click(screen.getByRole('button', { name: 'Unpublish from Partners' }));
+
+            expect(screen.getByRole('dialog', { name: 'Unpublish "Payment API" from "Partners"?' })).toHaveTextContent(
+                'The API will become invisible in this portal. It stays published in the other portals.',
+            );
+            expect(mockUnpublish).not.toHaveBeenCalled();
+        });
+
+        it('says the documentation becomes invisible too when unpublishing from the last portal', async () => {
+            givenDocumentation({ items: [GUIDES], publications: [inPartnersPortal] });
+            const user = userEvent.setup();
+            renderPage();
+
+            await user.click(screen.getByRole('button', { name: 'Unpublish from Partners' }));
+
+            expect(screen.getByRole('dialog', { name: 'Unpublish "Payment API" from "Partners"?' })).toHaveTextContent(
+                'The API and its documentation will become invisible in this portal.',
+            );
+        });
+
+        it('unpublishes from the portal of the row once confirmed, and from no other', async () => {
+            const user = userEvent.setup();
+            renderPage();
+
+            await user.click(screen.getByRole('button', { name: 'Unpublish from Partners' }));
+            await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Unpublish' }));
+
+            expect(mockUnpublish).toHaveBeenCalledTimes(1);
+            expect(mockUnpublish).toHaveBeenCalledWith(PARTNERS_PORTAL_ID);
+            expect(notify.success).toHaveBeenCalledWith("Unpublished from 'Partners'");
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        });
+
+        it('closes the confirmation and says so when the API was unpublished from that portal meanwhile', async () => {
+            const user = userEvent.setup();
+            const { rerender } = renderPage();
+
+            await user.click(screen.getByRole('button', { name: 'Unpublish from Partners' }));
+            givenDocumentation({ items: [GUIDES], publications: [inDeveloperPortal] });
+            rerender(pageTree());
+            await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Unpublish' }));
+
+            expect(mockUnpublish).not.toHaveBeenCalled();
+            expect(notify.info).toHaveBeenCalledWith("The API is no longer published to 'Partners'");
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        });
+
+        it('keeps the items publishable while one portal still shows the API', async () => {
+            givenDocumentation({ items: [GUIDES, GETTING_STARTED, CHANGELOG], publications: [inPartnersPortal] });
+            renderPage();
+
+            await userEvent.click(screen.getByRole('button', { name: 'Actions for Changelog' }));
+
+            expect(screen.getByRole('menuitem', { name: 'Publish' })).not.toHaveAttribute('aria-disabled', 'true');
+        });
+
+        it('requires api-documentation-u to publish or unpublish', () => {
+            mockUseHasPermission.mockImplementation((query: { anyOf?: string[] }) => !query.anyOf?.includes('api-documentation-u'));
+            givenDocumentation({ items: [GUIDES], publications: [inPartnersPortal] });
+            renderPage();
+
+            expect(within(publishedList()).getAllByRole('listitem')).toHaveLength(1);
+            expect(screen.queryByRole('button', { name: /publish/i })).not.toBeInTheDocument();
+        });
+
+        it('ignores a listing in a portal the console does not manage', () => {
+            givenDocumentation({ items: [GUIDES], publications: [publication(true, AUTOMATION_PORTAL_ID), inDeveloperPortal] });
+            renderPage();
+
+            expect(screen.getByText('Published in 1 portal')).toBeInTheDocument();
+            expect(within(publishedList()).getAllByRole('listitem')).toHaveLength(1);
+        });
+    });
+
     describe('unpublishing the API', () => {
         beforeEach(() => {
             mockUseApiDetailContext.mockReturnValue({

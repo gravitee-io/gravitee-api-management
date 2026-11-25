@@ -16,7 +16,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { ApiPublicationBadge, ItemAccessBadge, ItemPublishedBadge } from './DocumentationItemBadges';
+import { ApiPortalsPublicationBadge, ApiPublicationBadge, ItemAccessBadge, ItemPublishedBadge } from './DocumentationItemBadges';
 import type { ApiPortalPublication } from '../../../types/apiDocumentation';
 
 beforeAll(() => {
@@ -98,5 +98,27 @@ describe('ApiPublicationBadge', () => {
         render(<ApiPublicationBadge publications={[publication(false)]} />);
 
         expect(await tooltipOf('Not published')).toBe('Not in the developer portal. Publish the API to choose the section it appears in.');
+    });
+});
+
+describe('ApiPortalsPublicationBadge', () => {
+    it('says in how many portals the API is published, and names them', async () => {
+        render(<ApiPortalsPublicationBadge portalNames={['Developer Portal', 'Partners']} />);
+
+        expect(await tooltipOf('Published in 2 portals')).toBe('Listed in the top navigation of: Developer Portal, Partners.');
+    });
+
+    it('counts a single portal as one', async () => {
+        render(<ApiPortalsPublicationBadge portalNames={['Partners']} />);
+
+        expect(await tooltipOf('Published in 1 portal')).toBe('Listed in the top navigation of: Partners.');
+    });
+
+    it('explains that an API published nowhere gets its portal and section when published', async () => {
+        render(<ApiPortalsPublicationBadge portalNames={[]} />);
+
+        expect(await tooltipOf('Not published')).toBe(
+            'Not in any developer portal. Publish the API to choose a portal and the section it appears in.',
+        );
     });
 });

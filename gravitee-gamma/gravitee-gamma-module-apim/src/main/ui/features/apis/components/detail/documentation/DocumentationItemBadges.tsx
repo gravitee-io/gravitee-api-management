@@ -60,6 +60,21 @@ export function ApiPublicationBadge({ publications }: Readonly<{ publications: A
     );
 }
 
+/** With several portals, the header says in how many the API shows: the page lists each one with its section. */
+export function ApiPortalsPublicationBadge({ portalNames }: Readonly<{ portalNames: string[] }>) {
+    return portalNames.length > 0 ? (
+        <ExplainedBadge explanation={`Listed in the top navigation of: ${portalNames.join(', ')}.`}>
+            <Badge variant="success">
+                Published in {portalNames.length} {portalNames.length === 1 ? 'portal' : 'portals'}
+            </Badge>
+        </ExplainedBadge>
+    ) : (
+        <ExplainedBadge explanation="Not in any developer portal. Publish the API to choose a portal and the section it appears in.">
+            <Badge variant="outline">Not published</Badge>
+        </ExplainedBadge>
+    );
+}
+
 function ExplainedBadge({ explanation, children }: Readonly<{ explanation: string; children: ReactNode }>) {
     return (
         <TooltipProvider delayDuration={200}>

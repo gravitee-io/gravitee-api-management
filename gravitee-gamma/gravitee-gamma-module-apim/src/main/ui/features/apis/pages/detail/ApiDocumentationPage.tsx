@@ -41,8 +41,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { ConfirmDialog } from '../../../../shared/components/ConfirmDialog';
 import { notify } from '../../../../shared/notify';
+import { ApiPublicationsList } from '../../components/detail/documentation/ApiPublicationsList';
 import { CreatePageDialog } from '../../components/detail/documentation/CreatePageDialog';
-import { ApiPublicationBadge } from '../../components/detail/documentation/DocumentationItemBadges';
+import { ApiPortalsPublicationBadge, ApiPublicationBadge } from '../../components/detail/documentation/DocumentationItemBadges';
 import { DocumentationTree } from '../../components/detail/documentation/DocumentationTree';
 import { EditPageDetailsDialog } from '../../components/detail/documentation/EditPageDetailsDialog';
 import { FolderDialog } from '../../components/detail/documentation/FolderDialog';
@@ -58,13 +59,14 @@ import {
 } from '../../hooks/useApiDocumentation';
 import { useExpandedDocumentationFolders } from '../../hooks/useExpandedDocumentationFolders';
 import { useFetchNow } from '../../hooks/useFetchNow';
-import type { ApiDocumentationItem, ApiPortalPublication, PortalNavigationFolder } from '../../types/apiDocumentation';
+import type { ApiDocumentationItem, ApiPortalPublishPortal, PortalNavigationFolder } from '../../types/apiDocumentation';
 import {
     type DocumentationRow,
     getAncestors,
-    getPublishedPublication,
     getPublishedSection,
+    portalsToPublishTo,
     publicationsInPortals,
+    publishedPublications,
     syncStateOf,
 } from '../../utils/documentationTree';
 
@@ -104,7 +106,10 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
     const { data, isLoading, isError } = useApiDocumentation(apiId);
     const portalsQuery = useApiPublishPortals(apiId);
     // A listing the Automation API keeps in a portal it manages can be neither shown as published nor unpublished here
-    const publications = portalsQuery.isSuccess ? publicationsInPortals(data?.publications ?? [], portalsQuery.data.data) : undefined;
+    const portals = portalsQuery.isSuccess ? portalsQuery.data.data : [];
+    const publications = portalsQuery.isSuccess ? publicationsInPortals(data?.publications ?? [], portals) : undefined;
+    const published = publishedPublications(publications ?? [], portals);
+    const hasSeveralPortals = portals.length > 1;
     const deleteMutation = useDeleteApiDocumentationItem(apiId);
     const unpublishMutation = useUnpublishApiFromPortal(apiId);
     const { fetchNow, isFetching } = useFetchNow(apiId);
@@ -118,7 +123,7 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
     const [linkToAdd, setLinkToAdd] = useState<{ parent?: PortalNavigationFolder } | null>(null);
     const [itemToEdit, setItemToEdit] = useState<ApiDocumentationItem | null>(null);
     const [isPublishing, setIsPublishing] = useState(false);
-    const [isUnpublishing, setIsUnpublishing] = useState(false);
+    const [portalToUnpublish, setPortalToUnpublish] = useState<ApiPortalPublishPortal | null>(null);
 
     const items = data?.items ?? [];
     const isFirstUse = !isLoading && !isError && items.length === 0;
@@ -145,16 +150,17 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
     }
 
     async function handleUnpublish() {
-        const published = getPublishedPublication(publications ?? []);
-        if (!published) {
-            notify.info('The API is no longer published to the developer portal');
-            setIsUnpublishing(false);
+        if (!portalToUnpublish) return;
+        const portalName = hasSeveralPortals ? `'${portalToUnpublish.name}'` : 'the developer portal';
+        if (!published.some(({ portal }) => portal.id === portalToUnpublish.id)) {
+            notify.info(`The API is no longer published to ${portalName}`);
+            setPortalToUnpublish(null);
             return;
         }
         try {
-            await unpublishMutation.mutateAsync(published.portalId);
-            notify.success('Unpublished from the developer portal');
-            setIsUnpublishing(false);
+            await unpublishMutation.mutateAsync(portalToUnpublish.id);
+            notify.success(`Unpublished from ${portalName}`);
+            setPortalToUnpublish(null);
         } catch (error) {
             notify.error(error, 'Failed to unpublish the API');
         }
@@ -175,18 +181,30 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                 description={DESCRIPTION}
                 actions={
                     <>
-                        {data && publications ? <ApiPublicationBadge publications={publications} /> : null}
+                        {data && publications ? (
+                            hasSeveralPortals ? (
+                                <ApiPortalsPublicationBadge portalNames={published.map(({ portal }) => portal.name)} />
+                            ) : (
+                                <ApiPublicationBadge publications={publications} />
+                            )
+                        ) : null}
                         {data && publications && canEdit ? (
                             <PublicationAction
-                                publications={publications}
+                                canPublish={portalsToPublishTo(publications, portals).length > 0}
+                                // With several portals, each one is unpublished from its row in the list
+                                portalToUnpublish={hasSeveralPortals ? undefined : published[0]?.portal}
                                 onPublish={() => setIsPublishing(true)}
-                                onUnpublish={() => setIsUnpublishing(true)}
+                                onUnpublish={setPortalToUnpublish}
                             />
                         ) : null}
                         {addMenu}
                     </>
                 }
             />
+
+            {data && hasSeveralPortals && published.length > 0 ? (
+                <ApiPublicationsList publications={published} canUnpublish={canEdit} onUnpublish={setPortalToUnpublish} />
+            ) : null}
 
             {isError ? (
                 <Alert variant="destructive">
@@ -294,10 +312,14 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
             />
 
             <ConfirmDialog
-                open={isUnpublishing}
-                onOpenChange={setIsUnpublishing}
-                title={`Unpublish "${api?.name ?? 'this API'}"?`}
-                description="The API and its documentation will become invisible in the developer portal."
+                open={portalToUnpublish !== null}
+                onOpenChange={open => !open && setPortalToUnpublish(null)}
+                title={
+                    hasSeveralPortals && portalToUnpublish
+                        ? `Unpublish "${api?.name ?? 'this API'}" from "${portalToUnpublish.name}"?`
+                        : `Unpublish "${api?.name ?? 'this API'}"?`
+                }
+                description={unpublishDescription(hasSeveralPortals, published.length)}
                 confirmLabel="Unpublish"
                 pendingLabel="Unpublishing…"
                 icon={<EyeOffIcon className="size-4" aria-hidden />}
@@ -369,21 +391,38 @@ function AddDocumentationMenu({
 
 // A hidden listing does not make the API published, so it gets Publish, which reuses that listing.
 function PublicationAction({
-    publications,
+    canPublish,
+    portalToUnpublish,
     onPublish,
     onUnpublish,
-}: Readonly<{ publications: ApiPortalPublication[]; onPublish: () => void; onUnpublish: () => void }>) {
-    return getPublishedSection(publications) ? (
-        <Button type="button" variant="outline" onClick={onUnpublish}>
-            <EyeOffIcon className="size-4" aria-hidden />
-            Unpublish
-        </Button>
-    ) : (
+}: Readonly<{
+    canPublish: boolean;
+    portalToUnpublish: ApiPortalPublishPortal | undefined;
+    onPublish: () => void;
+    onUnpublish: (portal: ApiPortalPublishPortal) => void;
+}>) {
+    if (portalToUnpublish) {
+        return (
+            <Button type="button" variant="outline" onClick={() => onUnpublish(portalToUnpublish)}>
+                <EyeOffIcon className="size-4" aria-hidden />
+                Unpublish
+            </Button>
+        );
+    }
+    return canPublish ? (
         <Button type="button" variant="outline" onClick={onPublish}>
             <GlobeIcon className="size-4" aria-hidden />
             Publish
         </Button>
-    );
+    ) : null;
+}
+
+// The documentation stays published as long as one portal shows the API.
+function unpublishDescription(hasSeveralPortals: boolean, publishedPortalCount: number): string {
+    if (!hasSeveralPortals) return 'The API and its documentation will become invisible in the developer portal.';
+    return publishedPortalCount > 1
+        ? 'The API will become invisible in this portal. It stays published in the other portals.'
+        : 'The API and its documentation will become invisible in this portal.';
 }
 
 function DeleteDescription({ row }: Readonly<{ row: DocumentationRow }>) {
