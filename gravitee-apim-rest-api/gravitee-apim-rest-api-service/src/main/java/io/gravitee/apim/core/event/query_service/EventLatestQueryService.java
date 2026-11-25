@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.event.query_service;
 
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.event.model.DeploymentNumber;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.rest.api.model.EventType;
@@ -70,7 +71,8 @@ public interface EventLatestQueryService {
      *     event stopped or unpublished it, or that event carries a blank payload. The last case leaves a caller
      *     writing the definition and sending the gateways nothing, as a stopped API does: a deployment with nothing
      *     in it is no more republishable than no deployment at all.
-     * @throws TechnicalDomainException when the payload or the definition it carries cannot be read. A payload that
+     * @throws TechnicalDomainException when the payload, the definition it carries or its deployment number cannot be
+     *     read. A payload that
      *     is there and unreadable is a failure, unlike one that is not there at all. The deployment is answered whole
      *     or not at all: a caller republishing it would otherwise hand the gateways a definition short of what could
      *     not be parsed.
@@ -83,9 +85,8 @@ public interface EventLatestQueryService {
      * @param eventId the id of the event that deployed it, so a newer deployment can be told from it.
      * @param type the type of that event, republished as it is: a started API is not restarted by a new deployment of
      *     its definition, and a deployed one is not started by it.
-     * @param deploymentNumber the number of that deployment, or {@code null} when it carries none; a republished
-     *     event takes the one after it, since the gateways ignore an event of the number they already run.
+     * @param deploymentNumber the number of that deployment, {@link DeploymentNumber#NONE} when it carries none.
      * @param api the API the deployment carries, which is what the gateways run — not what the store holds.
      */
-    record ApiDeployment(String eventId, EventType type, String deploymentNumber, Api api) {}
+    record ApiDeployment(String eventId, EventType type, DeploymentNumber deploymentNumber, Api api) {}
 }

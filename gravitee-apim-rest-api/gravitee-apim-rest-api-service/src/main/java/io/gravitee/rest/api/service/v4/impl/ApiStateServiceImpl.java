@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.api.model.property.EncryptedPropertyAuditMarker;
 import io.gravitee.apim.core.deployment.service_provider.ApiDeploymentGate;
+import io.gravitee.apim.core.event.model.DeploymentNumber;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.json.jackson.EncryptedPropertyAccessPatch;
@@ -322,6 +323,14 @@ public class ApiStateServiceImpl implements ApiStateService {
         Map<String, String> properties,
         ApiDeploymentEntity apiDeploymentEntity
     ) {
+        properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), latestDeploymentNumber(apiId).next().asProperty());
+
+        if (apiDeploymentEntity != null && StringUtils.isNotEmpty(apiDeploymentEntity.getDeploymentLabel())) {
+            properties.put(Event.EventProperties.DEPLOYMENT_LABEL.getValue(), apiDeploymentEntity.getDeploymentLabel());
+        }
+    }
+
+    private DeploymentNumber latestDeploymentNumber(String apiId) {
         EventCriteria criteria = EventCriteria.builder()
             .types(
                 Set.of(
@@ -334,19 +343,12 @@ public class ApiStateServiceImpl implements ApiStateService {
             .property(Event.EventProperties.API_ID.getValue(), apiId)
             .build();
 
-        String lastDeployNumber = eventLatestRepository
+        return eventLatestRepository
             .search(criteria, Event.EventProperties.API_ID, 0L, 1L)
             .stream()
             .findFirst()
-            .map(eventEntity -> eventEntity.getProperties().getOrDefault(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0"))
-            .orElse("0");
-
-        String newDeployNumber = Long.toString(Long.parseLong(lastDeployNumber) + 1);
-        properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), newDeployNumber);
-
-        if (apiDeploymentEntity != null && StringUtils.isNotEmpty(apiDeploymentEntity.getDeploymentLabel())) {
-            properties.put(Event.EventProperties.DEPLOYMENT_LABEL.getValue(), apiDeploymentEntity.getDeploymentLabel());
-        }
+            .map(eventEntity -> DeploymentNumber.of(eventEntity.getProperties().get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue())))
+            .orElse(DeploymentNumber.NONE);
     }
 
     @Override
