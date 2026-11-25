@@ -70,4 +70,9 @@ public class ApiMetricsDetail {
      */
     String securityToken;
     Map<String, Object> additionalMetrics;
+    /**
+     * Custom metrics of the request, as the assign-metrics policy writes them under {@code custom}: keyed by name,
+     * without the {@code custom.} prefix. Null when the document has no {@code custom} object.
+     */
+    Map<String, String> customMetrics;
 }

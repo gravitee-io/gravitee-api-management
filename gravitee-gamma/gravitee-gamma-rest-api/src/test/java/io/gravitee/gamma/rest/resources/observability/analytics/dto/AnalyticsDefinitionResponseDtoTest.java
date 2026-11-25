@@ -15,19 +15,16 @@
  */
 package io.gravitee.gamma.rest.resources.observability.analytics.dto;
 
+import static io.gravitee.gamma.rest.resources.observability.ObservabilityOpenApi.serializedNames;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.gravitee.gamma.rest.core.observability.analytics.model.MetricFamily;
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
-import java.io.IOException;
+import io.gravitee.gamma.rest.resources.observability.ObservabilityOpenApi;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.StreamSupport;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -38,15 +35,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class AnalyticsDefinitionResponseDtoTest {
 
-    private static final ObjectMapper JSON = new ObjectMapper();
-    private static JsonNode schemas;
-
-    @BeforeAll
-    static void loadOpenApi() throws IOException {
-        try (var spec = AnalyticsDefinitionResponseDtoTest.class.getResourceAsStream("/openapi/observability/openapi-observability.yaml")) {
-            schemas = new YAMLMapper().readTree(spec).at("/components/schemas");
-        }
-    }
+    private static final JsonNode schemas = ObservabilityOpenApi.schemas();
 
     /** Every property is documented and required, but the ones the mapper leaves out when null, named in the third column. */
     @ParameterizedTest
@@ -75,16 +64,6 @@ class AnalyticsDefinitionResponseDtoTest {
                 .filter(property -> !optionals.contains(property))
                 .toList()
         );
-    }
-
-    /** The names Jackson writes, in declaration order: what the wire carries, not the record's component names. */
-    private static List<String> serializedNames(Class<?> dto) {
-        return JSON.getSerializationConfig()
-            .introspect(JSON.constructType(dto))
-            .findProperties()
-            .stream()
-            .map(BeanPropertyDefinition::getName)
-            .toList();
     }
 
     @Test

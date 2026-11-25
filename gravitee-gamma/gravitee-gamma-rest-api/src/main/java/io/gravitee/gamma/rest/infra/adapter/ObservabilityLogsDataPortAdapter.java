@@ -240,7 +240,8 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                 .errorComponentName(metrics.getErrorComponentName())
                 .errorComponentType(metrics.getErrorComponentType())
                 .warnings(mapWarnings(metrics.getWarnings()))
-                .additionalMetrics(metrics.getAdditionalMetrics() != null ? metrics.getAdditionalMetrics() : Map.of());
+                .additionalMetrics(metrics.getAdditionalMetrics())
+                .customMetrics(metrics.getCustomMetrics());
 
             var nativeMetrics = NativeMetrics.from(metrics.getAdditionalMetrics());
             builder
@@ -639,7 +640,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                     .errorType(decision.errorType())
                     .build()
             )
-            .additionalMetrics(decision.additionalMetrics() != null ? decision.additionalMetrics() : Map.of())
+            .additionalMetrics(decision.additionalMetrics())
             .build();
     }
 
@@ -682,7 +683,8 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .errorComponentName(log.getErrorComponentName())
             .errorComponentType(log.getErrorComponentType())
             .warnings(mapWarnings(log.getWarnings()))
-            .additionalMetrics(log.getAdditionalMetrics() != null ? log.getAdditionalMetrics() : Map.of())
+            .additionalMetrics(log.getAdditionalMetrics())
+            .customMetrics(log.getCustomMetrics())
             .mcpMethod(log.getMcpMethod())
             .apiProductId(log.getApiProductId())
             .connectionStatus(nativeMetrics.connectionStatus())

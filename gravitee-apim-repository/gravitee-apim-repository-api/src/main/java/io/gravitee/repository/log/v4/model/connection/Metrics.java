@@ -50,6 +50,11 @@ public class Metrics {
     private String errorComponentType;
     private List<ConnectionDiagnostic> warnings;
     private Map<String, Object> additionalMetrics;
+    /**
+     * Custom metrics of the request, as the assign-metrics policy writes them under {@code custom}: keyed by name,
+     * without the {@code custom.} prefix. Null when the document has no {@code custom} object.
+     */
+    private Map<String, String> customMetrics;
     private String apiProductId;
     private String host;
     private String subscriptionId;

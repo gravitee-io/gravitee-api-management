@@ -22,6 +22,7 @@ import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.elasticsearch.AbstractAdapterTest;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetail;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -71,6 +72,7 @@ class FindApiMetricsDetailResponseAdapterTest extends AbstractAdapterTest {
                         .warnings(List.of())
                         .securityType("JWT")
                         .securityToken("oauth-client-1")
+                        .customMetrics(Map.of("foo", "bar"))
                         .build()
                 )
             );
@@ -149,6 +151,18 @@ class FindApiMetricsDetailResponseAdapterTest extends AbstractAdapterTest {
                         .build()
                 )
             );
+        }
+
+        @Test
+        void should_read_the_custom_metrics_apart_from_the_additional_metrics() {
+            final SearchResponse searchResponse = buildSearchHit("api-proxy-v4-metrics-with-custom-and-additional-metrics.json");
+
+            var result = FindApiMetricsDetailResponseAdapter.adaptFirst(searchResponse).orElseThrow();
+
+            assertThat(result.getCustomMetrics()).containsExactlyInAnyOrderEntriesOf(
+                Map.of("customer.tier", "gold", "order.channel", "web")
+            );
+            assertThat(result.getAdditionalMetrics()).containsOnlyKeys("keyword_fraud-check_tier", "long_failover_count");
         }
     }
 }

@@ -39,6 +39,7 @@ public class RequestV2MetricsV4Fields {
     public static final String ERROR_COMPONENT_NAME = "error-component-name";
     public static final String ERROR_COMPONENT_TYPE = "error-component-type";
     public static final String ADDITIONAL_METRICS = "additional-metrics";
+    public static final String CUSTOM = "custom";
     public static final String WARNINGS = "warnings";
     public static final String SUBSCRIPTION_ID = "subscription-id";
     public static final String REMOTE_ADDRESS = "remote-address";

@@ -18,10 +18,16 @@ package io.gravitee.repository.elasticsearch.utils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import lombok.AccessLevel;
+import lombok.CustomLog;
 import lombok.NoArgsConstructor;
 
+@CustomLog
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class JsonNodeUtils {
 
@@ -48,6 +54,56 @@ public class JsonNodeUtils {
         } catch (IllegalArgumentException e) {
             return null;
         }
+    }
+
+    /**
+     * Reads an object of keyword values, such as the {@code custom} metrics of a request, as a flat map of texts in
+     * document order, the way {@link #putFlattened} walks it. What it leaves out is logged at debug level with the id
+     * of the document.
+     *
+     * @return the flat map, or {@code null} when the node is absent or not an object
+     */
+    public static Map<String, String> asFlatTextMapOrNull(JsonNode jsonNode, String documentId) {
+        if (jsonNode == null || !jsonNode.isObject()) {
+            return null;
+        }
+        var flat = new LinkedHashMap<String, String>();
+        var leftOut = putFlattened(jsonNode, "", flat);
+        if (!leftOut.isEmpty()) {
+            log.debug("Document {}: {} left out of the flattened object (a null value, or a name written twice)", documentId, leftOut);
+        }
+        return Collections.unmodifiableMap(flat);
+    }
+
+    /**
+     * Copies the members of a JSON object into a flat map of texts. A nested object is walked into dotted names
+     * ({@code {"order": {"channel": "web"}}} gives {@code order.channel}); any other value is read with
+     * {@link JsonNode#asText()}, so an array reads as an empty text; a {@code null} value is skipped. When two members
+     * flatten to the same name (a dotted name and the same name as a nested object), the last one read wins.
+     *
+     * @param prefix the dotted name of {@code object} itself, empty at the root
+     * @return the names left out: the skipped {@code null} values and the names written twice
+     */
+    public static List<String> putFlattened(JsonNode object, String prefix, Map<String, String> into) {
+        var leftOut = new ArrayList<String>();
+        putFlattened(object, prefix, into, leftOut);
+        return leftOut;
+    }
+
+    private static void putFlattened(JsonNode object, String prefix, Map<String, String> into, List<String> leftOut) {
+        object
+            .properties()
+            .forEach(member -> {
+                var name = prefix.isEmpty() ? member.getKey() : prefix + "." + member.getKey();
+                var value = member.getValue();
+                if (value.isObject()) {
+                    putFlattened(value, name, into, leftOut);
+                } else if (value.isNull()) {
+                    leftOut.add(name);
+                } else if (into.put(name, value.asText()) != null) {
+                    leftOut.add(name);
+                }
+            });
     }
 
     public static int asIntOr(JsonNode jsonNode, int defaultValue) {
