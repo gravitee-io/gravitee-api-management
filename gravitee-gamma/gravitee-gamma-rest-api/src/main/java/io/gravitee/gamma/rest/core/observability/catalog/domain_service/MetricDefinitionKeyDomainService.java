@@ -69,6 +69,9 @@ public class MetricDefinitionKeyDomainService {
         if (field.isReserved()) {
             throw InvalidMetricDefinitionException.reservedKey(name);
         }
+        if (field.namesCustomMetric()) {
+            throw InvalidMetricDefinitionException.customMetricKey(name);
+        }
         // A built-in reading a key resolves to additional-metrics.<rawKey>, the field the OBS-70 identity rule gives
         // the dynamic name of that key, so comparing keys compares the resolved fields.
         if (builtInAdditionalMetrics.builtInNamesByRawKey().containsKey(field.rawKey())) {

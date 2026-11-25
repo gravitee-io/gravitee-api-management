@@ -28,6 +28,7 @@ public class InvalidMetricDefinitionException extends ValidationDomainException 
 
     private static final String CODE_PREFIX = "observability.metric_definition.";
     private static final String INVALID_BODY_RULE = "invalid_body";
+    private static final String RESERVED_KEY_RULE = "reserved_key";
 
     /** The code of a body the endpoint cannot read: none, or one with a property the schema does not list. */
     public static final String INVALID_BODY = CODE_PREFIX + INVALID_BODY_RULE;
@@ -50,7 +51,14 @@ public class InvalidMetricDefinitionException extends ValidationDomainException 
     public static InvalidMetricDefinitionException reservedKey(String name) {
         return new InvalidMetricDefinitionException(
             "'%s' is reserved: keys of the form <type>_custom_<name> belong to the typed custom metrics".formatted(name),
-            "reserved_key"
+            RESERVED_KEY_RULE
+        );
+    }
+
+    public static InvalidMetricDefinitionException customMetricKey(String name) {
+        return new InvalidMetricDefinitionException(
+            "'%s' is reserved: custom metrics (custom.<name>) come from the Assign metrics policy and are read-only here".formatted(name),
+            RESERVED_KEY_RULE
         );
     }
 
