@@ -104,8 +104,9 @@ gravitee-policy-ai-routing
 gravitee-policy-ai-token-compression
 gravitee-policy-pii-filtering
 gravitee-policy-native-ipfiltering
-gravitee-policy-guardrail-rule
-gravitee-policy-guardrail-decision
+gravitee-policy-guardrail-llm-rule
+gravitee-policy-guardrail-llm-decision-binary
+gravitee-policy-guardrail-llm-decision-scoring
 gravitee-policy-human-approval
 gravitee-policy-authz-pep
 gravitee-policy-authz-list-filter

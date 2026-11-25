@@ -2423,7 +2423,7 @@
                 </dependency>
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
-                    <artifactId>gravitee-policy-guardrail-rule</artifactId>
+                    <artifactId>gravitee-policy-guardrail-llm-rule</artifactId>
                     <version>${gravitee-policy-guardrail.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
@@ -2436,7 +2436,20 @@
                 </dependency>
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
-                    <artifactId>gravitee-policy-guardrail-decision</artifactId>
+                    <artifactId>gravitee-policy-guardrail-llm-decision-binary</artifactId>
+                    <version>${gravitee-policy-guardrail.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-guardrail-llm-decision-scoring</artifactId>
                     <version>${gravitee-policy-guardrail.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
