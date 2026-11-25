@@ -78,10 +78,6 @@ public class DecryptingSecretValueRepository implements SecretValueRepository {
         this.environmentRepository = environmentRepository;
     }
 
-    /**
-     * Checks the key encryption key against the stored data keys. Never throws: a repository that cannot read the stored
-     * data keys yet is checked again on the next secret, as it may only be briefly unavailable.
-     */
     void start() {
         try {
             verifyStoredDataKeys();

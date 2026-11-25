@@ -72,7 +72,6 @@ public class GraviteeSecretProviderConfiguration {
         return factory;
     }
 
-    // Lazy: the management repository plugin registers the repositories after this context starts.
     @Bean
     @Lazy
     @Conditional(WithManagementDatabase.class)
@@ -106,7 +105,6 @@ public class GraviteeSecretProviderConfiguration {
         return environment.getProperty("management.type", environment.getProperty("repositories.management.type", ""));
     }
 
-    // A bridge server in this gateway serves these values; a bridge client registers its own.
     static class WithManagementDatabase implements Condition {
 
         @Override

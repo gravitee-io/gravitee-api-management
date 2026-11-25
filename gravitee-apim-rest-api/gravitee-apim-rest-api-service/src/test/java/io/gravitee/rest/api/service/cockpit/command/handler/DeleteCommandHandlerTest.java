@@ -50,7 +50,6 @@ public class DeleteCommandHandlerTest {
         EnvironmentRepository.class,
         AlertTriggerRepository.class,
         AlertEventRepository.class,
-        // Read ports that store nothing
         SecretValueRepository.class
     );
 

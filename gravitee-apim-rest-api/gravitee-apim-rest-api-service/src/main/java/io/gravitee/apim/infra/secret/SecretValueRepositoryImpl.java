@@ -23,7 +23,6 @@ import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 
-/** Serves the decrypted secret values to a bridge server hosted by this Management API. */
 @Service
 public class SecretValueRepositoryImpl implements SecretValueRepository {
 
