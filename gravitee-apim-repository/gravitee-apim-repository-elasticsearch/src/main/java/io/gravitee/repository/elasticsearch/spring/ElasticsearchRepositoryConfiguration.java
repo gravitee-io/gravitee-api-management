@@ -40,6 +40,7 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.core.Vertx;
 import java.util.concurrent.TimeUnit;
+import javax.net.ssl.SSLHandshakeException;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -127,7 +128,15 @@ public class ElasticsearchRepositoryConfiguration {
         Single<ElasticsearchInfo> singleVersion = client
             .getInfo()
             .retryWhen(error ->
-                error.flatMap(throwable -> Observable.just(new Object()).delay(5, TimeUnit.SECONDS).toFlowable(BackpressureStrategy.LATEST))
+                error.flatMap(throwable -> {
+                    if (isCertificateRejected(throwable)) {
+                        log.error(
+                            "Elasticsearch TLS handshake failed: the cluster certificate is not trusted, retrying in 5 seconds. Configure 'analytics.elasticsearch.ssl.truststore', or set 'analytics.elasticsearch.ssl.trustAll' to true.",
+                            throwable
+                        );
+                    }
+                    return Observable.just(new Object()).delay(5, TimeUnit.SECONDS).toFlowable(BackpressureStrategy.LATEST);
+                })
             );
 
         singleVersion.subscribe();
@@ -140,5 +149,16 @@ public class ElasticsearchRepositoryConfiguration {
         }
 
         return elasticsearchInfo;
+    }
+
+    static boolean isCertificateRejected(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (current instanceof SSLHandshakeException) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 }

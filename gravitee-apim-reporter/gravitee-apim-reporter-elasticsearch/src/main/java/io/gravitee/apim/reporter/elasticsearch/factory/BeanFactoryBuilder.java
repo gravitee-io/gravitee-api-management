@@ -38,6 +38,7 @@ import io.reactivex.rxjava3.core.Observable;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import javax.net.ssl.SSLHandshakeException;
 import lombok.CustomLog;
 import org.springframework.util.StringUtils;
 
@@ -164,6 +165,13 @@ public class BeanFactoryBuilder {
                         );
                         return Flowable.error(throwable);
                     }
+                    if (isCertificateRejected(throwable)) {
+                        log.error(
+                            "Elasticsearch TLS handshake failed: the cluster certificate is not trusted. Configure 'reporters.elasticsearch.ssl.truststore', or set 'reporters.elasticsearch.ssl.trustAll' to true.",
+                            throwable
+                        );
+                        return Flowable.error(throwable);
+                    }
                     log.warn("Unable to connect to Elasticsearch, retrying in 5 seconds. Cause: {}", throwable.getMessage());
                     return Observable.just(new Object()).delay(5, TimeUnit.SECONDS).toFlowable(BackpressureStrategy.LATEST);
                 })
@@ -186,6 +194,17 @@ public class BeanFactoryBuilder {
     static boolean isForbidden(Throwable throwable) {
         var esException = findElasticsearchException(throwable);
         return esException != null && Integer.valueOf(403).equals(esException.getStatusCode());
+    }
+
+    static boolean isCertificateRejected(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (current instanceof SSLHandshakeException) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 
     static ElasticsearchException findElasticsearchException(Throwable throwable) {
