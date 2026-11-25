@@ -20,7 +20,7 @@ import { provideRouter } from '@angular/router';
 
 import { DocumentationComponent } from './documentation.component';
 import { fakePortalNavigationPage } from '../../../entities/portal-navigation/portal-navigation-item.fixture';
-import { AppTestingModule, TESTING_PORTAL_BASE_URL } from '../../../testing/app-testing.module';
+import { AppTestingModule, TESTING_BASE_URL } from '../../../testing/app-testing.module';
 
 describe('DocumentationComponent scroll position', () => {
   let fixture: ComponentFixture<DocumentationComponent>;
@@ -59,7 +59,7 @@ describe('DocumentationComponent scroll position', () => {
     fixture.componentRef.setInput('navItem', fakePortalNavigationPage({ id: pageId }));
     fixture.detectChanges();
     httpTestingController
-      .expectOne(`${TESTING_PORTAL_BASE_URL}/portal-navigation-items/${pageId}/content`)
+      .expectOne(`${TESTING_BASE_URL}/portal-navigation-items/${pageId}/content`)
       .flush({ content: `content of ${pageId}`, type: 'GRAVITEE_MARKDOWN' });
     await fixture.whenStable();
     fixture.detectChanges();

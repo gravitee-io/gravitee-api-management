@@ -15,12 +15,7 @@
  */
 import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { AsyncPipe } from '@angular/common';
-<<<<<<< HEAD
-import { Component, computed, inject, input, signal } from '@angular/core';
-=======
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, input, signal, viewChild } from '@angular/core';
->>>>>>> 27c0751 (fix(portal-next): open documentation pages at the top (PORTAL-330))
 import { rxResource, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
