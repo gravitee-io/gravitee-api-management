@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-<<<<<<< HEAD
-import { Component, computed, effect, input } from '@angular/core';
-=======
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, effect, ElementRef, input, untracked, viewChild } from '@angular/core';
->>>>>>> 27c0751 (fix(portal-next): open documentation pages at the top (PORTAL-330))
 import { toObservable } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { catchError, filter, Observable, switchMap } from 'rxjs';

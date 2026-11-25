@@ -15,12 +15,7 @@
  */
 import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { AsyncPipe } from '@angular/common';
-<<<<<<< HEAD
-import { Component, computed, inject, input, signal } from '@angular/core';
-=======
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, input, signal, viewChild } from '@angular/core';
->>>>>>> 27c0751 (fix(portal-next): open documentation pages at the top (PORTAL-330))
 import { rxResource, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -83,21 +78,9 @@ export class DocumentationFolderComponent {
   tree = signal<TreeNode[]>([]);
   breadcrumbs = signal<Breadcrumb[]>([]);
 
-<<<<<<< HEAD
   apiId = signal<string | null>(null);
-=======
-  documentationActionContext = signal<DocumentationActionContext>({ apiId: null, subscriptionTarget: null });
-  mcpDrawerOpen = signal(false);
   private readonly sidenavLayout = viewChild(SidenavLayoutComponent);
 
-  navId$ = toObservable(this.navItem).pipe(
-    map(({ id }) => id),
-    distinctUntilChanged(),
-  );
-  selectedId$ = this.activatedRoute.queryParams.pipe(map(({ selectedId }) => selectedId));
-  subscriptionTarget = computed(() => this.documentationActionContext().subscriptionTarget);
-  apiId = computed(() => this.documentationActionContext().apiId);
->>>>>>> 27c0751 (fix(portal-next): open documentation pages at the top (PORTAL-330))
   api = rxResource<Api | null, string | null>({
     params: this.apiId,
     stream: ({ params }) => (params ? this.apiService.details(params) : of(null)),
