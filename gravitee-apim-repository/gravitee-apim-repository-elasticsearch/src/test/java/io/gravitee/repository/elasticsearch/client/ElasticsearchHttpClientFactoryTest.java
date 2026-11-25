@@ -16,6 +16,7 @@
 package io.gravitee.repository.elasticsearch.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.elasticsearch.client.http.HttpClientConfiguration;
 import io.gravitee.elasticsearch.client.http.HttpClientJksSslConfiguration;
@@ -159,6 +160,18 @@ class ElasticsearchHttpClientFactoryTest {
                 HttpClientTrustStoreConfiguration::getPassword
             )
             .containsExactly("pkcs12", "/path/to/truststore.p12", "trustPass");
+    }
+
+    @Test
+    void should_reject_a_truststore_path_without_a_type() {
+        environment.setProperty(PROPERTY_PREFIX + "ssl.truststore.path", "/path/to/ca.pem");
+
+        HttpClientConfiguration cfg = new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
+
+        assertThat(cfg.getTrustStoreConfig()).isNotNull();
+        assertThatThrownBy(cfg.getTrustStoreConfig()::getVertxWebClientTrustOptions)
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("truststore type");
     }
 
     @Test
