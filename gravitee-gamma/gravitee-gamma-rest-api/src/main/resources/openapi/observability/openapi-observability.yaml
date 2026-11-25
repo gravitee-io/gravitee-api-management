@@ -168,7 +168,7 @@ paths:
                 are optional and multi-valued; omitting an axis means no constraint on it. A filter is
                 included when its declared signals/apiTypes intersect the requested values. A filter
                 with no `apiTypes` applies to every API kind: it is dropped when only decision records
-                (`AUTHZ_DECISION`, `GUARDIAN_DECISION`) are asked.
+                (`AUTHZ_DECISION`, `GUARDRAIL_DECISION`) are asked.
 
                 A built-in filter reading an additional metric carries `origin: BUILT_IN`, its `rawKey`
                 and `valueType`. A numeric key a built-in metric reads and no built-in filter reads
@@ -183,7 +183,7 @@ paths:
                 entry carries the `namespace` of its key and the `apiTypes` that namespace ties it to (see
                 `CatalogEntryFlags.namespace`): a narrowing `apiType` keeps it when the request shares one.
                 An entry of no known namespace carries no `apiTypes`: a narrowing `apiType` keeps it for any
-                API kind and drops it when only decision records (`AUTHZ_DECISION`, `GUARDIAN_DECISION`) are asked.
+                API kind and drops it when only decision records (`AUTHZ_DECISION`, `GUARDRAIL_DECISION`) are asked.
 
                 For a caller who reads the environment's traffic (`API_ANALYTICS[READ]` or `API_LOG[READ]`
                 on one of its APIs, or `ENVIRONMENT_PLATFORM[READ]`), the additional metric fields found
@@ -1007,24 +1007,24 @@ paths:
                 `observability.filter.unsupported_operator`, a value it does not take
                 `observability.filter.invalid_number`, `observability.filter.value_out_of_range` (an `int_`
                 value beyond the integer range, a `double_` one beyond the finite doubles) or `observability.filter.unknown_enum_value`, and any
-                additional metric field alongside `RECORD_TYPE=AUTHZ_DECISION` or `RECORD_TYPE=GUARDIAN_DECISION`
+                additional metric field alongside `RECORD_TYPE=AUTHZ_DECISION` or `RECORD_TYPE=GUARDRAIL_DECISION`
                 `observability.filter.not_applicable_to_decisions`.
 
                 **Record kind**: the `RECORD_TYPE` filter selects which document contract the rows
                 are read from — `REQUEST` (the default when the filter is absent), `AUTHZ_DECISION` or
-                `GUARDIAN_DECISION`. Decisions are read from a different index with a different shape,
-                and the decisions of an authorization engine and of a Guardian do not carry the same
+                `GUARDRAIL_DECISION`. Decisions are read from a different index with a different shape,
+                and the decisions of an authorization engine and of a Guardrail do not carry the same
                 fields, so the kinds cannot be mixed: a multi-valued `RECORD_TYPE` is rejected with 400
                 rather than resolved to one of them. Authorization decision rows carry the `authz`
-                object and Guardian decision rows the `guardian` object; both omit the request-shaped
+                object and Guardrail decision rows the `guardrail` object; both omit the request-shaped
                 fields, and request rows carry neither object.
 
-                The Guardian decision search accepts `API`, `API_TYPE`, the time range, `GUARDIAN` (the
-                id of the Guardian, `EQ`/`IN`), `GUARDIAN_OUTCOME` (`ALLOW`, `DENY`, `TRANSFORM`,
-                `INDETERMINATE`, `EQ`/`IN`) and `GUARDIAN_SEARCH` (`CONTAINS`, one condition of one value),
+                The Guardrail decision search accepts `API`, `API_TYPE`, the time range, `GUARDRAIL` (the
+                id of the Guardrail, `EQ`/`IN`), `GUARDRAIL_OUTCOME` (`ALLOW`, `DENY`, `TRANSFORM`,
+                `INDETERMINATE`, `EQ`/`IN`) and `GUARDRAIL_SEARCH` (`CONTAINS`, one condition of one value),
                 matched in any case against the start of the request id, and as a fragment against the
-                reasons the guardrails gave, the names of the rules they found, and the name of the API. Any other condition sent alongside
-                `RECORD_TYPE=GUARDIAN_DECISION` is rejected with 400, and a Guardian filter sent without it
+                reasons the guardrail policies gave, the names of the rules they found, and the name of the API. Any other condition sent alongside
+                `RECORD_TYPE=GUARDRAIL_DECISION` is rejected with 400, and a Guardrail filter sent without it
                 is rejected with 400 too.
 
                 The decision search accepts `API`, `API_TYPE`, the time range, and the decision
@@ -1224,7 +1224,7 @@ paths:
                         - A filter condition breaks a rule of the `FilterCondition` schema (`observability.filter.*`)
                         - Filter is valid for LOGS but not yet supported by log search (`observability.filter.search_translation_not_supported`)
                         - A decision filter (`AUTHZ_*`) sent without `RECORD_TYPE = AUTHZ_DECISION` (`observability.filter.requires_decision_record_type`)
-                        - A Guardian decision filter (`GUARDIAN`, `GUARDIAN_OUTCOME`, `GUARDIAN_SEARCH`) sent without `RECORD_TYPE = GUARDIAN_DECISION` (`observability.filter.requires_guardian_decision_record_type`)
+                        - A Guardrail decision filter (`GUARDRAIL`, `GUARDRAIL_OUTCOME`, `GUARDRAIL_SEARCH`) sent without `RECORD_TYPE = GUARDRAIL_DECISION` (`observability.filter.requires_guardrail_decision_record_type`)
                         - `RECORD_TYPE` with several values, or a filter the decision search cannot apply (`observability.filter.multiple_record_types`, `observability.filter.not_applicable_to_decisions`)
                         - A time-range bound is missing, or `from` is after `to` (`observability.query.time_range_required`, `observability.query.invalid_time_range`)
                         - An array of the body holds a null entry (`observability.query.null_entry`)
@@ -1687,7 +1687,7 @@ paths:
                   required: true
                   description: |
                       API kind(s) to describe, read case-insensitively. Repeat for multiple values. At
-                      least one is required. `AUTHZ_DECISION` and `GUARDIAN_DECISION` are refused: each is the
+                      least one is required. `AUTHZ_DECISION` and `GUARDRAIL_DECISION` are refused: each is the
                       scope of a kind of decision record, not an API kind.
                   example: HTTP_PROXY
                   schema:
@@ -1796,7 +1796,7 @@ paths:
                 "400":
                     description: |
                         No `apiType` (`observability.query.api_types_required`), or an unknown one, `AUTHZ_DECISION`
-                        or `GUARDIAN_DECISION` (`observability.query.not_an_api_kind`).
+                        or `GUARDRAIL_DECISION` (`observability.query.not_an_api_kind`).
                     content:
                         application/json:
                             schema:
@@ -2746,10 +2746,10 @@ components:
         ApiType:
             type: string
             description: |
-                API kind a filter is relevant to. `AUTHZ_DECISION` and `GUARDIAN_DECISION` are not API
+                API kind a filter is relevant to. `AUTHZ_DECISION` and `GUARDRAIL_DECISION` are not API
                 kinds: each is the scope token of one kind of decision record, and a filter carrying it
                 is offered for those records.
-            enum: [HTTP_PROXY, LLM, MESSAGE, MCP, A2A, NATIVE, EDGE, AUTHZ, AUTHZ_DECISION, GUARDIAN_DECISION]
+            enum: [HTTP_PROXY, LLM, MESSAGE, MCP, A2A, NATIVE, EDGE, AUTHZ, AUTHZ_DECISION, GUARDRAIL_DECISION]
 
         FilterType:
             type: string
@@ -2934,7 +2934,7 @@ components:
                         is not tied to a kind (unknown namespace), since documents do not record which API kind
                         wrote a key:
                         such an entry applies to the request rows of every API kind and never to decision records
-                        (`AUTHZ_DECISION`, `GUARDIAN_DECISION`). A narrowing `apiType` query keeps an entry carrying
+                        (`AUTHZ_DECISION`, `GUARDRAIL_DECISION`). A narrowing `apiType` query keeps an entry carrying
                         kinds when the request shares one, and an entry carrying none for any API kind, dropping it
                         when only decision records are asked.
                     items:
@@ -3631,8 +3631,8 @@ components:
                     example: "Standalone API"
                 authz:
                     $ref: "#/components/schemas/AuthzDecision"
-                guardian:
-                    $ref: "#/components/schemas/GuardianDecision"
+                guardrail:
+                    $ref: "#/components/schemas/GuardrailDecision"
 
         AuthzDecision:
             type: object
@@ -3740,35 +3740,35 @@ components:
                     description: Effect of the policy.
                     example: "FORBID"
 
-        GuardianDecision:
+        GuardrailDecision:
             type: object
             description: |
-                What a Guardian decided on a call, carried by a decision row. Present only on rows returned
-                for `RECORD_TYPE=GUARDIAN_DECISION`. It names rules and where they matched, never the
+                What a Guardrail decided on a call, carried by a decision row. Present only on rows returned
+                for `RECORD_TYPE=GUARDRAIL_DECISION`. It names rules and where they matched, never the
                 content of the exchange. The request-shaped fields of `LogEntry` (`method`, `status`,
                 `uri`, `gatewayResponseTime`) are absent on these rows.
             properties:
                 eventId:
                     type: string
-                    description: Identifier of the decision event, unique per run of a Guardian.
-                guardianId:
+                    description: Identifier of the decision event, unique per run of a Guardrail.
+                guardrailId:
                     type: string
-                    description: Identifier of the Guardian that decided.
+                    description: Identifier of the Guardrail that decided.
                 revision:
                     type: string
-                    description: Deployed revision of the Guardian that ran. Absent when the Guardian was not deployed.
+                    description: Deployed revision of the Guardrail that ran. Absent when the Guardrail was not deployed.
                     example: "3"
                 checkpoint:
                     type: string
-                    description: Where in the call the Guardian ran — the phase, then the type of the API.
+                    description: Where in the call the Guardrail ran — the phase, then the type of the API.
                     example: "request.llm-proxy"
                 outcome:
                     type: string
-                    description: What the guardrails concluded.
+                    description: What the guardrail policies concluded.
                     enum: [ALLOW, DENY, TRANSFORM, INDETERMINATE]
                 enforced:
                     type: string
-                    description: What the gateway did with the call. Differs from `outcome` when a guardrail denies without ending the call.
+                    description: What the gateway did with the call. Differs from `outcome` when a guardrail policy denies without ending the call.
                     enum: [ALLOW, DENY, TRANSFORM]
                 transformationType:
                     type: string
@@ -3776,34 +3776,34 @@ components:
                     enum: [REDACT, MASK, REWRITE]
                 verdict:
                     type: string
-                    description: On a refusal, the verdict of the last guardrail that refused, or the key of the failure that ended the call.
+                    description: On a refusal, the verdict of the last guardrail policy that refused, or the key of the failure that ended the call.
                 reasons:
                     type: array
-                    description: One line per guardrail that recorded a verdict, in the order they ran.
+                    description: One line per guardrail policy that recorded a verdict, in the order they ran.
                     items:
                         type: string
                     example: ["Block credentials: BLOCK — 1 credential found"]
                 findings:
                     type: array
-                    description: What the guardrails found.
+                    description: What the guardrail policies found.
                     items:
-                        $ref: "#/components/schemas/GuardianFinding"
+                        $ref: "#/components/schemas/GuardrailFinding"
                 durationNanos:
                     type: integer
                     format: int64
                     description: Time the run took, in nanoseconds.
 
-        GuardianFinding:
+        GuardrailFinding:
             type: object
-            description: A rule that matched during a run of a Guardian, and where.
+            description: A rule that matched during a run of a Guardrail, and where.
             properties:
-                guardrail:
+                guardrailPolicy:
                     type: string
-                    description: Name of the guardrail step that found it.
+                    description: Name of the guardrail policy that found it.
                     example: "Block credentials"
                 rule:
                     type: string
-                    description: What matched. Absent for a guardrail making a single check, which names no rule.
+                    description: What matched. Absent for a guardrail policy making a single check, which names no rule.
                     example: "aws-access-key"
                 location:
                     type: string
@@ -3811,7 +3811,7 @@ components:
                     example: "$.messages[0].content"
                 effect:
                     type: string
-                    description: What the guardrail that found it concluded.
+                    description: What the guardrail policy that found it concluded.
                     enum: [ALLOW, DENY, TRANSFORM]
 
         LogEntryWarning:

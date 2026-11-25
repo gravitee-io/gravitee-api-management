@@ -23,14 +23,14 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.log.crud_service.GuardianDecisionLogsCrudService;
-import io.gravitee.apim.core.log.model.GuardianDecisionLog;
-import io.gravitee.apim.core.log.model.GuardianDecisionLogFilters;
+import io.gravitee.apim.core.log.crud_service.GuardrailDecisionLogsCrudService;
+import io.gravitee.apim.core.log.model.GuardrailDecisionLog;
+import io.gravitee.apim.core.log.model.GuardrailDecisionLogFilters;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.MetricsRepository;
 import io.gravitee.repository.log.v4.model.LogResponse;
-import io.gravitee.repository.log.v4.model.guardian.GuardianDecisionLogQuery;
+import io.gravitee.repository.log.v4.model.guardrail.GuardrailDecisionLogQuery;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -44,43 +44,43 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class GuardianDecisionLogsCrudServiceImplTest {
+class GuardrailDecisionLogsCrudServiceImplTest {
 
     private static final ExecutionContext CONTEXT = new ExecutionContext("org-1", "env-1");
 
     private MetricsRepository metricsRepository;
-    private GuardianDecisionLogsCrudService service;
+    private GuardrailDecisionLogsCrudService service;
 
     @BeforeEach
     void setUp() {
         metricsRepository = mock(MetricsRepository.class);
-        service = new GuardianDecisionLogsCrudServiceImpl(metricsRepository);
+        service = new GuardrailDecisionLogsCrudServiceImpl(metricsRepository);
     }
 
     @Test
     void does_not_query_the_index_when_no_api_is_in_scope() throws Exception {
         var response = service.searchDecisionLogs(
             CONTEXT,
-            GuardianDecisionLogFilters.builder().apiIds(Set.of()).build(),
+            GuardrailDecisionLogFilters.builder().apiIds(Set.of()).build(),
             new PageableImpl(1, 20)
         );
 
         assertThat(response.total()).isZero();
         assertThat(response.logs()).isEmpty();
-        verify(metricsRepository, never()).searchGuardianDecisionLogs(any(), any());
+        verify(metricsRepository, never()).searchGuardrailDecisionLogs(any(), any());
     }
 
     @Test
     void carries_the_scope_the_filters_the_range_and_the_page_into_the_query() throws Exception {
-        when(metricsRepository.searchGuardianDecisionLogs(any(), any())).thenReturn(new LogResponse<>(0L, List.of()));
+        when(metricsRepository.searchGuardrailDecisionLogs(any(), any())).thenReturn(new LogResponse<>(0L, List.of()));
 
         service.searchDecisionLogs(
             CONTEXT,
-            GuardianDecisionLogFilters.builder()
+            GuardrailDecisionLogFilters.builder()
                 .apiIds(Set.of("api-1", "api-2"))
                 .from(1000L)
                 .to(2000L)
-                .guardianIds(Set.of("guardian-a"))
+                .guardrailIds(Set.of("guardrail-a"))
                 .outcomes(Set.of("DENY"))
                 .text("aws")
                 .textApiIds(Set.of("api-2"))
@@ -89,15 +89,15 @@ class GuardianDecisionLogsCrudServiceImplTest {
         );
 
         var contextCaptor = ArgumentCaptor.forClass(QueryContext.class);
-        var queryCaptor = ArgumentCaptor.forClass(GuardianDecisionLogQuery.class);
-        verify(metricsRepository).searchGuardianDecisionLogs(contextCaptor.capture(), queryCaptor.capture());
+        var queryCaptor = ArgumentCaptor.forClass(GuardrailDecisionLogQuery.class);
+        verify(metricsRepository).searchGuardrailDecisionLogs(contextCaptor.capture(), queryCaptor.capture());
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(contextCaptor.getValue().placeholder()).containsEntry("orgId", "org-1").containsEntry("envId", "env-1");
             soft.assertThat(queryCaptor.getValue().getApiIds()).containsExactlyInAnyOrder("api-1", "api-2");
             soft.assertThat(queryCaptor.getValue().getFrom()).isEqualTo(1000L);
             soft.assertThat(queryCaptor.getValue().getTo()).isEqualTo(2000L);
-            soft.assertThat(queryCaptor.getValue().getGuardianIds()).containsExactly("guardian-a");
+            soft.assertThat(queryCaptor.getValue().getGuardrailIds()).containsExactly("guardrail-a");
             soft.assertThat(queryCaptor.getValue().getOutcomes()).containsExactly("DENY");
             soft.assertThat(queryCaptor.getValue().getText()).isEqualTo("aws");
             soft.assertThat(queryCaptor.getValue().getTextApiIds()).containsExactly("api-2");
@@ -108,11 +108,11 @@ class GuardianDecisionLogsCrudServiceImplTest {
 
     @Test
     void maps_every_field_of_a_decision() throws Exception {
-        when(metricsRepository.searchGuardianDecisionLogs(any(), any())).thenReturn(new LogResponse<>(9L, List.of(aStoredDecision())));
+        when(metricsRepository.searchGuardrailDecisionLogs(any(), any())).thenReturn(new LogResponse<>(9L, List.of(aStoredDecision())));
 
         var response = service.searchDecisionLogs(
             CONTEXT,
-            GuardianDecisionLogFilters.builder().apiIds(Set.of("api-1")).build(),
+            GuardrailDecisionLogFilters.builder().apiIds(Set.of("api-1")).build(),
             new PageableImpl(1, 20)
         );
 
@@ -122,24 +122,24 @@ class GuardianDecisionLogsCrudServiceImplTest {
 
     @Test
     void turns_a_failed_search_into_a_technical_error() throws Exception {
-        when(metricsRepository.searchGuardianDecisionLogs(any(), any())).thenThrow(new AnalyticsException("down"));
+        when(metricsRepository.searchGuardrailDecisionLogs(any(), any())).thenThrow(new AnalyticsException("down"));
 
         assertThatThrownBy(() ->
             service.searchDecisionLogs(
                 CONTEXT,
-                GuardianDecisionLogFilters.builder().apiIds(Set.of("api-1")).build(),
+                GuardrailDecisionLogFilters.builder().apiIds(Set.of("api-1")).build(),
                 new PageableImpl(1, 20)
             )
         ).isInstanceOf(TechnicalManagementException.class);
     }
 
-    private static io.gravitee.repository.log.v4.model.guardian.GuardianDecisionLog aStoredDecision() {
-        return io.gravitee.repository.log.v4.model.guardian.GuardianDecisionLog.builder()
+    private static io.gravitee.repository.log.v4.model.guardrail.GuardrailDecisionLog aStoredDecision() {
+        return io.gravitee.repository.log.v4.model.guardrail.GuardrailDecisionLog.builder()
             .eventId("evt-1")
             .timestamp(1000L)
             .apiId("api-1")
             .requestId("req-1")
-            .guardianId("guardian-a")
+            .guardrailId("guardrail-a")
             .revision("3")
             .checkpoint("response.llm-proxy")
             .outcome("TRANSFORM")
@@ -149,7 +149,7 @@ class GuardianDecisionLogsCrudServiceImplTest {
             .reasons(List.of("Redact PII: REDACT — 1 passage"))
             .findings(
                 List.of(
-                    new io.gravitee.repository.log.v4.model.guardian.GuardianDecisionLog.Finding(
+                    new io.gravitee.repository.log.v4.model.guardrail.GuardrailDecisionLog.Finding(
                         "Redact PII",
                         "EMAIL",
                         "$.choices[0].message.content",
@@ -161,13 +161,13 @@ class GuardianDecisionLogsCrudServiceImplTest {
             .build();
     }
 
-    private static GuardianDecisionLog theSameDecision() {
-        return GuardianDecisionLog.builder()
+    private static GuardrailDecisionLog theSameDecision() {
+        return GuardrailDecisionLog.builder()
             .eventId("evt-1")
             .timestamp(1000L)
             .apiId("api-1")
             .requestId("req-1")
-            .guardianId("guardian-a")
+            .guardrailId("guardrail-a")
             .revision("3")
             .checkpoint("response.llm-proxy")
             .outcome("TRANSFORM")
@@ -175,7 +175,7 @@ class GuardianDecisionLogsCrudServiceImplTest {
             .transformationType("REDACT")
             .verdict("REDACT")
             .reasons(List.of("Redact PII: REDACT — 1 passage"))
-            .findings(List.of(new GuardianDecisionLog.Finding("Redact PII", "EMAIL", "$.choices[0].message.content", "TRANSFORM")))
+            .findings(List.of(new GuardrailDecisionLog.Finding("Redact PII", "EMAIL", "$.choices[0].message.content", "TRANSFORM")))
             .durationNanos(9_100_000L)
             .build();
     }

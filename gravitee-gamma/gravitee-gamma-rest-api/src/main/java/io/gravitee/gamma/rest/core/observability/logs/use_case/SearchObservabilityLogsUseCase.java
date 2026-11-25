@@ -88,8 +88,8 @@ public class SearchObservabilityLogsUseCase {
         EntrypointScope entrypointScope = null;
         if (recordType == RecordType.AUTHZ_DECISION) {
             rejectConditionsTheDecisionSearchCannotApply(effectiveConditions, recordType, DECISION_SUPPORTED_FILTERS);
-        } else if (recordType == RecordType.GUARDIAN_DECISION) {
-            rejectConditionsTheDecisionSearchCannotApply(effectiveConditions, recordType, GUARDIAN_DECISION_SUPPORTED_FILTERS);
+        } else if (recordType == RecordType.GUARDRAIL_DECISION) {
+            rejectConditionsTheDecisionSearchCannotApply(effectiveConditions, recordType, GUARDRAIL_DECISION_SUPPORTED_FILTERS);
         } else {
             rejectDecisionFiltersOnTheRequestSearch(effectiveConditions);
             // Entrypoints only exist on request documents: a decision search carries no scope.
@@ -234,12 +234,12 @@ public class SearchObservabilityLogsUseCase {
         }
     }
 
-    /** The predicates the Guardian decision search can express, on top of the api scope and the time range. */
+    /** The predicates the Guardrail decision search can express, on top of the api scope and the time range. */
     // Package-private so a test can assert set equality against the catalog, like the allowlist above.
-    static final Set<String> GUARDIAN_DECISION_SUPPORTED_FILTERS = Set.of(
-        StaticFilters.GUARDIAN.filterName(),
-        StaticFilters.GUARDIAN_OUTCOME.filterName(),
-        StaticFilters.GUARDIAN_SEARCH.filterName()
+    static final Set<String> GUARDRAIL_DECISION_SUPPORTED_FILTERS = Set.of(
+        StaticFilters.GUARDRAIL.filterName(),
+        StaticFilters.GUARDRAIL_OUTCOME.filterName(),
+        StaticFilters.GUARDRAIL_SEARCH.filterName()
     );
 
     /** Filters only decision records carry; {@code REQUEST_ID} is the one the request search reads too. */
@@ -264,10 +264,10 @@ public class SearchObservabilityLogsUseCase {
         conditions
             .stream()
             .map(FilterCondition::name)
-            .filter(GUARDIAN_DECISION_SUPPORTED_FILTERS::contains)
+            .filter(GUARDRAIL_DECISION_SUPPORTED_FILTERS::contains)
             .findFirst()
             .ifPresent(name -> {
-                throw UnsupportedObservabilityFilterException.requiresGuardianDecisionRecordType(name);
+                throw UnsupportedObservabilityFilterException.requiresGuardrailDecisionRecordType(name);
             });
     }
 

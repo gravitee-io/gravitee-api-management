@@ -15,13 +15,13 @@
  */
 package io.gravitee.apim.infra.crud_service.log;
 
-import io.gravitee.apim.core.log.crud_service.GuardianDecisionLogsCrudService;
-import io.gravitee.apim.core.log.model.GuardianDecisionLog;
-import io.gravitee.apim.core.log.model.GuardianDecisionLogFilters;
+import io.gravitee.apim.core.log.crud_service.GuardrailDecisionLogsCrudService;
+import io.gravitee.apim.core.log.model.GuardrailDecisionLog;
+import io.gravitee.apim.core.log.model.GuardrailDecisionLogFilters;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.MetricsRepository;
-import io.gravitee.repository.log.v4.model.guardian.GuardianDecisionLogQuery;
+import io.gravitee.repository.log.v4.model.guardrail.GuardrailDecisionLogQuery;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -36,18 +36,18 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @CustomLog
-class GuardianDecisionLogsCrudServiceImpl implements GuardianDecisionLogsCrudService {
+class GuardrailDecisionLogsCrudServiceImpl implements GuardrailDecisionLogsCrudService {
 
     private final MetricsRepository metricsRepository;
 
-    public GuardianDecisionLogsCrudServiceImpl(@Lazy MetricsRepository metricsRepository) {
+    public GuardrailDecisionLogsCrudServiceImpl(@Lazy MetricsRepository metricsRepository) {
         this.metricsRepository = metricsRepository;
     }
 
     @Override
-    public SearchLogsResponse<GuardianDecisionLog> searchDecisionLogs(
+    public SearchLogsResponse<GuardrailDecisionLog> searchDecisionLogs(
         ExecutionContext executionContext,
-        GuardianDecisionLogFilters filters,
+        GuardrailDecisionLogFilters filters,
         Pageable pageable
     ) {
         var apiIds = filters.apiIds();
@@ -56,13 +56,13 @@ class GuardianDecisionLogsCrudServiceImpl implements GuardianDecisionLogsCrudSer
         }
 
         try {
-            var response = metricsRepository.searchGuardianDecisionLogs(
+            var response = metricsRepository.searchGuardrailDecisionLogs(
                 new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
-                GuardianDecisionLogQuery.builder()
+                GuardrailDecisionLogQuery.builder()
                     .apiIds(apiIds)
                     .from(filters.from())
                     .to(filters.to())
-                    .guardianIds(filters.guardianIds())
+                    .guardrailIds(filters.guardrailIds())
                     .outcomes(filters.outcomes())
                     .text(filters.text())
                     .textApiIds(filters.textApiIds())
@@ -72,21 +72,21 @@ class GuardianDecisionLogsCrudServiceImpl implements GuardianDecisionLogsCrudSer
             );
             return new SearchLogsResponse<>(
                 response.total(),
-                response.data().stream().map(GuardianDecisionLogsCrudServiceImpl::toDomain).toList()
+                response.data().stream().map(GuardrailDecisionLogsCrudServiceImpl::toDomain).toList()
             );
         } catch (AnalyticsException e) {
-            log.error("An error occurs while trying to search Guardian decision logs [apiIds={}]", apiIds, e);
-            throw new TechnicalManagementException("Unable to search Guardian decision logs", e);
+            log.error("An error occurs while trying to search Guardrail decision logs [apiIds={}]", apiIds, e);
+            throw new TechnicalManagementException("Unable to search Guardrail decision logs", e);
         }
     }
 
-    private static GuardianDecisionLog toDomain(io.gravitee.repository.log.v4.model.guardian.GuardianDecisionLog decision) {
-        return GuardianDecisionLog.builder()
+    private static GuardrailDecisionLog toDomain(io.gravitee.repository.log.v4.model.guardrail.GuardrailDecisionLog decision) {
+        return GuardrailDecisionLog.builder()
             .eventId(decision.eventId())
             .timestamp(decision.timestamp())
             .apiId(decision.apiId())
             .requestId(decision.requestId())
-            .guardianId(decision.guardianId())
+            .guardrailId(decision.guardrailId())
             .revision(decision.revision())
             .checkpoint(decision.checkpoint())
             .outcome(decision.outcome())
@@ -99,15 +99,17 @@ class GuardianDecisionLogsCrudServiceImpl implements GuardianDecisionLogsCrudSer
             .build();
     }
 
-    private static List<GuardianDecisionLog.Finding> toDomain(
-        List<io.gravitee.repository.log.v4.model.guardian.GuardianDecisionLog.Finding> findings
+    private static List<GuardrailDecisionLog.Finding> toDomain(
+        List<io.gravitee.repository.log.v4.model.guardrail.GuardrailDecisionLog.Finding> findings
     ) {
         if (findings == null) {
             return List.of();
         }
         return findings
             .stream()
-            .map(finding -> new GuardianDecisionLog.Finding(finding.guardrail(), finding.rule(), finding.location(), finding.effect()))
+            .map(finding ->
+                new GuardrailDecisionLog.Finding(finding.guardrailPolicy(), finding.rule(), finding.location(), finding.effect())
+            )
             .toList();
     }
 }

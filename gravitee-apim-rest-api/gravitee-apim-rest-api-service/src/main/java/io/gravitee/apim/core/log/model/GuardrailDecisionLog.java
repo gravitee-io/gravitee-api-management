@@ -19,16 +19,16 @@ import java.util.List;
 import lombok.Builder;
 
 /**
- * What one run of a Guardian decided on a call. A decision names rules and where they matched, never the content of
+ * What one run of a Guardrail decided on a call. A decision names rules and where they matched, never the content of
  * the exchange.
  */
 @Builder
-public record GuardianDecisionLog(
+public record GuardrailDecisionLog(
     String eventId,
     Long timestamp,
     String apiId,
     String requestId,
-    String guardianId,
+    String guardrailId,
     String revision,
     String checkpoint,
     String outcome,
@@ -39,5 +39,5 @@ public record GuardianDecisionLog(
     List<Finding> findings,
     Long durationNanos
 ) {
-    public record Finding(String guardrail, String rule, String location, String effect) {}
+    public record Finding(String guardrailPolicy, String rule, String location, String effect) {}
 }

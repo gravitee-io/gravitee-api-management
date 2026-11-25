@@ -17,7 +17,7 @@ package io.gravitee.gamma.rest.resources.observability.logs.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.gravitee.gamma.rest.core.observability.logs.model.AuthzDecision;
-import io.gravitee.gamma.rest.core.observability.logs.model.GuardianDecision;
+import io.gravitee.gamma.rest.core.observability.logs.model.GuardrailDecision;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntryWarning;
 import java.util.List;
@@ -79,7 +79,7 @@ public record LogEntryDto(
     String brokerId,
     Long connectionDurationMs,
     AuthzDecisionDto authz,
-    GuardianDecisionDto guardian
+    GuardrailDecisionDto guardrail
 ) {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record WarningDto(String componentType, String componentName, String key, String message) {
@@ -89,9 +89,9 @@ public record LogEntryDto(
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public record GuardianDecisionDto(
+    public record GuardrailDecisionDto(
         String eventId,
-        String guardianId,
+        String guardrailId,
         String revision,
         String checkpoint,
         String outcome,
@@ -102,26 +102,26 @@ public record LogEntryDto(
         List<FindingDto> findings,
         Long durationNanos
     ) {
-        public static GuardianDecisionDto from(GuardianDecision guardian) {
-            return new GuardianDecisionDto(
-                guardian.eventId(),
-                guardian.guardianId(),
-                guardian.revision(),
-                guardian.checkpoint(),
-                guardian.outcome(),
-                guardian.enforced(),
-                guardian.transformationType(),
-                guardian.verdict(),
-                guardian.reasons(),
-                guardian.findings() != null ? guardian.findings().stream().map(FindingDto::from).toList() : null,
-                guardian.durationNanos()
+        public static GuardrailDecisionDto from(GuardrailDecision guardrail) {
+            return new GuardrailDecisionDto(
+                guardrail.eventId(),
+                guardrail.guardrailId(),
+                guardrail.revision(),
+                guardrail.checkpoint(),
+                guardrail.outcome(),
+                guardrail.enforced(),
+                guardrail.transformationType(),
+                guardrail.verdict(),
+                guardrail.reasons(),
+                guardrail.findings() != null ? guardrail.findings().stream().map(FindingDto::from).toList() : null,
+                guardrail.durationNanos()
             );
         }
 
         @JsonInclude(JsonInclude.Include.NON_NULL)
-        public record FindingDto(String guardrail, String rule, String location, String effect) {
-            public static FindingDto from(GuardianDecision.Finding finding) {
-                return new FindingDto(finding.guardrail(), finding.rule(), finding.location(), finding.effect());
+        public record FindingDto(String guardrailPolicy, String rule, String location, String effect) {
+            public static FindingDto from(GuardrailDecision.Finding finding) {
+                return new FindingDto(finding.guardrailPolicy(), finding.rule(), finding.location(), finding.effect());
             }
         }
     }
@@ -227,7 +227,7 @@ public record LogEntryDto(
             entry.brokerId(),
             entry.connectionDurationMs(),
             entry.authz() != null ? AuthzDecisionDto.from(entry.authz()) : null,
-            entry.guardian() != null ? GuardianDecisionDto.from(entry.guardian()) : null
+            entry.guardrail() != null ? GuardrailDecisionDto.from(entry.guardrail()) : null
         );
     }
 }
