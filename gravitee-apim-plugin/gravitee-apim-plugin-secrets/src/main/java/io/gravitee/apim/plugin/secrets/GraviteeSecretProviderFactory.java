@@ -36,7 +36,7 @@ public class GraviteeSecretProviderFactory implements SecretProviderFactory<Grav
     static final String NO_BRIDGE_SECRETS =
         "Secret provider [" +
         GraviteeSecretProvider.ID +
-        "] cannot read secrets: the bridge client does not serve secrets, it must be version 9.1.0 or later";
+        "] cannot read secrets: the bridge client does not serve secrets, it must be version 10.1.0 or later";
 
     private final AtomicReference<Connection> connection = new AtomicReference<>();
 
