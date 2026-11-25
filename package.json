@@ -212,7 +212,7 @@
         "nx": "22.7.12",
         "prettier": "3.5.3",
         "react-refresh": "0.14.0",
-        "storybook": "10.6.0",
+        "storybook": "10.6.2",
         "stylelint": "16.15.0",
         "stylelint-config-idiomatic-order": "10.0.0",
         "stylelint-config-prettier-scss": "1.0.0",
