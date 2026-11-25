@@ -19,8 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 import io.gravitee.apim.core.credential.service_provider.CredentialConsumerPort;
+import io.gravitee.apim.core.credential.service_provider.CredentialConsumerPort.Change;
 import io.gravitee.apim.core.credential.service_provider.CredentialConsumerPort.Consumer;
 import io.gravitee.apim.core.credential.service_provider.CredentialConsumers;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
@@ -45,6 +47,36 @@ class ModuleCredentialConsumersTest {
             return byCredential.getOrDefault(environmentId + "/" + credentialId, List.of());
         }
     }
+
+    static class ListeningPort implements CredentialConsumerPort {
+
+        private final List<Change> received = new ArrayList<>();
+        private final boolean failing;
+
+        ListeningPort(boolean failing) {
+            this.failing = failing;
+        }
+
+        @Override
+        public String module() {
+            return "aim";
+        }
+
+        @Override
+        public List<Consumer> consumersOf(String environmentId, String credentialId) {
+            return List.of();
+        }
+
+        @Override
+        public void changed(Change change) {
+            if (failing) {
+                throw new IllegalStateException("module down");
+            }
+            received.add(change);
+        }
+    }
+
+    private static final Change CHANGE = new Change("org-1", "env-1", "credential-1", "user-1");
 
     @BeforeEach
     void setUp() {
@@ -103,5 +135,40 @@ class ModuleCredentialConsumersTest {
         loadModule("credentialConsumers", port);
 
         assertThat(collector().of("env-1", "credential-1")).hasSize(1);
+    }
+
+    @Test
+    void should_tell_every_module_of_a_change() {
+        var aim = new ListeningPort(false);
+        var authz = new ListeningPort(false);
+        loadModule("aim.credentialConsumers", aim);
+        loadModule("authz.credentialConsumers", authz);
+
+        collector().changed(CHANGE);
+
+        assertThat(aim.received).containsExactly(CHANGE);
+        assertThat(authz.received).containsExactly(CHANGE);
+    }
+
+    @Test
+    void should_tell_a_port_once_when_it_is_visible_under_two_names() {
+        var port = new ListeningPort(false);
+        loadModule("aim.credentialConsumers", port);
+        loadModule("credentialConsumers", port);
+
+        collector().changed(CHANGE);
+
+        assertThat(port.received).containsExactly(CHANGE);
+    }
+
+    @Test
+    void should_still_tell_the_other_modules_when_one_fails() {
+        var other = new ListeningPort(false);
+        loadModule("aim.credentialConsumers", new ListeningPort(true));
+        loadModule("authz.credentialConsumers", other);
+
+        collector().changed(CHANGE);
+
+        assertThat(other.received).containsExactly(CHANGE);
     }
 }

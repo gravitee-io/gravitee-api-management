@@ -24,6 +24,8 @@ import io.gravitee.apim.core.credential.model.Credential;
 import io.gravitee.apim.core.credential.model.CredentialActor;
 import io.gravitee.apim.core.credential.model.CredentialAuditEvent;
 import io.gravitee.apim.core.credential.model.UpdateCredentialCommand;
+import io.gravitee.apim.core.credential.service_provider.CredentialConsumerPort;
+import io.gravitee.apim.core.credential.service_provider.CredentialConsumers;
 import io.gravitee.common.utils.TimeProvider;
 import lombok.RequiredArgsConstructor;
 
@@ -35,6 +37,7 @@ public class UpdateCredentialUseCase {
     private final CredentialOwnerDomainService credentialOwnerDomainService;
     private final CredentialAuditDomainService credentialAuditDomainService;
     private final CredentialExpressionDomainService credentialExpressionDomainService;
+    private final CredentialConsumers credentialConsumers;
 
     public record Input(CredentialActor actor, String credentialId, UpdateCredentialCommand command) {}
 
@@ -50,18 +53,21 @@ public class UpdateCredentialUseCase {
             credentialOwnerDomainService.ownerFor(actor, command.ownerId());
         }
         var changed = existing.update(command, TimeProvider.instantNow());
+        var reachesConsumers =
+            !changed.secretReferences().equals(existing.secretReferences()) || !changed.configuration().equals(existing.configuration());
         // Where the secrets go and who controls that matter as much as the references: a new tokenUrl sends clientSecret elsewhere.
-        if (
-            !changed.secretReferences().equals(existing.secretReferences()) ||
-            !changed.configuration().equals(existing.configuration()) ||
-            !changed.ownerId().equals(existing.ownerId())
-        ) {
+        if (reachesConsumers || !changed.ownerId().equals(existing.ownerId())) {
             credentialExpressionDomainService.requireValidExpressions(changed);
             changed.requireValidStoreReferences(actor);
         }
         var updated = credentialCrudService.update(changed);
 
         credentialAuditDomainService.record(actor, CredentialAuditEvent.CREDENTIAL_UPDATED, existing, updated);
+        if (reachesConsumers) {
+            credentialConsumers.changed(
+                new CredentialConsumerPort.Change(actor.organizationId(), actor.environmentId(), updated.id(), actor.userId())
+            );
+        }
         return new Output(updated);
     }
 }
