@@ -947,23 +947,31 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         var deadline = TimeProvider.instantNow().plus(query.timeout());
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
 
-        var typesByField = withinDeadline(client.getFieldCapabilities(index, AdditionalMetricField.NAME_PREFIX + "*"), deadline);
-        if (typesByField.isEmpty()) {
+        var additionalTypes = withinDeadline(
+            client.getFieldCapabilities(index, AdditionalMetricField.Root.ADDITIONAL_METRICS.prefix() + "*"),
+            deadline
+        );
+        var customTypes = withinDeadline(client.getFieldCapabilities(index, AdditionalMetricField.Root.CUSTOM.prefix() + "*"), deadline);
+        if (additionalTypes.isEmpty() && customTypes.isEmpty()) {
             return new AdditionalMetricDiscoveryResult(List.of(), true);
         }
-        var candidates = AdditionalMetricDiscoveryAdapter.candidates(typesByField.get());
+        var typesByField = new HashMap<String, Set<String>>();
+        additionalTypes.ifPresent(typesByField::putAll);
+        customTypes.ifPresent(typesByField::putAll);
+        var candidates = AdditionalMetricDiscoveryAdapter.candidates(typesByField);
 
         var found = new ArrayList<AdditionalMetricLastSeen>();
-        var truncated = candidates.truncated();
-        var rawKeys = candidates.rawKeys();
-        for (int start = 0; start < rawKeys.size(); start += discoveryBatchSize) {
+        // A map whose keys could not be listed before the deadline leaves its keys out, and the time left for the probes.
+        var truncated = candidates.truncated() || additionalTypes.isEmpty() || customTypes.isEmpty();
+        var names = candidates.names();
+        for (int start = 0; start < names.size(); start += discoveryBatchSize) {
             // Elasticsearch gets a fifth less than the client waits, so its partial answer arrives before the client gives up.
             var searchBudget = remaining(deadline).multipliedBy(4).dividedBy(5);
             if (searchBudget.toMillis() < 1) {
                 truncated = true;
                 break;
             }
-            var batch = rawKeys.subList(start, Math.min(start + discoveryBatchSize, rawKeys.size()));
+            var batch = names.subList(start, Math.min(start + discoveryBatchSize, names.size()));
             var esQuery = AdditionalMetricDiscoveryAdapter.query(environmentId, query.from(), query.to(), batch, searchBudget);
             log.debug("Additional metric discovery query: {}", esQuery);
             var response = withinDeadline(client.search(index, null, esQuery), deadline);

@@ -19,10 +19,12 @@ import static io.gravitee.gamma.rest.core.observability.analytics.model.MetricDe
 import static io.gravitee.gamma.rest.core.observability.catalog.inmemory.MetricDefinitionFixture.ENVIRONMENT;
 import static io.gravitee.gamma.rest.core.observability.catalog.inmemory.MetricDefinitionFixture.OTHER_ENVIRONMENT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 import io.gravitee.gamma.rest.core.observability.catalog.inmemory.InMemoryCatalogPorts;
 import io.gravitee.gamma.rest.core.observability.catalog.inmemory.MetricDefinitionFixture;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricCatalogEntry;
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricField;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricValueType;
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.catalog.model.DiscoveredAdditionalMetric;
@@ -200,10 +202,35 @@ class ListMetricDefinitionsUseCaseTest {
     }
 
     @Test
-    void should_skip_a_discovered_key_of_the_reserved_custom_form() {
-        fixture.ports.givenDiscovered(List.of(discovered("double_custom_basket-value", AdditionalMetricValueType.DOUBLE)), false);
+    void should_list_discovered_custom_keys_of_both_forms_in_the_custom_namespace() {
+        fixture.ports.givenDiscovered(
+            List.of(
+                discovered("double_custom_basket-value", AdditionalMetricValueType.DOUBLE),
+                new DiscoveredAdditionalMetric(AdditionalMetricField.Root.CUSTOM, "fraud-tier", AdditionalMetricValueType.KEYWORD, SEEN)
+            ),
+            false
+        );
 
-        assertThat(fixture.listed().entries()).isEmpty();
+        assertThat(fixture.listed().entries())
+            .extracting(
+                AdditionalMetricCatalogEntry::name,
+                entry -> entry.field().servedRawKey(),
+                AdditionalMetricCatalogEntry::origin,
+                AdditionalMetricCatalogEntry::label,
+                AdditionalMetricCatalogEntry::namespace,
+                AdditionalMetricCatalogEntry::lastSeen
+            )
+            .containsExactly(
+                tuple(
+                    "additional-metrics.double_custom_basket-value",
+                    "double_custom_basket-value",
+                    CatalogOrigin.DISCOVERED,
+                    "Custom basket value",
+                    "custom",
+                    SEEN
+                ),
+                tuple("custom.fraud-tier", "custom.fraud-tier", CatalogOrigin.DISCOVERED, "Fraud tier", "custom", SEEN)
+            );
     }
 
     @Test
@@ -270,8 +297,8 @@ class ListMetricDefinitionsUseCaseTest {
         assertThat(builtIn("keyword_mcp-proxy_tools/call").lastSeen()).isEqualTo(SEEN.minusSeconds(600));
         assertThat(catalog.truncated()).isTrue();
         assertThat(fixture.ports.lastUncountedKeys()).containsExactlyInAnyOrder(
-            "double_checkout_basket-value",
-            "keyword_mcp-proxy_tools/call"
+            "additional-metrics.double_checkout_basket-value",
+            "additional-metrics.keyword_mcp-proxy_tools/call"
         );
     }
 

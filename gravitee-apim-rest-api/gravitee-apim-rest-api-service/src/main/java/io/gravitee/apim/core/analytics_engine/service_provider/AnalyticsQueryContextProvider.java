@@ -139,6 +139,14 @@ public class AnalyticsQueryContextProvider {
         return resolve(builtIn).measuresAdditionalMetrics();
     }
 
+    /**
+     * Whether the service this built-in is routed to groups it by additional metric and custom fields: the rule
+     * {@link #resolve(FacetsRequest)} validates such a facet with, so whoever advertises the facets asks the same.
+     */
+    public boolean groupsByAdditionalMetricsLike(MetricSpec.Name builtIn) {
+        return resolve(builtIn).groupsByAdditionalMetrics(builtIn);
+    }
+
     /** An additional metric field is measured by the one service reading the request documents (OBS-70). */
     public AnalyticsEngineQueryService resolve(MetricName metric) {
         var service = switch (metric) {

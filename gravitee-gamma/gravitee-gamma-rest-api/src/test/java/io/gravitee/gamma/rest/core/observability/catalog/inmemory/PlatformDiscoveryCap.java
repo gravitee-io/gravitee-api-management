@@ -17,16 +17,17 @@ package io.gravitee.gamma.rest.core.observability.catalog.inmemory;
 
 import io.gravitee.apim.core.analytics_engine.model.AdditionalMetricDiscovery;
 import io.gravitee.apim.core.analytics_engine.model.DiscoveredAdditionalMetric;
+import io.gravitee.apim.core.observability.model.AdditionalMetricField.Root;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
-/** The platform's cap on a discovery pass (OBS-70, §6), so the in-memory port caps as the adapter does. */
+/** The platform's cap on a discovery pass (OBS-70, §6), so the in-memory port caps as the adapter does: by wire name. */
 final class PlatformDiscoveryCap {
 
-    record Key(String rawKey, Instant lastSeen) {}
+    record Key(Root root, String rawKey, Instant lastSeen) {}
 
-    record Capped(List<String> rawKeys, boolean truncated) {}
+    record Capped(List<String> names, boolean truncated) {}
 
     private PlatformDiscoveryCap() {}
 
@@ -34,12 +35,12 @@ final class PlatformDiscoveryCap {
         var capped = new AdditionalMetricDiscovery(
             keys
                 .stream()
-                .map(key -> new DiscoveredAdditionalMetric(key.rawKey(), key.lastSeen()))
+                .map(key -> new DiscoveredAdditionalMetric(key.root(), key.rawKey(), key.lastSeen()))
                 .toList(),
             Instant.EPOCH,
             truncated
         )
             .capDiscovered(uncountedKeys);
-        return new Capped(capped.metrics().stream().map(DiscoveredAdditionalMetric::rawKey).toList(), capped.truncated());
+        return new Capped(capped.metrics().stream().map(DiscoveredAdditionalMetric::name).toList(), capped.truncated());
     }
 }

@@ -41,19 +41,16 @@ public class AdditionalMetricDiscoveryPortAdapter implements AdditionalMetricDis
     @Override
     public AdditionalMetricDiscovery discover(String organizationId, String environmentId, Set<String> uncountedKeys) {
         var pass = queryService.discover(organizationId, environmentId);
-        Map<String, AdditionalMetricField> fieldsByKey = new HashMap<>();
-        pass
-            .metrics()
-            .forEach(metric ->
-                grammar
-                    .parse(AdditionalMetricField.NAME_PREFIX + metric.rawKey())
-                    .ifPresent(field -> fieldsByKey.put(metric.rawKey(), field))
-            );
-        var capped = pass.retainKeys(fieldsByKey::containsKey).capDiscovered(uncountedKeys);
+        Map<String, AdditionalMetricField> fieldsByName = new HashMap<>();
+        pass.metrics().forEach(metric -> grammar.parse(metric.name()).ifPresent(field -> fieldsByName.put(metric.name(), field)));
+        var capped = pass.retainKeys(fieldsByName::containsKey).capDiscovered(uncountedKeys);
         var fields = capped
             .metrics()
             .stream()
-            .map(metric -> new DiscoveredAdditionalMetric(metric.rawKey(), fieldsByKey.get(metric.rawKey()).valueType(), metric.lastSeen()))
+            .map(metric -> {
+                var field = fieldsByName.get(metric.name());
+                return new DiscoveredAdditionalMetric(field.root(), field.rawKey(), field.valueType(), metric.lastSeen());
+            })
             .toList();
         return new AdditionalMetricDiscovery(fields, capped.refreshedAt(), capped.truncated());
     }

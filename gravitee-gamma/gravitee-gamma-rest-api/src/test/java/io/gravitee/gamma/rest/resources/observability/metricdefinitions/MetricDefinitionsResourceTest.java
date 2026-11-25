@@ -26,6 +26,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gamma.rest.core.observability.catalog.inmemory.InMemoryAdditionalMetricDefinitionRepository;
 import io.gravitee.gamma.rest.core.observability.catalog.inmemory.InMemoryCatalogPorts;
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricField;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricValueType;
 import io.gravitee.gamma.rest.core.observability.catalog.model.DiscoveredAdditionalMetric;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.AdditionalMetricGrammarPort;
@@ -256,6 +257,32 @@ class MetricDefinitionsResourceTest extends AbstractResourceTest {
             assertThat(entry(rootTarget().request().get().readEntity(JsonNode.class), failover).get("origin").asText()).isEqualTo(
                 "DISCOVERED"
             );
+        }
+
+        /** The flag the pickers read a log's custom value with: the wire name, never the bare key. */
+        @Test
+        void should_serve_a_discovered_custom_key_with_its_wire_name_as_raw_key_and_its_formatted_name_as_label() {
+            ports.givenDiscovered(
+                List.of(
+                    new DiscoveredAdditionalMetric(
+                        AdditionalMetricField.Root.CUSTOM,
+                        "fraud-tier",
+                        AdditionalMetricValueType.KEYWORD,
+                        Instant.parse("2026-10-29T08:00:00Z")
+                    )
+                ),
+                false
+            );
+
+            JsonNode custom = entry(rootTarget().request().get().readEntity(JsonNode.class), "custom.fraud-tier");
+
+            assertThat(custom.get("rawKey").asText()).isEqualTo("custom.fraud-tier");
+            assertThat(custom.get("label").asText()).isEqualTo("Fraud tier");
+            assertThat(custom.get("namespace").asText()).isEqualTo("custom");
+            assertThat(custom.get("origin").asText()).isEqualTo("DISCOVERED");
+            assertThat(custom.get("valueType").asText()).isEqualTo("KEYWORD");
+            assertThat(custom.get("apiTypes")).isEmpty();
+            assertThat(custom.get("lastSeen").asText()).isEqualTo("2026-10-29T08:00:00Z");
         }
 
         @Test

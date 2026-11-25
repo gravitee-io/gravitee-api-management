@@ -49,6 +49,7 @@ import jakarta.ws.rs.core.Response;
 import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -124,6 +125,35 @@ class AnalyticsDefinitionResourceTest extends AbstractResourceTest {
         assertThat(body.get("dimensions").get(1).has("namespace")).isFalse();
         assertThat(body.get("dimensions").get(1).has("description")).isFalse();
         assertThat(body.get("dimensions").get(1).has("lastSeen")).isFalse();
+    }
+
+    @Test
+    void should_serve_a_custom_dimension_with_the_custom_namespace_no_api_kind_and_as_a_facet_of_a_latency_metric() {
+        var fraudTier = new DimensionDefinition(
+            "custom.fraud-tier",
+            "Fraud tier",
+            null,
+            "custom",
+            Set.of(),
+            Instant.parse("2026-11-25T15:14:42Z"),
+            CatalogOrigin.DISCOVERED
+        );
+        givenDefinition(
+            aMetric("HTTP_GATEWAY_RESPONSE_TIME", "MILLISECONDS", List.of(ApiType.HTTP_PROXY), "API").groupedAlsoBy(List.of(fraudTier))
+        );
+
+        JsonNode body = rootTarget("definition").request().get().readEntity(JsonNode.class);
+
+        assertThat(body.get("families").get(0).get("metrics").get(0).get("facets"))
+            .extracting(JsonNode::asText)
+            .containsExactly("API", "custom.fraud-tier");
+        JsonNode dimension = body.get("dimensions").get(1);
+        assertThat(dimension.get("name").asText()).isEqualTo("custom.fraud-tier");
+        assertThat(dimension.get("label").asText()).isEqualTo("Fraud tier");
+        assertThat(dimension.get("namespace").asText()).isEqualTo("custom");
+        assertThat(dimension.get("origin").asText()).isEqualTo("DISCOVERED");
+        assertThat(dimension.get("lastSeen").asText()).isEqualTo("2026-11-25T15:14:42Z");
+        assertThat(dimension.get("apiTypes")).isEmpty();
     }
 
     @Test

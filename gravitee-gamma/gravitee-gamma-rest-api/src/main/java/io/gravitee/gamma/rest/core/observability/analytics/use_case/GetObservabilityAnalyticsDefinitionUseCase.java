@@ -104,7 +104,11 @@ public class GetObservabilityAnalyticsDefinitionUseCase {
             )
             : Optional.empty();
         var additional = catalog.analyticsCatalog(builtInNamesByRawKey, records, discovered, support, kinds);
-        metrics.computeIfPresent(support.dimensionsOf(), (name, metric) -> metric.groupedAlsoBy(additional.facetsFor(metric.apiTypes())));
+        support
+            .groupedByFields()
+            .forEach(builtIn ->
+                metrics.computeIfPresent(builtIn, (name, metric) -> metric.groupedAlsoBy(additional.facetsFor(metric.apiTypes())))
+            );
         additional.metrics().forEach(metric -> metrics.putIfAbsent(metric.name(), metric));
         return new Output(
             AnalyticsDefinition.of(metrics.values()).narrowedTo(input.origins()),

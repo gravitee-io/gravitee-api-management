@@ -24,7 +24,7 @@ import java.util.Set;
  * One entry of the environment's additional metric catalog.
  *
  * @param name      the wire name: the built-in name of a {@code BUILT_IN} entry, {@code additional-metrics.<rawKey>}
- *                  otherwise.
+ *                  or {@code custom.<rawKey>} otherwise.
  * @param type      the filter type of the built-in spec serving the entry; {@code null} otherwise, the value type then
  *                  gives it.
  * @param apiTypes  the kinds of the built-in on a {@code BUILT_IN} entry; on the others, the kinds the key's namespace
