@@ -47,7 +47,7 @@ public final class ApiTypeAdapter {
     }
 
     /**
-     * Empty for {@link ApiType#AUTHZ_DECISION} and {@link ApiType#GUARDIAN_DECISION}, the tokens that are not API kinds:
+     * Empty for {@link ApiType#AUTHZ_DECISION} and {@link ApiType#GUARDRAIL_DECISION}, the tokens that are not API kinds:
      * a decision record belongs to an API of any type.
      */
     public static Optional<io.gravitee.definition.model.v4.ApiType> toDefinition(ApiType apiType) {

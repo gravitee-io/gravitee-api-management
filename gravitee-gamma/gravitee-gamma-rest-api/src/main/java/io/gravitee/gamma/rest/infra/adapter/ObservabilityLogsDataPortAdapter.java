@@ -28,12 +28,12 @@ import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.log.crud_service.AggregatedMessageLogCrudService;
 import io.gravitee.apim.core.log.crud_service.AuthzDecisionLogsCrudService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
-import io.gravitee.apim.core.log.crud_service.GuardianDecisionLogsCrudService;
+import io.gravitee.apim.core.log.crud_service.GuardrailDecisionLogsCrudService;
 import io.gravitee.apim.core.log.model.AggregatedMessageLog;
 import io.gravitee.apim.core.log.model.AuthzDecisionLog;
 import io.gravitee.apim.core.log.model.AuthzDecisionLogFilters;
-import io.gravitee.apim.core.log.model.GuardianDecisionLog;
-import io.gravitee.apim.core.log.model.GuardianDecisionLogFilters;
+import io.gravitee.apim.core.log.model.GuardrailDecisionLog;
+import io.gravitee.apim.core.log.model.GuardrailDecisionLogFilters;
 import io.gravitee.apim.core.log.model.SecurityTokenProjection;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
@@ -51,7 +51,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.logs.model.ApiReference;
 import io.gravitee.gamma.rest.core.observability.logs.model.AuthzDecision;
 import io.gravitee.gamma.rest.core.observability.logs.model.EntrypointScope;
-import io.gravitee.gamma.rest.core.observability.logs.model.GuardianDecision;
+import io.gravitee.gamma.rest.core.observability.logs.model.GuardrailDecision;
 import io.gravitee.gamma.rest.core.observability.logs.model.HttpPayload;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogDetail;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
@@ -127,7 +127,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
     private final AggregatedMessageLogCrudService aggregatedMessageLogCrudService;
     private final ConnectionLogsCrudService connectionLogsCrudService;
     private final AuthzDecisionLogsCrudService authzDecisionLogsCrudService;
-    private final GuardianDecisionLogsCrudService guardianDecisionLogsCrudService;
+    private final GuardrailDecisionLogsCrudService guardrailDecisionLogsCrudService;
     private final AnalyticsQueryService analyticsQueryService;
     private final UserContextLoader userContextLoader;
     private final PlanCrudService planCrudService;
@@ -171,8 +171,8 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         if (query.recordType() == RecordType.AUTHZ_DECISION) {
             return searchDecisionLogs(executionContext, query, pageable);
         }
-        if (query.recordType() == RecordType.GUARDIAN_DECISION) {
-            return searchGuardianDecisionLogs(executionContext, query, pageable);
+        if (query.recordType() == RecordType.GUARDRAIL_DECISION) {
+            return searchGuardrailDecisionLogs(executionContext, query, pageable);
         }
 
         var searchFilters = buildSearchFilters(query);
@@ -591,22 +591,22 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         );
     }
 
-    private LogsPage searchGuardianDecisionLogs(ExecutionContext executionContext, LogsSearchQuery query, PageableImpl pageable) {
-        var text = firstValueOf(query.conditions(), StaticFilters.GUARDIAN_SEARCH.filterName());
-        var filters = GuardianDecisionLogFilters.builder()
+    private LogsPage searchGuardrailDecisionLogs(ExecutionContext executionContext, LogsSearchQuery query, PageableImpl pageable) {
+        var text = firstValueOf(query.conditions(), StaticFilters.GUARDRAIL_SEARCH.filterName());
+        var filters = GuardrailDecisionLogFilters.builder()
             .apiIds(query.apiIds())
             .from(query.from())
             .to(query.to())
-            .guardianIds(valuesOf(query.conditions(), StaticFilters.GUARDIAN.filterName()))
-            .outcomes(valuesOf(query.conditions(), StaticFilters.GUARDIAN_OUTCOME.filterName()))
+            .guardrailIds(valuesOf(query.conditions(), StaticFilters.GUARDRAIL.filterName()))
+            .outcomes(valuesOf(query.conditions(), StaticFilters.GUARDRAIL_OUTCOME.filterName()))
             .text(text)
             .textApiIds(apisNamed(text, query.apisById()))
             .build();
-        var result = guardianDecisionLogsCrudService.searchDecisionLogs(executionContext, filters, pageable);
+        var result = guardrailDecisionLogsCrudService.searchDecisionLogs(executionContext, filters, pageable);
         var entries = result
             .logs()
             .stream()
-            .map(decision -> mapGuardianDecisionToLogEntry(decision, query.apisById()))
+            .map(decision -> mapGuardrailDecisionToLogEntry(decision, query.apisById()))
             .toList();
         return new LogsPage(entries, result.total());
     }
@@ -629,7 +629,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .collect(Collectors.toSet());
     }
 
-    private LogEntry mapGuardianDecisionToLogEntry(GuardianDecisionLog decision, Map<String, ApiReference> apisById) {
+    private LogEntry mapGuardrailDecisionToLogEntry(GuardrailDecisionLog decision, Map<String, ApiReference> apisById) {
         var apiRef = apisById != null ? apisById.get(decision.apiId()) : null;
         return LogEntry.builder()
             .apiId(decision.apiId())
@@ -637,10 +637,10 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .apiType(apiRef != null ? apiRef.apiType() : null)
             .timestamp(decision.timestamp() == null ? null : Instant.ofEpochMilli(decision.timestamp()))
             .requestId(decision.requestId())
-            .guardian(
-                GuardianDecision.builder()
+            .guardrail(
+                GuardrailDecision.builder()
                     .eventId(decision.eventId())
-                    .guardianId(decision.guardianId())
+                    .guardrailId(decision.guardrailId())
                     .revision(decision.revision())
                     .checkpoint(decision.checkpoint())
                     .outcome(decision.outcome())
@@ -655,13 +655,13 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .build();
     }
 
-    private static List<GuardianDecision.Finding> findingsOf(List<GuardianDecisionLog.Finding> findings) {
+    private static List<GuardrailDecision.Finding> findingsOf(List<GuardrailDecisionLog.Finding> findings) {
         if (findings == null) {
             return List.of();
         }
         return findings
             .stream()
-            .map(finding -> new GuardianDecision.Finding(finding.guardrail(), finding.rule(), finding.location(), finding.effect()))
+            .map(finding -> new GuardrailDecision.Finding(finding.guardrailPolicy(), finding.rule(), finding.location(), finding.effect()))
             .toList();
     }
 

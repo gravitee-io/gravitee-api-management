@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.elasticsearch.v4.log.adapter.guardian;
+package io.gravitee.repository.elasticsearch.v4.log.adapter.guardrail;
 
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.SORT;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.BOOL;
@@ -33,13 +33,13 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.utils.WildcardValues;
-import io.gravitee.repository.log.v4.model.guardian.GuardianDecisionLogQuery;
+import io.gravitee.repository.log.v4.model.guardrail.GuardrailDecisionLogQuery;
 import java.util.Set;
 
 /**
  * @author GraviteeSource Team
  */
-public final class SearchGuardianDecisionLogsQueryAdapter {
+public final class SearchGuardrailDecisionLogsQueryAdapter {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String FROM = "from";
@@ -57,17 +57,17 @@ public final class SearchGuardianDecisionLogsQueryAdapter {
     private static final String PATH = "path";
     private static final String IGNORE_UNMAPPED = "ignore_unmapped";
 
-    private SearchGuardianDecisionLogsQueryAdapter() {}
+    private SearchGuardrailDecisionLogsQueryAdapter() {}
 
-    public static String adapt(QueryContext queryContext, GuardianDecisionLogQuery query) {
+    public static String adapt(QueryContext queryContext, GuardrailDecisionLogQuery query) {
         ArrayNode filters = MAPPER.createArrayNode();
-        addTerm(filters, GuardianDecisionLogFields.ORG_ID, queryContext.getOrgId());
-        addTerm(filters, GuardianDecisionLogFields.ENV_ID, queryContext.getEnvId());
-        addTerm(filters, GuardianDecisionLogFields.DECISION_POINT_TYPE, GuardianDecisionLogFields.GUARDIAN);
-        addTerm(filters, GuardianDecisionLogFields.PHASE, GuardianDecisionLogFields.RESOLVED);
-        addTerms(filters, GuardianDecisionLogFields.API_ID, query.getApiIds());
-        addTermsIfAny(filters, GuardianDecisionLogFields.GUARDIAN_ID, query.getGuardianIds());
-        addTermsIfAny(filters, GuardianDecisionLogFields.OUTCOME, query.getOutcomes());
+        addTerm(filters, GuardrailDecisionLogFields.ORG_ID, queryContext.getOrgId());
+        addTerm(filters, GuardrailDecisionLogFields.ENV_ID, queryContext.getEnvId());
+        addTerm(filters, GuardrailDecisionLogFields.DECISION_POINT_TYPE, GuardrailDecisionLogFields.GUARDRAIL);
+        addTerm(filters, GuardrailDecisionLogFields.PHASE, GuardrailDecisionLogFields.RESOLVED);
+        addTerms(filters, GuardrailDecisionLogFields.API_ID, query.getApiIds());
+        addTermsIfAny(filters, GuardrailDecisionLogFields.GUARDRAIL_ID, query.getGuardrailIds());
+        addTermsIfAny(filters, GuardrailDecisionLogFields.OUTCOME, query.getOutcomes());
         addTextIfAny(filters, query.getText(), query.getTextApiIds());
 
         if (query.getFrom() != null || query.getTo() != null) {
@@ -78,7 +78,7 @@ public final class SearchGuardianDecisionLogsQueryAdapter {
             if (query.getTo() != null) {
                 bounds.put(LTE, query.getTo());
             }
-            filters.add(MAPPER.createObjectNode().set(RANGE, MAPPER.createObjectNode().set(GuardianDecisionLogFields.TIMESTAMP, bounds)));
+            filters.add(MAPPER.createObjectNode().set(RANGE, MAPPER.createObjectNode().set(GuardrailDecisionLogFields.TIMESTAMP, bounds)));
         }
 
         ObjectNode root = MAPPER.createObjectNode();
@@ -91,10 +91,10 @@ public final class SearchGuardianDecisionLogsQueryAdapter {
         root.set(
             SORT,
             MAPPER.createArrayNode()
-                .add(MAPPER.createObjectNode().set(GuardianDecisionLogFields.TIMESTAMP, MAPPER.createObjectNode().put(ORDER, DESC)))
+                .add(MAPPER.createObjectNode().set(GuardrailDecisionLogFields.TIMESTAMP, MAPPER.createObjectNode().put(ORDER, DESC)))
                 .add(
                     MAPPER.createObjectNode().set(
-                        GuardianDecisionLogFields.EVENT_ID,
+                        GuardrailDecisionLogFields.EVENT_ID,
                         MAPPER.createObjectNode().put(ORDER, ASC).put(UNMAPPED_TYPE, KEYWORD)
                     )
                 )
@@ -111,7 +111,7 @@ public final class SearchGuardianDecisionLogsQueryAdapter {
     }
 
     /**
-     * One search box over what a row shows: the request, the guardrail and its rules, the api. Any of them matching is
+     * One search box over what a row shows: the request, the guardrail policy and its rules, the api. Any of them matching is
      * enough. Reasons are sentences and rule names are words of them, so both are matched on a fragment. The request id
      * is matched on its start: it is one value per call, and a fragment anywhere in it would walk every term of the
      * index.
@@ -126,17 +126,20 @@ public final class SearchGuardianDecisionLogsQueryAdapter {
         var trimmed = text.trim();
         var fragment = WildcardValues.containing(trimmed);
         ArrayNode should = MAPPER.createArrayNode();
-        should.add(prefix(GuardianDecisionLogFields.REQUEST_ID, trimmed));
-        should.add(wildcard(GuardianDecisionLogFields.REASONS, fragment));
+        should.add(prefix(GuardrailDecisionLogFields.REQUEST_ID, trimmed));
+        should.add(wildcard(GuardrailDecisionLogFields.REASONS, fragment));
         ObjectNode nested = MAPPER.createObjectNode();
-        nested.put(PATH, GuardianDecisionLogFields.MATCHED_RULES);
+        nested.put(PATH, GuardrailDecisionLogFields.MATCHED_RULES);
         nested.put(IGNORE_UNMAPPED, true);
-        nested.set(QUERY, wildcard(GuardianDecisionLogFields.MATCHED_RULES + "." + GuardianDecisionLogFields.MATCHED_RULE_NAME, fragment));
+        nested.set(
+            QUERY,
+            wildcard(GuardrailDecisionLogFields.MATCHED_RULES + "." + GuardrailDecisionLogFields.MATCHED_RULE_NAME, fragment)
+        );
         should.add(MAPPER.createObjectNode().set(NESTED, nested));
         if (textApiIds != null && !textApiIds.isEmpty()) {
             ArrayNode apiIds = MAPPER.createArrayNode();
             textApiIds.forEach(apiIds::add);
-            should.add(MAPPER.createObjectNode().set(TERMS, MAPPER.createObjectNode().set(GuardianDecisionLogFields.API_ID, apiIds)));
+            should.add(MAPPER.createObjectNode().set(TERMS, MAPPER.createObjectNode().set(GuardrailDecisionLogFields.API_ID, apiIds)));
         }
         ObjectNode bool = MAPPER.createObjectNode();
         bool.set(SHOULD, should);

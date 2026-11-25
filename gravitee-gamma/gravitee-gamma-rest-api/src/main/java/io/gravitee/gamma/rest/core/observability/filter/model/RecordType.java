@@ -19,14 +19,14 @@ package io.gravitee.gamma.rest.core.observability.filter.model;
  * Which document contract a logs row is read from. Orthogonal to {@link ApiType}: that one narrows
  * <em>which APIs</em> are in scope, this one selects <em>what kind of record</em> is returned. A
  * request log and a decision share neither an index nor a shape, and the decisions of an authorization engine and of
- * a Guardian do not carry the same fields.
+ * a Guardrail do not carry the same fields.
  *
  * @author GraviteeSource Team
  */
 public enum RecordType {
     REQUEST("Request"),
     AUTHZ_DECISION("Authz decision"),
-    GUARDIAN_DECISION("Guardian decision");
+    GUARDRAIL_DECISION("Guardrail decision");
 
     private final String label;
 

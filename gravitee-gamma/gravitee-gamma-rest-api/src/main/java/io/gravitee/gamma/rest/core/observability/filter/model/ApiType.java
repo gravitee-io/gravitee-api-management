@@ -46,9 +46,9 @@ public enum ApiType {
     // only offered there if this token is among its apiTypes, so carrying it is how a filter opts in
     // to that screen. Declare {@link #API_KINDS} instead of {@link #ALL} to stay out of it.
     AUTHZ_DECISION("Authz decision record"),
-    // Not an API kind either: the scope token of the Guardian decisions, as AUTHZ_DECISION is the one of the
-    // authorization decisions. A Guardian runs in front of an API of any kind.
-    GUARDIAN_DECISION("Guardian decision record");
+    // Not an API kind either: the scope token of the Guardrail decisions, as AUTHZ_DECISION is the one of the
+    // authorization decisions. A Guardrail runs in front of an API of any kind.
+    GUARDRAIL_DECISION("Guardrail decision record");
 
     private final String label;
 
@@ -74,7 +74,7 @@ public enum ApiType {
      * only makes sense against an API: the values a user may pick in the {@code API_TYPE} filter, and
      * filters carried solely by request documents.
      */
-    public static final Set<ApiType> API_KINDS = Set.copyOf(EnumSet.complementOf(EnumSet.of(AUTHZ_DECISION, GUARDIAN_DECISION)));
+    public static final Set<ApiType> API_KINDS = Set.copyOf(EnumSet.complementOf(EnumSet.of(AUTHZ_DECISION, GUARDRAIL_DECISION)));
 
     /**
      * The kinds whose rows the logs search serves: every API kind but {@link #EDGE}, which writes no log row. The logs

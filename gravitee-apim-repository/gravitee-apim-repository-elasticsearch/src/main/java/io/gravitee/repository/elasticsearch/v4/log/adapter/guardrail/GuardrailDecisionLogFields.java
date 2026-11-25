@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.elasticsearch.v4.log.adapter.guardian;
+package io.gravitee.repository.elasticsearch.v4.log.adapter.guardrail;
 
 /**
- * Indexed field names of a Guardian {@code DecisionReport} document, as written by the reporter's FreeMarker
+ * Indexed field names of a Guardrail {@code DecisionReport} document, as written by the reporter's FreeMarker
  * templates. Kept in one place so the query and the source mapper cannot drift.
  *
  * @author GraviteeSource Team
  */
-final class GuardianDecisionLogFields {
+final class GuardrailDecisionLogFields {
 
     static final String TIMESTAMP = "@timestamp";
     static final String API_ID = "api-id";
@@ -31,11 +31,11 @@ final class GuardianDecisionLogFields {
     static final String REQUEST_ID = "request-id";
 
     static final String DECISION_POINT_TYPE = "decision-point-type";
-    static final String GUARDIAN = "guardian";
+    static final String GUARDRAIL = "guardrail";
     static final String PHASE = "phase";
     static final String RESOLVED = "RESOLVED";
 
-    static final String GUARDIAN_ID = "decision-point-id";
+    static final String GUARDRAIL_ID = "decision-point-id";
     static final String REVISION = "decision-point-version";
     static final String CHECKPOINT = "checkpoint";
     static final String OUTCOME = "outcome";
@@ -52,5 +52,5 @@ final class GuardianDecisionLogFields {
     static final String ANNOTATION_GUARDRAIL = "guardrail";
     static final String ANNOTATION_LOCATION = "location";
 
-    private GuardianDecisionLogFields() {}
+    private GuardrailDecisionLogFields() {}
 }

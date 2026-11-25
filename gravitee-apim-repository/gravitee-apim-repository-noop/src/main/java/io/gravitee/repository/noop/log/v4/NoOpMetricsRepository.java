@@ -25,8 +25,8 @@ import io.gravitee.repository.log.v4.model.connection.Metrics;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetrics;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetricsQuery;
-import io.gravitee.repository.log.v4.model.guardian.GuardianDecisionLog;
-import io.gravitee.repository.log.v4.model.guardian.GuardianDecisionLogQuery;
+import io.gravitee.repository.log.v4.model.guardrail.GuardrailDecisionLog;
+import io.gravitee.repository.log.v4.model.guardrail.GuardrailDecisionLogQuery;
 import io.gravitee.repository.log.v4.model.message.MessageMetrics;
 import io.gravitee.repository.log.v4.model.message.MessageMetricsQuery;
 import java.util.ArrayList;
@@ -72,7 +72,7 @@ public class NoOpMetricsRepository implements MetricsRepository {
     }
 
     @Override
-    public LogResponse<GuardianDecisionLog> searchGuardianDecisionLogs(QueryContext queryContext, GuardianDecisionLogQuery query) {
+    public LogResponse<GuardrailDecisionLog> searchGuardrailDecisionLogs(QueryContext queryContext, GuardrailDecisionLogQuery query) {
         return new LogResponse<>(0, List.of());
     }
 }

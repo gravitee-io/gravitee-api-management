@@ -36,12 +36,12 @@ import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.log.crud_service.AggregatedMessageLogCrudService;
 import io.gravitee.apim.core.log.crud_service.AuthzDecisionLogsCrudService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
-import io.gravitee.apim.core.log.crud_service.GuardianDecisionLogsCrudService;
+import io.gravitee.apim.core.log.crud_service.GuardrailDecisionLogsCrudService;
 import io.gravitee.apim.core.log.model.AggregatedMessageLog;
 import io.gravitee.apim.core.log.model.AuthzDecisionLog;
 import io.gravitee.apim.core.log.model.AuthzDecisionLogFilters;
-import io.gravitee.apim.core.log.model.GuardianDecisionLog;
-import io.gravitee.apim.core.log.model.GuardianDecisionLogFilters;
+import io.gravitee.apim.core.log.model.GuardrailDecisionLog;
+import io.gravitee.apim.core.log.model.GuardrailDecisionLogFilters;
 import io.gravitee.apim.core.log.model.MessageOperation;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
@@ -57,7 +57,7 @@ import io.gravitee.gamma.rest.core.observability.logs.model.ApiReference;
 import io.gravitee.gamma.rest.core.observability.logs.model.AuthzDecision;
 import io.gravitee.gamma.rest.core.observability.logs.model.EntrypointScope;
 import io.gravitee.gamma.rest.core.observability.logs.model.FailureOrigin;
-import io.gravitee.gamma.rest.core.observability.logs.model.GuardianDecision;
+import io.gravitee.gamma.rest.core.observability.logs.model.GuardrailDecision;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
 import io.gravitee.gamma.rest.core.observability.logs.model.MessageLogsPage;
@@ -102,7 +102,7 @@ class ObservabilityLogsDataPortAdapterTest {
     private AuthzDecisionLogsCrudService authzDecisionLogsCrudService;
 
     @Mock
-    private GuardianDecisionLogsCrudService guardianDecisionLogsCrudService;
+    private GuardrailDecisionLogsCrudService guardrailDecisionLogsCrudService;
 
     @Mock
     private AnalyticsQueryService analyticsQueryService;
@@ -136,7 +136,7 @@ class ObservabilityLogsDataPortAdapterTest {
             aggregatedMessageLogCrudService,
             connectionLogsCrudService,
             authzDecisionLogsCrudService,
-            guardianDecisionLogsCrudService,
+            guardrailDecisionLogsCrudService,
             analyticsQueryService,
             userContextLoader,
             planCrudService,
@@ -1477,20 +1477,20 @@ class ObservabilityLogsDataPortAdapterTest {
     }
 
     @Nested
-    class GuardianDecisions {
+    class GuardrailDecisions {
 
         @Test
-        void should_read_guardian_decisions_instead_of_connection_logs_or_authz_decisions() {
-            when(guardianDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(
+        void should_read_guardrail_decisions_instead_of_connection_logs_or_authz_decisions() {
+            when(guardrailDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(
                 new SearchLogsResponse<>(
                     3,
                     List.of(
-                        GuardianDecisionLog.builder()
+                        GuardrailDecisionLog.builder()
                             .eventId("evt-1")
                             .timestamp(1_000L)
                             .apiId("api-1")
                             .requestId("req-1")
-                            .guardianId("guardian-a")
+                            .guardrailId("guardrail-a")
                             .revision("3")
                             .checkpoint("response.llm-proxy")
                             .outcome("TRANSFORM")
@@ -1498,14 +1498,16 @@ class ObservabilityLogsDataPortAdapterTest {
                             .transformationType("REDACT")
                             .verdict("REDACT")
                             .reasons(List.of("Redact PII: REDACT — 1 passage"))
-                            .findings(List.of(new GuardianDecisionLog.Finding("Redact PII", "EMAIL", "$.messages[0].content", "TRANSFORM")))
+                            .findings(
+                                List.of(new GuardrailDecisionLog.Finding("Redact PII", "EMAIL", "$.messages[0].content", "TRANSFORM"))
+                            )
                             .durationNanos(4_200L)
                             .build()
                     )
                 )
             );
 
-            var page = adapter.searchLogs(ORG, ENV, guardianQueryWith());
+            var page = adapter.searchLogs(ORG, ENV, guardrailQueryWith());
 
             assertThat(page.totalCount()).isEqualTo(3);
             var entry = page.data().getFirst();
@@ -1515,10 +1517,10 @@ class ObservabilityLogsDataPortAdapterTest {
             assertThat(entry.timestamp()).isEqualTo(Instant.ofEpochMilli(1_000L));
             assertThat(entry.requestId()).isEqualTo("req-1");
             assertThat(entry.authz()).isNull();
-            assertThat(entry.guardian()).isEqualTo(
-                GuardianDecision.builder()
+            assertThat(entry.guardrail()).isEqualTo(
+                GuardrailDecision.builder()
                     .eventId("evt-1")
-                    .guardianId("guardian-a")
+                    .guardrailId("guardrail-a")
                     .revision("3")
                     .checkpoint("response.llm-proxy")
                     .outcome("TRANSFORM")
@@ -1526,7 +1528,7 @@ class ObservabilityLogsDataPortAdapterTest {
                     .transformationType("REDACT")
                     .verdict("REDACT")
                     .reasons(List.of("Redact PII: REDACT — 1 passage"))
-                    .findings(List.of(new GuardianDecision.Finding("Redact PII", "EMAIL", "$.messages[0].content", "TRANSFORM")))
+                    .findings(List.of(new GuardrailDecision.Finding("Redact PII", "EMAIL", "$.messages[0].content", "TRANSFORM")))
                     .durationNanos(4_200L)
                     .build()
             );
@@ -1534,33 +1536,33 @@ class ObservabilityLogsDataPortAdapterTest {
         }
 
         @Test
-        void should_carry_the_api_scope_the_time_range_and_the_guardian_into_the_search() {
-            when(guardianDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(
+        void should_carry_the_api_scope_the_time_range_and_the_guardrail_into_the_search() {
+            when(guardrailDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(
                 new SearchLogsResponse<>(0, List.of())
             );
 
             adapter.searchLogs(
                 ORG,
                 ENV,
-                guardianQueryWith(
-                    new FilterCondition("GUARDIAN", FilterOperator.IN, List.of("guardian-a", "guardian-b")),
-                    new FilterCondition("GUARDIAN_OUTCOME", FilterOperator.EQ, List.of("DENY"))
+                guardrailQueryWith(
+                    new FilterCondition("GUARDRAIL", FilterOperator.IN, List.of("guardrail-a", "guardrail-b")),
+                    new FilterCondition("GUARDRAIL_OUTCOME", FilterOperator.EQ, List.of("DENY"))
                 )
             );
 
-            var captor = ArgumentCaptor.forClass(GuardianDecisionLogFilters.class);
-            verify(guardianDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
+            var captor = ArgumentCaptor.forClass(GuardrailDecisionLogFilters.class);
+            verify(guardrailDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
             var filters = captor.getValue();
             assertThat(filters.apiIds()).containsExactly("api-1");
             assertThat(filters.from()).isEqualTo(1_000L);
             assertThat(filters.to()).isEqualTo(2_000L);
-            assertThat(filters.guardianIds()).containsExactly("guardian-a", "guardian-b");
+            assertThat(filters.guardrailIds()).containsExactly("guardrail-a", "guardrail-b");
             assertThat(filters.outcomes()).containsExactly("DENY");
         }
 
         @Test
         void should_search_the_text_and_the_apis_whose_name_holds_it() {
-            when(guardianDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(
+            when(guardrailDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(
                 new SearchLogsResponse<>(0, List.of())
             );
 
@@ -1579,34 +1581,34 @@ class ObservabilityLogsDataPortAdapterTest {
                             new ApiReference("Billing", "LLM")
                         )
                     )
-                    .conditions(List.of(new FilterCondition("GUARDIAN_SEARCH", FilterOperator.CONTAINS, List.of("assistant"))))
+                    .conditions(List.of(new FilterCondition("GUARDRAIL_SEARCH", FilterOperator.CONTAINS, List.of("assistant"))))
                     .page(1)
                     .perPage(20)
-                    .recordType(RecordType.GUARDIAN_DECISION)
+                    .recordType(RecordType.GUARDRAIL_DECISION)
                     .build()
             );
 
-            var captor = ArgumentCaptor.forClass(GuardianDecisionLogFilters.class);
-            verify(guardianDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
+            var captor = ArgumentCaptor.forClass(GuardrailDecisionLogFilters.class);
+            verify(guardrailDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
             assertThat(captor.getValue().text()).isEqualTo("assistant");
             assertThat(captor.getValue().textApiIds()).containsExactlyInAnyOrder("api-1", "api-2");
         }
 
         @Test
         void should_search_no_text_when_none_is_asked() {
-            when(guardianDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(
+            when(guardrailDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(
                 new SearchLogsResponse<>(0, List.of())
             );
 
-            adapter.searchLogs(ORG, ENV, guardianQueryWith());
+            adapter.searchLogs(ORG, ENV, guardrailQueryWith());
 
-            var captor = ArgumentCaptor.forClass(GuardianDecisionLogFilters.class);
-            verify(guardianDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
+            var captor = ArgumentCaptor.forClass(GuardrailDecisionLogFilters.class);
+            verify(guardrailDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
             assertThat(captor.getValue().text()).isNull();
             assertThat(captor.getValue().textApiIds()).isEmpty();
         }
 
-        private LogsSearchQuery guardianQueryWith(FilterCondition... conditions) {
+        private LogsSearchQuery guardrailQueryWith(FilterCondition... conditions) {
             return LogsSearchQuery.builder()
                 .apiIds(Set.of("api-1"))
                 .apisById(Map.of("api-1", new ApiReference("API 1", "LLM")))
@@ -1615,7 +1617,7 @@ class ObservabilityLogsDataPortAdapterTest {
                 .to(2_000L)
                 .page(1)
                 .perPage(20)
-                .recordType(RecordType.GUARDIAN_DECISION)
+                .recordType(RecordType.GUARDRAIL_DECISION)
                 .build();
         }
     }
