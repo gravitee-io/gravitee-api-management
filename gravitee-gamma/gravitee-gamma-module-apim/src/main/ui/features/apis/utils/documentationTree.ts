@@ -214,6 +214,25 @@ export function getPublishedSection(publications: ApiPortalPublication[]): strin
     return getPublishedPublication(publications)?.sectionName;
 }
 
+export interface PortalPublication {
+    portal: ApiPortalPublishPortal;
+    publication: ApiPortalPublication;
+}
+
+/** The portals where the API is visible, each with its listing, in the order of the portals given. */
+export function publishedPublications(publications: ApiPortalPublication[], portals: ApiPortalPublishPortal[]): PortalPublication[] {
+    return portals.flatMap(portal => {
+        const publication = getPublishedPublication(publications.filter(candidate => candidate.portalId === portal.id));
+        return publication ? [{ portal, publication }] : [];
+    });
+}
+
+/** The portals the API can still be published to: it is published once per portal, and a hidden listing does not count. */
+export function portalsToPublishTo(publications: ApiPortalPublication[], portals: ApiPortalPublishPortal[]): ApiPortalPublishPortal[] {
+    const publishedPortalIds = new Set(publishedPublications(publications, portals).map(({ portal }) => portal.id));
+    return portals.filter(portal => !publishedPortalIds.has(portal.id));
+}
+
 /** A listing kept hidden, typically added in the portal editor: publishing the API reuses it rather than adding another. */
 export function getHiddenListing(publications: ApiPortalPublication[]): ApiPortalPublication | undefined {
     return publications.find(publication => !publication.portalNavigationItem.published);

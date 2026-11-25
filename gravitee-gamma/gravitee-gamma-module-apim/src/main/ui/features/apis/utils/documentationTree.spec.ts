@@ -22,13 +22,16 @@ import {
     getAncestors,
     getHiddenListing,
     getPublishedSection,
+    portalsToPublishTo,
     publicationsInPortals,
+    publishedPublications,
     syncStateOf,
 } from './documentationTree';
 import type {
     ApiDocumentationItem,
     ApiPortalPublication,
     ApiPortalPublishLocation,
+    ApiPortalPublishPortal,
     PortalNavigationItemSource,
 } from '../types/apiDocumentation';
 
@@ -318,6 +321,62 @@ describe('publicationsInPortals', () => {
 
     it('keeps none when no portal is given', () => {
         expect(publicationsInPortals([publication('APIs', true)], [])).toEqual([]);
+    });
+});
+
+describe('with several portals', () => {
+    const developerPortal: ApiPortalPublishPortal = { id: 'DEFAULT', name: 'Developer Portal', default: true };
+    const partnersPortal: ApiPortalPublishPortal = { id: 'partners-portal', name: 'Partners', default: false };
+    const inPartnersPortal = (sectionName: string, published: boolean): ApiPortalPublication => ({
+        ...publication(sectionName, published),
+        portalId: partnersPortal.id,
+    });
+
+    describe('publishedPublications', () => {
+        it('keeps the visible listings, in the order of the portals given', () => {
+            const inDeveloperPortal = publication('APIs', true);
+            const inPartners = inPartnersPortal('Partner APIs', true);
+
+            expect(publishedPublications([inPartners, inDeveloperPortal], [developerPortal, partnersPortal])).toEqual([
+                { portal: developerPortal, publication: inDeveloperPortal },
+                { portal: partnersPortal, publication: inPartners },
+            ]);
+        });
+
+        it('leaves out a hidden listing', () => {
+            const inDeveloperPortal = publication('APIs', true);
+
+            expect(
+                publishedPublications([inDeveloperPortal, inPartnersPortal('Partner APIs', false)], [developerPortal, partnersPortal]),
+            ).toEqual([{ portal: developerPortal, publication: inDeveloperPortal }]);
+        });
+
+        it('leaves out a listing in a portal that is not given', () => {
+            expect(publishedPublications([inPartnersPortal('Partner APIs', true)], [developerPortal])).toEqual([]);
+        });
+    });
+
+    describe('portalsToPublishTo', () => {
+        it('offers the portals where the API is not listed', () => {
+            expect(portalsToPublishTo([], [developerPortal, partnersPortal])).toEqual([developerPortal, partnersPortal]);
+        });
+
+        it('offers a portal where the API has only a hidden listing', () => {
+            expect(portalsToPublishTo([inPartnersPortal('Partner APIs', false)], [developerPortal, partnersPortal])).toEqual([
+                developerPortal,
+                partnersPortal,
+            ]);
+        });
+
+        it('leaves out a portal where the API is published', () => {
+            expect(portalsToPublishTo([publication('APIs', true)], [developerPortal, partnersPortal])).toEqual([partnersPortal]);
+        });
+
+        it('offers none when the API is published everywhere', () => {
+            expect(
+                portalsToPublishTo([publication('APIs', true), inPartnersPortal('Partner APIs', true)], [developerPortal, partnersPortal]),
+            ).toEqual([]);
+        });
     });
 });
 
