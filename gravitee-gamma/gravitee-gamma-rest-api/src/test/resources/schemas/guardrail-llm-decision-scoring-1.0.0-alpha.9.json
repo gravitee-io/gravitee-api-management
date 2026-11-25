@@ -1,0 +1,64 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "question": {
+            "title": "Question",
+            "description": "The question the decision model answers with a level of the scale, in natural language: \"How aggressive is the user?\"",
+            "type": "string",
+            "minLength": 1
+        },
+        "resource": {
+            "title": "Decision model",
+            "description": "The decision model resource to ask",
+            "type": "string",
+            "minLength": 1,
+            "gioConfig": {
+                "uiType": "resource-type",
+                "uiTypeProps": { "resourceType": "ai-model-decision" }
+            }
+        },
+        "levels": {
+            "title": "Levels",
+            "description": "The levels of the scale, from the lowest, level 0, to the highest, from two to eleven. The model scores the exchange on this scale, and the guardrail applies the action of the level it scores",
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 11,
+            "uniqueItemProperties": ["label"],
+            "items": {
+                "title": "Level",
+                "type": "object",
+                "properties": {
+                    "label": {
+                        "title": "Label",
+                        "description": "What the level stands for, the way the model reads it: \"Insulting\". Unique among the levels",
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "action": {
+                        "title": "Action",
+                        "description": "What to do when the model scores this level: BLOCK fails the call, CONTINUE lets it through",
+                        "type": "string",
+                        "enum": ["BLOCK", "CONTINUE"]
+                    }
+                },
+                "required": ["label", "action"]
+            }
+        },
+        "sensitivity": {
+            "title": "Detection sensitivity",
+            "description": "How readily a level that blocks does, depending on how sure the model is of the level it scores. Low: only detect clear violations, minimizing unnecessary interruptions. Balanced (recommended): balance missed violations and false alarms. High: detect potential violations, even when the evaluation is uncertain",
+            "type": "string",
+            "enum": ["LOW", "BALANCED", "HIGH"],
+            "default": "BALANCED",
+            "gioConfig": {
+                "enumLabelMap": {
+                    "LOW": "Low: only detect clear violations",
+                    "BALANCED": "Balanced (recommended): balance missed violations and false alarms",
+                    "HIGH": "High: detect potential violations, even when uncertain"
+                }
+            }
+        }
+    },
+    "required": ["question", "resource", "levels"]
+}
