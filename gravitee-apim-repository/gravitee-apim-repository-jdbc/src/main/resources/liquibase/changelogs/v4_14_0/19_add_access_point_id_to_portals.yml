@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.14.0_19_add_access_point_id_to_portals
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}portals
+            columns:
+              - column: {name: access_point_id, type: nvarchar(64), constraints: { nullable: true } }
+        - createIndex:
+            indexName: idx_${gravitee_prefix}portals_access_point_id
+            columns:
+              - column: {name: access_point_id, type: nvarchar(64)}
+            tableName: ${gravitee_prefix}portals

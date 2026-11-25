@@ -34,6 +34,9 @@ public interface AccessPointMongoRepository extends MongoRepository<AccessPointM
     @Query(value = "{ 'target': ?0, 'status': ?1 }")
     List<AccessPointMongo> findAllByTargetAndStatus(final String target, AccessPointStatus status);
 
+    @Query(value = "{ 'target': ?0, 'host': ?1, 'status': ?2 }")
+    List<AccessPointMongo> findAllByTargetAndHostAndStatus(final String target, final String host, AccessPointStatus status);
+
     @Query(value = "{ 'referenceType': ?0, 'referenceId': ?1 , 'target': ?2, 'status': ?3 }")
     List<AccessPointMongo> findAllByReferenceAndTargetAndStatus(
         final String referenceType,

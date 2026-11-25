@@ -17,6 +17,7 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Portal;
+import jakarta.annotation.Nonnull;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +30,7 @@ public interface PortalRepository extends CrudRepository<Portal, String> {
     List<Portal> findByEnvironmentId(final String environmentId) throws TechnicalException;
     Optional<Portal> findDefaultByEnvironmentId(final String environmentId) throws TechnicalException;
     List<Portal> findByActiveThemeIdAndEnvironmentId(final String activeThemeId, final String environmentId) throws TechnicalException;
+    List<Portal> findByAccessPointId(@Nonnull final String accessPointId) throws TechnicalException;
     void deleteByEnvironmentId(final String environmentId) throws TechnicalException;
     void deleteByOrganizationId(final String organizationId) throws TechnicalException;
 }

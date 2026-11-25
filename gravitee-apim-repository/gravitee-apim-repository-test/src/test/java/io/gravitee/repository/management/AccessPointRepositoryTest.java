@@ -119,6 +119,25 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
     }
 
     @Test
+    public void should_return_created_access_points_from_target_and_host() throws Exception {
+        List<AccessPoint> accessPoints = accessPointRepository.findByTargetAndHost(
+            AccessPointTarget.PORTAL_INSTANCE,
+            "partners.company.gravitee.io:4100"
+        );
+
+        assertEquals(Set.of("portal-instance-1", "portal-instance-2"), Set.copyOf(accessPoints.stream().map(AccessPoint::getId).toList()));
+    }
+
+    @Test
+    public void should_not_return_access_point_of_another_target_for_a_host() throws Exception {
+        assertTrue(
+            accessPointRepository
+                .findByTargetAndHost(AccessPointTarget.PORTAL_INSTANCE, "dev.en.company.apim-portal.gravitee.io:4100")
+                .isEmpty()
+        );
+    }
+
+    @Test
     public void should_return_access_point_from_criteria() throws Exception {
         AccessPointCriteria accessPointCriteria = AccessPointCriteria.builder()
             .from(1486771200000L - 1)

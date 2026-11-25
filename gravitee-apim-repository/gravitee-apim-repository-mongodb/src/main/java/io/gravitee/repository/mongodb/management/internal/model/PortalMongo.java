@@ -42,4 +42,6 @@ public class PortalMongo {
 
     @Nonnull
     private String url = Portal.URL_PLACEHOLDER;
+
+    private String accessPointId;
 }
