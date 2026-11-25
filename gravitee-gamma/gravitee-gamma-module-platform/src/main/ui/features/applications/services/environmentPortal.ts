@@ -22,6 +22,9 @@ export interface EnvironmentPortalConfiguration {
             sharedApiKey?: {
                 enabled?: boolean;
             };
+            customApiKey?: {
+                enabled?: boolean;
+            };
         };
     };
 }
@@ -32,4 +35,8 @@ export async function getEnvironmentPortalConfiguration(environmentId: string): 
 
 export function isSharedApiKeyEnabled(config: EnvironmentPortalConfiguration | null | undefined): boolean {
     return Boolean(config?.plan?.security?.sharedApiKey?.enabled);
+}
+
+export function isCustomApiKeyEnabled(config: EnvironmentPortalConfiguration | null | undefined): boolean {
+    return config?.plan?.security?.customApiKey?.enabled === true;
 }
