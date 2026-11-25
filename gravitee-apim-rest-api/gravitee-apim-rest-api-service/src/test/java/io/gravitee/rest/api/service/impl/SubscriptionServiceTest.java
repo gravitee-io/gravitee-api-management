@@ -354,6 +354,27 @@ public class SubscriptionServiceTest {
     }
 
     @Test
+    public void should_map_environment_id_when_finding_by_application() throws TechnicalException {
+        Subscription subscription = new Subscription();
+        subscription.setId("subscription-1");
+        subscription.setStatus(ACCEPTED);
+        subscription.setApplication(APPLICATION_ID);
+        subscription.setEnvironmentId(GraviteeContext.getDefaultEnvironment());
+
+        when(subscriptionRepository.search(SubscriptionCriteria.builder().applications(singleton(APPLICATION_ID)).build())).thenReturn(
+            List.of(subscription)
+        );
+
+        Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(
+            GraviteeContext.getExecutionContext(),
+            APPLICATION_ID,
+            null
+        );
+
+        assertThat(subscriptions).extracting(SubscriptionEntity::getEnvironmentId).containsExactly(GraviteeContext.getDefaultEnvironment());
+    }
+
+    @Test
     public void should_return_no_subscription_when_user_has_no_active_application() throws TechnicalException {
         SecurityContextHolder.setContext(generateSecurityContext());
         when(applicationService.findByUser(GraviteeContext.getExecutionContext(), "tester")).thenReturn(Set.of());
