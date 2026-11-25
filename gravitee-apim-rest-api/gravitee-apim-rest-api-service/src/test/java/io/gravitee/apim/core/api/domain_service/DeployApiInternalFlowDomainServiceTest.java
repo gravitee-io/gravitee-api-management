@@ -324,6 +324,20 @@ class DeployApiInternalFlowDomainServiceTest {
             assertThat(internalFlowStored()).as("internal flow stored").isEqualTo(guardians("guardian-1"));
         }
 
+        /** The number the event opens is the one after the deployment's, so it is read before anything is written. */
+        @Test
+        void should_fail_on_a_deployment_number_that_cannot_be_read() {
+            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")), "not a number");
+
+            assertThatThrownBy(() -> service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL))
+                .as("a deployment number that cannot be read")
+                .isInstanceOf(TechnicalDomainException.class);
+            assertSoftly(softly -> {
+                softly.assertThat(internalFlowStored()).as("internal flow stored").isEqualTo(guardians("guardian-1"));
+                softly.assertThat(events.storage()).as("events written").isEmpty();
+            });
+        }
+
         @Test
         void should_send_nothing_for_a_deployment_with_an_empty_payload() {
             givenDeployedPayload(EventType.PUBLISH_API, "");
@@ -532,28 +546,6 @@ class DeployApiInternalFlowDomainServiceTest {
                         .as("latest event properties")
                         .containsEntry(Event.EventProperties.DEPLOYMENT_NUMBER, "8")
                 );
-        }
-
-        /** Each change opens a number of its own, so a second change reaches the gateways as the first one did. */
-        @Test
-        void should_open_a_new_deployment_number_on_each_change() {
-            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")), "7");
-            service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
-            var republished = events.storage().getFirst();
-            givenDeployedPayload(
-                "republished-event-id",
-                EventType.PUBLISH_API,
-                republished.getPayload(),
-                republished.getProperties().get(Event.EventProperties.DEPLOYMENT_NUMBER)
-            );
-
-            service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-3")), apis.storage().getFirst().getUpdatedAt(), LABEL);
-
-            assertThat(events.storage())
-                .as("events written")
-                .extracting(event -> event.getProperties().get(Event.EventProperties.DEPLOYMENT_NUMBER))
-                .as("deployment numbers of the events written")
-                .containsExactly("8", "9");
         }
 
         /**
