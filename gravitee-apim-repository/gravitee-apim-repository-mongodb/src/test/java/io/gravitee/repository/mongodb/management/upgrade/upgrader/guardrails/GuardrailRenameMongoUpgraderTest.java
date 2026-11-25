@@ -19,9 +19,11 @@ import static io.gravitee.repository.mongodb.management.upgrade.upgrader.guardra
 import static io.gravitee.repository.mongodb.management.upgrade.upgrader.guardrails.GuardrailRenameMongoUpgrader.LEGACY_API_INDEX;
 import static io.gravitee.repository.mongodb.management.upgrade.upgrader.guardrails.GuardrailRenameMongoUpgrader.LEGACY_COLLECTION;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.IndexOptions;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.management.AbstractManagementRepositoryTest;
 import jakarta.inject.Inject;
 import java.util.List;
@@ -90,11 +92,15 @@ public class GuardrailRenameMongoUpgraderTest extends AbstractManagementReposito
     }
 
     @Test
-    public void should_leave_both_collections_when_the_guardrails_already_hold_documents() throws Exception {
+    public void should_fail_and_leave_both_collections_when_the_guardrails_already_hold_documents() {
         givenALegacyGuardian("guardian-1");
         guardrails().insertOne(new Document("_id", "guardrail-1").append("environmentId", "DEFAULT").append("name", "guardrail-1"));
 
-        assertThat(upgrader.upgrade()).isTrue();
+        assertThatThrownBy(() -> upgrader.upgrade())
+            .isInstanceOf(UpgraderException.class)
+            .rootCause()
+            .hasMessageContaining(prefix + LEGACY_COLLECTION)
+            .hasMessageContaining(prefix + "guardrails");
 
         SoftAssertions.assertSoftly(softly -> {
             softly
@@ -118,6 +124,20 @@ public class GuardrailRenameMongoUpgraderTest extends AbstractManagementReposito
             softly.assertThat(api.getList("guardrails", String.class)).as("guardrails").containsExactly("guardian-1", "guardian-2");
             softly.assertThat(api.containsKey(LEGACY_API_FIELD)).as("guardians field left").isFalse();
             softly.assertThat(indexNames(apis())).as("apis indexes").doesNotContain(LEGACY_API_INDEX);
+        });
+    }
+
+    @Test
+    public void should_move_the_guardians_an_api_runs_even_when_the_legacy_index_is_gone() throws Exception {
+        apis().insertOne(new Document("_id", API_ID).append(LEGACY_API_FIELD, List.of("guardian-1")));
+
+        assertThat(upgrader.upgrade()).isTrue();
+
+        Document api = apis().find(new Document("_id", API_ID)).first();
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(api).as("api").isNotNull();
+            softly.assertThat(api.getList("guardrails", String.class)).as("guardrails").containsExactly("guardian-1");
+            softly.assertThat(api.containsKey(LEGACY_API_FIELD)).as("guardians field left").isFalse();
         });
     }
 
