@@ -23,9 +23,10 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import inmemory.AccessPointQueryServiceInMemory;
+import inmemory.InstallationTypeDomainServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import io.gravitee.apim.core.access_point.model.AccessPoint;
-import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
+import io.gravitee.apim.core.installation.model.InstallationType;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalHost;
@@ -69,7 +70,7 @@ class PortalUIBootstrapResourceTest extends AbstractResourceTest {
     private InstallationAccessQueryService installationAccessQueryService;
 
     @Autowired
-    private InstallationTypeDomainService installationTypeDomainService;
+    private InstallationTypeDomainServiceInMemory installationTypeDomainService;
 
     @Autowired
     private AccessPointQueryServiceInMemory accessPointQueryService;
@@ -113,7 +114,8 @@ class PortalUIBootstrapResourceTest extends AbstractResourceTest {
 
     @BeforeEach
     void init() {
-        reset(installationAccessQueryService, installationTypeDomainService);
+        reset(installationAccessQueryService);
+        installationTypeDomainService.reset();
         when(installationAccessQueryService.getPortalAPIUrl(ENVIRONMENT)).thenReturn(PORTAL_API_URL);
         when(installationAccessQueryService.getPortalAPIUrl(OTHER_ENV_ID)).thenReturn(PORTAL_API_URL);
         var otherEnvironment = new EnvironmentEntity();
@@ -282,7 +284,7 @@ class PortalUIBootstrapResourceTest extends AbstractResourceTest {
 
     @Test
     void should_not_search_other_tenants_when_a_multi_tenant_request_has_no_environment() {
-        when(installationTypeDomainService.isMultiTenant()).thenReturn(true);
+        installationTypeDomainService.set(InstallationType.MULTI_TENANT);
         portalCrudService.initWith(
             List.of(
                 aDefaultPortal(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT),
