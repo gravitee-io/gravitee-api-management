@@ -88,7 +88,7 @@ class ApprovalEventsIntegrationTest {
     @BeforeEach
     void subscribeTheManagersTheWayTheGatewayDoes() {
         lenient().when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(license);
-        lenient().when(license.isFeatureEnabled("apim-hitl")).thenReturn(true);
+        lenient().when(license.isFeatureEnabled("gamma-aim-hitl")).thenReturn(true);
         events = new DefaultGenericEventManager(clock);
         rules = new ApprovalRuleManagerImpl(new ApprovalFeature(licenseManager, true));
         states = new ApprovalStateManagerImpl(clock);
