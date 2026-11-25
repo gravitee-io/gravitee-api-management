@@ -17,6 +17,7 @@ package io.gravitee.apim.plugin.secrets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.common.util.RelaxedPropertySource;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -28,6 +29,7 @@ import org.springframework.core.env.StandardEnvironment;
 class GraviteeSecretProviderEntriesTest {
 
     private final Map<String, Object> gravitee = new HashMap<>();
+    private final Map<String, Object> environmentVariables = new HashMap<>();
 
     @Test
     void should_accept_a_gravitee_entry_without_an_id() {
@@ -160,6 +162,42 @@ class GraviteeSecretProviderEntriesTest {
         assertThat(encryptionKey()).contains("entry-key");
     }
 
+    @Test
+    void should_refuse_a_gravitee_entry_set_through_environment_variables_whose_id_is_not_gravitee() {
+        environmentVariables.put("api_secrets_providers_0_plugin", "gravitee");
+        environmentVariables.put("api_secrets_providers_0_id", "internal");
+
+        assertThat(misconfiguration()).hasValueSatisfying(reason ->
+            assertThat(reason).contains("api.secrets.providers[0]", "id", "[internal]")
+        );
+    }
+
+    @Test
+    void should_give_the_key_that_an_environment_variable_sets() {
+        gravitee.put("api.secrets.providers[0].plugin", "gravitee");
+        environmentVariables.put("api_secrets_providers_0_configuration_encryption_key", "env-key");
+
+        assertThat(encryptionKey()).contains("env-key");
+    }
+
+    @Test
+    void should_give_the_key_of_the_environment_variable_over_the_configuration_file() {
+        gravitee.put("api.secrets.providers[0].plugin", "gravitee");
+        gravitee.put("api.secrets.providers[0].configuration.encryption.key", "file-key");
+        environmentVariables.put("api_secrets_providers_0_configuration_encryption_key", "env-key");
+
+        assertThat(encryptionKey()).contains("env-key");
+    }
+
+    @Test
+    void should_not_resolve_a_placeholder_in_the_secrets_block() {
+        gravitee.put("api.secrets.providers[0].plugin", "gravitee");
+        gravitee.put("api.secrets.providers[0].configuration.encryption.key", "${unknown}");
+
+        assertThat(misconfiguration()).isEmpty();
+        assertThat(encryptionKey()).contains("${unknown}");
+    }
+
     private Optional<String> misconfiguration() {
         return GraviteeSecretProviderEntries.misconfiguration(environment());
     }
@@ -171,6 +209,8 @@ class GraviteeSecretProviderEntriesTest {
     private StandardEnvironment environment() {
         var environment = new StandardEnvironment();
         environment.getPropertySources().addFirst(new MapPropertySource("gravitee", gravitee));
+        // gravitee-node puts the environment variables first, without their gravitee_ prefix.
+        environment.getPropertySources().addFirst(new RelaxedPropertySource("environment-variables", environmentVariables));
         environment.getPropertySources().addLast(new UnresolvableSecretPropertySource());
         return environment;
     }

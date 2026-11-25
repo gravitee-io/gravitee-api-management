@@ -16,12 +16,9 @@
 package io.gravitee.apim.plugin.secrets;
 
 import io.gravitee.secrets.api.util.ConfigHelper;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
@@ -92,21 +89,28 @@ final class GraviteeSecretProviderEntries {
     // the gateway cannot resolve. removePrefix cuts the separator off each key, so the bare api.secrets key of an empty block
     // would throw.
     private static Map<String, Object> secretsProperties(ConfigurableEnvironment environment) {
-        Set<String> names = new HashSet<>();
-        environment.getPropertySources().forEach(source -> collectSecretsNames(source, names));
         Map<String, Object> properties = new HashMap<>();
-        names.forEach(name -> properties.put(name, environment.getProperty(name, Object.class)));
+        environment.getPropertySources().forEach(source -> collectSecretsProperties(source, properties));
         return properties;
     }
 
-    private static void collectSecretsNames(PropertySource<?> source, Set<String> names) {
+    private static void collectSecretsProperties(PropertySource<?> source, Map<String, Object> properties) {
         if (source instanceof CompositePropertySource composite) {
-            composite.getPropertySources().forEach(nested -> collectSecretsNames(nested, names));
+            composite.getPropertySources().forEach(nested -> collectSecretsProperties(nested, properties));
         } else if (source instanceof EnumerablePropertySource<?> enumerable) {
-            Arrays.stream(enumerable.getPropertyNames())
-                .filter(name -> name.startsWith(SECRETS + "."))
-                .forEach(names::add);
+            for (String name : enumerable.getPropertyNames()) {
+                String key = dotted(name);
+                if (key.startsWith(SECRETS + ".") && !properties.containsKey(key)) {
+                    properties.put(key, enumerable.getProperty(name));
+                }
+            }
         }
+    }
+
+    // gravitee-node lists an environment variable as api_secrets_providers_0_plugin. This maps the name as
+    // EnvironmentUtils.getAllProperties does, and gravitee-service-secrets deploys the providers from that mapping.
+    private static String dotted(String name) {
+        return name.replaceAll("_([0-9]+)_", "[$1].").replace('_', '.');
     }
 
     private static boolean isGraviteeEntry(Map<String, Object> entry) {
