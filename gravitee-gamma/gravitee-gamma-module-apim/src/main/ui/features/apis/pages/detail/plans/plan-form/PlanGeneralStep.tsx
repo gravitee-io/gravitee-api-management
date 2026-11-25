@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import {
+    Alert,
+    AlertDescription,
     Button,
     Card,
     CardContent,
@@ -32,11 +34,6 @@ import {
     PopoverContent,
     PopoverTrigger,
     ScrollArea,
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
     Switch,
     Textarea,
     cn,
@@ -176,6 +173,10 @@ export function PlanGeneralStep({
         .join(', ');
     const isKeyless = securityType === 'KEY_LESS';
     const showAccessControl = ctx.type === 'api';
+    // The Gamma Console does not support general conditions pages: only the classic console can
+    // publish one in the store the plan save validates against, so an existing page can only be
+    // removed here — never chosen.
+    const hasGeneralConditions = ctx.type === 'api' && value.generalConditions !== '';
 
     return (
         <div className="space-y-6">
@@ -224,33 +225,24 @@ export function PlanGeneralStep({
                 </CardContent>
             </Card>
 
-            {/* Conditions — API only */}
-            {ctx.type === 'api' && (
+            {/* Conditions — only for an API plan that already carries a general conditions page */}
+            {hasGeneralConditions && (
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-base">Conditions</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="space-y-2">
-                            <Label htmlFor="plan-conditions">Page of General Conditions</Label>
-                            <Select
-                                value={value.generalConditions || '__none__'}
-                                onValueChange={v => onChange({ ...value, generalConditions: v === '__none__' ? '' : v })}
-                                disabled={readOnly}
-                            >
-                                <SelectTrigger id="plan-conditions" className="w-full">
-                                    <SelectValue placeholder="None" />
-                                </SelectTrigger>
-                                <SelectContent
-                                    position="popper"
-                                    className="max-h-60 overflow-y-auto"
-                                    style={{ width: 'var(--radix-select-trigger-width)', minWidth: 'unset' }}
-                                >
-                                    <SelectItem value="__none__">None</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <p className="text-xs text-muted-foreground">General conditions page shown to consumers before subscribing.</p>
-                        </div>
+                    <CardContent className="space-y-3">
+                        <Alert>
+                            <AlertDescription>
+                                This plan has a general conditions page. General conditions pages are no longer supported by the Gamma
+                                Console. Remove it here, or manage it in the classic console.
+                            </AlertDescription>
+                        </Alert>
+                        {!readOnly && (
+                            <Button type="button" variant="outline" onClick={() => onChange({ ...value, generalConditions: '' })}>
+                                Remove general conditions
+                            </Button>
+                        )}
                     </CardContent>
                 </Card>
             )}

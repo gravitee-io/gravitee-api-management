@@ -46,6 +46,11 @@ import { createPlan, getPlan, updatePlan } from '../../../../services/plans';
 import type { ManagedPlan, PlanContext, PlanSecurityType } from '../../../../types/plan';
 import type { ApiResource } from '../../../../types/resource';
 
+// Radix Select relies on pointer-capture and scrolling APIs jsdom does not implement.
+Element.prototype.hasPointerCapture ??= () => false;
+Element.prototype.releasePointerCapture ??= () => {};
+Element.prototype.scrollIntoView ??= () => {};
+
 const mockCreatePlan = createPlan as jest.Mock;
 const mockGetPlan = getPlan as jest.Mock;
 const mockUpdatePlan = updatePlan as jest.Mock;
@@ -75,6 +80,9 @@ const V4_PLAN: ManagedPlan = {
 };
 
 const V2_PLAN: ManagedPlan = { ...V4_PLAN, definitionVersion: 'V2' };
+
+/** A plan whose general conditions page was set in the classic console, the only way to get one. */
+const PLAN_WITH_GENERAL_CONDITIONS: ManagedPlan = { ...V4_PLAN, generalConditions: 'page-terms' };
 
 const V2_RATE_LIMITED_PLAN: ManagedPlan = {
     ...V2_PLAN,
@@ -382,6 +390,72 @@ describe('PlanFormWizard edit submit', () => {
         expect(await screen.findByText('OAuth2 resource is required.')).toBeInTheDocument();
         expect(mockUpdatePlan).not.toHaveBeenCalled();
         expect(screen.getByRole('button', { name: 'Save changes' })).toBeInTheDocument();
+    });
+});
+
+describe('PlanFormWizard general conditions', () => {
+    const GENERAL_CONDITIONS_NOTICE = /General conditions pages are no longer supported by the Gamma Console/;
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('offers no general conditions page to choose from when creating a plan', async () => {
+        renderCreateWizard();
+
+        await screen.findByLabelText(/^Name/);
+
+        expect(screen.queryByRole('combobox', { name: 'Page of General Conditions' })).not.toBeInTheDocument();
+        expect(screen.queryByText(GENERAL_CONDITIONS_NOTICE)).not.toBeInTheDocument();
+    });
+
+    it('says nothing about general conditions when editing a plan that has none', async () => {
+        renderEditWizard(V4_PLAN);
+
+        await screen.findByLabelText(/^Name/);
+
+        expect(screen.queryByRole('combobox', { name: 'Page of General Conditions' })).not.toBeInTheDocument();
+        expect(screen.queryByText(GENERAL_CONDITIONS_NOTICE)).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Remove general conditions' })).not.toBeInTheDocument();
+    });
+
+    it('offers only to remove the general conditions page a plan already carries', async () => {
+        renderEditWizard(PLAN_WITH_GENERAL_CONDITIONS);
+
+        expect(await screen.findByText(GENERAL_CONDITIONS_NOTICE)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Remove general conditions' })).toBeInTheDocument();
+        expect(screen.queryByRole('combobox', { name: 'Page of General Conditions' })).not.toBeInTheDocument();
+    });
+
+    it('keeps the general conditions page in the payload of a plan saved without removing it', async () => {
+        const user = userEvent.setup();
+        renderEditWizard(PLAN_WITH_GENERAL_CONDITIONS);
+
+        await renamePlanAndSave(user, 'Renamed by operator');
+
+        await waitFor(() => expect(mockUpdatePlan).toHaveBeenCalled());
+        expect(lastUpdatePayload()).toMatchObject({ generalConditions: 'page-terms' });
+    });
+
+    it('leaves the general conditions page out of the payload once it is removed', async () => {
+        const user = userEvent.setup();
+        renderEditWizard(PLAN_WITH_GENERAL_CONDITIONS);
+
+        await screen.findByLabelText(/^Name/);
+        await user.click(screen.getByRole('button', { name: 'Remove general conditions' }));
+        await walkToLastStep(user);
+        await user.click(screen.getByRole('button', { name: /save changes/i }));
+
+        await waitFor(() => expect(mockUpdatePlan).toHaveBeenCalled());
+        expect(lastUpdatePayload().generalConditions).toBeUndefined();
+        expect(screen.queryByText(GENERAL_CONDITIONS_NOTICE)).not.toBeInTheDocument();
+    });
+
+    it('tells a read-only plan about its general conditions page without offering to remove it', async () => {
+        renderEditWizard(PLAN_WITH_GENERAL_CONDITIONS, API_CTX, true);
+
+        expect(await screen.findByText(GENERAL_CONDITIONS_NOTICE)).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Remove general conditions' })).not.toBeInTheDocument();
     });
 });
 
