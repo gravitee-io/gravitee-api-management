@@ -33,6 +33,14 @@ public class UnsupportedObservabilityFilterException extends ValidationDomainExc
         return new UnsupportedObservabilityFilterException("The name of the filter is required", "observability.filter.name_required");
     }
 
+    /** A name under a dynamic root ({@code custom.}, {@code additional-metrics.}) that breaks the field grammar. */
+    public static UnsupportedObservabilityFilterException invalidName(String name, String rule) {
+        return new UnsupportedObservabilityFilterException(
+            "Filter '" + name + "' is not a valid field name: " + rule,
+            "observability.filter.invalid_name"
+        );
+    }
+
     public static UnsupportedObservabilityFilterException unknownName(String name) {
         return new UnsupportedObservabilityFilterException(
             "Filter '" + name + "' is not supported by this backend",

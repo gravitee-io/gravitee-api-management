@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
+import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.gamma.rest.core.observability.filter.exception.ObservabilityFilterNotFoundException;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.inmemory.InMemoryObservabilityFilterDataPort;
@@ -295,9 +296,20 @@ class GetObservabilityFilterValuesUseCaseTest {
     }
 
     @Test
-    void should_not_find_a_custom_name_outside_the_grammar() {
+    void should_refuse_a_custom_name_outside_the_grammar_naming_the_rule() {
         assertThatThrownBy(() ->
             useCase.execute(new GetObservabilityFilterValuesUseCase.Input("custom.a..b", null, null, null, null, null))
+        )
+            .isInstanceOf(UnsupportedObservabilityFilterException.class)
+            .hasMessage("Filter 'custom.a..b' is not a valid field name: " + AdditionalMetricField.CUSTOM_NAME_RULE)
+            .extracting("technicalCode")
+            .isEqualTo("observability.filter.invalid_name");
+    }
+
+    @Test
+    void should_not_find_a_name_under_no_dynamic_root() {
+        assertThatThrownBy(() ->
+            useCase.execute(new GetObservabilityFilterValuesUseCase.Input("UNKNOWN", null, null, null, null, null))
         ).isInstanceOf(ObservabilityFilterNotFoundException.class);
     }
 
@@ -326,10 +338,14 @@ class GetObservabilityFilterValuesUseCaseTest {
     }
 
     @Test
-    void should_not_find_a_malformed_additional_metric_name() {
+    void should_refuse_a_malformed_additional_metric_name_naming_the_rule() {
         assertThatThrownBy(() ->
             useCase.execute(new GetObservabilityFilterValuesUseCase.Input("additional-metrics.unknown_count", null, null, null, null, null))
-        ).isInstanceOf(ObservabilityFilterNotFoundException.class);
+        )
+            .isInstanceOf(UnsupportedObservabilityFilterException.class)
+            .hasMessageContaining(AdditionalMetricField.ADDITIONAL_METRIC_NAME_RULE)
+            .extracting("technicalCode")
+            .isEqualTo("observability.filter.invalid_name");
     }
 
     @Test

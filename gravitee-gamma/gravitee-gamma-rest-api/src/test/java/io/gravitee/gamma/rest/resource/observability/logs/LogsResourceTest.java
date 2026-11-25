@@ -27,6 +27,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
@@ -369,8 +370,9 @@ class LogsResourceTest extends AbstractResourceTest {
             arguments(
                 "a malformed name",
                 List.of(Map.of("name", "additional-metrics.keyword_bad\"name", "operator", "EQ", "value", "x")),
-                "Filter 'additional-metrics.keyword_bad\"name' is not supported by this backend",
-                "observability.filter.unknown_name"
+                "Filter 'additional-metrics.keyword_bad\"name' is not a valid field name: " +
+                    AdditionalMetricField.ADDITIONAL_METRIC_NAME_RULE,
+                "observability.filter.invalid_name"
             ),
             arguments(
                 "a field indexed as text",
@@ -405,7 +407,13 @@ class LogsResourceTest extends AbstractResourceTest {
             arguments(
                 "a blank custom name",
                 List.of(Map.of("name", "custom. ", "operator", "EQ", "value", "x")),
-                "Filter 'custom. ' is not supported by this backend",
+                "Filter 'custom. ' is not a valid field name: " + AdditionalMetricField.CUSTOM_NAME_RULE,
+                "observability.filter.invalid_name"
+            ),
+            arguments(
+                "a name under no dynamic root",
+                List.of(Map.of("name", "CUSTOM.tier", "operator", "EQ", "value", "x")),
+                "Filter 'CUSTOM.tier' is not supported by this backend",
                 "observability.filter.unknown_name"
             ),
             arguments(
