@@ -54,6 +54,7 @@ const LOCAL_LOGIN_PROPERTY = 'portal.authentication.localLogin.enabled';
 interface AuthenticationForm {
   forceLogin: FormControl<boolean>;
   localLogin: FormControl<boolean>;
+  skipLoginWithSingleIdp: FormControl<boolean>;
 }
 
 type AuthenticationFormValue = ReturnType<FormGroup<AuthenticationForm>['getRawValue']>;
@@ -114,6 +115,7 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
   readonly authenticationForm = new FormGroup<AuthenticationForm>({
     forceLogin: new FormControl(false, { nonNullable: true }),
     localLogin: new FormControl(true, { nonNullable: true }),
+    skipLoginWithSingleIdp: new FormControl(false, { nonNullable: true }),
   });
   readonly formInitialValues = signal<AuthenticationFormValue | null>(null);
   readonly filters = signal<GioTableWrapperFilters>({ pagination: { index: 1, size: 10 }, searchTerm: '' });
@@ -126,6 +128,16 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
         this.portalSettingsService.get(),
       ]).pipe(map(([identityProviders, activations, settings]) => ({ identityProviders, activations, settings }))),
   });
+  private readonly activePortalIdentityProviderCount = computed(() => {
+    if (!this.dataResource.hasValue()) {
+      return 0;
+    }
+    const { identityProviders, activations } = this.dataResource.value();
+    return identityProviders.filter(
+      identityProvider => identityProvider.enabled && activations.some(activation => activation.identityProvider === identityProvider.id),
+    ).length;
+  });
+  readonly isSkipLoginToggleVisible = computed(() => this.activePortalIdentityProviderCount() === 1);
   readonly isForceLoginReadonly = computed(() => this.isSystemReadonly(FORCE_LOGIN_PROPERTY));
   readonly isLocalLoginReadonly = computed(() => this.isSystemReadonly(LOCAL_LOGIN_PROPERTY));
   private readonly rows = computed<IdentityProviderRow[]>(() => {
@@ -153,10 +165,8 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
       if (!this.dataResource.hasValue()) {
         return;
       }
-      const { identityProviders, activations, settings } = this.dataResource.value();
-      const portalIdentityProviderIds = identityProviders.filter(identityProvider => identityProvider.enabled).map(({ id }) => id);
-      const hasPortalLoginProvider = activations.some(activation => portalIdentityProviderIds.includes(activation.identityProvider));
-      this.applySettings(settings, hasPortalLoginProvider);
+      const hasPortalLoginProvider = this.activePortalIdentityProviderCount() > 0;
+      this.applySettings(this.dataResource.value().settings, hasPortalLoginProvider);
       this.formInitialValues.set(this.authenticationForm.getRawValue());
 
       // Without any identity provider usable on the portal, the login form is the only way to log in to it

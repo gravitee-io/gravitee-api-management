@@ -344,6 +344,78 @@ describe('PortalAuthenticationComponent', () => {
     });
   });
 
+  describe('skip login with single identity provider', () => {
+    it('should show the skip login toggle when exactly one identity provider is active', async () => {
+      await init();
+      await load([google, github], [fakeIdentityProviderActivation({ identityProvider: 'google' })], settingsWith({}));
+
+      const toggle = await harness.getSkipLoginToggle();
+      expect(toggle).not.toBeNull();
+      expect(await toggle.getAriaLabel()).toBe('Skip Login display when single IdP');
+    });
+
+    it('should hide the skip login toggle when no identity provider is active', async () => {
+      await init();
+      await load([google], [], settingsWith({ localLogin: true }));
+
+      expect(await harness.getSkipLoginToggle()).toBeNull();
+    });
+
+    it('should hide the skip login toggle when two identity providers are active', async () => {
+      await init();
+      await load(
+        [google, github],
+        [fakeIdentityProviderActivation({ identityProvider: 'google' }), fakeIdentityProviderActivation({ identityProvider: 'github' })],
+        settingsWith({}),
+      );
+
+      expect(await harness.getSkipLoginToggle()).toBeNull();
+    });
+
+    it('should not count an activated identity provider that is not allowed for portal authentication', async () => {
+      await init();
+      await load(
+        [google, internalOidc],
+        [fakeIdentityProviderActivation({ identityProvider: 'google' }), fakeIdentityProviderActivation({ identityProvider: 'internal' })],
+        settingsWith({}),
+      );
+
+      expect(await harness.getSkipLoginToggle()).not.toBeNull();
+    });
+
+    it('should hide the skip login toggle after a second identity provider is activated', async () => {
+      await init();
+      const settings = settingsWith({});
+      await load([google, github], [fakeIdentityProviderActivation({ identityProvider: 'google' })], settings);
+      expect(await harness.getSkipLoginToggle()).not.toBeNull();
+
+      await harness.clickActivation('github');
+      await (await rootLoader.getHarness(GioConfirmDialogHarness)).confirm();
+      httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/identities` }).flush([]);
+      await load(
+        [google, github],
+        [fakeIdentityProviderActivation({ identityProvider: 'google' }), fakeIdentityProviderActivation({ identityProvider: 'github' })],
+        settings,
+      );
+      expect(await harness.getSkipLoginToggle()).toBeNull();
+
+      await harness.clickActivation('github');
+      await (await rootLoader.getHarness(GioConfirmDialogHarness)).confirm();
+      httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/identities` }).flush([]);
+      await load([google, github], [fakeIdentityProviderActivation({ identityProvider: 'google' })], settings);
+      expect(await harness.getSkipLoginToggle()).not.toBeNull();
+    });
+
+    it('should explain when the skip login setting takes effect', async () => {
+      await init();
+      await load([google], [fakeIdentityProviderActivation({ identityProvider: 'google' })], settingsWith({}));
+
+      const helpText = await harness.getSkipLoginHelpText();
+      expect(helpText).toContain('login form');
+      expect(helpText).toContain('registration');
+    });
+  });
+
   function settingsWith({ forceLogin = false, localLogin = true }: { forceLogin?: boolean; localLogin?: boolean }): PortalSettings {
     const settings = fakePortalSettings();
     return {

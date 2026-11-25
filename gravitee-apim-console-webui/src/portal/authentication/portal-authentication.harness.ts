@@ -34,6 +34,10 @@ export class PortalAuthenticationHarness extends ComponentHarness {
 
   private readonly forceLoginToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[data-testid="force-login-toggle"]' }));
   private readonly localLoginToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[data-testid="local-login-toggle"]' }));
+  private readonly skipLoginToggle = this.locatorForOptional(
+    MatSlideToggleHarness.with({ selector: '[data-testid="skip-login-single-idp-toggle"]' }),
+  );
+  private readonly skipLoginField = this.locatorFor('[data-testid="skip-login-single-idp-field"]');
   private readonly table = this.locatorFor(MatTableHarness);
   private readonly tableWrapper = this.locatorFor(GioTableWrapperHarness);
   private readonly saveBar = this.locatorFor(GioSaveBarHarness);
@@ -45,6 +49,14 @@ export class PortalAuthenticationHarness extends ComponentHarness {
 
   async getLocalLoginToggle(): Promise<MatSlideToggleHarness> {
     return this.localLoginToggle();
+  }
+
+  async getSkipLoginToggle(): Promise<MatSlideToggleHarness | null> {
+    return this.skipLoginToggle();
+  }
+
+  async getSkipLoginHelpText(): Promise<string> {
+    return (await this.skipLoginField()).text();
   }
 
   // gio-form-slide-toggle has no harness: its label is greyed out through this class
