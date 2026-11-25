@@ -1992,8 +1992,8 @@
                 </dependency>
                 <dependency>
                     <groupId>com.graviteesource.resource</groupId>
-                    <artifactId>gravitee-resource-ai-model-decision</artifactId>
-                    <version>${gravitee-resource-ai-model-decision.version}</version>
+                    <artifactId>gravitee-resource-ai-model-decision-remote</artifactId>
+                    <version>${gravitee-resource-ai-model-decision-remote.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
