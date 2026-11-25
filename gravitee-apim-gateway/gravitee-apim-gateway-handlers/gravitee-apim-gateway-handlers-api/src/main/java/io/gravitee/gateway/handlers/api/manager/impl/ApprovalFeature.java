@@ -25,7 +25,7 @@ import io.gravitee.node.api.license.LicenseManager;
  */
 public class ApprovalFeature {
 
-    static final String LICENSE_FEATURE = "apim-hitl";
+    static final String LICENSE_FEATURE = "gamma-aim-hitl";
 
     private final LicenseManager licenseManager;
     private final boolean gammaEnabled;
