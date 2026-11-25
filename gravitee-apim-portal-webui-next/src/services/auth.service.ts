@@ -124,7 +124,7 @@ export class AuthService {
   }
 
   private _configure(provider: IdentityProvider) {
-    const redirectUri =
+    const postLogoutRedirectUri =
       window.location.origin + (window.location.pathname === '/' ? '' : window.location.pathname.replace('/user/logout', '/'));
     this.oauthService.configure({
       clientId: provider.client_id,
@@ -133,10 +133,11 @@ export class AuthService {
       requireHttps: false,
       issuer: provider.tokenIntrospectionEndpoint,
       logoutUrl: provider.userLogoutEndpoint,
-      postLogoutRedirectUri: redirectUri,
+      postLogoutRedirectUri,
       scope: provider.scopes?.join(' '),
       responseType: 'code',
-      redirectUri,
+      // Sign-in can start from any page, but the provider only accepts return addresses its operator registered.
+      redirectUri: `${window.location.origin}/log-in`,
       /*
        added because with our current OIDC configuration, we don't know the real issuer.
        For example, with keycloak, the issuer is "https://[host]:[port]/auth/realms/[realm_id].

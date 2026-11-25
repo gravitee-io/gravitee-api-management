@@ -48,6 +48,28 @@ describe('AuthService', () => {
     req.flush(token);
   });
 
+  it('should always send the identity provider the same return address, whatever page sign-in started from', () => {
+    const configure = jest.spyOn(TestBed.inject(OAuthService) as unknown as OAuthServiceStub, 'configure').mockReturnValue();
+    jest.spyOn(service, 'storeProviderId').mockReturnValue();
+    jest.spyOn(TestBed.inject(OAuthService) as unknown as OAuthServiceStub, 'initCodeFlow').mockReturnValue();
+    window.history.pushState({}, '', '/catalog');
+
+    service.authenticateSSO({ id: 'google', name: 'Google' }, '');
+
+    expect(configure).toHaveBeenCalledWith(expect.objectContaining({ redirectUri: `${window.location.origin}/log-in` }));
+  });
+
+  it('should keep returning the visitor to the current page after logout', () => {
+    const configure = jest.spyOn(TestBed.inject(OAuthService) as unknown as OAuthServiceStub, 'configure').mockReturnValue();
+    jest.spyOn(service, 'storeProviderId').mockReturnValue();
+    jest.spyOn(TestBed.inject(OAuthService) as unknown as OAuthServiceStub, 'initCodeFlow').mockReturnValue();
+    window.history.pushState({}, '', '/catalog');
+
+    service.authenticateSSO({ id: 'google', name: 'Google' }, '');
+
+    expect(configure).toHaveBeenCalledWith(expect.objectContaining({ postLogoutRedirectUri: `${window.location.origin}/catalog` }));
+  });
+
   it('should redirect for SSO', () => {
     const idp = { id: 'google', name: 'Google' };
     const redirectUrl = 'redirectUrl';

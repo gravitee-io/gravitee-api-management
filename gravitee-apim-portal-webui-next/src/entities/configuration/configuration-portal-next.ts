@@ -37,6 +37,9 @@ export class ConfigurationPortalNext {
   aiWorkspaces?: {
     enabled?: boolean;
   };
+  skipLoginWithSingleIdp?: {
+    enabled?: boolean;
+  };
   applications?: {
     membership?: {
       enabled?: boolean;

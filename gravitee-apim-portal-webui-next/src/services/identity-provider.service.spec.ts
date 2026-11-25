@@ -49,4 +49,16 @@ describe('IdentityProviderService', () => {
     service.getPortalIdentityProviders().subscribe(() => done());
     httpTestingController.expectOne(`${TESTING_BASE_URL}/configuration/identities`).flush(response);
   });
+
+  it('should expose the total number of identity providers, not the size of the first page', done => {
+    const response: DataResponse<IdentityProvider> = {
+      data: [{ id: 'google' }],
+      metadata: { pagination: { current_page: 1, size: 1, total: 2, total_pages: 2 } },
+    };
+    service.getPortalIdentityProviders().subscribe(({ metadata }) => {
+      expect(metadata?.pagination?.total).toBe(2);
+      done();
+    });
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/configuration/identities`).flush(response);
+  });
 });

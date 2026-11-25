@@ -43,6 +43,6 @@
   </div>
 } @else {
   <div class="actions">
-    <button mat-flat-button color="primary" i18n="@@logIn" [routerLink]="['log-in']">Sign in</button>
+    <button mat-flat-button color="primary" i18n="@@logIn" data-testid="sign-in-button" (click)="signIn()">Sign in</button>
   </div>
 }

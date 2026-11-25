@@ -96,7 +96,15 @@
         >Log out</a
       >
     } @else {
-      <a class="mobile-menu__link" i18n="@@logIn" [routerLink]="['/log-in']" routerLinkActive="active" (click)="closeMenu()">Sign in</a>
+      <a
+        class="mobile-menu__link"
+        i18n="@@logIn"
+        data-testid="sign-in-button"
+        [class.active]="isOnLogInPage()"
+        [href]="logInUrl"
+        (click)="signIn($event)"
+        >Sign in</a
+      >
     }
   </div>
 }
