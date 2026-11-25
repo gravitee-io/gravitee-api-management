@@ -13,28 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.elasticsearch.v4.log.adapter.guardian;
+package io.gravitee.repository.elasticsearch.v4.log.adapter.guardrail;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.json;
 
 import io.gravitee.repository.common.query.QueryContext;
-import io.gravitee.repository.log.v4.model.guardian.GuardianDecisionLogQuery;
+import io.gravitee.repository.log.v4.model.guardrail.GuardrailDecisionLogQuery;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class SearchGuardianDecisionLogsQueryAdapterTest {
+class SearchGuardrailDecisionLogsQueryAdapterTest {
 
     private static final QueryContext QUERY_CONTEXT = new QueryContext("org-1", "env-1");
 
     @Test
-    void reads_the_resolved_guardian_decisions_of_the_apis_newest_first() {
-        var result = SearchGuardianDecisionLogsQueryAdapter.adapt(
+    void reads_the_resolved_guardrail_decisions_of_the_apis_newest_first() {
+        var result = SearchGuardrailDecisionLogsQueryAdapter.adapt(
             QUERY_CONTEXT,
-            GuardianDecisionLogQuery.builder().apiIds(Set.of("api-1")).page(3).size(10).build()
+            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).page(3).size(10).build()
         );
 
         assertThatJson(result).isEqualTo(
@@ -45,7 +45,7 @@ class SearchGuardianDecisionLogsQueryAdapterTest {
                   "filter": [
                     { "term": { "org-id": "org-1" } },
                     { "term": { "env-id": "env-1" } },
-                    { "term": { "decision-point-type": "guardian" } },
+                    { "term": { "decision-point-type": "guardrail" } },
                     { "term": { "phase": "RESOLVED" } },
                     { "terms": { "api-id": ["api-1"] } }
                   ]
@@ -64,24 +64,24 @@ class SearchGuardianDecisionLogsQueryAdapterTest {
     }
 
     @Test
-    void narrows_on_the_guardian() {
-        var result = SearchGuardianDecisionLogsQueryAdapter.adapt(
+    void narrows_on_the_guardrail() {
+        var result = SearchGuardrailDecisionLogsQueryAdapter.adapt(
             QUERY_CONTEXT,
-            GuardianDecisionLogQuery.builder().apiIds(Set.of("api-1")).guardianIds(Set.of("guardian-a")).build()
+            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).guardrailIds(Set.of("guardrail-a")).build()
         );
 
         assertThatJson(result)
             .inPath("$.query.bool.filter")
             .isArray()
             .hasSize(6)
-            .contains(json("{ \"terms\": { \"decision-point-id\": [\"guardian-a\"] } }"));
+            .contains(json("{ \"terms\": { \"decision-point-id\": [\"guardrail-a\"] } }"));
     }
 
     @Test
     void narrows_on_the_outcome() {
-        var result = SearchGuardianDecisionLogsQueryAdapter.adapt(
+        var result = SearchGuardrailDecisionLogsQueryAdapter.adapt(
             QUERY_CONTEXT,
-            GuardianDecisionLogQuery.builder().apiIds(Set.of("api-1")).outcomes(Set.of("DENY")).build()
+            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).outcomes(Set.of("DENY")).build()
         );
 
         assertThatJson(result)
@@ -92,10 +92,10 @@ class SearchGuardianDecisionLogsQueryAdapterTest {
     }
 
     @Test
-    void leaves_out_the_guardian_filter_with_nothing_selected() {
-        var result = SearchGuardianDecisionLogsQueryAdapter.adapt(
+    void leaves_out_the_guardrail_filter_with_nothing_selected() {
+        var result = SearchGuardrailDecisionLogsQueryAdapter.adapt(
             QUERY_CONTEXT,
-            GuardianDecisionLogQuery.builder().apiIds(Set.of("api-1")).guardianIds(Set.of()).outcomes(Set.of()).build()
+            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).guardrailIds(Set.of()).outcomes(Set.of()).build()
         );
 
         assertThatJson(result).inPath("$.query.bool.filter").isArray().hasSize(5);
@@ -103,9 +103,9 @@ class SearchGuardianDecisionLogsQueryAdapterTest {
 
     @Test
     void searches_the_start_of_the_request_id_and_a_fragment_of_the_reasons_and_the_rule_names_in_any_case() {
-        var result = SearchGuardianDecisionLogsQueryAdapter.adapt(
+        var result = SearchGuardrailDecisionLogsQueryAdapter.adapt(
             QUERY_CONTEXT,
-            GuardianDecisionLogQuery.builder().apiIds(Set.of("api-1")).text(" aws ").build()
+            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).text(" aws ").build()
         );
 
         assertThatJson(result)
@@ -134,9 +134,9 @@ class SearchGuardianDecisionLogsQueryAdapterTest {
 
     @Test
     void matches_the_apis_the_text_names_as_well() {
-        var result = SearchGuardianDecisionLogsQueryAdapter.adapt(
+        var result = SearchGuardrailDecisionLogsQueryAdapter.adapt(
             QUERY_CONTEXT,
-            GuardianDecisionLogQuery.builder().apiIds(Set.of("api-1", "api-2")).text("support").textApiIds(Set.of("api-2")).build()
+            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1", "api-2")).text("support").textApiIds(Set.of("api-2")).build()
         );
 
         assertThatJson(result)
@@ -149,9 +149,9 @@ class SearchGuardianDecisionLogsQueryAdapterTest {
     /** Unescaped, a wildcard character typed in the box would turn the search into no search at all. */
     @Test
     void searches_wildcard_characters_as_written() {
-        var result = SearchGuardianDecisionLogsQueryAdapter.adapt(
+        var result = SearchGuardrailDecisionLogsQueryAdapter.adapt(
             QUERY_CONTEXT,
-            GuardianDecisionLogQuery.builder().apiIds(Set.of("api-1")).text("a*b?c\\d").build()
+            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).text("a*b?c\\d").build()
         );
 
         assertThatJson(result)
@@ -162,9 +162,9 @@ class SearchGuardianDecisionLogsQueryAdapterTest {
 
     @Test
     void leaves_out_a_blank_text() {
-        var result = SearchGuardianDecisionLogsQueryAdapter.adapt(
+        var result = SearchGuardrailDecisionLogsQueryAdapter.adapt(
             QUERY_CONTEXT,
-            GuardianDecisionLogQuery.builder().apiIds(Set.of("api-1")).text("   ").textApiIds(Set.of("api-1")).build()
+            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).text("   ").textApiIds(Set.of("api-1")).build()
         );
 
         assertThatJson(result).inPath("$.query.bool.filter").isArray().hasSize(5);
@@ -172,9 +172,9 @@ class SearchGuardianDecisionLogsQueryAdapterTest {
 
     @Test
     void bounds_the_time_on_both_sides() {
-        var result = SearchGuardianDecisionLogsQueryAdapter.adapt(
+        var result = SearchGuardrailDecisionLogsQueryAdapter.adapt(
             QUERY_CONTEXT,
-            GuardianDecisionLogQuery.builder().apiIds(Set.of("api-1")).from(100L).to(200L).build()
+            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).from(100L).to(200L).build()
         );
 
         assertThatJson(result)
@@ -185,9 +185,9 @@ class SearchGuardianDecisionLogsQueryAdapterTest {
 
     @Test
     void bounds_the_time_on_one_side_only() {
-        var result = SearchGuardianDecisionLogsQueryAdapter.adapt(
+        var result = SearchGuardrailDecisionLogsQueryAdapter.adapt(
             QUERY_CONTEXT,
-            GuardianDecisionLogQuery.builder().apiIds(Set.of("api-1")).from(100L).build()
+            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).from(100L).build()
         );
 
         assertThatJson(result)

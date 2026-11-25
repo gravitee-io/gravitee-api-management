@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.elasticsearch.v4.log.adapter.guardian;
+package io.gravitee.repository.elasticsearch.v4.log.adapter.guardrail;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.repository.log.v4.model.guardian.GuardianDecisionLog;
+import io.gravitee.repository.log.v4.model.guardrail.GuardrailDecisionLog;
 import java.time.OffsetDateTime;
 import java.util.List;
 import lombok.SneakyThrows;
@@ -27,7 +27,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class GuardianDecisionLogSourceMapperTest {
+class GuardrailDecisionLogSourceMapperTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -39,8 +39,8 @@ class GuardianDecisionLogSourceMapperTest {
               "@timestamp": "2026-11-23T10:15:30.250+01:00",
               "gw-id": "gw-1", "org-id": "org-1", "env-id": "env-1", "api-id": "api-1",
               "event-id": "evt-1", "phase": "RESOLVED",
-              "decision-point-type": "guardian", "decision-point-id": "guardian-a", "decision-point-version": "3",
-              "checkpoint": "response.llm-proxy", "caller": "Guardian",
+              "decision-point-type": "guardrail", "decision-point-id": "guardrail-a", "decision-point-version": "3",
+              "checkpoint": "response.llm-proxy", "caller": "Guardrail",
               "subject-type": "user", "subject-id": "alice", "actor-type": "agent", "actor-id": "app-1",
               "outcome": "TRANSFORM", "enforced": "TRANSFORM", "transformed": true, "transformation-type": "REDACT", "verdict": "REDACT",
               "reasons": ["Redact PII: REDACT — 1 passage"],
@@ -54,12 +54,12 @@ class GuardianDecisionLogSourceMapperTest {
         );
 
         assertThat(decision).isEqualTo(
-            GuardianDecisionLog.builder()
+            GuardrailDecisionLog.builder()
                 .eventId("evt-1")
                 .timestamp(OffsetDateTime.parse("2026-11-23T10:15:30.250+01:00").toInstant().toEpochMilli())
                 .apiId("api-1")
                 .requestId("req-1")
-                .guardianId("guardian-a")
+                .guardrailId("guardrail-a")
                 .revision("3")
                 .checkpoint("response.llm-proxy")
                 .outcome("TRANSFORM")
@@ -67,21 +67,21 @@ class GuardianDecisionLogSourceMapperTest {
                 .transformationType("REDACT")
                 .verdict("REDACT")
                 .reasons(List.of("Redact PII: REDACT — 1 passage"))
-                .findings(List.of(new GuardianDecisionLog.Finding("Redact PII", "EMAIL", "$.choices[0].message.content", "TRANSFORM")))
+                .findings(List.of(new GuardrailDecisionLog.Finding("Redact PII", "EMAIL", "$.choices[0].message.content", "TRANSFORM")))
                 .durationNanos(9_100_000L)
                 .build()
         );
     }
 
     @Test
-    void reads_a_decision_of_a_guardian_that_is_not_deployed() {
+    void reads_a_decision_of_a_guardrail_that_is_not_deployed() {
         var decision = map(
             """
             {
               "@timestamp": "2026-11-23T10:15:30.250+01:00",
-              "event-id": "evt-2", "decision-point-id": "guardian-b",
+              "event-id": "evt-2", "decision-point-id": "guardrail-b",
               "outcome": "INDETERMINATE", "enforced": "DENY", "indeterminate-cause": "NOT_READY",
-              "status": "error", "error-type": "GUARDIAN_NOT_DEPLOYED"
+              "status": "error", "error-type": "GUARDRAIL_NOT_DEPLOYED"
             }
             """
         );
@@ -103,11 +103,11 @@ class GuardianDecisionLogSourceMapperTest {
             """
         );
 
-        assertThat(decision.findings()).containsExactly(new GuardianDecisionLog.Finding(null, "EMAIL", null, "DENY"));
+        assertThat(decision.findings()).containsExactly(new GuardrailDecisionLog.Finding(null, "EMAIL", null, "DENY"));
     }
 
     @Test
-    void reads_a_finding_of_a_guardrail_making_a_single_check() {
+    void reads_a_finding_of_a_guardrail_policy_making_a_single_check() {
         var decision = map(
             """
             { "matched-rules": [ { "id": "", "effect": "DENY", "annotations": { "guardrail": "Block credentials", "location": "messages[0].user" } } ] }
@@ -115,7 +115,7 @@ class GuardianDecisionLogSourceMapperTest {
         );
 
         assertThat(decision.findings()).containsExactly(
-            new GuardianDecisionLog.Finding("Block credentials", null, "messages[0].user", "DENY")
+            new GuardrailDecisionLog.Finding("Block credentials", null, "messages[0].user", "DENY")
         );
     }
 
@@ -125,7 +125,7 @@ class GuardianDecisionLogSourceMapperTest {
     }
 
     @SneakyThrows
-    private static GuardianDecisionLog map(String source) {
-        return GuardianDecisionLogSourceMapper.from(MAPPER.readTree(source));
+    private static GuardrailDecisionLog map(String source) {
+        return GuardrailDecisionLogSourceMapper.from(MAPPER.readTree(source));
     }
 }

@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.elasticsearch.v4.log.adapter.guardian;
+package io.gravitee.repository.elasticsearch.v4.log.adapter.guardrail;
 
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.log.v4.model.LogResponse;
-import io.gravitee.repository.log.v4.model.guardian.GuardianDecisionLog;
+import io.gravitee.repository.log.v4.model.guardrail.GuardrailDecisionLog;
 import java.util.List;
 
 /**
  * @author GraviteeSource Team
  */
-public final class SearchGuardianDecisionLogsResponseAdapter {
+public final class SearchGuardrailDecisionLogsResponseAdapter {
 
-    private SearchGuardianDecisionLogsResponseAdapter() {}
+    private SearchGuardrailDecisionLogsResponseAdapter() {}
 
-    public static LogResponse<GuardianDecisionLog> adapt(SearchResponse response) {
+    public static LogResponse<GuardrailDecisionLog> adapt(SearchResponse response) {
         var hits = response.getSearchHits();
         if (hits == null || hits.getHits() == null) {
             return new LogResponse<>(0, List.of());
@@ -38,7 +38,7 @@ public final class SearchGuardianDecisionLogsResponseAdapter {
             hits
                 .getHits()
                 .stream()
-                .map(hit -> GuardianDecisionLogSourceMapper.from(hit.getSource()))
+                .map(hit -> GuardrailDecisionLogSourceMapper.from(hit.getSource()))
                 .toList()
         );
     }

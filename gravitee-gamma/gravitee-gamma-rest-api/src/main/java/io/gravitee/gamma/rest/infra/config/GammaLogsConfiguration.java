@@ -25,7 +25,7 @@ import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.log.crud_service.AggregatedMessageLogCrudService;
 import io.gravitee.apim.core.log.crud_service.AuthzDecisionLogsCrudService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
-import io.gravitee.apim.core.log.crud_service.GuardianDecisionLogsCrudService;
+import io.gravitee.apim.core.log.crud_service.GuardrailDecisionLogsCrudService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.AdditionalMetricGrammarPort;
@@ -57,7 +57,7 @@ public class GammaLogsConfiguration {
         AggregatedMessageLogCrudService aggregatedMessageLogCrudService,
         ConnectionLogsCrudService connectionLogsCrudService,
         AuthzDecisionLogsCrudService authzDecisionLogsCrudService,
-        GuardianDecisionLogsCrudService guardianDecisionLogsCrudService,
+        GuardrailDecisionLogsCrudService guardrailDecisionLogsCrudService,
         AnalyticsQueryService analyticsQueryService,
         UserContextLoader userContextLoader,
         PlanCrudService planCrudService,
@@ -71,7 +71,7 @@ public class GammaLogsConfiguration {
             aggregatedMessageLogCrudService,
             connectionLogsCrudService,
             authzDecisionLogsCrudService,
-            guardianDecisionLogsCrudService,
+            guardrailDecisionLogsCrudService,
             analyticsQueryService,
             userContextLoader,
             planCrudService,

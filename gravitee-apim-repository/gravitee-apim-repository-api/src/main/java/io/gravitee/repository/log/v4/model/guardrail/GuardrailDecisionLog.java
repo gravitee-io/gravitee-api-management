@@ -13,19 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.rest.core.observability.logs.model;
+package io.gravitee.repository.log.v4.model.guardrail;
 
 import java.util.List;
 import lombok.Builder;
 
 /**
- * What a Guardian decided on a call, carried by a decision row and present only when the search asked for
- * {@code RECORD_TYPE=GUARDIAN_DECISION}. It names rules and where they matched, never the content of the exchange.
+ * What one run of a Guardrail decided on a call, as the gateway recorded it. A decision names rules and where they
+ * matched, never the content of the exchange.
+ *
+ * @author GraviteeSource Team
  */
 @Builder
-public record GuardianDecision(
+public record GuardrailDecisionLog(
     String eventId,
-    String guardianId,
+    Long timestamp,
+    String apiId,
+    String requestId,
+    String guardrailId,
     String revision,
     String checkpoint,
     String outcome,
@@ -36,5 +41,11 @@ public record GuardianDecision(
     List<Finding> findings,
     Long durationNanos
 ) {
-    public record Finding(String guardrail, String rule, String location, String effect) {}
+    /**
+     * @param guardrailPolicy the guardrail policy of the Guardrail that found it.
+     * @param rule what matched; {@code null} for a guardrail policy making a single check, which names no rule.
+     * @param location where in the exchange it matched.
+     * @param effect what the guardrail policy concluded: {@code DENY}, {@code TRANSFORM} or {@code ALLOW}.
+     */
+    public record Finding(String guardrailPolicy, String rule, String location, String effect) {}
 }

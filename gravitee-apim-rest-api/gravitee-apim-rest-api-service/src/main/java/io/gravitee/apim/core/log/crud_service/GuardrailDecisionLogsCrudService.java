@@ -15,21 +15,21 @@
  */
 package io.gravitee.apim.core.log.crud_service;
 
-import io.gravitee.apim.core.log.model.GuardianDecisionLog;
-import io.gravitee.apim.core.log.model.GuardianDecisionLogFilters;
+import io.gravitee.apim.core.log.model.GuardrailDecisionLog;
+import io.gravitee.apim.core.log.model.GuardrailDecisionLogFilters;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 
 /**
- * Reads what the Guardians decided from the decisions data stream.
+ * Reads what the Guardrails decided from the decisions data stream.
  *
  * @author GraviteeSource Team
  */
-public interface GuardianDecisionLogsCrudService {
-    SearchLogsResponse<GuardianDecisionLog> searchDecisionLogs(
+public interface GuardrailDecisionLogsCrudService {
+    SearchLogsResponse<GuardrailDecisionLog> searchDecisionLogs(
         ExecutionContext executionContext,
-        GuardianDecisionLogFilters filters,
+        GuardrailDecisionLogFilters filters,
         Pageable pageable
     );
 }

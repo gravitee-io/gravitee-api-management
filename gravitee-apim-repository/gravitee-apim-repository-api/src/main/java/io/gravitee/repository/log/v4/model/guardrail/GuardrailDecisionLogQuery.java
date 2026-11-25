@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.log.v4.model.guardian;
+package io.gravitee.repository.log.v4.model.guardrail;
 
 import java.util.Objects;
 import java.util.Set;
@@ -25,18 +25,18 @@ import lombok.Data;
  */
 @Data
 @Builder
-public class GuardianDecisionLogQuery {
+public class GuardrailDecisionLogQuery {
 
     public static final int MAX_SIZE = 1_000;
 
     private Set<String> apiIds;
     private Long from;
     private Long to;
-    private Set<String> guardianIds;
+    private Set<String> guardrailIds;
     private Set<String> outcomes;
 
     /**
-     * Free text matched, in any case, against the request id, the reasons the guardrails gave and the names of the
+     * Free text matched, in any case, against the request id, the reasons the guardrail policies gave and the names of the
      * rules they found. A decision also matches when its api is one of {@link #textApiIds}: the api name the text names
      * is not in the decision, so the caller resolves it to ids.
      */
