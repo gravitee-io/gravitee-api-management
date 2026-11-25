@@ -2892,8 +2892,10 @@ components:
                     description: |
                         `true` when the discovery behind the `DISCOVERED` entries was cut: the environment's documents
                         carry more additional metric fields than the catalog lists (the most recently seen are listed,
-                        the others left out), or the discovery pass ran out of time or failed (the catalog is then served
-                        with what it found, possibly no `DISCOVERED` entry). `BUILT_IN` and `DECLARED` entries are never
+                        the others left out), the index mapping holds more than 5 000 such fields (each environment
+                        probes them all up to that bound, so another environment's fields never hide its own), or the
+                        discovery pass ran out of time or failed (the catalog is then served with what it found,
+                        possibly no `DISCOVERED` entry). `BUILT_IN` and `DECLARED` entries are never
                         left out. Absent or `false` for a caller who may not read the environment's traffic, and when the
                         request admits no `DISCOVERED` entry (`apiType=AUTHZ_DECISION` alone, `signal=TRACES`). `origin`
                         does not change it: it describes the discovery pass, not the entries kept.
