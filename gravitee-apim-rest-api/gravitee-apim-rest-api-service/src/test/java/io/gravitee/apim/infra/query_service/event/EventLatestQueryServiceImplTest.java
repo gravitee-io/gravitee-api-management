@@ -26,6 +26,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.event.model.DeploymentNumber;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
@@ -259,7 +260,7 @@ class EventLatestQueryServiceImplTest {
                     assertSoftly(softly -> {
                         softly.assertThat(running.eventId()).as("event id").isEqualTo("event-id");
                         softly.assertThat(running.type()).as("event type").isEqualTo(io.gravitee.rest.api.model.EventType.PUBLISH_API);
-                        softly.assertThat(running.deploymentNumber()).as("deployment number").isEqualTo("7");
+                        softly.assertThat(running.deploymentNumber()).as("deployment number").isEqualTo(DeploymentNumber.of("7"));
                         softly.assertThat(running.api().getId()).as("api id").isEqualTo(API_ID);
                         softly.assertThat(running.api().getName()).as("api name").isEqualTo("Support assistant");
                         softly.assertThat(running.api().getEnvironmentId()).as("environment id").isEqualTo(ENVIRONMENT_ID);
@@ -278,7 +279,10 @@ class EventLatestQueryServiceImplTest {
                 .satisfies(running ->
                     assertSoftly(softly -> {
                         softly.assertThat(running.type()).as("event type").isEqualTo(io.gravitee.rest.api.model.EventType.START_API);
-                        softly.assertThat(running.deploymentNumber()).as("deployment number of a deployment carrying none").isNull();
+                        softly
+                            .assertThat(running.deploymentNumber())
+                            .as("deployment number of a deployment carrying none")
+                            .isEqualTo(DeploymentNumber.NONE);
                     })
                 );
         }
@@ -359,6 +363,18 @@ class EventLatestQueryServiceImplTest {
 
             assertThatThrownBy(() -> cut.findRunningApiDeployment(ENVIRONMENT_ID, API_ID))
                 .as("a definition that cannot be read")
+                .isInstanceOf(TechnicalDomainException.class);
+        }
+
+        /** The number is handed back to the gateways, opened one further: a number that cannot be read is a failure. */
+        @Test
+        void should_fail_on_a_deployment_number_that_cannot_be_read() {
+            givenTheGatewaysRun(
+                deployment(EventType.PUBLISH_API, payloadOf(DefinitionVersion.V4, ApiType.PROXY, v4Definition()), "not a number")
+            );
+
+            assertThatThrownBy(() -> cut.findRunningApiDeployment(ENVIRONMENT_ID, API_ID))
+                .as("a deployment number that cannot be read")
                 .isInstanceOf(TechnicalDomainException.class);
         }
 

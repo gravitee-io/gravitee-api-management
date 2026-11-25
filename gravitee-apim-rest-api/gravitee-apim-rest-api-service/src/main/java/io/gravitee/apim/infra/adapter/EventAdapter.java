@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.adapter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.event.model.DeploymentNumber;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.event.query_service.EventLatestQueryService.ApiDeployment;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
@@ -63,7 +64,8 @@ public interface EventAdapter {
      * {@code null} when it cannot deserialize it — right for a read that only displays the API, wrong here, where the
      * API read is handed back to the gateways.
      *
-     * @throws TechnicalDomainException when the payload carries no API, or no definition that can be read.
+     * @throws TechnicalDomainException when the payload carries no API, no definition that can be read, or a deployment
+     *     number that is not a number.
      */
     default ApiDeployment toApiDeployment(Event event) {
         Api api;
@@ -77,7 +79,12 @@ public interface EventAdapter {
         if (api.getApiDefinitionValue() == null) {
             throw new TechnicalDomainException("The deployment " + event.getId() + " carries no definition that can be read");
         }
-        return new ApiDeployment(event.getId(), event.getType(), event.getProperties().get(Event.EventProperties.DEPLOYMENT_NUMBER), api);
+        return new ApiDeployment(
+            event.getId(),
+            event.getType(),
+            DeploymentNumber.of(event.getProperties().get(Event.EventProperties.DEPLOYMENT_NUMBER)),
+            api
+        );
     }
 
     default Map<String, String> toStringEventPropertiesMap(Map<Event.EventProperties, String> source) {

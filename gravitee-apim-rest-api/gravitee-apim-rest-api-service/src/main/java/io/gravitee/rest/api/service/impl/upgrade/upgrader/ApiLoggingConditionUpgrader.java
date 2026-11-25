@@ -20,6 +20,7 @@ import static java.util.Collections.singleton;
 import static java.util.Comparator.comparing;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.event.model.DeploymentNumber;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.node.api.upgrader.UpgraderException;
@@ -204,11 +205,10 @@ public class ApiLoggingConditionUpgrader implements Upgrader {
             .stream()
             .max(comparing(EventEntity::getCreatedAt));
 
-        String lastDeployNumber = optEvent.isPresent()
-            ? optEvent.get().getProperties().getOrDefault(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0")
-            : "0";
-        String newDeployNumber = Long.toString(Long.parseLong(lastDeployNumber) + 1);
-        properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), newDeployNumber);
+        DeploymentNumber lastDeployNumber = optEvent
+            .map(event -> DeploymentNumber.of(event.getProperties().get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue())))
+            .orElse(DeploymentNumber.NONE);
+        properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), lastDeployNumber.next().asProperty());
 
         if (apiDeploymentEntity != null && StringUtils.isNotEmpty(apiDeploymentEntity.getDeploymentLabel())) {
             properties.put(Event.EventProperties.DEPLOYMENT_LABEL.getValue(), apiDeploymentEntity.getDeploymentLabel());
