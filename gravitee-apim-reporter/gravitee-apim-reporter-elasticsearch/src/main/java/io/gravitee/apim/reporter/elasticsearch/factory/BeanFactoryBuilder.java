@@ -165,10 +165,12 @@ public class BeanFactoryBuilder {
                         );
                         return Flowable.error(throwable);
                     }
-                    if (isCertificateRejected(throwable)) {
+                    final Optional<SSLHandshakeException> certificateRejection = findCertificateRejection(throwable);
+                    if (certificateRejection.isPresent()) {
+                        // Without the stack trace: the caller receives the exception and reports it.
                         log.error(
-                            "Elasticsearch TLS handshake failed: the cluster certificate is not trusted. Configure 'reporters.elasticsearch.ssl.truststore', or set 'reporters.elasticsearch.ssl.trustAll' to true.",
-                            throwable
+                            "Elasticsearch TLS handshake failed: the cluster certificate is not trusted ({}). Configure 'reporters.elasticsearch.ssl.truststore', or set 'reporters.elasticsearch.ssl.trustAll' to true.",
+                            certificateRejection.get().getMessage()
                         );
                         return Flowable.error(throwable);
                     }
@@ -196,15 +198,17 @@ public class BeanFactoryBuilder {
         return esException != null && Integer.valueOf(403).equals(esException.getStatusCode());
     }
 
-    static boolean isCertificateRejected(Throwable throwable) {
-        Throwable current = throwable;
-        while (current != null) {
-            if (current instanceof SSLHandshakeException) {
-                return true;
+    /**
+     * @return the deepest handshake failure of the chain, whose message names the reason, such as a PKIX path or a host name
+     */
+    static Optional<SSLHandshakeException> findCertificateRejection(Throwable throwable) {
+        SSLHandshakeException rejection = null;
+        for (Throwable current = throwable; current != null; current = current.getCause()) {
+            if (current instanceof SSLHandshakeException handshakeException) {
+                rejection = handshakeException;
             }
-            current = current.getCause();
         }
-        return false;
+        return Optional.ofNullable(rejection);
     }
 
     static ElasticsearchException findElasticsearchException(Throwable throwable) {
