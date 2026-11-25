@@ -194,6 +194,11 @@ public class SpiFilterRegistry implements FilterRegistry {
     }
 
     @Override
+    public Optional<String> nameRefusal(String name) {
+        return AdditionalMetricField.refusal(name);
+    }
+
+    @Override
     public boolean identifiesCaller(String name) {
         return AdditionalMetricField.parse(name).map(identifyingField::test).orElse(false);
     }

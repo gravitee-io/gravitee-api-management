@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.observability.model;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -40,11 +41,41 @@ public record AdditionalMetricField(Root root, ValueType valueType, String rawKe
     public static final String NAME_PREFIX = Root.ADDITIONAL_METRICS.prefix();
     public static final int MAX_NAME_LENGTH = 256;
     public static final int MAX_CUSTOM_KEY_LENGTH = 256;
+    private static final String FORBIDDEN_CUSTOM_KEY_CHARACTERS = "\"\\*";
+    private static final List<String> TYPE_NAMES = Arrays.stream(ValueType.values())
+        .map(type -> type.prefix().substring(0, type.prefix().length() - 1))
+        .toList();
 
     // Possessive: a segment never gives characters back, so matching cannot backtrack nor recurse per segment.
     private static final Pattern RAW_KEY = Pattern.compile(
-        "(?:long|int|double|bool|keyword|string|json)_[A-Za-z0-9_/-]++(?:\\.[A-Za-z0-9_/-]++)*+"
+        "(?:" + String.join("|", TYPE_NAMES) + ")_[A-Za-z0-9_/-]++(?:\\.[A-Za-z0-9_/-]++)*+"
     );
+
+    /**
+     * The rule a name under the {@code custom} root breaks when {@link #parse(String)} refuses it, stated as callers
+     * show it.
+     */
+    public static final String CUSTOM_NAME_RULE =
+        "a custom metric is named " +
+        Root.CUSTOM.prefix() +
+        "<name>, <name> being 1 to " +
+        MAX_CUSTOM_KEY_LENGTH +
+        " characters, not blank, with no leading or trailing dot, no '..', and none of " +
+        quotedList(
+            FORBIDDEN_CUSTOM_KEY_CHARACTERS.chars()
+                .mapToObj(c -> String.valueOf((char) c))
+                .toList()
+        );
+
+    /** The rule a name under the {@code additional-metrics} root breaks when {@link #parse(String)} refuses it. */
+    public static final String ADDITIONAL_METRIC_NAME_RULE =
+        "an additional metric is named " +
+        NAME_PREFIX +
+        "<type>_<key>, <type> being one of " +
+        andList(TYPE_NAMES) +
+        ", <key> segments of letters, digits, '-', '_' and '/' joined by single dots, the whole name " +
+        MAX_NAME_LENGTH +
+        " characters at most";
 
     /** Holds only a key of its root's grammar, typed by its own prefix or a keyword: the field path derives from nothing else. */
     public AdditionalMetricField {
@@ -95,6 +126,37 @@ public record AdditionalMetricField(Root root, ValueType valueType, String rawKe
         return Optional.of(new AdditionalMetricField(ValueType.ofRawKey(rawKey), rawKey));
     }
 
+    /**
+     * The rule a name breaks when it starts with a dynamic root ({@code custom.}, {@code additional-metrics.}) and
+     * {@link #parse(String)} refuses it; empty for a well-formed name and for a name under no dynamic root, which is
+     * none of these fields' business.
+     */
+    public static Optional<String> refusal(String name) {
+        if (name == null || parse(name).isPresent()) {
+            return Optional.empty();
+        }
+        if (name.startsWith(Root.CUSTOM.prefix())) {
+            return Optional.of(CUSTOM_NAME_RULE);
+        }
+        if (name.startsWith(NAME_PREFIX)) {
+            return Optional.of(ADDITIONAL_METRIC_NAME_RULE);
+        }
+        return Optional.empty();
+    }
+
+    private static String quotedList(List<String> items) {
+        return andList(
+            items
+                .stream()
+                .map(item -> "'" + item + "'")
+                .toList()
+        );
+    }
+
+    private static String andList(List<String> items) {
+        return String.join(", ", items.subList(0, items.size() - 1)) + " and " + items.getLast();
+    }
+
     /** The wire name, {@code <root>.<rawKey>}: the path of the field on a request document. */
     public String name() {
         return root.prefix() + rawKey;
@@ -113,7 +175,7 @@ public record AdditionalMetricField(Root root, ValueType valueType, String rawKe
             !key.startsWith(".") &&
             !key.endsWith(".") &&
             !key.contains("..") &&
-            key.chars().noneMatch(c -> c == '"' || c == '\\' || c == '*')
+            key.chars().noneMatch(c -> FORBIDDEN_CUSTOM_KEY_CHARACTERS.indexOf(c) >= 0)
         );
     }
 

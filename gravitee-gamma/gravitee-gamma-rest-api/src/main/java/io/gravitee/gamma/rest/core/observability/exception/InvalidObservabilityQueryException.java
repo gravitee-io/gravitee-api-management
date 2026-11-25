@@ -75,6 +75,14 @@ public class InvalidObservabilityQueryException extends ValidationDomainExceptio
         return new InvalidObservabilityQueryException("Metric '" + metric + "' is not supported", "observability.query.unknown_metric");
     }
 
+    /** A metric named under a dynamic root ({@code custom.}, {@code additional-metrics.}) that breaks the field grammar. */
+    public static InvalidObservabilityQueryException invalidMetricName(String metric, String rule) {
+        return new InvalidObservabilityQueryException(
+            "Metric '" + metric + "' is not a valid field name: " + rule,
+            "observability.query.invalid_name"
+        );
+    }
+
     public static InvalidObservabilityQueryException notAMetric(String metric, String valueType) {
         return new InvalidObservabilityQueryException(
             "'" + metric + "' is not a metric: it holds " + valueType + " values, not numbers",
@@ -91,6 +99,14 @@ public class InvalidObservabilityQueryException extends ValidationDomainExceptio
 
     public static InvalidObservabilityQueryException unknownFacet(String facet) {
         return new InvalidObservabilityQueryException("Facet '" + facet + "' is not supported", "observability.query.unknown_facet");
+    }
+
+    /** A facet named under a dynamic root that breaks the field grammar. */
+    public static InvalidObservabilityQueryException invalidFacetName(String facet, String rule) {
+        return new InvalidObservabilityQueryException(
+            "Facet '" + facet + "' is not a valid field name: " + rule,
+            "observability.query.invalid_name"
+        );
     }
 
     public static InvalidObservabilityQueryException unknownSortOrder(String order) {

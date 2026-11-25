@@ -58,6 +58,7 @@ import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeTimeSeriesUseCase;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.model.UserContext;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
@@ -75,6 +76,7 @@ import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.AnalyticsRequestPipeline.PreparedScope;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricUnit;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
+import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
@@ -735,13 +737,17 @@ class ObservabilityAnalyticsDataPortAdapterTest {
         }
 
         @Test
-        void should_refuse_a_malformed_metric_as_unknown() {
+        void should_refuse_a_malformed_metric_naming_the_grammar_rule() {
             var query = measuresQuery(SCOPE, new AnalyticsMetricQuery(null, "additional-metrics.float_ratio", List.of("AVG"), List.of()));
 
             assertThatThrownBy(() -> adapter.computeMeasures(query))
                 .isInstanceOf(InvalidObservabilityQueryException.class)
+                .hasMessage(
+                    "Metric 'additional-metrics.float_ratio' is not a valid field name: " +
+                        AdditionalMetricField.ADDITIONAL_METRIC_NAME_RULE
+                )
                 .extracting("technicalCode")
-                .isEqualTo("observability.query.unknown_metric");
+                .isEqualTo("observability.query.invalid_name");
         }
 
         @Test
@@ -776,7 +782,7 @@ class ObservabilityAnalyticsDataPortAdapterTest {
                 .isInstanceOf(InvalidObservabilityQueryException.class)
                 .hasMessageContaining("additional-metrics.keyword_a..b")
                 .extracting("technicalCode")
-                .isEqualTo("observability.query.unknown_facet");
+                .isEqualTo("observability.query.invalid_name");
             verifyNoInteractions(computeFacetsUseCase);
         }
 
@@ -887,9 +893,37 @@ class ObservabilityAnalyticsDataPortAdapterTest {
 
             assertThatThrownBy(() -> adapter.computeFacets(query))
                 .isInstanceOf(InvalidObservabilityQueryException.class)
-                .hasMessageContaining("custom.a..b")
+                .hasMessage("Facet 'custom.a..b' is not a valid field name: " + AdditionalMetricField.CUSTOM_NAME_RULE)
                 .extracting("technicalCode")
-                .isEqualTo("observability.query.unknown_facet");
+                .isEqualTo("observability.query.invalid_name");
+            verifyNoInteractions(computeFacetsUseCase);
+        }
+
+        /** The use cases validate filters first; a caller that skips it still gets the validator's answer. */
+        @Test
+        void should_refuse_a_custom_filter_outside_the_grammar_naming_it() {
+            var scope = new PreparedScope(
+                SCOPE.from(),
+                SCOPE.to(),
+                List.of(new FilterCondition("custom.a..b", FilterOperator.EQ, List.of("x"))),
+                SCOPE.apiIds()
+            );
+            var query = new FacetsQuery(
+                ORG,
+                ENV,
+                scope,
+                List.of("HTTP_STATUS"),
+                null,
+                List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of())),
+                List.of(),
+                Map.of()
+            );
+
+            assertThatThrownBy(() -> adapter.computeFacets(query))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .hasMessage("Filter 'custom.a..b' is not a valid field name: " + AdditionalMetricField.CUSTOM_NAME_RULE)
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.invalid_name");
             verifyNoInteractions(computeFacetsUseCase);
         }
 

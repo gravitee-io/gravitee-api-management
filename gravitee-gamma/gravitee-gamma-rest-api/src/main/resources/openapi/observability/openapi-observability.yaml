@@ -424,17 +424,29 @@ paths:
                                             pageCount: 1
                                             pageItemsCount: 3
                 "400":
-                    description: The filter type does not support value listing (NUMBER / STRING).
+                    description: |
+                        The values cannot be listed. Possible causes:
+                        - The filter type does not support value listing (NUMBER / STRING)
+                        - A name under `additional-metrics.` or `custom.` breaks that root's grammar: the message names the rule (`observability.filter.invalid_name`)
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Error"
-                            example:
-                                http_status: 400
-                                message: "Filter type NUMBER does not support value listing."
-                                technicalCode: "filter.values.unsupported"
+                            examples:
+                                value-listing-not-supported:
+                                    summary: A number filter
+                                    value:
+                                        http_status: 400
+                                        message: "Filter 'additional-metrics.long_failover_count' of type NUMBER does not support value listing"
+                                        technicalCode: "observability.filter.value_listing_not_supported"
+                                invalid-name:
+                                    summary: A custom metric name breaking the grammar
+                                    value:
+                                        http_status: 400
+                                        message: "Filter 'custom.a..b' is not a valid field name: a custom metric is named custom.<name>, <name> being 1 to 256 characters, not blank, with no leading or trailing dot, no '..', and none of '\"', '\\' and '*'"
+                                        technicalCode: "observability.filter.invalid_name"
                 "404":
-                    description: No filter with the given name exists in the catalog.
+                    description: The name is neither a filter of the catalog nor under `additional-metrics.` or `custom.`.
                     content:
                         application/json:
                             schema:
@@ -574,15 +586,21 @@ paths:
                                         http_status: 400
                                         message: "Filter 'additional-metrics.long_failover_count' of type NUMBER does not support value listing"
                                         technicalCode: "observability.filter.value_listing_not_supported"
+                                invalid-name:
+                                    summary: An additional metric name breaking the grammar
+                                    value:
+                                        http_status: 400
+                                        message: "Filter 'additional-metrics.unknown_count' is not a valid field name: an additional metric is named additional-metrics.<type>_<key>, <type> being one of keyword, long, int, double, bool, string and json, <key> segments of letters, digits, '-', '_' and '/' joined by single dots, the whole name 256 characters at most"
+                                        technicalCode: "observability.filter.invalid_name"
                 "404":
-                    description: The name is neither a filter of the catalog nor a well-formed additional metric field.
+                    description: The name is neither a filter of the catalog nor under `additional-metrics.` or `custom.`.
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
                                 http_status: 404
-                                message: "Observability filter 'additional-metrics.unknown_count' not found"
+                                message: "Observability filter 'UNKNOWN_FILTER' not found"
 
     /organizations/{orgId}/environments/{envId}/observability/filters/resolve:
         parameters:
@@ -975,8 +993,9 @@ paths:
                 select the values between them. A row matches only when it carries the field; a
                 well-formed name no row carries answers an empty page, whether or not the field is listed
                 by `GET /observability/filters/definition`. Native connection rows are matched like any
-                request row. Every refusal names the field in `message`: a malformed name is
-                `observability.filter.unknown_name`, an operator its type does not take
+                request row. Every refusal names the field in `message`: a name under `additional-metrics.` or `custom.`
+                that breaks its root's grammar is `observability.filter.invalid_name`, its message naming the rule
+                it breaks, a name under neither root that is not in the catalog `observability.filter.unknown_name`, an operator its type does not take
                 `observability.filter.unsupported_operator`, a value it does not take
                 `observability.filter.invalid_number`, `observability.filter.value_out_of_range` (an `int_`
                 value beyond the integer range, a `double_` one beyond the finite doubles) or `observability.filter.unknown_enum_value`, and any
@@ -1202,6 +1221,12 @@ paths:
                                         http_status: 400
                                         message: "Filter 'UNKNOWN_FILTER' is not supported by this backend"
                                         technicalCode: "observability.filter.unknown_name"
+                                invalid-name:
+                                    summary: A custom metric name breaking the grammar
+                                    value:
+                                        http_status: 400
+                                        message: "Filter 'custom.a..b' is not a valid field name: a custom metric is named custom.<name>, <name> being 1 to 256 characters, not blank, with no leading or trailing dot, no '..', and none of '\"', '\\' and '*'"
+                                        technicalCode: "observability.filter.invalid_name"
                                 signal-mismatch:
                                     summary: Filter not applicable to LOGS signal
                                     value:
@@ -2473,6 +2498,7 @@ components:
                 - `interval` is missing or not positive, on time-series (`observability.query.invalid_interval`)
                 - `limit` is above 100, on time-series (`observability.query.invalid_limit`)
                 - A metric, measure, facet or sort order the engine does not know (`observability.query.unknown_metric`, `unknown_measure`, `unknown_facet`, `unknown_sort_order`)
+                - A metric or facet named under `additional-metrics.` or `custom.` that breaks that root's grammar, the message naming the rule (`observability.query.invalid_name`)
                 - A metric naming an additional metric field that holds no number, a `keyword_`, `bool_`, `string_` or `json_` one, or a custom metric `custom.<name>` (`observability.query.not_a_metric`)
                 - An array of the body holds a null entry (`observability.query.null_entry`)
                 - A combination the engine refuses, such as a facet a metric does not support (no technical code)
@@ -2506,6 +2532,12 @@ components:
                                 http_status: 400
                                 message: "'additional-metrics.keyword_fraud-check_tier' is not a metric: it holds KEYWORD values, not numbers"
                                 technicalCode: "observability.query.not_a_metric"
+                        invalid-name:
+                            summary: A custom metric name breaking the grammar, used to group
+                            value:
+                                http_status: 400
+                                message: "Facet 'custom.a..b' is not a valid field name: a custom metric is named custom.<name>, <name> being 1 to 256 characters, not blank, with no leading or trailing dot, no '..', and none of '\"', '\\' and '*'"
+                                technicalCode: "observability.query.invalid_name"
         MetricDefinitionRefused:
             description: |
                 The name or a field breaks a rule, named by `technicalCode`:
@@ -3067,7 +3099,9 @@ components:
                 - `name` is in the catalog and applies to the signal (`unknown_name`, `signal_mismatch`). On
                   analytics and the logs search, a well-formed additional metric field
                   `additional-metrics.<type>_<key>` is accepted off the catalog, typed by its prefix, and so is
-                  a custom metric `custom.<name>`, a keyword, whether or not any request carries it yet;
+                  a custom metric `custom.<name>`, a keyword, whether or not any request carries it yet; a
+                  name under one of those two roots that breaks their grammar is `invalid_name`, its message
+                  naming the rule;
                 - `operator` is one the filter advertises, or the value type of an additional metric field
                   takes (`unsupported_operator`): `EQ`/`IN` on `keyword_` and `custom.<name>`, `EQ`/`GTE`/`LTE`
                   on `long_`, `int_` and `double_`, `EQ` on `bool_`, none on `string_` and `json_`;
@@ -4516,7 +4550,10 @@ components:
                 widget query would refuse is refused up front, with a 400 naming it:
 
                 - `name` is in the catalog and applies to the `ANALYTICS` signal, since a dashboard
-                  renders analytics widgets, or is a well-formed additional metric field name;
+                  renders analytics widgets, or is a well-formed additional metric field name
+                  `additional-metrics.<type>_<key>` or custom metric `custom.<name>`; a name under one of those
+                  two roots that breaks their grammar is `observability.filter.invalid_name`, its message naming
+                  the rule;
                 - `operator` is one the filter advertises;
                 - a non-empty `value` follows the same rules as a `FilterCondition`;
                 - a field is filtered once per dashboard, with no `GTE` + `LTE` exception

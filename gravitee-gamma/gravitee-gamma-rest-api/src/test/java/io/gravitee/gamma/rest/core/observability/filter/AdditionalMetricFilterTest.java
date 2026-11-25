@@ -15,6 +15,8 @@
  */
 package io.gravitee.gamma.rest.core.observability.filter;
 
+import static io.gravitee.apim.core.observability.model.AdditionalMetricField.ADDITIONAL_METRIC_NAME_RULE;
+import static io.gravitee.apim.core.observability.model.AdditionalMetricField.CUSTOM_NAME_RULE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -165,9 +167,9 @@ class AdditionalMetricFilterTest {
 
             assertThatThrownBy(() -> validator.validate(conditions, Signal.ANALYTICS))
                 .isInstanceOf(UnsupportedObservabilityFilterException.class)
-                .hasMessageContaining("additional-metrics.LONG_count")
+                .hasMessage("Filter 'additional-metrics.LONG_count' is not a valid field name: " + ADDITIONAL_METRIC_NAME_RULE)
                 .extracting("technicalCode")
-                .isEqualTo("observability.filter.unknown_name");
+                .isEqualTo("observability.filter.invalid_name");
         }
 
         @ParameterizedTest
@@ -189,10 +191,22 @@ class AdditionalMetricFilterTest {
 
         @ParameterizedTest
         @ValueSource(strings = { "custom.tier*", "custom. ", "custom.\t" })
-        void should_refuse_a_custom_name_outside_the_grammar_as_unknown(String name) {
+        void should_refuse_a_custom_name_outside_the_grammar_naming_the_rule(String name) {
             var conditions = List.of(new FilterCondition(name, FilterOperator.EQ, List.of("1")));
 
             assertThatThrownBy(() -> validator.validate(conditions, Signal.ANALYTICS))
+                .hasMessage("Filter '" + name + "' is not a valid field name: " + CUSTOM_NAME_RULE)
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.invalid_name");
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "UNKNOWN", "CUSTOM.tier", "custom" })
+        void should_refuse_a_name_under_no_dynamic_root_as_unknown(String name) {
+            var conditions = List.of(new FilterCondition(name, FilterOperator.EQ, List.of("1")));
+
+            assertThatThrownBy(() -> validator.validate(conditions, Signal.ANALYTICS))
+                .hasMessage("Filter '" + name + "' is not supported by this backend")
                 .extracting("technicalCode")
                 .isEqualTo("observability.filter.unknown_name");
         }
@@ -277,9 +291,9 @@ class AdditionalMetricFilterTest {
             var conditions = List.of(new FilterCondition(malformed, FilterOperator.EQ, List.of("x")));
 
             assertThatThrownBy(() -> validator.validate(conditions, Signal.LOGS))
-                .hasMessage("Filter '" + malformed + "' is not supported by this backend")
+                .hasMessage("Filter '" + malformed + "' is not a valid field name: " + ADDITIONAL_METRIC_NAME_RULE)
                 .extracting("technicalCode")
-                .isEqualTo("observability.filter.unknown_name");
+                .isEqualTo("observability.filter.invalid_name");
         }
 
         @ParameterizedTest

@@ -76,6 +76,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -450,9 +452,22 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
             .toList();
     }
 
+    /** A name under a dynamic root that breaks the field grammar is refused naming the rule; any other as unknown. */
+    private static RuntimeException refused(
+        String name,
+        BiFunction<String, String, RuntimeException> invalid,
+        Function<String, RuntimeException> unknown
+    ) {
+        return AdditionalMetricField.refusal(name)
+            .map(rule -> invalid.apply(name, rule))
+            .orElseGet(() -> unknown.apply(name));
+    }
+
     /** The catalog validated the name already: a built-in, or a well-formed additional metric field. */
     private static FilterName toApimFilterName(String name) {
-        return FilterName.parse(name).orElseThrow(() -> UnsupportedObservabilityFilterException.unknownName(name));
+        return FilterName.parse(name).orElseThrow(() ->
+            refused(name, UnsupportedObservabilityFilterException::invalidName, UnsupportedObservabilityFilterException::unknownName)
+        );
     }
 
     private static List<FacetName> toApimFacetNames(List<String> facets) {
@@ -464,7 +479,9 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
 
     /** A built-in, or a well-formed additional metric field holding a number. */
     private static MetricName toApimMetricName(String metric) {
-        var name = MetricName.parse(metric).orElseThrow(() -> InvalidObservabilityQueryException.unknownMetric(metric));
+        var name = MetricName.parse(metric).orElseThrow(() ->
+            refused(metric, InvalidObservabilityQueryException::invalidMetricName, InvalidObservabilityQueryException::unknownMetric)
+        );
         if (name instanceof AdditionalMetricName additionalMetric && !additionalMetric.field().valueType().isNumber()) {
             throw InvalidObservabilityQueryException.notAMetric(metric, additionalMetric.field().valueType().name());
         }
@@ -478,7 +495,9 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
     }
 
     private static FacetName toApimFacetName(String facet) {
-        return FacetName.parse(facet).orElseThrow(() -> InvalidObservabilityQueryException.unknownFacet(facet));
+        return FacetName.parse(facet).orElseThrow(() ->
+            refused(facet, InvalidObservabilityQueryException::invalidFacetName, InvalidObservabilityQueryException::unknownFacet)
+        );
     }
 
     // Case-insensitive like the filter operators: "desc" is unambiguous, only an unknown order is refused.

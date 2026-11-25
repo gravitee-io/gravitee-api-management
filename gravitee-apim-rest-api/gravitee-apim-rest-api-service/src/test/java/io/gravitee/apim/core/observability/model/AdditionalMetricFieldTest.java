@@ -168,6 +168,67 @@ class AdditionalMetricFieldTest {
         }
     }
 
+    /** E2E finding C2: a refused name says which rule it breaks, the same text on every surface. */
+    @Nested
+    class Refusal {
+
+        @Test
+        void should_state_the_rules_from_the_grammar_constants() {
+            assertThat(AdditionalMetricField.CUSTOM_NAME_RULE).isEqualTo(
+                "a custom metric is named custom.<name>, <name> being 1 to 256 characters, not blank, with no leading or " +
+                    "trailing dot, no '..', and none of '\"', '\\' and '*'"
+            );
+            assertThat(AdditionalMetricField.ADDITIONAL_METRIC_NAME_RULE).isEqualTo(
+                "an additional metric is named additional-metrics.<type>_<key>, <type> being one of keyword, long, int, " +
+                    "double, bool, string and json, <key> segments of letters, digits, '-', '_' and '/' joined by single dots, " +
+                    "the whole name 256 characters at most"
+            );
+            assertThat(AdditionalMetricField.CUSTOM_NAME_RULE).contains(
+                "1 to " + AdditionalMetricField.MAX_CUSTOM_KEY_LENGTH + " characters"
+            );
+            assertThat(AdditionalMetricField.ADDITIONAL_METRIC_NAME_RULE).contains(
+                AdditionalMetricField.MAX_NAME_LENGTH + " characters at most"
+            );
+            for (ValueType type : ValueType.values()) {
+                assertThat(AdditionalMetricField.ADDITIONAL_METRIC_NAME_RULE).contains(type.prefix().replace("_", ""));
+            }
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "custom.", "custom. ", "custom.a..b", "custom.trail.", "custom.a*", "custom.a\"b" })
+        void should_name_the_custom_rule_a_refused_custom_name_breaks(String name) {
+            assertThat(AdditionalMetricField.refusal(name)).hasValue(AdditionalMetricField.CUSTOM_NAME_RULE);
+        }
+
+        @Test
+        void should_name_the_custom_rule_for_a_custom_key_too_long() {
+            assertThat(AdditionalMetricField.refusal("custom." + "a".repeat(AdditionalMetricField.MAX_CUSTOM_KEY_LENGTH + 1))).hasValue(
+                AdditionalMetricField.CUSTOM_NAME_RULE
+            );
+        }
+
+        @ParameterizedTest
+        @ValueSource(
+            strings = {
+                "additional-metrics.", "additional-metrics.float_ratio", "additional-metrics.long_a..b", "additional-metrics.keyword_a b",
+            }
+        )
+        void should_name_the_additional_metric_rule_a_refused_additional_metric_name_breaks(String name) {
+            assertThat(AdditionalMetricField.refusal(name)).hasValue(AdditionalMetricField.ADDITIONAL_METRIC_NAME_RULE);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "custom.fraud-tier", "additional-metrics.long_failover_count", "API", "UNKNOWN", "CUSTOM.x", "custom" })
+        void should_refuse_nothing_for_a_well_formed_name_or_a_name_under_no_dynamic_root(String name) {
+            assertThat(AdditionalMetricField.refusal(name)).isEmpty();
+        }
+
+        @Test
+        void should_refuse_nothing_for_no_name() {
+            assertThat(AdditionalMetricField.refusal(null)).isEmpty();
+        }
+    }
+
     @Nested
     class Construction {
 
