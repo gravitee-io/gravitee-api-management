@@ -18,8 +18,10 @@ package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.metric.MetricName;
+import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
+import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys;
 import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query;
 import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Tokens;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
@@ -43,12 +45,15 @@ import java.util.Optional;
 
 /**
  * The measures of the HTTP request documents. A built-in reading a field and an additional metric field are aggregated
- * alike, over the requests carrying the field.
+ * alike, over the requests carrying the field; a built-in counting a kind of request, over the requests of its
+ * {@link #scope}.
  *
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class HTTPMeasuresQueryAdapter {
+
+    private static final String EDGE_HEARTBEAT = "heartbeat";
 
     private final SimpleP90Builder p90Builder = new SimpleP90Builder();
     private final SimpleP95Builder p95Builder = new SimpleP95Builder();
@@ -87,8 +92,8 @@ public class HTTPMeasuresQueryAdapter {
     /**
      * A count reads every connection as it opens, leaving the end of a message API connection out. A value — a
      * duration, a size — is only known once the connection has ended, and leaves its opening out. Each kind sits under
-     * a filter of its own, which also carries the filters of the metric. The error rate leaves ends out by itself, and
-     * keeps its place: its buckets are read beside the measure they compute.
+     * a filter of its own, which also carries the scope and the filters of the metric. The error rate leaves ends out by
+     * itself, and keeps its place: its buckets are read beside the measure they compute.
      */
     JsonObject adaptMetrics(List<MetricMeasuresQuery> metrics) {
         var aggs = new JsonObject();
@@ -141,10 +146,15 @@ public class HTTPMeasuresQueryAdapter {
     }
 
     private JsonObject envelope(JsonObject phase, MetricMeasuresQuery metric, JsonObject measureAggs) {
+        var filters = new JsonArray();
+        scope(metric.metric()).ifPresent(filters::add);
         if (metric.filters() != null && !metric.filters().isEmpty()) {
-            phase.getJsonObject("bool").put("filter", JsonArray.of(filterAdapter.adaptMetricFilters(metric.filters())));
+            filters.add(filterAdapter.adaptMetricFilters(metric.filters()));
         }
-        return new JsonObject().put("filter", phase).put("aggs", measureAggs);
+        if (!filters.isEmpty()) {
+            phase.getJsonObject(Keys.BOOL).put(Keys.FILTER, filters);
+        }
+        return new JsonObject().put(Keys.FILTER, phase).put(Keys.AGGS, measureAggs);
     }
 
     static boolean isValue(Measure measure) {
@@ -155,15 +165,32 @@ public class HTTPMeasuresQueryAdapter {
     }
 
     /**
-     * The requests carrying a value of the metric, which a facet ranked by a measure that reads no value on a bucket
-     * without one is restricted to; empty for the error rate, a percentage of every request.
+     * The requests a facet of the metric is restricted to when it is: those of its {@link #scope} for a metric that has
+     * one, whatever the facet is ranked by; otherwise those carrying a value of the metric, for a facet ranked by a
+     * measure that reads no value on a bucket without one; empty for the error rate, a percentage of every request.
      */
     Optional<JsonObject> carrying(MetricName metric) {
+        return scope(metric).or(() ->
+            switch (metric) {
+                case Metric.LLM_PROMPT_TOTAL_TOKEN -> Optional.of(llmTotalTokenBuilder.carrying());
+                case Metric.LLM_PROMPT_TOKEN_TOTAL_COST -> Optional.of(llmTotalCostBuilder.carrying());
+                case Metric.HTTP_ERROR_RATE -> Optional.empty();
+                default -> Optional.of(JsonObject.of(Query.EXISTS, JsonObject.of(Tokens.FIELD, fieldResolver.fromMetric(metric))));
+            }
+        );
+    }
+
+    /**
+     * The requests a metric counts, for a metric naming a kind of request rather than a value: its measures read them
+     * only, and so do its facets. Empty for every other metric, which reads all the requests of the search.
+     */
+    Optional<JsonObject> scope(MetricName metric) {
         return switch (metric) {
-            case Metric.LLM_PROMPT_TOTAL_TOKEN -> Optional.of(llmTotalTokenBuilder.carrying());
-            case Metric.LLM_PROMPT_TOKEN_TOTAL_COST -> Optional.of(llmTotalCostBuilder.carrying());
-            case Metric.HTTP_ERROR_RATE -> Optional.empty();
-            default -> Optional.of(JsonObject.of(Query.EXISTS, JsonObject.of(Tokens.FIELD, fieldResolver.fromMetric(metric))));
+            case Metric.HTTP_ERRORS -> Optional.of(HttpErrorRateBuilder.errorStatus());
+            case Metric.EDGE_HEARTBEAT_COUNT -> Optional.of(
+                JsonObject.of(Query.TERM, JsonObject.of(fieldResolver.fromFilter(Filter.Name.EDGE_TYPE), EDGE_HEARTBEAT))
+            );
+            default -> Optional.empty();
         };
     }
 

@@ -167,6 +167,16 @@ class MessageMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         assertThat(countAgg.asText()).isEqualTo("count-increment");
     }
 
+    /** A message document counts its own errors: no condition on the documents, unlike {@code HTTP_ERRORS}. */
+    @Test
+    void should_count_the_message_errors_as_the_sum_of_their_dedicated_counter() throws JsonProcessingException {
+        var metrics = List.of(new MetricMeasuresQuery(Metric.MESSAGE_ERRORS, Set.of(Measure.COUNT)));
+
+        var jsonQuery = JSON.readTree(adapter.adapt(new MeasuresQuery(buildTimeRange(), buildFilters(), metrics), Set.of("request-id-1")));
+
+        assertThat(jsonQuery.at("/aggs/MESSAGE_ERRORS#COUNT/sum/field").asText()).isEqualTo("error-count-increment");
+    }
+
     @Test
     void should_build_query_with_max_measure() throws JsonProcessingException {
         var timeRange = buildTimeRange();

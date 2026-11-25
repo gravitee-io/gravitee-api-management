@@ -74,12 +74,12 @@ public class HTTPFacetsQueryAdapter {
      * for an additional metric, for a built-in when its buckets are ranked by an average, a bound or a percentile.
      * Elasticsearch orders that missing value as +Infinity for a minimum, -Infinity for a maximum and NaN, above any
      * number, for an average, so it would fill the limit. Ranked by a count or a sum, a built-in keeps the buckets of
-     * every request. A facets search builds one aggregation tree per metric, so the scope reaches no other metric's
-     * buckets.
+     * every request, unless the metric has a scope: its facets then hold and rank only the requests it counts. A facets
+     * search builds one aggregation tree per metric, so the scope reaches no other metric's buckets.
      */
     public JsonObject adaptFacets(MetricMeasuresQuery metric, List<FacetName> queryFacets, Integer limit, List<NumberRange> ranges) {
         var facets = facetTree(metric, queryFacets, limit, ranges);
-        if (facets.isEmpty() || !restrictedToTheDocumentsCarryingAValue(metric)) {
+        if (facets.isEmpty() || !restrictedToTheDocumentsItReads(metric)) {
             return facets;
         }
         return measuresAdapter
@@ -93,8 +93,12 @@ public class HTTPFacetsQueryAdapter {
             .orElse(facets);
     }
 
-    private static boolean restrictedToTheDocumentsCarryingAValue(MetricMeasuresQuery metric) {
-        return metric.metric() instanceof AdditionalMetric || AggregationAdapter.rankedByAMeasureReadingNoValueWhenEmpty(metric);
+    private boolean restrictedToTheDocumentsItReads(MetricMeasuresQuery metric) {
+        return (
+            metric.metric() instanceof AdditionalMetric ||
+            AggregationAdapter.rankedByAMeasureReadingNoValueWhenEmpty(metric) ||
+            measuresAdapter.scope(metric.metric()).isPresent()
+        );
     }
 
     private JsonObject facetTree(MetricMeasuresQuery metric, List<FacetName> queryFacets, Integer limit, List<NumberRange> ranges) {
