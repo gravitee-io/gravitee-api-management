@@ -84,7 +84,7 @@ public interface EventLatestQueryService {
      * @param type the type of that event, republished as it is: a started API is not restarted by a new deployment of
      *     its definition, and a deployed one is not started by it.
      * @param deploymentNumber the number of that deployment, or {@code null} when it carries none; a republished
-     *     event keeps it so it belongs to the same deployment rather than opening a new one.
+     *     event takes the one after it, since the gateways ignore an event of the number they already run.
      * @param api the API the deployment carries, which is what the gateways run — not what the store holds.
      */
     record ApiDeployment(String eventId, EventType type, String deploymentNumber, Api api) {}

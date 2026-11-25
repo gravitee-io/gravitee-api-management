@@ -1895,6 +1895,26 @@ class RollbackApiUseCaseTest {
                 );
         }
 
+        /**
+         * A gateway ignores an event of the deployment number it runs, so the restored internal flow is sent under the
+         * next one — here the first, the deployment the gateways run carrying none.
+         */
+        @Test
+        void should_send_the_restored_internal_flow_under_a_new_deployment_number() throws JsonProcessingException {
+            var event = givenARevisionRunning(guardians("guardian-1"));
+            givenTheGatewaysRun(EventType.PUBLISH_API);
+            givenTheApiUpdateKeepsTheStoredDefinition();
+
+            useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
+
+            assertThat(eventCrudService.storage())
+                .as("events written")
+                .singleElement()
+                .satisfies(written ->
+                    assertThat(written.getProperties()).as("event properties").containsEntry(Event.EventProperties.DEPLOYMENT_NUMBER, "1")
+                );
+        }
+
         @Test
         void should_send_nothing_for_an_api_the_gateways_do_not_run() throws JsonProcessingException {
             var event = givenARevisionRunning(guardians("guardian-1"));

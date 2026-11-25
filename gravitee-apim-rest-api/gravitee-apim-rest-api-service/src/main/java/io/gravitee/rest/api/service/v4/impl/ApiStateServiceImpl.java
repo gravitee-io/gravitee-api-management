@@ -551,6 +551,8 @@ public class ApiStateServiceImpl implements ApiStateService {
                 lastPublishedAPI.setDeployedAt(new Date());
                 Map<String, String> properties = new HashMap<>();
                 properties.put(Event.EventProperties.USER.getValue(), userId);
+                // The number of the deployment restarted, unlike a Guardian change that opens one: a gateway
+                // undeploys a stopped API and deploys a started one afresh, whatever the number it carries.
                 properties.put(
                     Event.EventProperties.DEPLOYMENT_NUMBER.getValue(),
                     Optional.ofNullable(event.getProperties())
