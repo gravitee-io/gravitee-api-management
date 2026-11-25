@@ -15,13 +15,25 @@
  */
 package io.gravitee.apim.core.analytics_engine.model;
 
+import io.gravitee.apim.core.observability.model.AdditionalMetricField.Root;
 import java.time.Instant;
 
 /**
- * An additional metric found on the requests of an environment. Its value type is the one its key prefix declares:
- * discovery never answers a key stored under another type.
+ * An additional metric found on the requests of an environment. Its value type is the one its key prefix declares, a
+ * keyword under {@link Root#CUSTOM}: discovery never answers a key stored under another type.
  *
- * @param rawKey   the key, type prefix included ({@code long_failover_count})
+ * @param root     the map the key is written under
+ * @param rawKey   the key under its root, type prefix included for an additional metric ({@code long_failover_count})
  * @param lastSeen the time of the most recent request carrying it within the discovery window
  */
-public record DiscoveredAdditionalMetric(String rawKey, Instant lastSeen) {}
+public record DiscoveredAdditionalMetric(Root root, String rawKey, Instant lastSeen) {
+    /** A key of the {@code additional-metrics} map. */
+    public DiscoveredAdditionalMetric(String rawKey, Instant lastSeen) {
+        this(Root.ADDITIONAL_METRICS, rawKey, lastSeen);
+    }
+
+    /** The wire name, which tells a custom key from an additional key of the same spelling. */
+    public String name() {
+        return root.prefix() + rawKey;
+    }
+}

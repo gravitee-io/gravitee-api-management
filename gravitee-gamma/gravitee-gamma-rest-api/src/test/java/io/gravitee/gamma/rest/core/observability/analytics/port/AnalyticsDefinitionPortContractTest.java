@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.core.observability.analytics.port;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.analytics_engine.model.AdditionalMetricName;
+import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.gamma.rest.core.observability.analytics.model.MetricDefinition;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.AnalyticsDefinitionPort;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricUnit;
@@ -157,6 +158,15 @@ public abstract class AnalyticsDefinitionPortContractTest {
             }
         }
         assertThat(kindsByFacet).isNotEmpty();
+    }
+
+    /** The built-ins taking the environment's keyword facets name engine metrics, the one additional metrics take theirs from first. */
+    @Test
+    void should_add_the_dynamic_facets_to_engine_built_ins_including_the_one_additional_metrics_take_theirs_from() {
+        var support = port().additionalMetricSupport();
+
+        assertThat(support.groupedByFields()).contains(support.dimensionsOf()).doesNotHaveDuplicates();
+        assertThat(support.groupedByFields()).allSatisfy(name -> assertThat(MetricSpec.Name.valueOf(name).name()).isEqualTo(name));
     }
 
     /** An additional metric is grouped like the built-in it takes its dimensions from: the same facets, offered alike. */

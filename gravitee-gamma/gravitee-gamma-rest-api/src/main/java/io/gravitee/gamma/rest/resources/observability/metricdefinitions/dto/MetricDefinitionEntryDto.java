@@ -54,7 +54,7 @@ public record MetricDefinitionEntryDto(
                 .orElse(null),
             entry.apiTypes().stream().map(Enum::name).sorted(Comparator.naturalOrder()).toList(),
             entry.origin().name(),
-            entry.field().rawKey(),
+            entry.field().servedRawKey(),
             entry.field().valueType().name(),
             entry.lastSeen() == null ? null : entry.lastSeen().toString(),
             entry.exposed(),

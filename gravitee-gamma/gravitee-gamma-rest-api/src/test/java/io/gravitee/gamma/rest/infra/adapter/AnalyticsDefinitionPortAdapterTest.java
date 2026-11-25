@@ -16,12 +16,15 @@
 package io.gravitee.gamma.rest.infra.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.exception.InvalidQueryException;
 import io.gravitee.apim.core.analytics_engine.model.AdditionalMetricName;
 import io.gravitee.apim.core.analytics_engine.model.ApiSpec;
 import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.FacetName;
 import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
@@ -269,6 +272,66 @@ class AnalyticsDefinitionPortAdapterTest extends AnalyticsDefinitionPortContract
         assertThat(support.facets()).containsExactlyElementsOf(dimensionsOf.facets());
         assertThat(support.filters()).containsExactlyElementsOf(dimensionsOf.filters());
         assertThat(support.measures()).containsExactly("AVG", "SUM", "MIN", "MAX", "P50", "P90", "P95", "P99", "COUNT");
+    }
+
+    /**
+     * The decision's list (OBS-171, "Contract answers to the OBS-175 outline"): every built-in of the HTTP request
+     * documents takes the environment's keyword facets, custom ones included, and the engine accepts each of them.
+     */
+    @Test
+    void should_add_the_dynamic_facets_to_exactly_the_built_ins_the_engine_groups_by_additional_metric_fields() {
+        var support = adapter.additionalMetricSupport();
+        var routing = AnalyticsEngineRouting.provider();
+        var fraudTier = (FacetName) FacetName.parse("custom.fraud-tier").orElseThrow();
+
+        assertThat(support.groupedByFields()).containsExactlyInAnyOrder(
+            "HTTP_REQUESTS",
+            "HTTP_ERRORS",
+            "HTTP_ERROR_RATE",
+            "HTTP_REQUEST_CONTENT_LENGTH",
+            "HTTP_RESPONSE_CONTENT_LENGTH",
+            "HTTP_ENDPOINT_RESPONSE_TIME",
+            "HTTP_GATEWAY_RESPONSE_TIME",
+            "HTTP_GATEWAY_LATENCY",
+            "LLM_PROMPT_TOKEN_SENT",
+            "LLM_PROMPT_TOKEN_RECEIVED",
+            "LLM_PROMPT_TOKEN_SENT_COST",
+            "LLM_PROMPT_TOKEN_RECEIVED_COST",
+            "LLM_PROMPT_TOTAL_TOKEN",
+            "LLM_PROMPT_TOKEN_TOTAL_COST",
+            "EDGE_DETECTION_COUNT",
+            "EDGE_TOKENS_IN",
+            "EDGE_TOKENS_OUT",
+            "EDGE_HEARTBEAT_COUNT"
+        );
+        assertThat(support.groupedByFields()).allSatisfy(metric ->
+            assertThatCode(() -> routing.resolve(groupedBy(MetricSpec.Name.valueOf(metric), fraudTier)))
+                .as(metric)
+                .doesNotThrowAnyException()
+        );
+        var notAdvertised = Arrays.stream(ApiSpec.Name.values())
+            .flatMap(kind -> catalog.getMetrics(kind).stream())
+            .map(MetricSpec::name)
+            .filter(metric -> !support.groupedByFields().contains(metric.name()))
+            .distinct()
+            .toList();
+        assertThat(notAdvertised).isNotEmpty().contains(MetricSpec.Name.MESSAGES);
+        assertThat(notAdvertised).allSatisfy(metric ->
+            assertThatThrownBy(() -> routing.resolve(groupedBy(metric, fraudTier)))
+                .as(metric.name())
+                .isInstanceOf(InvalidQueryException.class)
+        );
+    }
+
+    private static FacetsRequest groupedBy(MetricSpec.Name metric, FacetName facet) {
+        return new FacetsRequest(
+            new TimeRange(Instant.EPOCH, Instant.EPOCH.plusSeconds(60)),
+            List.of(),
+            List.of(new FacetMetricMeasuresRequest(metric, List.of(MetricSpec.Measure.COUNT), List.of())),
+            List.of(facet),
+            null,
+            List.of()
+        );
     }
 
     /** A kind added to {@link ApiType} before the catalog knows it would be refused by the engine without a technical code. */

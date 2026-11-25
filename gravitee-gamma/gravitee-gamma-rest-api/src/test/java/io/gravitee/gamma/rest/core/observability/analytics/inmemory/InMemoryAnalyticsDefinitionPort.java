@@ -82,6 +82,17 @@ public class InMemoryAnalyticsDefinitionPort implements AnalyticsDefinitionPort 
             .toList();
     }
 
+    /** The built-ins the engine reads from the request documents, as the HTTP data plane serves them. */
+    public static final List<String> GROUPED_BY_FIELDS = List.of(
+        DIMENSIONS_OF,
+        "HTTP_ERRORS",
+        "HTTP_GATEWAY_RESPONSE_TIME",
+        "HTTP_ENDPOINT_RESPONSE_TIME",
+        "HTTP_GATEWAY_LATENCY",
+        "HTTP_REQUEST_CONTENT_LENGTH",
+        "HTTP_RESPONSE_CONTENT_LENGTH"
+    );
+
     @Override
     public AdditionalMetricSupport additionalMetricSupport() {
         var kindsListing = kindsListingEachFacet();
@@ -101,7 +112,8 @@ public class InMemoryAnalyticsDefinitionPort implements AnalyticsDefinitionPort 
             AdditionalMetricName.MEASURES.stream().map(Enum::name).toList(),
             facets,
             List.of("API", "API_TYPE"),
-            DIMENSIONS_OF
+            DIMENSIONS_OF,
+            GROUPED_BY_FIELDS
         );
     }
 

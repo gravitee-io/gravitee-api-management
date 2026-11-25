@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.v4.analytics;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField.Root;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.elasticsearch.TimeProvider;
@@ -83,8 +84,13 @@ class AnalyticsElasticsearchRepositoryAdditionalMetricDiscoveryTest extends Abst
                     new AdditionalMetricLastSeen("long_typed-alike-before-the-window", at(11, 10)),
                     new AdditionalMetricLastSeen("long_failover_count", at(11, 5)),
                     new AdditionalMetricLastSeen("keyword_mcp-proxy_tools/call", at(11, 0)),
+                    new AdditionalMetricLastSeen(Root.CUSTOM, "fraud-tier", at(11, 0)),
+                    new AdditionalMetricLastSeen(Root.CUSTOM, "keyword_fraud-check_tier", at(11, 0)),
+                    new AdditionalMetricLastSeen(Root.CUSTOM, "order.channel", at(11, 0)),
                     new AdditionalMetricLastSeen("bool_cache_hit", at(13, 0)),
-                    new AdditionalMetricLastSeen("keyword_fraud-check_tier", at(13, 0))
+                    new AdditionalMetricLastSeen("double_custom_basket-value", at(13, 0)),
+                    new AdditionalMetricLastSeen("keyword_fraud-check_tier", at(13, 0)),
+                    new AdditionalMetricLastSeen(Root.CUSTOM, "merchant-id", at(13, 0))
                 ),
                 false
             )
@@ -97,7 +103,8 @@ class AnalyticsElasticsearchRepositoryAdditionalMetricDiscoveryTest extends Abst
 
         assertThat(result.metrics()).containsExactly(
             new AdditionalMetricLastSeen("keyword_fraud-check_tier", at(12, 0)),
-            new AdditionalMetricLastSeen("long_only-in-b", at(12, 0))
+            new AdditionalMetricLastSeen("long_only-in-b", at(12, 0)),
+            new AdditionalMetricLastSeen(Root.CUSTOM, "only-in-b", at(12, 0))
         );
     }
 
@@ -110,6 +117,24 @@ class AnalyticsElasticsearchRepositoryAdditionalMetricDiscoveryTest extends Abst
             .extracting(AdditionalMetricLastSeen::rawKey)
             .contains("long_typed-alike-before-the-window")
             .doesNotContain("long_retyped-before-the-window");
+    }
+
+    @Test
+    void should_leave_out_a_custom_key_the_index_maps_as_something_else_than_a_keyword() {
+        // "2026-01-01" is detected as a date when the field is first mapped: a keyword filter on it would fail.
+        var result = cut.discoverAdditionalMetrics(new QueryContext("DEFAULT", ENV_A), LAST_30_DAYS);
+
+        assertThat(result.metrics()).extracting(AdditionalMetricLastSeen::name).doesNotContain("custom.signup-date");
+    }
+
+    @Test
+    void should_list_the_leaf_of_a_dotted_custom_key_and_never_its_object_parent() {
+        var result = cut.discoverAdditionalMetrics(new QueryContext("DEFAULT", ENV_A), LAST_30_DAYS);
+
+        assertThat(result.metrics())
+            .extracting(AdditionalMetricLastSeen::name)
+            .contains("custom.order.channel")
+            .doesNotContain("custom.order", "custom");
     }
 
     @Test

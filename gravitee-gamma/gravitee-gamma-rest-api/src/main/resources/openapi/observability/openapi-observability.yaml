@@ -121,6 +121,8 @@ tags:
           (`additional-metrics.<rawKey>`), whether the product reads them under a built-in name, an
           administrator declared them, or they were found in the environment's documents. A record gives
           a key a label, a description, a unit, and hides it from the pickers when `exposed` is `false`.
+          The custom metrics the assign-metrics policy writes (`custom.<name>`) are listed when found, as
+          `DISCOVERED` keyword entries of the `custom` namespace; they cannot be declared.
 
           A record is named by its field's wire name, in the `name` query parameter or in the body, never
           in a path segment: keys contain `/`, and an encoded `%2F` is refused by the server.
@@ -133,7 +135,8 @@ tags:
           | Edit a record, or declare a listed key | `PUT /metric-definitions/record?name=` | 200 replaced, 201 created |
           | Delete a record | `DELETE /metric-definitions/record?name=` | 204; 404 when the environment holds none |
 
-          Every write refuses a key a built-in entry reads and the reserved `<type>_custom_<name>` form (400).
+          Every write refuses a key a built-in entry reads, the reserved `<type>_custom_<name>` form and a
+          `custom.<name>` (400).
 
           Reads need a login only; discovered entries and `lastSeen` are traffic data, served only to a
           caller with `API_ANALYTICS[READ]` or `API_LOG[READ]` on one API of the environment, or
@@ -179,7 +182,10 @@ paths:
                 in the environment's requests over the last 30 days follow as `DISCOVERED` entries, labelled
                 from their key, the most recently seen first and 200 at most (`truncated` says when others
                 were left out), and every entry backed by an additional metric carries its `lastSeen`. The
-                discovery pass is reused for a few minutes: a field a newly deployed plugin starts writing
+                custom metrics the assign-metrics policy writes are among them: `custom.<name>` entries of
+                type `KEYWORD`, `namespace: custom`, labelled from their name like an additional key ("Fraud tier"), with no `apiTypes`, sharing
+                the 200 entries with the additional metric fields; `<type>_custom_<name>` keys are listed
+                too. The discovery pass is reused for a few minutes: a field a newly deployed plugin starts writing
                 appears after the next refresh. When the pass fails, the catalog is served without them and
                 `truncated` is `true`.
                 Any other caller gets no `DISCOVERED` entry and no `lastSeen`: a login is enough for the rest.
@@ -1598,11 +1604,14 @@ paths:
                 when `DISCOVERED` entries may be missing.
 
                 The environment's `keyword_` and `bool_` keys, exposed records and discovered keys alike,
-                come as facets under the same kind rule: in `dimensions` with their origin, and among the
-                `facets` of every metric served for one of the facet's kinds, `HTTP_REQUESTS` (the built-in
-                every additional metric takes its facets from) and the metrics of the `ADDITIONAL` family
-                alike; a facet of no known namespace goes with every one of them. The analytics endpoints
-                accept them in `by` at any level.
+                and its discovered custom metrics (`custom.<name>`, `namespace: custom`, labelled from their
+                name like an additional key), come as facets under the same kind rule: in `dimensions` with their origin, and
+                among the `facets` of every metric served for one of the facet's kinds, the built-ins read
+                from the request documents (`HTTP_REQUESTS`, `HTTP_ERRORS`, `HTTP_ERROR_RATE`, the gateway and endpoint
+                response times, the gateway latency, the request and response content lengths, and the LLM
+                and Edge metrics of those documents) and the metrics of the `ADDITIONAL` family alike; a
+                facet of no known namespace goes with every one of them. The analytics endpoints accept them
+                in `by` at any level.
 
                 Names of the built-ins are those of the analytics engine catalog, the one the analytics
                 endpoints validate metrics, measures and facets against, and so are the labels but a
@@ -2271,8 +2280,9 @@ paths:
                 documents with no record is `DISCOVERED`. Entries with `exposed: false` are listed too.
 
                 Labels follow the precedence declared › built-in › derived; the derived label strips
-                `additional-metrics.` and the type prefix, reads each run of `_` / `-` as one space and
-                capitalizes the first character (`long_my-policy_score` → "My policy score"). It also
+                `additional-metrics.` and the type prefix, reads each run of `.` / `_` / `-` as one space and
+                capitalizes the first character (`long_my-policy_score` → "My policy score"). A custom
+                metric's whole name reads the same way (`custom.customer.tier` → "Customer tier"). It also
                 strips a namespace naming the one API kind the key is listed under
                 (`long_llm-proxy_tokens-cached` → "Tokens cached"); a namespace of several kinds stays
                 (`long_failover_count` → "Failover count"), as does an unknown one. Every surface labels a
@@ -2502,7 +2512,7 @@ components:
 
                 - `observability.metric_definition.invalid_name`: not `additional-metrics.` followed by a type
                   prefix and segments of letters, digits, `-`, `_` and `/` joined by single dots, 256 characters
-                  at most (a `"` is refused here);
+                  at most (a `"` is refused here, and so is a custom metric `custom.<name>`);
                 - `observability.metric_definition.unknown_type_prefix`: the prefix is not `long_`, `int_`,
                   `double_`, `bool_`, `keyword_`, `string_` or `json_`;
                 - `observability.metric_definition.reserved_key`: a `<type>_custom_<name>` key, kept for the
@@ -2754,7 +2764,8 @@ components:
                 `additional-metrics.<rawKey>` for an additional metric field with no built-in name
                 (`additional-metrics.long_failover_count`) and, in the filter catalog, for a key a built-in
                 metric reads and no built-in filter reads (`additional-metrics.long_llm-proxy_tokens-sent`,
-                `origin: BUILT_IN`).
+                `origin: BUILT_IN`), or `custom.<name>` for a custom metric the assign-metrics policy writes,
+                always a `DISCOVERED` `KEYWORD` entry of the `custom` namespace, labelled from its name like an additional key (`custom.customer.tier` → "Customer tier").
             properties:
                 origin:
                     $ref: "#/components/schemas/CatalogOrigin"
@@ -2764,7 +2775,8 @@ components:
                         Key of the additional metric this entry reads, as a plugin or the gateway writes it and as
                         it appears in the `additionalMetrics` of a log. Its prefix is the value type. Present on
                         every entry backed by an additional metric, built-in ones included (`MCP_PROXY_TOOL`
-                        reads `keyword_mcp-proxy_tools/call`); absent otherwise.
+                        reads `keyword_mcp-proxy_tools/call`); absent otherwise. On a custom metric, the wire name
+                        `custom.<name>`, so it never reads as the additional metric key of the same spelling.
                     example: long_failover_count
                 valueType:
                     $ref: "#/components/schemas/AdditionalMetricValueType"
@@ -2792,10 +2804,11 @@ components:
                         or `DISCOVERED` entry: a namespace a Gravitee component writes under (`llm-proxy`,
                         `pii`, `semantic-caching`, `mcp-proxy`, `native-kafka`, `webhook`, `edge`, `authz`,
                         `failover`, `quota`), which ties the key to the API kinds in the entry's `apiTypes`, or
-                        `custom` for a user key (`<type>_custom_<name>`), tied to none. Absent when the namespace
-                        is none of those, the key then tied to no kind and its segment kept in the derived
-                        label, and on `BUILT_IN` entries, scoped by their own catalog. The namespaces and their
-                        kinds are a static map of the server until each plugin describes its keys (OBS-194).
+                        `custom` for a user key (`<type>_custom_<name>` or `custom.<name>`), tied to none. Absent
+                        when the namespace is none of those, the key then tied to no kind and its segment kept in
+                        the derived label, and on `BUILT_IN` entries, scoped by their own catalog. The namespaces
+                        and their kinds are a static map of the server until each plugin describes its keys
+                        (OBS-194).
                     example: llm-proxy
 
         FilterSpec:
@@ -4356,7 +4369,8 @@ components:
                     description: |
                         Where the entry comes from: `BUILT_IN` for a facet of the engine catalog, `DECLARED` or
                         `DISCOVERED` for a `keyword_` or `bool_` additional metric field of the environment,
-                        named `additional-metrics.<rawKey>` as `by` accepts it.
+                        named `additional-metrics.<rawKey>` as `by` accepts it, `DISCOVERED` for a custom metric
+                        `custom.<name>`.
                 lastSeen:
                     type: string
                     format: date-time
