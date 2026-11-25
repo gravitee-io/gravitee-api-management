@@ -16,7 +16,7 @@
 package io.gravitee.gateway.handlers.guardrail.policy;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.definition.model.guardrail.GuardrailPolicyConfiguration;
+import io.gravitee.definition.model.guardrail.GuardrailRunPolicyConfiguration;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.guardrail.Guardrail;
@@ -45,9 +45,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @author GraviteeSource Team
  */
-public class GuardrailPolicy implements HttpPolicy {
+public class GuardrailRunPolicy implements HttpPolicy {
 
-    public static final String POLICY_ID = "guardrail-policy";
+    public static final String POLICY_ID = "guardrail-run";
     public static final String NOT_DEPLOYED_KEY = "GUARDRAIL_NOT_DEPLOYED";
     public static final String INCOMPATIBLE_API_TYPE_KEY = "GUARDRAIL_INCOMPATIBLE_API_TYPE";
     public static final String INCOMPATIBLE_PHASE_KEY = "GUARDRAIL_INCOMPATIBLE_PHASE";
@@ -55,17 +55,17 @@ public class GuardrailPolicy implements HttpPolicy {
 
     private final String id;
     private final String stepName;
-    private final GuardrailPolicyConfiguration configuration;
+    private final GuardrailRunPolicyConfiguration configuration;
 
-    public GuardrailPolicy() {
+    public GuardrailRunPolicy() {
         this(POLICY_ID, null);
     }
 
-    public GuardrailPolicy(GuardrailPolicyConfiguration configuration) {
+    public GuardrailRunPolicy(GuardrailRunPolicyConfiguration configuration) {
         this(POLICY_ID, configuration);
     }
 
-    public GuardrailPolicy(String id, GuardrailPolicyConfiguration configuration) {
+    public GuardrailRunPolicy(String id, GuardrailRunPolicyConfiguration configuration) {
         this(id, null, configuration);
     }
 
@@ -74,7 +74,7 @@ public class GuardrailPolicy implements HttpPolicy {
      * @param stepName the name of the step in the API flow, {@code null} or blank when it has none.
      * @param configuration the configuration of the step.
      */
-    public GuardrailPolicy(String id, String stepName, GuardrailPolicyConfiguration configuration) {
+    public GuardrailRunPolicy(String id, String stepName, GuardrailRunPolicyConfiguration configuration) {
         this.id = id;
         this.stepName = stepName;
         this.configuration = configuration;

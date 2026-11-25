@@ -21,7 +21,7 @@ import io.gravitee.definition.model.v4.guardrail.Guardrail;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.handlers.guardrail.ReactableGuardrail;
 import io.gravitee.gateway.handlers.guardrail.decision.GuardrailVerdicts.Entry;
-import io.gravitee.gateway.handlers.guardrail.policy.GuardrailPolicy;
+import io.gravitee.gateway.handlers.guardrail.policy.GuardrailRunPolicy;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
@@ -160,9 +160,9 @@ public class GuardrailDecisionReporter {
     ) {
         report(ctx, () -> {
             DecisionReportBuilder<?, ?> decision = runReport(ctx, caller, guardrail, phase, verdicts, durationNanos);
-            if (GuardrailPolicy.NOT_DEPLOYED_KEY.equals(failure.key())) {
+            if (GuardrailRunPolicy.NOT_DEPLOYED_KEY.equals(failure.key())) {
                 undecided(decision, IndeterminateCause.NOT_READY, failure.key());
-            } else if (GuardrailPolicy.GUARDRAIL_POLICY_UNSUPPORTED_API_TYPE_KEY.equals(failure.key())) {
+            } else if (GuardrailRunPolicy.GUARDRAIL_POLICY_UNSUPPORTED_API_TYPE_KEY.equals(failure.key())) {
                 undecided(decision, IndeterminateCause.ERROR, failure.key());
             } else {
                 decision.outcome(Outcome.DENY).enforced(Enforced.DENY).status(Status.SUCCESS).verdict(failure.key());
@@ -214,7 +214,7 @@ public class GuardrailDecisionReporter {
     public void notReady(HttpPlainExecutionContext ctx, String caller, String guardrailId, Guardrail.Phase phase) {
         report(ctx, () -> {
             DecisionReportBuilder<?, ?> decision = common(ctx, caller, guardrailId, null, phase);
-            undecided(decision, IndeterminateCause.NOT_READY, GuardrailPolicy.NOT_DEPLOYED_KEY);
+            undecided(decision, IndeterminateCause.NOT_READY, GuardrailRunPolicy.NOT_DEPLOYED_KEY);
             return decision.build();
         });
     }

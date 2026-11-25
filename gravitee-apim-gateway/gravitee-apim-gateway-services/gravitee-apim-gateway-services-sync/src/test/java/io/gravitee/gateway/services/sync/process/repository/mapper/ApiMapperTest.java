@@ -166,7 +166,7 @@ class ApiMapperTest {
         apiV4.setInternalFlow(
             Flow.builder()
                 .name("internal")
-                .request(List.of(Step.builder().policy("guardrail-policy").configuration("{\"guardrailId\":\"guardrail-id\"}").build()))
+                .request(List.of(Step.builder().policy("guardrail-run").configuration("{\"guardrailId\":\"guardrail-id\"}").build()))
                 .build()
         );
         repoApiV4.setDefinition(objectMapper.writeValueAsString(apiV4));

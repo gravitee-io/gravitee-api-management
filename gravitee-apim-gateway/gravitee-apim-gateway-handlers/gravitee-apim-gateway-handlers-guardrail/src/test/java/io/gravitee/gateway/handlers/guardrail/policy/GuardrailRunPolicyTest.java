@@ -26,7 +26,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.guardrail.GuardrailPolicyConfiguration;
+import io.gravitee.definition.model.guardrail.GuardrailRunPolicyConfiguration;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.guardrail.Guardrail;
@@ -65,7 +65,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class GuardrailPolicyTest {
+class GuardrailRunPolicyTest {
 
     private static final String GUARDRAIL_ID = "guardrail-id";
     private static final String ENVIRONMENT_ID = "env-id";
@@ -85,8 +85,8 @@ class GuardrailPolicyTest {
     @Mock
     private GuardrailDecisionReporter reporter;
 
-    private GuardrailPolicyConfiguration configuration;
-    private GuardrailPolicy cut;
+    private GuardrailRunPolicyConfiguration configuration;
+    private GuardrailRunPolicy cut;
 
     @BeforeEach
     void setUp() {
@@ -96,9 +96,9 @@ class GuardrailPolicyTest {
         lenient().when(executionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API)).thenReturn(callingApi);
         lenient().when(guardrailReactor.reactableGuardrail()).thenReturn(guardrailFor(Guardrail.Phase.REQUEST, null));
 
-        configuration = new GuardrailPolicyConfiguration();
+        configuration = new GuardrailRunPolicyConfiguration();
         configuration.setGuardrailId(GUARDRAIL_ID);
-        cut = new GuardrailPolicy("my-guardrail-step", configuration);
+        cut = new GuardrailRunPolicy("my-guardrail-step", configuration);
     }
 
     @Test
@@ -374,7 +374,7 @@ class GuardrailPolicyTest {
 
         @Test
         void should_name_the_step_as_the_caller_of_a_decision() {
-            cut = new GuardrailPolicy(GuardrailPolicy.POLICY_ID, "my step", configuration);
+            cut = new GuardrailRunPolicy(GuardrailRunPolicy.POLICY_ID, "my step", configuration);
 
             runOnEndpointRequest();
 
@@ -385,11 +385,11 @@ class GuardrailPolicyTest {
         @NullSource
         @ValueSource(strings = { "", " " })
         void should_fall_back_on_the_id_for_a_step_without_a_name(String stepName) {
-            cut = new GuardrailPolicy(GuardrailPolicy.POLICY_ID, stepName, configuration);
+            cut = new GuardrailRunPolicy(GuardrailRunPolicy.POLICY_ID, stepName, configuration);
 
             runOnEndpointRequest();
 
-            verify(reporter).notReady(executionContext, GuardrailPolicy.POLICY_ID, GUARDRAIL_ID, Guardrail.Phase.REQUEST);
+            verify(reporter).notReady(executionContext, GuardrailRunPolicy.POLICY_ID, GUARDRAIL_ID, Guardrail.Phase.REQUEST);
         }
     }
 

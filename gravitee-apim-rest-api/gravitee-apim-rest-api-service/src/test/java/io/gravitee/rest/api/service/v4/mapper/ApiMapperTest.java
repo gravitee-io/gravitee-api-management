@@ -409,7 +409,7 @@ public class ApiMapperTest {
 
         Api repo = apiMapper.toRepository(GraviteeContext.getExecutionContext(), update, existingApi);
 
-        assertThat(repo.getDefinition()).as("definition written").contains("guardrail-policy");
+        assertThat(repo.getDefinition()).as("definition written").contains("guardrail-run");
     }
 
     @Test
@@ -1094,7 +1094,7 @@ public class ApiMapperTest {
 
     private static Flow aGuardrailInternalFlow() {
         return Flow.builder()
-            .request(List.of(Step.builder().policy("guardrail-policy").configuration("{\"guardrailId\":\"guardrail-1\"}").build()))
+            .request(List.of(Step.builder().policy("guardrail-run").configuration("{\"guardrailId\":\"guardrail-1\"}").build()))
             .build();
     }
 

@@ -528,7 +528,7 @@ public class ApiStateServiceImplTest {
         var internalFlow = guardrailId == null
             ? ""
             : """
-            "internalFlow": { "request": [ { "policy": "guardrail-policy", "configuration": { "guardrailId": "%s" } } ] },
+            "internalFlow": { "request": [ { "policy": "guardrail-run", "configuration": { "guardrailId": "%s" } } ] },
             """.formatted(guardrailId);
         return """
         { "id": "%s", "definitionVersion": "4.0.0", "type": "proxy", %s "plans": [ { "id": "plan-published" } ] }

@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import lombok.CustomLog;
 
 /**
- * Started Guardrail reactors, looked up by the {@code guardrail-policy} at request time.
+ * Started Guardrail reactors, looked up by the {@code guardrail-run} policy at request time.
  * <p>
  * The reactor handler registry starts the replacement of an updated Guardrail before stopping the previous one, so
  * {@link #unregister(GuardrailReactor)} only removes the entry when it still points to that very reactor.
