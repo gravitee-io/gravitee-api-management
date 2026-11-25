@@ -51,18 +51,19 @@ public class PortalAddressDomainService {
         return portalUrlDomainService.resolveDefaultPortalUrl(environmentId).map(url -> sharedAccessPoint(environmentId, url));
     }
 
-    /** The URL of each portal of {@code environmentId} served at an existing access point. */
+    /**
+     * The URL of each portal of {@code environmentId} served at an existing access point. Portals are served at the root of
+     * their host: the path of the environment's portal URL is not part of it.
+     */
     public Map<PortalId, URL> resolveUrls(String environmentId, Collection<Portal> portals) {
         var accessPoints = accessPointQueryService
             .getPortalInstanceAccessPoints(environmentId)
             .stream()
             .collect(Collectors.toMap(AccessPoint::getId, Function.identity(), (first, ignored) -> first));
-        // The portal app is served under its environment's portal URL path, whichever host it answers at.
-        var path = portalUrlDomainService.resolveDefaultPortalUrl(environmentId).map(URL::getPath).orElse(NEXT_PORTAL_PATH);
         return portals
             .stream()
             .filter(portal -> portal.getAccessPointId() != null && accessPoints.containsKey(portal.getAccessPointId()))
-            .collect(Collectors.toMap(Portal::getId, portal -> toUrl(accessPoints.get(portal.getAccessPointId()), path)));
+            .collect(Collectors.toMap(Portal::getId, portal -> toUrl(accessPoints.get(portal.getAccessPointId()))));
     }
 
     /** Deletes the access point of a deleted portal, unless another portal is still served at it. */
@@ -101,9 +102,9 @@ public class PortalAddressDomainService {
         return "https".equalsIgnoreCase(scheme);
     }
 
-    private static URL toUrl(AccessPoint accessPoint, String path) {
+    private static URL toUrl(AccessPoint accessPoint) {
         try {
-            return new URI(accessPoint.buildInstallationAccess() + path).toURL();
+            return new URI(accessPoint.buildInstallationAccess() + NEXT_PORTAL_PATH).toURL();
         } catch (URISyntaxException | MalformedURLException | IllegalArgumentException e) {
             throw new IllegalStateException("Access point [%s] does not form a valid portal URL".formatted(accessPoint.getId()), e);
         }

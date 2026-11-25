@@ -84,14 +84,24 @@ class PortalAddressDomainServiceTest {
     class ResolveUrls {
 
         @Test
-        void should_build_the_url_from_the_access_point_and_the_environment_portal_path() {
+        void should_build_the_url_from_the_access_point_alone_whatever_the_environment_portal_path() {
             installation.withPortalUrl(ENV_ID, "https://portal.example.com/developers");
             cut.accessPoints().initWith(List.of(aPortalAccessPoint("partners", ENV_ID, "partners.example.com:8443", true)));
             var portal = aPortal(PORTAL_ID, ENV_ID, "partners");
 
             assertThat(cut.resolveUrls(ENV_ID, List.of(portal)))
                 .containsOnlyKeys(PORTAL_ID)
-                .hasEntrySatisfying(PORTAL_ID, url -> assertThat(url).hasToString("https://partners.example.com:8443/developers/next"));
+                .hasEntrySatisfying(PORTAL_ID, url -> assertThat(url).hasToString("https://partners.example.com:8443/next"));
+        }
+
+        @Test
+        void should_keep_a_portal_on_its_host_without_the_path_of_a_new_environment_portal_url() {
+            installation.withPortalUrl(ENV_ID, "https://new.acme.io/dev");
+            cut.accessPoints().initWith(List.of(aPortalAccessPoint("old-shared", ENV_ID, "old.acme.io", true)));
+
+            assertThat(cut.resolveUrls(ENV_ID, List.of(aPortal(PORTAL_ID, ENV_ID, "old-shared")))).hasEntrySatisfying(PORTAL_ID, url ->
+                assertThat(url).hasToString("https://old.acme.io/next")
+            );
         }
 
         @Test
