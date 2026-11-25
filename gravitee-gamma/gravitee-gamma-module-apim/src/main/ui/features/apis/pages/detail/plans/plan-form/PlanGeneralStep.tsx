@@ -173,8 +173,9 @@ export function PlanGeneralStep({
         .join(', ');
     const isKeyless = securityType === 'KEY_LESS';
     const showAccessControl = ctx.type === 'api';
-    // General conditions pages come from the classic documentation store, which this console cannot
-    // manage, so an existing page can only be removed here — never chosen.
+    // The Gamma Console does not support general conditions pages: only the classic console can
+    // publish one in the store the plan save validates against, so an existing page can only be
+    // removed here — never chosen.
     const hasGeneralConditions = ctx.type === 'api' && value.generalConditions !== '';
 
     return (
