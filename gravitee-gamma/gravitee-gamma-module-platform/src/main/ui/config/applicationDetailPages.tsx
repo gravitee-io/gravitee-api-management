@@ -20,6 +20,7 @@ import { ApplicationDetailGeneralPage } from '../pages/ApplicationDetailGeneralP
 import { ApplicationDetailOverviewPage } from '../pages/ApplicationDetailOverviewPage';
 import { ApplicationDetailSubscriptionsPage } from '../pages/ApplicationDetailSubscriptionsPage';
 import { ApplicationNotificationSettingsPage } from '../pages/ApplicationNotificationSettingsPage';
+import { ApplicationSharedApiKeysPage } from '../pages/ApplicationSharedApiKeysPage';
 import { ApplicationUserPermissionsPage } from '../pages/ApplicationUserPermissionsPage';
 
 /** Tab paths with a dedicated page implementation (keys drive routing and landing redirect). */
@@ -29,6 +30,7 @@ export const APPLICATION_DETAIL_PAGES = {
     overview: ApplicationDetailOverviewPage,
     'user-permissions': ApplicationUserPermissionsPage,
     subscriptions: ApplicationDetailSubscriptionsPage,
+    'shared-api-keys': ApplicationSharedApiKeysPage,
 } as const satisfies Record<string, ComponentType>;
 
 export type ApplicationDetailImplementedPath = keyof typeof APPLICATION_DETAIL_PAGES;

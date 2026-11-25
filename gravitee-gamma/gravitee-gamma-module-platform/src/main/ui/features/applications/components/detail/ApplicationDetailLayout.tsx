@@ -32,7 +32,7 @@ import { ApplicationDetailNoSectionsAvailable } from './ApplicationDetailNoSecti
 import { ApplicationDetailPermissionsError } from './ApplicationDetailPermissionsError';
 import { ApplicationDetailProtectedOutlet } from './ApplicationDetailProtectedOutlet';
 import { ApplicationDetailSidebarNav } from './ApplicationDetailSidebarNav';
-import { APPLICATION_NAV_GROUPS, resolveApplicationDetailLandingPath } from '../../../../config/applicationDetailNavigation';
+import { applicationDetailNavGroupsFor, resolveApplicationDetailLandingPath } from '../../../../config/applicationDetailNavigation';
 import { resolveListHrefFromDetailBasePath, useDetailBasePath } from '../../../shared/hooks/useDetailBasePath';
 import { usePermissionServiceSnapshot } from '../../../shared/hooks/usePermissionServiceSnapshot';
 import { truncateLabel } from '../../../shared/utils/truncateLabel';
@@ -156,7 +156,7 @@ function ApplicationDetailLayoutBody({
             contextSidebar: (
                 <ContextSidebar header={<ApplicationInfoHeader application={application ?? null} isLoading={isLoading} />}>
                     <ApplicationDetailSidebarNav
-                        groups={APPLICATION_NAV_GROUPS}
+                        groups={applicationDetailNavGroupsFor(application?.api_key_mode)}
                         basePath={basePath}
                         permissionsReady={permissionsReady && !isLoading}
                     />

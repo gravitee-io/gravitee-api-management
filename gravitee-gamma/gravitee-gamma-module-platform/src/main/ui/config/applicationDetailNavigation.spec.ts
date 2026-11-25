@@ -16,6 +16,7 @@
 import {
     APPLICATION_IMPLEMENTED_DETAIL_PATHS,
     APPLICATION_NAV_GROUPS,
+    applicationDetailNavGroupsFor,
     filterApplicationDetailNavGroups,
     getApplicationDetailTabPermissions,
     getFirstAccessibleApplicationDetailPath,
@@ -45,6 +46,14 @@ describe('applicationDetailNavigation permissions', () => {
 
     it('maps subscriptions tab to application-subscription-r', () => {
         expect(getApplicationDetailTabPermissions('subscriptions')).toEqual(['application-subscription-r']);
+    });
+
+    it('maps shared API keys to application-subscription-r and shows that item only for shared mode', () => {
+        expect(getApplicationDetailTabPermissions('shared-api-keys')).toEqual(['application-subscription-r']);
+        const paths = (mode?: string) => applicationDetailNavGroupsFor(mode).flatMap(group => group.items.map(item => item.path));
+        expect(paths('SHARED')).toContain('shared-api-keys');
+        expect(paths('EXCLUSIVE')).not.toContain('shared-api-keys');
+        expect(paths(undefined)).not.toContain('shared-api-keys');
     });
 
     it('filters nav groups by permission', () => {
