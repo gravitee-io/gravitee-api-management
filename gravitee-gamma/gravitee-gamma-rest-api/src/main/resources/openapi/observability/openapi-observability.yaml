@@ -2548,7 +2548,8 @@ components:
                 - `observability.metric_definition.unknown_type_prefix`: the prefix is not `long_`, `int_`,
                   `double_`, `bool_`, `keyword_`, `string_` or `json_`;
                 - `observability.metric_definition.reserved_key`: a `<type>_custom_<name>` key, kept for the
-                  typed custom metrics;
+                  typed custom metrics, or a `<type>_custom.<name>` key, which would read another map than the
+                  custom metric `custom.<name>` the Assign metrics policy writes;
                 - `observability.metric_definition.built_in_key`: a built-in entry reads the key; built-in entries
                   are read-only;
                 - `observability.metric_definition.duplicate`: on `POST`, the environment already declares the key;

@@ -26,6 +26,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gamma.rest.core.observability.catalog.inmemory.InMemoryAdditionalMetricDefinitionRepository;
 import io.gravitee.gamma.rest.core.observability.catalog.inmemory.InMemoryCatalogPorts;
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricDefinition;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricField;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricValueType;
 import io.gravitee.gamma.rest.core.observability.catalog.model.DiscoveredAdditionalMetric;
@@ -72,6 +73,7 @@ class MetricDefinitionsResourceTest extends AbstractResourceTest {
     private static final String OTHER_ENVIRONMENT = "other-env";
     private static final String BASKET = "additional-metrics.double_checkout_basket-value";
     private static final String SLASHED = "additional-metrics.keyword_my-policy_tools/call";
+    private static final String DECOY = "additional-metrics.keyword_custom.fraud-tier";
 
     @Inject
     private InMemoryAdditionalMetricDefinitionRepository repository;
@@ -144,6 +146,7 @@ class MetricDefinitionsResourceTest extends AbstractResourceTest {
             value = {
                 "additional-metrics.keyword_mcp-proxy_tools/call | observability.metric_definition.built_in_key",
                 "additional-metrics.double_custom_basket-value | observability.metric_definition.reserved_key",
+                "additional-metrics.keyword_custom.fraud-tier | observability.metric_definition.reserved_key",
                 "additional-metrics.keyword_my\"key | observability.metric_definition.invalid_name",
                 "additional-metrics.float_score | observability.metric_definition.unknown_type_prefix",
                 "custom.basket | observability.metric_definition.invalid_name",
@@ -212,6 +215,42 @@ class MetricDefinitionsResourceTest extends AbstractResourceTest {
 
     @Nested
     class Record {
+
+        @Test
+        void should_refuse_a_put_naming_a_custom_metric_after_its_type_prefix() {
+            Response response = record(DECOY).request().put(Entity.json(Map.of("label", "Fraud tier")));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            assertThat(response.readEntity(JsonNode.class).get("technicalCode").asText()).isEqualTo(
+                "observability.metric_definition.reserved_key"
+            );
+            assertThat(repository.all()).isEmpty();
+        }
+
+        /** A decoy declared before S1 is refused on writes only: it can still be read, then removed. */
+        @Test
+        void should_read_and_delete_a_decoy_declared_before_the_refusal() {
+            repository.create(
+                new AdditionalMetricDefinition(
+                    "decoy-id",
+                    ENVIRONMENT,
+                    new AdditionalMetricField("keyword_custom.fraud-tier", AdditionalMetricValueType.KEYWORD),
+                    null,
+                    null,
+                    null,
+                    true,
+                    Instant.EPOCH,
+                    Instant.EPOCH
+                )
+            );
+
+            Response read = record(DECOY).request().get();
+            assertThat(read.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            assertThat(read.readEntity(JsonNode.class).get("name").asText()).isEqualTo(DECOY);
+
+            assertThat(record(DECOY).request().delete().getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
+            assertThat(repository.all()).isEmpty();
+        }
 
         @Test
         void should_round_trip_a_key_containing_a_slash_through_put_get_and_delete() {
