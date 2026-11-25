@@ -55,9 +55,15 @@ import lombok.RequiredArgsConstructor;
  *
  * The republished event <strong>is an entry of the API's deployment history</strong>: that history is a plain search
  * over the events of an API, with no filter on who wrote them, and a rollback accepts any publish event. So the
- * entry shows up, carries the deployment number of the deployment it patches rather than opening a new one, and can
- * be rolled back to — which restores that deployment with these Guardians, the two being what it holds. Its label
- * says so, since an unlabelled entry would read as a deployment its publisher never made.
+ * entry shows up, under a deployment number of its own, and can be rolled back to — which restores the deployment it
+ * patched with these Guardians, the two being what it holds. Its label says so, since an unlabelled entry would read
+ * as a deployment its publisher never made.
+ *
+ * <p>The number is a new one because <strong>a gateway applies a deployment of an API it already runs only when its
+ * number changed</strong>: under the number of the deployment it patches, the event is ignored by every gateway
+ * running that deployment, and a Guardian neither starts nor stops until the API is next deployed. It is the number
+ * the next deployment would have taken, and the event is the API's latest one, which the next deployment counts
+ * from: the numbers keep increasing.
  *
  * <h2>One call, because the order is not a caller's business</h2>
  *
@@ -195,8 +201,10 @@ public class DeployApiInternalFlowDomainService {
     }
 
     /**
-     * The deployment number is the one of the deployment patched, so the event belongs to it rather than opening a new
-     * one. The user is left out for a caller that is none, a technical call, as the deployment of an API does.
+     * The deployment number is one past the deployment patched, since gateways only apply a deployment whose number
+     * changed. A deployment of the API counts the same way, from the same event — the API's latest, which the running
+     * deployment is read from. The user is left out for a caller that is none, a technical call, as the deployment of
+     * an API does.
      */
     private static Map<Event.EventProperties, String> propertiesOf(AuditInfo auditInfo, String apiId, ApiDeployment running, String label) {
         var properties = new EnumMap<Event.EventProperties, String>(Event.EventProperties.class);
@@ -206,7 +214,7 @@ public class DeployApiInternalFlowDomainService {
         properties.put(Event.EventProperties.API_ID, apiId);
         properties.put(
             Event.EventProperties.DEPLOYMENT_NUMBER,
-            Objects.requireNonNullElse(running.deploymentNumber(), NO_DEPLOYMENT_NUMBER)
+            Long.toString(Long.parseLong(Objects.requireNonNullElse(running.deploymentNumber(), NO_DEPLOYMENT_NUMBER)) + 1)
         );
         properties.put(Event.EventProperties.DEPLOYMENT_LABEL, label);
         return properties;

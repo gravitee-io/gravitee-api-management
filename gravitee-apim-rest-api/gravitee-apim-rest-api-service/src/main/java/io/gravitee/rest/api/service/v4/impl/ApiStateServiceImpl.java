@@ -322,6 +322,16 @@ public class ApiStateServiceImpl implements ApiStateService {
         Map<String, String> properties,
         ApiDeploymentEntity apiDeploymentEntity
     ) {
+        String newDeployNumber = Long.toString(latestDeploymentNumber(apiId) + 1);
+        properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), newDeployNumber);
+
+        if (apiDeploymentEntity != null && StringUtils.isNotEmpty(apiDeploymentEntity.getDeploymentLabel())) {
+            properties.put(Event.EventProperties.DEPLOYMENT_LABEL.getValue(), apiDeploymentEntity.getDeploymentLabel());
+        }
+    }
+
+    /** The deployment number of the API's latest event, or 0 when it has none. */
+    private long latestDeploymentNumber(String apiId) {
         EventCriteria criteria = EventCriteria.builder()
             .types(
                 Set.of(
@@ -334,19 +344,13 @@ public class ApiStateServiceImpl implements ApiStateService {
             .property(Event.EventProperties.API_ID.getValue(), apiId)
             .build();
 
-        String lastDeployNumber = eventLatestRepository
+        return eventLatestRepository
             .search(criteria, Event.EventProperties.API_ID, 0L, 1L)
             .stream()
             .findFirst()
             .map(eventEntity -> eventEntity.getProperties().getOrDefault(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0"))
-            .orElse("0");
-
-        String newDeployNumber = Long.toString(Long.parseLong(lastDeployNumber) + 1);
-        properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), newDeployNumber);
-
-        if (apiDeploymentEntity != null && StringUtils.isNotEmpty(apiDeploymentEntity.getDeploymentLabel())) {
-            properties.put(Event.EventProperties.DEPLOYMENT_LABEL.getValue(), apiDeploymentEntity.getDeploymentLabel());
-        }
+            .map(Long::parseLong)
+            .orElse(0L);
     }
 
     @Override
@@ -551,11 +555,17 @@ public class ApiStateServiceImpl implements ApiStateService {
                 lastPublishedAPI.setDeployedAt(new Date());
                 Map<String, String> properties = new HashMap<>();
                 properties.put(Event.EventProperties.USER.getValue(), userId);
-                properties.put(
-                    Event.EventProperties.DEPLOYMENT_NUMBER.getValue(),
+                long publishedDeploymentNumber = Long.parseLong(
                     Optional.ofNullable(event.getProperties())
                         .map(p -> p.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue()))
                         .orElse("0")
+                );
+                // A Guardian change republishes a started API as a START_API numbered past the last published
+                // deployment: numbering from that deployment alone would go back under the number the gateways were
+                // given, and the next deployment would take that number a second time.
+                properties.put(
+                    Event.EventProperties.DEPLOYMENT_NUMBER.getValue(),
+                    Long.toString(Math.max(publishedDeploymentNumber, latestDeploymentNumber(apiId)))
                 );
                 // Clear useless field for history
                 lastPublishedAPI.setPicture(null);

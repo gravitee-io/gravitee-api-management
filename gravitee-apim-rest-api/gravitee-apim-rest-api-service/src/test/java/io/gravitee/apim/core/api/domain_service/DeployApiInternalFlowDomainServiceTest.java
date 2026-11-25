@@ -475,8 +475,8 @@ class DeployApiInternalFlowDomainServiceTest {
         }
 
         @Test
-        void should_deploy_it_as_the_caller_on_the_deployment_it_patches() {
-            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")), "7");
+        void should_deploy_it_as_the_caller() {
+            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")));
 
             service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
 
@@ -489,17 +489,15 @@ class DeployApiInternalFlowDomainServiceTest {
                             .assertThat(event.getProperties())
                             .as("event properties")
                             .containsEntry(Event.EventProperties.USER, "publisher")
-                            .containsEntry(Event.EventProperties.API_ID, API_ID)
-                            .containsEntry(Event.EventProperties.DEPLOYMENT_NUMBER, "7");
+                            .containsEntry(Event.EventProperties.API_ID, API_ID);
                         softly.assertThat(event.getEnvironments()).as("environments").containsExactly(ENVIRONMENT_ID);
                     })
                 );
         }
 
         /**
-         * The republished event is an entry of its own in the API's deployment history, on the deployment number it
-         * patches, and it can be rolled back to. The label is what tells it apart from a deployment the publisher
-         * made.
+         * The republished event is an entry of its own in the API's deployment history, under a number of its own,
+         * and it can be rolled back to. The label is what tells it apart from a deployment the publisher made.
          */
         @Test
         void should_label_it_as_a_guardian_change_rather_than_a_deployment() {
@@ -512,20 +510,6 @@ class DeployApiInternalFlowDomainServiceTest {
                 .singleElement()
                 .satisfies(event ->
                     assertThat(event.getProperties()).as("event properties").containsEntry(Event.EventProperties.DEPLOYMENT_LABEL, LABEL)
-                );
-        }
-
-        @Test
-        void should_deploy_it_without_a_deployment_number_the_previous_one_did_not_carry() {
-            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")));
-
-            service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
-
-            assertThat(events.storage())
-                .as("events written")
-                .singleElement()
-                .satisfies(event ->
-                    assertThat(event.getProperties()).as("event properties").containsEntry(Event.EventProperties.DEPLOYMENT_NUMBER, "0")
                 );
         }
 
@@ -555,6 +539,92 @@ class DeployApiInternalFlowDomainServiceTest {
             service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
 
             assertThat(definitionSent().getInternalFlow()).as("internal flow sent").isEqualTo(guardians("guardian-2"));
+        }
+    }
+
+    /**
+     * A gateway applies a deployment of an API it already runs only when its number changed, so the republished event
+     * takes the number the next deployment would have taken: under the number of the deployment it patches, every
+     * gateway running that deployment would ignore it, and a Guardian would neither start nor stop.
+     */
+    @Nested
+    class HowItIsNumbered {
+
+        /**
+         * The latest event is what the gateways read and what the next deployment numbers itself one past, so both
+         * carry the new number: the next deployment then takes a greater one still.
+         */
+        @Test
+        void should_number_it_past_the_deployment_it_patches() {
+            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")), "7");
+
+            service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+
+            assertSoftly(softly -> {
+                softly.assertThat(deploymentNumbersOf(events.storage())).as("deployment number of the event written").containsExactly("8");
+                softly
+                    .assertThat(deploymentNumbersOf(latestEvents.storage()))
+                    .as("deployment number of the latest event, which the next deployment numbers itself past")
+                    .containsExactly("8");
+            });
+        }
+
+        /** Republished as a {@code START_API}: the type of the deployment is kept, its number is not. */
+        @Test
+        void should_number_a_started_api_past_the_deployment_it_patches() {
+            givenDeployed(EventType.START_API, deployedDefinition(guardians("guardian-1")), "7");
+
+            service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+
+            assertThat(deploymentNumbersOf(events.storage())).as("deployment number of the event written").containsExactly("8");
+        }
+
+        /** As a deployment does: a previous event carrying no number counts as number 0. */
+        @Test
+        void should_number_it_one_when_the_deployment_it_patches_carries_no_number() {
+            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")));
+
+            service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-2")), STORED_AT, LABEL);
+
+            assertThat(deploymentNumbersOf(events.storage())).as("deployment number of the event written").containsExactly("1");
+        }
+
+        /** A Guardian turned on, then off again: the second change reaches the gateways as the first one did. */
+        @Test
+        void should_number_each_change_past_the_previous_one() {
+            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")), "7");
+            service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-1", "guardian-2")), STORED_AT, LABEL);
+            givenTheGatewaysRunTheLatestEvent();
+
+            service.replaceInternalFlow(CALLER, apiRunning(guardians("guardian-1")), storedUpdatedAt(), LABEL);
+
+            assertThat(deploymentNumbersOf(events.storage())).as("deployment numbers of the events written").containsExactly("8", "9");
+        }
+
+        @Test
+        void should_number_the_clearing_of_the_internal_flow_past_the_deployment_it_patches() {
+            givenDeployed(EventType.PUBLISH_API, deployedDefinition(guardians("guardian-1")), "7");
+
+            service.clearInternalFlow(CALLER, apiRunning(guardians("guardian-1")), STORED_AT, LABEL);
+
+            assertThat(deploymentNumbersOf(events.storage())).as("deployment number of the event written").containsExactly("8");
+        }
+
+        private void givenTheGatewaysRunTheLatestEvent() {
+            var latest = List.copyOf(latestEvents.storage());
+            deployments.reset();
+            deployments.initWith(latest);
+        }
+
+        private ZonedDateTime storedUpdatedAt() {
+            return apis.storage().getFirst().getUpdatedAt();
+        }
+
+        private static List<String> deploymentNumbersOf(List<Event> written) {
+            return written
+                .stream()
+                .map(event -> event.getProperties().get(Event.EventProperties.DEPLOYMENT_NUMBER))
+                .toList();
         }
     }
 

@@ -43,6 +43,7 @@ import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EventLatestRepository;
+import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Event;
@@ -529,6 +530,49 @@ public class ApiStateServiceImplTest {
             verify(apiNotificationService, never()).triggerStopNotification(any(), any());
         }
         verify(searchEngineService, times(1)).index(eq(executionContext), argThat(argApi -> argApi.getId().equals(API_ID)), eq(false));
+    }
+
+    /**
+     * A Guardian change republishes a started API as a {@code START_API} numbered past the deployment it patches, so
+     * the last published deployment does not hold the number the gateways were given: a stop numbered from it alone
+     * would go back under that number, and the next deployment would take it a second time.
+     */
+    @Test
+    public void should_stop_an_api_under_the_number_a_guardian_change_moved_it_to() throws TechnicalException {
+        api.setApiLifecycleState(ApiLifecycleState.CREATED);
+        api.setLifecycleState(LifecycleState.STARTED);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        final EventEntity lastPublished = new EventEntity();
+        lastPublished.setType(PUBLISH_API);
+        lastPublished.setPayload("{ \"id\": \"" + API_ID + "\"}");
+        lastPublished.setProperties(Map.of(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "7"));
+        final EventQuery query = new EventQuery();
+        query.setApi(API_ID);
+        query.setTypes(singleton(PUBLISH_API));
+        query.setEnvironmentIds(Set.of(executionContext.getEnvironmentId()));
+        query.setOrganizationIds(Set.of(executionContext.getOrganizationId()));
+        when(eventService.search(executionContext, query)).thenReturn(singleton(lastPublished));
+        when(eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.API_ID), eq(0L), eq(1L))).thenReturn(
+            List.of(
+                Event.builder()
+                    .type(io.gravitee.repository.management.model.EventType.START_API)
+                    .properties(Map.of(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "8"))
+                    .build()
+            )
+        );
+        updatedApi.setLifecycleState(LifecycleState.STOPPED);
+        when(apiRepository.update(any())).thenReturn(updatedApi);
+
+        apiStateService.stop(executionContext, API_ID, USER_NAME);
+
+        verify(eventService).createApiEvent(
+            eq(executionContext),
+            any(),
+            any(),
+            eq(EventType.STOP_API),
+            any(Api.class),
+            argThat(properties -> "8".equals(properties.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue())))
+        );
     }
 
     @Test

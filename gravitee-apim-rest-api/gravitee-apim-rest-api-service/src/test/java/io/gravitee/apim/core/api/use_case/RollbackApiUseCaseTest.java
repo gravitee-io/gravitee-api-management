@@ -1049,6 +1049,24 @@ class RollbackApiUseCaseTest {
             });
         }
 
+        /** Taking the Guardians off is a change the gateways must apply, so it is numbered as one. */
+        @Test
+        void should_take_the_guardians_off_under_a_number_past_the_deployment_it_patches() throws JsonProcessingException {
+            apiCrudService.update(ApiAdapter.INSTANCE.toCoreModel(apiV4().build()));
+            givenTheStoredApiRuns(guardians("guardian-1"));
+            givenTheGatewaysRun(EventType.PUBLISH_API, "7");
+            var event = givenAV2Revision();
+
+            useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
+
+            assertThat(eventCrudService.storage())
+                .as("events written")
+                .singleElement()
+                .satisfies(written ->
+                    assertThat(written.getProperties()).as("event properties").containsEntry(Event.EventProperties.DEPLOYMENT_NUMBER, "8")
+                );
+        }
+
         /**
          * The internal flow this branch republishes is empty, so there is nothing a module could refuse — and the V2
          * definition it restores is not what it hands the gateways, so the broad question is not this write's either.
@@ -1895,6 +1913,23 @@ class RollbackApiUseCaseTest {
                 );
         }
 
+        /** A gateway applies a deployment of an API it already runs only when its number changed. */
+        @Test
+        void should_send_the_restored_internal_flow_under_a_number_past_the_deployment_it_patches() throws JsonProcessingException {
+            var event = givenARevisionRunning(guardians("guardian-1"));
+            givenTheGatewaysRun(EventType.PUBLISH_API, "7");
+            givenTheApiUpdateKeepsTheStoredDefinition();
+
+            useCase.execute(new RollbackApiUseCase.Input(API_ID, event.getId(), AUDIT_INFO));
+
+            assertThat(eventCrudService.storage())
+                .as("events written")
+                .singleElement()
+                .satisfies(written ->
+                    assertThat(written.getProperties()).as("event properties").containsEntry(Event.EventProperties.DEPLOYMENT_NUMBER, "8")
+                );
+        }
+
         @Test
         void should_send_nothing_for_an_api_the_gateways_do_not_run() throws JsonProcessingException {
             var event = givenARevisionRunning(guardians("guardian-1"));
@@ -2167,8 +2202,16 @@ class RollbackApiUseCaseTest {
         apiCrudService.update(stored);
     }
 
-    /** What the gateways are running: a deployment holding a plan the store does not have any more. */
     private void givenTheGatewaysRun(EventType type) throws JsonProcessingException {
+        givenTheGatewaysRun(type, Map.of(Event.EventProperties.API_ID, API_ID));
+    }
+
+    private void givenTheGatewaysRun(EventType type, String deploymentNumber) throws JsonProcessingException {
+        givenTheGatewaysRun(type, Map.of(Event.EventProperties.API_ID, API_ID, Event.EventProperties.DEPLOYMENT_NUMBER, deploymentNumber));
+    }
+
+    /** What the gateways are running: a deployment holding a plan the store does not have any more. */
+    private void givenTheGatewaysRun(EventType type, Map<Event.EventProperties, String> properties) throws JsonProcessingException {
         var deployed = io.gravitee.definition.model.v4.Api.builder()
             .id(API_ID)
             .name("api-name")
@@ -2194,7 +2237,7 @@ class RollbackApiUseCaseTest {
                     .type(type)
                     // The deployment is read for the environment of the caller, as both stores scope it.
                     .environments(Set.of(ENVIRONMENT_ID))
-                    .properties(new java.util.EnumMap<>(Map.of(Event.EventProperties.API_ID, API_ID)))
+                    .properties(new java.util.EnumMap<>(properties))
                     .payload(
                         GraviteeJacksonMapper.getInstance().writeValueAsString(
                             Api.builder()
