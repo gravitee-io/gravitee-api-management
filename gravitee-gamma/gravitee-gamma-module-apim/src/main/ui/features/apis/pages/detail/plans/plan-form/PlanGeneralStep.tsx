@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import {
+    Alert,
+    AlertDescription,
     Button,
     Card,
     CardContent,
@@ -32,11 +34,6 @@ import {
     PopoverContent,
     PopoverTrigger,
     ScrollArea,
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
     Switch,
     Textarea,
     cn,
@@ -44,7 +41,6 @@ import {
 import { CheckIcon, ChevronsUpDownIcon, XIcon } from '@gravitee/graphene-core/icons';
 import { useRef, useState } from 'react';
 
-import { useApiGeneralConditionsPages } from '../../../../hooks/useApiGeneralConditionsPages';
 import { useGroups } from '../../../../hooks/useGroups';
 import { useOrgTags } from '../../../../hooks/useOrgTags';
 import { useUserTags } from '../../../../hooks/useUserTags';
@@ -147,7 +143,6 @@ export function PlanGeneralStep({
     const { data: groupsResponse } = useGroups();
     const { data: orgTags = [] } = useOrgTags();
     const { data: userTags = [] } = useUserTags();
-    const { data: generalConditionsPages = [] } = useApiGeneralConditionsPages(ctx.entityId, ctx.type === 'api');
     const groups = (groupsResponse as { data?: { id: string; name: string }[] } | undefined)?.data ?? [];
 
     // A tag can be selected only when it belongs to the parent entity's tags (subset rule) and the
@@ -178,6 +173,9 @@ export function PlanGeneralStep({
         .join(', ');
     const isKeyless = securityType === 'KEY_LESS';
     const showAccessControl = ctx.type === 'api';
+    // General conditions pages come from the classic documentation store, which this console cannot
+    // manage, so an existing page can only be removed here — never chosen.
+    const hasGeneralConditions = ctx.type === 'api' && value.generalConditions !== '';
 
     return (
         <div className="space-y-6">
@@ -226,38 +224,24 @@ export function PlanGeneralStep({
                 </CardContent>
             </Card>
 
-            {/* Conditions — API only */}
-            {ctx.type === 'api' && (
+            {/* Conditions — only for an API plan that already carries a general conditions page */}
+            {hasGeneralConditions && (
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-base">Conditions</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="space-y-2">
-                            <Label htmlFor="plan-conditions">Page of General Conditions</Label>
-                            <Select
-                                value={value.generalConditions || '__none__'}
-                                onValueChange={v => onChange({ ...value, generalConditions: v === '__none__' ? '' : v })}
-                                disabled={readOnly}
-                            >
-                                <SelectTrigger id="plan-conditions" className="w-full">
-                                    <SelectValue placeholder="None" />
-                                </SelectTrigger>
-                                <SelectContent
-                                    position="popper"
-                                    className="max-h-60 overflow-y-auto"
-                                    style={{ width: 'var(--radix-select-trigger-width)', minWidth: 'unset' }}
-                                >
-                                    <SelectItem value="__none__">None</SelectItem>
-                                    {generalConditionsPages.map(page => (
-                                        <SelectItem key={page.id} value={page.id}>
-                                            {page.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <p className="text-xs text-muted-foreground">General conditions page shown to consumers before subscribing.</p>
-                        </div>
+                    <CardContent className="space-y-3">
+                        <Alert>
+                            <AlertDescription>
+                                This plan has a general conditions page. General conditions pages are no longer supported by the Gamma
+                                Console. Remove it here, or manage it in the classic console.
+                            </AlertDescription>
+                        </Alert>
+                        {!readOnly && (
+                            <Button type="button" variant="outline" onClick={() => onChange({ ...value, generalConditions: '' })}>
+                                Remove general conditions
+                            </Button>
+                        )}
                     </CardContent>
                 </Card>
             )}

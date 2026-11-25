@@ -39,14 +39,9 @@ jest.mock('../../../../hooks/useOrgTags', () => ({ useOrgTags: jest.fn(() => ({ 
 jest.mock('../../../../hooks/useUserTags', () => ({ useUserTags: jest.fn(() => ({ data: [] })) }));
 jest.mock('../../../../hooks/useApiDetail', () => ({ useApiDetail: jest.fn(() => ({ data: undefined })) }));
 jest.mock('../../../../hooks/useApiResources', () => ({ useResourcePlugins: jest.fn(() => ({ data: [] })) }));
-jest.mock('../../../../hooks/useApiGeneralConditionsPages', () => ({ useApiGeneralConditionsPages: jest.fn(() => ({ data: [] })) }));
-jest.mock('../../../../../../shared/api/apimClient', () => ({ apimFetchJsonV2: jest.fn() }));
 
 import { PlanFormWizard } from './PlanFormWizard';
-import { apimFetchJsonV2 } from '../../../../../../shared/api/apimClient';
 import { useApiDetail } from '../../../../hooks/useApiDetail';
-import { useApiGeneralConditionsPages } from '../../../../hooks/useApiGeneralConditionsPages';
-import type * as ApiGeneralConditionsPagesModule from '../../../../hooks/useApiGeneralConditionsPages';
 import { createPlan, getPlan, updatePlan } from '../../../../services/plans';
 import type { ManagedPlan, PlanContext, PlanSecurityType } from '../../../../types/plan';
 import type { ApiResource } from '../../../../types/resource';
@@ -85,6 +80,9 @@ const V4_PLAN: ManagedPlan = {
 };
 
 const V2_PLAN: ManagedPlan = { ...V4_PLAN, definitionVersion: 'V2' };
+
+/** A plan whose general conditions page was set in the classic console, the only way to get one. */
+const PLAN_WITH_GENERAL_CONDITIONS: ManagedPlan = { ...V4_PLAN, generalConditions: 'page-terms' };
 
 const V2_RATE_LIMITED_PLAN: ManagedPlan = {
     ...V2_PLAN,
@@ -396,77 +394,68 @@ describe('PlanFormWizard edit submit', () => {
 });
 
 describe('PlanFormWizard general conditions', () => {
-    const mockUseGeneralConditionsPages = jest.mocked(useApiGeneralConditionsPages);
+    const GENERAL_CONDITIONS_NOTICE = /General conditions pages are no longer supported by the Gamma Console/;
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockUseGeneralConditionsPages.mockReturnValue({
-            data: [
-                { id: 'page-terms', name: 'Terms of use' },
-                { id: 'page-sla', name: 'Service level' },
-            ],
-        } as unknown as ReturnType<typeof useApiGeneralConditionsPages>);
     });
 
-    afterEach(() => {
-        mockUseGeneralConditionsPages.mockReturnValue({ data: [] } as unknown as ReturnType<typeof useApiGeneralConditionsPages>);
+    it('offers no general conditions page to choose from when creating a plan', async () => {
+        renderCreateWizard();
+
+        await screen.findByLabelText(/^Name/);
+
+        expect(screen.queryByRole('combobox', { name: 'Page of General Conditions' })).not.toBeInTheDocument();
+        expect(screen.queryByText(GENERAL_CONDITIONS_NOTICE)).not.toBeInTheDocument();
     });
 
-    it("lists the API's published Markdown pages as general conditions options", async () => {
-        const user = userEvent.setup();
+    it('says nothing about general conditions when editing a plan that has none', async () => {
         renderEditWizard(V4_PLAN);
 
-        await user.click(await screen.findByRole('combobox', { name: 'Page of General Conditions' }));
+        await screen.findByLabelText(/^Name/);
 
-        expect(screen.getAllByRole('option').map(option => option.textContent)).toEqual(['None', 'Terms of use', 'Service level']);
-        expect(mockUseGeneralConditionsPages).toHaveBeenCalledWith('api-1', true);
+        expect(screen.queryByRole('combobox', { name: 'Page of General Conditions' })).not.toBeInTheDocument();
+        expect(screen.queryByText(GENERAL_CONDITIONS_NOTICE)).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Remove general conditions' })).not.toBeInTheDocument();
     });
 
-    it('saves the selected page id as the plan general conditions', async () => {
-        const user = userEvent.setup();
-        renderEditWizard(V4_PLAN);
+    it('offers only to remove the general conditions page a plan already carries', async () => {
+        renderEditWizard(PLAN_WITH_GENERAL_CONDITIONS);
 
-        await user.click(await screen.findByRole('combobox', { name: 'Page of General Conditions' }));
-        await user.click(screen.getByRole('option', { name: 'Service level' }));
+        expect(await screen.findByText(GENERAL_CONDITIONS_NOTICE)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Remove general conditions' })).toBeInTheDocument();
+        expect(screen.queryByRole('combobox', { name: 'Page of General Conditions' })).not.toBeInTheDocument();
+    });
+
+    it('keeps the general conditions page in the payload of a plan saved without removing it', async () => {
+        const user = userEvent.setup();
+        renderEditWizard(PLAN_WITH_GENERAL_CONDITIONS);
+
+        await renamePlanAndSave(user, 'Renamed by operator');
+
+        await waitFor(() => expect(mockUpdatePlan).toHaveBeenCalled());
+        expect(lastUpdatePayload()).toMatchObject({ generalConditions: 'page-terms' });
+    });
+
+    it('leaves the general conditions page out of the payload once it is removed', async () => {
+        const user = userEvent.setup();
+        renderEditWizard(PLAN_WITH_GENERAL_CONDITIONS);
+
+        await screen.findByLabelText(/^Name/);
+        await user.click(screen.getByRole('button', { name: 'Remove general conditions' }));
         await walkToLastStep(user);
         await user.click(screen.getByRole('button', { name: /save changes/i }));
 
         await waitFor(() => expect(mockUpdatePlan).toHaveBeenCalled());
-        expect(lastUpdatePayload()).toMatchObject({ generalConditions: 'page-sla' });
-    });
-});
-
-describe('PlanFormWizard general conditions read from the documentation endpoint', () => {
-    const mockUseGeneralConditionsPages = jest.mocked(useApiGeneralConditionsPages);
-    const mockApimFetchJsonV2 = apimFetchJsonV2 as jest.Mock;
-    const { useApiGeneralConditionsPages: realUseApiGeneralConditionsPages } = jest.requireActual<typeof ApiGeneralConditionsPagesModule>(
-        '../../../../hooks/useApiGeneralConditionsPages',
-    );
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-        mockApimFetchJsonV2.mockResolvedValue({
-            pages: [
-                { id: 'page-terms', name: 'Terms of use', type: 'MARKDOWN', published: true },
-                { id: 'page-draft', name: 'Draft terms', type: 'MARKDOWN', published: false },
-                { id: 'page-spec', name: 'OpenAPI spec', type: 'SWAGGER', published: true },
-            ],
-        });
-        mockUseGeneralConditionsPages.mockImplementation(realUseApiGeneralConditionsPages);
+        expect(lastUpdatePayload().generalConditions).toBeUndefined();
+        expect(screen.queryByText(GENERAL_CONDITIONS_NOTICE)).not.toBeInTheDocument();
     });
 
-    afterEach(() => {
-        mockUseGeneralConditionsPages.mockReturnValue({ data: [] } as unknown as ReturnType<typeof useApiGeneralConditionsPages>);
-    });
+    it('tells a read-only plan about its general conditions page without offering to remove it', async () => {
+        renderEditWizard(PLAN_WITH_GENERAL_CONDITIONS, API_CTX, true);
 
-    it("shows the API's published Markdown page after None, from what the documentation endpoint answers", async () => {
-        const user = userEvent.setup();
-        renderEditWizard(V4_PLAN);
-
-        await user.click(await screen.findByRole('combobox', { name: 'Page of General Conditions' }));
-
-        await waitFor(() => expect(screen.getAllByRole('option').map(option => option.textContent)).toEqual(['None', 'Terms of use']));
-        expect(mockApimFetchJsonV2).toHaveBeenCalledWith('DEFAULT', '/apis/api-1/pages');
+        expect(await screen.findByText(GENERAL_CONDITIONS_NOTICE)).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Remove general conditions' })).not.toBeInTheDocument();
     });
 });
 

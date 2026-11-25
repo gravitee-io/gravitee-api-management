@@ -26,7 +26,6 @@ import type {
     Analytics,
     ApiDetailDto,
     ApiEventsPage,
-    ApiGeneralConditionsPage,
     ApiPathMappings,
     ApiSwaggerDocumentationPage,
     DuplicateApiOptions,
@@ -397,28 +396,6 @@ export async function listApiSwaggerPages(
         }),
     );
     return documents.filter((page): page is ApiSwaggerDocumentationPage => page !== null);
-}
-
-interface ApiDocumentationPagePayload {
-    id?: string;
-    name?: string;
-    type?: string;
-    published?: boolean;
-}
-
-interface ApiDocumentationPagesResponse {
-    pages?: ApiDocumentationPagePayload[];
-}
-
-/** Lists the published MARKDOWN pages a plan can reference as its general conditions, as the classic console offers them. */
-export async function listApiGeneralConditionsPages(environmentId: string, apiId: string): Promise<ApiGeneralConditionsPage[]> {
-    const result = await apimFetchJsonV2<ApiDocumentationPagesResponse>(environmentId, `/apis/${encodeURIComponent(apiId)}/pages`);
-    return (result.pages ?? [])
-        .filter(
-            (page): page is ApiDocumentationPagePayload & { id: string } =>
-                page.type === 'MARKDOWN' && page.published === true && !!page.id,
-        )
-        .map(page => ({ id: page.id, name: page.name || page.id }));
 }
 
 export async function getApiSwaggerPagePaths(environmentId: string, apiId: string, pageId: string): Promise<string[]> {
