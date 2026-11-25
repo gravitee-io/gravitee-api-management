@@ -70,7 +70,8 @@ public class SearchMetricsResponseAdapter {
             .errorKey(asTextOrNull(json.get(ERROR_KEY)))
             .errorComponentName(asTextOrNull(json.get(ERROR_COMPONENT_NAME)))
             .errorComponentType(asTextOrNull(json.get(ERROR_COMPONENT_TYPE)))
-            .additionalMetrics(asMapOrNull(json.get(ADDITIONAL_METRICS)));
+            .additionalMetrics(asMapOrNull(json.get(ADDITIONAL_METRICS)))
+            .customMetrics(asFlatTextMapOrNull(json.get(CUSTOM), id));
 
         if (index.contains(Type.REQUEST.getType())) {
             return metrics

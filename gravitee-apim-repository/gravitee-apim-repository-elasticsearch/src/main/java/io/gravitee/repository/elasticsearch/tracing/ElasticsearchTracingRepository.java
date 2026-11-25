@@ -25,6 +25,7 @@ import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchHit;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.common.query.QueryContext;
+import io.gravitee.repository.elasticsearch.utils.JsonNodeUtils;
 import io.gravitee.repository.elasticsearch.utils.OtelDataStreamIndexUtils;
 import io.gravitee.repository.tracing.api.TracingRepository;
 import io.gravitee.repository.tracing.model.Trace;
@@ -38,7 +39,6 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import lombok.CustomLog;
@@ -504,17 +504,7 @@ public class ElasticsearchTracingRepository implements TracingRepository {
             return result;
         }
         if (node.isObject()) {
-            Iterator<Map.Entry<String, JsonNode>> it = node.fields();
-            while (it.hasNext()) {
-                Map.Entry<String, JsonNode> entry = it.next();
-                String key = prefix.isEmpty() ? entry.getKey() : prefix + "." + entry.getKey();
-                JsonNode value = entry.getValue();
-                if (value.isObject()) {
-                    result.putAll(flattenStringMap(value, key));
-                } else if (!value.isNull()) {
-                    result.put(key, value.asText());
-                }
-            }
+            JsonNodeUtils.putFlattened(node, prefix, result);
         } else if (node.isArray()) {
             for (JsonNode element : node) {
                 JsonNode keyNode = element.get("key");

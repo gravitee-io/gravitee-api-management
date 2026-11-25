@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
+import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asFlatTextMapOrNull;
 import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asIntOr;
 import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asLongOr;
 import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asMapOrNull;
@@ -23,6 +24,7 @@ import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asTextOrN
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.elasticsearch.model.SearchResponse;
+import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.RequestV2MetricsV4Fields;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetail;
 import io.gravitee.repository.log.v4.model.connection.ConnectionDiagnostic;
 import java.util.List;
@@ -80,6 +82,7 @@ public class FindApiMetricsDetailResponseAdapter {
             .securityType(asTextOrNull(json.get("security-type")))
             .securityToken(asTextOrNull(json.get("security-token")))
             .additionalMetrics(asMapOrNull(json.get("additional-metrics")))
+            .customMetrics(asFlatTextMapOrNull(json.get(RequestV2MetricsV4Fields.CUSTOM), hitId))
             .build();
     }
 

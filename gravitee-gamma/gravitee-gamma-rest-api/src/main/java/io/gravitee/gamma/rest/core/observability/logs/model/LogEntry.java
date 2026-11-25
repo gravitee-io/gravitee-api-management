@@ -16,6 +16,8 @@
 package io.gravitee.gamma.rest.core.observability.logs.model;
 
 import java.time.Instant;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Builder;
@@ -63,7 +65,13 @@ public record LogEntry(
     String errorComponentName,
     String errorComponentType,
     List<LogEntryWarning> warnings,
+    /** Additional metrics of the request; empty, never null, when it carries none. */
     Map<String, Object> additionalMetrics,
+    /**
+     * Custom metrics of the request, keyed by name without the {@code custom.} prefix, in document order; empty, never
+     * null, when it carries none.
+     */
+    Map<String, String> customMetrics,
     String mcpMethod,
     String apiProductId,
     String apiProductName,
@@ -76,4 +84,9 @@ public record LogEntry(
     String brokerId,
     Long connectionDurationMs,
     AuthzDecision authz
-) {}
+) {
+    public LogEntry {
+        additionalMetrics = additionalMetrics == null ? Map.of() : additionalMetrics;
+        customMetrics = customMetrics == null ? Map.of() : Collections.unmodifiableMap(new LinkedHashMap<>(customMetrics));
+    }
+}
