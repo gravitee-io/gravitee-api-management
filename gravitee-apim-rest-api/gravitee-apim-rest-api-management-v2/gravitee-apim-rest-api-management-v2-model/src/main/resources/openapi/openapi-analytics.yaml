@@ -1424,7 +1424,12 @@ components:
                 - AUTHZ_SEARCHES
                 - AUTHZ_FAILURES
                 - AUTHZ_EVAL_DURATION
-            description: Available metric names for analytics queries
+            description: |
+                Available metric names for analytics queries. `HTTP_ERRORS` counts the requests answered with a
+                4xx or 5xx status; `EDGE_HEARTBEAT_COUNT` counts the heartbeats of the Edge agents, not their
+                detections. A facets query whose metrics are all `EDGE_*` reads the Edge documents; measures and
+                time series of an `EDGE_*` metric find none unless an `ENTRYPOINT` condition selects `edge`, which
+                the default entrypoint scope leaves out.
 
         FacetName:
             type: string
@@ -1672,10 +1677,13 @@ components:
                         add up to) and `SUM` totals the value: the token or cost total on an LLM metric. `AVG`, `MIN`,
                         `MAX` and the percentiles are computed over the documents carrying the value. A window or bucket
                         without any such document reads 0 for `COUNT`, `SUM` and `PERCENTAGE`, and `null` for the other
-                        measures, with three exceptions: a Native operation duration reads 0 over Native events without
+                        measures, with four exceptions: a Native operation duration reads 0 over Native events without
                         an operation sample; an HTTP or message facet ranked by `AVG`, `MIN`, `MAX` or a percentile, and
-                        any facet of an additional metric field, holds only the groups carrying the value; and an AuthZ
-                        facet or time-series group the metric never counted is left out.
+                        any facet of an additional metric field, holds only the groups carrying the value; a facet or
+                        time-series group of `HTTP_ERRORS` or `EDGE_HEARTBEAT_COUNT` is computed over the requests the
+                        metric counts only, so a terms facet holds only their groups while a range facet such as
+                        `HTTP_STATUS_CODE_GROUP` still lists every range, at 0 when none of them falls in it; and an
+                        AuthZ facet or time-series group the metric never counted is left out.
                     example: 2984
             example:
                 name: "COUNT"
