@@ -105,8 +105,8 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
     const { api } = useApiDetailContext();
     const { data, isLoading, isError } = useApiDocumentation(apiId);
     const portalsQuery = useApiPublishPortals(apiId);
-    // A listing the Automation API keeps in a portal it manages can be neither shown as published nor unpublished here
     const portals = portalsQuery.isSuccess ? portalsQuery.data.data : [];
+    // A listing the Automation API keeps in a portal it manages can be neither shown as published nor unpublished here
     const publications = portalsQuery.isSuccess ? publicationsInPortals(data?.publications ?? [], portals) : undefined;
     const published = publishedPublications(publications ?? [], portals);
     const hasSeveralPortals = portals.length > 1;
@@ -190,7 +190,8 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                         ) : null}
                         {data && publications && canEdit ? (
                             <PublicationAction
-                                canPublish={portalsToPublishTo(publications, portals).length > 0}
+                                // With a single portal, or none, the dialog is where the user learns what is missing
+                                canPublish={!hasSeveralPortals || portalsToPublishTo(publications, portals).length > 0}
                                 // With several portals, each one is unpublished from its row in the list
                                 portalToUnpublish={hasSeveralPortals ? undefined : published[0]?.portal}
                                 onPublish={() => setIsPublishing(true)}

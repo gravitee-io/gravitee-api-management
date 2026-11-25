@@ -463,6 +463,14 @@ describe('ApiDocumentationPage', () => {
             expect(screen.getByRole('dialog', { name: 'Publish to the developer portal' })).toHaveTextContent('listed in [APIs]');
         });
 
+        it('still offers to publish when the console manages no portal, for the dialog to say why', () => {
+            mockUseApiPublishPortals.mockReturnValue({ data: { data: [] }, isSuccess: true });
+            renderPage();
+
+            expect(screen.getByText('Not published')).toBeInTheDocument();
+            expect(screen.getByRole('button', { name: 'Publish' })).toBeInTheDocument();
+        });
+
         it('offers to unpublish a published API, and not to publish it', () => {
             givenDocumentation({ items: [GUIDES], publications: [publication(true)] });
             renderPage();
