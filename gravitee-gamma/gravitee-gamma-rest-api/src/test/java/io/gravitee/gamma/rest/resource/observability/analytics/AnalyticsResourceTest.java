@@ -33,6 +33,7 @@ import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricName;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
+import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
@@ -251,6 +252,22 @@ class AnalyticsResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_answer_400_naming_the_rule_a_custom_group_by_breaks() {
+            when(analyticsDataPort.computeFacets(any())).thenThrow(
+                InvalidObservabilityQueryException.invalidFacetName("custom.a..b", AdditionalMetricField.CUSTOM_NAME_RULE)
+            );
+
+            var response = post("facets", Map.of("timeRange", TIME_RANGE, "metrics", REQUEST_COUNT, "by", List.of("custom.a..b")));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            var body = response.readEntity(JsonNode.class);
+            assertThat(body.get("technicalCode").asText()).isEqualTo("observability.query.invalid_name");
+            assertThat(body.get("message").asText()).isEqualTo(
+                "Facet 'custom.a..b' is not a valid field name: " + AdditionalMetricField.CUSTOM_NAME_RULE
+            );
+        }
+
+        @Test
         void should_answer_400_naming_a_blank_custom_condition() {
             var response = post(
                 "measures",
@@ -266,8 +283,10 @@ class AnalyticsResourceTest extends AbstractResourceTest {
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
             var body = response.readEntity(JsonNode.class);
-            assertThat(body.get("technicalCode").asText()).isEqualTo("observability.filter.unknown_name");
-            assertThat(body.get("message").asText()).contains("custom. ");
+            assertThat(body.get("technicalCode").asText()).isEqualTo("observability.filter.invalid_name");
+            assertThat(body.get("message").asText()).isEqualTo(
+                "Filter 'custom. ' is not a valid field name: " + AdditionalMetricField.CUSTOM_NAME_RULE
+            );
         }
 
         @Test

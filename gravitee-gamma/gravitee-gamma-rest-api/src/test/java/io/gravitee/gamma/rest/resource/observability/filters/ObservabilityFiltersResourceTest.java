@@ -386,16 +386,14 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_return_404_for_a_name_neither_listed_nor_well_formed() {
-            when(getFilterValuesUseCase.execute(any())).thenThrow(
-                new ObservabilityFilterNotFoundException("additional-metrics.unknown_count")
-            );
+        void should_return_404_for_a_name_neither_listed_nor_under_a_dynamic_root() {
+            when(getFilterValuesUseCase.execute(any())).thenThrow(new ObservabilityFilterNotFoundException("UNKNOWN_FILTER"));
 
-            Response response = rootTarget("values").queryParam("name", "additional-metrics.unknown_count").request().get();
+            Response response = rootTarget("values").queryParam("name", "UNKNOWN_FILTER").request().get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
             assertThat(response.readEntity(JsonNode.class).get("message").asText()).isEqualTo(
-                "Observability filter 'additional-metrics.unknown_count' not found"
+                "Observability filter 'UNKNOWN_FILTER' not found"
             );
         }
     }

@@ -60,4 +60,10 @@ public interface FilterRegistry {
      * on its own key). False for any other name.
      */
     boolean identifiesCaller(String name);
+
+    /**
+     * The grammar rule {@code name} breaks when it starts with a dynamic root ({@code custom.},
+     * {@code additional-metrics.}) and is not well formed; empty otherwise, a name under no dynamic root included.
+     */
+    Optional<String> nameRefusal(String name);
 }

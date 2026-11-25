@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.gamma.rest.core.observability.dashboard.exception.InvalidDashboardException;
 import io.gravitee.gamma.rest.core.observability.dashboard.inmemory.InMemoryDashboardRepository;
@@ -130,6 +131,24 @@ class CreateObservabilityDashboardUseCaseTest {
         assertThatThrownBy(() -> useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, DASHBOARD_ID, MODULE, content)))
             .isInstanceOf(UnsupportedObservabilityFilterException.class)
             .hasMessageContaining("REQUEST_ID");
+        assertThat(dashboardRepository.findByEnvironmentId(ENV)).isEmpty();
+    }
+
+    @Test
+    void should_refuse_a_dashboard_filter_breaking_the_custom_metric_grammar_naming_the_rule() {
+        var content = new DashboardContent(
+            "Fraud",
+            null,
+            List.of(new DashboardFilter(new FilterCondition("custom.a..b", FilterOperator.EQ, List.of("gold")), "Tier", false)),
+            null,
+            null
+        );
+
+        assertThatThrownBy(() -> useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, DASHBOARD_ID, MODULE, content)))
+            .isInstanceOf(UnsupportedObservabilityFilterException.class)
+            .hasMessage("Filter 'custom.a..b' is not a valid field name: " + AdditionalMetricField.CUSTOM_NAME_RULE)
+            .extracting("technicalCode")
+            .isEqualTo("observability.filter.invalid_name");
         assertThat(dashboardRepository.findByEnvironmentId(ENV)).isEmpty();
     }
 

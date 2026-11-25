@@ -20,6 +20,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gamma.rest.core.observability.filter.inmemory.InMemoryObservabilityFilterDataPort;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterValue;
@@ -97,6 +98,30 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
         JsonNode body = response.readEntity(JsonNode.class);
         assertThat(body.get("message").asText()).contains("NATIVE_TOPIC");
         assertThat(dataPort.lastCall()).isEmpty();
+    }
+
+    /** E2E finding C2: a name breaking the field grammar is a 400 naming the rule, not a 404, on both forms. */
+    @Test
+    void should_answer_400_naming_the_rule_for_a_custom_name_outside_the_grammar() {
+        for (var response : List.of(
+            rootTarget("custom.a..b/values").request().get(),
+            rootTarget("values").queryParam("name", "custom.a..b").request().get()
+        )) {
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            JsonNode body = response.readEntity(JsonNode.class);
+            assertThat(body.get("technicalCode").asText()).isEqualTo("observability.filter.invalid_name");
+            assertThat(body.get("message").asText()).isEqualTo(
+                "Filter 'custom.a..b' is not a valid field name: " + AdditionalMetricField.CUSTOM_NAME_RULE
+            );
+        }
+        assertThat(dataPort.lastCall()).isEmpty();
+    }
+
+    @Test
+    void should_still_answer_404_for_a_name_under_no_dynamic_root() {
+        Response response = rootTarget("UNKNOWN/values").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
     }
 
     @Test
