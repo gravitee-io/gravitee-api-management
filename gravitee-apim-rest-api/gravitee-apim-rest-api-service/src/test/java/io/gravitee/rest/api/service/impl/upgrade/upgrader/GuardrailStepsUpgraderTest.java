@@ -76,7 +76,7 @@ class GuardrailStepsUpgraderTest {
 
         JsonNode flow = updatedDefinition().at("/internalFlow");
         SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(flow.at("/request/0/policy").asText()).as("request guardrail policy").isEqualTo("guardrail-policy");
+            softly.assertThat(flow.at("/request/0/policy").asText()).as("request step policy").isEqualTo("guardrail-run");
             softly.assertThat(flow.at("/request/0/configuration/guardrailId").asText()).as("request guardrail").isEqualTo("guardian-1");
             softly.assertThat(flow.at("/request/0/configuration/guardianId").isMissingNode()).as("request guardian key left").isTrue();
             softly.assertThat(flow.at("/request/1/policy").asText()).as("other policy").isEqualTo("rate-limit");
@@ -84,7 +84,7 @@ class GuardrailStepsUpgraderTest {
                 .assertThat(flow.at("/request/1/configuration/guardianId").asText())
                 .as("other policy configuration")
                 .isEqualTo("not-a-guardian");
-            softly.assertThat(flow.at("/response/0/policy").asText()).as("response guardrail policy").isEqualTo("guardrail-policy");
+            softly.assertThat(flow.at("/response/0/policy").asText()).as("response step policy").isEqualTo("guardrail-run");
             softly.assertThat(flow.at("/response/0/configuration/guardrailId").asText()).as("response guardrail").isEqualTo("guardian-2");
             softly.assertThat(flow.at("/response/0/configuration/onError").asText()).as("other configuration key").isEqualTo("BLOCK");
             softly.assertThat(flow.at("/response/0/name").asText()).as("step name").isEqualTo("Toxicity");
@@ -116,7 +116,7 @@ class GuardrailStepsUpgraderTest {
         givenApis(
             anApi(
                 """
-                {"type":"llm-proxy","internalFlow":{"request":[{"policy":"guardrail-policy","configuration":{"guardrailId":"g-1"}}]}}
+                {"type":"llm-proxy","internalFlow":{"request":[{"policy":"guardrail-run","configuration":{"guardrailId":"g-1"}}]}}
                 """
             )
         );

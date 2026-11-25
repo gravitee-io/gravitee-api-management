@@ -32,7 +32,7 @@ class GuardrailStepsTest {
         var step = GuardrailSteps.of("guardrail-1", "Credential leakage");
 
         assertSoftly(softly -> {
-            softly.assertThat(step.getPolicy()).as("policy").isEqualTo("guardrail-policy");
+            softly.assertThat(step.getPolicy()).as("policy").isEqualTo("guardrail-run");
             softly.assertThat(step.getName()).as("name").isEqualTo("Credential leakage");
             softly.assertThat(step.isEnabled()).as("enabled").isTrue();
             softly.assertThat(GuardrailSteps.guardrailIdOf(step)).as("guardrail id").contains("guardrail-1");
@@ -63,7 +63,7 @@ class GuardrailStepsTest {
 
     @Test
     void should_not_read_a_guardrail_from_a_step_without_its_id() {
-        var step = Step.builder().policy("guardrail-policy").configuration("{}").build();
+        var step = Step.builder().policy("guardrail-run").configuration("{}").build();
 
         assertThat(GuardrailSteps.guardrailIdOf(step)).as("guardrail id of a step without one").isEmpty();
     }
@@ -76,17 +76,14 @@ class GuardrailStepsTest {
     void should_write_the_configuration_the_gateway_reads() throws JsonProcessingException {
         var step = GuardrailSteps.of("guardrail-1", "Credential leakage");
 
-        var configuration = new ObjectMapper().readValue(step.getConfiguration(), GuardrailPolicyConfiguration.class);
+        var configuration = new ObjectMapper().readValue(step.getConfiguration(), GuardrailRunPolicyConfiguration.class);
 
         assertThat(configuration.getGuardrailId()).as("guardrail id the policy configuration carries").isEqualTo("guardrail-1");
     }
 
     @Test
     void should_read_a_guardrail_from_a_configuration_carrying_more_than_its_id() {
-        var step = Step.builder()
-            .policy("guardrail-policy")
-            .configuration("{\"guardrailId\":\"guardrail-1\",\"onError\":\"BLOCK\"}")
-            .build();
+        var step = Step.builder().policy("guardrail-run").configuration("{\"guardrailId\":\"guardrail-1\",\"onError\":\"BLOCK\"}").build();
 
         assertThat(GuardrailSteps.guardrailIdOf(step)).as("guardrail id of a richer configuration").contains("guardrail-1");
     }

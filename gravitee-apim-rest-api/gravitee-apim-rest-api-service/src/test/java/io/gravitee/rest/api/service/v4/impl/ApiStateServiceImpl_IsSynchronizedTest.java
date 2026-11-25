@@ -1041,7 +1041,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
                 .request(
                     Arrays.stream(guardrailIds)
                         .map(guardrailId ->
-                            Step.builder().policy("guardrail-policy").configuration("{\"guardrailId\":\"" + guardrailId + "\"}").build()
+                            Step.builder().policy("guardrail-run").configuration("{\"guardrailId\":\"" + guardrailId + "\"}").build()
                         )
                         .toList()
                 )
