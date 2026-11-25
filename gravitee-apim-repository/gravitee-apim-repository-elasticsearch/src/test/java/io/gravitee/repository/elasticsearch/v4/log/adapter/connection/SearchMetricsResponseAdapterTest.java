@@ -25,6 +25,7 @@ import io.gravitee.elasticsearch.model.TotalHits;
 import io.gravitee.repository.elasticsearch.AbstractAdapterTest;
 import io.gravitee.repository.log.v4.model.connection.Metrics;
 import java.util.List;
+import java.util.Map;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -158,6 +159,41 @@ class SearchMetricsResponseAdapterTest extends AbstractAdapterTest {
             assertThat(metrics.getEndpoint()).isEqualTo("https://api.gravitee.io/echo");
             // apiProductId is absent in this fixture — must map to null, not throw
             assertThat(metrics.getApiProductId()).isNull();
+        }
+    }
+
+    @Nested
+    class CustomMetrics {
+
+        @Test
+        void should_read_the_custom_metrics_apart_from_the_additional_metrics() {
+            var searchResponse = buildSearchHit("api-proxy-v4-metrics-with-custom-and-additional-metrics.json");
+
+            Metrics metrics = SearchMetricsResponseAdapter.adapt(searchResponse).data().getFirst();
+
+            assertThat(metrics.getCustomMetrics()).containsExactlyInAnyOrderEntriesOf(
+                Map.of("customer.tier", "gold", "order.channel", "web")
+            );
+            assertThat(metrics.getAdditionalMetrics()).containsOnlyKeys("keyword_fraud-check_tier", "long_failover_count");
+        }
+
+        @Test
+        void should_leave_them_null_when_the_document_carries_none() {
+            var searchResponse = buildSearchHit("api-proxy-v4-metrics-with-api-product.json");
+
+            Metrics metrics = SearchMetricsResponseAdapter.adapt(searchResponse).data().getFirst();
+
+            assertThat(metrics.getCustomMetrics()).isNull();
+        }
+
+        @Test
+        void should_read_them_on_a_v2_request_index_hit_too() {
+            // The v2 reporter writes the same custom object at the root of a request document.
+            var searchResponse = buildSearchHitWithIndex("api-proxy-v4-metrics.json", "gravitee-request-2025.01.01");
+
+            Metrics metrics = SearchMetricsResponseAdapter.adapt(searchResponse).data().getFirst();
+
+            assertThat(metrics.getCustomMetrics()).containsExactly(Map.entry("foo", "bar"));
         }
     }
 }

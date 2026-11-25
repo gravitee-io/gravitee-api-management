@@ -15,13 +15,12 @@
  */
 package io.gravitee.gamma.rest.resource.observability.filters;
 
+import static io.gravitee.gamma.rest.resources.observability.ObservabilityOpenApi.propertyNames;
+import static io.gravitee.gamma.rest.resources.observability.ObservabilityOpenApi.schemas;
+import static io.gravitee.gamma.rest.resources.observability.ObservabilityOpenApi.serializedNames;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricValueType;
 import io.gravitee.gamma.rest.core.observability.catalog.model.CatalogOrigin;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
@@ -32,15 +31,9 @@ import io.gravitee.gamma.rest.resources.observability.metricdefinitions.dto.Metr
 import io.gravitee.gamma.rest.resources.observability.metricdefinitions.dto.MetricDefinitionEntryDto;
 import io.gravitee.gamma.rest.resources.observability.metricdefinitions.dto.MetricDefinitionsResponseDto;
 import io.gravitee.gamma.rest.resources.observability.metricdefinitions.dto.SaveMetricDefinitionRequestDto;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -51,21 +44,6 @@ import org.junit.jupiter.params.provider.MethodSource;
  * OpenAPI schemas.
  */
 class FilterCatalogSchemaTest {
-
-    private static final String SPEC = "/openapi/observability/openapi-observability.yaml";
-    private static final String SCHEMA_REF_PREFIX = "#/components/schemas/";
-    private static final ObjectMapper JSON = new ObjectMapper();
-
-    private static JsonNode schemas;
-
-    @BeforeAll
-    static void loadSpec() throws IOException {
-        try (InputStream spec = FilterCatalogSchemaTest.class.getResourceAsStream(SPEC)) {
-            // A schema declared twice would otherwise be read as its last declaration, the other one silently dropped.
-            var yaml = new ObjectMapper(new YAMLFactory()).enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
-            schemas = yaml.readTree(spec).path("components").path("schemas");
-        }
-    }
 
     @Test
     void should_serialize_a_filter_spec_with_the_properties_of_its_schema_catalog_flags_included() {
@@ -108,40 +86,10 @@ class FilterCatalogSchemaTest {
     }
 
     private static List<String> publishedEnum(String schemaName) {
-        return StreamSupport.stream(schemas.path(schemaName).path("enum").spliterator(), false).map(JsonNode::asText).toList();
+        return StreamSupport.stream(schemas().path(schemaName).path("enum").spliterator(), false).map(JsonNode::asText).toList();
     }
 
     private static List<String> names(Enum<?>[] values) {
         return Arrays.stream(values).map(Enum::name).toList();
-    }
-
-    private static Set<String> propertyNames(String schemaName) {
-        JsonNode schema = schemas.path(schemaName);
-        assertThat(schema.isObject()).as("schema %s is defined", schemaName).isTrue();
-        return propertyNames(schema);
-    }
-
-    private static Set<String> propertyNames(JsonNode schema) {
-        Set<String> names = new HashSet<>();
-        schema.path("properties").fieldNames().forEachRemaining(names::add);
-        for (JsonNode composed : schema.path("allOf")) {
-            if (composed.has("$ref")) {
-                String ref = composed.path("$ref").asText();
-                assertThat(ref).as("allOf member reference").startsWith(SCHEMA_REF_PREFIX);
-                names.addAll(propertyNames(ref.substring(SCHEMA_REF_PREFIX.length())));
-            } else {
-                names.addAll(propertyNames(composed));
-            }
-        }
-        return names;
-    }
-
-    private static Set<String> serializedNames(Class<?> type) {
-        return JSON.getSerializationConfig()
-            .introspect(JSON.constructType(type))
-            .findProperties()
-            .stream()
-            .map(BeanPropertyDefinition::getName)
-            .collect(Collectors.toSet());
     }
 }

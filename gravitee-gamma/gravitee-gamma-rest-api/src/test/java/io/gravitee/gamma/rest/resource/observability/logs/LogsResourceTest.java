@@ -60,6 +60,7 @@ import jakarta.ws.rs.core.Response;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -165,6 +166,31 @@ class LogsResourceTest extends AbstractResourceTest {
             JsonNode body = response.readEntity(JsonNode.class);
             assertThat(body.get("data").get(0).get("traceId").asText()).isEqualTo("4bf92f3577b34da6a3ce929d0e0e4736");
             assertThat(body.get("data").get(1).has("traceId")).isFalse();
+        }
+
+        @Test
+        void should_emit_the_custom_metrics_on_every_row_empty_when_the_request_carries_none() {
+            var inDocumentOrder = new LinkedHashMap<String, String>();
+            inDocumentOrder.put("zone", "eu-west");
+            inDocumentOrder.put("customer.tier", "gold");
+            inDocumentOrder.put("apple", "a");
+            var withCustom = LogEntry.builder().apiId("api-1").requestId("req-1").customMetrics(inDocumentOrder).build();
+            var withoutCustom = LogEntry.builder().apiId("api-1").requestId("req-2").build();
+            when(searchLogsUseCase.execute(any())).thenReturn(
+                new SearchObservabilityLogsUseCase.Output(new LogsPage(List.of(withCustom, withoutCustom), 2), 1, 20)
+            );
+
+            Response response = rootTarget("search").request().post(Entity.entity(Map.of(), MediaType.APPLICATION_JSON_TYPE));
+
+            JsonNode body = response.readEntity(JsonNode.class);
+            assertThat(body.get("data").get(0).get("customMetrics").get("customer.tier").asText()).isEqualTo("gold");
+            assertThat(body.get("data").get(0).get("customMetrics").fieldNames())
+                .toIterable()
+                .containsExactly("zone", "customer.tier", "apple");
+            assertThat(body.get("data").get(1).get("customMetrics").isObject()).isTrue();
+            assertThat(body.get("data").get(1).get("customMetrics")).isEmpty();
+            assertThat(body.get("data").get(1).get("additionalMetrics").isObject()).isTrue();
+            assertThat(body.get("data").get(1).get("additionalMetrics")).isEmpty();
         }
 
         @Test
@@ -501,6 +527,27 @@ class LogsResourceTest extends AbstractResourceTest {
             assertThat(body.get("traceId").asText()).isEqualTo("4bf92f3577b34da6a3ce929d0e0e4736");
             assertThat(body.get("entrypointRequest").get("method").asText()).isEqualTo("GET");
             assertThat(body.get("entrypointResponse").get("body").asText()).isEqualTo("{\"id\":42}");
+        }
+
+        @Test
+        void should_emit_the_custom_metrics_of_the_detail_empty_when_the_request_carries_none() {
+            var withCustom = LogDetail.builder().requestId(REQUEST_ID).apiId(API_ID).customMetrics(Map.of("customer.tier", "gold")).build();
+            var withoutCustom = LogDetail.builder().requestId("req-456").apiId(API_ID).build();
+            when(getLogDetailUseCase.execute(any())).thenAnswer(invocation -> {
+                GetObservabilityLogDetailUseCase.Input input = invocation.getArgument(0);
+                return new GetObservabilityLogDetailUseCase.Output(
+                    Optional.of(REQUEST_ID.equals(input.requestId()) ? withCustom : withoutCustom)
+                );
+            });
+
+            JsonNode carried = rootTarget(REQUEST_ID).queryParam("apiId", API_ID).request().get().readEntity(JsonNode.class);
+            JsonNode empty = rootTarget("req-456").queryParam("apiId", API_ID).request().get().readEntity(JsonNode.class);
+
+            assertThat(carried.get("customMetrics").get("customer.tier").asText()).isEqualTo("gold");
+            assertThat(empty.get("customMetrics").isObject()).isTrue();
+            assertThat(empty.get("customMetrics")).isEmpty();
+            assertThat(empty.get("additionalMetrics").isObject()).isTrue();
+            assertThat(empty.get("additionalMetrics")).isEmpty();
         }
 
         @Test

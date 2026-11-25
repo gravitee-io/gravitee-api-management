@@ -65,6 +65,7 @@ import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -1513,6 +1514,115 @@ class ObservabilityLogsDataPortAdapterTest {
 
             assertThat(page.data()).isEmpty();
             assertThat(page.totalCount()).isEqualTo(30);
+        }
+    }
+
+    /** Custom metrics travel on their own map, apart from the additional metrics, and the map is never absent. */
+    @Nested
+    class CustomMetrics {
+
+        private static final Map<String, String> CUSTOM = Map.of("customer.tier", "gold", "region", "eu-west");
+
+        @Test
+        void should_carry_them_onto_the_log_row_apart_from_the_additional_metrics() {
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
+                new SearchLogsResponse<>(
+                    1,
+                    List.of(
+                        BaseConnectionLog.builder()
+                            .apiId("api-1")
+                            .customMetrics(CUSTOM)
+                            .additionalMetrics(Map.of("keyword_fraud-check_tier", "high"))
+                            .build()
+                    )
+                )
+            );
+
+            var row = adapter.searchLogs(ORG, ENV, queryWith()).data().getFirst();
+
+            assertThat(row.customMetrics()).containsExactlyInAnyOrderEntriesOf(CUSTOM);
+            assertThat(row.additionalMetrics()).containsExactly(Map.entry("keyword_fraud-check_tier", "high"));
+        }
+
+        @Test
+        void should_keep_them_in_document_order() {
+            var names = List.of("zone", "order.channel", "apple", "mid", "beta", "kilo", "alpha", "yankee", "delta", "echo");
+            var inDocumentOrder = new LinkedHashMap<String, String>();
+            names.forEach(name -> inDocumentOrder.put(name, "v"));
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
+                new SearchLogsResponse<>(1, List.of(BaseConnectionLog.builder().apiId("api-1").customMetrics(inDocumentOrder).build()))
+            );
+
+            var row = adapter.searchLogs(ORG, ENV, queryWith()).data().getFirst();
+
+            assertThat(row.customMetrics().keySet()).containsExactlyElementsOf(names);
+        }
+
+        @Test
+        void should_answer_an_empty_map_on_a_row_without_any() {
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
+                new SearchLogsResponse<>(1, List.of(BaseConnectionLog.builder().apiId("api-1").build()))
+            );
+
+            var row = adapter.searchLogs(ORG, ENV, queryWith()).data().getFirst();
+
+            assertThat(row.customMetrics()).isNotNull().isEmpty();
+        }
+
+        @Test
+        void should_answer_an_empty_map_on_an_authorization_decision_row() {
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(
+                new SearchLogsResponse<>(1, List.of(AuthzDecisionLog.builder().eventId("evt-1").apiId("api-1").build()))
+            );
+            var query = LogsSearchQuery.builder()
+                .apiIds(Set.of("api-1"))
+                .apisById(Map.of("api-1", new ApiReference("API 1", "HTTP_PROXY")))
+                .conditions(List.of())
+                .page(1)
+                .perPage(20)
+                .recordType(RecordType.AUTHZ_DECISION)
+                .build();
+
+            var row = adapter.searchLogs(ORG, ENV, query).data().getFirst();
+
+            assertThat(row.customMetrics()).isNotNull().isEmpty();
+        }
+
+        @Test
+        void should_carry_them_onto_the_log_detail_apart_from_the_additional_metrics() {
+            when(apiCrudService.findById("api-1")).thenReturn(Optional.empty());
+            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any())).thenReturn(Optional.empty());
+            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1"))).thenReturn(
+                Optional.of(
+                    io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder()
+                        .apiId("api-1")
+                        .requestId("req-1")
+                        .customMetrics(CUSTOM)
+                        .additionalMetrics(Map.of("keyword_fraud-check_tier", "high"))
+                        .build()
+                )
+            );
+
+            var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            assertThat(detail.customMetrics()).containsExactlyInAnyOrderEntriesOf(CUSTOM);
+            assertThat(detail.additionalMetrics()).containsExactly(Map.entry("keyword_fraud-check_tier", "high"));
+        }
+
+        @Test
+        void should_answer_empty_maps_on_a_detail_found_in_the_connection_log_only() {
+            when(apiCrudService.findById("api-1")).thenReturn(Optional.empty());
+            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1"))).thenReturn(Optional.empty());
+            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any())).thenReturn(
+                Optional.of(
+                    io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail.builder().apiId("api-1").requestId("req-1").build()
+                )
+            );
+
+            var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            assertThat(detail.customMetrics()).isNotNull().isEmpty();
+            assertThat(detail.additionalMetrics()).isNotNull().isEmpty();
         }
     }
 }

@@ -53,6 +53,13 @@
 { "entrypoint-id": "http-proxy", "@timestamp": "${dateDaysAgo["10"]}T08:03:00.000Z", "request-id": "am-003", "api-id": "additional-metrics-api-001", "status": 200, "gateway-response-time-ms": 30, "additional-metrics": { "keyword_fraud-check_tier": "low", "long_failover_count": 5, "double_fraud-check_score": 0.1, "bool_cache_hit": true } }
 { "index" :{ ${indexNameDaysAgo["10"]}, "_id": "am-004"}}
 { "entrypoint-id": "http-proxy", "@timestamp": "${dateDaysAgo["10"]}T08:04:00.000Z", "request-id": "am-004", "api-id": "additional-metrics-api-001", "status": 500, "gateway-response-time-ms": 40, "additional-metrics": {  } }
+<#-- Custom metrics (assign-metrics) next to additional metrics, ten days back under an API of their own -->
+{ "index" :{ ${indexNameDaysAgo["10"]}, "_id": "cm-log-001"}}
+{ "entrypoint-id": "http-proxy", "@timestamp": "${dateDaysAgo["10"]}T07:01:00.000Z", "request-id": "cm-log-001", "api-id": "custom-metrics-logs-api-001", "status": 200, "gateway-response-time-ms": 10, "custom": { "customer.tier": "gold", "region": "eu-west" }, "additional-metrics": { "keyword_fraud-check_tier": "high" } }
+{ "index" :{ ${indexNameDaysAgo["10"]}, "_id": "cm-log-002"}}
+{ "entrypoint-id": "http-proxy", "@timestamp": "${dateDaysAgo["10"]}T07:02:00.000Z", "request-id": "cm-log-002", "api-id": "custom-metrics-logs-api-001", "status": 200, "gateway-response-time-ms": 20, "custom": { "order": { "channel": "web" } } }
+{ "index" :{ ${indexNameDaysAgo["10"]}, "_id": "cm-log-003"}}
+{ "entrypoint-id": "http-proxy", "@timestamp": "${dateDaysAgo["10"]}T07:03:00.000Z", "request-id": "cm-log-003", "api-id": "custom-metrics-logs-api-001", "status": 200, "gateway-response-time-ms": 30, "additional-metrics": { "keyword_fraud-check_tier": "low" } }
 <#-- LLM requests, ten days back under an API of their own: lp-004 carries no value, lp-003 and lp-005 one side only -->
 { "index" :{ ${indexNameDaysAgo["10"]}, "_id": "lp-001"}}
 { "entrypoint-id": "http-proxy", "@timestamp": "${dateDaysAgo["10"]}T08:01:00.000Z", "request-id": "lp-001", "api-id": "llm-measures-api-001", "status": 200, "endpoint-response-time-ms": 100, "additional-metrics": { "keyword_llm-proxy_model": "gpt-4", "long_llm-proxy_tokens-sent": 100, "long_llm-proxy_tokens-received": 200, "double_llm-proxy_sent-cost": 0.001, "double_llm-proxy_received-cost": 0.002 } }
