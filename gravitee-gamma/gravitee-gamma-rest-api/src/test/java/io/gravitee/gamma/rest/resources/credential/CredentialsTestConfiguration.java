@@ -149,13 +149,15 @@ class CredentialsTestConfiguration {
     UpdateCredentialUseCase updateCredentialUseCase(
         CredentialCrudServiceInMemory credentialCrudService,
         CredentialOwnerDomainService credentialOwnerDomainService,
-        CredentialAuditDomainService credentialAuditDomainService
+        CredentialAuditDomainService credentialAuditDomainService,
+        CredentialConsumersInMemory credentialConsumers
     ) {
         return new UpdateCredentialUseCase(
             credentialCrudService,
             credentialOwnerDomainService,
             credentialAuditDomainService,
-            new CredentialExpressionDomainService(new SpelSecretExpressionParser())
+            new CredentialExpressionDomainService(new SpelSecretExpressionParser()),
+            credentialConsumers
         );
     }
 

@@ -18,6 +18,7 @@ package io.gravitee.apim.core.credential.use_case;
 import static io.gravitee.apim.core.credential.use_case.CredentialFixture.ENV_ID;
 import static io.gravitee.apim.core.credential.use_case.CredentialFixture.FOREIGN_USER_ID;
 import static io.gravitee.apim.core.credential.use_case.CredentialFixture.NEXT_YEAR;
+import static io.gravitee.apim.core.credential.use_case.CredentialFixture.ORG_ID;
 import static io.gravitee.apim.core.credential.use_case.CredentialFixture.OTHER_USER_ID;
 import static io.gravitee.apim.core.credential.use_case.CredentialFixture.OUTSIDER_ID;
 import static io.gravitee.apim.core.credential.use_case.CredentialFixture.OWNER_ID;
@@ -35,6 +36,7 @@ import io.gravitee.apim.core.credential.model.CredentialActor.SecretAccess;
 import io.gravitee.apim.core.credential.model.CredentialStrategy;
 import io.gravitee.apim.core.credential.model.SecretReference;
 import io.gravitee.apim.core.credential.model.UpdateCredentialCommand;
+import io.gravitee.apim.core.credential.service_provider.CredentialConsumerPort;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -93,6 +95,44 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
         var updated = update(fixture.owner(), credential, c -> c.references(Map.of("token", "/vault/secret/openai:token-v2")));
 
         assertThat(updated.secretReferences()).containsOnly(Map.entry("token", new SecretReference("/vault/secret/openai:token-v2", null)));
+    }
+
+    @Test
+    void should_tell_the_consumers_when_the_references_change() {
+        var credential = fixture.givenACredential();
+
+        update(fixture.owner(), credential, c -> c.references(Map.of("token", "/vault/secret/openai:token-v2")));
+
+        assertThat(fixture.consumers.changes()).containsExactly(
+            new CredentialConsumerPort.Change(ORG_ID, ENV_ID, credential.id(), OWNER_ID)
+        );
+    }
+
+    @Test
+    void should_tell_the_consumers_when_the_configuration_changes() {
+        var credential = fixture.givenACredential(c ->
+            c
+                .strategy(CredentialStrategy.API_KEY)
+                .configuration(Map.of("headerName", "X-Api-Key"))
+                .references(Map.of("value", "/vault/secret/azure:key"))
+        );
+
+        update(fixture.owner(), credential, c -> c.configuration(Map.of("headerName", "api-key")));
+
+        assertThat(fixture.consumers.changes()).containsExactly(
+            new CredentialConsumerPort.Change(ORG_ID, ENV_ID, credential.id(), OWNER_ID)
+        );
+    }
+
+    @Test
+    void should_not_tell_the_consumers_when_only_the_details_change() {
+        var credential = fixture.givenACredential();
+
+        update(fixture.owner(), credential, c ->
+            c.name("OpenAI staging").serviceId("openai-eu").expiresAt(NEXT_YEAR).references(Map.of("token", "/vault/secret/openai:token"))
+        );
+
+        assertThat(fixture.consumers.changes()).isEmpty();
     }
 
     @Test

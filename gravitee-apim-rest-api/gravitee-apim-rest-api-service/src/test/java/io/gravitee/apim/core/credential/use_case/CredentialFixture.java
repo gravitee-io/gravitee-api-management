@@ -120,7 +120,7 @@ public class CredentialFixture {
         createCredentialUseCase = new CreateCredentialUseCase(credentialCrudService, secrets, owners, audit, expressions);
         getCredentialUseCase = new GetCredentialUseCase(credentialCrudService, owners);
         searchCredentialsUseCase = new SearchCredentialsUseCase(credentialQueryService, owners);
-        updateCredentialUseCase = new UpdateCredentialUseCase(credentialCrudService, owners, audit, expressions);
+        updateCredentialUseCase = new UpdateCredentialUseCase(credentialCrudService, owners, audit, expressions, consumers);
         rotateCredentialUseCase = new RotateCredentialUseCase(credentialCrudService, secrets, audit);
         deleteCredentialUseCase = new DeleteCredentialUseCase(credentialCrudService, secrets, consumers, audit);
         listCredentialConsumersUseCase = new ListCredentialConsumersUseCase(credentialCrudService, consumers);
