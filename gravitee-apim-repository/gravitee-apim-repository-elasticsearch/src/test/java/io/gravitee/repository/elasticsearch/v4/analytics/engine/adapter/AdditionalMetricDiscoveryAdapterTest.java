@@ -154,74 +154,68 @@ class AdditionalMetricDiscoveryAdapterTest {
             assertThat(candidates.names()).containsExactly("additional-metrics.keyword_tier", "custom.keyword_tier");
         }
 
+        /** E2E finding A5: an environment's late key used to be cut by another environment's keys sorting first. */
         @Test
-        void should_probe_at_most_the_probe_cap_and_say_so() {
-            var typesByField = new HashMap<String, Set<String>>();
-            IntStream.range(0, AdditionalMetricDiscoveryAdapter.MAX_PROBED_KEYS + 1).forEach(i ->
-                typesByField.put("additional-metrics.long_key-%04d".formatted(i), Set.of("long"))
+        void should_probe_every_key_of_the_mapping_below_the_safety_cap_without_saying_it_is_truncated() {
+            var typesByField = keys("additional-metrics.long_key-%04d", "long", 1_500);
+            typesByField.putAll(keys("custom.key-%04d", "keyword", 1_500));
+            typesByField.put("custom.zzz-late", Set.of("keyword"));
+
+            var candidates = AdditionalMetricDiscoveryAdapter.candidates(typesByField);
+
+            assertThat(candidates.names()).hasSize(3_001).contains("custom.zzz-late");
+            assertThat(candidates.truncated()).isFalse();
+        }
+
+        /** A deadline cuts the probes batch by batch: alternating the maps keeps one from starving the other. */
+        @Test
+        void should_alternate_the_two_maps_each_sorted_by_wire_name() {
+            var candidates = AdditionalMetricDiscoveryAdapter.candidates(
+                Map.of(
+                    "additional-metrics.long_c",
+                    Set.of("long"),
+                    "additional-metrics.long_a",
+                    Set.of("long"),
+                    "additional-metrics.long_b",
+                    Set.of("long"),
+                    "custom.y",
+                    Set.of("keyword"),
+                    "custom.x",
+                    Set.of("keyword")
+                )
             );
 
-            var candidates = AdditionalMetricDiscoveryAdapter.candidates(typesByField);
-
-            assertThat(candidates.names()).hasSize(AdditionalMetricDiscoveryAdapter.MAX_PROBED_KEYS);
-            assertThat(candidates.truncated()).isTrue();
+            assertThat(candidates.names()).containsExactly(
+                "additional-metrics.long_a",
+                "custom.x",
+                "additional-metrics.long_b",
+                "custom.y",
+                "additional-metrics.long_c"
+            );
         }
 
         @Test
-        void should_still_probe_the_custom_keys_of_an_index_busy_with_additional_metric_keys() {
-            var typesByField = keys("additional-metrics.long_key-%04d", "long", AdditionalMetricDiscoveryAdapter.MAX_PROBED_KEYS);
-            typesByField.put("custom.fraud-tier", Set.of("keyword"));
-
-            var candidates = AdditionalMetricDiscoveryAdapter.candidates(typesByField);
-
-            assertThat(candidates.names()).hasSize(AdditionalMetricDiscoveryAdapter.MAX_PROBED_KEYS).contains("custom.fraud-tier");
-            assertThat(candidates.names())
-                .filteredOn(name -> name.startsWith("additional-metrics."))
-                .hasSize(999);
-            assertThat(candidates.truncated()).isTrue();
-        }
-
-        @Test
-        void should_still_probe_the_additional_metric_keys_of_an_index_busy_with_custom_keys() {
-            var typesByField = keys("custom.key-%04d", "keyword", AdditionalMetricDiscoveryAdapter.MAX_PROBED_KEYS);
-            typesByField.put("additional-metrics.long_failover_count", Set.of("long"));
-
-            var candidates = AdditionalMetricDiscoveryAdapter.candidates(typesByField);
-
-            assertThat(candidates.names())
-                .hasSize(AdditionalMetricDiscoveryAdapter.MAX_PROBED_KEYS)
-                .contains("additional-metrics.long_failover_count");
-            assertThat(candidates.names())
-                .filteredOn(name -> name.startsWith("custom."))
-                .hasSize(999);
-            assertThat(candidates.truncated()).isTrue();
-        }
-
-        @Test
-        void should_cut_each_map_to_its_share_when_both_exceed_it() {
-            var typesByField = keys("additional-metrics.long_key-%04d", "long", AdditionalMetricDiscoveryAdapter.MAX_PROBED_KEYS);
-            typesByField.putAll(keys("custom.key-%04d", "keyword", AdditionalMetricDiscoveryAdapter.MAX_PROBED_KEYS));
+        void should_probe_every_key_without_saying_truncated_at_exactly_the_safety_cap() {
+            var typesByField = keys("additional-metrics.long_key-%05d", "long", AdditionalMetricDiscoveryAdapter.MAX_PROBED_KEYS);
 
             var candidates = AdditionalMetricDiscoveryAdapter.candidates(typesByField);
 
             assertThat(candidates.names()).hasSize(AdditionalMetricDiscoveryAdapter.MAX_PROBED_KEYS);
-            assertThat(candidates.names())
-                .filteredOn(name -> name.startsWith("custom."))
-                .hasSize(AdditionalMetricDiscoveryAdapter.CUSTOM_PROBED_KEYS)
-                .first()
-                .isEqualTo("custom.key-0000");
-            assertThat(candidates.truncated()).isTrue();
-        }
-
-        @Test
-        void should_probe_every_key_of_both_maps_within_the_cap_without_saying_it_is_truncated() {
-            var typesByField = keys("additional-metrics.long_key-%04d", "long", 700);
-            typesByField.putAll(keys("custom.key-%04d", "keyword", 300));
-
-            var candidates = AdditionalMetricDiscoveryAdapter.candidates(typesByField);
-
-            assertThat(candidates.names()).hasSize(1_000);
             assertThat(candidates.truncated()).isFalse();
+        }
+
+        @Test
+        void should_probe_at_most_the_safety_cap_and_say_so_keeping_both_maps() {
+            var typesByField = keys("additional-metrics.long_key-%05d", "long", AdditionalMetricDiscoveryAdapter.MAX_PROBED_KEYS);
+            typesByField.putAll(keys("custom.key-%05d", "keyword", 10));
+
+            var candidates = AdditionalMetricDiscoveryAdapter.candidates(typesByField);
+
+            assertThat(candidates.names()).hasSize(AdditionalMetricDiscoveryAdapter.MAX_PROBED_KEYS);
+            assertThat(candidates.names())
+                .filteredOn(name -> name.startsWith("custom."))
+                .hasSize(10);
+            assertThat(candidates.truncated()).isTrue();
         }
 
         private static Map<String, Set<String>> keys(String pattern, String esType, int count) {
