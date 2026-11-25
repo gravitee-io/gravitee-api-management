@@ -258,6 +258,16 @@ class BeanFactoryBuilderTest {
         }
 
         @Test
+        void should_find_the_deepest_handshake_failure_of_the_chain() {
+            final SSLHandshakeException reason = new SSLHandshakeException("(certificate_unknown) No name matching localhost found");
+            final SSLHandshakeException wrapper = new SSLHandshakeException("Failed to create SSL connection");
+            wrapper.initCause(reason);
+
+            assertThat(BeanFactoryBuilder.findCertificateRejection(new RuntimeException(wrapper))).containsSame(reason);
+            assertThat(BeanFactoryBuilder.findCertificateRejection(new RuntimeException("Connection refused"))).isEmpty();
+        }
+
+        @Test
         void should_fail_immediately_on_wrapped_401() {
             when(client.getInfo()).thenReturn(Single.error(new RuntimeException(new ElasticsearchException("Unauthorized", 401))));
 
