@@ -16,7 +16,9 @@
 package io.gravitee.gateway.services.sync.process.repository.mapper;
 
 import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
+import static io.gravitee.repository.management.model.Event.EventProperties.DEPLOYMENT_NUMBER;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -42,6 +44,7 @@ import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Organization;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -176,6 +179,33 @@ class ApiMapperTest {
             .assertValue(reactableApi -> {
                 var definition = (io.gravitee.definition.model.v4.Api) reactableApi.getDefinition();
                 assertThat(definition.getInternalFlow()).isEqualTo(apiV4.getInternalFlow());
+                return true;
+            })
+            .assertComplete();
+    }
+
+    /**
+     * A deployed API is replaced only by one deployed later under another revision: the revision is the deployment
+     * number of the event, and the deployment date is the date of the event, not the one its payload carries. A
+     * management API republishing a deployment has to open a new deployment number for the gateways to take it.
+     */
+    @Test
+    void should_map_the_revision_from_the_deployment_number_and_the_deployment_date_from_the_event() throws JsonProcessingException {
+        var eventDate = new Date(2_000L);
+        repoApiV4.setDeployedAt(new Date(1_000L));
+        Event event = new Event();
+        event.setCreatedAt(eventDate);
+        event.setProperties(Map.of(DEPLOYMENT_NUMBER.getValue(), "8"));
+        event.setPayload(objectMapper.writeValueAsString(repoApiV4));
+
+        cut
+            .to(event)
+            .test()
+            .assertValue(reactableApi -> {
+                assertSoftly(softly -> {
+                    softly.assertThat(reactableApi.getRevision()).as("revision").isEqualTo("8");
+                    softly.assertThat(reactableApi.getDeployedAt()).as("deployment date").isEqualTo(eventDate);
+                });
                 return true;
             })
             .assertComplete();
