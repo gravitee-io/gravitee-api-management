@@ -55,7 +55,7 @@ public class PortalPageContentsResource extends AbstractResource {
     private PortalId resolvePortalId() {
         var portalId = uriInfo.getPathParameters().getFirst("portalId");
         return portalId == null
-            ? defaultPortalDomainService.getDefault(GraviteeContext.getCurrentEnvironment()).getId()
+            ? defaultPortalDomainService.getDefaultOrOnlyForLegacyNavigation(GraviteeContext.getCurrentEnvironment()).getId()
             : PortalMapper.INSTANCE.toPortalId(portalId);
     }
 

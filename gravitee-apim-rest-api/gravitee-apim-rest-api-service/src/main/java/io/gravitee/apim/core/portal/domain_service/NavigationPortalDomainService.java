@@ -27,8 +27,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 /**
- * The portal a console navigation write targets: the environment's default portal, unless the write names
- * another portal of the environment. A portal created by the Automation API is never default.
+ * Resolves the default portal for unnamed navigation writes and validates portals for publication operations.
+ * Legacy homepage and navigation editor requests can also target the environment's only non-default portal.
  */
 @DomainService
 @RequiredArgsConstructor
@@ -85,8 +85,7 @@ public class NavigationPortalDomainService {
     }
 
     /**
-     * A portal created by the Automation API is never default, and until the console can create portals (PORTAL-380)
-     * the default portal is the only other kind: the Automation API keeps the navigation of every other portal.
+     * Publication operations currently accept only default portals. Console creation of other portals is tracked by PORTAL-380.
      */
     protected boolean isManagedByConsole(Portal portal) {
         return portal.isDefault();
