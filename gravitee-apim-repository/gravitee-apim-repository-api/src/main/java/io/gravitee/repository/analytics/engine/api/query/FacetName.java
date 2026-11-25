@@ -20,6 +20,6 @@ package io.gravitee.repository.analytics.engine.api.query;
  * The built-in set is closed; additional metric fields enter through {@link AdditionalMetricField} only.
  */
 public sealed interface FacetName permits Facet, AdditionalMetricField {
-    /** The wire name: the constant of a built-in, {@code additional-metrics.<rawKey>} otherwise. */
+    /** The wire name: the constant of a built-in, {@code additional-metrics.<rawKey>} or {@code custom.<rawKey>} otherwise. */
     String name();
 }

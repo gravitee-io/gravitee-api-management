@@ -924,6 +924,30 @@ class ConnectionLogsCrudServiceImplTest {
         }
 
         @Test
+        void should_read_a_custom_name_into_the_keyword_field_under_the_custom_root() throws AnalyticsException {
+            when(metricsRepository.searchMetrics(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V4)))).thenReturn(
+                new LogResponse<>(0, List.of())
+            );
+            var fraudTier = new AdditionalMetricCondition("custom.fraud-tier", AdditionalMetricCondition.Operator.IN, List.of("high"));
+
+            logCrudService.searchApiConnectionLogs(
+                GraviteeContext.getExecutionContext(),
+                Set.of("api-1"),
+                SearchLogsFilters.builder().from(0L).to(1L).additionalMetrics(List.of(fraudTier)).build(),
+                new PageableImpl(1, 10),
+                List.of(DefinitionVersion.V4)
+            );
+
+            var metricsCaptor = ArgumentCaptor.forClass(MetricsQuery.class);
+            verify(metricsRepository).searchMetrics(any(QueryContext.class), metricsCaptor.capture(), eq(List.of(DefinitionVersion.V4)));
+            var field = new AdditionalMetricField(AdditionalMetricField.Root.CUSTOM, AdditionalMetricField.ValueType.KEYWORD, "fraud-tier");
+            assertThat(metricsCaptor.getValue().getFilter().getAdditionalMetrics()).containsExactly(
+                new MetricsQuery.Filter.AdditionalMetricCondition(field, Filter.Operator.IN, List.of("high"))
+            );
+            assertThat(field.name()).isEqualTo("custom.fraud-tier");
+        }
+
+        @Test
         void should_leave_the_metrics_query_without_conditions_when_none_is_given() throws AnalyticsException {
             when(metricsRepository.searchMetrics(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V4)))).thenReturn(
                 new LogResponse<>(0, List.of())

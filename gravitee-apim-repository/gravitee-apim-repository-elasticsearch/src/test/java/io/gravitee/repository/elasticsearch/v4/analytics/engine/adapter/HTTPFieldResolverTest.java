@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
+import io.gravitee.repository.analytics.engine.api.query.AdditionalMetricField;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
 import java.util.List;
@@ -169,6 +170,20 @@ class HTTPFieldResolverTest {
         assertThat(fieldResolver.fromFacet(Facet.MCP_PROXY_TOOL)).isEqualTo("additional-metrics.keyword_mcp-proxy_tools/call");
         assertThat(fieldResolver.fromFacet(Facet.MCP_PROXY_RESOURCE)).isEqualTo("additional-metrics.keyword_mcp-proxy_resources/read");
         assertThat(fieldResolver.fromFacet(Facet.MCP_PROXY_PROMPT)).isEqualTo("additional-metrics.keyword_mcp-proxy_prompts/get");
+    }
+
+    @Test
+    void should_resolve_a_custom_field_to_its_path_under_the_custom_map() {
+        var fraudTier = new AdditionalMetricField(AdditionalMetricField.Root.CUSTOM, AdditionalMetricField.ValueType.KEYWORD, "fraud-tier");
+        var orderChannel = new AdditionalMetricField(
+            AdditionalMetricField.Root.CUSTOM,
+            AdditionalMetricField.ValueType.KEYWORD,
+            "order.channel"
+        );
+
+        assertThat(fieldResolver.fromFilter(new Filter(fraudTier, Filter.Operator.EQ, "gold"))).isEqualTo("custom.fraud-tier");
+        assertThat(fieldResolver.fromFacet(fraudTier)).isEqualTo("custom.fraud-tier");
+        assertThat(fieldResolver.fromFacet(orderChannel)).isEqualTo("custom.order.channel");
     }
 
     @Test

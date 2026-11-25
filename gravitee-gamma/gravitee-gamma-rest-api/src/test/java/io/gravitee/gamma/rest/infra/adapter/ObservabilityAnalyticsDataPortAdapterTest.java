@@ -92,6 +92,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.mockito.ArgumentCaptor;
@@ -788,6 +789,119 @@ class ObservabilityAnalyticsDataPortAdapterTest {
                 null,
                 List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of())),
                 ranges,
+                Map.of()
+            );
+        }
+    }
+
+    /** {@code custom.<name>} is a keyword field of the same engine model: accepted by its grammar, never by discovery. */
+    @Nested
+    class CustomMetricNames {
+
+        private static final String FRAUD_TIER = "custom.fraud-tier";
+
+        private static final PreparedScope FRAUD_TIER_SCOPE = new PreparedScope(
+            SCOPE.from(),
+            SCOPE.to(),
+            List.of(
+                new FilterCondition("API", FilterOperator.IN, List.of("api-1")),
+                new FilterCondition(FRAUD_TIER, FilterOperator.IN, List.of("high", "medium"))
+            ),
+            Set.of("api-1")
+        );
+
+        @Test
+        void should_hand_the_engine_a_custom_condition_and_facet_under_their_custom_names() {
+            when(computeFacetsUseCase.executeForApis(any(), any(), any())).thenReturn(
+                new ComputeFacetsUseCase.Output(new FacetsResponse(List.of()))
+            );
+
+            adapter.computeFacets(facetsQuery(FRAUD_TIER_SCOPE, "HTTP_REQUESTS", "COUNT"));
+
+            var captor = ArgumentCaptor.forClass(FacetsRequest.class);
+            verify(computeFacetsUseCase).executeForApis(any(), captor.capture(), any());
+            var fraudTier = FacetName.parse(FRAUD_TIER).orElseThrow();
+            assertThat(fraudTier.name()).isEqualTo(FRAUD_TIER);
+            assertThat(captor.getValue().facets()).containsExactly(fraudTier);
+            assertThat(captor.getValue().filters()).extracting(Filter::name).contains((FilterName) fraudTier);
+        }
+
+        @ParameterizedTest
+        @CsvSource(
+            {
+                "HTTP_REQUESTS, COUNT",
+                "HTTP_ERRORS, COUNT",
+                "HTTP_ERROR_RATE, PERCENTAGE",
+                "HTTP_GATEWAY_RESPONSE_TIME, AVG",
+                "HTTP_ENDPOINT_RESPONSE_TIME, MAX",
+                "HTTP_GATEWAY_LATENCY, MIN",
+                "HTTP_REQUEST_CONTENT_LENGTH, AVG",
+                "HTTP_RESPONSE_CONTENT_LENGTH, MAX",
+            }
+        )
+        void should_validate_a_metric_grouped_by_a_custom_field(String metric, String measure) {
+            assertThatCode(() -> adapter.validate(facetsQuery(FRAUD_TIER_SCOPE, metric, measure))).doesNotThrowAnyException();
+        }
+
+        /** A path that skips the condition echoes it under its custom name, as the engine hands it back. */
+        @Test
+        void should_echo_a_custom_condition_the_engine_skipped_under_its_custom_name() {
+            var fraudTier = (FilterName) FilterName.parse(FRAUD_TIER).orElseThrow();
+            when(computeMeasuresUseCase.executeForApis(any(), any(), any())).thenReturn(
+                new ComputeMeasuresUseCase.Output(
+                    new MeasuresResponse(List.of(new MetricMeasuresResponse(MetricSpec.Name.MESSAGES, null, List.of(), List.of(fraudTier))))
+                )
+            );
+
+            var response = adapter.computeMeasures(
+                measuresQuery(FRAUD_TIER_SCOPE, new AnalyticsMetricQuery(null, "MESSAGES", List.of("COUNT"), List.of()))
+            );
+
+            assertThat(response.at("/metrics/0/ignoredFilters").toString()).isEqualTo("[\"custom.fraud-tier\"]");
+        }
+
+        @Test
+        void should_refuse_a_custom_field_as_a_metric_without_querying_the_engine() {
+            var query = measuresQuery(SCOPE, new AnalyticsMetricQuery(null, FRAUD_TIER, List.of("COUNT"), List.of()));
+
+            assertThatThrownBy(() -> adapter.computeMeasures(query))
+                .isInstanceOf(InvalidObservabilityQueryException.class)
+                .hasMessage("'" + FRAUD_TIER + "' is not a metric: it holds KEYWORD values, not numbers")
+                .extracting("technicalCode")
+                .isEqualTo("observability.query.not_a_metric");
+            verifyNoInteractions(computeMeasuresUseCase);
+        }
+
+        @Test
+        void should_refuse_a_custom_facet_outside_the_grammar_naming_it() {
+            var query = new FacetsQuery(
+                ORG,
+                ENV,
+                SCOPE,
+                List.of("custom.a..b"),
+                null,
+                List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of())),
+                List.of(),
+                Map.of()
+            );
+
+            assertThatThrownBy(() -> adapter.computeFacets(query))
+                .isInstanceOf(InvalidObservabilityQueryException.class)
+                .hasMessageContaining("custom.a..b")
+                .extracting("technicalCode")
+                .isEqualTo("observability.query.unknown_facet");
+            verifyNoInteractions(computeFacetsUseCase);
+        }
+
+        private static FacetsQuery facetsQuery(PreparedScope scope, String metric, String measure) {
+            return new FacetsQuery(
+                ORG,
+                ENV,
+                scope,
+                List.of(FRAUD_TIER),
+                null,
+                List.of(new AnalyticsFacetMetricQuery(metric, List.of(measure), List.of(), List.of())),
+                List.of(),
                 Map.of()
             );
         }

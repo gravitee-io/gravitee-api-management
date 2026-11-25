@@ -31,8 +31,16 @@ public class AdditionalMetricGrammarPortAdapter implements AdditionalMetricGramm
 
     @Override
     public Optional<AdditionalMetricField> parse(String name) {
-        return io.gravitee.apim.core.observability.model.AdditionalMetricField.parse(name).map(field ->
-            new AdditionalMetricField(field.rawKey(), AdditionalMetricValueType.valueOf(field.valueType().name()))
+        return io.gravitee.apim.core.observability.model.AdditionalMetricField.parse(name).map(
+            AdditionalMetricGrammarPortAdapter::toCatalogField
+        );
+    }
+
+    static AdditionalMetricField toCatalogField(io.gravitee.apim.core.observability.model.AdditionalMetricField field) {
+        return new AdditionalMetricField(
+            AdditionalMetricField.Root.valueOf(field.root().name()),
+            field.rawKey(),
+            AdditionalMetricValueType.valueOf(field.valueType().name())
         );
     }
 
