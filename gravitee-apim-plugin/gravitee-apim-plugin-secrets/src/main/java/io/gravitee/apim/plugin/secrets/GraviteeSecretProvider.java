@@ -41,11 +41,13 @@ public class GraviteeSecretProvider implements SecretProvider {
 
     private final SecretValueRepository secretValues;
     private final Runnable onStart;
+    private final Runnable beforeResolve;
     private final String refusal;
 
-    private GraviteeSecretProvider(SecretValueRepository secretValues, Runnable onStart, String refusal) {
+    private GraviteeSecretProvider(SecretValueRepository secretValues, Runnable onStart, Runnable beforeResolve, String refusal) {
         this.secretValues = secretValues;
         this.onStart = onStart;
+        this.beforeResolve = beforeResolve;
         this.refusal = refusal;
     }
 
@@ -55,21 +57,21 @@ public class GraviteeSecretProvider implements SecretProvider {
         OrganizationKeyRepository organizationKeyRepository,
         EnvironmentRepository environmentRepository
     ) {
-        var secretValues = new DecryptingSecretValueRepository(
-            base64Kek,
-            secretRepository,
-            organizationKeyRepository,
-            environmentRepository
+        return decrypting(
+            new DecryptingSecretValueRepository(base64Kek, secretRepository, organizationKeyRepository, environmentRepository)
         );
-        return new GraviteeSecretProvider(secretValues, secretValues::start, null);
+    }
+
+    static GraviteeSecretProvider decrypting(DecryptingSecretValueRepository secretValues) {
+        return new GraviteeSecretProvider(secretValues, secretValues::start, secretValues::verify, null);
     }
 
     static GraviteeSecretProvider throughBridge(SecretValueRepository bridge) {
-        return new GraviteeSecretProvider(bridge, () -> {}, null);
+        return new GraviteeSecretProvider(bridge, () -> {}, () -> {}, null);
     }
 
     static GraviteeSecretProvider refusing(String reason) {
-        return new GraviteeSecretProvider(null, () -> {}, reason);
+        return new GraviteeSecretProvider(null, () -> {}, () -> {}, reason);
     }
 
     /**
@@ -92,6 +94,7 @@ public class GraviteeSecretProvider implements SecretProvider {
             return Maybe.error(new SecretManagerException(refusal));
         }
         return Maybe.fromCallable(() -> {
+            beforeResolve.run();
             String key = secretURL.path();
             if (key.isEmpty() || key.contains("/")) {
                 throw new SecretManagerException(

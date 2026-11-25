@@ -88,8 +88,7 @@ public class DecryptingSecretValueRepository implements SecretValueRepository {
         }
     }
 
-    @Override
-    public Optional<String> findValue(String environmentId, String key) throws TechnicalException {
+    void verify() {
         String reason = refusal;
         if (reason != null) {
             throw new SecretManagerException(reason);
@@ -97,6 +96,11 @@ public class DecryptingSecretValueRepository implements SecretValueRepository {
         if (!storedDataKeysVerified) {
             verifyStoredDataKeys();
         }
+    }
+
+    @Override
+    public Optional<String> findValue(String environmentId, String key) throws TechnicalException {
+        verify();
         Optional<String> organizationId = organizationOf(environmentId);
         if (organizationId.isEmpty()) {
             return Optional.empty();

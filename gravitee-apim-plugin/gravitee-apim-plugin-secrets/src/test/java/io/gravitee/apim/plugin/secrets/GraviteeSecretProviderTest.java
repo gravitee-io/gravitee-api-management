@@ -396,6 +396,16 @@ class GraviteeSecretProviderTest {
             assertRefusesEverySecret(provider, "does not store secrets");
         }
 
+        @Test
+        void should_give_the_reason_it_refuses_before_it_checks_the_reference() {
+            var provider = provider(null).start();
+
+            provider
+                .resolve(SecretURL.from("/gravitee/" + KEY + ":value", true))
+                .test()
+                .assertError(err -> err instanceof SecretManagerException && err.getMessage().contains("is not set"));
+        }
+
         private void assertRefusesEverySecret(SecretProvider provider, String reason) {
             assertThat(logs.list)
                 .singleElement()
