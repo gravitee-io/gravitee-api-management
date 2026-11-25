@@ -47,6 +47,13 @@ class SecretReferenceTest {
         assertThat(reference.isManaged()).isTrue();
     }
 
+    @Test
+    void should_start_the_query_with_the_flags_of_a_managed_reference_that_has_none() {
+        var reference = SecretReference.managed("/gravitee/credential.c1.token:value", "secret-1");
+
+        assertThat(reference.reference()).isEqualTo("/gravitee/credential.c1.token:value?renewable=true&reloadOnChange=true");
+    }
+
     @ParameterizedTest
     @NullAndEmptySource
     @ValueSource(strings = { "vault/secret", "/vault/my secret", "/vault/{#context.attributes['k']}" })
