@@ -330,6 +330,16 @@ public class ApiStateServiceImpl implements ApiStateService {
         }
     }
 
+    /**
+     * Read from the latest event of the API rather than from its last published one, which a Guardian change
+     * republished on a started API leaves behind. A start opens the next number: a gateway that missed the stop, the
+     * two falling within one synchronization, sees the start alone and takes it only under another number.
+     */
+    private DeploymentNumber deploymentNumberOf(EventType eventType, String apiId) {
+        var latest = latestDeploymentNumber(apiId);
+        return eventType == EventType.START_API ? latest.next() : latest;
+    }
+
     private DeploymentNumber latestDeploymentNumber(String apiId) {
         EventCriteria criteria = EventCriteria.builder()
             .types(
@@ -553,14 +563,7 @@ public class ApiStateServiceImpl implements ApiStateService {
                 lastPublishedAPI.setDeployedAt(new Date());
                 Map<String, String> properties = new HashMap<>();
                 properties.put(Event.EventProperties.USER.getValue(), userId);
-                // The number of the deployment restarted, unlike a Guardian change that opens one: a gateway
-                // undeploys a stopped API and deploys a started one afresh, whatever the number it carries.
-                properties.put(
-                    Event.EventProperties.DEPLOYMENT_NUMBER.getValue(),
-                    Optional.ofNullable(event.getProperties())
-                        .map(p -> p.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue()))
-                        .orElse("0")
-                );
+                properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), deploymentNumberOf(eventType, apiId).asProperty());
                 // Clear useless field for history
                 lastPublishedAPI.setPicture(null);
 
