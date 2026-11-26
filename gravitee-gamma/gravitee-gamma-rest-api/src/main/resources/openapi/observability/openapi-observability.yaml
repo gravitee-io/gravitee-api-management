@@ -1018,7 +1018,10 @@ paths:
                 matched in any case against the start of the request id, and as a fragment against the
                 reasons the guardrail policies gave, the names of the rules they found, and the name of the API. Any other condition sent alongside
                 `RECORD_TYPE=GUARDRAIL_DECISION` is rejected with 400, and a Guardrail filter sent without it
-                is rejected with 400 too.
+                is rejected with 400 too. A Guardrail decision search serves its first matches up to the configured
+                result window (`analytics.elasticsearch.index.max_result_window`, 10000 by default): past it,
+                `pagination.totalCount` stays at the window and a page reaching further is rejected with 400.
+                Narrow the search to reach older decisions.
 
                 The decision search accepts `API`, `API_TYPE`, the time range, and the decision
                 vocabulary, every entry of which carries the `AUTHZ_` prefix: `AUTHZ_DECISION`,
@@ -3728,8 +3731,9 @@ components:
             type: object
             description: |
                 What a Guardrail decided on a call, carried by a decision row. Present only on rows returned
-                for `RECORD_TYPE=GUARDRAIL_DECISION`. It names rules and where they matched, never the
-                content of the exchange. The request-shaped fields of `LogEntry` (`method`, `status`,
+                for `RECORD_TYPE=GUARDRAIL_DECISION`. It names rules and where they matched; the gateway
+                records no content of the exchange itself, but a step's `reason` is what its guardrail
+                policy wrote and may quote what it matched. The request-shaped fields of `LogEntry` (`method`, `status`,
                 `uri`, `gatewayResponseTime`) are absent on these rows.
             properties:
                 eventId:
@@ -3761,12 +3765,11 @@ components:
                 verdict:
                     type: string
                     description: On a refusal, the verdict of the last guardrail policy that refused, or the key of the failure that ended the call.
-                reasons:
+                steps:
                     type: array
-                    description: One line per guardrail policy that recorded a verdict, in the order they ran.
+                    description: The guardrail policy sequence, one step per guardrail policy that recorded a verdict, in the order they ran.
                     items:
-                        type: string
-                    example: ["Block credentials: BLOCK — 1 credential found"]
+                        $ref: "#/components/schemas/GuardrailPolicyStep"
                 findings:
                     type: array
                     description: What the guardrail policies found.
@@ -3776,6 +3779,23 @@ components:
                     type: integer
                     format: int64
                     description: Time the run took, in nanoseconds.
+
+        GuardrailPolicyStep:
+            type: object
+            description: One guardrail policy of a Guardrail's sequence, as it ran on the call.
+            properties:
+                guardrailPolicy:
+                    type: string
+                    description: Name of the guardrail policy.
+                    example: "Block credentials"
+                verdict:
+                    type: string
+                    description: What the guardrail policy concluded, in its own words.
+                    example: "BLOCK"
+                reason:
+                    type: string
+                    description: Why, as the guardrail policy gave it. Absent when it gave none.
+                    example: "Blocked by guardrail; llm-rule matched: messages[0].user"
 
         GuardrailFinding:
             type: object

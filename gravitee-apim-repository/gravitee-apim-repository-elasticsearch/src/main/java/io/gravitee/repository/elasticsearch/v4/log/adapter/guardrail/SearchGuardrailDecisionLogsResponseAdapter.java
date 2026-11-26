@@ -27,12 +27,17 @@ public final class SearchGuardrailDecisionLogsResponseAdapter {
 
     private SearchGuardrailDecisionLogsResponseAdapter() {}
 
-    public static LogResponse<GuardrailDecisionLog> adapt(SearchResponse response) {
+    /**
+     * @param maxResultWindow the deepest row Elasticsearch serves: the total is capped to it, so the paginator never
+     *     offers a page it would refuse. The total is exact ({@code track_total_hits}), and a busy proxy passes ten
+     *     thousand decisions in the seven days the screen reads.
+     */
+    public static LogResponse<GuardrailDecisionLog> adapt(SearchResponse response, int maxResultWindow) {
         var hits = response.getSearchHits();
         if (hits == null || hits.getHits() == null) {
             return new LogResponse<>(0, List.of());
         }
-        var total = hits.getTotal() == null ? 0 : hits.getTotal().getValue();
+        var total = hits.getTotal() == null ? 0 : Math.min(hits.getTotal().getValue(), maxResultWindow);
         return new LogResponse<>(
             total,
             hits

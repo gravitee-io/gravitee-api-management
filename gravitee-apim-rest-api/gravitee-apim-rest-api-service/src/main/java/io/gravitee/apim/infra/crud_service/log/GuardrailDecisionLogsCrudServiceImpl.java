@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.crud_service.log;
 
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.log.crud_service.GuardrailDecisionLogsCrudService;
 import io.gravitee.apim.core.log.model.GuardrailDecisionLog;
 import io.gravitee.apim.core.log.model.GuardrailDecisionLogFilters;
@@ -74,6 +75,10 @@ class GuardrailDecisionLogsCrudServiceImpl implements GuardrailDecisionLogsCrudS
                 response.total(),
                 response.data().stream().map(GuardrailDecisionLogsCrudServiceImpl::toDomain).toList()
             );
+        } catch (IllegalArgumentException e) {
+            // The store refusing the caller's own paging (a page past its result window), not a search that went wrong:
+            // translated here, where infrastructure exceptions become domain ones, so the resource answers 400.
+            throw new ValidationDomainException(e.getMessage(), e);
         } catch (AnalyticsException e) {
             log.error("An error occurs while trying to search Guardrail decision logs [apiIds={}]", apiIds, e);
             throw new TechnicalManagementException("Unable to search Guardrail decision logs", e);
@@ -93,7 +98,7 @@ class GuardrailDecisionLogsCrudServiceImpl implements GuardrailDecisionLogsCrudS
             .enforced(decision.enforced())
             .transformationType(decision.transformationType())
             .verdict(decision.verdict())
-            .reasons(decision.reasons())
+            .steps(stepsToDomain(decision.steps()))
             .durationNanos(decision.durationNanos())
             .findings(toDomain(decision.findings()))
             .build();
@@ -110,6 +115,18 @@ class GuardrailDecisionLogsCrudServiceImpl implements GuardrailDecisionLogsCrudS
             .map(finding ->
                 new GuardrailDecisionLog.Finding(finding.guardrailPolicy(), finding.rule(), finding.location(), finding.effect())
             )
+            .toList();
+    }
+
+    private static List<GuardrailDecisionLog.Step> stepsToDomain(
+        List<io.gravitee.repository.log.v4.model.guardrail.GuardrailDecisionLog.Step> steps
+    ) {
+        if (steps == null) {
+            return List.of();
+        }
+        return steps
+            .stream()
+            .map(step -> new GuardrailDecisionLog.Step(step.guardrailPolicy(), step.verdict(), step.reason()))
             .toList();
     }
 }

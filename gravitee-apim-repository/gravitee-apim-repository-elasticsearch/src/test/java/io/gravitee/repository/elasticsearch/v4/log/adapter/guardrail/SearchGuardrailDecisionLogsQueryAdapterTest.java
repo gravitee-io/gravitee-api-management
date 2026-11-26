@@ -17,6 +17,7 @@ package io.gravitee.repository.elasticsearch.v4.log.adapter.guardrail;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.json;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.model.guardrail.GuardrailDecisionLogQuery;
@@ -29,12 +30,14 @@ import org.junit.jupiter.api.Test;
 class SearchGuardrailDecisionLogsQueryAdapterTest {
 
     private static final QueryContext QUERY_CONTEXT = new QueryContext("org-1", "env-1");
+    private static final int WINDOW = 10_000;
 
     @Test
     void reads_the_resolved_guardrail_decisions_of_the_apis_newest_first() {
         var result = SearchGuardrailDecisionLogsQueryAdapter.adapt(
             QUERY_CONTEXT,
-            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).page(3).size(10).build()
+            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).page(3).size(10).build(),
+            WINDOW
         );
 
         assertThatJson(result).isEqualTo(
@@ -67,7 +70,8 @@ class SearchGuardrailDecisionLogsQueryAdapterTest {
     void narrows_on_the_guardrail() {
         var result = SearchGuardrailDecisionLogsQueryAdapter.adapt(
             QUERY_CONTEXT,
-            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).guardrailIds(Set.of("guardrail-a")).build()
+            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).guardrailIds(Set.of("guardrail-a")).build(),
+            WINDOW
         );
 
         assertThatJson(result)
@@ -81,7 +85,8 @@ class SearchGuardrailDecisionLogsQueryAdapterTest {
     void narrows_on_the_outcome() {
         var result = SearchGuardrailDecisionLogsQueryAdapter.adapt(
             QUERY_CONTEXT,
-            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).outcomes(Set.of("DENY")).build()
+            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).outcomes(Set.of("DENY")).build(),
+            WINDOW
         );
 
         assertThatJson(result)
@@ -95,7 +100,8 @@ class SearchGuardrailDecisionLogsQueryAdapterTest {
     void leaves_out_the_guardrail_filter_with_nothing_selected() {
         var result = SearchGuardrailDecisionLogsQueryAdapter.adapt(
             QUERY_CONTEXT,
-            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).guardrailIds(Set.of()).outcomes(Set.of()).build()
+            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).guardrailIds(Set.of()).outcomes(Set.of()).build(),
+            WINDOW
         );
 
         assertThatJson(result).inPath("$.query.bool.filter").isArray().hasSize(5);
@@ -105,7 +111,8 @@ class SearchGuardrailDecisionLogsQueryAdapterTest {
     void searches_the_start_of_the_request_id_and_a_fragment_of_the_reasons_and_the_rule_names_in_any_case() {
         var result = SearchGuardrailDecisionLogsQueryAdapter.adapt(
             QUERY_CONTEXT,
-            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).text(" aws ").build()
+            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).text(" aws ").build(),
+            WINDOW
         );
 
         assertThatJson(result)
@@ -136,7 +143,8 @@ class SearchGuardrailDecisionLogsQueryAdapterTest {
     void matches_the_apis_the_text_names_as_well() {
         var result = SearchGuardrailDecisionLogsQueryAdapter.adapt(
             QUERY_CONTEXT,
-            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1", "api-2")).text("support").textApiIds(Set.of("api-2")).build()
+            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1", "api-2")).text("support").textApiIds(Set.of("api-2")).build(),
+            WINDOW
         );
 
         assertThatJson(result)
@@ -151,7 +159,8 @@ class SearchGuardrailDecisionLogsQueryAdapterTest {
     void searches_wildcard_characters_as_written() {
         var result = SearchGuardrailDecisionLogsQueryAdapter.adapt(
             QUERY_CONTEXT,
-            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).text("a*b?c\\d").build()
+            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).text("a*b?c\\d").build(),
+            WINDOW
         );
 
         assertThatJson(result)
@@ -164,7 +173,8 @@ class SearchGuardrailDecisionLogsQueryAdapterTest {
     void leaves_out_a_blank_text() {
         var result = SearchGuardrailDecisionLogsQueryAdapter.adapt(
             QUERY_CONTEXT,
-            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).text("   ").textApiIds(Set.of("api-1")).build()
+            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).text("   ").textApiIds(Set.of("api-1")).build(),
+            WINDOW
         );
 
         assertThatJson(result).inPath("$.query.bool.filter").isArray().hasSize(5);
@@ -174,7 +184,8 @@ class SearchGuardrailDecisionLogsQueryAdapterTest {
     void bounds_the_time_on_both_sides() {
         var result = SearchGuardrailDecisionLogsQueryAdapter.adapt(
             QUERY_CONTEXT,
-            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).from(100L).to(200L).build()
+            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).from(100L).to(200L).build(),
+            WINDOW
         );
 
         assertThatJson(result)
@@ -187,12 +198,40 @@ class SearchGuardrailDecisionLogsQueryAdapterTest {
     void bounds_the_time_on_one_side_only() {
         var result = SearchGuardrailDecisionLogsQueryAdapter.adapt(
             QUERY_CONTEXT,
-            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).from(100L).build()
+            GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).from(100L).build(),
+            WINDOW
         );
 
         assertThatJson(result)
             .inPath("$.query.bool.filter")
             .isArray()
             .contains(json("{ \"range\": { \"@timestamp\": { \"gte\": 100 } } }"));
+    }
+
+    /** The window is the configured one, not a constant: a cluster set to 5 000 refuses page 300 of 20. */
+    @Test
+    void refuses_a_page_past_the_configured_result_window() {
+        var query = GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).page(300).size(20).build();
+
+        assertThatThrownBy(() -> SearchGuardrailDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query, 5_000))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Page 300 of 20 goes past the 5000 Guardrail decisions");
+    }
+
+    @Test
+    void serves_the_last_page_within_the_result_window() {
+        var query = GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).page(250).size(20).build();
+
+        assertThatJson(SearchGuardrailDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query, 5_000)).inPath("from").isEqualTo(4980);
+    }
+
+    /** A page number large enough to overflow an int product is refused, not sent with a negative from. */
+    @Test
+    void refuses_a_page_whose_offset_overflows_an_int() {
+        var query = GuardrailDecisionLogQuery.builder().apiIds(Set.of("api-1")).page(Integer.MAX_VALUE).size(100).build();
+
+        assertThatThrownBy(() -> SearchGuardrailDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query, WINDOW)).isInstanceOf(
+            IllegalArgumentException.class
+        );
     }
 }

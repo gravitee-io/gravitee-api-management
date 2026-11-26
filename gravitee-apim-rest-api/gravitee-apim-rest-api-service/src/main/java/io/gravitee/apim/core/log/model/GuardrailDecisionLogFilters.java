@@ -18,9 +18,6 @@ package io.gravitee.apim.core.log.model;
 import java.util.Set;
 import lombok.Builder;
 
-/**
- * What a search of Guardrail decisions can narrow on.
- */
 @Builder
 public record GuardrailDecisionLogFilters(
     Set<String> apiIds,

@@ -20,7 +20,8 @@ import lombok.Builder;
 
 /**
  * What a Guardrail decided on a call, carried by a decision row and present only when the search asked for
- * {@code RECORD_TYPE=GUARDRAIL_DECISION}. It names rules and where they matched, never the content of the exchange.
+ * {@code RECORD_TYPE=GUARDRAIL_DECISION}. It names rules and where they matched. The gateway records no content of the exchange itself; a step's reason is what
+ * its guardrail policy wrote.
  */
 @Builder
 public record GuardrailDecision(
@@ -32,9 +33,12 @@ public record GuardrailDecision(
     String enforced,
     String transformationType,
     String verdict,
-    List<String> reasons,
+    List<Step> steps,
     List<Finding> findings,
     Long durationNanos
 ) {
     public record Finding(String guardrailPolicy, String rule, String location, String effect) {}
+
+    /** One guardrail policy of the sequence, in the order it ran: what it concluded, and why when it said. */
+    public record Step(String guardrailPolicy, String verdict, String reason) {}
 }

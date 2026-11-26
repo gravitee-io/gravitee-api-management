@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -39,6 +40,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.FilterType;
 import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
+import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.EntrypointScopeProvider;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
 import io.gravitee.gamma.rest.core.observability.logs.model.EntrypointScope;
@@ -89,18 +91,16 @@ class SearchObservabilityLogsUseCaseTest {
 
     private AccessibleApiScopeDomainService accessibleApiScope;
 
+    /** The production provider, watched so a test can say a search never asked it for entrypoints. */
+    private final EntrypointScopeProvider entrypointScopeProvider = spy(new EntrypointScopeProviderAdapter());
+
     private SearchObservabilityLogsUseCase useCase;
 
     @BeforeEach
     void setUp() {
         accessibleApiScope = new AccessibleApiScopeDomainService();
         var filterValidator = new ObservabilityFilterValidator(filterRegistry);
-        useCase = new SearchObservabilityLogsUseCase(
-            logsDataPort,
-            filterValidator,
-            accessibleApiScope,
-            new EntrypointScopeProviderAdapter()
-        );
+        useCase = new SearchObservabilityLogsUseCase(logsDataPort, filterValidator, accessibleApiScope, entrypointScopeProvider);
 
         when(filterRegistry.getFilters(any(), any())).thenReturn(
             List.of(
@@ -548,6 +548,60 @@ class SearchObservabilityLogsUseCaseTest {
                 .isInstanceOf(ValidationDomainException.class)
                 .extracting("technicalCode")
                 .isEqualTo("observability.filter.multiple_record_types");
+        }
+
+        /** Entrypoints only exist on request documents: a Guardrail search narrowed by kind reads no entrypoint scope. */
+        @Test
+        void should_not_widen_a_guardrail_search_narrowed_by_kind_with_entrypoint_apis() {
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(List.of(new AccessibleApi("api-1", "API One", ApiType.LLM)));
+            when(logsDataPort.searchLogs(any(), any(), any())).thenReturn(new LogsPage(List.of(), 0));
+
+            useCase.execute(
+                input(
+                    new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("GUARDRAIL_DECISION")),
+                    new FilterCondition("API_TYPE", FilterOperator.IN, List.of("LLM"))
+                )
+            );
+
+            verifyNoInteractions(entrypointScopeProvider);
+            var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
+            verify(logsDataPort).searchLogs(any(), any(), captor.capture());
+            assertThat(captor.getValue().entrypointScope()).isNull();
+        }
+
+        @Test
+        void should_match_the_search_text_on_the_names_of_the_apis_in_scope_in_any_case() {
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+                List.of(
+                    new AccessibleApi("api-1", "Support Assistant", ApiType.LLM),
+                    new AccessibleApi("api-2", "Sales ASSISTANT", ApiType.LLM),
+                    new AccessibleApi("api-3", "Billing", ApiType.LLM)
+                )
+            );
+            when(logsDataPort.searchLogs(any(), any(), any())).thenReturn(new LogsPage(List.of(), 0));
+
+            useCase.execute(
+                input(
+                    new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("GUARDRAIL_DECISION")),
+                    new FilterCondition("GUARDRAIL_SEARCH", FilterOperator.CONTAINS, List.of(" assistant "))
+                )
+            );
+
+            var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
+            verify(logsDataPort).searchLogs(any(), any(), captor.capture());
+            assertThat(captor.getValue().textApiIds()).containsExactlyInAnyOrder("api-1", "api-2");
+        }
+
+        @Test
+        void should_match_no_api_name_without_a_search_text() {
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(List.of(new AccessibleApi("api-1", "API One", ApiType.LLM)));
+            when(logsDataPort.searchLogs(any(), any(), any())).thenReturn(new LogsPage(List.of(), 0));
+
+            useCase.execute(input(new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("GUARDRAIL_DECISION"))));
+
+            var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
+            verify(logsDataPort).searchLogs(any(), any(), captor.capture());
+            assertThat(captor.getValue().textApiIds()).isEmpty();
         }
 
         private SearchObservabilityLogsUseCase.Input input(FilterCondition... conditions) {
