@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Input } from '@gravitee/graphene-core';
+import { Badge, Input } from '@gravitee/graphene-core';
 import { useRef, useState } from 'react';
 
 import { PluginIcon } from '../../../../../components/PluginIcon';
@@ -22,6 +22,8 @@ export interface ApiResourceOption {
     name: string;
     type: string;
     icon?: string;
+    /** Omitted or true means the resource is enabled. */
+    enabled?: boolean;
 }
 
 interface ResourceSelectInputProps {
@@ -37,9 +39,9 @@ interface ResourceSelectInputProps {
 }
 
 /**
- * Free-text input with an autocomplete of the API's configured resources. Free text is preserved
- * (the field supports EL), while matching resources are suggested with their plugin icon — mirroring
- * the classic console's resource picker.
+ * Free-text input with an autocomplete of configured resources. Free text is kept so an API plan
+ * can use an expression. Matching resources are suggested with their plugin icon, mirroring the
+ * classic console's resource picker. A disabled option stays selectable.
  */
 export function ResourceSelectInput({
     id,
@@ -111,7 +113,12 @@ export function ResourceSelectInput({
                                     onClick={() => select(o.name)}
                                 >
                                     <PluginIcon icon={o.icon} className="size-5" />
-                                    <span className="truncate">{o.name}</span>
+                                    <span className={o.enabled === false ? 'truncate text-muted-foreground' : 'truncate'}>{o.name}</span>
+                                    {o.enabled === false ? (
+                                        <Badge variant="outline" className="shrink-0 px-1.5 py-0 text-xs">
+                                            Disabled
+                                        </Badge>
+                                    ) : null}
                                     <span className="ml-auto shrink-0 text-xs text-muted-foreground">{o.type}</span>
                                 </button>
                             </li>
