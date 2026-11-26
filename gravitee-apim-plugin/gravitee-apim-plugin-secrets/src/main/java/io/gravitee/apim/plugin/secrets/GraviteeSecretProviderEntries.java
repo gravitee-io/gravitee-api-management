@@ -67,31 +67,30 @@ final class GraviteeSecretProviderEntries {
         Map<String, Object> secrets = ConfigHelper.removePrefix(secretsProperties(environment), SECRETS);
         for (int index = 0; secrets.containsKey(entry(index) + ".plugin"); index++) {
             Map<String, Object> entry = ConfigHelper.removePrefix(secrets, entry(index));
-            Optional<String> key = isGraviteeEntry(entry) ? enabledEncryptionKey(entry) : Optional.empty();
-            if (key.isPresent()) {
-                return key.filter(value -> !value.isBlank());
+            Optional<GraviteeSecretManagerConfiguration> configuration = isGraviteeEntry(entry)
+                ? enabledConfiguration(entry)
+                : Optional.empty();
+            if (configuration.isPresent()) {
+                return configuration.map(GraviteeSecretManagerConfiguration::encryptionKey).filter(key -> !key.isBlank());
             }
         }
         return Optional.empty();
     }
 
-    // Empty when the entry is skipped, and an empty string when the entry has no key.
-    private static Optional<String> enabledEncryptionKey(Map<String, Object> entry) {
+    private static Optional<GraviteeSecretManagerConfiguration> enabledConfiguration(Map<String, Object> entry) {
         try {
             if (!isEnabled(entry)) {
                 return Optional.empty();
             }
-            String key = new GraviteeSecretManagerConfiguration(ConfigHelper.removePrefix(entry, "configuration")).encryptionKey();
-            return Optional.of(key == null ? "" : key);
+            return Optional.of(new GraviteeSecretManagerConfiguration(ConfigHelper.removePrefix(entry, "configuration")));
         } catch (RuntimeException e) {
-            // misconfiguration() reports the entry, and a fallback key that is wrong fails the stored data key check.
             return Optional.empty();
         }
     }
 
-    // Only the keys of the block are read: reading a value resolves the secret it references, and another key may reference one
-    // the gateway cannot resolve. removePrefix cuts the separator off each key, so the bare api.secrets key of an empty block
-    // would throw.
+    // Only the api.secrets values are read: a source may resolve the secret a value references, and another key may reference one
+    // the gateway cannot resolve. Each value is read raw from the source that lists it, so a ${...} placeholder is not resolved.
+    // removePrefix cuts the separator off each key, so the bare api.secrets key of an empty block would throw.
     private static Map<String, Object> secretsProperties(ConfigurableEnvironment environment) {
         Map<String, Object> properties = new HashMap<>();
         environment.getPropertySources().forEach(source -> collectSecretsProperties(source, properties));
@@ -111,8 +110,7 @@ final class GraviteeSecretProviderEntries {
         }
     }
 
-    // gravitee-node lists an environment variable as api_secrets_providers_0_plugin. This maps the name as
-    // EnvironmentUtils.getAllProperties does, and gravitee-service-secrets deploys the providers from that mapping.
+    // gravitee-node lists an environment variable as api_secrets_providers_0_plugin.
     private static String dotted(String name) {
         return name.replaceAll("_(\\d+)_", "[$1].").replace('_', '.');
     }
