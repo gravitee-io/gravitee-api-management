@@ -31,7 +31,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -110,11 +109,7 @@ public class PortalUIBootstrapResource {
         }
 
         String portalId = addressedPortal
-            .or(() ->
-                host == null
-                    ? defaultPortalDomainService.findDefaultOrOnly(environmentId)
-                    : defaultPortalDomainService.findDefault(environmentId)
-            )
+            .or(() -> defaultPortalDomainService.findDefaultOrOnly(environmentId))
             .map(portal -> portal.getId().toString())
             .orElse(null);
         String portalApiUrl = installationAccessQueryService.getPortalAPIUrl(environmentId);
@@ -133,9 +128,12 @@ public class PortalUIBootstrapResource {
         if (rawHost == null) {
             return Optional.empty();
         }
-        var host = PortalHost.parse(rawHost).orElseThrow(() ->
-            new BadRequestException("Query parameter [host] must be a host with an optional port")
-        );
+        // The host is a hint from the browser: one that cannot be parsed, such as a container name, finds no portal.
+        var parsed = PortalHost.parse(rawHost);
+        if (parsed.isEmpty()) {
+            return Optional.empty();
+        }
+        var host = parsed.get();
         var scopeEnvironmentId = enforceEnvironmentId != null ? enforceEnvironmentId : GraviteeContext.getCurrentEnvironment();
         // This endpoint is public: without a resolved environment, a multi-tenant lookup would reveal other tenants' portals.
         if (scopeEnvironmentId == null && installationTypeDomainService.isMultiTenant()) {

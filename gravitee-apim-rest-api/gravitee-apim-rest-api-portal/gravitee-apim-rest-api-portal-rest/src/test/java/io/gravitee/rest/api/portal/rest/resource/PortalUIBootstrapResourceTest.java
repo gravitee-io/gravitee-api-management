@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -49,6 +48,8 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class PortalUIBootstrapResourceTest extends AbstractResourceTest {
@@ -241,13 +242,28 @@ class PortalUIBootstrapResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    void should_return_no_portal_when_no_portal_is_on_the_host_and_the_only_portal_is_not_the_default() {
+    void should_return_the_only_portal_when_no_portal_is_on_the_host_and_it_is_not_the_default() {
         portalCrudService.initWith(List.of(aPortalOn(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT, ORG_ID, "https://portal.acme.io/next")));
 
         var response = bootstrap().queryParam("host", "127.0.0.1:4100").request().get();
 
         assertThat(response.getStatus()).isEqualTo(OK_200);
-        assertThat(response.readEntity(Map.class).get("portalId")).isNull();
+        assertThat(response.readEntity(Map.class).get("portalId")).isEqualTo(DEFAULT_ENV_PORTAL_ID.toString());
+    }
+
+    @Test
+    void should_return_the_portal_on_a_host_reported_with_a_trailing_dot() {
+        portalCrudService.initWith(
+            List.of(
+                aDefaultPortal(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT),
+                aPortalOn(OTHER_ENV_PORTAL_ID, ENVIRONMENT, ORG_ID, "http://partners.localhost:4100/next")
+            )
+        );
+
+        var response = bootstrap().queryParam("host", "partners.localhost.:4100").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        assertThat(response.readEntity(Map.class).get("portalId")).isEqualTo(OTHER_ENV_PORTAL_ID.toString());
     }
 
     @Test
@@ -300,11 +316,15 @@ class PortalUIBootstrapResourceTest extends AbstractResourceTest {
         assertThat(bootstrap.get("organizationId")).isEqualTo(ORG_ID);
     }
 
-    @Test
-    void should_refuse_a_malformed_host() {
-        var response = bootstrap().queryParam("host", "portal.acme.io/next").request().get();
+    @ParameterizedTest
+    @ValueSource(strings = { "portal_ui:8080", "portal.acme.io/next" })
+    void should_return_the_default_portal_when_the_host_cannot_be_parsed(String host) {
+        portalCrudService.initWith(List.of(aDefaultPortal(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT)));
 
-        assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        var response = bootstrap().queryParam("host", host).request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        assertThat(response.readEntity(Map.class).get("portalId")).isEqualTo(DEFAULT_ENV_PORTAL_ID.toString());
     }
 
     // The bootstrap is served at the application root, outside /environments/{envId}.

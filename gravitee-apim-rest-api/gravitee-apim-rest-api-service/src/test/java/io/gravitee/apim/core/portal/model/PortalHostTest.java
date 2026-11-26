@@ -55,6 +55,8 @@ class PortalHostTest {
             "partners.localhost:4100, partners.localhost:4100",
             "127.0.0.1:4100, 127.0.0.1:4100",
             "'[::1]:4100', '[::1]:4100'",
+            "portal.example.com., portal.example.com",
+            "Partners.localhost.:4100, partners.localhost:4100",
         }
     )
     void should_parse_the_host_a_browser_reports(String raw, String expected) {
