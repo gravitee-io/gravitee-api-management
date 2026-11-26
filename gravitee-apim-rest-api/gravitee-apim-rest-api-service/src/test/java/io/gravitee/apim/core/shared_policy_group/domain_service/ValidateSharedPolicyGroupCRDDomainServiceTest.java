@@ -119,6 +119,22 @@ class ValidateSharedPolicyGroupCRDDomainServiceTest {
         }
 
         @Test
+        void should_report_a_rejected_secret_reference_that_holds_a_percent_sign() {
+            SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD()
+                .toBuilder()
+                .steps(List.of(stepReferencing("/gravitee/db-password:value?envId=other%25env")))
+                .build();
+
+            var result = cut.validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, aCRD));
+
+            assertThat(result.severe()).hasValueSatisfying(errors ->
+                assertThat(errors)
+                    .extracting(Validator.Error::getMessage)
+                    .anyMatch(message -> message.contains("envId=other%25env"))
+            );
+        }
+
+        @Test
         void should_preserve_pre_set_ids() {
             SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD()
                 .toBuilder()
@@ -265,6 +281,25 @@ class ValidateSharedPolicyGroupCRDDomainServiceTest {
         }
 
         @Test
+        void should_report_a_rejected_secret_reference_that_holds_a_percent_sign() {
+            SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD()
+                .toBuilder()
+                .crossId("spg-cross-id")
+                .steps(List.of(stepReferencing("/gravitee/db-password:value?envId=other%25env")))
+                .build();
+            var existingSpg = aCRD.toSharedPolicyGroup().toBuilder().id("existing-spg-id").environmentId(ENV_ID).steps(List.of()).build();
+            sharedPolicyGroupCrudService.initWith(List.of(existingSpg));
+
+            var result = cut.validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, aCRD));
+
+            assertThat(result.severe()).hasValueSatisfying(errors ->
+                assertThat(errors)
+                    .extracting(Validator.Error::getMessage)
+                    .anyMatch(message -> message.contains("envId=other%25env"))
+            );
+        }
+
+        @Test
         void should_set_spg_id_from_existing() {
             SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD().toBuilder().crossId("spg-cross-id").build();
             var existingSpg = aCRD.toSharedPolicyGroup().toBuilder().id("existing-spg-id").environmentId(ENV_ID).build();
@@ -291,5 +326,13 @@ class ValidateSharedPolicyGroupCRDDomainServiceTest {
                 errors -> assertThat(errors).hasSize(1).extracting(Validator.Error::getMessage).contains("Invalid policy configuration")
             );
         }
+    }
+
+    private static Step stepReferencing(String path) {
+        return Step.builder()
+            .policy("test-policy")
+            .enabled(true)
+            .configuration("{ \"value\": \"{#secrets.get('" + path + "')}\" }")
+            .build();
     }
 }
