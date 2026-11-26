@@ -15,14 +15,14 @@ Open `http://localhost:3004`. The standalone shell shows Dashboard and Portals n
 
 ## Routes
 
-Routes are relative to the module mount `/environments/:envHrid/portals` in Gamma, or `/` in standalone development:
+Routes are relative to `/` in standalone development. Once the Gamma host mounts the module (see [Gamma host integration](#gamma-host-integration)), they will be relative to `/environments/:envHrid/portals`:
 
 - The module root is Dashboard.
 - `list` is the Portals page.
 - `:portalId` redirects to `:portalId/overview`.
 - `:portalId/overview` displays the portal ID and highlights Portals in the sidebar.
 
-There is no repeated `portals` segment: a hosted overview URL is `/environments/:envHrid/portals/:portalId/overview`. Opening an overview URL directly preserves the portal context. Future portal-scoped pages belong under `:portalId`.
+There is no repeated `portals` segment: once hosted, an overview URL will be `/environments/:envHrid/portals/:portalId/overview`. Opening an overview URL directly preserves the portal context. Future portal-scoped pages belong under `:portalId`.
 
 ## Portals list
 
