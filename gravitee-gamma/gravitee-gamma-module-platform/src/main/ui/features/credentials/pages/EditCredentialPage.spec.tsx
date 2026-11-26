@@ -203,6 +203,7 @@ describe('EditCredentialPage', () => {
         expect(notify.success).toHaveBeenCalledWith('Credential updated');
         expect(notify.warning).toHaveBeenCalledWith(
             'Support bot kept the former settings of the credential: You cannot update this LLM proxy.',
+            { duration: 10_000 },
         );
     });
 
@@ -225,6 +226,7 @@ describe('EditCredentialPage', () => {
         expect(notify.error).toHaveBeenCalledWith('The details were saved, but the secret could not be replaced.');
         expect(notify.warning).toHaveBeenCalledWith(
             'Support bot kept the former settings of the credential: You cannot update this LLM proxy.',
+            { duration: 10_000 },
         );
     });
 

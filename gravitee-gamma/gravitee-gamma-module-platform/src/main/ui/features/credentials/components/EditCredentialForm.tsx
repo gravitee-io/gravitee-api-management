@@ -43,6 +43,9 @@ import { ENVIRONMENT_SECRET_UPDATE_PERMISSION } from '../utils/credentialPermiss
 import { CREDENTIAL_ROTATION_WINDOW_NOTE } from '../utils/credentialRotation';
 import { credentialStrategyLabel } from '../utils/credentialStrategies';
 
+// The form leaves the page after a save, so the toast is the only place the user reads these warnings.
+const CONSUMER_WARNING_DURATION_MS = 10_000;
+
 export function EditCredentialForm({ credential }: Readonly<{ credential: Credential }>) {
     const navigate = useNavigate();
     const canUpdateSecrets = useHasEnvironmentPermission([ENVIRONMENT_SECRET_UPDATE_PERMISSION]);
@@ -78,7 +81,7 @@ export function EditCredentialForm({ credential }: Readonly<{ credential: Creden
         }
         const warnings = consumerWarningsMessage(updated.consumerWarnings);
         if (warnings) {
-            notify.warning(warnings);
+            notify.warning(warnings, { duration: CONSUMER_WARNING_DURATION_MS });
         }
         const values = canUpdateSecrets ? rotationValues(draft) : undefined;
         if (values) {
