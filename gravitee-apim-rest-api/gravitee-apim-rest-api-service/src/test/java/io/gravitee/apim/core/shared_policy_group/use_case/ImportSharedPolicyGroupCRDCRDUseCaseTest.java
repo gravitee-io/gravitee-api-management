@@ -16,10 +16,12 @@
 package io.gravitee.apim.core.shared_policy_group.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import fakes.FakePolicyValidationDomainService;
 import fixtures.core.model.SharedPolicyGroupFixtures;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.CredentialCrudServiceInMemory;
 import inmemory.EventCrudInMemory;
 import inmemory.EventLatestCrudInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
@@ -29,11 +31,15 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plugin.model.FlowPhase;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
 import io.gravitee.apim.core.shared_policy_group.domain_service.ValidateCreateSharedPolicyGroupDomainService;
 import io.gravitee.apim.core.shared_policy_group.domain_service.ValidateSharedPolicyGroupCRDDomainService;
 import io.gravitee.apim.core.shared_policy_group.domain_service.ValidateUpdateSharedPolicyGroupDomainService;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
+import io.gravitee.apim.infra.credential.SpelSecretExpressionParser;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
@@ -62,10 +68,25 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     private final FakePolicyValidationDomainService policyValidationDomainService = new FakePolicyValidationDomainService();
+    private final SecretReferencePermissionDomainService secretReferencePermissionDomainService =
+        new SecretReferencePermissionDomainService(
+            new SpelSecretExpressionParser(),
+            mock(PermissionDomainService.class),
+            new CredentialCrudServiceInMemory(),
+            GraviteeJacksonMapper.getInstance()
+        );
     private final ValidateCreateSharedPolicyGroupDomainService validateCreateSharedPolicyGroupDomainService =
-        new ValidateCreateSharedPolicyGroupDomainService(sharedPolicyGroupCrudService, policyValidationDomainService);
+        new ValidateCreateSharedPolicyGroupDomainService(
+            sharedPolicyGroupCrudService,
+            policyValidationDomainService,
+            secretReferencePermissionDomainService
+        );
     private final ValidateUpdateSharedPolicyGroupDomainService validateUpdateSharedPolicyGroupDomainService =
-        new ValidateUpdateSharedPolicyGroupDomainService(sharedPolicyGroupCrudService, policyValidationDomainService);
+        new ValidateUpdateSharedPolicyGroupDomainService(
+            sharedPolicyGroupCrudService,
+            policyValidationDomainService,
+            secretReferencePermissionDomainService
+        );
     private final AuditDomainService auditService = new AuditDomainService(
         auditCrudService,
         userCrudService,
@@ -159,6 +180,27 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
             Assertions.assertThat(throwable)
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessage("Unable to import because of errors [Invalid configuration for policy policy_throw_invalid_data_exception]");
+        }
+
+        @Test
+        void should_not_create_when_a_step_references_a_secret_of_another_environment() {
+            var crd = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD();
+            crd.setSteps(
+                List.of(
+                    Step.builder()
+                        .policy("policy")
+                        .enabled(true)
+                        .configuration("{ \"value\": \"{#secrets.get('/gravitee/db-password:value?envId=other-env')}\" }")
+                        .build()
+                )
+            );
+
+            var throwable = Assertions.catchThrowable(() -> cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd)));
+
+            Assertions.assertThat(throwable)
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("must name the environment of this definition, as ?envId=" + ENV_ID);
+            Assertions.assertThat(sharedPolicyGroupCrudService.storage()).isEmpty();
         }
 
         @Test

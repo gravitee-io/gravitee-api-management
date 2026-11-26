@@ -18,6 +18,7 @@ package io.gravitee.apim.core.shared_policy_group.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupDuplicateCrossIdException;
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupInvalidPhaseException;
@@ -38,6 +39,7 @@ public class ValidateCreateSharedPolicyGroupDomainService implements Validator<V
 
     private final SharedPolicyGroupCrudService sharedPolicyGroupCrudService;
     private final PolicyValidationDomainService policyValidationDomainService;
+    private final SecretReferencePermissionDomainService secretReferencePermissionDomainService;
 
     public record Input(AuditInfo auditInfo, SharedPolicyGroup sharedPolicyGroup) implements Validator.Input {}
 
@@ -47,7 +49,7 @@ public class ValidateCreateSharedPolicyGroupDomainService implements Validator<V
         var sanitizedBuilder = input.sharedPolicyGroup().toBuilder();
 
         try {
-            validate(input.sharedPolicyGroup, input.auditInfo.environmentId());
+            validate(input.sharedPolicyGroup, input.auditInfo);
         } catch (Exception e) {
             errors.add(Error.severe(e.getMessage()));
         }
@@ -55,8 +57,16 @@ public class ValidateCreateSharedPolicyGroupDomainService implements Validator<V
         return Validator.Result.ofBoth(new Input(input.auditInfo(), sanitizedBuilder.build()), errors);
     }
 
-    public void validate(SharedPolicyGroup sharedPolicyGroup, String environmentId) {
-        validateCreateSharedPolicyGroup(sharedPolicyGroup, environmentId);
+    public void validate(SharedPolicyGroup sharedPolicyGroup, AuditInfo auditInfo) {
+        // Before validateCreateSharedPolicyGroup, which replaces each step configuration with its sanitized form.
+        secretReferencePermissionDomainService.validate(
+            auditInfo.organizationId(),
+            auditInfo.environmentId(),
+            auditInfo.actor().userId(),
+            null,
+            sharedPolicyGroup.getSteps()
+        );
+        validateCreateSharedPolicyGroup(sharedPolicyGroup, auditInfo.environmentId());
     }
 
     private void validateCreateSharedPolicyGroup(SharedPolicyGroup sharedPolicyGroupToCreate, String environmentId) {

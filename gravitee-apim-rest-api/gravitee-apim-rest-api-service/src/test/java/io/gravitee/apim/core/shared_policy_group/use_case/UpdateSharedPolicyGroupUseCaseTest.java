@@ -16,10 +16,15 @@
 package io.gravitee.apim.core.shared_policy_group.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import fakes.FakePolicyValidationDomainService;
 import fixtures.core.model.SharedPolicyGroupFixtures;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.CredentialCrudServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -27,12 +32,18 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.policy.exception.UnexpectedPoliciesException;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
+import io.gravitee.apim.core.secret.exception.InvalidSecretReferenceException;
+import io.gravitee.apim.core.secret.exception.SecretReferenceNotAllowedException;
 import io.gravitee.apim.core.shared_policy_group.domain_service.ValidateUpdateSharedPolicyGroupDomainService;
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupDuplicateCrossIdException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupAuditEvent;
 import io.gravitee.apim.core.shared_policy_group.model.UpdateSharedPolicyGroup;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
+import io.gravitee.apim.infra.credential.SpelSecretExpressionParser;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.step.Step;
@@ -69,8 +80,21 @@ public class UpdateSharedPolicyGroupUseCaseTest {
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     private final FakePolicyValidationDomainService policyValidationDomainService = new FakePolicyValidationDomainService();
 
+    private final PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
+    private final SecretReferencePermissionDomainService secretReferencePermissionDomainService =
+        new SecretReferencePermissionDomainService(
+            new SpelSecretExpressionParser(),
+            permissionDomainService,
+            new CredentialCrudServiceInMemory(),
+            GraviteeJacksonMapper.getInstance()
+        );
+
     private final ValidateUpdateSharedPolicyGroupDomainService validateUpdateSharedPolicyGroupDomainService =
-        new ValidateUpdateSharedPolicyGroupDomainService(sharedPolicyGroupCrudService, policyValidationDomainService);
+        new ValidateUpdateSharedPolicyGroupDomainService(
+            sharedPolicyGroupCrudService,
+            policyValidationDomainService,
+            secretReferencePermissionDomainService
+        );
     private UpdateSharedPolicyGroupUseCase updateSharedPolicyGroupUseCase;
 
     @BeforeAll
@@ -329,5 +353,47 @@ public class UpdateSharedPolicyGroupUseCaseTest {
         Assertions.assertThat(throwable)
             .isInstanceOf(UnexpectedPoliciesException.class)
             .hasMessage("Unexpected policies [policy_throw_unexpected_policy_exception] for API type MESSAGE and phase REQUEST");
+    }
+
+    @Test
+    void should_refuse_a_step_that_adds_a_reference_to_a_secret_of_another_environment_and_keep_the_stored_version() {
+        when(permissionDomainService.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
+        var existingSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
+        sharedPolicyGroupCrudService.initWith(List.of(existingSharedPolicyGroup));
+        var toUpdate = UpdateSharedPolicyGroup.builder()
+            .steps(List.of(stepReferencing("/gravitee/db-password:value?envId=other-env")))
+            .build();
+
+        assertThatThrownBy(() ->
+            updateSharedPolicyGroupUseCase.execute(
+                new UpdateSharedPolicyGroupUseCase.Input(existingSharedPolicyGroup.getId(), toUpdate, AUDIT_INFO)
+            )
+        )
+            .isInstanceOf(InvalidSecretReferenceException.class)
+            .hasMessageContaining("?envId=" + ENV_ID);
+        assertThat(sharedPolicyGroupCrudService.storage()).containsExactly(existingSharedPolicyGroup);
+    }
+
+    @Test
+    void should_save_a_step_whose_reference_the_stored_version_already_has() {
+        var existingSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup()
+            .toBuilder()
+            .steps(List.of(stepReferencing("/gravitee/db-password:value?envId=other-env")))
+            .build();
+        sharedPolicyGroupCrudService.initWith(List.of(existingSharedPolicyGroup));
+        var toUpdate = UpdateSharedPolicyGroup.builder()
+            .name("renamed")
+            .steps(List.of(stepReferencing("/gravitee/db-password:value?envId=other-env")))
+            .build();
+
+        var updated = updateSharedPolicyGroupUseCase.execute(
+            new UpdateSharedPolicyGroupUseCase.Input(existingSharedPolicyGroup.getId(), toUpdate, AUDIT_INFO)
+        );
+
+        assertThat(updated.sharedPolicyGroup().getName()).isEqualTo("renamed");
+    }
+
+    private static Step stepReferencing(String path) {
+        return Step.builder().policy("policy").enabled(true).configuration("{ \"value\": \"{#secrets.get('" + path + "')}\" }").build();
     }
 }
