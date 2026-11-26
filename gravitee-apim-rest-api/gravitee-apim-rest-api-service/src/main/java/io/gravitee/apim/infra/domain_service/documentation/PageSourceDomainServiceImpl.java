@@ -97,6 +97,15 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
         if (oldPage.getSource() == null || newPage.getSource() == null) {
             return;
         }
+        // The read hid this configuration because its plugin is missing: sent back as is, it must not erase the stored one
+        if (
+            newPage.getSource().getConfiguration() == null &&
+            Objects.equals(oldPage.getSource().getType(), newPage.getSource().getType()) &&
+            loadPlugin(oldPage.getSource()).isEmpty()
+        ) {
+            newPage.getSource().setConfiguration(oldPage.getSource().getConfiguration());
+            return;
+        }
         if (oldPage.getSource().getConfiguration() == null || newPage.getSource().getConfiguration() == null) {
             return;
         }
