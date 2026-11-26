@@ -59,7 +59,24 @@ public final class SearchGuardrailDecisionLogsQueryAdapter {
 
     private SearchGuardrailDecisionLogsQueryAdapter() {}
 
-    public static String adapt(QueryContext queryContext, GuardrailDecisionLogQuery query) {
+    /**
+     * @param maxResultWindow the configured {@code max_result_window}: a page reaching past it is refused here rather than
+     *     by Elasticsearch, so the caller gets a 400 naming the page instead of a 500.
+     * @throws IllegalArgumentException when the page reaches past the window. Refused rather than clamped: a clamped
+     *     page would answer with other rows and look like success.
+     */
+    public static String adapt(QueryContext queryContext, GuardrailDecisionLogQuery query, int maxResultWindow) {
+        // long: a page number a client is free to send overflows the int product, and a negative from would slip past.
+        long from = (long) (query.getPage() - 1) * query.getSize();
+        if (from + query.getSize() > maxResultWindow) {
+            throw new IllegalArgumentException(
+                "Page %d of %d goes past the %d Guardrail decisions a search serves. Narrow the search instead.".formatted(
+                    query.getPage(),
+                    query.getSize(),
+                    maxResultWindow
+                )
+            );
+        }
         ArrayNode filters = MAPPER.createArrayNode();
         addTerm(filters, GuardrailDecisionLogFields.ORG_ID, queryContext.getOrgId());
         addTerm(filters, GuardrailDecisionLogFields.ENV_ID, queryContext.getEnvId());
@@ -83,7 +100,7 @@ public final class SearchGuardrailDecisionLogsQueryAdapter {
 
         ObjectNode root = MAPPER.createObjectNode();
         root.set(QUERY, MAPPER.createObjectNode().set(BOOL, MAPPER.createObjectNode().set(FILTER, filters)));
-        root.put(FROM, (query.getPage() - 1) * query.getSize());
+        root.put(FROM, from);
         root.put(SIZE, query.getSize());
         root.put(TRACK_TOTAL_HITS, true);
         // event-id breaks ties: the request and the response run of one call can share a millisecond, and ordering
@@ -112,7 +129,7 @@ public final class SearchGuardrailDecisionLogsQueryAdapter {
 
     /**
      * One search box over what a row shows: the request, the guardrail policy and its rules, the api. Any of them matching is
-     * enough. Reasons are sentences and rule names are words of them, so both are matched on a fragment. The request id
+     * enough. The guardrail policy is reached through the reasons, each of which starts with its name. Reasons are sentences and rule names are words of them, so both are matched on a fragment. The request id
      * is matched on its start: it is one value per call, and a fragment anywhere in it would walk every term of the
      * index.
      *

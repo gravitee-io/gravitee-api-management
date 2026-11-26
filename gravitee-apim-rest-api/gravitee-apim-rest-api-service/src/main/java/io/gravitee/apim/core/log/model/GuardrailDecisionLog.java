@@ -19,8 +19,8 @@ import java.util.List;
 import lombok.Builder;
 
 /**
- * What one run of a Guardrail decided on a call. A decision names rules and where they matched, never the content of
- * the exchange.
+ * What one run of a Guardrail decided on a call. A decision names rules and where they matched. The gateway records no
+ * content of the exchange itself; a step's reason is what its guardrail policy wrote.
  */
 @Builder
 public record GuardrailDecisionLog(
@@ -35,9 +35,12 @@ public record GuardrailDecisionLog(
     String enforced,
     String transformationType,
     String verdict,
-    List<String> reasons,
+    List<Step> steps,
     List<Finding> findings,
     Long durationNanos
 ) {
     public record Finding(String guardrailPolicy, String rule, String location, String effect) {}
+
+    /** One guardrail policy of the sequence, in the order it ran: what it concluded, and why when it said. */
+    public record Step(String guardrailPolicy, String verdict, String reason) {}
 }

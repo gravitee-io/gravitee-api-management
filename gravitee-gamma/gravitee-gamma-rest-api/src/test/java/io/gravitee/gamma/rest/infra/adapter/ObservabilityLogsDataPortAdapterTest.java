@@ -1497,7 +1497,7 @@ class ObservabilityLogsDataPortAdapterTest {
                             .enforced("TRANSFORM")
                             .transformationType("REDACT")
                             .verdict("REDACT")
-                            .reasons(List.of("Redact PII: REDACT — 1 passage"))
+                            .steps(List.of(new GuardrailDecisionLog.Step("Redact PII", "REDACT", "1 passage")))
                             .findings(
                                 List.of(new GuardrailDecisionLog.Finding("Redact PII", "EMAIL", "$.messages[0].content", "TRANSFORM"))
                             )
@@ -1527,7 +1527,7 @@ class ObservabilityLogsDataPortAdapterTest {
                     .enforced("TRANSFORM")
                     .transformationType("REDACT")
                     .verdict("REDACT")
-                    .reasons(List.of("Redact PII: REDACT — 1 passage"))
+                    .steps(List.of(new GuardrailDecision.Step("Redact PII", "REDACT", "1 passage")))
                     .findings(List.of(new GuardrailDecision.Finding("Redact PII", "EMAIL", "$.messages[0].content", "TRANSFORM")))
                     .durationNanos(4_200L)
                     .build()
@@ -1561,7 +1561,7 @@ class ObservabilityLogsDataPortAdapterTest {
         }
 
         @Test
-        void should_search_the_text_and_the_apis_whose_name_holds_it() {
+        void should_search_the_text_and_the_apis_the_use_case_matched_on_it() {
             when(guardrailDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(
                 new SearchLogsResponse<>(0, List.of())
             );
@@ -1582,6 +1582,7 @@ class ObservabilityLogsDataPortAdapterTest {
                         )
                     )
                     .conditions(List.of(new FilterCondition("GUARDRAIL_SEARCH", FilterOperator.CONTAINS, List.of("assistant"))))
+                    .textApiIds(Set.of("api-1", "api-2"))
                     .page(1)
                     .perPage(20)
                     .recordType(RecordType.GUARDRAIL_DECISION)

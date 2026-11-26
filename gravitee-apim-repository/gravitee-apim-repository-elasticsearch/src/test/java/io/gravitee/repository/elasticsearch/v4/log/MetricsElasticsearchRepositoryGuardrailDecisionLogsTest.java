@@ -120,6 +120,17 @@ public class MetricsElasticsearchRepositoryGuardrailDecisionLogsTest extends Abs
         assertThat(result.total()).isEqualTo(5);
     }
 
+    /** A proxy name widens the text match, never the scope: an API named by the text but outside the search is not read. */
+    @Test
+    void should_not_read_an_api_the_text_names_outside_the_apis_searched() throws AnalyticsException {
+        var result = metricsV4Repository.searchGuardrailDecisionLogs(
+            queryContext,
+            baseQuery().text("nothing-holds-this").textApiIds(Set.of(AUTHZ_API_ID)).build()
+        );
+
+        assertThat(result.total()).isZero();
+    }
+
     @Test
     void should_find_nothing_for_a_text_nothing_holds() throws AnalyticsException {
         var result = metricsV4Repository.searchGuardrailDecisionLogs(queryContext, baseQuery().text("nothing-holds-this").build());
@@ -161,7 +172,7 @@ public class MetricsElasticsearchRepositoryGuardrailDecisionLogsTest extends Abs
     }
 
     @Test
-    void should_read_what_the_guardrail_policy_policies_found_and_where() throws AnalyticsException {
+    void should_read_what_the_guardrail_policies_found_and_where() throws AnalyticsException {
         var decision = decision("grd-001");
 
         assertThat(decision.apiId()).isEqualTo(API_ID);
@@ -173,7 +184,10 @@ public class MetricsElasticsearchRepositoryGuardrailDecisionLogsTest extends Abs
         assertThat(decision.verdict()).isEqualTo("BLOCK");
         assertThat(decision.requestId()).isEqualTo("req-g-1");
         assertThat(decision.durationNanos()).isEqualTo(4_200_000L);
-        assertThat(decision.reasons()).containsExactly("Block credentials: BLOCK — 1 credential found", "Topic check: PASS");
+        assertThat(decision.steps()).containsExactly(
+            new GuardrailDecisionLog.Step("Block credentials", "BLOCK", "1 credential found"),
+            new GuardrailDecisionLog.Step("Topic check", "PASS", null)
+        );
         assertThat(decision.findings()).containsExactly(
             new GuardrailDecisionLog.Finding("Block credentials", "aws-access-key", "$.messages[0].content", "DENY")
         );

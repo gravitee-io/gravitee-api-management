@@ -18,6 +18,7 @@ package io.gravitee.gateway.handlers.guardrail.decision;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.guardrail.Guardrail;
+import io.gravitee.definition.model.v4.guardrail.GuardrailDecisionReasonLine;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.handlers.guardrail.ReactableGuardrail;
 import io.gravitee.gateway.handlers.guardrail.decision.GuardrailVerdicts.Entry;
@@ -345,8 +346,7 @@ public class GuardrailDecisionReporter {
 
     private static String reason(Entry entry) {
         GuardrailVerdict verdict = entry.verdict();
-        String line = entry.guardrailPolicy() + ": " + verdict.verdict();
-        return verdict.reasons().isEmpty() ? line : line + " — " + String.join("; ", verdict.reasons());
+        return GuardrailDecisionReasonLine.format(entry.guardrailPolicy(), verdict.verdict(), verdict.reasons());
     }
 
     private static List<MatchedRule> matchedRules(GuardrailVerdicts verdicts) {

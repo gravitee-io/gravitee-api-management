@@ -21,9 +21,11 @@ import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asTextOrN
 import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.epochMillisOrNull;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.gravitee.definition.model.v4.guardrail.GuardrailDecisionReasonLine;
 import io.gravitee.repository.log.v4.model.guardrail.GuardrailDecisionLog;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author GraviteeSource Team
@@ -33,6 +35,7 @@ final class GuardrailDecisionLogSourceMapper {
     private GuardrailDecisionLogSourceMapper() {}
 
     static GuardrailDecisionLog from(JsonNode source) {
+        var findings = findings(source.get(GuardrailDecisionLogFields.MATCHED_RULES));
         return GuardrailDecisionLog.builder()
             .eventId(asTextOrNull(source.get(GuardrailDecisionLogFields.EVENT_ID)))
             .timestamp(epochMillisOrNull(asTextOrNull(source.get(GuardrailDecisionLogFields.TIMESTAMP))))
@@ -45,8 +48,8 @@ final class GuardrailDecisionLogSourceMapper {
             .enforced(asTextOrNull(source.get(GuardrailDecisionLogFields.ENFORCED)))
             .transformationType(asTextOrNull(source.get(GuardrailDecisionLogFields.TRANSFORMATION_TYPE)))
             .verdict(asTextOrNull(source.get(GuardrailDecisionLogFields.VERDICT)))
-            .reasons(asTextList(source.get(GuardrailDecisionLogFields.REASONS)))
-            .findings(findings(source.get(GuardrailDecisionLogFields.MATCHED_RULES)))
+            .steps(steps(asTextList(source.get(GuardrailDecisionLogFields.REASONS)), findings))
+            .findings(findings)
             .durationNanos(asLongOrNull(source.get(GuardrailDecisionLogFields.DURATION_NANOS)))
             .build();
     }
@@ -61,18 +64,32 @@ final class GuardrailDecisionLogSourceMapper {
         }
         var findings = new ArrayList<GuardrailDecisionLog.Finding>(node.size());
         node.forEach(rule -> {
-            if (rule.isObject()) {
-                var annotations = rule.path(GuardrailDecisionLogFields.MATCHED_RULE_ANNOTATIONS);
-                findings.add(
-                    new GuardrailDecisionLog.Finding(
-                        asTextOrNull(annotations.get(GuardrailDecisionLogFields.ANNOTATION_GUARDRAIL)),
-                        asTextOrNull(rule.get(GuardrailDecisionLogFields.MATCHED_RULE_NAME)),
-                        asTextOrNull(annotations.get(GuardrailDecisionLogFields.ANNOTATION_LOCATION)),
-                        asTextOrNull(rule.get(GuardrailDecisionLogFields.MATCHED_RULE_EFFECT))
-                    )
-                );
+            if (!rule.isObject()) {
+                return;
             }
+            var annotations = rule.path(GuardrailDecisionLogFields.MATCHED_RULE_ANNOTATIONS);
+            findings.add(
+                new GuardrailDecisionLog.Finding(
+                    asTextOrNull(annotations.get(GuardrailDecisionLogFields.ANNOTATION_GUARDRAIL)),
+                    asTextOrNull(rule.get(GuardrailDecisionLogFields.MATCHED_RULE_NAME)),
+                    asTextOrNull(annotations.get(GuardrailDecisionLogFields.ANNOTATION_LOCATION)),
+                    asTextOrNull(rule.get(GuardrailDecisionLogFields.MATCHED_RULE_EFFECT))
+                )
+            );
         });
         return findings;
+    }
+
+    /**
+     * The guardrail policy sequence, one step per reason line, read with the format the gateway writes it in
+     * ({@link GuardrailDecisionReasonLine}). The names the findings carry are known, so one holding {@code ": "} stays whole.
+     */
+    private static List<GuardrailDecisionLog.Step> steps(List<String> lines, List<GuardrailDecisionLog.Finding> findings) {
+        var known = findings.stream().map(GuardrailDecisionLog.Finding::guardrailPolicy).filter(Objects::nonNull).distinct().toList();
+        return lines
+            .stream()
+            .map(line -> GuardrailDecisionReasonLine.parse(line, known))
+            .map(parsed -> new GuardrailDecisionLog.Step(parsed.guardrailPolicy(), parsed.verdict(), parsed.reason()))
+            .toList();
     }
 }

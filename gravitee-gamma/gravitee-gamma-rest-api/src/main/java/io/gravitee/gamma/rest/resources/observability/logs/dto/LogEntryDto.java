@@ -98,7 +98,7 @@ public record LogEntryDto(
         String enforced,
         String transformationType,
         String verdict,
-        List<String> reasons,
+        List<StepDto> steps,
         List<FindingDto> findings,
         Long durationNanos
     ) {
@@ -112,10 +112,17 @@ public record LogEntryDto(
                 guardrail.enforced(),
                 guardrail.transformationType(),
                 guardrail.verdict(),
-                guardrail.reasons(),
+                guardrail.steps() != null ? guardrail.steps().stream().map(StepDto::from).toList() : null,
                 guardrail.findings() != null ? guardrail.findings().stream().map(FindingDto::from).toList() : null,
                 guardrail.durationNanos()
             );
+        }
+
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        public record StepDto(String guardrailPolicy, String verdict, String reason) {
+            public static StepDto from(GuardrailDecision.Step step) {
+                return new StepDto(step.guardrailPolicy(), step.verdict(), step.reason());
+            }
         }
 
         @JsonInclude(JsonInclude.Include.NON_NULL)
