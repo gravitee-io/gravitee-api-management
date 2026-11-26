@@ -350,6 +350,17 @@ class PortalAddressDomainServiceTest {
                 .isEqualTo("portal.url.exists");
         }
 
+        @Test
+        void should_refuse_a_host_used_by_an_access_point_that_serves_no_portal() {
+            cut.accessPoints().initWith(List.of(anAccessPoint("console", ENV_ID, AccessPoint.Target.CONSOLE, "developers.acme.io")));
+
+            assertThatThrownBy(() -> cut.validateCustomUrl(PORTAL_ID, "https://developers.acme.io"))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("developers.acme.io")
+                .extracting("technicalCode")
+                .isEqualTo("portal.url.exists");
+        }
+
         @ParameterizedTest
         @ValueSource(
             strings = {

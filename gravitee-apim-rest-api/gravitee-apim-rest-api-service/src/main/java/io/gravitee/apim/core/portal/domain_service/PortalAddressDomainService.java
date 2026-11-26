@@ -169,16 +169,20 @@ public class PortalAddressDomainService {
     public URL validateCustomUrl(PortalId portalId, String rawUrl) {
         var url = parseCustomUrl(rawUrl);
         var host = PortalHost.of(url);
+        // Like a generated host, a custom one must not shadow a console, an API or another portal.
         var taken = accessPointQueryService
-            .findPortalInstancesByHost(host.value())
+            .findByHost(host.value())
             .stream()
-            .flatMap(accessPoint -> portalCrudService.findByAccessPointId(accessPoint.getId()).stream())
-            .anyMatch(portal -> !portal.getId().equals(portalId));
-        if (taken) {
-            throw new ValidationDomainException(
-                "Host [%s] is already used by another portal".formatted(host.value()),
-                URL_EXISTS_TECHNICAL_CODE
+            .anyMatch(
+                accessPoint ->
+                    accessPoint.getTarget() != AccessPoint.Target.PORTAL_INSTANCE ||
+                    portalCrudService
+                        .findByAccessPointId(accessPoint.getId())
+                        .stream()
+                        .anyMatch(portal -> !portal.getId().equals(portalId))
             );
+        if (taken) {
+            throw new ValidationDomainException("Host [%s] is already in use".formatted(host.value()), URL_EXISTS_TECHNICAL_CODE);
         }
         return url;
     }
@@ -232,7 +236,7 @@ public class PortalAddressDomainService {
 
     // Any access point, whatever its target: a generated portal host must not shadow a console, an API or another portal.
     private boolean isTaken(String host) {
-        return accessPointQueryService.getReferenceContext(host).isPresent();
+        return !accessPointQueryService.findByHost(host).isEmpty();
     }
 
     private static String hostAndPort(URL environmentUrl, String host) {

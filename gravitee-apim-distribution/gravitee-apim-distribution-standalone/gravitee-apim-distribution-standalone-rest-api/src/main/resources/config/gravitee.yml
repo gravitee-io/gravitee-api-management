@@ -935,7 +935,8 @@ notifiers:
 #    # Specify the URL of Portal UI of this instance
 #    portal:
 #      url: http://localhost:4100
-#      # Host of the URL generated for each new portal; scheme, port and path come from the portal URL above.
+#      # Host of the URL generated for each new portal: scheme and port come from the portal URL above, and the portal
+#      # is served at the root of that host, under /next.
 #      # DNS, certificates and the reverse proxy must already serve this host. When unset, new portals share the portal URL.
 #      generatedHost: "{portal-slug}.localhost"
 #      # If you have multi portal instances targeting different environments, you can configure the section as bellow instead:

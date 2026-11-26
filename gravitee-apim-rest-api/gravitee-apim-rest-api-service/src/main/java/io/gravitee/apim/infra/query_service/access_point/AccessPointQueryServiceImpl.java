@@ -20,6 +20,7 @@ import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.infra.adapter.AccessPointAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AccessPointRepository;
+import io.gravitee.repository.management.model.AccessPointTarget;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.ArrayList;
@@ -198,6 +199,23 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
                 String.format("An error occurs while getting portal access points on host '%s'", host),
                 e
             );
+        }
+    }
+
+    @Override
+    public List<AccessPoint> findByHost(final String host) {
+        try {
+            var accessPoints = new ArrayList<AccessPoint>();
+            for (var target : AccessPointTarget.values()) {
+                accessPointRepository
+                    .findByTargetAndHost(target, host)
+                    .stream()
+                    .map(AccessPointAdapter.INSTANCE::toEntity)
+                    .forEach(accessPoints::add);
+            }
+            return accessPoints;
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(String.format("An error occurs while getting the access points on host '%s'", host), e);
         }
     }
 

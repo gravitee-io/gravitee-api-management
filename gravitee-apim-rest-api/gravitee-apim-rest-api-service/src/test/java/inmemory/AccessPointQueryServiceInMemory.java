@@ -132,6 +132,14 @@ public class AccessPointQueryServiceInMemory implements AccessPointQueryService,
     }
 
     @Override
+    public List<AccessPoint> findByHost(final String host) {
+        return storage
+            .stream()
+            .filter(accessPoint -> host.equals(accessPoint.getHost()))
+            .toList();
+    }
+
+    @Override
     public void initWith(List<AccessPoint> items) {
         storage.clear();
         storage.addAll(items);
