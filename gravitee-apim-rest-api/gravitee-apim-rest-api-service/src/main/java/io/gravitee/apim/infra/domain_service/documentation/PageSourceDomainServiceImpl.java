@@ -68,6 +68,11 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
 
     @Override
     public void removeSensitiveData(Page page) {
+        // Without its fetcher plugin, which fields are secret is unknown: hide the whole configuration rather than return it raw
+        if (page.getSource() != null && loadPlugin(page.getSource()).isEmpty()) {
+            page.getSource().setConfiguration(null);
+            return;
+        }
         loadFetcher(page).ifPresent(fetcher -> {
             FetcherConfiguration fetcherConfiguration = fetcher.getConfiguration();
             Field[] fields = fetcherConfiguration.getClass().getDeclaredFields();
