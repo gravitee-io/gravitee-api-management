@@ -27,4 +27,5 @@ export type GroupByField =
   | 'application-id'
   | 'plan-id'
   | 'uri'
+  | 'mapped-path'
   | 'additional-metrics.long_mcp-proxy_response-error-code';

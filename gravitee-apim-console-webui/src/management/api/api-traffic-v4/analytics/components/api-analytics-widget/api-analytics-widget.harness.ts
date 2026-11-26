@@ -165,6 +165,11 @@ export class ApiAnalyticsWidgetHarness extends ComponentHarness {
     return widgetLayout.getErrorMessageText();
   }
 
+  async getTooltipText(): Promise<string | null> {
+    const widgetLayout = await this.getWidgetLayout();
+    return widgetLayout.getTooltipText();
+  }
+
   async hasTooltipIcon(): Promise<boolean> {
     const widgetLayout = await this.getWidgetLayout();
     return widgetLayout.hasTooltipIcon();

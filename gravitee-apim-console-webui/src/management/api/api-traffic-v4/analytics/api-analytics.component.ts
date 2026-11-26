@@ -16,6 +16,7 @@
 import { Component, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { map } from 'rxjs/operators';
 import { GioCardEmptyStateModule } from '@gravitee/ui-particles-angular';
 
 import { ApiAnalyticsMessageComponent } from './api-analytics-message/api-analytics-message.component';
@@ -25,6 +26,7 @@ import { ApiAnalyticsMcpProxyComponent } from './api-analytics-mcp-proxy/api-ana
 
 import { onlyApiV4Filter } from '../../../../util/apiFilter.operator';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { hasPathMappings } from '../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-analytics',
@@ -37,16 +39,16 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
     GioCardEmptyStateModule,
   ],
   template: `
-    @if (api$ | async; as api) {
-      @switch (api.type) {
+    @if (apiTraffic$ | async; as apiTraffic) {
+      @switch (apiTraffic.type) {
         @case ('MESSAGE') {
           <api-analytics-message />
         }
         @case ('LLM_PROXY') {
-          <api-analytics-proxy />
+          <api-analytics-proxy [groupPathsByMapping]="apiTraffic.groupPathsByMapping" />
         }
         @case ('PROXY') {
-          <api-analytics-proxy />
+          <api-analytics-proxy [groupPathsByMapping]="apiTraffic.groupPathsByMapping" />
         }
         @case ('NATIVE') {
           <api-analytics-native />
@@ -55,7 +57,7 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
           <api-analytics-mcp-proxy />
         }
         @case ('AUTHZ') {
-          <api-analytics-proxy />
+          <api-analytics-proxy [groupPathsByMapping]="apiTraffic.groupPathsByMapping" />
         }
         @default {
           <gio-card-empty-state
@@ -72,5 +74,11 @@ export class ApiAnalyticsComponent {
   private readonly apiService = inject(ApiV2Service);
   private readonly activatedRoute = inject(ActivatedRoute);
 
-  api$ = this.apiService.getLastApiFetch(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV4Filter());
+  apiTraffic$ = this.apiService.getLastApiFetch(this.activatedRoute.snapshot.params.apiId).pipe(
+    onlyApiV4Filter(),
+    map(api => ({
+      type: api.type,
+      groupPathsByMapping: hasPathMappings(api),
+    })),
+  );
 }

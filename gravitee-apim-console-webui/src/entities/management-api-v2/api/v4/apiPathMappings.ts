@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ApiV4 } from './apiV4';
+import { HttpListener } from './httpListener';
+
 export interface ApiPathMappings {
   pathMappings: string[];
 }
@@ -20,4 +23,17 @@ export interface ApiPathMappings {
 export interface ImportApiPathMappings {
   pageId: string;
   overwrite?: boolean;
+}
+
+export function firstHttpListener(api: ApiV4 | undefined): HttpListener | undefined {
+  return api?.listeners?.find((listener): listener is HttpListener => listener.type === 'HTTP');
+}
+
+export function storedPathMappings(api: ApiV4 | undefined): string[] {
+  const listener = firstHttpListener(api);
+  return listener?.pathMappings ? [...listener.pathMappings] : [];
+}
+
+export function hasPathMappings(api: ApiV4 | undefined): boolean {
+  return storedPathMappings(api).length > 0;
 }
