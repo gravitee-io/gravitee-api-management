@@ -31,7 +31,7 @@ public record PortalHost(String value) {
     private static final Pattern HOST_AND_PORT = Pattern.compile("^(?:\\[[0-9a-f:.]+]|[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?)(?::(\\d{1,5}))?$");
 
     public static PortalHost of(URL url) {
-        var host = url.getHost().toLowerCase(Locale.ROOT);
+        var host = TRAILING_DOT.matcher(url.getHost().toLowerCase(Locale.ROOT)).replaceFirst("");
         var port = url.getPort();
         return new PortalHost(port == -1 || port == url.getDefaultPort() ? host : host + ":" + port);
     }
