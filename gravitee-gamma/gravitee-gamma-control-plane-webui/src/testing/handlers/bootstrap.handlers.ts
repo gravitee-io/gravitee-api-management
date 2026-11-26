@@ -24,6 +24,7 @@ export const bootstrapHandlers = [
             managementBaseURL: TEST_CONFIG.managementBaseURL,
             organizationId: TEST_CONFIG.organizationId,
             gammaBaseURL: TEST_CONFIG.gammaBaseURL,
+            consoleUrl: TEST_CONFIG.consoleUrl,
         }),
     ),
     http.get(`${TEST_MANAGEMENT_BASE}/social-identities`, () => HttpResponse.json([])),
