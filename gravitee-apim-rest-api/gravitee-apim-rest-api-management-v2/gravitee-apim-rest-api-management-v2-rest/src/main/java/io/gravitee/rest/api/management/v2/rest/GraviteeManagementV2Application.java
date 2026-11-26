@@ -29,6 +29,7 @@ import io.gravitee.rest.api.management.v2.rest.exceptionmapper.ValidationExcepti
 import io.gravitee.rest.api.management.v2.rest.exceptionmapper.domain.ConflictDomainExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionmapper.domain.NotAllowedDomainExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionmapper.domain.NotFoundDomainExceptionMapper;
+import io.gravitee.rest.api.management.v2.rest.exceptionmapper.domain.PortalLimitReachedExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionmapper.domain.PortalNameAlreadyExistsExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionmapper.domain.TechnicalDomainExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionmapper.domain.ValidationDomainExceptionMapper;
@@ -119,6 +120,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(NotFoundDomainExceptionMapper.class);
         register(ConflictDomainExceptionMapper.class);
         register(PortalNameAlreadyExistsExceptionMapper.class);
+        register(PortalLimitReachedExceptionMapper.class);
 
         register(CommaSeparatedQueryParamConverterProvider.class);
 

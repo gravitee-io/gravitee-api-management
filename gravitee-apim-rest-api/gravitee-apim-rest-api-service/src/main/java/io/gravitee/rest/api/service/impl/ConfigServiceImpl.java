@@ -405,7 +405,8 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
 
     /**
      * A default portal postponed for want of a resolvable URL is created as soon as the portal URL setting makes it
-     * resolvable. An environment with several portals (the Automation API allows it) keeps its settings saved.
+     * resolvable. An environment with several portals and no default one (the Automation API allows it) keeps its settings
+     * saved.
      */
     private void ensureDefaultPortal(ExecutionContext executionContext) {
         try {

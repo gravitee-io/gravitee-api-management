@@ -119,6 +119,45 @@ class PortalTest {
         }
 
         @Test
+        void create_from_console_builds_a_non_default_portal_created_from_the_console() {
+            var portal = Portal.createFromConsole("env", "org", "Partners", url("https://partners.example"));
+
+            assertThat(portal.getId()).isNotNull();
+            assertThat(portal.getEnvironmentId()).isEqualTo("env");
+            assertThat(portal.getOrganizationId()).isEqualTo("org");
+            assertThat(portal.getName()).isEqualTo("Partners");
+            assertThat(portal.isDefault()).isFalse();
+            assertThat(portal.isCreatedFromConsole()).isTrue();
+            assertThat(portal.getActiveThemeId()).isNull();
+            assertThat(portal.getNavigationStructure().isEmpty()).isTrue();
+            assertThat(portal.getUrl()).isEqualTo(url("https://partners.example"));
+        }
+
+        @Test
+        void create_from_console_refuses_a_missing_url() {
+            assertThatThrownBy(() -> Portal.createFromConsole("env", "org", "Partners", null)).isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void other_factories_build_portals_not_created_from_the_console() {
+            assertThat(
+                Portal.createDefault("env", "org", "Developer Portal", url("https://portal.example")).isCreatedFromConsole()
+            ).isFalse();
+            assertThat(Portal.create("env", "org", "Portal", url("https://portal.example")).isCreatedFromConsole()).isFalse();
+            assertThat(Portal.create(PORTAL_ID, "env", "org", "Portal", url("https://portal.example")).isCreatedFromConsole()).isFalse();
+            assertThat(aDefaultPortalWithUrl().isCreatedFromConsole()).isFalse();
+        }
+
+        @Test
+        void full_of_keeps_the_created_from_console_marker() {
+            var portal = Portal.of(PORTAL_ID, "env", "org", "Portal", STRUCTURE, "theme-1", false, true, url("https://portal.example"));
+
+            assertThat(portal.isDefault()).isFalse();
+            assertThat(portal.isCreatedFromConsole()).isTrue();
+            assertThat(portal.getUrl()).isEqualTo(url("https://portal.example"));
+        }
+
+        @Test
         void full_of_keeps_every_persisted_value() {
             var portal = Portal.of(PORTAL_ID, "env", "org", "Portal", STRUCTURE, "theme-1", true, url("https://portal.example"));
 
@@ -220,6 +259,14 @@ class PortalTest {
 
             assertThat(copy.isDefault()).isTrue();
             assertThat(copy.getUrl()).isEqualTo(url("https://portal.example"));
+        }
+
+        @Test
+        void withers_keep_the_created_from_console_marker() {
+            var portal = Portal.createFromConsole("env", "org", "Partners", url("https://partners.example"));
+
+            assertThat(portal.withNavigationStructure(STRUCTURE).isCreatedFromConsole()).isTrue();
+            assertThat(portal.withActiveThemeId("theme-1").isCreatedFromConsole()).isTrue();
         }
 
         @Test

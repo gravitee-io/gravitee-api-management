@@ -16,23 +16,10 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
 import io.gravitee.apim.core.portal.exception.NavigationPortalNotResolvedException;
-import io.gravitee.apim.core.portal.model.PortalArea;
-import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
-import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
-import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.domain_service.PortalStarterContentDomainService;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
-import io.gravitee.apim.core.portal_page.model.PortalPageContent;
-import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
-import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
-import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
-import java.util.List;
 import java.util.Optional;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
@@ -42,133 +29,26 @@ import lombok.RequiredArgsConstructor;
 @CustomLog
 public class CreateDefaultPortalNavigationItemsUseCase {
 
-    private static final String GETTING_STARTED_PATH = "portal-getting-started-page-content.md";
-    private static final String AUTHENTICATION_PATH = "portal-authentication-page-content.md";
-    private static final String FIRST_API_CALL_PATH = "portal-first-api-call-page-content.md";
-    private static final String DOCS_URL = "https://documentation.gravitee.io/apim/developer-portal/new-developer-portal";
-    private static final String HOMEPAGE_CONTENT_PATH = "default-portal-homepage-content.md";
-    private static final String APIS_SECTION_TITLE = "APIs";
-
-    private final PortalNavigationItemDomainService portalNavigationItemDomainService;
-    private final PortalPageContentCrudService pageContentCrudService;
-    private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
+    private final PortalStarterContentDomainService portalStarterContentDomainService;
     private final NavigationPortalDomainService navigationPortalDomainService;
 
     /**
-     * Creates whichever of the following default navigation items are still missing for the environment:
-     *
-     * <pre>
-     * 🗂 Guides
-     *   📄 Getting started
-     *   🗂️ Core concepts
-     *     📄 Authentication
-     *     📄 Making your first API call
-     * 🗂 APIs
-     * 🔗 Docs
-     * </pre>
-     *
-     * Idempotent per item, so it is safe to call more than once for the same environment (e.g. to repair
-     * an environment left partially seeded by a previous failed run): items that already exist by title
-     * under their expected parent are left untouched, and only missing items are created.
+     * Creates the starter navigation items, and the homepage, the environment's default portal is still missing (see
+     * {@link PortalStarterContentDomainService#seed}).
      * <p>
      * Nothing is created in an environment without a default portal (see {@link #defaultPortalOf}).
      */
     public void execute(String organizationId, String environmentId) {
-        var defaultPortal = defaultPortalOf(organizationId, environmentId);
-        if (defaultPortal.isEmpty()) {
-            return;
-        }
-        final var owner = defaultPortal.get();
-        final var topLevelTopNavbarItems = portalNavigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalArea(
-            environmentId,
-            PortalArea.TOP_NAVBAR
+        defaultPortalOf(organizationId, environmentId).ifPresent(owner ->
+            portalStarterContentDomainService.seed(organizationId, environmentId, owner)
         );
-
-        var folderGuides = findByTitleAndType(topLevelTopNavbarItems, "Guides", PortalNavigationItemType.FOLDER);
-        if (folderGuides == null) {
-            folderGuides = createPortalFolder("Guides", organizationId, environmentId, owner, PortalArea.TOP_NAVBAR, null);
-        }
-
-        final var guidesChildren = portalNavigationItemsQueryService.findByParentIdAndEnvironmentId(environmentId, folderGuides.getId());
-
-        if (findByTitleAndType(guidesChildren, "Getting started", PortalNavigationItemType.PAGE) == null) {
-            final var contentGettingStarted = createPortalPageContent(organizationId, environmentId, GETTING_STARTED_PATH);
-            createPortalPage(
-                "Getting started",
-                organizationId,
-                environmentId,
-                owner,
-                PortalArea.TOP_NAVBAR,
-                contentGettingStarted.getId(),
-                folderGuides.getId()
-            );
-        }
-
-        var folderCoreConcepts = findByTitleAndType(guidesChildren, "Core concepts", PortalNavigationItemType.FOLDER);
-        if (folderCoreConcepts == null) {
-            folderCoreConcepts = createPortalFolder(
-                "Core concepts",
-                organizationId,
-                environmentId,
-                owner,
-                PortalArea.TOP_NAVBAR,
-                folderGuides.getId()
-            );
-        }
-
-        final var coreConceptsChildren = portalNavigationItemsQueryService.findByParentIdAndEnvironmentId(
-            environmentId,
-            folderCoreConcepts.getId()
-        );
-
-        if (findByTitleAndType(coreConceptsChildren, "Authentication", PortalNavigationItemType.PAGE) == null) {
-            final var contentAuthentication = createPortalPageContent(organizationId, environmentId, AUTHENTICATION_PATH);
-            createPortalPage(
-                "Authentication",
-                organizationId,
-                environmentId,
-                owner,
-                PortalArea.TOP_NAVBAR,
-                contentAuthentication.getId(),
-                folderCoreConcepts.getId()
-            );
-        }
-
-        if (findByTitleAndType(coreConceptsChildren, "Making your first API call", PortalNavigationItemType.PAGE) == null) {
-            final var contentFirstApiCall = createPortalPageContent(organizationId, environmentId, FIRST_API_CALL_PATH);
-            createPortalPage(
-                "Making your first API call",
-                organizationId,
-                environmentId,
-                owner,
-                PortalArea.TOP_NAVBAR,
-                contentFirstApiCall.getId(),
-                folderCoreConcepts.getId()
-            );
-        }
-
-        createApisSectionIfMissing(organizationId, environmentId, owner);
-
-        if (findByTitleAndType(topLevelTopNavbarItems, "Docs", PortalNavigationItemType.LINK) == null) {
-            createPortalLink("Docs", organizationId, environmentId, owner, DOCS_URL, PortalArea.TOP_NAVBAR, null);
-        }
-
-        final var existingHomepage = portalNavigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalArea(
-            environmentId,
-            PortalArea.HOMEPAGE
-        );
-        if (existingHomepage.isEmpty()) {
-            final var contentHomePage = createPortalPageContent(organizationId, environmentId, HOMEPAGE_CONTENT_PATH);
-            createPortalPage("Home Page", organizationId, environmentId, owner, PortalArea.HOMEPAGE, contentHomePage.getId(), null);
-        }
     }
 
-    /**
-     * Creates the "APIs" section when the environment has none: a published top-level folder of the main
-     * navigation, which is what an API can be published into. Added after whatever the menu already holds.
-     */
+    /** Creates the "APIs" section when the environment's default portal has none. */
     public void ensureApisSection(String organizationId, String environmentId) {
-        defaultPortalOf(organizationId, environmentId).ifPresent(owner -> createApisSectionIfMissing(organizationId, environmentId, owner));
+        defaultPortalOf(organizationId, environmentId).ifPresent(owner ->
+            portalStarterContentDomainService.ensureApisSection(organizationId, environmentId, owner)
+        );
     }
 
     /**
@@ -176,116 +56,12 @@ public class CreateDefaultPortalNavigationItemsUseCase {
      * Automation API portal belongs to the Automation API, and a postponed default portal gets an empty
      * navigation that admins fill once its URL is fixed.
      */
-    private Optional<NavigationItemReference> defaultPortalOf(String organizationId, String environmentId) {
+    private Optional<NavigationItemReference.PortalReference> defaultPortalOf(String organizationId, String environmentId) {
         try {
             return Optional.of(navigationPortalDomainService.resolveReference(organizationId, environmentId));
         } catch (NavigationPortalNotResolvedException e) {
             log.warn("Default navigation of environment [{}] not created: {}", environmentId, e.getMessage());
             return Optional.empty();
-        }
-    }
-
-    private void createApisSectionIfMissing(String organizationId, String environmentId, NavigationItemReference owner) {
-        final var hasApisSection = portalNavigationItemsQueryService
-            .findTopLevelItemsByEnvironmentIdAndPortalArea(environmentId, PortalArea.TOP_NAVBAR)
-            .stream()
-            // The documentation of an API is stored at the top level too: a folder an API owns is not a section
-            .filter(item -> !(item.getReference() instanceof NavigationItemReference.ApiReference))
-            .anyMatch(item -> APIS_SECTION_TITLE.equals(item.getTitle()) && item.getType() == PortalNavigationItemType.FOLDER);
-        if (!hasApisSection) {
-            createPortalFolder(APIS_SECTION_TITLE, organizationId, environmentId, owner, PortalArea.TOP_NAVBAR, null);
-        }
-    }
-
-    private static PortalNavigationItem findByTitleAndType(List<PortalNavigationItem> items, String title, PortalNavigationItemType type) {
-        return items
-            .stream()
-            .filter(item -> title.equals(item.getTitle()) && item.getType() == type)
-            .findFirst()
-            .orElse(null);
-    }
-
-    private PortalNavigationItem createPortalFolder(
-        String title,
-        String organizationId,
-        String environmentId,
-        NavigationItemReference owner,
-        PortalArea area,
-        PortalNavigationItemId parentId
-    ) {
-        final var createItem = buildCommonItem(title, owner, parentId, area);
-        createItem.setType(PortalNavigationItemType.FOLDER);
-        return portalNavigationItemDomainService.create(organizationId, environmentId, createItem);
-    }
-
-    private PortalNavigationItem createPortalPage(
-        String title,
-        String organizationId,
-        String environmentId,
-        NavigationItemReference owner,
-        PortalArea area,
-        PortalPageContentId portalPageContentId,
-        PortalNavigationItemId parentId
-    ) {
-        final var createItem = buildCommonItem(title, owner, parentId, area);
-        createItem.setType(PortalNavigationItemType.PAGE);
-        createItem.setPortalPageContentId(portalPageContentId);
-        return portalNavigationItemDomainService.create(organizationId, environmentId, createItem);
-    }
-
-    private PortalNavigationItem createPortalLink(
-        String title,
-        String organizationId,
-        String environmentId,
-        NavigationItemReference owner,
-        String url,
-        PortalArea area,
-        PortalNavigationItemId parentId
-    ) {
-        final var createItem = buildCommonItem(title, owner, parentId, area);
-        createItem.setType(PortalNavigationItemType.LINK);
-        createItem.setUrl(url);
-        return portalNavigationItemDomainService.create(organizationId, environmentId, createItem);
-    }
-
-    private CreatePortalNavigationItem buildCommonItem(
-        String title,
-        NavigationItemReference owner,
-        PortalNavigationItemId parentId,
-        PortalArea area
-    ) {
-        return CreatePortalNavigationItem.builder()
-            .title(title)
-            .area(area)
-            .parentId(parentId)
-            .reference(owner)
-            .published(true)
-            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-            .build();
-    }
-
-    private PortalPageContent<?> createPortalPageContent(String organizationId, String environmentId, String contentPath) {
-        final var content = new GraviteeMarkdownPageContent(
-            PortalPageContentId.random(),
-            organizationId,
-            environmentId,
-            new GraviteeMarkdown(loadContent(contentPath))
-        );
-        return pageContentCrudService.create(content);
-    }
-
-    private String loadContent(String contentPath) {
-        try (
-            final var is = CreateDefaultPortalNavigationItemsUseCase.class.getClassLoader().getResourceAsStream(
-                String.format("templates/%s", contentPath)
-            )
-        ) {
-            if (is == null) {
-                throw new IllegalStateException(String.format("Could not load default portal page template for %s", contentPath));
-            }
-            return new String(is.readAllBytes());
-        } catch (Exception e) {
-            throw new IllegalStateException("Could not load default portal page template", e);
         }
     }
 }

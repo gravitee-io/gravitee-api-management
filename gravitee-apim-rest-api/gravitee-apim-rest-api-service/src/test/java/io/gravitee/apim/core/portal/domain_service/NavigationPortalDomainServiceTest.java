@@ -124,6 +124,30 @@ class NavigationPortalDomainServiceTest {
     }
 
     @Test
+    void should_require_a_portal_created_from_the_console() {
+        var consolePortal = Portal.createFromConsole(ENV_ID, ORG_ID, "Partners", url("https://partners.acme.io"));
+        portalCrudService.initWith(List.of(aPortal(DEFAULT_PORTAL_ID, "Developer Portal", true), consolePortal));
+
+        assertThat(cut.requireReference(ENV_ID, consolePortal.getId())).isEqualTo(
+            new NavigationItemReference.PortalReference(consolePortal.getId())
+        );
+    }
+
+    @Test
+    void should_list_the_portals_created_from_the_console() {
+        var consolePortal = Portal.createFromConsole(ENV_ID, ORG_ID, "Partners", url("https://partners.acme.io"));
+        portalCrudService.initWith(
+            List.of(
+                consolePortal,
+                aPortal(AUTOMATION_PORTAL_ID, "Automation Portal", false),
+                aPortal(DEFAULT_PORTAL_ID, "Developer Portal", true)
+            )
+        );
+
+        assertThat(cut.findManagedByConsole(ENV_ID)).extracting(Portal::getId).containsExactly(DEFAULT_PORTAL_ID, consolePortal.getId());
+    }
+
+    @Test
     void should_refuse_to_require_a_portal_managed_through_the_automation_api() {
         portalCrudService.initWith(
             List.of(aPortal(DEFAULT_PORTAL_ID, "Developer Portal", true), aPortal(AUTOMATION_PORTAL_ID, "Automation Portal", false))
@@ -146,14 +170,29 @@ class NavigationPortalDomainServiceTest {
     }
 
     @Test
-    void should_refuse_when_the_environment_has_several_portals() {
+    void should_resolve_the_default_portal_next_to_another_portal() {
         portalCrudService.initWith(
-            List.of(aPortal(DEFAULT_PORTAL_ID, "Developer Portal", true), aPortal(AUTOMATION_PORTAL_ID, "Automation Portal", false))
+            List.of(aPortal(AUTOMATION_PORTAL_ID, "Automation Portal", false), aPortal(DEFAULT_PORTAL_ID, "Developer Portal", true))
+        );
+
+        var portal = cut.resolve(ORG_ID, ENV_ID);
+
+        assertThat(portal.getId()).isEqualTo(DEFAULT_PORTAL_ID);
+        assertThat(portalCrudService.storage()).hasSize(2);
+    }
+
+    @Test
+    void should_refuse_when_the_environment_has_several_portals_and_none_is_default() {
+        portalCrudService.initWith(
+            List.of(
+                aPortal(AUTOMATION_PORTAL_ID, "Automation Portal", false),
+                aPortal(PortalId.of("33333333-3333-3333-3333-333333333333"), "Second Automation Portal", false)
+            )
         );
 
         assertThatThrownBy(() -> cut.resolve(ORG_ID, ENV_ID))
             .isInstanceOf(ValidationDomainException.class)
             .hasMessageContaining("[" + ENV_ID + "]")
-            .hasMessageContaining("it has several portals");
+            .hasMessageContaining("it has several portals and no default one");
     }
 }

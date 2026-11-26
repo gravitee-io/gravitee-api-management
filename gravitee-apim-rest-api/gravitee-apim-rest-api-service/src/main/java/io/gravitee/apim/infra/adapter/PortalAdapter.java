@@ -49,6 +49,7 @@ public interface PortalAdapter {
             deserializePortalNavigation(portal.getPortalNavigation()),
             portal.getActiveThemeId(),
             portal.isDefaultPortal(),
+            portal.isCreatedFromConsole(),
             parseUrl(portal.getId(), portal.getUrl())
         );
     }
@@ -73,6 +74,7 @@ public interface PortalAdapter {
             .portalNavigation(serializePortalNavigation(portal.getNavigationStructure()))
             .activeThemeId(portal.getActiveThemeId())
             .defaultPortal(portal.isDefault())
+            .createdFromConsole(portal.isCreatedFromConsole())
             .url(portal.getUrl().toString())
             .build();
     }
