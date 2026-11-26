@@ -35,7 +35,6 @@ import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDo
 import io.gravitee.apim.core.metadata.crud_service.MetadataCrudService;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
-import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApiProductHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApplicationHookContext;
@@ -47,7 +46,6 @@ import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
-import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.federation.SubscriptionParameter;
@@ -55,7 +53,6 @@ import io.gravitee.rest.api.model.context.OriginContext;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
@@ -321,7 +318,7 @@ public class AcceptSubscriptionDomainService {
     }
 
     private void triggerNotifications(String organizationId, String environmentId, SubscriptionEntity acceptedSubscription) {
-        var additionalRecipients = subscriberRecipients(acceptedSubscription);
+        var additionalRecipients = SubscriberRecipients.of(userCrudService, acceptedSubscription);
 
         var applicationPrimaryOwner = applicationPrimaryOwnerDomainService.getApplicationPrimaryOwner(
             organizationId,
@@ -372,7 +369,7 @@ public class AcceptSubscriptionDomainService {
     }
 
     private void triggerRejectionNotifications(String organizationId, String environmentId, SubscriptionEntity rejectedSubscription) {
-        var additionalRecipients = subscriberRecipients(rejectedSubscription);
+        var additionalRecipients = SubscriberRecipients.of(userCrudService, rejectedSubscription);
 
         var applicationPrimaryOwner = applicationPrimaryOwnerDomainService.getApplicationPrimaryOwner(
             organizationId,
@@ -406,14 +403,5 @@ public class AcceptSubscriptionDomainService {
             ),
             additionalRecipients
         );
-    }
-
-    private List<Recipient> subscriberRecipients(SubscriptionEntity subscription) {
-        return userCrudService
-            .findBaseUserById(subscription.getSubscribedBy())
-            .map(BaseUserEntity::getEmail)
-            .filter(email -> !email.isEmpty())
-            .<List<Recipient>>map(email -> List.of(new Recipient("EMAIL", email)))
-            .orElse(Collections.emptyList());
     }
 }

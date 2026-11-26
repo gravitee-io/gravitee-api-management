@@ -260,6 +260,35 @@ class NotifierServiceImplAdditionalRecipientsTest {
             .containsExactlyInAnyOrder("evaluated@gio.test", "sub${scriber};me@gio.test");
     }
 
+    @Test
+    @SneakyThrows
+    void should_email_an_address_once_when_the_application_config_and_the_subscriber_differ_only_by_case() {
+        final Map<String, Object> params = Map.of();
+        final ExecutionContext executionContext = new ExecutionContext("org-1", "env-1");
+
+        when(
+            genericNotificationConfigRepository.findByReferenceAndHook(
+                ApplicationHook.SUBSCRIPTION_ACCEPTED.name(),
+                NotificationReferenceType.APPLICATION,
+                "app-id"
+            )
+        ).thenReturn(
+            List.of(GenericNotificationConfig.builder().notifier(DEFAULT_EMAIL_NOTIFIER_ID).id("cfg").config("Bob@acme.io").build())
+        );
+        when(emailRecipientsService.processTemplatedRecipients(any(), eq(params))).thenAnswer(splitAndEvaluateTemplates());
+
+        cut.trigger(executionContext, ApplicationHook.SUBSCRIPTION_ACCEPTED, "app-id", params, List.of(Recipient.email("bob@acme.io")));
+
+        final ArgumentCaptor<Collection<String>> recipientsCaptor = ArgumentCaptor.forClass(Collection.class);
+        verify(emailNotifierService).trigger(
+            eq(executionContext),
+            eq(ApplicationHook.SUBSCRIPTION_ACCEPTED),
+            eq(params),
+            recipientsCaptor.capture()
+        );
+        assertThat(recipientsCaptor.getValue()).singleElement().asString().isEqualToIgnoringCase("bob@acme.io");
+    }
+
     /**
      * Mimics {@link EmailRecipientsServiceImpl}: an entry is split on {@code , ; } and whitespace and an entry
      * holding a {@code $} is evaluated as a Freemarker template.

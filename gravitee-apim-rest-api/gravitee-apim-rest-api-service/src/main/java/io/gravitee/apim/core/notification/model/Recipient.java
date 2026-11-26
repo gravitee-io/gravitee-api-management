@@ -15,4 +15,11 @@
  */
 package io.gravitee.apim.core.notification.model;
 
-public record Recipient(String type, String value) {}
+public record Recipient(String type, String value) {
+    /** The type {@code NotifierServiceImpl} emails a caller-given recipient for. */
+    public static final String EMAIL_TYPE = "EMAIL";
+
+    public static Recipient email(String address) {
+        return new Recipient(EMAIL_TYPE, address);
+    }
+}

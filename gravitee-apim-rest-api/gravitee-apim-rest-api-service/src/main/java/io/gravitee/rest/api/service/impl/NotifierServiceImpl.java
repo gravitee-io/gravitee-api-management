@@ -56,10 +56,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
@@ -320,13 +320,14 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
                         if (!CollectionUtils.isEmpty(data.recipients)) {
                             data.recipients
                                 .stream()
-                                .filter(r -> notifier.type().name().equals(r.type()))
+                                .filter(r -> Recipient.EMAIL_TYPE.equals(r.type()))
                                 .map(Recipient::value)
                                 .forEach(value -> (value.contains("$") ? verbatimRecipients : recipientsToProcess).add(value));
                         }
 
                         // extract emails from templated string (eg: ${api.primaryOwner.email})
-                        var recipients = new HashSet<>(emailRecipientsService.processTemplatedRecipients(recipientsToProcess, data.params));
+                        var recipients = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+                        recipients.addAll(emailRecipientsService.processTemplatedRecipients(recipientsToProcess, data.params));
                         recipients.addAll(verbatimRecipients);
 
                         // extract emails of opted-in users if trial instance
