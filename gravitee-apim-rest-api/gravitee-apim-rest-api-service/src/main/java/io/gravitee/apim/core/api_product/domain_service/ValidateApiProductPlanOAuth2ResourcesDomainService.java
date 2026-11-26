@@ -98,7 +98,7 @@ public class ValidateApiProductPlanOAuth2ResourcesDomainService {
     }
 
     private static void rejectExpression(String planName, String resourceName, String role) {
-        if (resourceName.contains("{#")) {
+        if (resourceName.contains("{")) {
             throw new ValidationDomainException("OAuth2 plan '" + planName + "' does not support an expression for the " + role);
         }
     }

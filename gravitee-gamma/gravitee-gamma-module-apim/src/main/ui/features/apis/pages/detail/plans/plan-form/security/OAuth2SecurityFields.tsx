@@ -88,11 +88,60 @@ interface OAuth2SecurityFieldsProps {
     error?: string;
 }
 
-/** EL expressions are valid resource values, so the "not configured" hint must not fire for them. */
-function isMissingResource(value: string, options: readonly ApiResourceOption[]): boolean {
-    const trimmed = value.trim();
-    if (!trimmed || trimmed.includes('{')) return false;
-    return !options.some(o => o.name === trimmed);
+const EXPRESSION_HINT = "Expressions aren't supported for API Product plans. Choose a resource from the product's Resources page.";
+const DISABLED_HINT =
+    "This resource is disabled. Enable it on the product's Resources page. A plan that uses a disabled resource can't be published or saved once published.";
+const EMPTY_PRODUCT_HINT = "No OAuth2 resource on this API Product. Add one on the product's Resources page.";
+
+type ResourceHint = 'error' | 'empty' | 'expression' | 'missing' | 'disabled';
+
+/**
+ * A value containing `{` is an expression, not a resource name, so the missing-resource hint must not fire for it.
+ * Product plans compare the saved name as-is: publish does the same, so a trailing space is an unknown resource.
+ * API plans keep the trimmed comparison.
+ */
+function isMissingResource(value: string, options: readonly ApiResourceOption[], matchSavedName: boolean): boolean {
+    const compared = matchSavedName ? value : value.trim();
+    if (!compared.trim() || compared.includes('{')) return false;
+    return !options.some(option => option.name === compared);
+}
+
+function isDisabledResource(value: string, options: readonly ApiResourceOption[]): boolean {
+    if (!value.trim()) return false;
+    return options.some(option => option.name === value && option.enabled === false);
+}
+
+function resourceHint({
+    error,
+    empty,
+    expression,
+    missing,
+    disabled,
+}: {
+    error?: string;
+    empty: boolean;
+    expression: boolean;
+    missing: boolean;
+    disabled: boolean;
+}): ResourceHint | undefined {
+    if (error) return 'error';
+    if (empty) return 'empty';
+    if (expression) return 'expression';
+    if (missing) return 'missing';
+    if (disabled) return 'disabled';
+    return undefined;
+}
+
+function hintDescriptionId(fieldId: string, hint: ResourceHint | undefined): string | undefined {
+    return hint ? `${fieldId}-${hint}` : undefined;
+}
+
+function hintText(hint: ResourceHint, missingHint: string, error?: string): string | undefined {
+    if (hint === 'error') return error;
+    if (hint === 'empty') return EMPTY_PRODUCT_HINT;
+    if (hint === 'expression') return EXPRESSION_HINT;
+    if (hint === 'missing') return missingHint;
+    return DISABLED_HINT;
 }
 
 export function OAuth2SecurityFields({
@@ -108,12 +157,27 @@ export function OAuth2SecurityFields({
     const cacheOptions = resourceOptions.filter(o => o.type.startsWith('cache'));
     const isProduct = resourceOwner === 'API_PRODUCT';
 
-    const oauthMissing = isMissingResource(value.oauthResource, oauthOptions);
-    const cacheMissing = isMissingResource(value.oauthCacheResource, cacheOptions);
+    const oauthMissing = isMissingResource(value.oauthResource, oauthOptions, isProduct);
+    const cacheMissing = isMissingResource(value.oauthCacheResource, cacheOptions, isProduct);
     const noProductOAuth = isProduct && resourcesKnown && oauthOptions.length === 0;
     const missingHint = isProduct
         ? "Resource does not exist. Add it on the product's Resources page for it to be taken into account."
         : "Resource does not exist. Add it to the API's Resources section for it to be taken into account.";
+    const oauthHint = resourceHint({
+        error,
+        empty: noProductOAuth,
+        expression: isProduct && value.oauthResource.includes('{'),
+        missing: oauthMissing,
+        disabled: isProduct && isDisabledResource(value.oauthResource, oauthOptions),
+    });
+    const cacheHint = resourceHint({
+        empty: false,
+        expression: isProduct && value.oauthCacheResource.includes('{'),
+        missing: cacheMissing,
+        disabled: isProduct && isDisabledResource(value.oauthCacheResource, cacheOptions),
+    });
+    const oauthHintId = hintDescriptionId('oauth2-resource', oauthHint);
+    const cacheHintId = hintDescriptionId('oauth2-cache-resource', cacheHint);
 
     return (
         <div className="space-y-4">
@@ -133,34 +197,16 @@ export function OAuth2SecurityFields({
                     }
                     disabled={readOnly}
                     aria-invalid={error ? true : undefined}
-                    aria-describedby={
-                        error
-                            ? 'oauth2-resource-error'
-                            : noProductOAuth
-                              ? 'oauth2-resource-empty'
-                              : oauthMissing
-                                ? 'oauth2-resource-missing'
-                                : undefined
-                    }
+                    aria-describedby={oauthHintId}
                 />
-                {error ? (
-                    <p id="oauth2-resource-error" className="text-xs text-destructive">
-                        {error}
+                {oauthHint && oauthHintId ? (
+                    <p id={oauthHintId} className="text-xs text-destructive">
+                        {hintText(oauthHint, missingHint, error)}
                     </p>
-                ) : noProductOAuth ? (
-                    <p id="oauth2-resource-empty" className="text-xs text-destructive">
-                        No OAuth2 resource on this API Product. Add one on the product&apos;s Resources page.
-                    </p>
-                ) : (
-                    oauthMissing && (
-                        <p id="oauth2-resource-missing" className="text-xs text-destructive">
-                            {missingHint}
-                        </p>
-                    )
-                )}
+                ) : null}
                 <p className="text-xs text-muted-foreground">
                     {isProduct
-                        ? "The name of the OAuth2 authorization server resource configured on this API Product's Resources page. Supports EL."
+                        ? "The name of the OAuth2 authorization server resource configured on this API Product's Resources page."
                         : "The name of the OAuth2 authorization server resource configured in your API's Resources section. Supports EL."}
                 </p>
             </div>
@@ -174,13 +220,13 @@ export function OAuth2SecurityFields({
                     options={cacheOptions}
                     placeholder="Name of the cache resource to store tokens"
                     disabled={readOnly}
-                    aria-describedby={cacheMissing ? 'oauth2-cache-resource-missing' : undefined}
+                    aria-describedby={cacheHintId}
                 />
-                {cacheMissing && (
-                    <p id="oauth2-cache-resource-missing" className="text-xs text-destructive">
-                        {missingHint}
+                {cacheHint && cacheHintId ? (
+                    <p id={cacheHintId} className="text-xs text-destructive">
+                        {hintText(cacheHint, missingHint)}
                     </p>
-                )}
+                ) : null}
                 <p className="text-xs text-muted-foreground">Cache resource used to store the validated tokens.</p>
             </div>
 
