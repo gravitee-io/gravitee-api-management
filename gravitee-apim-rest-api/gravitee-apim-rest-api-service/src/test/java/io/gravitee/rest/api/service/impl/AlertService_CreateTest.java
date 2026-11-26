@@ -15,20 +15,26 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.gravitee.alert.api.condition.RateCondition;
 import io.gravitee.alert.api.trigger.Trigger;
 import io.gravitee.alert.api.trigger.TriggerProvider;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.rest.api.model.alert.NewAlertTriggerEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.service.exceptions.AlertConditionInvalidException;
 import io.gravitee.rest.api.service.exceptions.AlertUnavailableException;
 import io.gravitee.rest.api.service.exceptions.NodeAlertNotAllowedInCloudException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -102,5 +108,35 @@ public class AlertService_CreateTest extends AlertServiceTest {
         when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
 
         alertService.create(executionContext, alert);
+    }
+
+    @Test
+    public void must_reject_rate_condition_with_empty_comparison_and_persist_nothing() throws Exception {
+        mustRejectRateConditionAndPersistNothing("{}");
+    }
+
+    @Test
+    public void must_reject_rate_condition_with_null_comparison_and_persist_nothing() throws Exception {
+        mustRejectRateConditionAndPersistNothing("null");
+    }
+
+    private void mustRejectRateConditionAndPersistNothing(String comparison) throws Exception {
+        final NewAlertTriggerEntity alert = new GraviteeMapper().readValue(
+            """
+            {"name":"rate-no-comparison","enabled":true,"severity":"WARNING","source":"REQUEST","type":"METRICS_RATE",
+             "reference_type":"API","reference_id":"api-id","template":false,
+             "conditions":[{"type":"RATE","operator":"GT","threshold":2,"duration":5,"timeUnit":"MINUTES","comparison":%s}],
+             "filters":[],"dampening":{"mode":"STRICT_COUNT","trueEvaluations":1},"notifications":[]}
+            """.formatted(comparison),
+            NewAlertTriggerEntity.class
+        );
+        assertNull(((RateCondition) alert.getConditions().get(0)).getComparison());
+
+        when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(true);
+        when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
+
+        assertThrows(AlertConditionInvalidException.class, () -> alertService.create(executionContext, alert));
+
+        verify(alertTriggerRepository, never()).create(any());
     }
 }

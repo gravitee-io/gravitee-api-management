@@ -71,4 +71,18 @@ public class AlertService_FindAllTest extends AlertServiceTest {
 
         alertService.findAll();
     }
+
+    @Test
+    public void findAll_should_skip_unreadable_trigger() throws TechnicalException, JsonProcessingException {
+        NewAlertTriggerEntity readable = getNewAlertTriggerEntity();
+
+        when(alertTriggerRepository.findAll()).thenReturn(
+            Set.of(getAlertTriggerWithUnreadableDefinition(getNewAlertTriggerEntity()), getAlertTriggerFromNew(readable))
+        );
+
+        List<AlertTriggerEntity> results = alertService.findAll();
+
+        assertEquals(1, results.size());
+        assertEquals(readable.getId(), results.get(0).getId());
+    }
 }

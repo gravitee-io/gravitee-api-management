@@ -96,4 +96,21 @@ public class AlertService_CreateDefaultsTest extends AlertServiceTest {
 
         verify(alertTriggerRepository, never()).create(any());
     }
+
+    @Test
+    public void must_skip_unreadable_default_API_alert() throws JsonProcessingException, TechnicalException {
+        when(alertTriggerRepository.findAll()).thenReturn(
+            Set.of(
+                getAlertTriggerWithUnreadableDefinition(getNewAlertTriggerEntity(true)),
+                getAlertTriggerFromNew(getNewAlertTriggerEntity(true))
+            )
+        );
+        when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
+        when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(true);
+        when(alertTriggerRepository.create(any())).thenReturn(getAlertTriggerFromNew(getNewAlertTriggerEntity()));
+
+        alertService.createDefaults(executionContext, AlertReferenceType.API, "apiId");
+
+        verify(alertTriggerRepository, times(1)).create(any());
+    }
 }

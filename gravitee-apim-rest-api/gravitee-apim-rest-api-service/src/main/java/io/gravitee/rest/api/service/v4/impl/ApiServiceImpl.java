@@ -60,7 +60,6 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.WorkflowReferenceType;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
-import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.context.OriginContext;
@@ -714,8 +713,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             );
 
             // Delete alerts
-            final List<AlertTriggerEntity> alerts = alertService.findByReference(AlertReferenceType.API, apiId);
-            alerts.forEach(alert -> alertService.delete(alert.getId(), alert.getReferenceId()));
+            alertService.deleteAll(AlertReferenceType.API, apiId);
             // delete all reference on api quality rule
             apiQualityRuleRepository.deleteByApi(apiId);
             // Audit

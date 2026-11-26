@@ -25,6 +25,7 @@ import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.alert.api.condition.ComparisonBasedAccumulatorCondition;
 import io.gravitee.alert.api.condition.Filter;
 import io.gravitee.alert.api.condition.StringCondition;
 import io.gravitee.alert.api.trigger.Trigger;
@@ -71,6 +72,7 @@ import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.converter.AlertTriggerConverter;
+import io.gravitee.rest.api.service.exceptions.AlertConditionInvalidException;
 import io.gravitee.rest.api.service.exceptions.AlertNotFoundException;
 import io.gravitee.rest.api.service.exceptions.AlertTemplateInvalidException;
 import io.gravitee.rest.api.service.exceptions.AlertUnavailableException;
@@ -90,6 +92,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -315,9 +318,9 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             final List<AlertTrigger> triggers = alertTriggerRepository.findByReferenceAndReferenceId(referenceType.name(), referenceId);
             return triggers
                 .stream()
-                .map(alertTrigger -> {
-                    AlertTriggerEntity entity = alertTriggerConverter.toAlertTriggerEntity(alertTrigger);
-
+                .map(alertTriggerConverter::toAlertTriggerEntity)
+                .filter(Objects::nonNull)
+                .map(entity -> {
                     getLastEvent(entity.getId()).ifPresent(alertEvent -> {
                         entity.setLastAlertAt(alertEvent.getCreatedAt());
                         entity.setLastAlertMessage(alertEvent.getMessage());
@@ -360,21 +363,39 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     @Override
     public void delete(final String alertId, final String referenceId) {
         try {
-            final AlertTriggerEntity alert = alertTriggerRepository
+            final AlertTrigger storedAlert = alertTriggerRepository
                 .findById(alertId)
                 .filter(a -> a.getReferenceId().equals(referenceId))
-                .map(alertTriggerConverter::toAlertTriggerEntity)
                 .orElseThrow(() -> new AlertNotFoundException(alertId));
-
-            // Remove from repository
-            alertTriggerRepository.delete(alertId);
-            alertEventRepository.deleteAll(alertId);
-
-            // Notify alert plugins
-            disableTrigger(alert);
+            delete(storedAlert);
         } catch (TechnicalException te) {
             final String msg = "An error occurs while trying to delete the alert " + alertId;
             throw new TechnicalManagementException(msg, te);
+        }
+    }
+
+    @Override
+    public void deleteAll(final AlertReferenceType referenceType, final String referenceId) {
+        try {
+            for (AlertTrigger storedAlert : alertTriggerRepository.findByReferenceAndReferenceId(referenceType.name(), referenceId)) {
+                delete(storedAlert);
+            }
+        } catch (TechnicalException te) {
+            final String msg = "An error occurs while trying to delete the alerts of " + referenceType + '/' + referenceId;
+            throw new TechnicalManagementException(msg, te);
+        }
+    }
+
+    private void delete(final AlertTrigger storedAlert) throws TechnicalException {
+        final AlertTriggerEntity alert = alertTriggerConverter.toAlertTriggerEntity(storedAlert);
+
+        // Remove from repository
+        alertTriggerRepository.delete(storedAlert.getId());
+        alertEventRepository.deleteAll(storedAlert.getId());
+
+        // Notify alert plugins
+        if (alert != null) {
+            disableTrigger(alert);
         }
     }
 
@@ -431,6 +452,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                         executionContext.getEnvironmentId().equals(alert.getEnvironmentId())
                 )
                 .map(alertTriggerConverter::toAlertTriggerEntity)
+                .filter(Objects::nonNull)
                 .sorted(Comparator.comparing(AlertTriggerEntity::getName))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
             log.debug("findByEvent : {} - DONE", set);
@@ -614,11 +636,29 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             throw new AlertUnavailableException();
         }
 
+        checkConditions(trigger);
+
         ConsoleConfigEntity config = configService.getConsoleConfig(executionContext);
 
         if (Boolean.TRUE.equals(config.getCloudHosted().getEnabled()) && trigger.getSource().startsWith("NODE")) {
             throw new NodeAlertNotAllowedInCloudException(trigger.getSource());
         }
+    }
+
+    private void checkConditions(final Trigger trigger) {
+        if (trigger.getConditions() == null) {
+            return;
+        }
+        trigger
+            .getConditions()
+            .stream()
+            .filter(ComparisonBasedAccumulatorCondition.class::isInstance)
+            .map(ComparisonBasedAccumulatorCondition.class::cast)
+            .filter(condition -> condition.getComparison() == null)
+            .findFirst()
+            .ifPresent(condition -> {
+                throw new AlertConditionInvalidException(condition.getType().name(), "comparison");
+            });
     }
 
     private void triggerOrCancelAlert(final Trigger trigger) {

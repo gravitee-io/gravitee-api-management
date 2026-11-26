@@ -111,6 +111,7 @@ import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -473,6 +474,7 @@ public class ApiServiceImplTest {
             argThat(indexableApi -> indexableApi instanceof GenericApiEntity && indexableApi.getId().equals(API_ID))
         );
         verify(removeApiFromApiProductsDomainService, times(1)).removeApiFromApiProducts(eq(API_ID), any(), any(), any());
+        verify(alertService, times(1)).deleteAll(AlertReferenceType.API, API_ID);
     }
 
     @Test
