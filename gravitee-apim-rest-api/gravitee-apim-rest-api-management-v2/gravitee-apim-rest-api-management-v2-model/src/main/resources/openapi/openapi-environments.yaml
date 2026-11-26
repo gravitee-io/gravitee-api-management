@@ -1124,7 +1124,7 @@ paths:
         - Portals
       summary: Create a portal
       description: |-
-        User must have the ENVIRONMENT_DOCUMENTATION[create] permission.
+        User must have the ENVIRONMENT_PORTAL[create] permission.
         Creates a portal in the environment, served at the URL sent or at a generated URL when none is sent.
         A new portal is never the default portal.
       operationId: createPortal
@@ -1249,7 +1249,7 @@ paths:
         - Portals
       summary: Update a portal
       description: |-
-        User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+        User must have the ENVIRONMENT_PORTAL[update] permission.
         Changes the name without changing the portal URL. Omitting the name or submitting the same valid name
         leaves the portal unchanged. Only the name field is accepted in the request body.
 
