@@ -33,7 +33,7 @@ jest.mock('react-router-dom', () => ({ ...jest.requireActual('react-router-dom')
 jest.mock('../../../shared/hooks/useEnvironmentPermissions');
 jest.mock('../hooks/useCredentials');
 jest.mock('../hooks/useCredentialMutations');
-jest.mock('../../../shared/notify', () => ({ notify: { success: jest.fn(), error: jest.fn() } }));
+jest.mock('../../../shared/notify', () => ({ notify: { success: jest.fn(), error: jest.fn(), warning: jest.fn() } }));
 
 const navigate = jest.fn();
 const update = jest.fn();
@@ -201,7 +201,7 @@ describe('EditCredentialPage', () => {
         await save();
 
         expect(notify.success).toHaveBeenCalledWith('Credential updated');
-        expect(notify.error).toHaveBeenCalledWith(
+        expect(notify.warning).toHaveBeenCalledWith(
             'Support bot kept the former settings of the credential: You cannot update this LLM proxy.',
         );
     });
@@ -223,7 +223,7 @@ describe('EditCredentialPage', () => {
         await save();
 
         expect(notify.error).toHaveBeenCalledWith('The details were saved, but the secret could not be replaced.');
-        expect(notify.error).toHaveBeenCalledWith(
+        expect(notify.warning).toHaveBeenCalledWith(
             'Support bot kept the former settings of the credential: You cannot update this LLM proxy.',
         );
     });
