@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal.model.PortalLogo;
+import io.gravitee.apim.core.portal.use_case.DeleteManagedPortalUseCase;
 import io.gravitee.apim.core.portal.use_case.GetPortalLogoUseCase;
 import io.gravitee.apim.core.portal.use_case.GetPortalSummaryUseCase;
 import io.gravitee.apim.core.portal.use_case.RenamePortalUseCase;
@@ -33,6 +34,7 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.Path;
@@ -65,6 +67,18 @@ public class PortalResource extends AbstractResource {
 
     @Inject
     private RenamePortalUseCase renamePortalUseCase;
+
+    @Inject
+    private DeleteManagedPortalUseCase deleteManagedPortalUseCase;
+
+    @DELETE
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.DELETE) })
+    public Response deletePortal(@PathParam("portalId") String portalId) {
+        deleteManagedPortalUseCase.execute(
+            new DeleteManagedPortalUseCase.Input(GraviteeContext.getCurrentEnvironment(), PortalMapper.INSTANCE.toPortalId(portalId))
+        );
+        return Response.noContent().build();
+    }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)

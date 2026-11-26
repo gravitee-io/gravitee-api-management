@@ -1295,7 +1295,7 @@ paths:
         - Portals
       summary: Delete a portal
       description: |-
-        User must have the ENVIRONMENT_DOCUMENTATION[delete] permission.
+        User must have the ENVIRONMENT_PORTAL[delete] permission.
         Deletes the portal and its content. The default portal cannot be deleted.
       operationId: deletePortal
       responses:

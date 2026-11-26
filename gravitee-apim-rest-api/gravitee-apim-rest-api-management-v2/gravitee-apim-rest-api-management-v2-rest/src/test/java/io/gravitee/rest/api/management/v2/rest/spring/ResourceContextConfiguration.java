@@ -225,6 +225,8 @@ import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainSe
 import io.gravitee.apim.core.portal.domain_service.PortalContentOwnershipDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
+import io.gravitee.apim.core.portal.use_case.DeleteManagedPortalUseCase;
+import io.gravitee.apim.core.portal_listing.crud_service.PortalListingCrudService;
 import io.gravitee.apim.core.portal_listing.domain_service.ValidatePortalListingDomainService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
@@ -1770,6 +1772,19 @@ public class ResourceContextConfiguration {
             apiOwnedNavigationDomainService,
             navigationPortalDomainService
         );
+    }
+
+    @Bean
+    public DeleteManagedPortalUseCase deleteManagedPortalUseCase(
+        PortalCrudServiceInMemory portals,
+        PortalNavigationItemsQueryService navigationQuery,
+        PortalNavigationItemCrudService navigationCrud,
+        PortalPageContentCrudService contentCrud,
+        PortalPageContentQueryService contentQuery,
+        ApiOwnedNavigationDomainService apiNavigation,
+        PortalListingCrudService listings
+    ) {
+        return new DeleteManagedPortalUseCase(portals, navigationQuery, navigationCrud, contentCrud, contentQuery, apiNavigation, listings);
     }
 
     @Bean
