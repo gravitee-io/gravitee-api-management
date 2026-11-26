@@ -33,6 +33,7 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -82,9 +83,9 @@ class PortalApiProductPlanDomainServiceTest {
             .excludedGroups(List.of("restricted-group"))
             .build();
         var apiProduct = accessibleApiProduct();
-        when(portalApiProductAccessDomainService.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, VIEWER_CONTEXT)).thenReturn(
-            new PortalApiProductAccessDomainService.AccessibleApiProduct(apiProduct, null)
-        );
+        when(
+            portalApiProductAccessDomainService.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, VIEWER_CONTEXT, Optional.empty())
+        ).thenReturn(new PortalApiProductAccessDomainService.AccessibleApiProduct(apiProduct, null));
         when(
             planSearchQueryService.searchPlans(
                 eq(API_PRODUCT_ID),
@@ -99,7 +100,7 @@ class PortalApiProductPlanDomainServiceTest {
             planExcludedGroupsDomainService.isUserAuthorizedToAccessApiProductPlan(apiProduct, restricted.getExcludedGroups(), USER_ID)
         ).thenReturn(false);
 
-        var result = domainService.findAccessiblePlans(ENVIRONMENT_ID, API_PRODUCT_ID, VIEWER_CONTEXT);
+        var result = domainService.findAccessiblePlans(ENVIRONMENT_ID, API_PRODUCT_ID, VIEWER_CONTEXT, Optional.empty());
 
         assertThat(result).containsExactly(first, second);
         var queryCaptor = ArgumentCaptor.forClass(PlanQuery.class);
@@ -115,13 +116,13 @@ class PortalApiProductPlanDomainServiceTest {
 
     @Test
     void should_not_search_plans_when_api_product_is_inaccessible() {
-        when(portalApiProductAccessDomainService.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, VIEWER_CONTEXT)).thenThrow(
-            new ApiProductNotFoundException(API_PRODUCT_ID)
-        );
+        when(
+            portalApiProductAccessDomainService.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, VIEWER_CONTEXT, Optional.empty())
+        ).thenThrow(new ApiProductNotFoundException(API_PRODUCT_ID));
 
-        assertThatThrownBy(() -> domainService.findAccessiblePlans(ENVIRONMENT_ID, API_PRODUCT_ID, VIEWER_CONTEXT)).isInstanceOf(
-            ApiProductNotFoundException.class
-        );
+        assertThatThrownBy(() ->
+            domainService.findAccessiblePlans(ENVIRONMENT_ID, API_PRODUCT_ID, VIEWER_CONTEXT, Optional.empty())
+        ).isInstanceOf(ApiProductNotFoundException.class);
         verifyNoInteractions(planSearchQueryService, planExcludedGroupsDomainService);
     }
 

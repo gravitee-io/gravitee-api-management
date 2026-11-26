@@ -146,8 +146,9 @@ public class PortalScopedApisResourceTest extends AbstractResourceTest {
     @Test
     void should_not_expose_the_other_api_endpoints_under_a_portal() {
         assertThat(target(portal + "/apis").request().get().getStatus()).isEqualTo(404);
-        assertThat(target(portal + "/apis/api-own").request().get().getStatus()).isEqualTo(404);
         assertThat(target(portal + "/apis/categories").request().get().getStatus()).isEqualTo(404);
+        assertThat(target(portal + "/apis/api-own/ratings").request().get().getStatus()).isEqualTo(404);
+        assertThat(target(portal + "/apis/api-own/subscribers").request().get().getStatus()).isEqualTo(404);
     }
 
     static Response search(WebTarget target) {

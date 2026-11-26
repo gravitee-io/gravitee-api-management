@@ -29,11 +29,14 @@ import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -79,7 +82,7 @@ class PortalApiProductAccessDomainServiceTest {
     void should_return_public_product_and_navigation_item_for_anonymous_viewer() {
         givenProductAndNavigation(apiProduct(), apiProductNavigation());
 
-        var result = service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(null));
+        var result = service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(null), Optional.empty());
 
         assertThat(result.apiProduct().getId()).isEqualTo(API_PRODUCT_ID);
         assertThat(result.navigationItem().getId()).isEqualTo(PortalNavigationItemId.of(NAVIGATION_ITEM_ID));
@@ -92,7 +95,7 @@ class PortalApiProductAccessDomainServiceTest {
         givenProductAndNavigation(apiProduct(), navigationItem);
         membershipQueryService.initWith(List.of(apiProductMembership()));
 
-        var result = service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(USER_ID));
+        var result = service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(USER_ID), Optional.empty());
 
         assertThat(result.apiProduct().getId()).isEqualTo(API_PRODUCT_ID);
     }
@@ -103,7 +106,7 @@ class PortalApiProductAccessDomainServiceTest {
         navigationItem.setVisibility(PortalVisibility.PRIVATE);
         givenProductAndNavigation(apiProduct(), navigationItem);
 
-        assertThatThrownBy(() -> service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(null))).isInstanceOf(
+        assertThatThrownBy(() -> service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(null), Optional.empty())).isInstanceOf(
             ApiProductNotFoundException.class
         );
     }
@@ -114,7 +117,7 @@ class PortalApiProductAccessDomainServiceTest {
         apiProduct.setEnvironmentId("other-environment");
         givenProductAndNavigation(apiProduct, apiProductNavigation());
 
-        assertThatThrownBy(() -> service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(null))).isInstanceOf(
+        assertThatThrownBy(() -> service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(null), Optional.empty())).isInstanceOf(
             ApiProductNotFoundException.class
         );
     }
@@ -125,7 +128,7 @@ class PortalApiProductAccessDomainServiceTest {
         navigationItem.setPublished(false);
         givenProductAndNavigation(apiProduct(), navigationItem);
 
-        assertThatThrownBy(() -> service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(null))).isInstanceOf(
+        assertThatThrownBy(() -> service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(null), Optional.empty())).isInstanceOf(
             ApiProductNotFoundException.class
         );
     }
@@ -143,7 +146,7 @@ class PortalApiProductAccessDomainServiceTest {
         apiProductQueryService.initWith(List.of(apiProduct()));
         navigationItemsQueryService.initWith(List.of(parent, navigationItem));
 
-        assertThatThrownBy(() -> service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(USER_ID))).isInstanceOf(
+        assertThatThrownBy(() -> service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(USER_ID), Optional.empty())).isInstanceOf(
             ApiProductNotFoundException.class
         );
     }
@@ -156,9 +159,37 @@ class PortalApiProductAccessDomainServiceTest {
         apiProductQueryService.initWith(List.of(apiProduct()));
         navigationItemsQueryService.initWith(List.of(parent, navigationItem));
 
-        assertThatThrownBy(() -> service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(USER_ID))).isInstanceOf(
+        assertThatThrownBy(() -> service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(USER_ID), Optional.empty())).isInstanceOf(
             ApiProductNotFoundException.class
         );
+    }
+
+    @Test
+    void should_return_product_listed_on_the_given_portal() {
+        var portal = new NavigationItemReference.PortalReference(PortalId.random());
+        var navigationItem = apiProductNavigation();
+        navigationItem.changeOwner(portal);
+        givenProductAndNavigation(apiProduct(), navigationItem);
+
+        var result = service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(null), Optional.of(portal));
+
+        assertThat(result.navigationItem().getId()).isEqualTo(PortalNavigationItemId.of(NAVIGATION_ITEM_ID));
+    }
+
+    @Test
+    void should_reject_product_listed_only_on_another_portal() {
+        var portalA = new NavigationItemReference.PortalReference(PortalId.random());
+        var portalB = new NavigationItemReference.PortalReference(PortalId.random());
+        var navigationItem = apiProductNavigation();
+        navigationItem.changeOwner(portalB);
+        givenProductAndNavigation(apiProduct(), navigationItem);
+
+        assertThatThrownBy(() ->
+            service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(USER_ID), Optional.of(portalA))
+        ).isInstanceOf(ApiProductNotFoundException.class);
+        assertThat(
+            service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(USER_ID), Optional.empty()).apiProduct().getId()
+        ).isEqualTo(API_PRODUCT_ID);
     }
 
     private void givenProductAndNavigation(ApiProduct apiProduct, PortalNavigationApiProduct navigationItem) {

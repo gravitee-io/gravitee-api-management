@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.apim.core.api.use_case.GetApiForPortalUseCase;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.InlinePictureEntity;
@@ -101,15 +102,28 @@ public class ApiResource extends AbstractResource {
         @QueryParam("include") List<String> include,
         @QueryParam(PortalApiViewParam.QUERY_PARAM_NAME) String view
     ) {
+        return getApi(apiId, include, PortalApiViewParam.isDocumentationView(view), Optional.empty());
+    }
+
+    /**
+     * @param portalId the portal that must list the API; empty on the unscoped path, where the documentation view accepts a listing on any
+     *                 portal of the environment
+     */
+    Response getApi(String apiId, List<String> include, boolean isDocumentationView, Optional<PortalId> portalId) {
         String username = getAuthenticatedUserOrNull();
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, true);
 
-        boolean isDocumentationView = PortalApiViewParam.isDocumentationView(view);
         if (isDocumentationView) {
             var output = getApiForPortalUseCase.execute(
-                new GetApiForPortalUseCase.Input(executionContext.getEnvironmentId(), apiId, username)
+                new GetApiForPortalUseCase.Input(
+                    executionContext.getEnvironmentId(),
+                    executionContext.getOrganizationId(),
+                    apiId,
+                    username,
+                    portalId
+                )
             );
             if (!output.visible()) {
                 throw new ApiNotFoundException(apiId);

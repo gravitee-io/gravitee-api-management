@@ -44,6 +44,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 class BasicSecurityConfigurerAdapterTest extends AbstractSecurityConfigurerAdapterTest {
 
     private static final String API_PATH = "/environments/DEFAULT/apis/my-api";
+    private static final String PORTAL_PATH = "/environments/DEFAULT/portal/6c2b1e9e-0000-4000-8000-000000000000";
 
     @Autowired
     private EnvironmentService environmentService;
@@ -71,6 +72,22 @@ class BasicSecurityConfigurerAdapterTest extends AbstractSecurityConfigurerAdapt
     @Test
     void should_leave_other_paths_unchanged_with_a_trailing_slash() throws Exception {
         mockMvc.perform(get(API_PATH + "/metrics/")).andExpect(status().isNotFound());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "", "/plans", "/pages", "/pages/my-page", "/informations", "/subscription-form" })
+    void should_let_anonymous_users_read_an_api_page_on_a_portal(String subPath) throws Exception {
+        mockMvc.perform(get(PORTAL_PATH + "/apis/my-api" + subPath)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void should_require_authentication_to_read_an_api_product_on_a_portal() throws Exception {
+        mockMvc.perform(get(PORTAL_PATH + "/api-products/my-api-product")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void should_require_authentication_to_list_subscriptions_on_a_portal() throws Exception {
+        mockMvc.perform(get(PORTAL_PATH + "/subscriptions")).andExpect(status().isUnauthorized());
     }
 
     @Configuration

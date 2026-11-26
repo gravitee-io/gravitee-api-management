@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static io.gravitee.rest.api.service.common.GraviteeContext.getExecutionContext;
 
 import io.gravitee.apim.core.api_product.use_case.GetPortalApiProductUseCase;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.portal.rest.mapper.ApiProductMapper;
@@ -30,6 +31,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import java.util.Optional;
 import java.util.UUID;
 
 public class ApiProductResource extends AbstractResource {
@@ -47,12 +49,22 @@ public class ApiProductResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response getApiProductByApiProductId(@PathParam("apiProductId") UUID apiProductId) {
+        return getApiProduct(apiProductId, Optional.empty());
+    }
+
+    /**
+     * @param portalId the portal that must list the API product; empty on the unscoped path, where a listing on any portal of the
+     *                 environment does
+     */
+    Response getApiProduct(UUID apiProductId, Optional<PortalId> portalId) {
         var executionContext = getExecutionContext();
         var output = getPortalApiProductUseCase.execute(
             new GetPortalApiProductUseCase.Input(
                 executionContext.getEnvironmentId(),
+                executionContext.getOrganizationId(),
                 apiProductId.toString(),
-                PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull())
+                PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull()),
+                portalId
             )
         );
 
