@@ -23,7 +23,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * What an environment says about one additional metric key: its label, description and unit, and whether the
+ * What an environment says about one additional or custom metric key: its label, description and unit, and whether the
  * observability pickers offer it. One record per key and environment.
  */
 @Builder(toBuilder = true)
@@ -37,8 +37,10 @@ public class GammaMetricDefinition {
     private String environmentId;
 
     /**
-     * Key of the additional metric, type prefix included, as the gateway reports it, e.g.
-     * {@code double_checkout_basket-value}. Unique per environment. May contain {@code /} and {@code .}.
+     * The key the record describes, unique per environment: an additional metric key, type prefix included, as the
+     * gateway reports it ({@code double_checkout_basket-value}), or a custom metric key with its root
+     * ({@code custom.fraud-tier}), up to 263 characters. An additional key may contain {@code /} and {@code .}; a
+     * custom key may contain any character but {@code "}, {@code \} and {@code *}, 4-byte ones included.
      */
     private String rawKey;
 

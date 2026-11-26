@@ -25,6 +25,8 @@ import org.junit.jupiter.api.Test;
 
 public class GammaMetricDefinitionRepositoryTest extends AbstractManagementRepositoryTest {
 
+    private static final String LONGEST_CUSTOM_KEY = "custom." + "a".repeat(254) + "\uD83D\uDE80";
+
     @Override
     protected String getTestCasesPath() {
         return "/data/gamma-metric-definition-tests/";
@@ -77,6 +79,18 @@ public class GammaMetricDefinitionRepositoryTest extends AbstractManagementRepos
         var found = gammaMetricDefinitionRepository.findByEnvironmentIdAndRawKey("DEFAULT", "double_checkout_basket-value");
 
         assertThat(found).get().extracting(GammaMetricDefinition::getUnit).isEqualTo("€");
+    }
+
+    @Test
+    public void should_keep_a_unit_suffix_with_a_four_byte_character_verbatim() throws Exception {
+        gammaMetricDefinitionRepository.create(
+            aRecord("gmd-rocket-unit", "LONGEST_ENV", "long_launches").toBuilder().unit("\uD83D\uDE80").build()
+        );
+
+        assertThat(gammaMetricDefinitionRepository.findByEnvironmentIdAndRawKey("LONGEST_ENV", "long_launches"))
+            .get()
+            .extracting(GammaMetricDefinition::getUnit)
+            .isEqualTo("\uD83D\uDE80");
     }
 
     @Test
@@ -164,6 +178,48 @@ public class GammaMetricDefinitionRepositoryTest extends AbstractManagementRepos
 
         assertThat(gammaMetricDefinitionRepository.findByEnvironmentId("DEFAULT")).isEmpty();
         assertThat(gammaMetricDefinitionRepository.findByEnvironmentId("OTHER_ENV")).hasSize(1);
+    }
+
+    @Test
+    public void should_hold_a_custom_key_and_an_additional_key_of_the_same_spelling_in_one_environment() throws Exception {
+        assertThat(gammaMetricDefinitionRepository.findByEnvironmentIdAndRawKey("ROOTS_ENV", "custom.keyword_x"))
+            .get()
+            .extracting(GammaMetricDefinition::getId)
+            .isEqualTo("gmd-5");
+        assertThat(gammaMetricDefinitionRepository.findByEnvironmentIdAndRawKey("ROOTS_ENV", "keyword_x"))
+            .get()
+            .extracting(GammaMetricDefinition::getId)
+            .isEqualTo("gmd-6");
+    }
+
+    @Test
+    public void should_refuse_a_second_record_on_the_same_custom_key_of_the_same_environment() throws Exception {
+        var duplicate = aRecord("gmd-custom-duplicate", "ROOTS_ENV", "custom.keyword_x");
+
+        assertThatThrownBy(() -> gammaMetricDefinitionRepository.create(duplicate)).isInstanceOf(DuplicateKeyException.class);
+        assertThat(gammaMetricDefinitionRepository.findById("gmd-custom-duplicate")).isEmpty();
+    }
+
+    /** A custom key is stored with its root: 'custom.' and up to 256 UTF-16 units, 4-byte characters included. */
+    @Test
+    public void should_create_update_and_delete_a_record_on_the_longest_custom_key() throws Exception {
+        var record = aRecord("gmd-longest", "LONGEST_ENV", LONGEST_CUSTOM_KEY).toBuilder().label("Rocket \uD83D\uDE80").unit(null).build();
+
+        gammaMetricDefinitionRepository.create(record);
+        assertThat(gammaMetricDefinitionRepository.findByEnvironmentIdAndRawKey("LONGEST_ENV", LONGEST_CUSTOM_KEY))
+            .get()
+            .usingRecursiveComparison()
+            .isEqualTo(record);
+
+        var edited = record.toBuilder().description("Launch tier \uD83D\uDE80").exposed(false).updatedAt(new Date(1200000000000L)).build();
+        gammaMetricDefinitionRepository.update(edited);
+        assertThat(gammaMetricDefinitionRepository.findByEnvironmentIdAndRawKey("LONGEST_ENV", LONGEST_CUSTOM_KEY))
+            .get()
+            .usingRecursiveComparison()
+            .isEqualTo(edited);
+
+        gammaMetricDefinitionRepository.delete("gmd-longest");
+        assertThat(gammaMetricDefinitionRepository.findByEnvironmentIdAndRawKey("LONGEST_ENV", LONGEST_CUSTOM_KEY)).isEmpty();
     }
 
     private static GammaMetricDefinition aRecord(String id, String environmentId, String rawKey) {
