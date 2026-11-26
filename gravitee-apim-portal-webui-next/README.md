@@ -28,8 +28,8 @@ yarn install
 
 Portal Next reads `assets/config.json` at startup, then calls `/ui/bootstrap` using
 its `baseURL` and optional `environmentId`. The bootstrap response resolves the
-Portal API URL, environment and portal ID. A deployment only configures the API
-URL and, optionally, the environment:
+Portal API URL, environment and portal ID. A deployment configures the API URL
+and, optionally, the environment:
 
 ```json
 {
@@ -38,8 +38,45 @@ URL and, optionally, the environment:
 }
 ```
 
-Portal identity comes from the bootstrap response, which selects the environment's
-default or only portal. A `portalId` in `assets/config.json` is ignored.
+### Portal selection
+
+By default the portal is selected automatically: its ID comes from the bootstrap
+response, which selects the environment's default or only portal.
+
+Set `portalId` to select a specific portal of that environment, for local
+development or for a portal app reached through an internal name:
+
+```json
+{
+  "baseURL": "https://api.example.com/portal",
+  "environmentId": "DEFAULT",
+  "portalId": "e9c87445-920f-4a26-a36d-c6334a05ca37"
+}
+```
+
+The configured `portalId` takes precedence over the bootstrap's one. Leading and
+trailing whitespace is removed. Omit it, set it to `null`, or leave it empty or
+blank to use the bootstrap's portal. A non-string value and the dot segments `.`
+and `..` are invalid and fail startup before the bootstrap call, so requests
+cannot escape the portal path.
+
+The override only chooses the portal. The bootstrap still resolves the Portal API
+URL and the environment, and a failed bootstrap still fails startup. The ID grants
+no access: the backend refuses a portal that is unknown or belongs to another
+environment, and applies its usual visibility and access rules.
+
+One `assets/config.json` serves every host of a deployment: an explicit `portalId`
+pins all of them to that portal. Deployments that serve several portals from the
+same files, each on its own host, leave it unset.
+
+With the Helm chart, set `portal.portalId`. The chart writes it only to
+`config-next.json`, mounted at
+`/usr/share/nginx/html/next/browser/assets/config.json`; Classic Portal is
+unaffected. When supplying an external volume named `config` through
+`portal.extraVolumes`, provide both `config.json` and `config-next.json` yourself:
+the chart does not generate or merge those files.
+
+### Request scope
 
 Navigation, homepage content, catalog searches (APIs and API Products), and API
 searches use `/environments/{environmentId}/portal/{portalId}/...`. API details,
