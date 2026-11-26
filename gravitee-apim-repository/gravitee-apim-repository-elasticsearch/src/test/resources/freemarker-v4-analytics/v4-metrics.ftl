@@ -220,3 +220,9 @@
 { "entrypoint-id": "edge", "@timestamp": "${dateDaysAgo["14"]}T08:03:00.000Z", "request-id": "hb-004", "api-id": "edge-counts-api-001", "client-identifier": "device-a", "status": 200, "additional-metrics": { "keyword_edge_type": "detection", "long_edge_count": 3 } }
 { "index" :{ ${indexNameDaysAgo["14"]}, "_id": "hb-005"}}
 { "entrypoint-id": "edge", "@timestamp": "${dateDaysAgo["14"]}T08:04:00.000Z", "request-id": "hb-005", "api-id": "edge-counts-api-001", "client-identifier": "device-c", "status": 200, "additional-metrics": { "keyword_edge_type": "detection", "long_edge_count": 3 } }
+{ "index" :{ ${indexNameDaysAgo["12"]}, "_id": "fv-001"}}
+{ "entrypoint-id": "http-proxy", "@timestamp": "${dateDaysAgo["12"]}T09:00:00.000Z", "request-id": "fv-001", "api-id": "filter-values-prefix-api-001", "env-id": "filter-values-env", "status": 200, "custom": { "card-tier": "golden" } }
+{ "index" :{ ${indexNameDaysAgo["12"]}, "_id": "fv-002"}}
+{ "entrypoint-id": "http-proxy", "@timestamp": "${dateDaysAgo["12"]}T09:01:00.000Z", "request-id": "fv-002", "api-id": "filter-values-prefix-api-001", "env-id": "filter-values-env", "status": 200, "custom": { "card-tier": "gold" } }
+{ "index" :{ ${indexNameDaysAgo["12"]}, "_id": "fv-003"}}
+{ "entrypoint-id": "http-proxy", "@timestamp": "${dateDaysAgo["12"]}T09:02:00.000Z", "request-id": "fv-003", "api-id": "filter-values-prefix-api-001", "env-id": "filter-values-env", "status": 200, "custom": { "card-tier": "Platinum" } }

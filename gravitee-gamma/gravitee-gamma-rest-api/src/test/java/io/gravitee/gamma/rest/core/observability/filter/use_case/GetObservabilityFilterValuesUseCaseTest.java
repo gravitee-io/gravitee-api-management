@@ -36,6 +36,8 @@ import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class GetObservabilityFilterValuesUseCaseTest {
@@ -139,17 +141,24 @@ class GetObservabilityFilterValuesUseCaseTest {
         assertThat(secondPage.values().totalElements()).isEqualTo(3L);
     }
 
-    @Test
-    void should_narrow_the_no_entrypoint_value_the_way_the_store_narrows_stored_ids() {
-        // The store matches a KEYWORD value exactly, case-insensitively; offering the synthetic value on a
-        // partial query would make it the only answer to any prefix of its label.
+    @ParameterizedTest
+    @ValueSource(strings = { "(NONE)", "(no", "no", "No entry" })
+    void should_offer_the_no_entrypoint_value_to_the_start_of_its_value_or_label_whatever_its_case(String typed) {
         dataPort.givenKeywordValues("ENTRYPOINT", List.of(new FilterValue("http-proxy", null)));
 
-        var exact = useCase.execute(new GetObservabilityFilterValuesUseCase.Input("ENTRYPOINT", "(NONE)", null, null, null, null));
-        var partial = useCase.execute(new GetObservabilityFilterValuesUseCase.Input("ENTRYPOINT", "refused", null, null, null, null));
+        var output = useCase.execute(new GetObservabilityFilterValuesUseCase.Input("ENTRYPOINT", typed, null, null, null, null));
 
-        assertThat(exact.values().data()).extracting(FilterValue::value).containsExactly("(none)");
-        assertThat(partial.values().data()).extracting(FilterValue::value).doesNotContain("(none)");
+        assertThat(output.values().data()).extracting(FilterValue::value).containsExactly("(none)");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "none", "entrypoint", "refused" })
+    void should_not_offer_the_no_entrypoint_value_to_a_word_inside_its_value_or_label(String typed) {
+        dataPort.givenKeywordValues("ENTRYPOINT", List.of(new FilterValue("http-proxy", null)));
+
+        var output = useCase.execute(new GetObservabilityFilterValuesUseCase.Input("ENTRYPOINT", typed, null, null, null, null));
+
+        assertThat(output.values().data()).extracting(FilterValue::value).doesNotContain("(none)");
     }
 
     @Test
