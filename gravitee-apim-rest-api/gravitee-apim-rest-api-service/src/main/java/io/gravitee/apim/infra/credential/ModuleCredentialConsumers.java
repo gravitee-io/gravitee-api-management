@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.credential;
 
 import io.gravitee.apim.core.credential.model.CredentialConsumer;
+import io.gravitee.apim.core.credential.model.CredentialConsumerWarning;
 import io.gravitee.apim.core.credential.service_provider.CredentialConsumerPort;
 import io.gravitee.apim.core.credential.service_provider.CredentialConsumers;
 import java.util.Collections;
@@ -55,14 +56,22 @@ public class ModuleCredentialConsumers implements CredentialConsumers {
     }
 
     @Override
-    public void changed(CredentialConsumerPort.Change change) {
-        distinctPorts().forEach(port -> {
-            try {
-                port.changed(change);
-            } catch (RuntimeException e) {
-                log.warn("Module {} did not take the change of credential {}", port.module(), change.credentialId(), e);
-            }
-        });
+    public List<CredentialConsumerWarning> changed(CredentialConsumerPort.Change change) {
+        return distinctPorts()
+            .flatMap(port -> {
+                try {
+                    return port
+                        .changed(change)
+                        .stream()
+                        .map(warning ->
+                            new CredentialConsumerWarning(port.module(), warning.type(), warning.id(), warning.name(), warning.message())
+                        );
+                } catch (RuntimeException e) {
+                    log.warn("Module {} did not take the change of credential {}", port.module(), change.credentialId(), e);
+                    return Stream.empty();
+                }
+            })
+            .toList();
     }
 
     private Stream<CredentialConsumerPort> distinctPorts() {

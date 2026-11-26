@@ -92,7 +92,7 @@ public class CredentialResource {
     public CredentialDto updateCredential(@PathParam("credentialId") String credentialId, @NotNull UpdateCredentialRequestDto request) {
         var actor = actor();
         var output = updateCredentialUseCase.execute(new UpdateCredentialUseCase.Input(actor, credentialId, request.toCommand()));
-        return CredentialDto.withoutOwnerName(output.credential(), actor);
+        return CredentialDto.updated(output.credential(), actor, output.warnings());
     }
 
     @POST
