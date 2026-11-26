@@ -697,6 +697,32 @@ class GetObservabilityAnalyticsDefinitionUseCaseTest {
                 );
         }
 
+        @Test
+        void should_offer_an_exposed_custom_record_as_a_declared_facet_and_drop_a_hidden_one() {
+            givenBuiltIn(InMemoryAnalyticsDefinitionPort.DIMENSIONS_OF, HTTP_KINDS, "API");
+            fixture.givenDeclared(ENVIRONMENT, "custom.fraud-tier", "Fraud level", null, true);
+            fixture.givenDeclared(ENVIRONMENT, "custom.customer-email", "Customer email", null, false);
+            fixture.ports.givenDiscovered(List.of(custom("fraud-tier"), custom("customer-email")), false);
+
+            var definition = execute(Set.of(ApiType.HTTP_PROXY));
+
+            assertThat(definition.dimensions())
+                .extracting(
+                    DimensionDefinition::name,
+                    DimensionDefinition::label,
+                    DimensionDefinition::namespace,
+                    DimensionDefinition::origin
+                )
+                .containsExactly(
+                    tuple("API", "API label", null, CatalogOrigin.BUILT_IN),
+                    tuple("custom.fraud-tier", "Fraud level", "custom", CatalogOrigin.DECLARED)
+                );
+            assertThat(definition.families())
+                .flatExtracting(family -> family.metrics())
+                .flatExtracting(metric -> metric.facets().stream().map(DimensionDefinition::name).toList())
+                .doesNotContain("custom.customer-email");
+        }
+
         /** One rule: the engine groups every metric of the request documents by any keyword field, so all list them. */
         @Test
         void should_offer_a_custom_key_on_every_built_in_read_from_the_request_documents_only() {

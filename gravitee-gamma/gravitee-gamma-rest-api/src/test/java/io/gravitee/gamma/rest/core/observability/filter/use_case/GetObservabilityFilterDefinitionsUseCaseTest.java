@@ -824,6 +824,34 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
             assertThat(dynamic(all())).isEmpty();
         }
 
+        /** exposed=false only keeps the key out of the pickers; queries on it are pinned by the resource tests. */
+        @Test
+        void should_list_a_custom_record_as_declared_when_exposed_and_nowhere_when_not() {
+            metricDefinitions.givenDeclared(ENVIRONMENT, "custom.fraud-tier", "Fraud level", null, true);
+            metricDefinitions.givenDeclared(ENVIRONMENT, "custom.customer-email", "Customer email", null, false);
+            metricDefinitions.ports.givenDiscovered(
+                List.of(
+                    new DiscoveredAdditionalMetric(
+                        AdditionalMetricField.Root.CUSTOM,
+                        "fraud-tier",
+                        AdditionalMetricValueType.KEYWORD,
+                        SEEN
+                    ),
+                    new DiscoveredAdditionalMetric(
+                        AdditionalMetricField.Root.CUSTOM,
+                        "customer-email",
+                        AdditionalMetricValueType.KEYWORD,
+                        SEEN
+                    )
+                ),
+                false
+            );
+
+            assertThat(dynamic(all()))
+                .extracting(FilterSpec::name, FilterSpec::label, spec -> spec.catalog().origin(), spec -> spec.catalog().rawKey())
+                .containsExactly(tuple("custom.fraud-tier", "Fraud level", CatalogOrigin.DECLARED, "custom.fraud-tier"));
+        }
+
         @Test
         void should_serve_the_static_catalog_flagged_truncated_to_a_reader_whose_discovery_is_unavailable() {
             metricDefinitions.ports.givenBuiltIn("keyword_mcp-proxy_tools/call", "MCP_PROXY_TOOL").givenDiscovered(List.of(), true);

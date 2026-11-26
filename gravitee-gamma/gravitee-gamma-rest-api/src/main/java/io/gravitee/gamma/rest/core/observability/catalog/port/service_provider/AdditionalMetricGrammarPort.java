@@ -37,4 +37,10 @@ public interface AdditionalMetricGrammarPort {
      * what a refusal explains. Empty when the key starts with no type prefix.
      */
     Optional<AdditionalMetricValueType> typeDeclaredBy(String rawKey);
+
+    /**
+     * The rule a name under {@code additional-metrics.} or {@code custom.} breaks, as the engines word it; empty for a
+     * well-formed name and for a name under neither root.
+     */
+    Optional<String> refusal(String name);
 }

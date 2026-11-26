@@ -19,15 +19,19 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.gamma.rest.core.observability.catalog.exception.InvalidMetricDefinitionException;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricField;
 import io.gravitee.gamma.rest.core.observability.catalog.model.DiscoveredAdditionalMetric;
+import io.gravitee.gamma.rest.core.observability.catalog.model.MetricDefinitionNames;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.AdditionalMetricGrammarPort;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.BuiltInAdditionalMetricsPort;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 
 /**
- * Reads the names and keys of additional metric fields with the platform's parser, and checks that a name may carry a
- * record: an additional metric field, not of the reserved {@code <type>_custom_<name>} form, and not read by a
- * built-in entry.
+ * Reads the names and keys of additional and custom metric fields with the platform's parser, and checks that a name
+ * may carry a record: a user key of either root, not of the reserved {@code additional-metrics.<type>_custom_<name>}
+ * form nor its {@code <type>_custom.<name>} decoy, and not read by a built-in entry.
  *
  * @author GraviteeSource Team
  */
@@ -36,19 +40,20 @@ import lombok.AllArgsConstructor;
 public class MetricDefinitionKeyDomainService {
 
     private static final int MAX_NAME_LENGTH = 256;
+    private static final int ABBREVIATED_LENGTH = 32;
+    /** Said only if the grammar refuses a custom name without naming its rule, rather than failing the request. */
+    private static final String CUSTOM_NAME_FALLBACK = "it is not a valid custom metric name";
 
     private final AdditionalMetricGrammarPort grammar;
     private final BuiltInAdditionalMetricsPort builtInAdditionalMetrics;
 
     /**
-     * The field a name designates, or a refusal saying which part of the grammar it breaks. Records are kept for the
-     * {@code additional-metrics} map only: a {@code custom.<name>} is refused like any name outside that map.
+     * The field a name designates, or a refusal saying which part of the grammar it breaks. A record describes any user
+     * key the grammar reads, an {@code additional-metrics.<type>_<key>} or a {@code custom.<name>};
+     * {@link #writableField} narrows that set for writes.
      */
     public AdditionalMetricField field(String name) {
-        return grammar
-            .parse(name)
-            .filter(field -> field.root() == AdditionalMetricField.Root.ADDITIONAL_METRICS)
-            .orElseThrow(() -> refusal(name));
+        return grammar.parse(name).orElseThrow(() -> refusal(name));
     }
 
     /**
@@ -66,15 +71,17 @@ public class MetricDefinitionKeyDomainService {
 
     public AdditionalMetricField writableField(String name) {
         AdditionalMetricField field = field(name);
+        // Read as written so such a key stays listed, it is never declared: its name would reach messages and logs.
+        if (MetricDefinitionNames.holdsUnprintable(name)) {
+            throw InvalidMetricDefinitionException.unprintableName(name);
+        }
         if (field.isReserved()) {
             throw InvalidMetricDefinitionException.reservedKey(name);
         }
         if (field.namesCustomMetric()) {
-            throw InvalidMetricDefinitionException.customMetricKey(name);
+            throw InvalidMetricDefinitionException.customMetricKey(name, field.customMetricLookalike());
         }
-        // A built-in reading a key resolves to additional-metrics.<rawKey>, the field the OBS-70 identity rule gives
-        // the dynamic name of that key, so comparing keys compares the resolved fields.
-        if (builtInAdditionalMetrics.builtInNamesByRawKey().containsKey(field.rawKey())) {
+        if (builtInWireNames(builtInAdditionalMetrics.builtInNamesByRawKey()).contains(field.name())) {
             throw InvalidMetricDefinitionException.builtInKey(name);
         }
         return field;
@@ -83,16 +90,27 @@ public class MetricDefinitionKeyDomainService {
     /** Explains a name the parser refused; the parser alone decides what is accepted. */
     private InvalidMetricDefinitionException refusal(String name) {
         if (name == null || name.isBlank()) {
-            return InvalidMetricDefinitionException.invalidName("A metric definition needs the name of an additional metric field");
+            return InvalidMetricDefinitionException.invalidName(
+                "A metric definition needs the name of an additional or custom metric field"
+            );
+        }
+        if (name.startsWith(AdditionalMetricField.Root.CUSTOM.prefix())) {
+            return InvalidMetricDefinitionException.invalidName(
+                "'%s' is not a valid field name: %s".formatted(abbreviated(name), grammar.refusal(name).orElse(CUSTOM_NAME_FALLBACK))
+            );
         }
         if (name.length() > MAX_NAME_LENGTH) {
             return InvalidMetricDefinitionException.invalidName(
-                "'%s' is longer than %d characters".formatted(name.substring(0, 32) + "…", MAX_NAME_LENGTH)
+                "'%s' is longer than %d characters".formatted(abbreviated(name), MAX_NAME_LENGTH)
             );
         }
         if (!name.startsWith(AdditionalMetricField.NAME_PREFIX)) {
             return InvalidMetricDefinitionException.invalidName(
-                "'%s' is not an additional metric field: it must start with '%s'".formatted(name, AdditionalMetricField.NAME_PREFIX)
+                "'%s' is not an additional or custom metric field: it must start with '%s' or '%s'".formatted(
+                    name,
+                    AdditionalMetricField.NAME_PREFIX,
+                    AdditionalMetricField.Root.CUSTOM.prefix()
+                )
             );
         }
         if (grammar.typeDeclaredBy(name.substring(AdditionalMetricField.NAME_PREFIX.length())).isEmpty()) {
@@ -103,5 +121,20 @@ public class MetricDefinitionKeyDomainService {
                 name
             )
         );
+    }
+
+    /**
+     * The wire names of the keys built-ins read, in a set the caller may add to. Built-ins read keys of the
+     * {@code additional-metrics} map, resolved to {@code additional-metrics.<rawKey>} by the OBS-70 identity rule: a
+     * custom key spelt like one of them is another field.
+     */
+    public static Set<String> builtInWireNames(Map<String, Set<String>> builtInNamesByRawKey) {
+        Set<String> names = new HashSet<>();
+        builtInNamesByRawKey.keySet().forEach(rawKey -> names.add(AdditionalMetricField.NAME_PREFIX + rawKey));
+        return names;
+    }
+
+    private static String abbreviated(String name) {
+        return name.length() > ABBREVIATED_LENGTH ? name.substring(0, ABBREVIATED_LENGTH) + "…" : name;
     }
 }

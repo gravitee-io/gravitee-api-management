@@ -43,7 +43,7 @@ public class GetMetricDefinitionUseCase {
         AdditionalMetricField field = keys.field(input.name());
         return new Output(
             repository
-                .findByEnvironmentIdAndRawKey(input.environmentId(), field.rawKey())
+                .findByEnvironmentIdAndField(input.environmentId(), field)
                 .orElseThrow(() -> new MetricDefinitionNotFoundException(input.name()))
         );
     }

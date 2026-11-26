@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
@@ -38,6 +40,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class GammaMetricDefinitionRepositoryAdapterTest {
@@ -63,6 +66,29 @@ class GammaMetricDefinitionRepositoryAdapterTest {
         UPDATED
     );
 
+    private static final AdditionalMetricDefinition CUSTOM_DEFINITION = new AdditionalMetricDefinition(
+        "id-2",
+        "env-1",
+        new AdditionalMetricField(AdditionalMetricField.Root.CUSTOM, "fraud-tier", AdditionalMetricValueType.KEYWORD),
+        "Fraud tier",
+        "Tier the fraud check assigns",
+        null,
+        true,
+        CREATED,
+        UPDATED
+    );
+
+    private static final GammaMetricDefinition CUSTOM_STORED = GammaMetricDefinition.builder()
+        .id("id-2")
+        .environmentId("env-1")
+        .rawKey("custom.fraud-tier")
+        .label("Fraud tier")
+        .description("Tier the fraud check assigns")
+        .exposed(true)
+        .createdAt(Date.from(CREATED))
+        .updatedAt(Date.from(UPDATED))
+        .build();
+
     private static final GammaMetricDefinition STORED = GammaMetricDefinition.builder()
         .id("id-1")
         .environmentId("env-1")
@@ -83,7 +109,51 @@ class GammaMetricDefinitionRepositoryAdapterTest {
         when(repository.findByEnvironmentId("env-1")).thenReturn(List.of(STORED));
         assertThat(adapter.findByEnvironmentId("env-1")).containsExactly(DEFINITION);
         when(repository.findByEnvironmentIdAndRawKey("env-1", "double_checkout_basket-value")).thenReturn(Optional.of(STORED));
-        assertThat(adapter.findByEnvironmentIdAndRawKey("env-1", "double_checkout_basket-value")).contains(DEFINITION);
+        assertThat(adapter.findByEnvironmentIdAndField("env-1", DEFINITION.field())).contains(DEFINITION);
+    }
+
+    /** Records stored before custom keys had any keep their bare additional key and read back unchanged. */
+    @Test
+    void should_store_an_additional_key_bare_and_a_custom_key_with_its_root() throws Exception {
+        when(repository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        var captor = ArgumentCaptor.forClass(GammaMetricDefinition.class);
+
+        adapter.create(DEFINITION);
+        adapter.create(CUSTOM_DEFINITION);
+
+        verify(repository, times(2)).create(captor.capture());
+        assertThat(captor.getAllValues())
+            .extracting(GammaMetricDefinition::getRawKey)
+            .containsExactly("double_checkout_basket-value", "custom.fraud-tier");
+    }
+
+    @Test
+    void should_read_back_records_of_both_roots() throws Exception {
+        when(repository.findByEnvironmentId("env-1")).thenReturn(List.of(STORED, CUSTOM_STORED));
+
+        assertThat(adapter.findByEnvironmentId("env-1")).containsExactly(DEFINITION, CUSTOM_DEFINITION);
+    }
+
+    /** custom.keyword_x and additional-metrics.keyword_x are two keys: each is looked up under its own stored key. */
+    @Test
+    void should_look_a_custom_key_up_under_its_root_never_under_the_bare_key_of_the_same_spelling() throws Exception {
+        var customField = new AdditionalMetricField(AdditionalMetricField.Root.CUSTOM, "keyword_x", AdditionalMetricValueType.KEYWORD);
+        var additionalField = new AdditionalMetricField("keyword_x", AdditionalMetricValueType.KEYWORD);
+        when(repository.findByEnvironmentIdAndRawKey("env-1", "custom.keyword_x")).thenReturn(
+            Optional.of(CUSTOM_STORED.toBuilder().rawKey("custom.keyword_x").build())
+        );
+        when(repository.findByEnvironmentIdAndRawKey("env-1", "keyword_x")).thenReturn(
+            Optional.of(STORED.toBuilder().id("id-bare").rawKey("keyword_x").build())
+        );
+
+        assertThat(adapter.findByEnvironmentIdAndField("env-1", customField))
+            .get()
+            .extracting(AdditionalMetricDefinition::field)
+            .isEqualTo(customField);
+        assertThat(adapter.findByEnvironmentIdAndField("env-1", additionalField))
+            .get()
+            .extracting(AdditionalMetricDefinition::id)
+            .isEqualTo("id-bare");
     }
 
     @Test
@@ -115,5 +185,25 @@ class GammaMetricDefinitionRepositoryAdapterTest {
         when(repository.findByEnvironmentId("env-1")).thenReturn(List.of(STORED.toBuilder().rawKey("float_x").build()));
 
         assertThatThrownBy(() -> adapter.findByEnvironmentId("env-1")).isInstanceOf(TechnicalDomainException.class);
+    }
+
+    /** Names reach these messages from requests and stores: a raw line break or NUL never does. */
+    @Test
+    void should_never_echo_a_raw_control_character_in_a_duplicate_or_technical_error_message() throws Exception {
+        var field = new AdditionalMetricField(AdditionalMetricField.Root.CUSTOM, "fraud\r\ntier", AdditionalMetricValueType.KEYWORD);
+        when(repository.findByEnvironmentIdAndRawKey("env-1", "custom.fraud\r\ntier")).thenThrow(new TechnicalException("down"));
+        when(repository.findByEnvironmentId("env-1")).thenReturn(List.of(STORED.toBuilder().rawKey("float_\u0000x").build()));
+
+        assertThatThrownBy(() -> adapter.findByEnvironmentIdAndField("env-1", field))
+            .isInstanceOf(TechnicalDomainException.class)
+            .hasMessageContaining("custom.fraud\\u000D\\u000Atier")
+            .message()
+            .doesNotContainPattern("\\p{Cntrl}");
+        assertThatThrownBy(() -> adapter.findByEnvironmentId("env-1"))
+            .isInstanceOf(TechnicalDomainException.class)
+            .hasMessageContaining("float_\\u0000x");
+        assertThat(new DuplicateMetricDefinitionException("custom.fraud\r\ntier").getMessage())
+            .contains("custom.fraud\\u000D\\u000Atier")
+            .doesNotContainPattern("\\p{Cntrl}");
     }
 }

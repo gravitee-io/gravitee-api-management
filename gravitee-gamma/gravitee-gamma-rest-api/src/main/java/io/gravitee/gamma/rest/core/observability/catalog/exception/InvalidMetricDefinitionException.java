@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest.core.observability.catalog.exception;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricUnit;
+import io.gravitee.gamma.rest.core.observability.catalog.model.MetricDefinitionNames;
 
 /**
  * A metric definition, or the name it is written on, breaks a rule; answered with {@code 400}. The technical code
@@ -34,11 +35,15 @@ public class InvalidMetricDefinitionException extends ValidationDomainException 
     public static final String INVALID_BODY = CODE_PREFIX + INVALID_BODY_RULE;
 
     private InvalidMetricDefinitionException(String message, String rule) {
-        super(message, CODE_PREFIX + rule);
+        super(MetricDefinitionNames.printable(message), CODE_PREFIX + rule);
     }
 
     public static InvalidMetricDefinitionException invalidName(String message) {
         return new InvalidMetricDefinitionException(message, "invalid_name");
+    }
+
+    public static InvalidMetricDefinitionException unprintableName(String name) {
+        return invalidName("'%s' is not a valid name for a metric definition: %s".formatted(name, MetricDefinitionNames.UNPRINTABLE_RULE));
     }
 
     public static InvalidMetricDefinitionException unknownTypePrefix(String name) {
@@ -50,14 +55,17 @@ public class InvalidMetricDefinitionException extends ValidationDomainException 
 
     public static InvalidMetricDefinitionException reservedKey(String name) {
         return new InvalidMetricDefinitionException(
-            "'%s' is reserved: keys of the form <type>_custom_<name> belong to the typed custom metrics".formatted(name),
+            "'%s' is reserved: keys of the form additional-metrics.<type>_custom_<name> belong to the typed custom metrics".formatted(name),
             RESERVED_KEY_RULE
         );
     }
 
-    public static InvalidMetricDefinitionException customMetricKey(String name) {
+    public static InvalidMetricDefinitionException customMetricKey(String name, String customMetricName) {
         return new InvalidMetricDefinitionException(
-            "'%s' is reserved: custom metrics (custom.<name>) come from the Assign metrics policy and are read-only here".formatted(name),
+            "'%s' is reserved: it reads the additional metrics map, not the values the Assign metrics policy writes; declare '%s' instead".formatted(
+                name,
+                customMetricName
+            ),
             RESERVED_KEY_RULE
         );
     }
@@ -81,6 +89,10 @@ public class InvalidMetricDefinitionException extends ValidationDomainException 
             ),
             "invalid_unit"
         );
+    }
+
+    public static InvalidMetricDefinitionException unitNotAllowed(String name) {
+        return new InvalidMetricDefinitionException("'%s' is a custom metric, which takes no unit".formatted(name), "unit_not_allowed");
     }
 
     public static InvalidMetricDefinitionException missingBody() {

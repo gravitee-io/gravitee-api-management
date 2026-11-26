@@ -23,7 +23,7 @@ import java.util.Locale;
 import java.util.Optional;
 
 /**
- * Wire shape of one entry of the environment's additional metric catalog. {@code type} is the filter type of the
+ * Wire shape of one entry of the environment's additional and custom metric catalog. {@code type} is the filter type of the
  * built-in spec serving the entry, else the one the value type gives ({@code keyword}, {@code number},
  * {@code boolean}), absent for the detail-only {@code STRING} and {@code JSON}. Absent values are omitted.
  */
