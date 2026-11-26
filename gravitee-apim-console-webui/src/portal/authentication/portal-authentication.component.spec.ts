@@ -383,29 +383,6 @@ describe('PortalAuthenticationComponent', () => {
       expect(await harness.getSkipLoginToggle()).not.toBeNull();
     });
 
-    it('should hide the skip login toggle after a second identity provider is activated', async () => {
-      await init();
-      const settings = settingsWith({});
-      await load([google, github], [fakeIdentityProviderActivation({ identityProvider: 'google' })], settings);
-      expect(await harness.getSkipLoginToggle()).not.toBeNull();
-
-      await harness.clickActivation('github');
-      await (await rootLoader.getHarness(GioConfirmDialogHarness)).confirm();
-      httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/identities` }).flush([]);
-      await load(
-        [google, github],
-        [fakeIdentityProviderActivation({ identityProvider: 'google' }), fakeIdentityProviderActivation({ identityProvider: 'github' })],
-        settings,
-      );
-      expect(await harness.getSkipLoginToggle()).toBeNull();
-
-      await harness.clickActivation('github');
-      await (await rootLoader.getHarness(GioConfirmDialogHarness)).confirm();
-      httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/identities` }).flush([]);
-      await load([google, github], [fakeIdentityProviderActivation({ identityProvider: 'google' })], settings);
-      expect(await harness.getSkipLoginToggle()).not.toBeNull();
-    });
-
     it('should explain when the skip login setting takes effect', async () => {
       await init();
       await load([google], [fakeIdentityProviderActivation({ identityProvider: 'google' })], settingsWith({}));
@@ -475,7 +452,7 @@ describe('PortalAuthenticationComponent', () => {
       await load([google, github], activations, saveRequest.request.body);
     });
 
-    it('should keep the skip login value on while a second identity provider is active', async () => {
+    it('should hide the skip login toggle while a second identity provider is active and show it again, still on', async () => {
       await init();
       const settings = settingsWith({ skipLoginWithSingleIdp: true });
       await load([google, github], [fakeIdentityProviderActivation({ identityProvider: 'google' })], settings);
