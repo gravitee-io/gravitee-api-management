@@ -1,0 +1,98 @@
+suite: Test Portal Next portal selection
+templates:
+  - portal/portal-configmap.yaml
+tests:
+  - it: Should omit the portal ID by default
+    asserts:
+      - notMatchRegex:
+          path: data["config-next.json"]
+          pattern: '"portalId"'
+      - notMatchRegex:
+          path: data["config.json"]
+          pattern: '"portalId"'
+  - it: Should configure the selected portal only for Portal Next
+    set:
+      portal:
+        portalId: selected-portal
+        enforceEnvironmentId: OTHER
+        baseURL: https://api.example.com/portal
+    asserts:
+      - matchRegex:
+          path: data["config-next.json"]
+          pattern: '"portalId": "selected-portal"'
+      - matchRegex:
+          path: data["config-next.json"]
+          pattern: '"environmentId": "OTHER"'
+      - matchRegex:
+          path: data["config-next.json"]
+          pattern: '"baseURL": "https://api.example.com/portal"'
+      - notMatchRegex:
+          path: data["config.json"]
+          pattern: '"portalId"'
+  - it: Should omit a blank portal ID
+    set:
+      portal.portalId: '   '
+    asserts:
+      - notMatchRegex:
+          path: data["config-next.json"]
+          pattern: '"portalId"'
+  - it: Should omit a null portal ID
+    set:
+      portal.portalId: null
+    asserts:
+      - notMatchRegex:
+          path: data["config-next.json"]
+          pattern: '"portalId"'
+  - it: Should trim a configured portal ID
+    set:
+      portal.portalId: '  selected-portal  '
+    asserts:
+      - matchRegex:
+          path: data["config-next.json"]
+          pattern: '"portalId": "selected-portal"'
+  - it: Should escape a quote in a configured portal ID as JSON
+    set:
+      portal.portalId: 'portal"id'
+    asserts:
+      - matchRegex:
+          path: data["config-next.json"]
+          pattern: '"portalId": "portal\\"id"'
+  - it: Should escape a backslash in a configured portal ID as JSON
+    set:
+      portal.portalId: 'portal\id'
+    asserts:
+      - matchRegex:
+          path: data["config-next.json"]
+          pattern: '"portalId": "portal\\\\id"'
+  - it: Should reject a numeric portal ID
+    set:
+      portal.portalId: 12
+    asserts:
+      - failedTemplate:
+          errorMessage: portal.portalId must be a string
+  - it: Should reject a numeric zero portal ID instead of falling back
+    set:
+      portal.portalId: 0
+    asserts:
+      - failedTemplate:
+          errorMessage: portal.portalId must be a string
+  - it: Should reject a boolean portal ID
+    set:
+      portal.portalId: true
+    asserts:
+      - failedTemplate:
+          errorMessage: portal.portalId must be a string
+  - it: Should reject a false portal ID instead of falling back
+    set:
+      portal.portalId: false
+    asserts:
+      - failedTemplate:
+          errorMessage: portal.portalId must be a string
+  - it: Should reject a map portal ID
+    set:
+      portal:
+        portalId:
+          id: selected-portal
+    asserts:
+      - failedTemplate:
+          errorMessage: portal.portalId must be a string

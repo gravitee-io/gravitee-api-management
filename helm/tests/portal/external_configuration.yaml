@@ -15,6 +15,42 @@ tests:
       - hasDocuments:
           count: 0
 
+  - it: Should NOT generate portal-configmap.yaml when portal.portalId is set next to an external configuration
+    template: portal/portal-configmap.yaml
+    set:
+      portal:
+        extraVolumes: |
+          - name: config
+            secret:
+              secretName: gravitee-yml-secret-name
+        portalId: ignored-portal
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Should mount the external Portal Next configuration as is when portal.portalId is set
+    template: portal/portal-deployment.yaml
+    set:
+      portal:
+        extraVolumes: |
+          - name: config
+            secret:
+              secretName: gravitee-yml-secret-name
+        portalId: ignored-portal
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: config
+            mountPath: /usr/share/nginx/html/next/browser/assets/config.json
+            subPath: config-next.json
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: config
+            secret:
+              secretName: gravitee-yml-secret-name
+
   - it: Should generate portal-configmap.yaml
     template: portal/portal-configmap.yaml
     set:
