@@ -206,6 +206,28 @@ describe('EditCredentialPage', () => {
         );
     });
 
+    it('still names the objects that kept the former settings when the secret cannot be replaced', async () => {
+        given(MANAGED);
+        update.mockResolvedValue({
+            ...MANAGED,
+            consumerWarnings: [
+                { module: 'aim', type: 'llm-proxy', id: 'proxy-1', name: 'Support bot', message: 'You cannot update this LLM proxy.' },
+            ],
+        });
+        rotate.mockRejectedValue(new Error('rotation failed'));
+        renderWithGraphene(<EditCredentialPage />);
+
+        await userEvent.clear(screen.getByLabelText(/Header name/));
+        await userEvent.type(screen.getByLabelText(/Header name/), 'authorization');
+        await userEvent.type(screen.getByLabelText(/Value/), 'new-key');
+        await save();
+
+        expect(notify.error).toHaveBeenCalledWith('The details were saved, but the secret could not be replaced.');
+        expect(notify.error).toHaveBeenCalledWith(
+            'Support bot kept the former settings of the credential: You cannot update this LLM proxy.',
+        );
+    });
+
     it('sends nothing while a field is invalid', async () => {
         given(MANAGED);
         renderWithGraphene(<EditCredentialPage />);
