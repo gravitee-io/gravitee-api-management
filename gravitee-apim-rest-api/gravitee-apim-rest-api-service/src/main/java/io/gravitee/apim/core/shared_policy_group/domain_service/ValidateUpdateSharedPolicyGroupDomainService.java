@@ -57,7 +57,6 @@ public class ValidateUpdateSharedPolicyGroupDomainService implements Validator<V
     }
 
     public void validate(SharedPolicyGroup sharedPolicyGroup, AuditInfo auditInfo) {
-        // Before validateUpdateSharedPolicyGroup, which replaces each step configuration with its sanitized form.
         var stored = sharedPolicyGroupCrudService.getByEnvironmentId(auditInfo.environmentId(), sharedPolicyGroup.getId());
         secretReferencePermissionDomainService.validate(
             auditInfo.organizationId(),
