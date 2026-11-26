@@ -50,7 +50,7 @@ public class ValidateUpdateSharedPolicyGroupDomainService implements Validator<V
         try {
             validate(input.sharedPolicyGroup, input.auditInfo);
         } catch (Exception e) {
-            errors.add(Error.severe(e.getMessage()));
+            errors.add(Error.severe("%s", e.getMessage()));
         }
 
         return Validator.Result.ofBoth(new Input(input.auditInfo(), sanitizedBuilder.build()), errors);
