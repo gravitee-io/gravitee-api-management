@@ -16,6 +16,7 @@
 export default {
     displayName: 'gravitee-gamma-module-platform',
     testEnvironment: 'jest-fixed-jsdom',
+    setupFilesAfterEnv: ['<rootDir>/src/main/ui/test-setup.ts'],
     transformIgnorePatterns: ['/node_modules/(?!(until-async|@gravitee/graphene-core)/)'],
     moduleNameMapper: {
         '^react$': '<rootDir>/../../node_modules/react/index.js',
