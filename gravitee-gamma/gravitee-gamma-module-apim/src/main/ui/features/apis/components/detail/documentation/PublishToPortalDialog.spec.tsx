@@ -98,19 +98,21 @@ function renderDialog(
     const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
     const onClose = jest.fn();
     const onOverviewPageCreated = jest.fn();
-    render(
+    const dialog = (shown: ApiPortalPublication[]) => (
         <PublishToPortalDialog
             open
             apiId="api-1"
-            publications={publications}
+            publications={shown}
             hasPage={hasPage}
             canCreatePage={canCreatePage}
             onOverviewPageCreated={onOverviewPageCreated}
             onClose={onClose}
-        />,
-        { wrapper },
+        />
     );
-    return { onClose, onOverviewPageCreated, user: userEvent.setup() };
+    const { rerender } = render(dialog(publications), { wrapper });
+    // What a refetch of the documentation does while the dialog is open
+    const givenPublications = (next: ApiPortalPublication[]) => rerender(dialog(next));
+    return { onClose, onOverviewPageCreated, givenPublications, user: userEvent.setup() };
 }
 
 const OVERVIEW_PAGE = { id: 'overview', type: 'PAGE', title: 'Overview' } as PortalNavigationPage;
@@ -204,8 +206,20 @@ describe('PublishToPortalDialog', () => {
         });
     });
 
-    it('says why, without loading sections, when the environment has no default portal', async () => {
+    it('publishes to the only portal the console manages, even when it is not the default one', async () => {
         mockPortals.mockResolvedValue({ data: [PARTNERS_PORTAL] });
+        const { user } = renderDialog();
+
+        await waitFor(() => expect(sectionPicker().textContent).toBe('APIs'));
+        expect(screen.queryByRole('combobox', { name: 'Portal' })).toBeNull();
+        expect(mockLocations).toHaveBeenCalledWith('env-1', 'api-1', PARTNERS_PORTAL.id);
+        await user.click(publishButton());
+
+        await waitFor(() => expect(mockPublish).toHaveBeenCalledWith('env-1', 'api-1', { sectionId: 'apis' }));
+    });
+
+    it('says why, without loading sections, when the console manages no portal', async () => {
+        mockPortals.mockResolvedValue({ data: [] });
         renderDialog();
 
         expect(await screen.findByText('This environment has no developer portal to publish this API to.')).not.toBeNull();
@@ -417,6 +431,41 @@ describe('PublishToPortalDialog', () => {
             await choosePortal(user, 'Partners');
 
             expect(screen.queryByText('The section is no longer published')).toBeNull();
+        });
+
+        it('sends no section of another portal when the portal chosen stops being offered', async () => {
+            const { user, givenPublications } = renderDialog();
+
+            await waitFor(() => expect(sectionPicker().textContent).toBe('APIs'));
+            await user.click(sectionPicker());
+            await user.click(await screen.findByRole('option', { name: 'Guides' }));
+            givenPublications([publication('apis', 'APIs', true)]);
+
+            await waitFor(() => expect(portalPicker().textContent).toBe('Partners'));
+            await waitFor(() => expect(sectionPicker().textContent).toBe('Partner guides'));
+            await user.click(publishButton());
+
+            await waitFor(() => expect(mockPublish).toHaveBeenCalledWith('env-1', 'api-1', { sectionId: 'partner-guides' }));
+            expect(mockPublish).toHaveBeenCalledTimes(1);
+        });
+
+        it('says the documentation keeps its publication when another portal already shows the API', async () => {
+            renderDialog([publication('apis', 'APIs', true)]);
+
+            expect(
+                await screen.findByText(
+                    'The API will become visible in the chosen portal, with its documentation as it is already published in the other portals.',
+                ),
+            ).not.toBeNull();
+            expect(screen.queryByText(/including those unpublished individually/)).toBeNull();
+        });
+
+        it('says the API is already in every portal, rather than that there is none, when no portal is left', async () => {
+            renderDialog([publication('apis', 'APIs', true), publication('partners', 'Partner APIs', true, PARTNERS_PORTAL.id)]);
+
+            expect(await screen.findByText('This API is already published in every portal.')).not.toBeNull();
+            expect(screen.queryByText('This environment has no developer portal to publish this API to.')).toBeNull();
+            expect(publishButton().disabled).toBe(true);
         });
 
         it('says the API becomes visible in the chosen portal', () => {

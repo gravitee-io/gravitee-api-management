@@ -49,7 +49,7 @@ import type {
     PortalNavigationPage,
     PublishApiToPortal,
 } from '../../../types/apiDocumentation';
-import { defaultPublishSectionId, getHiddenListing, portalsToPublishTo } from '../../../utils/documentationTree';
+import { defaultPublishSectionId, getHiddenListing, portalsToPublishTo, publishedPublications } from '../../../utils/documentationTree';
 
 export function PublishToPortalDialog({
     open,
@@ -188,7 +188,8 @@ function PublishToPortalForm({
     const portals = portalsQuery.data?.data ?? [];
     const hasSeveralPortals = portals.length > 1;
     const [chosenPortalId, setChosenPortalId] = useState<string | undefined>(undefined);
-    const offeredPortals = hasSeveralPortals ? portalsToPublishTo(publications, portals) : portals.filter(candidate => candidate.default);
+    const offeredPortals = portalsToPublishTo(publications, portals);
+    const isShownInAnotherPortal = publishedPublications(publications, portals).length > 0;
     const portal = offeredPortals.find(candidate => candidate.id === chosenPortalId) ?? defaultPublishPortal(offeredPortals);
     const locationsQuery = useApiPublishLocations(apiId, portal?.id);
     const [chosenSectionId, setChosenSectionId] = useState<string | undefined>(undefined);
@@ -196,13 +197,16 @@ function PublishToPortalForm({
 
     const portalPublications = publications.filter(publication => publication.portalId === portal?.id);
     const locations = locationsQuery.data?.data ?? [];
-    const selectedSectionId = chosenSectionId ?? defaultPublishSectionId(locations, portalPublications);
+    // A refetch may take the portal away while the dialog is open: a section chosen there is not one of the next portal
+    const chosenSection = locations.find(location => location.id === chosenSectionId);
+    const selectedSectionId = chosenSection?.id ?? defaultPublishSectionId(locations, portalPublications);
     const hiddenListing = getHiddenListing(portalPublications);
     const hiddenListingMoves =
         locationsQuery.isSuccess &&
         hiddenListing !== undefined &&
         !locations.some(location => location.id === hiddenListing.portalNavigationItem.parentId);
     const hasNoPortal = portalsQuery.isSuccess && portal === undefined;
+    const isInEveryPortal = hasNoPortal && portals.length > 0;
     const hasNoSection = hasNoPortal || (locationsQuery.isSuccess && locations.length === 0);
     const isLoadingSections = portalsQuery.isPending || (portal !== undefined && locationsQuery.isPending);
     const canPublish = portal !== undefined && selectedSectionId !== undefined && !isPublishing;
@@ -244,8 +248,10 @@ function PublishToPortalForm({
             <DialogHeader>
                 <DialogTitle>{hasSeveralPortals ? 'Publish to a developer portal' : 'Publish to the developer portal'}</DialogTitle>
                 <DialogDescription>
-                    The API and its documentation will become visible in the {hasSeveralPortals ? 'chosen' : 'developer'} portal. Every
-                    page, folder and link will be published, including those unpublished individually.
+                    {isShownInAnotherPortal
+                        ? // The server leaves the documentation as it is while another portal shows the API
+                          'The API will become visible in the chosen portal, with its documentation as it is already published in the other portals.'
+                        : `The API and its documentation will become visible in the ${hasSeveralPortals ? 'chosen' : 'developer'} portal. Every page, folder and link will be published, including those unpublished individually.`}
                 </DialogDescription>
             </DialogHeader>
 
@@ -312,7 +318,11 @@ function PublishToPortalForm({
                         </SelectContent>
                     </Select>
                     {hasNoPortal ? (
-                        <FieldDescription>This environment has no developer portal to publish this API to.</FieldDescription>
+                        <FieldDescription>
+                            {isInEveryPortal
+                                ? 'This API is already published in every portal.'
+                                : 'This environment has no developer portal to publish this API to.'}
+                        </FieldDescription>
                     ) : null}
                     {hasNoSection && !hasNoPortal ? (
                         <FieldDescription>
