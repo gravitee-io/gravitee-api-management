@@ -186,6 +186,26 @@ describe('EditCredentialPage', () => {
         expect(rotate).not.toHaveBeenCalled();
     });
 
+    it('names the objects that kept the former settings of the credential', async () => {
+        given(REFERENCED);
+        update.mockResolvedValue({
+            ...REFERENCED,
+            consumerWarnings: [
+                { module: 'aim', type: 'llm-proxy', id: 'proxy-1', name: 'Support bot', message: 'You cannot update this LLM proxy.' },
+            ],
+        });
+        renderWithGraphene(<EditCredentialPage />);
+
+        await userEvent.clear(screen.getByLabelText(/Token/));
+        await userEvent.type(screen.getByLabelText(/Token/), '/vault/secret/new:token');
+        await save();
+
+        expect(notify.success).toHaveBeenCalledWith('Credential updated');
+        expect(notify.error).toHaveBeenCalledWith(
+            'Support bot kept the former settings of the credential: You cannot update this LLM proxy.',
+        );
+    });
+
     it('sends nothing while a field is invalid', async () => {
         given(MANAGED);
         renderWithGraphene(<EditCredentialPage />);
