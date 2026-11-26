@@ -16,12 +16,9 @@
 package io.gravitee.apim.plugin.secrets;
 
 import io.gravitee.secrets.api.util.ConfigHelper;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
@@ -70,43 +67,52 @@ final class GraviteeSecretProviderEntries {
         Map<String, Object> secrets = ConfigHelper.removePrefix(secretsProperties(environment), SECRETS);
         for (int index = 0; secrets.containsKey(entry(index) + ".plugin"); index++) {
             Map<String, Object> entry = ConfigHelper.removePrefix(secrets, entry(index));
-            if (!isGraviteeEntry(entry)) {
-                continue;
+            Optional<GraviteeSecretManagerConfiguration> configuration = isGraviteeEntry(entry)
+                ? enabledConfiguration(entry)
+                : Optional.empty();
+            if (configuration.isPresent()) {
+                return configuration.map(GraviteeSecretManagerConfiguration::encryptionKey).filter(key -> !key.isBlank());
             }
-            String key;
-            try {
-                if (!isEnabled(entry)) {
-                    continue;
-                }
-                key = new GraviteeSecretManagerConfiguration(ConfigHelper.removePrefix(entry, "configuration")).encryptionKey();
-            } catch (RuntimeException e) {
-                // misconfiguration() reports the entry, and a fallback key that is wrong fails the stored data key check.
-                continue;
-            }
-            return key == null || key.isBlank() ? Optional.empty() : Optional.of(key);
         }
         return Optional.empty();
     }
 
-    // Only the keys of the block are read: reading a value resolves the secret it references, and another key may reference one
-    // the gateway cannot resolve. removePrefix cuts the separator off each key, so the bare api.secrets key of an empty block
-    // would throw.
+    private static Optional<GraviteeSecretManagerConfiguration> enabledConfiguration(Map<String, Object> entry) {
+        try {
+            if (!isEnabled(entry)) {
+                return Optional.empty();
+            }
+            return Optional.of(new GraviteeSecretManagerConfiguration(ConfigHelper.removePrefix(entry, "configuration")));
+        } catch (RuntimeException e) {
+            return Optional.empty();
+        }
+    }
+
+    // Only the api.secrets values are read: a source may resolve the secret a value references, and another key may reference one
+    // the gateway cannot resolve. Each value is read raw from the source that lists it, so a ${...} placeholder is not resolved.
+    // removePrefix cuts the separator off each key, so the bare api.secrets key of an empty block would throw.
     private static Map<String, Object> secretsProperties(ConfigurableEnvironment environment) {
-        Set<String> names = new HashSet<>();
-        environment.getPropertySources().forEach(source -> collectSecretsNames(source, names));
         Map<String, Object> properties = new HashMap<>();
-        names.forEach(name -> properties.put(name, environment.getProperty(name, Object.class)));
+        environment.getPropertySources().forEach(source -> collectSecretsProperties(source, properties));
         return properties;
     }
 
-    private static void collectSecretsNames(PropertySource<?> source, Set<String> names) {
+    private static void collectSecretsProperties(PropertySource<?> source, Map<String, Object> properties) {
         if (source instanceof CompositePropertySource composite) {
-            composite.getPropertySources().forEach(nested -> collectSecretsNames(nested, names));
+            composite.getPropertySources().forEach(nested -> collectSecretsProperties(nested, properties));
         } else if (source instanceof EnumerablePropertySource<?> enumerable) {
-            Arrays.stream(enumerable.getPropertyNames())
-                .filter(name -> name.startsWith(SECRETS + "."))
-                .forEach(names::add);
+            for (String name : enumerable.getPropertyNames()) {
+                String key = dotted(name);
+                if (key.startsWith(SECRETS + ".") && !properties.containsKey(key)) {
+                    properties.put(key, enumerable.getProperty(name));
+                }
+            }
         }
+    }
+
+    // gravitee-node lists an environment variable as api_secrets_providers_0_plugin.
+    private static String dotted(String name) {
+        return name.replaceAll("_(\\d+)_", "[$1].").replace('_', '.');
     }
 
     private static boolean isGraviteeEntry(Map<String, Object> entry) {
