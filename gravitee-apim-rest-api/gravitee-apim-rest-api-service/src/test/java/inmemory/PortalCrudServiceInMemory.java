@@ -116,6 +116,7 @@ public class PortalCrudServiceInMemory implements PortalCrudService, InMemoryAlt
             portal.getNavigationStructure(),
             portal.getActiveThemeId(),
             portal.isDefault(),
+            portal.isCreatedFromConsole(),
             portal.getUrl()
         );
     }

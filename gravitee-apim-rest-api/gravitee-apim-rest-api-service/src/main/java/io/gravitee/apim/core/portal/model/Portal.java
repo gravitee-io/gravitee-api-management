@@ -55,6 +55,9 @@ public class Portal {
     @Getter(AccessLevel.NONE)
     private boolean defaultPortal;
 
+    // Before the console could create portals, every portal that is not the default one came from the Automation API.
+    private final boolean createdFromConsole;
+
     @Nonnull
     private URL url;
 
@@ -66,6 +69,7 @@ public class Portal {
         PortalNavigationStructure navigationStructure,
         String activeThemeId,
         boolean defaultPortal,
+        boolean createdFromConsole,
         URL url
     ) {
         this.id = id;
@@ -75,6 +79,7 @@ public class Portal {
         this.navigationStructure = orEmpty(navigationStructure);
         this.activeThemeId = activeThemeId;
         this.defaultPortal = defaultPortal;
+        this.createdFromConsole = createdFromConsole;
         this.url = url;
     }
 
@@ -90,14 +95,27 @@ public class Portal {
 
     /** New portal with a known id (HRID-derived), served at {@code url}, with no navigation. */
     public static Portal create(PortalId id, String environmentId, String organizationId, String name, @Nonnull URL url) {
-        return newPortal(id, environmentId, organizationId, name, false, url);
+        return newPortal(id, environmentId, organizationId, name, false, false, url);
+    }
+
+    /** New portal created from the console, served at {@code url}, with a random id and no navigation: the console manages it. */
+    public static Portal createFromConsole(String environmentId, String organizationId, String name, @Nonnull URL url) {
+        return newPortal(PortalId.random(), environmentId, organizationId, name, false, true, url);
     }
 
     private static Portal newPortal(String environmentId, String organizationId, String name, boolean defaultPortal, URL url) {
-        return newPortal(PortalId.random(), environmentId, organizationId, name, defaultPortal, url);
+        return newPortal(PortalId.random(), environmentId, organizationId, name, defaultPortal, false, url);
     }
 
-    private static Portal newPortal(PortalId id, String environmentId, String organizationId, String name, boolean defaultPortal, URL url) {
+    private static Portal newPortal(
+        PortalId id,
+        String environmentId,
+        String organizationId,
+        String name,
+        boolean defaultPortal,
+        boolean createdFromConsole,
+        URL url
+    ) {
         return new Portal(
             id,
             environmentId,
@@ -106,6 +124,7 @@ public class Portal {
             PortalNavigationStructure.empty(),
             null,
             defaultPortal,
+            createdFromConsole,
             Objects.requireNonNull(url, "url")
         );
     }
@@ -121,7 +140,32 @@ public class Portal {
         boolean defaultPortal,
         URL url
     ) {
-        return new Portal(id, environmentId, organizationId, name, navigationStructure, activeThemeId, defaultPortal, url);
+        return of(id, environmentId, organizationId, name, navigationStructure, activeThemeId, defaultPortal, false, url);
+    }
+
+    /** Reconstitute a persisted portal with all its fields, including whether the console created it. */
+    public static Portal of(
+        PortalId id,
+        String environmentId,
+        String organizationId,
+        String name,
+        PortalNavigationStructure navigationStructure,
+        String activeThemeId,
+        boolean defaultPortal,
+        boolean createdFromConsole,
+        URL url
+    ) {
+        return new Portal(
+            id,
+            environmentId,
+            organizationId,
+            name,
+            navigationStructure,
+            activeThemeId,
+            defaultPortal,
+            createdFromConsole,
+            url
+        );
     }
 
     /** Keeps the portals whose name contains {@code query}, ignoring case; null or blank keeps them all. */
@@ -170,6 +214,7 @@ public class Portal {
             navigationStructure,
             this.activeThemeId,
             this.defaultPortal,
+            this.createdFromConsole,
             this.url
         );
     }
@@ -185,6 +230,7 @@ public class Portal {
             this.navigationStructure,
             activeThemeId,
             this.defaultPortal,
+            this.createdFromConsole,
             this.url
         );
     }

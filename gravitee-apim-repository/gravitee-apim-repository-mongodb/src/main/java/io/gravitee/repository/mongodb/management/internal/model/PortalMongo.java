@@ -44,4 +44,5 @@ public class PortalMongo {
     private String url = Portal.URL_PLACEHOLDER;
 
     private String accessPointId;
+    private boolean createdFromConsole;
 }
