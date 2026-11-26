@@ -21,7 +21,7 @@ export const HTTP_PROXY_DASHBOARD: Dashboard = {
     id: 'http-proxy-overview',
     title: 'HTTP Proxy — Overview',
     description:
-        'HTTP Proxy traffic health: request volume, errors, latency percentiles, status distribution, and top APIs, applications, paths, and plans.',
+        'HTTP Proxy traffic health: request volume, errors, latency percentiles, status distribution, and top APIs, applications, paths, path mappings, and plans.',
     widgets: scopeWidgets('HTTP_PROXY', [
         // Row 0 — KPIs
         {
@@ -159,7 +159,7 @@ export const HTTP_PROXY_DASHBOARD: Dashboard = {
             layout: { x: 6, y: 5, cols: 6, rows: 2 },
         },
 
-        // Row 7 — Status Over Time (6c) + Top 5 Paths bar (6c)
+        // Row 7 — Status Over Time (6c) + Top 5 Plans bar (6c)
         {
             id: 'http-proxy-status-over-time',
             title: 'Status Over Time',
@@ -180,11 +180,11 @@ export const HTTP_PROXY_DASHBOARD: Dashboard = {
             layout: { x: 0, y: 7, cols: 6, rows: 2 },
         },
         {
-            id: 'http-proxy-top-paths',
-            title: 'Top 5 Paths',
-            description: 'Most-requested API path mappings.',
+            id: 'http-proxy-top-plans',
+            title: 'Top 5 Plans',
+            description: 'Most-used subscription plans by request count.',
             type: 'bar',
-            by: ['HTTP_PATH_MAPPING'],
+            by: ['PLAN'],
             valueLabel: 'Requests',
             limit: 5,
             sorts: TOP_BY_COUNT,
@@ -192,7 +192,34 @@ export const HTTP_PROXY_DASHBOARD: Dashboard = {
             layout: { x: 6, y: 7, cols: 6, rows: 2 },
         },
 
-        // Row 9 — Request/Response Content Length (6c) + Top 5 Plans bar (6c)
+        // Row 9 — Top 5 Paths bar (6c) + Top 5 Path mappings bar (6c)
+        {
+            id: 'http-proxy-top-request-paths',
+            title: 'Top 5 Paths',
+            description: 'Most-requested paths, after the API context path, query string excluded.',
+            type: 'bar',
+            by: ['HTTP_PATH'],
+            valueLabel: 'Requests',
+            limit: 5,
+            sorts: TOP_BY_COUNT,
+            barLayout: 'horizontal',
+            layout: { x: 0, y: 9, cols: 6, rows: 2 },
+        },
+        {
+            id: 'http-proxy-top-paths',
+            title: 'Top 5 Path mappings',
+            description:
+                'Counts only requests that matched a path mapping and passed security (401/403 excluded). Empty for APIs without path mappings.',
+            type: 'bar',
+            by: ['HTTP_PATH_MAPPING'],
+            valueLabel: 'Requests',
+            limit: 5,
+            sorts: TOP_BY_COUNT,
+            barLayout: 'horizontal',
+            layout: { x: 6, y: 9, cols: 6, rows: 2 },
+        },
+
+        // Row 11 — Request/Response Content Length (12c)
         {
             id: 'http-proxy-content-length',
             title: 'Request / Response Content Length',
@@ -216,19 +243,7 @@ export const HTTP_PROXY_DASHBOARD: Dashboard = {
                     curveType: 'monotone',
                 },
             ],
-            layout: { x: 0, y: 9, cols: 6, rows: 2 },
-        },
-        {
-            id: 'http-proxy-top-plans',
-            title: 'Top 5 Plans',
-            description: 'Most-used subscription plans by request count.',
-            type: 'bar',
-            by: ['PLAN'],
-            valueLabel: 'Requests',
-            limit: 5,
-            sorts: TOP_BY_COUNT,
-            barLayout: 'horizontal',
-            layout: { x: 6, y: 9, cols: 6, rows: 2 },
+            layout: { x: 0, y: 11, cols: 12, rows: 2 },
         },
     ]),
     filters: [],
