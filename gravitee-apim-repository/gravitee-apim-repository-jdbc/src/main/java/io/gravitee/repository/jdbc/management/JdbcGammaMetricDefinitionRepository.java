@@ -140,9 +140,9 @@ public class JdbcGammaMetricDefinitionRepository
     }
 
     /**
-     * Keys are case-sensitive, while MySQL, MariaDB and SQL Server compare {@code raw_key} case-insensitively under
-     * their default collations: the lowercase hex digest gives the unique constraint and the lookup an exact
-     * comparison whatever the collation. Ordering is done here for the same reason.
+     * Keys are case-sensitive, while SQL Server compares {@code raw_key} case-insensitively under its default collation
+     * (as MySQL and MariaDB did before changeset {@code 4.14.0_22}): the lowercase hex digest gives the unique
+     * constraint and the lookup an exact comparison whatever the collation. Ordering is done here for the same reason.
      */
     private static String rawKeyHash(String rawKey) {
         if (rawKey == null) {
