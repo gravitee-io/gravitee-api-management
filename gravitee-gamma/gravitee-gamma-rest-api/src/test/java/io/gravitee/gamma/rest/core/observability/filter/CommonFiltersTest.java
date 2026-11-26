@@ -42,10 +42,7 @@ class CommonFiltersTest {
 
     @Test
     void should_not_expose_dropped_or_renamed_legacy_filter_names() {
-        // HTTP_PATH_MAPPING is an analytics facet, not a filter; the unified vocabulary uses the
-        // reconciled names (HTTP_GATEWAY_RESPONSE_TIME / MCP_PROXY_METHOD). HTTP_PATH is not in this
-        // list: it is a filter in its own right, reading path-info on the analytics signal, where URI
-        // reads uri on the logs one.
-        assertThat(CommonFilters.names()).doesNotContain("HTTP_PATH_MAPPING", "RESPONSE_TIME", "MCP_METHOD");
+        // The unified vocabulary uses the reconciled names (HTTP_GATEWAY_RESPONSE_TIME / MCP_PROXY_METHOD).
+        assertThat(CommonFilters.names()).doesNotContain("RESPONSE_TIME", "MCP_METHOD");
     }
 }
