@@ -332,6 +332,13 @@ secrets:
 #    # backend would collide on the same domain.
 #    virtualClusterBrokerDomainPattern: broker{realBrokerId}-c{clusterIndex}-{apiHost}.mycompany.org
 #
+#  # Routing Port Mode: applies only when routingMode is `port`. The gateway opens no shared listener: each plan of a
+#  # native Kafka API opens its own bootstrap port and broker port range, set on the plan, and a plan without a
+#  # bootstrap port is not routable. In `host` routing mode the listener always serves TLS and SNI.
+#  routingPortMode:
+#    # Whether the Kafka listener serves TLS (default is false). The tcp probe follows this setting.
+#    secured: false
+#
 #  # Kafka probe
 #  probe:
 #    # When protocol is tcp, the probe only checks the kafka port is listening by attempting a basic TCP connection (default).
@@ -358,7 +365,8 @@ secrets:
 #  tcpKeepAlive: true
 #  instances: 0
 #  requestTimeout: 35_000 # default is 35_000 ms
-#  # Forced to `true` when routingMode is `host`
+#  # Forced to `true` when routingMode is `host`. In `port` routing mode, deprecated for `routingPortMode.secured`:
+#  # still honoured when `routingPortMode.secured` is unset, ignored when it is set.
 #  secured: true
 #  ssl:
 #    # Forced to `true` when routingMode is `host`
