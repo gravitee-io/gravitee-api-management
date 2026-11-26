@@ -1,0 +1,52 @@
+suite: Test Gateway configmap - handle100Continue
+templates:
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Is not rendered by default
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "handle100Continue"
+
+  - it: Is rendered on the single http server when set
+    set:
+      gateway:
+        http:
+          handle100Continue: true
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "\n  handle100Continue: true\n"
+
+  - it: Is rendered when explicitly false
+    set:
+      gateway:
+        http:
+          handle100Continue: false
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "\n  handle100Continue: false\n"
+
+  - it: Is rendered on a server of the servers list when set
+    set:
+      gateway:
+        servers:
+          - type: http
+            port: 8082
+            handle100Continue: true
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "handle100Continue: true\n"
+
+  - it: Is not rendered on a server of the servers list when unset
+    set:
+      gateway:
+        servers:
+          - type: http
+            port: 8082
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "handle100Continue"
