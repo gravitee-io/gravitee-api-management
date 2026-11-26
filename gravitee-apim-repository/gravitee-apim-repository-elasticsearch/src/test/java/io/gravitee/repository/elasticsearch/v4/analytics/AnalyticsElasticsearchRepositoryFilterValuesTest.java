@@ -17,12 +17,14 @@ package io.gravitee.repository.elasticsearch.v4.analytics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.repository.analytics.engine.api.query.TrafficScope;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.elasticsearch.TimeProvider;
 import io.gravitee.repository.log.v4.model.analytics.FilterValuesQuery;
 import io.gravitee.repository.log.v4.model.analytics.FilterValuesResult;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -173,6 +175,64 @@ class AnalyticsElasticsearchRepositoryFilterValuesTest extends AbstractElasticse
         @Test
         void should_offer_every_address_when_nothing_was_typed() {
             assertThat(values("remote-address", MESSAGE_API, null)).containsExactly("127.0.0.1");
+        }
+    }
+
+    /** The connector of a message call is stamped on the message documents only, never on the request ones. */
+    @Nested
+    class Message_connector {
+
+        private static final String HTTP_GET_API = "4a6895d5-a1bc-4041-a895-d5a1bce041ae";
+
+        @Test
+        void should_offer_the_connectors_of_the_message_calls() {
+            assertThat(values("connector-id", MESSAGE_API, null)).containsExactly("http-get", "kafka", "mqtt5", "sse", "websocket");
+            assertThat(values("connector-type", MESSAGE_API, null)).containsExactly("endpoint", "entrypoint");
+        }
+
+        @Test
+        void should_offer_the_connectors_starting_with_what_was_typed() {
+            assertThat(values("connector-id", MESSAGE_API, "WEB")).containsExactly("websocket");
+            assertThat(values("connector-id", MESSAGE_API, "socket")).isEmpty();
+        }
+
+        @Test
+        void should_offer_only_the_connectors_of_the_readable_apis() {
+            assertThat(values("connector-id", HTTP_GET_API, null)).containsExactly("http-get", "mock");
+            assertThat(search(query("connector-id", null, null).apiIds(Set.of()).size(10)).values()).isEmpty();
+        }
+
+        @Test
+        void should_offer_only_the_connectors_of_the_calls_in_the_period() {
+            var yesterday = TimeProvider.now().truncatedTo(ChronoUnit.DAYS).minus(Duration.ofDays(1));
+
+            var result = search(
+                query("connector-id", MESSAGE_API, null)
+                    .from(yesterday.toEpochMilli())
+                    .to(yesterday.plus(Duration.ofDays(1)).minusMillis(1).toEpochMilli())
+                    .size(10)
+            );
+
+            assertThat(result.values()).containsExactly("http-get", "kafka");
+        }
+
+        /** Only the API arm of a traffic scope applies: a message of another API through a scoped entrypoint stays out. */
+        @Test
+        void should_offer_only_the_connectors_of_the_apis_a_traffic_scope_names() {
+            var result = search(
+                query("connector-id", null, null)
+                    .apiIds(Set.of(HTTP_GET_API, "stamped-api-001"))
+                    .trafficScope(new TrafficScope(Set.of(HTTP_GET_API), Set.of("http-post")))
+                    .size(10)
+            );
+
+            assertThat(result.values()).containsExactly("http-get", "mock");
+        }
+
+        /** Message documents carry no API product: a request scoped to one is offered no connector (fail-closed). */
+        @Test
+        void should_offer_no_connector_to_a_request_scoped_to_an_api_product() {
+            assertThat(search(query("connector-id", MESSAGE_API, null).apiProductId("product-1").size(10)).values()).isEmpty();
         }
     }
 

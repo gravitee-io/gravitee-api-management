@@ -359,9 +359,8 @@ paths:
                 - KEYWORD filters return the distinct values found in the calls of the APIs whose aggregates the caller
                   reads, or whose logs they read for a field identifying callers (`CONSUMER_IP`, `NATIVE_CLIENT_ID`)
                   or one the logs only show. Empty when they read none. Searching `API` by name
-                  offers the APIs the caller reads. Values are read from the request documents only:
-                  `MESSAGE_CONNECTOR_TYPE` and `MESSAGE_CONNECTOR_ID`, whose field is on message documents, return
-                  no values.
+                  offers the APIs the caller reads. `MESSAGE_CONNECTOR_TYPE` and `MESSAGE_CONNECTOR_ID` are read
+                  from the message documents.
                 - NUMBER and STRING filters are not supported and return 400.
                 - `NATIVE_TOPIC` and `NATIVE_OPERATION` hold no value pool to list and return 400.
                 - An additional metric field `additional-metrics.<rawKey>` (OBS-70 grammar) is accepted as well: a

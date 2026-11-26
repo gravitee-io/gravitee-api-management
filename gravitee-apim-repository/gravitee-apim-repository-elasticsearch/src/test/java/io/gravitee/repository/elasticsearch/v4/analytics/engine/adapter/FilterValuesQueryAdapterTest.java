@@ -208,6 +208,26 @@ class FilterValuesQueryAdapterTest {
         );
     }
 
+    /** The message documents are read as the analytics engine reads them: a traffic scope keeps its API arm only. */
+    @Test
+    void should_keep_only_the_api_arm_of_the_traffic_scope_on_the_message_documents() {
+        var query = FilterValuesQuery.builder()
+            .esFieldName("connector-id")
+            .size(10)
+            .apiIds(Set.of("studio", "orders"))
+            .trafficScope(new TrafficScope(Set.of("studio"), Set.of("mcp")))
+            .build();
+
+        var boolFilter = new JsonObject(adapter.adaptOnMessages(query)).getJsonObject("query").getJsonObject("bool").getJsonArray("filter");
+
+        assertThat(boolFilter).hasSize(2);
+        assertThat(boolFilter.getJsonObject(1)).isEqualTo(
+            EntrypointScopeClause.trafficScopeApis(new TrafficScope(Set.of("studio"), Set.of("mcp")), apiIds ->
+                JsonObject.of("terms", JsonObject.of("api-id", new JsonArray(apiIds)))
+            )
+        );
+    }
+
     @Test
     void should_offer_only_the_requested_values() {
         var query = FilterValuesQuery.builder()

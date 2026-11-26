@@ -16,6 +16,7 @@
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
 import com.google.common.net.InetAddresses;
+import io.gravitee.repository.analytics.engine.api.query.TrafficScope;
 import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.RequestV2MetricsV4Fields;
 import io.gravitee.repository.elasticsearch.v4.shared.EntrypointScopeClause;
@@ -23,7 +24,10 @@ import io.gravitee.repository.log.v4.model.analytics.FilterValuesQuery;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 public class FilterValuesQueryAdapter {
 
@@ -33,7 +37,17 @@ public class FilterValuesQueryAdapter {
     /** Fields every v4-metrics template maps as {@code ip}. */
     private static final Set<String> IP_FIELDS = Set.of(RequestV2MetricsV4Fields.REMOTE_ADDRESS);
 
+    /** Over the request documents, which carry the entrypoint of each call: a traffic scope reads both of its arms. */
     public String adapt(FilterValuesQuery query) {
+        return adapt(query, EntrypointScopeClause::trafficScope);
+    }
+
+    /** Over the message documents, as {@code FilterAdapter} reads them: a traffic scope keeps its API arm only. */
+    public String adaptOnMessages(FilterValuesQuery query) {
+        return adapt(query, EntrypointScopeClause::trafficScopeApis);
+    }
+
+    private String adapt(FilterValuesQuery query, BiFunction<TrafficScope, Function<List<String>, JsonObject>, JsonObject> scopeClause) {
         var root = new JsonObject();
         root.put("size", 0);
 
@@ -68,7 +82,7 @@ public class FilterValuesQueryAdapter {
 
         if (query.trafficScope() != null) {
             boolFilter.add(
-                EntrypointScopeClause.trafficScope(query.trafficScope(), apiIds ->
+                scopeClause.apply(query.trafficScope(), apiIds ->
                     JsonObject.of("terms", JsonObject.of(API_ID_FIELD, new JsonArray(apiIds)))
                 )
             );
