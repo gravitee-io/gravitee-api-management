@@ -27,9 +27,13 @@ import inmemory.EventLatestCrudInMemory;
 import inmemory.EventLatestQueryServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.DeployApiInternalFlowDomainService;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.ApiFieldFilter;
+import io.gravitee.apim.core.api.model.ApiSearchCriteria;
+import io.gravitee.apim.core.api.model.Sortable;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.guardrail.GuardrailSteps;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -37,6 +41,7 @@ import io.gravitee.gamma.rest.core.guardrail.exception.ApiInternalFlowChangedExc
 import io.gravitee.gamma.rest.core.guardrail.port.GuardedApiPortContractTest;
 import io.gravitee.gamma.rest.core.guardrail.port.service_provider.GuardedApiPort;
 import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.common.Pageable;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +54,18 @@ import org.junit.jupiter.api.Test;
 class GuardedApiPortAdapterTest extends GuardedApiPortContractTest {
 
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
-    private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
+
+    /**
+     * Numbers its pages from zero, as {@code ApiQueryServiceImpl} does: it hands over the page of the API repository,
+     * which counts from zero, where {@link ApiQueryServiceInMemory} counts from one.
+     */
+    private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService) {
+        @Override
+        public Page<Api> search(ApiSearchCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter) {
+            var page = super.search(apiCriteria, sortable, pageable, apiFieldFilter);
+            return new Page<>(page.getContent(), page.getPageNumber() - 1, (int) page.getPageElements(), page.getTotalElements());
+        }
+    };
     private final ApiDefinitionCrudServiceInMemory apiDefinitionCrudService = new ApiDefinitionCrudServiceInMemory(apiCrudService);
     private final EventCrudInMemory events = new EventCrudInMemory();
     private final EventLatestCrudInMemory latestEvents = new EventLatestCrudInMemory();
