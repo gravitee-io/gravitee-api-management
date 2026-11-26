@@ -167,9 +167,21 @@ public class GetObservabilityFilterValuesUseCase {
         return new FilterValuesPage(List.copyOf(data), total);
     }
 
-    /** The store narrows KEYWORD values by an exact, case-insensitive match; the synthetic value follows suit. */
+    /**
+     * The store narrows KEYWORD values to those starting with the query, whatever its case; the synthetic value follows
+     * suit on its value and, having no stored id a user would recognise, on its label too.
+     */
     private static boolean noEntrypointMatches(String query) {
-        return query == null || query.isBlank() || StaticFilters.NO_ENTRYPOINT_VALUE.equalsIgnoreCase(query);
+        return (
+            query == null ||
+            query.isBlank() ||
+            startsWithIgnoringCase(StaticFilters.NO_ENTRYPOINT_VALUE, query) ||
+            startsWithIgnoringCase(StaticFilters.NO_ENTRYPOINT_LABEL, query)
+        );
+    }
+
+    private static boolean startsWithIgnoringCase(String text, String start) {
+        return text.regionMatches(true, 0, start, 0, start.length());
     }
 
     private FilterSpec lookupFilter(String filterName, Set<ApiType> apiTypes) {

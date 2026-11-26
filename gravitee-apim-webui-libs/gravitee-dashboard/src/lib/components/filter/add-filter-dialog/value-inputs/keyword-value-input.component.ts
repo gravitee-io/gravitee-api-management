@@ -239,7 +239,7 @@ export class KeywordValueInputComponent {
   protected readonly isMultiSelect = computed(() => isMultiSelectForFilter(this.definition(), this.selectedOperator()));
 
   protected readonly isIdBased = computed(() => ID_BASED_FILTER_NAMES.includes(this.definition().name as string));
-  protected readonly searchLabel = computed(() => (this.isIdBased() ? 'Search by name' : 'Search (exact match)'));
+  protected readonly searchLabel = computed(() => (this.isIdBased() ? 'Search by name' : 'Search (starts with)'));
 
   protected readonly chipInputPlaceholder = computed(() => (this.selectedChips().length > 0 ? '' : this.searchLabel()));
 

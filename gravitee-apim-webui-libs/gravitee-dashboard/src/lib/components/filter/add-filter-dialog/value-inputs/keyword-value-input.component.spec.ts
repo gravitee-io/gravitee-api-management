@@ -96,6 +96,39 @@ describe('KeywordValueInputComponent', () => {
     fixture.detectChanges();
   }
 
+  describe('search label', () => {
+    function configureFor(definition: FilterDefinition): void {
+      TestBed.resetTestingModule();
+      configureBed(() => of({ data: makeItems('value', 2), hasNextPage: false }));
+      fixture.componentRef.setInput('definition', definition);
+      fixture.detectChanges();
+    }
+
+    function valueInput(): HTMLInputElement {
+      return fixture.nativeElement.querySelector('input') as HTMLInputElement;
+    }
+
+    it('should invite a search by the start of the value for a keyword read from the calls', fakeAsync(() => {
+      configureFor({ name: 'GATEWAY', label: 'Gateway', type: 'KEYWORD', operators: ['EQ', 'IN'] });
+
+      expect(valueInput().placeholder).toBe('Search (starts with)');
+
+      valueInput().dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+      tick(200);
+      fixture.detectChanges();
+
+      const listbox = TestBed.inject(OverlayContainer).getContainerElement().querySelector('[role="listbox"]');
+      expect(listbox?.getAttribute('aria-label')).toBe('Search (starts with)');
+      fixture.destroy();
+    }));
+
+    it('should invite a search by name for an entity filter', () => {
+      configureFor(KEYWORD_DEFINITION);
+
+      expect(valueInput().placeholder).toBe('Search by name');
+    });
+  });
+
   it('should request only page 1 for a fixed list (hasNextPage false) and ignore scroll', fakeAsync(() => {
     TestBed.resetTestingModule();
     const data = makeItems('fixed', 3);
