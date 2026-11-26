@@ -48,10 +48,16 @@ public class SaveMetricDefinitionUseCase {
 
     public Output execute(Input input) {
         AdditionalMetricField field = keys.writableField(input.name());
-        MetricDefinitionChanges changes = MetricDefinitionChanges.of(input.label(), input.description(), input.unit(), input.exposed());
+        MetricDefinitionChanges changes = MetricDefinitionChanges.of(
+            field,
+            input.label(),
+            input.description(),
+            input.unit(),
+            input.exposed()
+        );
         Instant now = TimeProvider.instantNow();
         return repository
-            .findByEnvironmentIdAndRawKey(input.environmentId(), field.rawKey())
+            .findByEnvironmentIdAndField(input.environmentId(), field)
             .map(existing -> replace(existing, changes, now))
             .orElseGet(() -> create(input.environmentId(), field, changes, now));
     }
@@ -71,7 +77,7 @@ public class SaveMetricDefinitionUseCase {
             return new Output(repository.create(fresh(environmentId, field, changes, now)), true);
         } catch (DuplicateMetricDefinitionException createdMeanwhile) {
             AdditionalMetricDefinition existing = repository
-                .findByEnvironmentIdAndRawKey(environmentId, field.rawKey())
+                .findByEnvironmentIdAndField(environmentId, field)
                 .orElseThrow(() -> createdMeanwhile);
             return new Output(repository.update(existing.with(changes, now)), false);
         }

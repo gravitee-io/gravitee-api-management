@@ -46,8 +46,14 @@ public class DeclareMetricDefinitionUseCase {
 
     public Output execute(Input input) {
         AdditionalMetricField field = keys.writableField(input.name());
-        MetricDefinitionChanges changes = MetricDefinitionChanges.of(input.label(), input.description(), input.unit(), input.exposed());
-        if (repository.findByEnvironmentIdAndRawKey(input.environmentId(), field.rawKey()).isPresent()) {
+        MetricDefinitionChanges changes = MetricDefinitionChanges.of(
+            field,
+            input.label(),
+            input.description(),
+            input.unit(),
+            input.exposed()
+        );
+        if (repository.findByEnvironmentIdAndField(input.environmentId(), field).isPresent()) {
             throw new DuplicateMetricDefinitionException(input.name());
         }
         Instant now = TimeProvider.instantNow();

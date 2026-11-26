@@ -51,4 +51,9 @@ public class AdditionalMetricGrammarPortAdapter implements AdditionalMetricGramm
             .findFirst()
             .map(type -> AdditionalMetricValueType.valueOf(type.name()));
     }
+
+    @Override
+    public Optional<String> refusal(String name) {
+        return io.gravitee.apim.core.observability.model.AdditionalMetricField.refusal(name);
+    }
 }

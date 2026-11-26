@@ -31,7 +31,7 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 
 /**
- * Lists the environment's additional metrics: built-in, declared and, for a caller who reads the environment's
+ * Lists the environment's additional and custom metrics: built-in, declared and, for a caller who reads the environment's
  * traffic, discovered, each with its {@code lastSeen}. {@code origins} narrows the built list to the entries of those
  * origins; {@code truncated} keeps describing the discovery pass whatever origins are kept.
  *

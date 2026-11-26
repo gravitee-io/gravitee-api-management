@@ -18,9 +18,9 @@ package io.gravitee.gamma.rest.core.observability.catalog.inmemory;
 import io.gravitee.gamma.rest.core.observability.catalog.exception.DuplicateMetricDefinitionException;
 import io.gravitee.gamma.rest.core.observability.catalog.exception.MetricDefinitionNotFoundException;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricDefinition;
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricField;
 import io.gravitee.gamma.rest.core.observability.catalog.port.repository.AdditionalMetricDefinitionRepository;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -57,15 +57,14 @@ public class InMemoryAdditionalMetricDefinitionRepository implements AdditionalM
         return records
             .stream()
             .filter(record -> Objects.equals(record.environmentId(), environmentId))
-            .sorted(Comparator.comparing(record -> record.field().rawKey()))
             .toList();
     }
 
     @Override
-    public Optional<AdditionalMetricDefinition> findByEnvironmentIdAndRawKey(String environmentId, String rawKey) {
+    public Optional<AdditionalMetricDefinition> findByEnvironmentIdAndField(String environmentId, AdditionalMetricField field) {
         return records
             .stream()
-            .filter(record -> Objects.equals(record.environmentId(), environmentId) && record.field().rawKey().equals(rawKey))
+            .filter(record -> Objects.equals(record.environmentId(), environmentId) && record.field().name().equals(field.name()))
             .findFirst();
     }
 
@@ -75,7 +74,7 @@ public class InMemoryAdditionalMetricDefinitionRepository implements AdditionalM
             records.add(pendingConcurrentCreate);
             pendingConcurrentCreate = null;
         }
-        if (findByEnvironmentIdAndRawKey(definition.environmentId(), definition.field().rawKey()).isPresent()) {
+        if (findByEnvironmentIdAndField(definition.environmentId(), definition.field()).isPresent()) {
             throw new DuplicateMetricDefinitionException(definition.field().name());
         }
         records.add(definition);

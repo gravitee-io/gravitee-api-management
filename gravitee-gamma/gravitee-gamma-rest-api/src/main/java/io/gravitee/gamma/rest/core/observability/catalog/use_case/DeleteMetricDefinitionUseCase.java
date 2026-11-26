@@ -42,7 +42,7 @@ public class DeleteMetricDefinitionUseCase {
     public Output execute(Input input) {
         AdditionalMetricField field = keys.field(input.name());
         var definition = repository
-            .findByEnvironmentIdAndRawKey(input.environmentId(), field.rawKey())
+            .findByEnvironmentIdAndField(input.environmentId(), field)
             .orElseThrow(() -> new MetricDefinitionNotFoundException(input.name()));
         repository.delete(definition.id());
         return new Output();

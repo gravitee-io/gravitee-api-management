@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.common.http.HttpStatusCode;
@@ -30,6 +31,7 @@ import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricD
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricField;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricValueType;
 import io.gravitee.gamma.rest.core.observability.catalog.model.DiscoveredAdditionalMetric;
+import io.gravitee.gamma.rest.core.observability.catalog.model.MetricDefinitionNames;
 import io.gravitee.gamma.rest.core.observability.catalog.port.service_provider.AdditionalMetricGrammarPort;
 import io.gravitee.gamma.rest.core.observability.catalog.use_case.DeclareMetricDefinitionUseCase;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
@@ -42,6 +44,8 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.MediaType;
@@ -56,6 +60,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -74,6 +79,8 @@ class MetricDefinitionsResourceTest extends AbstractResourceTest {
     private static final String BASKET = "additional-metrics.double_checkout_basket-value";
     private static final String SLASHED = "additional-metrics.keyword_my-policy_tools/call";
     private static final String DECOY = "additional-metrics.keyword_custom.fraud-tier";
+    private static final String FRAUD_TIER = "custom.fraud-tier";
+    private static final Instant SEEN = Instant.parse("2026-10-29T08:00:00Z");
 
     @Inject
     private InMemoryAdditionalMetricDefinitionRepository repository;
@@ -149,7 +156,8 @@ class MetricDefinitionsResourceTest extends AbstractResourceTest {
                 "additional-metrics.keyword_custom.fraud-tier | observability.metric_definition.reserved_key",
                 "additional-metrics.keyword_my\"key | observability.metric_definition.invalid_name",
                 "additional-metrics.float_score | observability.metric_definition.unknown_type_prefix",
-                "custom.basket | observability.metric_definition.invalid_name",
+                "custom.a..b | observability.metric_definition.invalid_name",
+                "custom. | observability.metric_definition.invalid_name",
             }
         )
         void should_refuse_with_a_400_naming_the_rule(String name, String technicalCode) {
@@ -187,6 +195,153 @@ class MetricDefinitionsResourceTest extends AbstractResourceTest {
             JsonNode body = response.readEntity(JsonNode.class);
             assertThat(body.get("technicalCode").asText()).isEqualTo("observability.metric_definition.invalid_body");
             assertThat(body.get("message").asText()).isEqualTo("Property [origin] is not recognized as a valid property");
+            assertThat(repository.all()).isEmpty();
+        }
+
+        @Test
+        void should_declare_a_custom_key_and_serve_the_same_raw_key_as_its_list_entry() {
+            Response created = declare(
+                Map.of("name", FRAUD_TIER, "label", "Fraud level", "description", "Set by the check", "exposed", true)
+            );
+
+            assertThat(created.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
+            JsonNode body = created.readEntity(JsonNode.class);
+            assertThat(body.get("name").asText()).isEqualTo(FRAUD_TIER);
+            assertThat(body.get("rawKey").asText()).isEqualTo(FRAUD_TIER);
+            assertThat(body.get("valueType").asText()).isEqualTo("KEYWORD");
+            assertThat(body.get("label").asText()).isEqualTo("Fraud level");
+            assertThat(body.get("description").asText()).isEqualTo("Set by the check");
+            assertThat(body.has("unit")).isFalse();
+            assertThat(body.get("exposed").asBoolean()).isTrue();
+
+            JsonNode listed = entry(rootTarget().request().get().readEntity(JsonNode.class), FRAUD_TIER);
+            assertThat(listed.get("origin").asText()).isEqualTo("DECLARED");
+            assertThat(listed.get("namespace").asText()).isEqualTo("custom");
+            assertThat(listed.get("label").asText()).isEqualTo("Fraud level");
+            assertThat(listed.get("rawKey").asText()).isEqualTo(body.get("rawKey").asText());
+        }
+
+        @Test
+        void should_refuse_a_unit_on_a_custom_key_with_a_400_naming_the_rule() {
+            Response response = declare(Map.of("name", FRAUD_TIER, "unit", "COUNT"));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            JsonNode body = response.readEntity(JsonNode.class);
+            assertThat(body.get("technicalCode").asText()).isEqualTo("observability.metric_definition.unit_not_allowed");
+            assertThat(body.get("message").asText()).isEqualTo("'custom.fraud-tier' is a custom metric, which takes no unit");
+            assertThat(repository.all()).isEmpty();
+        }
+
+        /** The unit refusal is the custom root's: a blank unit reads as absent, and an additional keyword key keeps one. */
+        @Test
+        void should_accept_a_blank_unit_on_a_custom_key_and_a_unit_on_an_additional_keyword_key() {
+            Response declared = declare(Map.of("name", FRAUD_TIER, "unit", ""));
+            Response saved = record(FRAUD_TIER).request().put(Entity.json(Map.of("label", "Fraud level", "unit", "  ")));
+            Response additional = declare(Map.of("name", "additional-metrics.keyword_checkout_country", "unit", "COUNT"));
+
+            assertThat(declared.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
+            assertThat(declared.readEntity(JsonNode.class).has("unit")).isFalse();
+            assertThat(saved.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            assertThat(saved.readEntity(JsonNode.class).has("unit")).isFalse();
+            assertThat(additional.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
+            assertThat(additional.readEntity(JsonNode.class).get("unit").asText()).isEqualTo("COUNT");
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @ValueSource(
+            strings = {
+                // The reserved typed family is additional-metrics.<type>_custom_<name> (OBS-172), not this custom key.
+                "custom.keyword_custom_x",
+                // Built-ins read additional-metrics.keyword_mcp-proxy_tools/call, not this custom key.
+                "custom.keyword_mcp-proxy_tools/call",
+            }
+        )
+        void should_declare_a_custom_key_spelt_like_a_refused_additional_key(String name) {
+            assertThat(declare(Map.of("name", name)).getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
+        }
+
+        @Test
+        void should_hold_a_custom_key_and_an_additional_key_of_the_same_spelling() {
+            assertThat(declare(Map.of("name", "custom.keyword_x", "label", "Custom")).getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
+            assertThat(declare(Map.of("name", "additional-metrics.keyword_x", "label", "Additional")).getStatus()).isEqualTo(
+                HttpStatusCode.CREATED_201
+            );
+
+            assertThat(record("custom.keyword_x").request().get().readEntity(JsonNode.class).get("label").asText()).isEqualTo("Custom");
+            assertThat(record("additional-metrics.keyword_x").request().get().readEntity(JsonNode.class).get("label").asText()).isEqualTo(
+                "Additional"
+            );
+            assertThat(record("custom.keyword_x").request().delete().getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
+            assertThat(record("additional-metrics.keyword_x").request().get().getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        }
+
+        @Test
+        void should_accept_a_custom_name_of_256_characters_and_refuse_257() {
+            String atLimit = "custom." + "a".repeat(256);
+
+            assertThat(declare(Map.of("name", atLimit)).getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
+            Response tooLong = declare(Map.of("name", atLimit + "a"));
+            assertThat(tooLong.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            assertThat(tooLong.readEntity(JsonNode.class).get("technicalCode").asText()).isEqualTo(
+                "observability.metric_definition.invalid_name"
+            );
+        }
+
+        /** The Location of a created record reads it back, whatever the name holds that a query value must encode. */
+        @ParameterizedTest(name = "{0}")
+        @ValueSource(
+            strings = {
+                "custom.fraud tier",
+                "custom.a+b",
+                "custom.a&b=c",
+                "custom.tag#1",
+                "custom.50%off",
+                "custom.100%25",
+                "custom.why?",
+                "custom.niveau-é",
+                "custom.\uD83D\uDE80",
+            }
+        )
+        void should_read_and_delete_a_custom_record_through_its_location(String name) throws Exception {
+            Response created = declare(Map.of("name", name));
+            assertThat(created.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
+
+            try (Client client = ClientBuilder.newClient()) {
+                Response read = client.target(created.getLocation()).request().get();
+                assertThat(read.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+                assertThat(new ObjectMapper().readTree(read.readEntity(String.class)).get("name").asText()).isEqualTo(name);
+                assertThat(client.target(created.getLocation()).request().delete().getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
+            }
+            assertThat(repository.all()).isEmpty();
+        }
+
+        /**
+         * A name the custom grammar reads but whose characters would reach messages and logs raw is never declared. The
+         * body is written as JSON text: an unpaired surrogate only travels as a JSON escape, UTF-8 cannot carry it.
+         */
+        @ParameterizedTest(name = "{0}")
+        @ValueSource(strings = { "custom.fraud\\r\\ntier", "custom.fraud\\u0000tier", "custom.fraud\\uD83Dtier" })
+        void should_refuse_a_control_character_or_an_unpaired_surrogate_on_post(String jsonName) {
+            Response response = rootTarget().request().post(Entity.json("{\"name\":\"" + jsonName + "\"}"));
+
+            assertRefusedAsUnprintable(response);
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @ValueSource(strings = { "custom.fraud\r\ntier", "custom.fraud\u0000tier" })
+        void should_refuse_a_control_character_on_put(String name) {
+            Response response = record(name).request().put(Entity.json(Map.of("label", "x")));
+
+            assertRefusedAsUnprintable(response);
+        }
+
+        private void assertRefusedAsUnprintable(Response response) {
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            JsonNode body = response.readEntity(JsonNode.class);
+            assertThat(body.get("technicalCode").asText()).isEqualTo("observability.metric_definition.invalid_name");
+            assertThat(body.get("message").asText())
+                .endsWith(": " + MetricDefinitionNames.UNPRINTABLE_RULE)
+                .doesNotContainPattern("[\\p{Cntrl}\\x{D800}-\\x{DFFF}]");
             assertThat(repository.all()).isEmpty();
         }
 
@@ -268,6 +423,76 @@ class MetricDefinitionsResourceTest extends AbstractResourceTest {
 
             assertThat(record(SLASHED).request().delete().getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
             assertThat(record(SLASHED).request().get().getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        }
+
+        @Test
+        void should_create_read_replace_and_delete_a_custom_record() {
+            Response created = record(FRAUD_TIER).request().put(Entity.json(Map.of("label", "Fraud tier")));
+            assertThat(created.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
+
+            Response replaced = record(FRAUD_TIER).request().put(Entity.json(Map.of("label", "Fraud level", "exposed", false)));
+            assertThat(replaced.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+
+            JsonNode read = record(FRAUD_TIER).request().get().readEntity(JsonNode.class);
+            assertThat(read.get("rawKey").asText()).isEqualTo(FRAUD_TIER);
+            assertThat(read.get("label").asText()).isEqualTo("Fraud level");
+            assertThat(read.get("exposed").asBoolean()).isFalse();
+
+            Response withUnit = record(FRAUD_TIER).request().put(Entity.json(Map.of("label", "Fraud level", "unit", "€")));
+            assertThat(withUnit.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            assertThat(withUnit.readEntity(JsonNode.class).get("technicalCode").asText()).isEqualTo(
+                "observability.metric_definition.unit_not_allowed"
+            );
+
+            assertThat(record(FRAUD_TIER).request().delete().getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
+            assertThat(record(FRAUD_TIER).request().get().getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        }
+
+        @Test
+        void should_turn_a_discovered_custom_key_into_a_declared_one_and_back_on_delete_keeping_its_last_seen() {
+            ports.givenDiscovered(
+                List.of(
+                    new DiscoveredAdditionalMetric(AdditionalMetricField.Root.CUSTOM, "fraud-tier", AdditionalMetricValueType.KEYWORD, SEEN)
+                ),
+                false
+            );
+
+            record(FRAUD_TIER).request().put(Entity.json(Map.of("label", "Fraud level")));
+            JsonNode declared = entry(rootTarget().request().get().readEntity(JsonNode.class), FRAUD_TIER);
+            assertThat(declared.get("origin").asText()).isEqualTo("DECLARED");
+            assertThat(declared.get("label").asText()).isEqualTo("Fraud level");
+            assertThat(declared.get("lastSeen").asText()).isEqualTo("2026-10-29T08:00:00Z");
+
+            record(FRAUD_TIER).request().delete();
+            JsonNode discovered = entry(rootTarget().request().get().readEntity(JsonNode.class), FRAUD_TIER);
+            assertThat(discovered.get("origin").asText()).isEqualTo("DISCOVERED");
+            assertThat(discovered.get("label").asText()).isEqualTo("Fraud tier");
+            assertThat(discovered.get("lastSeen").asText()).isEqualTo("2026-10-29T08:00:00Z");
+        }
+
+        /** Reads stay as written: such a key is listed, never editable, and its 404 never echoes a raw control character. */
+        @Test
+        void should_list_a_discovered_key_holding_a_line_break_without_letting_it_be_edited() {
+            String name = "custom.fraud\r\ntier";
+            ports.givenDiscovered(
+                List.of(
+                    new DiscoveredAdditionalMetric(
+                        AdditionalMetricField.Root.CUSTOM,
+                        "fraud\r\ntier",
+                        AdditionalMetricValueType.KEYWORD,
+                        SEEN
+                    )
+                ),
+                false
+            );
+
+            assertThat(entry(rootTarget().request().get().readEntity(JsonNode.class), name).get("origin").asText()).isEqualTo("DISCOVERED");
+            assertThat(record(name).request().put(Entity.json(Map.of("label", "x"))).getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            Response notFound = record(name).request().get();
+            assertThat(notFound.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+            assertThat(notFound.readEntity(JsonNode.class).get("message").asText())
+                .contains("custom.fraud\\u000D\\u000Atier")
+                .doesNotContainPattern("\\p{Cntrl}");
         }
 
         @Test
@@ -426,6 +651,58 @@ class MetricDefinitionsResourceTest extends AbstractResourceTest {
             assertThat(builtIn.has("unit")).isFalse();
             assertThat(builtIn.get("apiTypes")).extracting(JsonNode::asText).containsExactly("MCP");
             assertThat(listed.get("truncated").asBoolean()).isFalse();
+        }
+
+        @Test
+        void should_show_a_declared_custom_key_without_last_seen_to_a_caller_who_does_not_read_traffic() {
+            declare(Map.of("name", FRAUD_TIER, "label", "Fraud level"));
+            ports.givenDiscovered(
+                List.of(
+                    new DiscoveredAdditionalMetric(
+                        AdditionalMetricField.Root.CUSTOM,
+                        "fraud-tier",
+                        AdditionalMetricValueType.KEYWORD,
+                        SEEN
+                    ),
+                    new DiscoveredAdditionalMetric(AdditionalMetricField.Root.CUSTOM, "basket-id", AdditionalMetricValueType.KEYWORD, SEEN)
+                ),
+                false
+            );
+            ports.givenReadsTraffic(false);
+
+            JsonNode listed = rootTarget().request().get().readEntity(JsonNode.class);
+
+            assertThat(entries(listed))
+                .filteredOn(entry -> entry.get("origin").asText().equals("DECLARED"))
+                .extracting(entry -> entry.get("name").asText())
+                .containsExactly(FRAUD_TIER);
+            assertThat(entry(listed, FRAUD_TIER).has("lastSeen")).isFalse();
+            assertThat(entries(listed))
+                .extracting(entry -> entry.get("name").asText())
+                .doesNotContain("custom.basket-id");
+        }
+
+        /** A declared custom key is listed as declared, so it never takes one of the 200 discovered places. */
+        @Test
+        void should_keep_a_declared_custom_key_out_of_the_discovery_cap() {
+            declare(Map.of("name", FRAUD_TIER));
+            List<DiscoveredAdditionalMetric> found = new ArrayList<>();
+            found.add(
+                new DiscoveredAdditionalMetric(AdditionalMetricField.Root.CUSTOM, "fraud-tier", AdditionalMetricValueType.KEYWORD, SEEN)
+            );
+            for (int i = 0; i < 200; i++) {
+                found.add(new DiscoveredAdditionalMetric("long_key-" + i, AdditionalMetricValueType.LONG, SEEN.minusSeconds(i + 1)));
+            }
+            ports.givenDiscovered(found, false);
+
+            JsonNode listed = rootTarget().request().get().readEntity(JsonNode.class);
+
+            assertThat(entries(listed))
+                .filteredOn(entry -> entry.get("origin").asText().equals("DISCOVERED"))
+                .hasSize(200);
+            assertThat(entry(listed, FRAUD_TIER).get("origin").asText()).isEqualTo("DECLARED");
+            assertThat(listed.get("truncated").asBoolean()).isFalse();
+            assertThat(ports.lastUncountedKeys()).contains(FRAUD_TIER);
         }
 
         @ParameterizedTest(name = "{0}")

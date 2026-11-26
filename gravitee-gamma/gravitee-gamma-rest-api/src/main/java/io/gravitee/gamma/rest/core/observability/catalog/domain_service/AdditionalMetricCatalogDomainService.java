@@ -38,6 +38,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -107,7 +108,7 @@ public class AdditionalMetricCatalogDomainService {
      * nor are left out. Compared by wire name, so a custom key spelt like one of them is not one.
      */
     public Set<String> keysListedElsewhere(Map<String, Set<String>> builtInNamesByRawKey, List<AdditionalMetricDefinition> records) {
-        Set<String> names = builtInWireNames(builtInNamesByRawKey);
+        Set<String> names = MetricDefinitionKeyDomainService.builtInWireNames(builtInNamesByRawKey);
         records.forEach(record -> names.add(record.field().name()));
         return names;
     }
@@ -310,13 +311,18 @@ public class AdditionalMetricCatalogDomainService {
     ) {
         Map<String, Instant> lastSeen = discovery.map(AdditionalMetricCatalogDomainService::lastSeen).orElse(Map.of());
         List<Resolved> resolved = new ArrayList<>();
-        Set<String> taken = builtInWireNames(builtInNamesByRawKey);
+        Set<String> taken = MetricDefinitionKeyDomainService.builtInWireNames(builtInNamesByRawKey);
         new TreeMap<>(builtInNamesByRawKey).forEach((rawKey, names) ->
             keys
                 .fieldOfKey(rawKey)
                 .ifPresent(field -> resolved.add(new Resolved(field, CatalogOrigin.BUILT_IN, names, null, lastSeen.get(field.name()))))
         );
-        for (AdditionalMetricDefinition record : records) {
+        // The stores order records by their own collation (UTF-16 in Java for JDBC, code points for Mongo): sort here.
+        List<AdditionalMetricDefinition> declared = records
+            .stream()
+            .sorted(Comparator.comparing(record -> record.field().servedRawKey()))
+            .toList();
+        for (AdditionalMetricDefinition record : declared) {
             if (taken.add(record.field().name())) {
                 resolved.add(new Resolved(record.field(), CatalogOrigin.DECLARED, Set.of(), record, lastSeen.get(record.field().name())));
             }
@@ -357,13 +363,6 @@ public class AdditionalMetricCatalogDomainService {
         }
         List<ApiType> kinds = support.apiTypes().stream().filter(tied::contains).toList();
         return kinds.isEmpty() ? Optional.empty() : Optional.of(kinds);
-    }
-
-    /** The keys built-ins read are keys of the {@code additional-metrics} map: their wire names, in a set the caller may add to. */
-    private static Set<String> builtInWireNames(Map<String, Set<String>> builtInNamesByRawKey) {
-        Set<String> names = new HashSet<>();
-        builtInNamesByRawKey.keySet().forEach(rawKey -> names.add(AdditionalMetricField.NAME_PREFIX + rawKey));
-        return names;
     }
 
     private static Map<String, Instant> lastSeen(AdditionalMetricDiscovery discovery) {

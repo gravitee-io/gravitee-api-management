@@ -43,12 +43,12 @@ import jakarta.ws.rs.core.UriInfo;
 import java.util.List;
 
 /**
- * The environment's additional metrics, mounted under
+ * The environment's additional and custom metrics, mounted under
  * {@code /gamma/organizations/{orgId}/environments/{envId}/observability/metric-definitions} by {@code GammaRootResource}.
  *
  * <h2>Endpoints</h2>
  * <ul>
- *   <li>{@code GET /?origin=} — every additional metric of the environment, built-in, declared and discovered;
+ *   <li>{@code GET /?origin=} — every additional and custom metric of the environment, built-in, declared and discovered;
  *       {@code origin}, optional and multi-valued, keeps the entries of those origins only.</li>
  *   <li>{@code POST /} — declares a key, named in the body.</li>
  *   <li>{@code GET|PUT|DELETE /record?name=} — see {@link MetricDefinitionResource}.</li>

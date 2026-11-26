@@ -19,7 +19,7 @@ import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricC
 import java.util.List;
 
 /**
- * The environment's additional metric catalog. {@code refreshedAt} is when the discovery pass behind the
+ * The environment's additional and custom metric catalog. {@code refreshedAt} is when the discovery pass behind the
  * discovered entries and {@code lastSeen} ran.
  */
 public record MetricDefinitionsResponseDto(List<MetricDefinitionEntryDto> data, String refreshedAt, boolean truncated) {

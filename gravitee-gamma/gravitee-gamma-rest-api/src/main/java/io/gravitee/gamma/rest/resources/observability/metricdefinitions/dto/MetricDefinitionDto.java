@@ -34,7 +34,7 @@ public record MetricDefinitionDto(
     public static MetricDefinitionDto from(AdditionalMetricDefinition definition) {
         return new MetricDefinitionDto(
             definition.field().name(),
-            definition.field().rawKey(),
+            definition.field().servedRawKey(),
             definition.field().valueType().name(),
             definition.label(),
             definition.description(),
