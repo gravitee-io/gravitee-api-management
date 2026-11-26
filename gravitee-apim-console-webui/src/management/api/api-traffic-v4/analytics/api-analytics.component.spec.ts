@@ -26,7 +26,8 @@ import { ApiAnalyticsComponent } from './api-analytics.component';
 import { ApiAnalyticsProxyHarness } from './api-analytics-proxy/api-analytics-proxy.component.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule, provideHighchartsTesting } from '../../../../shared/testing';
-import { ApiV4, fakeProxyApiV4 } from '../../../../entities/management-api-v2';
+import { ApiType, ApiV4, fakeProxyApiV4 } from '../../../../entities/management-api-v2';
+import { fakeHttpListener } from '../../../../entities/management-api-v2/api/v4/listener.fixture';
 
 describe('ApiAnalyticsComponent', () => {
   const API_ID = 'api-id';
@@ -66,6 +67,36 @@ describe('ApiAnalyticsComponent', () => {
     expectApiGetRequest(fakeProxyApiV4({ id: API_ID, type: 'A2A_PROXY' }));
 
     expect(fixture.nativeElement.querySelector('gio-card-empty-state')?.textContent).toContain('API Traffic not available');
+  });
+
+  describe('Top Paths grouping', () => {
+    const PATH_MAPPINGS = ['/charges', '/charges/:chargeId'];
+    // Every API type that renders the proxy analytics: their gateways all write mapped-path.
+    const API_TYPES_RENDERING_PROXY_ANALYTICS: ApiType[] = ['PROXY', 'LLM_PROXY', 'AUTHZ'];
+
+    it.each(API_TYPES_RENDERING_PROXY_ANALYTICS)('should group Top Paths on the path mapping for a %s API with path mappings', type => {
+      expectApiGetRequest(fakeProxyApiV4({ id: API_ID, type, listeners: [fakeHttpListener({ pathMappings: PATH_MAPPINGS })] }));
+
+      expect(topPathsGroupByField()).toBe('mapped-path');
+    });
+
+    it.each(
+      API_TYPES_RENDERING_PROXY_ANALYTICS.flatMap(type => [
+        [type, 'undefined path mappings', undefined],
+        [type, 'an empty path mapping list', []],
+      ]),
+    )('should group Top Paths on the request uri for a %s API with %s', (type, _, pathMappings) => {
+      expectApiGetRequest(fakeProxyApiV4({ id: API_ID, type, listeners: [fakeHttpListener({ pathMappings })] }));
+
+      expect(topPathsGroupByField()).toBe('uri');
+    });
+
+    function topPathsGroupByField(): string | undefined {
+      return httpTestingController
+        .match(req => req.url.includes('type=GROUP_BY'))
+        .map(req => new URL(req.request.urlWithParams).searchParams.get('field'))
+        .find(field => field === 'uri' || field === 'mapped-path');
+    }
   });
 
   function expectApiGetRequest(api: ApiV4) {
