@@ -15,6 +15,8 @@
  */
 package io.gravitee.gamma.rest.infra.adapter;
 
+import static io.gravitee.gamma.rest.core.observability.catalog.model.MetricDefinitionNames.printable;
+
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.gamma.rest.core.observability.catalog.exception.DuplicateMetricDefinitionException;
 import io.gravitee.gamma.rest.core.observability.catalog.exception.MetricDefinitionNotFoundException;
@@ -51,10 +53,10 @@ public class GammaMetricDefinitionRepositoryAdapter implements AdditionalMetricD
     }
 
     @Override
-    public Optional<AdditionalMetricDefinition> findByEnvironmentIdAndRawKey(String environmentId, String rawKey) {
+    public Optional<AdditionalMetricDefinition> findByEnvironmentIdAndField(String environmentId, AdditionalMetricField field) {
         return RepositoryCalls.wrap(
-            () -> repository.findByEnvironmentIdAndRawKey(environmentId, rawKey).map(this::toCore),
-            "Failed to fetch the metric definition '%s' of environment '%s'".formatted(rawKey, environmentId)
+            () -> repository.findByEnvironmentIdAndRawKey(environmentId, storedKey(field)).map(this::toCore),
+            "Failed to fetch the metric definition '%s' of environment '%s'".formatted(printable(field.name()), environmentId)
         );
     }
 
@@ -66,7 +68,10 @@ public class GammaMetricDefinitionRepositoryAdapter implements AdditionalMetricD
             // Lost a race with a concurrent creation on the same key.
             throw new DuplicateMetricDefinitionException(definition.field().name());
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException("Failed to create the metric definition '%s'".formatted(definition.field().rawKey()), e);
+            throw new TechnicalDomainException(
+                "Failed to create the metric definition '%s'".formatted(printable(definition.field().name())),
+                e
+            );
         }
     }
 
@@ -78,7 +83,10 @@ public class GammaMetricDefinitionRepositoryAdapter implements AdditionalMetricD
         } catch (IllegalStateException deletedMeanwhile) {
             throw new MetricDefinitionNotFoundException(definition.field().name());
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException("Failed to update the metric definition '%s'".formatted(definition.field().rawKey()), e);
+            throw new TechnicalDomainException(
+                "Failed to update the metric definition '%s'".formatted(printable(definition.field().name())),
+                e
+            );
         }
     }
 
@@ -93,12 +101,26 @@ public class GammaMetricDefinitionRepositoryAdapter implements AdditionalMetricD
         );
     }
 
+    /**
+     * The key a record is stored under: an additional key bare, as before custom keys had records, a custom key with
+     * its root. An additional key starts with its type prefix, never with {@code custom.}, so the two never meet.
+     */
+    private static String storedKey(AdditionalMetricField field) {
+        return field.servedRawKey();
+    }
+
+    /** The wire name of a key stored by {@link #storedKey}. */
+    private static String nameOfStoredKey(String stored) {
+        return stored.startsWith(AdditionalMetricField.Root.CUSTOM.prefix()) ? stored : AdditionalMetricField.NAME_PREFIX + stored;
+    }
+
     private AdditionalMetricDefinition toCore(GammaMetricDefinition source) {
+        String stored = source.getRawKey();
         var field = grammar
-            .parse(AdditionalMetricField.NAME_PREFIX + source.getRawKey())
+            .parse(nameOfStoredKey(stored))
             .orElseThrow(() ->
                 new TechnicalDomainException(
-                    "Persisted metric definition '%s' is not an additional metric key".formatted(source.getRawKey())
+                    "Persisted metric definition '%s' is not an additional or custom metric key".formatted(printable(stored))
                 )
             );
         return new AdditionalMetricDefinition(
@@ -118,7 +140,7 @@ public class GammaMetricDefinitionRepositoryAdapter implements AdditionalMetricD
         return GammaMetricDefinition.builder()
             .id(source.id())
             .environmentId(source.environmentId())
-            .rawKey(source.field().rawKey())
+            .rawKey(storedKey(source.field()))
             .label(source.label())
             .description(source.description())
             .unit(source.unit())

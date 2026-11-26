@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.core.observability.catalog.exception;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.gamma.rest.core.observability.catalog.model.MetricDefinitionNames;
 
 /**
  * The environment already holds a record on this key; answered with {@code 400}. A type of its own so a write that
@@ -26,6 +27,9 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 public class DuplicateMetricDefinitionException extends ValidationDomainException {
 
     public DuplicateMetricDefinitionException(String name) {
-        super("'%s' is already declared in this environment".formatted(name), "observability.metric_definition.duplicate");
+        super(
+            "'%s' is already declared in this environment".formatted(MetricDefinitionNames.printable(name)),
+            "observability.metric_definition.duplicate"
+        );
     }
 }

@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.core.observability.catalog.port.repository;
 import io.gravitee.gamma.rest.core.observability.catalog.exception.DuplicateMetricDefinitionException;
 import io.gravitee.gamma.rest.core.observability.catalog.exception.MetricDefinitionNotFoundException;
 import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricDefinition;
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricField;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,10 +29,11 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public interface AdditionalMetricDefinitionRepository {
-    /** Ordered by key. */
+    /** In no order callers rely on: each store sorts by its own collation, so the catalog orders the records itself. */
     List<AdditionalMetricDefinition> findByEnvironmentId(String environmentId);
 
-    Optional<AdditionalMetricDefinition> findByEnvironmentIdAndRawKey(String environmentId, String rawKey);
+    /** The record on a field, whatever its root: a custom key and an additional key of the same spelling are two keys. */
+    Optional<AdditionalMetricDefinition> findByEnvironmentIdAndField(String environmentId, AdditionalMetricField field);
 
     /**
      * Refuses a second record on the same key of the same environment, even a concurrent one, with a
@@ -42,6 +44,6 @@ public interface AdditionalMetricDefinitionRepository {
     /** Fails with a {@link MetricDefinitionNotFoundException} when the record was deleted meanwhile. */
     AdditionalMetricDefinition update(AdditionalMetricDefinition definition);
 
-    /** Takes a bare id: callers resolve the record through {@link #findByEnvironmentIdAndRawKey} first. */
+    /** Takes a bare id: callers resolve the record through {@link #findByEnvironmentIdAndField} first. */
     void delete(String id);
 }

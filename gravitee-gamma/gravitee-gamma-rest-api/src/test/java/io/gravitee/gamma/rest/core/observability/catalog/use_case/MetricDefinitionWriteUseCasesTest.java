@@ -33,13 +33,14 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.CsvSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class MetricDefinitionWriteUseCasesTest {
 
     private static final String BASKET = "additional-metrics.double_checkout_basket-value";
     private static final String MCP_TOOL_KEY = "keyword_mcp-proxy_tools/call";
+    private static final String FRAUD_TIER = "custom.fraud-tier";
 
     private MetricDefinitionFixture fixture;
 
@@ -107,17 +108,22 @@ class MetricDefinitionWriteUseCasesTest {
 
         /** E2E finding S1: such a record reads another map than the policy's custom.<name>, a decoy matching nothing. */
         @ParameterizedTest
-        @ValueSource(
-            strings = {
-                "additional-metrics.keyword_custom.fraud-tier",
-                "additional-metrics.long_custom.retries",
-                "additional-metrics.keyword_custom.a.b",
+        @CsvSource(
+            delimiter = '|',
+            value = {
+                "additional-metrics.keyword_custom.fraud-tier | custom.fraud-tier",
+                "additional-metrics.long_custom.retries | custom.retries",
+                "additional-metrics.keyword_custom.a.b | custom.a.b",
             }
         )
-        void should_refuse_a_key_naming_a_custom_metric_after_its_type_prefix(String name) {
+        void should_refuse_a_key_naming_a_custom_metric_after_its_type_prefix(String name, String customMetric) {
             assertThatThrownBy(() -> fixture.givenDeclared(name))
                 .hasMessage(
-                    "'" + name + "' is reserved: custom metrics (custom.<name>) come from the Assign metrics policy and are read-only here"
+                    "'" +
+                        name +
+                        "' is reserved: it reads the additional metrics map, not the values the Assign metrics policy writes; declare '" +
+                        customMetric +
+                        "' instead"
                 )
                 .extracting("technicalCode")
                 .isEqualTo("observability.metric_definition.reserved_key");
@@ -129,6 +135,69 @@ class MetricDefinitionWriteUseCasesTest {
             fixture.givenDeclared("additional-metrics.keyword_customer.tier");
 
             assertThat(fixture.repository.all()).hasSize(1);
+        }
+
+        @Test
+        void should_declare_a_custom_key_as_a_keyword_without_unit() {
+            var declared = fixture.declare
+                .execute(new DeclareMetricDefinitionUseCase.Input(ENVIRONMENT, FRAUD_TIER, "Fraud tier", "Tier of the check", null, false))
+                .definition();
+
+            assertThat(declared.field().name()).isEqualTo(FRAUD_TIER);
+            assertThat(declared.field().root()).isEqualTo(AdditionalMetricField.Root.CUSTOM);
+            assertThat(declared.field().valueType()).isEqualTo(AdditionalMetricValueType.KEYWORD);
+            assertThat(declared.unit()).isNull();
+            assertThat(declared.exposed()).isFalse();
+            assertThat(fixture.repository.all()).containsExactly(declared);
+        }
+
+        @Test
+        void should_refuse_a_unit_on_a_custom_key_before_storing_anything() {
+            var input = new DeclareMetricDefinitionUseCase.Input(ENVIRONMENT, FRAUD_TIER, null, null, "COUNT", true);
+
+            assertThatThrownBy(() -> fixture.declare.execute(input))
+                .extracting("technicalCode")
+                .isEqualTo("observability.metric_definition.unit_not_allowed");
+            assertThat(fixture.repository.all()).isEmpty();
+        }
+
+        /** The reserved typed family is additional-metrics.<type>_custom_<name> (OBS-172); under custom. it is a plain key. */
+        @Test
+        void should_declare_a_custom_key_spelt_like_the_reserved_typed_form() {
+            fixture.givenDeclared("custom.keyword_custom_x");
+
+            assertThat(fixture.repository.all())
+                .extracting(record -> record.field().name())
+                .containsExactly("custom.keyword_custom_x");
+        }
+
+        /** Built-ins read keys of the additional-metrics map: a custom key of the same spelling is another field. */
+        @Test
+        void should_declare_a_custom_key_spelt_like_a_key_a_built_in_reads() {
+            fixture.givenDeclared("custom." + MCP_TOOL_KEY);
+
+            assertThat(fixture.repository.all())
+                .extracting(record -> record.field().name())
+                .containsExactly("custom." + MCP_TOOL_KEY);
+        }
+
+        @Test
+        void should_hold_a_custom_key_and_an_additional_key_of_the_same_spelling() {
+            fixture.givenDeclared("custom.keyword_x");
+            fixture.givenDeclared("additional-metrics.keyword_x");
+
+            assertThat(fixture.repository.all())
+                .extracting(record -> record.field().name())
+                .containsExactlyInAnyOrder("custom.keyword_x", "additional-metrics.keyword_x");
+        }
+
+        @Test
+        void should_refuse_a_custom_key_the_environment_already_declares() {
+            fixture.givenDeclared(FRAUD_TIER);
+
+            assertThatThrownBy(() -> fixture.givenDeclared(FRAUD_TIER))
+                .extracting("technicalCode")
+                .isEqualTo("observability.metric_definition.duplicate");
         }
 
         @Test
@@ -167,6 +236,34 @@ class MetricDefinitionWriteUseCasesTest {
                 .extracting("technicalCode")
                 .isEqualTo("observability.metric_definition.reserved_key");
             assertThat(fixture.repository.all()).isEmpty();
+        }
+
+        @Test
+        void should_create_then_replace_the_record_on_a_custom_key() {
+            var created = fixture.save.execute(
+                new SaveMetricDefinitionUseCase.Input(ENVIRONMENT, FRAUD_TIER, "Fraud tier", null, "", true)
+            );
+            var replaced = fixture.save.execute(
+                new SaveMetricDefinitionUseCase.Input(ENVIRONMENT, FRAUD_TIER, "Fraud level", "Set by the check", null, false)
+            );
+
+            assertThat(created.created()).isTrue();
+            assertThat(replaced.created()).isFalse();
+            assertThat(replaced.definition().id()).isEqualTo(created.definition().id());
+            assertThat(fixture.repository.all()).containsExactly(replaced.definition());
+            assertThat(replaced.definition().label()).isEqualTo("Fraud level");
+            assertThat(replaced.definition().exposed()).isFalse();
+        }
+
+        @Test
+        void should_refuse_a_unit_on_a_custom_key_and_keep_the_record() {
+            var existing = fixture.givenDeclared(FRAUD_TIER);
+            var input = new SaveMetricDefinitionUseCase.Input(ENVIRONMENT, FRAUD_TIER, "Fraud tier", null, "COUNT", true);
+
+            assertThatThrownBy(() -> fixture.save.execute(input))
+                .extracting("technicalCode")
+                .isEqualTo("observability.metric_definition.unit_not_allowed");
+            assertThat(fixture.repository.all()).containsExactly(existing);
         }
 
         @Test
@@ -261,6 +358,19 @@ class MetricDefinitionWriteUseCasesTest {
                 MetricDefinitionNotFoundException.class
             );
             assertThat(fixture.repository.all()).hasSize(1);
+        }
+
+        @Test
+        void should_read_and_delete_the_custom_record_only_when_both_spellings_are_declared() {
+            var custom = fixture.givenDeclared("custom.keyword_x");
+            var additional = fixture.givenDeclared("additional-metrics.keyword_x");
+
+            assertThat(fixture.get.execute(new GetMetricDefinitionUseCase.Input(ENVIRONMENT, "custom.keyword_x")).definition()).isEqualTo(
+                custom
+            );
+            fixture.delete.execute(new DeleteMetricDefinitionUseCase.Input(ENVIRONMENT, "custom.keyword_x"));
+
+            assertThat(fixture.repository.all()).containsExactly(additional);
         }
 
         @Test

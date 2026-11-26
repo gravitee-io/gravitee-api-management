@@ -71,7 +71,11 @@ class AdditionalMetricFieldTest {
             "additional-metrics.long_a b",
             "additional-metrics.long_é",
             "long_failover_count",
-            "custom.basket",
+            "custom.",
+            "custom..a",
+            "custom.a.",
+            "custom.a\"b",
+            "custom.a*b",
             "HTTP_STATUS",
             "",
         }
@@ -122,5 +126,42 @@ class AdditionalMetricFieldTest {
         assertThat(keys.field("additional-metrics.double_custom_basket-value").isReserved()).isTrue();
         assertThat(keys.field("additional-metrics.double_customer_basket").isReserved()).isFalse();
         assertThat(keys.field("additional-metrics.keyword_my_custom_tag").isReserved()).isFalse();
+    }
+
+    /** The reserved typed family lives in the additional-metrics map (OBS-172): under custom. the spelling is a plain key. */
+    @Test
+    void should_not_reserve_a_custom_key_spelt_like_the_typed_form() {
+        assertThat(keys.field("custom.keyword_custom_x").isReserved()).isFalse();
+        assertThat(keys.writableField("custom.keyword_custom_x").name()).isEqualTo("custom.keyword_custom_x");
+    }
+
+    @Test
+    void should_read_a_custom_name_as_a_keyword_of_the_custom_root() {
+        var field = keys.field("custom.fraud-tier");
+
+        assertThat(field.root()).isEqualTo(AdditionalMetricField.Root.CUSTOM);
+        assertThat(field.rawKey()).isEqualTo("fraud-tier");
+        assertThat(field.servedRawKey()).isEqualTo("custom.fraud-tier");
+        assertThat(field.valueType()).isEqualTo(AdditionalMetricValueType.KEYWORD);
+        assertThat(field.takesUnit()).isFalse();
+        assertThat(keys.field("additional-metrics.keyword_tier").takesUnit()).isTrue();
+    }
+
+    @Test
+    void should_accept_a_custom_name_of_256_characters_and_refuse_257_with_the_custom_rule() {
+        String atLimit = "custom." + "a".repeat(256);
+
+        assertThat(keys.field(atLimit).name()).hasSize(263);
+        assertThatThrownBy(() -> keys.field(atLimit + "a"))
+            .hasMessageContaining("is not a valid field name: a custom metric is named custom.<name>")
+            .extracting("technicalCode")
+            .isEqualTo("observability.metric_definition.invalid_name");
+    }
+
+    @Test
+    void should_name_both_roots_when_a_name_has_neither() {
+        assertThatThrownBy(() -> keys.field("HTTP_STATUS")).hasMessage(
+            "'HTTP_STATUS' is not an additional or custom metric field: it must start with 'additional-metrics.' or 'custom.'"
+        );
     }
 }

@@ -18,13 +18,14 @@ package io.gravitee.gamma.rest.core.observability.catalog.model;
 import java.time.Instant;
 
 /**
- * What an environment says about one additional metric key: its label, description and unit, and whether the
- * pickers offer it. One record per key and environment; it exists whether or not documents carry the key yet.
+ * What an environment says about one additional or custom metric key: its label, description and unit, and whether
+ * the pickers offer it. One record per key and environment; it exists whether or not documents carry the key yet.
  *
  * @param label   {@code null} when the record leaves the label to the derived one.
- * @param unit    a named unit, a free suffix, or {@code null}; see {@link AdditionalMetricUnit}.
- * @param exposed {@code false} keeps the entry out of the catalogs pickers read (the filter catalog today); the query
- *                validators do not read records.
+ * @param unit    a named unit, a free suffix, or {@code null}; see {@link AdditionalMetricUnit}. Always {@code null}
+ *                on a field that takes none ({@link AdditionalMetricField#takesUnit()}).
+ * @param exposed {@code false} keeps the entry out of the catalogs pickers read, the filter and analytics definitions;
+ *                the query validators do not read records, so queries still return the key's values.
  *
  * @author GraviteeSource Team
  */

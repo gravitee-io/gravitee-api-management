@@ -22,11 +22,15 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.gamma.rest.core.observability.catalog.inmemory.InMemoryAdditionalMetricDefinitionRepository;
+import io.gravitee.gamma.rest.core.observability.catalog.model.AdditionalMetricDefinition;
 import io.gravitee.gamma.rest.core.observability.filter.inmemory.InMemoryObservabilityFilterDataPort;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterValue;
+import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import io.gravitee.gamma.rest.core.observability.filter.use_case.GetObservabilityFilterDefinitionsUseCase;
 import io.gravitee.gamma.rest.core.observability.filter.use_case.GetObservabilityFilterValuesUseCase;
 import io.gravitee.gamma.rest.core.observability.filter.use_case.ResolveObservabilityFilterLabelsUseCase;
+import io.gravitee.gamma.rest.infra.adapter.AdditionalMetricGrammarPortAdapter;
 import io.gravitee.gamma.rest.infra.adapter.SpiFilterRegistry;
 import io.gravitee.gamma.rest.resource.AbstractResourceTest;
 import io.gravitee.gamma.rest.resource.observability.filters.ObservabilityFilterValuesResourceTest.ValuesTestConfiguration;
@@ -34,12 +38,14 @@ import io.gravitee.gamma.rest.spring.ResourceContextConfiguration;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -54,6 +60,9 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
 
     @Inject
     private InMemoryObservabilityFilterDataPort dataPort;
+
+    @Inject
+    private InMemoryAdditionalMetricDefinitionRepository records;
 
     @Override
     protected String contextPath() {
@@ -71,6 +80,7 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
     @AfterEach
     void resetStore() {
         dataPort.reset();
+        records.reset();
     }
 
     @Test
@@ -117,6 +127,39 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
         assertThat(dataPort.lastCall()).isEmpty();
     }
 
+    /** Hiding a key from the pickers is not a redaction: its values are listed the same, exposed or not. */
+    @Test
+    void should_list_the_values_of_a_hidden_custom_key_as_when_it_is_exposed() {
+        dataPort.givenKeywordValues("custom.fraud-tier", List.of(new FilterValue("gold", null), new FilterValue("silver", null)));
+        records.create(fraudTierRecord(true));
+        JsonNode exposed = rootTarget("values").queryParam("name", "custom.fraud-tier").request().get().readEntity(JsonNode.class);
+        records.reset();
+        records.create(fraudTierRecord(false));
+
+        Response hidden = rootTarget("values").queryParam("name", "custom.fraud-tier").request().get();
+
+        assertThat(hidden.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        JsonNode body = hidden.readEntity(JsonNode.class);
+        assertThat(body.get("data"))
+            .extracting(node -> node.get("value").asText())
+            .contains("gold", "silver");
+        assertThat(body).isEqualTo(exposed);
+    }
+
+    private static AdditionalMetricDefinition fraudTierRecord(boolean exposed) {
+        return new AdditionalMetricDefinition(
+            "fraud-tier",
+            ENVIRONMENT,
+            new AdditionalMetricGrammarPortAdapter().parse("custom.fraud-tier").orElseThrow(),
+            "Fraud tier",
+            null,
+            null,
+            exposed,
+            Instant.EPOCH,
+            Instant.EPOCH
+        );
+    }
+
     @Test
     void should_still_answer_404_for_a_name_under_no_dynamic_root() {
         Response response = rootTarget("UNKNOWN/values").request().get();
@@ -132,7 +175,12 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
         assertThat(dataPort.lastCall()).isEmpty();
     }
 
+    /**
+     * Spring builds the values use case, so a port it may come to need is resolved from this context, where the record
+     * store holding a hidden key is the only one.
+     */
     @Configuration
+    @Import(GetObservabilityFilterValuesUseCase.class)
     static class ValuesTestConfiguration {
 
         @Bean
@@ -146,13 +194,18 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
         }
 
         @Bean
+        InMemoryAdditionalMetricDefinitionRepository additionalMetricDefinitionRepository() {
+            return new InMemoryAdditionalMetricDefinitionRepository();
+        }
+
+        @Bean
         InMemoryObservabilityFilterDataPort observabilityFilterDataPort() {
             return new InMemoryObservabilityFilterDataPort();
         }
 
         @Bean
-        GetObservabilityFilterValuesUseCase getObservabilityFilterValuesUseCase(InMemoryObservabilityFilterDataPort dataPort) {
-            return new GetObservabilityFilterValuesUseCase(new SpiFilterRegistry(), dataPort);
+        FilterRegistry filterRegistry() {
+            return new SpiFilterRegistry();
         }
     }
 }

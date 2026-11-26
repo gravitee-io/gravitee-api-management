@@ -27,8 +27,11 @@ public record MetricDefinitionChanges(String label, String description, String u
     public static final int MAX_LABEL_LENGTH = 64;
     public static final int MAX_DESCRIPTION_LENGTH = 512;
 
-    /** Trims and checks what the caller sent; blank text reads as absent. */
-    public static MetricDefinitionChanges of(String label, String description, String unit, Boolean exposed) {
+    /** Trims and checks what the caller sent for {@code field}; blank text reads as absent. */
+    public static MetricDefinitionChanges of(AdditionalMetricField field, String label, String description, String unit, Boolean exposed) {
+        if (!field.takesUnit() && unit != null && !unit.isBlank()) {
+            throw InvalidMetricDefinitionException.unitNotAllowed(field.name());
+        }
         return new MetricDefinitionChanges(
             bounded(label, MAX_LABEL_LENGTH, "label"),
             bounded(description, MAX_DESCRIPTION_LENGTH, "description"),

@@ -38,7 +38,8 @@ import jakarta.ws.rs.core.Response;
 
 /**
  * The record on one key, named by the {@code name} query parameter: the field's wire name,
- * {@code additional-metrics.<rawKey>}. A record of another environment answers 404 on every verb.
+ * {@code additional-metrics.<rawKey>} or {@code custom.<name>}. A record of another environment answers 404 on every
+ * verb.
  *
  * <p>PUT writes the record whether or not one exists (201 when it creates it): editing a discovered key is how it
  * becomes declared. Every write needs the same right, so an upsert grants nothing a separate create would not.
