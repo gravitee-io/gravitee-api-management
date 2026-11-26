@@ -45,7 +45,7 @@ public class UpdateSharedPolicyGroupUseCase {
 
         var sharedPolicyGroupToUpdate = existingSharedPolicyGroup.update(input.sharedPolicyGroupToUpdate());
 
-        validateUpdateSharedPolicyGroupDomainService.validate(sharedPolicyGroupToUpdate, input.auditInfo().environmentId());
+        validateUpdateSharedPolicyGroupDomainService.validate(sharedPolicyGroupToUpdate, input.auditInfo());
 
         var updatedSharedPolicyGroup = this.sharedPolicyGroupCrudService.update(sharedPolicyGroupToUpdate);
         createAuditLog(existingSharedPolicyGroup, updatedSharedPolicyGroup, input.auditInfo());

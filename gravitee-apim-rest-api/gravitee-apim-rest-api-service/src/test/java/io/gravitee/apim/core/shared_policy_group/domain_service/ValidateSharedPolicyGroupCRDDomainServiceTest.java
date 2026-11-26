@@ -21,13 +21,18 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.SharedPolicyGroupFixtures;
+import inmemory.CredentialCrudServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plugin.model.FlowPhase;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRD;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
+import io.gravitee.apim.infra.credential.SpelSecretExpressionParser;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import java.util.List;
@@ -53,11 +58,25 @@ class ValidateSharedPolicyGroupCRDDomainServiceTest {
 
     final PolicyValidationDomainService policyGroupValidationService = mock(PolicyValidationDomainService.class);
 
+    final SecretReferencePermissionDomainService secretReferencePermissionDomainService = new SecretReferencePermissionDomainService(
+        new SpelSecretExpressionParser(),
+        mock(PermissionDomainService.class),
+        new CredentialCrudServiceInMemory(),
+        GraviteeJacksonMapper.getInstance()
+    );
     final SharedPolicyGroupCrudServiceInMemory sharedPolicyGroupCrudService = new SharedPolicyGroupCrudServiceInMemory(List.of());
     final ValidateCreateSharedPolicyGroupDomainService validateCreateSharedPolicyGroupDomainService =
-        new ValidateCreateSharedPolicyGroupDomainService(sharedPolicyGroupCrudService, policyGroupValidationService);
+        new ValidateCreateSharedPolicyGroupDomainService(
+            sharedPolicyGroupCrudService,
+            policyGroupValidationService,
+            secretReferencePermissionDomainService
+        );
     final ValidateUpdateSharedPolicyGroupDomainService validateUpdateSharedPolicyGroupDomainService =
-        new ValidateUpdateSharedPolicyGroupDomainService(sharedPolicyGroupCrudService, policyGroupValidationService);
+        new ValidateUpdateSharedPolicyGroupDomainService(
+            sharedPolicyGroupCrudService,
+            policyGroupValidationService,
+            secretReferencePermissionDomainService
+        );
 
     final ValidateSharedPolicyGroupCRDDomainService cut = new ValidateSharedPolicyGroupCRDDomainService(
         sharedPolicyGroupCrudService,
@@ -74,6 +93,30 @@ class ValidateSharedPolicyGroupCRDDomainServiceTest {
 
     @Nested
     class Create {
+
+        @Test
+        void should_report_a_step_that_references_a_secret_of_another_environment() {
+            SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD()
+                .toBuilder()
+                .steps(
+                    List.of(
+                        Step.builder()
+                            .policy("test-policy")
+                            .enabled(true)
+                            .configuration("{ \"value\": \"{#secrets.get('/gravitee/db-password:value?envId=other-env')}\" }")
+                            .build()
+                    )
+                )
+                .build();
+
+            var result = cut.validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, aCRD));
+
+            assertThat(result.severe()).hasValueSatisfying(errors ->
+                assertThat(errors)
+                    .extracting(Validator.Error::getMessage)
+                    .anyMatch(message -> message.contains("?envId=" + ENV_ID))
+            );
+        }
 
         @Test
         void should_preserve_pre_set_ids() {
