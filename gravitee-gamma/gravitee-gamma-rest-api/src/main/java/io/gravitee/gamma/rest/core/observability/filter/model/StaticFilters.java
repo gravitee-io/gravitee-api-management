@@ -37,15 +37,16 @@ import java.util.Set;
  *
  * <p>Names are reconciled across the legacy logs and analytics engines (see GMA-422): e.g. the
  * gateway response time is {@code HTTP_GATEWAY_RESPONSE_TIME} (not the logs-side {@code RESPONSE_TIME})
- * and the MCP method is {@code MCP_PROXY_METHOD} (not {@code MCP_METHOD}). {@code HTTP_PATH_MAPPING}
- * is an analytics facet, not a filter, so it does not appear here.
+ * and the MCP method is {@code MCP_PROXY_METHOD} (not {@code MCP_METHOD}).
  *
  * <p>Request-path filtering is <b>two filters, one per signal</b>, because they read two different
  * fields: {@link #HTTP_PATH} is ANALYTICS and reads {@code path-info}, the path after the context path
- * without the query string; {@link #URI} is LOGS and reads {@code uri}, the whole request target. The
- * declared templates are {@code HTTP_PATH_MAPPING}. A concrete URI is a poor analytics dimension anyway —
- * the query string splits every path into many buckets. {@link #URI} matches by prefix: in its value
- * {@code *} matches any sequence, {@code ?} any single character and {@code \} escapes the next one.
+ * without the query string; {@link #URI} is LOGS and reads {@code uri}, the whole request target. A concrete URI
+ * is a poor analytics dimension anyway — the query string splits every path into many buckets. {@link #URI} matches
+ * by prefix: in its value {@code *} matches any sequence, {@code ?} any single character and {@code \} escapes the
+ * next one. {@link #HTTP_PATH_MAPPING} is ANALYTICS and reads {@code mapped-path}, the path-mapping template the
+ * gateway writes for a request that matched a mapping and passed security: a request that matched none, or was
+ * rejected by security (401, 403), has no value.
  *
  * <p>Operators advertised here are restricted to what the v4 analytics/logs engines actually
  * translate today: {@code EQ, IN} for KEYWORD/ENUM and for the identifier-shaped STRING filters
@@ -108,6 +109,8 @@ public enum StaticFilters {
     // both signals would make the same filter match the path on a dashboard and the full request URI
     // in the logs.
     HTTP_PATH("HTTP Path", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
+    // AuthZ APIs write mapped-path too, but the engine ignores it on the AuthZ decision metrics and empties the operation/search ones.
+    HTTP_PATH_MAPPING("Path mapping", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
     URI("Request URI", FilterType.STRING, Defs.STARTS_WITH_ONLY, null, null, Defs.LOGS, Defs.HTTP_CONNECTION_KINDS),
     HOST("Host", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
     HTTP_GATEWAY_RESPONSE_TIME(
