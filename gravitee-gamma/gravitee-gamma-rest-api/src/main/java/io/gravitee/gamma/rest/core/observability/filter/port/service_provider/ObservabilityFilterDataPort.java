@@ -41,8 +41,9 @@ public interface ObservabilityFilterDataPort {
      * entity id and {@code label} its display name; for direct-value filters the value is the raw
      * indexed value and {@code label} is {@code null}.
      *
-     * @param query      narrows an id-based filter to the names containing it and any other filter to the values
-     *                   starting with it, whatever its case; {@code null} or blank narrows nothing
+     * @param query      narrows an id-based filter to the names containing it, {@code CONSUMER_IP} to the full
+     *                   address it spells, and any other filter to the values starting with it, whatever its case;
+     *                   {@code null} or blank narrows nothing
      * @param apiTypes   optional API-kind constraint to narrow results to the calls those kinds select,
      *                   the entrypoints adding them included (empty = unconstrained)
      * @param apiProduct the single API product the request is scoped to, or {@code null}: only its calls count, and a

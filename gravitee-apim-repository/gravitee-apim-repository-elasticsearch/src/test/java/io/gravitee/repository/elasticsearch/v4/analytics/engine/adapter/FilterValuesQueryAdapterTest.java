@@ -28,6 +28,8 @@ import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class FilterValuesQueryAdapterTest {
@@ -104,6 +106,42 @@ class FilterValuesQueryAdapterTest {
         assertThat(boolFilter).containsExactly(
             JsonObject.of("prefix", JsonObject.of("custom.customer_tier", JsonObject.of("value", "plat", "case_insensitive", true)))
         );
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "127.0.0.1", "192.168.65.1", "::1", "2001:db8::8a2e:370:7334" })
+    void should_look_up_a_full_address_exactly_on_an_ip_field(String typed) {
+        var query = FilterValuesQuery.builder().esFieldName("remote-address").size(10).searchPattern(typed).build();
+
+        var boolFilter = new JsonObject(adapter.adapt(query)).getJsonObject("query").getJsonObject("bool").getJsonArray("filter");
+
+        assertThat(boolFilter).containsExactly(JsonObject.of("term", JsonObject.of("remote-address", typed)));
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = {
+            "127",
+            "127.0.0.",
+            "192.168",
+            "abc",
+            "999.1.1.1",
+            "1.2.3.4.5",
+            "::1x",
+            "localhost",
+            ".:1",
+            "fe80::1%en0",
+            "10.0.0.0/8",
+            "010.0.0.1",
+            "example.com",
+        }
+    )
+    void should_offer_no_value_for_anything_but_a_full_address_on_an_ip_field(String typed) {
+        var query = FilterValuesQuery.builder().esFieldName("remote-address").size(10).searchPattern(typed).build();
+
+        var boolFilter = new JsonObject(adapter.adapt(query)).getJsonObject("query").getJsonObject("bool").getJsonArray("filter");
+
+        assertThat(boolFilter).containsExactly(JsonObject.of("match_none", JsonObject.of()));
     }
 
     @Test

@@ -29,9 +29,11 @@ import java.util.Set;
 /**
  * In-memory {@link ObservabilityFilterDataPort}: the distinct values a KEYWORD filter holds in the
  * store, seeded per filter name, served with the same query narrowing and 1-based pagination the
- * real store applies: the names containing the query for an id-based filter, the values starting with
- * it for any other, whatever its case; a blank query narrows nothing. Records the last listing call so a
- * test can assert what the use case asked for.
+ * real store applies: the names containing the query for an id-based filter, the full address on
+ * {@code CONSUMER_IP}, the values starting with it for any other, whatever its case; a blank query
+ * narrows nothing. An address is compared as written: the store also matches another spelling of the
+ * same address ({@code ::0001} for {@code ::1}), this fake does not. Records the last listing call so
+ * a test can assert what the use case asked for.
  */
 public class InMemoryObservabilityFilterDataPort implements ObservabilityFilterDataPort {
 
@@ -114,6 +116,9 @@ public class InMemoryObservabilityFilterDataPort implements ObservabilityFilterD
     }
 
     private static boolean matches(String filterName, FilterValue value, String needle) {
+        if ("CONSUMER_IP".equals(filterName)) {
+            return value.value().toLowerCase().equals(needle);
+        }
         if (!ID_BASED_FILTERS.contains(filterName)) {
             return value.value().toLowerCase().startsWith(needle);
         }
