@@ -43,8 +43,10 @@ import io.gravitee.rest.api.service.ReCaptchaService;
 import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +77,10 @@ import org.springframework.web.filter.CorsFilter;
 @Profile("basic")
 @EnableWebSecurity
 public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
+
+    private static final String PUBLIC_ENDPOINT_MODULES_PROPERTY = "gamma.modules.public-endpoints";
+    private static final String DEFAULT_PUBLIC_ENDPOINT_MODULES = "singularitee,aihub";
+    private static final Pattern MODULE_ID_PATTERN = Pattern.compile("[A-Za-z0-9_-]+");
 
     @Autowired
     private ConfigurableEnvironment environment;
@@ -256,9 +262,17 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
         return security.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and();
     }
 
+    String[] publicModuleEndpointPatterns() {
+        String configured = environment.getProperty(PUBLIC_ENDPOINT_MODULES_PROPERTY, DEFAULT_PUBLIC_ENDPOINT_MODULES);
+        return Arrays.stream(configured.split(","))
+            .map(String::trim)
+            .filter(moduleId -> MODULE_ID_PATTERN.matcher(moduleId).matches())
+            .map(moduleId -> "/organizations/*/environments/*/modules/" + moduleId + "/public/**")
+            .toArray(String[]::new);
+    }
+
     private HttpSecurity authorizations(HttpSecurity security) throws Exception {
         String uriOrgPrefix = "/organizations/**";
-        String uriPrefix = uriOrgPrefix + "/environments/**";
 
         return security
             .authorizeHttpRequests()
@@ -274,8 +288,7 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
             .permitAll()
             .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/modules", "/modules/")
             .permitAll()
-            // Gamma module endpoints that authenticate their callers themselves, such as the AI Hub's "me" page.
-            .requestMatchers(uriPrefix + "/modules/*/public/**")
+            .requestMatchers(publicModuleEndpointPatterns())
             .permitAll()
             /*
              * Management UI resources.
