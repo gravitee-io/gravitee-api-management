@@ -15,7 +15,7 @@
  */
 import { buildModuleNavPath } from '@gravitee/gamma-modules-sdk/routing';
 
-import type { CredentialConsumer } from '../types/credential';
+import type { CredentialConsumer, CredentialConsumerWarning } from '../types/credential';
 
 const TYPE_LABELS: Readonly<Record<string, string>> = {
     LLM_PROXY: 'LLM proxy',
@@ -30,6 +30,13 @@ const CONSUMER_ROUTES: Readonly<Record<string, (id: string) => string>> = {
 export function credentialConsumerHref(consumer: CredentialConsumer, currentPathname: string): string | undefined {
     const route = CONSUMER_ROUTES[`${consumer.module}:${consumer.type}`];
     return route ? buildModuleNavPath(consumer.module, route(encodeURIComponent(consumer.id)), currentPathname) : undefined;
+}
+
+export function consumerWarningsMessage(warnings: readonly CredentialConsumerWarning[] | undefined): string | undefined {
+    if (!warnings?.length) {
+        return undefined;
+    }
+    return warnings.map(warning => `${warning.name} kept the former settings of the credential: ${warning.message}`).join(' ');
 }
 
 export function credentialConsumerTypeLabel(type: string): string {
