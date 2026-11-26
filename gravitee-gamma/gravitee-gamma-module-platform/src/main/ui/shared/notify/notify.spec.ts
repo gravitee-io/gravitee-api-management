@@ -55,6 +55,12 @@ describe('notify', () => {
         expect(mockToast.warning).toHaveBeenCalledWith('Certificate added, but grace period update failed.');
     });
 
+    it('shows warning toasts for the duration the caller asks for', () => {
+        notify.warning('Support bot kept the former settings of the credential.', { duration: 10_000 });
+
+        expect(mockToast.warning).toHaveBeenCalledWith('Support bot kept the former settings of the credential.', { duration: 10_000 });
+    });
+
     it('shows error toasts with extracted Error messages and a long transient duration', () => {
         notify.error(new Error('Failed to save changes.'));
 

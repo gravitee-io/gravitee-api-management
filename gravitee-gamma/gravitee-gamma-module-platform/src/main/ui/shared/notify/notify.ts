@@ -34,8 +34,12 @@ export const notify = {
         toast.error(extractErrorMessage(error, fallback ?? 'Something went wrong.'), { duration: ERROR_DURATION_MS });
     },
 
-    warning(message: string) {
-        toast.warning(message);
+    warning(message: string, options?: { duration: number }) {
+        if (options) {
+            toast.warning(message, options);
+        } else {
+            toast.warning(message);
+        }
     },
 
     info(message: string) {
