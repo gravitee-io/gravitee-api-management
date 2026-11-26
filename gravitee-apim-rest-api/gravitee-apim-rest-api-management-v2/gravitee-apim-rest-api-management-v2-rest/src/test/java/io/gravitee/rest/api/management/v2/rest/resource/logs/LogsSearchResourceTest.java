@@ -404,7 +404,10 @@ class LogsSearchResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
                 .asError()
-                .satisfies(error -> assertThat(error.getTechnicalCode()).isEqualTo("invalidValue"));
+                .satisfies(error -> {
+                    assertThat(error.getTechnicalCode()).isEqualTo("invalidValue");
+                    assertThat(error.getMessage()).startsWith("Failed deserialization for Filter:");
+                });
         }
     }
 
