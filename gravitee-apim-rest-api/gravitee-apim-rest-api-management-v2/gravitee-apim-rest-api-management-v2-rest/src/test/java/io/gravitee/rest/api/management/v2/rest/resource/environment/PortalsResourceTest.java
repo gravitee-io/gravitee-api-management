@@ -21,6 +21,7 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static io.gravitee.common.http.HttpStatusCode.TEMPORARY_REDIRECT_307;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.LicenseFixtures;
@@ -119,6 +120,17 @@ class PortalsResourceTest extends AbstractResourceTest {
         when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
 
+    private void denyPortalPermission() {
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_PORTAL),
+                eq(ENVIRONMENT),
+                any(RolePermissionAction[].class)
+            )
+        ).thenReturn(false);
+    }
+
     @Nested
     class ListPortals {
 
@@ -186,6 +198,16 @@ class PortalsResourceTest extends AbstractResourceTest {
             shouldReturn403(RolePermission.ENVIRONMENT_DOCUMENTATION, ENVIRONMENT, RolePermissionAction.READ, () ->
                 rootTarget().request().get()
             );
+        }
+
+        @Test
+        void should_list_portals_without_the_portal_permission() {
+            denyPortalPermission();
+
+            var response = rootTarget().request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            assertThat(response.readEntity(PortalsResponse.class).getData()).hasSize(2);
         }
     }
 
@@ -369,8 +391,8 @@ class PortalsResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_require_update_permission() {
-            shouldReturn403(RolePermission.ENVIRONMENT_DOCUMENTATION, ENVIRONMENT, RolePermissionAction.UPDATE, () ->
+        void should_require_the_portal_update_permission() {
+            shouldReturn403(RolePermission.ENVIRONMENT_PORTAL, ENVIRONMENT, RolePermissionAction.UPDATE, () ->
                 patch(
                     PARTNERS_PORTAL_ID,
                     """
@@ -378,6 +400,32 @@ class PortalsResourceTest extends AbstractResourceTest {
                     """
                 )
             );
+            var unchanged = portalCrudService.findByIdAndEnvironmentId(PARTNERS_PORTAL_ID, ENVIRONMENT).orElseThrow();
+            assertThat(unchanged.getName()).isEqualTo("Partners");
+        }
+
+        @Test
+        void should_rename_a_portal_without_the_documentation_update_permission() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_DOCUMENTATION,
+                    ENVIRONMENT,
+                    RolePermissionAction.UPDATE
+                )
+            ).thenReturn(false);
+
+            try (
+                var response = patch(
+                    PARTNERS_PORTAL_ID,
+                    """
+                    {"name":"New name"}
+                    """
+                )
+            ) {
+                assertThat(response.getStatus()).isEqualTo(OK_200);
+                assertThat(response.readEntity(Portal.class).getName()).isEqualTo("New name");
+            }
         }
 
         private Response patch(PortalId portalId, String body) {
@@ -421,6 +469,16 @@ class PortalsResourceTest extends AbstractResourceTest {
             shouldReturn403(RolePermission.ENVIRONMENT_DOCUMENTATION, ENVIRONMENT, RolePermissionAction.READ, () ->
                 rootTarget("_stats").request().get()
             );
+        }
+
+        @Test
+        void should_return_the_quota_without_the_portal_permission() {
+            denyPortalPermission();
+
+            var response = rootTarget("_stats").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            assertThat(response.readEntity(PortalsStats.class).getQuota()).isEqualTo(new PortalQuota().used(2).limit(1));
         }
     }
 
