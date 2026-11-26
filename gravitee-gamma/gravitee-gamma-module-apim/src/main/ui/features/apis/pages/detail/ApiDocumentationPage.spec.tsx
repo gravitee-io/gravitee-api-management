@@ -632,7 +632,7 @@ describe('ApiDocumentationPage', () => {
             await user.click(screen.getByRole('button', { name: 'Unpublish from Partners' }));
 
             expect(screen.getByRole('dialog', { name: 'Unpublish "Payment API" from "Partners"?' })).toHaveTextContent(
-                'The API will become invisible in this portal. It stays published in the other portals.',
+                'The API will become invisible in this portal. It stays published in 1 other portal.',
             );
             expect(mockUnpublish).not.toHaveBeenCalled();
         });

@@ -421,8 +421,9 @@ function PublicationAction({
 // The documentation stays published as long as one portal shows the API.
 function unpublishDescription(hasSeveralPortals: boolean, publishedPortalCount: number): string {
     if (!hasSeveralPortals) return 'The API and its documentation will become invisible in the developer portal.';
-    return publishedPortalCount > 1
-        ? 'The API will become invisible in this portal. It stays published in the other portals.'
+    const otherPortalCount = publishedPortalCount - 1;
+    return otherPortalCount > 0
+        ? `The API will become invisible in this portal. It stays published in ${otherPortalCount} other ${otherPortalCount === 1 ? 'portal' : 'portals'}.`
         : 'The API and its documentation will become invisible in this portal.';
 }
 
