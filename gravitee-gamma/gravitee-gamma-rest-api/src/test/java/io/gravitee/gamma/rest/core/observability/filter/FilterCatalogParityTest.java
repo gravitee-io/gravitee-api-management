@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.core.observability.filter;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
+import io.gravitee.apim.core.analytics_engine.use_case.GetFilterValuesUseCase;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
@@ -132,6 +133,15 @@ class FilterCatalogParityTest {
             .toList();
 
         assertThat(StaticFilters.identifying()).containsExactlyInAnyOrderElementsOf(platformIdentifying);
+    }
+
+    /** A keyword filter whose store holds no value pool is refused alike by Gamma and by the platform values use case. */
+    @Test
+    void gamma_should_refuse_the_value_listing_of_the_filters_the_platform_refuses() {
+        List<String> platformRefused = GetFilterValuesUseCase.withoutValueListing().stream().map(Enum::name).toList();
+
+        assertThat(platformRefused).isNotEmpty();
+        assertThat(StaticFilters.withoutValueListing()).containsExactlyInAnyOrderElementsOf(platformRefused);
     }
 
     /** Two catalogs, two {@code Signal} enums: the platform one is spelled out here, once. */

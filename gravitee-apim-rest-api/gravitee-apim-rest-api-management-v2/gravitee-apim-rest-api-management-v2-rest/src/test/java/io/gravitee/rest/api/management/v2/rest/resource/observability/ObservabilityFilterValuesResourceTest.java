@@ -33,6 +33,7 @@ import io.gravitee.apim.core.analytics_engine.model.FilterValuesPage;
 import io.gravitee.apim.core.analytics_engine.query_service.FilterValuesQueryService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterValueItem;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterValuesResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -134,6 +135,21 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
         var response = rootTarget("HTTP_PATH/values").request().get();
 
         assertThat(response).hasStatus(400);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "NATIVE_TOPIC", "NATIVE_OPERATION" })
+    void should_return_400_for_a_keyword_filter_whose_store_holds_no_value_pool(String filterName) {
+        var response = rootTarget(filterName + "/values").queryParam("query", "ka").request().get();
+
+        assertThat(response)
+            .hasStatus(400)
+            .asEntity(Error.class)
+            .satisfies(error -> {
+                assertThat(error.getHttpStatus()).isEqualTo(400);
+                assertThat(error.getTechnicalCode()).isEqualTo("observability.filter.value_listing_not_supported");
+                assertThat(error.getMessage()).isEqualTo("Filter '" + filterName + "' of type KEYWORD does not support value listing");
+            });
     }
 
     @Test
