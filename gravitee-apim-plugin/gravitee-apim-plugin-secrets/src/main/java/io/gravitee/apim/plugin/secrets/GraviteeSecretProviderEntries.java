@@ -67,22 +67,26 @@ final class GraviteeSecretProviderEntries {
         Map<String, Object> secrets = ConfigHelper.removePrefix(secretsProperties(environment), SECRETS);
         for (int index = 0; secrets.containsKey(entry(index) + ".plugin"); index++) {
             Map<String, Object> entry = ConfigHelper.removePrefix(secrets, entry(index));
-            if (!isGraviteeEntry(entry)) {
-                continue;
+            Optional<String> key = isGraviteeEntry(entry) ? enabledEncryptionKey(entry) : Optional.empty();
+            if (key.isPresent()) {
+                return key.filter(value -> !value.isBlank());
             }
-            String key;
-            try {
-                if (!isEnabled(entry)) {
-                    continue;
-                }
-                key = new GraviteeSecretManagerConfiguration(ConfigHelper.removePrefix(entry, "configuration")).encryptionKey();
-            } catch (RuntimeException e) {
-                // misconfiguration() reports the entry, and a fallback key that is wrong fails the stored data key check.
-                continue;
-            }
-            return key == null || key.isBlank() ? Optional.empty() : Optional.of(key);
         }
         return Optional.empty();
+    }
+
+    // Empty when the entry is skipped, and an empty string when the entry has no key.
+    private static Optional<String> enabledEncryptionKey(Map<String, Object> entry) {
+        try {
+            if (!isEnabled(entry)) {
+                return Optional.empty();
+            }
+            String key = new GraviteeSecretManagerConfiguration(ConfigHelper.removePrefix(entry, "configuration")).encryptionKey();
+            return Optional.of(key == null ? "" : key);
+        } catch (RuntimeException e) {
+            // misconfiguration() reports the entry, and a fallback key that is wrong fails the stored data key check.
+            return Optional.empty();
+        }
     }
 
     // Only the keys of the block are read: reading a value resolves the secret it references, and another key may reference one
@@ -110,7 +114,7 @@ final class GraviteeSecretProviderEntries {
     // gravitee-node lists an environment variable as api_secrets_providers_0_plugin. This maps the name as
     // EnvironmentUtils.getAllProperties does, and gravitee-service-secrets deploys the providers from that mapping.
     private static String dotted(String name) {
-        return name.replaceAll("_([0-9]+)_", "[$1].").replace('_', '.');
+        return name.replaceAll("_(\\d+)_", "[$1].").replace('_', '.');
     }
 
     private static boolean isGraviteeEntry(Map<String, Object> entry) {
