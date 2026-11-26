@@ -58,7 +58,6 @@ public record CredentialDto(
         return from(credential, caller, null);
     }
 
-    /** @param consumerWarnings the objects of the Gamma modules that kept the former settings of the updated credential */
     public static CredentialDto updated(Credential credential, CredentialActor caller, List<CredentialConsumerWarning> consumerWarnings) {
         return of(credential, caller, null, consumerWarnings);
     }

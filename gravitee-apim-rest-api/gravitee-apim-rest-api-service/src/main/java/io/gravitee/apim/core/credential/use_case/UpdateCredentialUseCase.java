@@ -43,7 +43,6 @@ public class UpdateCredentialUseCase {
 
     public record Input(CredentialActor actor, String credentialId, UpdateCredentialCommand command) {}
 
-    /** @param warnings the objects of the Gamma modules that kept the former references or configuration */
     public record Output(Credential credential, List<CredentialConsumerWarning> warnings) {}
 
     public Output execute(Input input) {
