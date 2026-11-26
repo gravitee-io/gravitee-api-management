@@ -95,16 +95,24 @@ class FilterValuesQueryAdapterTest {
     }
 
     @Test
-    void should_include_term_query_for_search_pattern() {
-        var query = FilterValuesQuery.builder().esFieldName("gateway").size(10).searchPattern("gw-1").build();
+    void should_match_the_values_starting_with_the_search_pattern_whatever_their_case() {
+        var query = FilterValuesQuery.builder().esFieldName("custom.customer_tier").size(10).searchPattern("plat").build();
 
         var result = new JsonObject(adapter.adapt(query));
         var boolFilter = result.getJsonObject("query").getJsonObject("bool").getJsonArray("filter");
-        assertThat(boolFilter).hasSize(1);
 
-        var term = boolFilter.getJsonObject(0).getJsonObject("term").getJsonObject("gateway");
-        assertThat(term.getString("value")).isEqualTo("gw-1");
-        assertThat(term.getBoolean("case_insensitive")).isTrue();
+        assertThat(boolFilter).containsExactly(
+            JsonObject.of("prefix", JsonObject.of("custom.customer_tier", JsonObject.of("value", "plat", "case_insensitive", true)))
+        );
+    }
+
+    @Test
+    void should_send_no_value_clause_for_a_blank_search_pattern() {
+        var query = FilterValuesQuery.builder().esFieldName("custom.customer_tier").size(10).searchPattern("  ").build();
+
+        var result = new JsonObject(adapter.adapt(query));
+
+        assertThat(result.getJsonObject("query")).isNull();
     }
 
     @Test
@@ -124,9 +132,9 @@ class FilterValuesQueryAdapterTest {
         var range = boolFilter.getJsonObject(0).getJsonObject("range").getJsonObject("@timestamp");
         assertThat(range.getLong("gte")).isEqualTo(1704067200000L);
 
-        var term = boolFilter.getJsonObject(1).getJsonObject("term").getJsonObject("gateway");
-        assertThat(term.getString("value")).isEqualTo("prod");
-        assertThat(term.getBoolean("case_insensitive")).isTrue();
+        var prefix = boolFilter.getJsonObject(1).getJsonObject("prefix").getJsonObject("gateway");
+        assertThat(prefix.getString("value")).isEqualTo("prod");
+        assertThat(prefix.getBoolean("case_insensitive")).isTrue();
     }
 
     @Test
@@ -253,7 +261,7 @@ class FilterValuesQueryAdapterTest {
         assertThat(boolFilter).hasSize(3);
 
         assertThat(boolFilter.getJsonObject(0).getJsonObject("range")).isNotNull();
-        assertThat(boolFilter.getJsonObject(1).getJsonObject("term")).isNotNull();
+        assertThat(boolFilter.getJsonObject(1).getJsonObject("prefix")).isNotNull();
         assertThat(boolFilter.getJsonObject(2).getJsonObject("terms").getJsonArray("api-id")).containsExactly("api-1");
     }
 }

@@ -295,9 +295,11 @@ paths:
             description: |
                 Paginated selectable values for one filter. ENUM filters return their static labelled
                 values (optionally filtered by a case-insensitive substring `query`). KEYWORD filters
-                return the distinct values found in the calls of the APIs whose aggregates the caller
+                return the distinct values found in the calls (optionally narrowed to the stored values
+                starting with `query`, whatever its case; `API`, `APPLICATION`, `PLAN` and `API_PRODUCT`
+                offer the names containing it instead) of the APIs whose aggregates the caller
                 reads, or whose logs they read for a field identifying callers (`CONSUMER_IP`,
-                `NATIVE_CLIENT_ID`, `AUTHZ_SUBJECT_ID`) or one the logs only show; empty when they
+                `NATIVE_CLIENT_ID`) or one the logs only show; empty when they
                 read none. Searching `API` by name offers the APIs the caller reads. With `apiProduct`, only
                 the calls made through that API product count; a holder of `AI_WORKSPACE_USER[READ]` on that
                 workspace also gets the values of its calls, as the workspace rule of *Analytics* counts them,
@@ -319,7 +321,11 @@ paths:
                 - name: query
                   in: query
                   required: false
-                  description: Case-insensitive substring filter applied to the value or label.
+                  description: |
+                      Case-insensitive. ENUM and `bool_` fields: values or labels containing it.
+                      `API`/`APPLICATION`/`PLAN`/`API_PRODUCT`: names containing it. Other KEYWORD,
+                      `additional-metrics.keyword_*` and `custom.*`: stored values starting with it. On
+                      `ENTRYPOINT`, `(none)` when the query starts its value or label.
                   example: proxy
                   schema:
                       type: string

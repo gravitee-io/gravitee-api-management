@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
+import io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query;
 import io.gravitee.repository.elasticsearch.v4.shared.EntrypointScopeClause;
 import io.gravitee.repository.log.v4.model.analytics.FilterValuesQuery;
 import io.vertx.core.json.JsonArray;
@@ -36,9 +37,9 @@ public class FilterValuesQueryAdapter {
         }
 
         if (query.searchPattern() != null && !query.searchPattern().isBlank()) {
-            // Exact match on the keyword field (case-insensitive); avoids costly leading/trailing wildcards.
-            var termValue = JsonObject.of("value", query.searchPattern(), "case_insensitive", true);
-            boolFilter.add(JsonObject.of("term", JsonObject.of(query.esFieldName(), termValue)));
+            // A prefix, never a substring: a leading wildcard would walk every term of the field.
+            var prefix = JsonObject.of(Query.VALUE, query.searchPattern(), Query.CASE_INSENSITIVE, true);
+            boolFilter.add(JsonObject.of(Query.PREFIX, JsonObject.of(query.esFieldName(), prefix)));
         }
 
         if (query.apiIds() != null) {
