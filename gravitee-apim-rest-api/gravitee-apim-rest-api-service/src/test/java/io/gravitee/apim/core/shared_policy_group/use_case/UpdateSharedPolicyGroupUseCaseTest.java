@@ -393,6 +393,23 @@ public class UpdateSharedPolicyGroupUseCaseTest {
         assertThat(updated.sharedPolicyGroup().getName()).isEqualTo("renamed");
     }
 
+    @Test
+    void should_refuse_a_step_whose_policy_sanitizes_away_a_new_reference_to_a_secret_of_another_environment() {
+        when(permissionDomainService.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
+        var existingSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
+        sharedPolicyGroupCrudService.initWith(List.of(existingSharedPolicyGroup));
+        var step = stepReferencing("/gravitee/db-password:value?envId=other-env");
+        step.setPolicy(FakePolicyValidationDomainService.SANITIZING_POLICY);
+        var toUpdate = UpdateSharedPolicyGroup.builder().steps(List.of(step)).build();
+
+        assertThatThrownBy(() ->
+            updateSharedPolicyGroupUseCase.execute(
+                new UpdateSharedPolicyGroupUseCase.Input(existingSharedPolicyGroup.getId(), toUpdate, AUDIT_INFO)
+            )
+        ).isInstanceOf(InvalidSecretReferenceException.class);
+        assertThat(sharedPolicyGroupCrudService.storage()).containsExactly(existingSharedPolicyGroup);
+    }
+
     private static Step stepReferencing(String path) {
         return Step.builder().policy("policy").enabled(true).configuration("{ \"value\": \"{#secrets.get('" + path + "')}\" }").build();
     }
