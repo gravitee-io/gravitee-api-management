@@ -65,7 +65,9 @@ public class ModuleCredentialConsumers implements CredentialConsumers {
                         .stream()
                         .map(warning ->
                             new CredentialConsumerWarning(port.module(), warning.type(), warning.id(), warning.name(), warning.message())
-                        );
+                        )
+                        .toList()
+                        .stream();
                 } catch (RuntimeException e) {
                     log.warn("Module {} did not take the change of credential {}", port.module(), change.credentialId(), e);
                     return Stream.empty();

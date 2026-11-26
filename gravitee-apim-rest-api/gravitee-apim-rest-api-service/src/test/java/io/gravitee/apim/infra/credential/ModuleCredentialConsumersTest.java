@@ -24,6 +24,7 @@ import io.gravitee.apim.core.credential.service_provider.CredentialConsumerPort.
 import io.gravitee.apim.core.credential.service_provider.CredentialConsumerPort.Warning;
 import io.gravitee.apim.core.credential.service_provider.CredentialConsumers;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
@@ -204,6 +205,17 @@ class ModuleCredentialConsumersTest {
     @Test
     void should_keep_the_warnings_of_the_other_modules_when_one_fails() {
         loadModule("aim.credentialConsumers", new ListeningPort(true));
+        loadModule(
+            "authz.credentialConsumers",
+            new ListeningPort("authz", false, List.of(new Warning("policy-sync", "p2", "Policy sync", "The sync is paused.")))
+        );
+
+        assertThat(collector().changed(CHANGE)).extracting("module", "id").containsExactly(tuple("authz", "p2"));
+    }
+
+    @Test
+    void should_keep_the_warnings_of_the_other_modules_when_one_returns_a_null_warning() {
+        loadModule("aim.credentialConsumers", new ListeningPort("aim", false, Arrays.asList((Warning) null)));
         loadModule(
             "authz.credentialConsumers",
             new ListeningPort("authz", false, List.of(new Warning("policy-sync", "p2", "Policy sync", "The sync is paused.")))
