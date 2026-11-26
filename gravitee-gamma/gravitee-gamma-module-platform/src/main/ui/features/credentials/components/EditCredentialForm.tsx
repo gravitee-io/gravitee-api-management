@@ -78,7 +78,7 @@ export function EditCredentialForm({ credential }: Readonly<{ credential: Creden
         }
         const warnings = consumerWarningsMessage(updated.consumerWarnings);
         if (warnings) {
-            notify.error(warnings);
+            notify.warning(warnings);
         }
         const values = canUpdateSecrets ? rotationValues(draft) : undefined;
         if (values) {
