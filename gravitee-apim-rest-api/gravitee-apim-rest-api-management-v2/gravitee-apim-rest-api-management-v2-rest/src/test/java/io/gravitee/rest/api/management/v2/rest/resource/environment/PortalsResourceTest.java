@@ -16,7 +16,9 @@
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import static io.gravitee.apim.core.portal.model.Portal.of;
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
+import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static io.gravitee.common.http.HttpStatusCode.TEMPORARY_REDIRECT_307;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -430,6 +432,69 @@ class PortalsResourceTest extends AbstractResourceTest {
 
         private Response patch(PortalId portalId, String body) {
             return rootTarget(portalId.toString()).request().method("PATCH", Entity.json(body));
+        }
+    }
+
+    @Nested
+    class DeletePortal {
+
+        @Test
+        void should_delete_the_portal_and_its_listings() {
+            var theme = nextGenThemeWithLogo();
+            themeQueryService.initWith(List.of(theme));
+            var response = rootTarget(PARTNERS_PORTAL_ID.toString()).request().delete();
+
+            assertThat(response.getStatus()).isEqualTo(NO_CONTENT_204);
+            assertThat(portalCrudService.findByIdAndEnvironmentId(PARTNERS_PORTAL_ID, ENVIRONMENT)).isEmpty();
+            assertThat(portalCrudService.findByIdAndEnvironmentId(DEFAULT_PORTAL_ID, ENVIRONMENT)).isPresent();
+            assertThat(portalNavigationItemsCrudService.storage()).isEmpty();
+            var remaining = rootTarget().request().get().readEntity(PortalsResponse.class);
+            assertThat(remaining.getData()).extracting(Portal::getId).containsExactly(DEFAULT_PORTAL_ID.id());
+            var stats = rootTarget("_stats").request().get().readEntity(PortalsStats.class);
+            assertThat(stats.getQuota().getUsed()).isEqualTo(1);
+            assertThat(themeQueryService.storage()).containsExactly(theme);
+            assertThat(theme.isEnabled()).isTrue();
+        }
+
+        @Test
+        void should_refuse_the_default_portal_without_mutation() {
+            var portalsBefore = List.copyOf(portalCrudService.storage());
+            var itemsBefore = List.copyOf(portalNavigationItemsCrudService.storage());
+
+            var response = rootTarget(DEFAULT_PORTAL_ID.toString()).request().delete();
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+            assertThat(response.readEntity(Error.class).getTechnicalCode()).isEqualTo("portal.default.notDeletable");
+            assertThat(portalCrudService.storage()).containsExactlyElementsOf(portalsBefore);
+            assertThat(portalNavigationItemsCrudService.storage()).containsExactlyElementsOf(itemsBefore);
+        }
+
+        @Test
+        void should_return_404_without_mutation_for_unknown_or_foreign_portal() {
+            var portalsBefore = List.copyOf(portalCrudService.storage());
+            var itemsBefore = List.copyOf(portalNavigationItemsCrudService.storage());
+            var other = portalsBefore
+                .stream()
+                .filter(portal -> portal.getEnvironmentId().equals("other-env"))
+                .findFirst()
+                .orElseThrow();
+
+            assertThat(rootTarget(UUID.randomUUID().toString()).request().delete().getStatus()).isEqualTo(NOT_FOUND_404);
+            assertThat(rootTarget(other.getId().toString()).request().delete().getStatus()).isEqualTo(NOT_FOUND_404);
+            assertThat(portalCrudService.storage()).containsExactlyElementsOf(portalsBefore);
+            assertThat(portalNavigationItemsCrudService.storage()).containsExactlyElementsOf(itemsBefore);
+        }
+
+        @Test
+        void should_refuse_without_delete_permission_and_leave_data_untouched() {
+            var portalsBefore = List.copyOf(portalCrudService.storage());
+            var itemsBefore = List.copyOf(portalNavigationItemsCrudService.storage());
+
+            shouldReturn403(RolePermission.ENVIRONMENT_PORTAL, ENVIRONMENT, RolePermissionAction.DELETE, () ->
+                rootTarget(PARTNERS_PORTAL_ID.toString()).request().delete()
+            );
+            assertThat(portalCrudService.storage()).containsExactlyElementsOf(portalsBefore);
+            assertThat(portalNavigationItemsCrudService.storage()).containsExactlyElementsOf(itemsBefore);
         }
     }
 
