@@ -76,6 +76,10 @@ export function EditCredentialForm({ credential }: Readonly<{ credential: Creden
             notify.error(userSafeFailureMessage(error, 'The credential could not be updated.'));
             return;
         }
+        const warnings = consumerWarningsMessage(updated.consumerWarnings);
+        if (warnings) {
+            notify.error(warnings);
+        }
         const values = canUpdateSecrets ? rotationValues(draft) : undefined;
         if (values) {
             try {
@@ -86,10 +90,6 @@ export function EditCredentialForm({ credential }: Readonly<{ credential: Creden
             }
         }
         notify.success(values ? 'Credential updated and its secret replaced' : 'Credential updated');
-        const warnings = consumerWarningsMessage(updated.consumerWarnings);
-        if (warnings) {
-            notify.error(warnings);
-        }
         backToCredential();
     }
 
