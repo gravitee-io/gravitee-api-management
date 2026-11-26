@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 public record PortalHost(String value) {
     private static final int MAX_LENGTH = 256;
     private static final int MAX_PORT = 65535;
+    private static final Pattern TRAILING_DOT = Pattern.compile("\\.(?=(?::\\d*)?$)");
     private static final Pattern HOST_AND_PORT = Pattern.compile("^(?:\\[[0-9a-f:.]+]|[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?)(?::(\\d{1,5}))?$");
 
     public static PortalHost of(URL url) {
@@ -40,7 +41,8 @@ public record PortalHost(String value) {
         if (raw == null || raw.length() > MAX_LENGTH) {
             return Optional.empty();
         }
-        var normalized = raw.toLowerCase(Locale.ROOT);
+        // A fully qualified name's trailing dot names the same host.
+        var normalized = TRAILING_DOT.matcher(raw.toLowerCase(Locale.ROOT)).replaceFirst("");
         var matcher = HOST_AND_PORT.matcher(normalized);
         if (!matcher.matches()) {
             return Optional.empty();
