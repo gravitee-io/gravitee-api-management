@@ -375,6 +375,22 @@ public class UpdateSharedPolicyGroupUseCaseTest {
     }
 
     @Test
+    void should_refuse_a_step_that_adds_a_reference_to_a_stored_secret_without_the_secret_read_permission() {
+        var existingSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
+        sharedPolicyGroupCrudService.initWith(List.of(existingSharedPolicyGroup));
+        var toUpdate = UpdateSharedPolicyGroup.builder()
+            .steps(List.of(stepReferencing("/gravitee/db-password:value?envId=" + ENV_ID)))
+            .build();
+
+        assertThatThrownBy(() ->
+            updateSharedPolicyGroupUseCase.execute(
+                new UpdateSharedPolicyGroupUseCase.Input(existingSharedPolicyGroup.getId(), toUpdate, AUDIT_INFO)
+            )
+        ).isInstanceOf(SecretReferenceNotAllowedException.class);
+        assertThat(sharedPolicyGroupCrudService.storage()).containsExactly(existingSharedPolicyGroup);
+    }
+
+    @Test
     void should_save_a_step_whose_reference_the_stored_version_already_has() {
         var existingSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup()
             .toBuilder()
