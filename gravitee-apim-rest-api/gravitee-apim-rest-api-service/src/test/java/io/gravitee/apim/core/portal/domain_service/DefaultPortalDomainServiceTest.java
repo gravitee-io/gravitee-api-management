@@ -213,17 +213,34 @@ class DefaultPortalDomainServiceTest {
         }
 
         @Test
-        void should_fail_when_environment_has_several_portals() {
-            portalCrudService.initWith(List.of(aDefaultPortal(STALE_URL), anAutomationPortal(STALE_URL)));
+        void should_return_the_default_portal_when_the_environment_has_several_portals() {
+            portalCrudService.initWith(List.of(anAutomationPortal(STALE_URL), aDefaultPortal(STALE_URL)));
+            var before = storedState();
+
+            var result = cut.ensureDefault(ORG_ID, ENV_ID);
+
+            assertThat(result).hasValueSatisfying(portal -> assertThat(portal.getId()).isEqualTo(DEFAULT_PORTAL_ID));
+            assertThat(storedState()).isEqualTo(before);
+        }
+
+        @Test
+        void should_refuse_when_the_environment_has_several_portals_and_none_is_default() {
+            var secondAutomationPortalId = PortalId.of("33333333-3333-3333-3333-333333333333");
+            portalCrudService.initWith(
+                List.of(
+                    anAutomationPortal(STALE_URL),
+                    aPortal(secondAutomationPortalId, ENV_ID, "Second Automation Portal", false, STALE_URL)
+                )
+            );
             var before = storedState();
 
             assertThatThrownBy(() -> cut.ensureDefault(ORG_ID, ENV_ID))
                 .isInstanceOf(SeveralPortalsInEnvironmentException.class)
                 .hasMessageContaining(ENV_ID)
-                .hasMessageContaining(DEFAULT_PORTAL_ID.toString())
-                .hasMessageContaining("Developer Portal")
                 .hasMessageContaining(AUTOMATION_PORTAL_ID.toString())
-                .hasMessageContaining("Automation Portal");
+                .hasMessageContaining("Automation Portal")
+                .hasMessageContaining(secondAutomationPortalId.toString())
+                .hasMessageContaining("Second Automation Portal");
             assertThat(storedState()).isEqualTo(before);
         }
 

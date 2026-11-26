@@ -49,4 +49,5 @@ public class Portal {
 
     /** The {@link AccessPoint} this portal is served at; null while its environment has no usable portal URL. */
     private String accessPointId;
+    private boolean createdFromConsole;
 }

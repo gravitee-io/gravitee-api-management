@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.portal.model.Portal;
 import java.net.MalformedURLException;
@@ -32,6 +33,8 @@ public class PortalUrlDomainService {
 
     private static final String NEXT_PORTAL_PATH = "/next";
     private static final Set<String> HTTP_SCHEMES = Set.of("http", "https");
+    // The size of the JDBC url column of portals
+    private static final int MAX_URL_LENGTH = 256;
 
     private final InstallationAccessQueryService installationAccessQueryService;
 
@@ -59,6 +62,31 @@ public class PortalUrlDomainService {
             return resolveDefaultPortalUrl(portal.getEnvironmentId());
         }
         return Optional.of(portal.getUrl());
+    }
+
+    /**
+     * The URL a portal is served at, as sent by a user, kept as given.
+     *
+     * @throws ValidationDomainException when it is not an absolute http(s) URL, or has a username or password, a query
+     *     string or a fragment
+     */
+    public URL parseSentUrl(String url) {
+        var parsed = toHttpUrl(url)
+            .filter(candidate -> candidate.getQuery() == null && candidate.getRef() == null)
+            .orElseThrow(() ->
+                new ValidationDomainException(
+                    "Portal URL must be an absolute http or https URL without a username, password, query string or fragment"
+                )
+            );
+        return requireStorable(parsed);
+    }
+
+    /** @throws ValidationDomainException when the URL is longer than a portal can store */
+    public URL requireStorable(URL url) {
+        if (url.toString().length() > MAX_URL_LENGTH) {
+            throw new ValidationDomainException("Portal URL must not exceed %d characters".formatted(MAX_URL_LENGTH));
+        }
+        return url;
     }
 
     private static String withoutTrailingSlashes(String url) {

@@ -246,6 +246,7 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSour
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidatorService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalStarterContentDomainService;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
@@ -1818,6 +1819,11 @@ public class ResourceContextConfiguration {
     @Bean
     public CreateDefaultPortalNavigationItemsUseCase createDefaultPortalNavigationItemsUseCase() {
         return mock(CreateDefaultPortalNavigationItemsUseCase.class);
+    }
+
+    @Bean
+    public PortalStarterContentDomainService portalStarterContentDomainService() {
+        return mock(PortalStarterContentDomainService.class);
     }
 
     @Bean

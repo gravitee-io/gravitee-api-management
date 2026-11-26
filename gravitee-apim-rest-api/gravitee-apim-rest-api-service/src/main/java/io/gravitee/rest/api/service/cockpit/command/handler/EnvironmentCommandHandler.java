@@ -128,8 +128,8 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
     }
 
     /**
-     * An environment can hold several portals when the Automation API allows it: the command still succeeds, since the
-     * environment and its access points are already stored.
+     * An environment can hold several portals and no default one when the Automation API allows it: the command still
+     * succeeds, since the environment and its access points are already stored.
      */
     private void ensureDefaultPortal(EnvironmentEntity environment) {
         try {

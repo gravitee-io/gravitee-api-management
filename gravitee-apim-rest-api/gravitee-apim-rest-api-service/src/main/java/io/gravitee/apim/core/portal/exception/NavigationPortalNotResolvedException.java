@@ -49,6 +49,6 @@ public class NavigationPortalNotResolvedException extends ValidationDomainExcept
     }
 
     public static NavigationPortalNotResolvedException severalPortals(String environmentId, SeveralPortalsInEnvironmentException cause) {
-        return new NavigationPortalNotResolvedException(environmentId, "it has several portals", cause);
+        return new NavigationPortalNotResolvedException(environmentId, "it has several portals and no default one", cause);
     }
 }

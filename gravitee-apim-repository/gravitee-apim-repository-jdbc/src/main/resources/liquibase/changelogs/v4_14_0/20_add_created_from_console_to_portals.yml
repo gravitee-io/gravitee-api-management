@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.14.0_20_add_created_from_console_to_portals
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}portals
+            columns:
+              - column: {name: created_from_console, type: boolean, defaultValueBoolean: false, constraints: { nullable: false } }

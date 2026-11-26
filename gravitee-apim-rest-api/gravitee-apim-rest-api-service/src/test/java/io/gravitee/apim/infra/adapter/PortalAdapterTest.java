@@ -211,6 +211,33 @@ class PortalAdapterTest {
         }
 
         @Test
+        void to_repository_forwards_created_from_console_marker() throws Exception {
+            var portal = Portal.createFromConsole("env", "org", "Partners", URI.create("https://partners.example").toURL());
+
+            var repo = adapter.toRepository(portal);
+
+            assertThat(repo.isCreatedFromConsole()).isTrue();
+            assertThat(repo.isDefaultPortal()).isFalse();
+        }
+
+        @Test
+        void to_entity_forwards_created_from_console_marker() {
+            var repo = io.gravitee.repository.management.model.Portal.builder()
+                .id("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+                .environmentId("env")
+                .organizationId("org")
+                .name("Partners")
+                .createdFromConsole(true)
+                .url("https://partners.example")
+                .build();
+
+            var entity = adapter.toEntity(repo);
+
+            assertThat(entity.isCreatedFromConsole()).isTrue();
+            assertThat(entity.isDefault()).isFalse();
+        }
+
+        @Test
         void to_entity_throws_when_stored_url_is_malformed() {
             var repo = io.gravitee.repository.management.model.Portal.builder()
                 .id("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")

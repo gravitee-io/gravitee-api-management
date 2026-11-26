@@ -15,10 +15,12 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
+import io.gravitee.apim.core.portal.use_case.CreatePortalUseCase;
 import io.gravitee.apim.core.portal.use_case.GetPortalsStatsUseCase;
 import io.gravitee.apim.core.portal.use_case.ListPortalsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalMapper;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortal;
 import io.gravitee.rest.api.management.v2.rest.model.PortalsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.PortalsStats;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
@@ -31,13 +33,17 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.BeanParam;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Response;
 
 public class PortalsResource extends AbstractResource {
 
@@ -49,6 +55,9 @@ public class PortalsResource extends AbstractResource {
 
     @Inject
     private GetPortalsStatsUseCase getPortalsStatsUseCase;
+
+    @Inject
+    private CreatePortalUseCase createPortalUseCase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -62,6 +71,19 @@ public class PortalsResource extends AbstractResource {
             .data(PortalMapper.INSTANCE.map(page.getContent(), uriInfo))
             .pagination(PaginationInfo.computePaginationInfo(page.getTotalElements(), page.getContent().size(), paginationParam))
             .links(computePaginationLinks(page.getTotalElements(), paginationParam));
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE) })
+    public Response createPortal(@Valid @NotNull CreatePortal createPortal) {
+        var created = createPortalUseCase
+            .execute(new CreatePortalUseCase.Input(getAuditInfo(), createPortal.getName(), createPortal.getUrl()))
+            .portal();
+        return Response.created(this.getLocationHeader(created.portal().getId().toString()))
+            .entity(PortalMapper.INSTANCE.map(created, uriInfo))
+            .build();
     }
 
     @GET
