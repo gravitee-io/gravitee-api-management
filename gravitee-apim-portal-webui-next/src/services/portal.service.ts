@@ -44,7 +44,7 @@ export class PortalService {
   ) {}
 
   public getApiInformations(apiId: string): Observable<ApiInformation[]> {
-    return this.http.get<ApiInformation[]>(`${this.configService.baseURL}/apis/${apiId}/informations`);
+    return this.http.get<ApiInformation[]>(`${this.configService.portalBaseURL}/apis/${apiId}/informations`);
   }
 
   public getPortalHomepages(expands?: string): Observable<PortalPage[]> {
@@ -60,7 +60,7 @@ export class PortalService {
   }
 
   public getSubscriptionForm(apiId: string): Observable<SubscriptionForm | null> {
-    return this.http.get<SubscriptionForm>(`${this.configService.baseURL}/apis/${apiId}/subscription-form`).pipe(
+    return this.http.get<SubscriptionForm>(`${this.configService.portalBaseURL}/apis/${apiId}/subscription-form`).pipe(
       catchError(err => {
         if (err.status === 404) {
           return of(null);

@@ -41,16 +41,20 @@ URL and, optionally, the environment:
 Portal identity comes from the bootstrap response, which selects the environment's
 default or only portal. A `portalId` in `assets/config.json` is ignored.
 
-Navigation, homepage content, catalog searches (APIs and API Products), and API
-searches use `/environments/{environmentId}/portal/{portalId}/...`. API details,
-theme, authentication, applications, subscriptions, and existing category metadata
-keep their environment-level paths. The API analytics filter also searches within
-the selected portal. Subscription details can still be read when their API has no
-documentation link in that portal.
+Navigation, homepage content, catalog searches (APIs and API Products), API
+searches, the pages of an API and of an API Product (details, plans, documentation
+pages, informations, subscription form) and subscribing use
+`/environments/{environmentId}/portal/{portalId}/...`, so they only work for what the
+portal lists. Theme, authentication, applications, reading and managing subscriptions,
+and existing category metadata keep their environment-level paths. The API analytics
+filter also searches within the selected portal. Subscription details, and the plans
+used to configure a subscription's consumer, can still be read when their API is not
+on that portal.
 
 The backend must provide the bootstrap portal ID, portal-scoped navigation,
-and portal-scoped API search. The frontend does not fall back to environment-wide
-requests if a scoped endpoint fails.
+portal-scoped API search and the portal-scoped API, API Product and subscribe
+calls. The frontend does not fall back to environment-wide requests if a scoped
+endpoint fails.
 Missing portal context or an unknown portal during startup opens the existing
 error page. Correct the configuration and use its retry action to restart.
 A known portal with no navigation is valid. After startup, missing documentation

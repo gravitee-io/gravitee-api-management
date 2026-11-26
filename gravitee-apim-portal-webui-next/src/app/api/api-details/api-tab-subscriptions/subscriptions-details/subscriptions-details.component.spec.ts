@@ -48,7 +48,7 @@ import {
 import { fakeSubscriptionConsumerConfiguration } from '../../../../../entities/subscription/subscription-consumer-configuration.fixture';
 import { ConfigService } from '../../../../../services/config.service';
 import { PortalNavigationItemsService } from '../../../../../services/portal-navigation-items.service';
-import { AppTestingModule, TESTING_BASE_URL } from '../../../../../testing/app-testing.module';
+import { AppTestingModule, TESTING_BASE_URL, TESTING_PORTAL_BASE_URL } from '../../../../../testing/app-testing.module';
 
 describe('SubscriptionsDetailsComponent', () => {
   let fixture: ComponentFixture<SubscriptionsDetailsComponent>;
@@ -64,6 +64,10 @@ describe('SubscriptionsDetailsComponent', () => {
   class CustomConfigurationServiceStub {
     get baseURL(): string {
       return TESTING_BASE_URL;
+    }
+
+    get portalBaseURL(): string {
+      return TESTING_PORTAL_BASE_URL;
     }
 
     get configuration(): Configuration {
@@ -262,7 +266,7 @@ describe('SubscriptionsDetailsComponent', () => {
       expectPlansList(fakePlansResponse({ data: [fakePlan({ id: PLAN_ID, security: 'OAUTH2' })] }));
       fixture.detectChanges();
 
-      httpTestingController.expectNone(request => request.url === `${TESTING_BASE_URL}/apis/${API_ID}`);
+      httpTestingController.expectNone(request => request.url === `${TESTING_PORTAL_BASE_URL}/apis/${API_ID}`);
       const apiAccess = await harnessLoader.getHarness(ApiAccessHarness);
       expect(await apiAccess.getClientId()).toStrictEqual('zLgNDMUCbbCBDNnpBGb-WOV_lNrUlQlAlUiSditR9Es');
       expect(await apiAccess.getClientSecret()).toContain('***');
@@ -594,7 +598,7 @@ describe('SubscriptionsDetailsComponent', () => {
     httpTestingController
       .expectOne(request => {
         return (
-          request.url === `${TESTING_BASE_URL}/apis/${api.id}` &&
+          request.url === `${TESTING_PORTAL_BASE_URL}/apis/${api.id}` &&
           request.params.get(PortalApiViewParam.QUERY_PARAM_NAME) === PortalApiViewParam.DOCUMENTATION
         );
       })

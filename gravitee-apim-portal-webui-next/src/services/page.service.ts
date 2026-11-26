@@ -32,7 +32,7 @@ export class PageService {
   ) {}
 
   listByApiId(apiId: string, homepage = false, page = 1, size = -1) {
-    return this.http.get<PagesResponse>(`${this.configService.baseURL}/apis/${apiId}/pages`, {
+    return this.http.get<PagesResponse>(`${this.configService.portalBaseURL}/apis/${apiId}/pages`, {
       params: {
         homepage,
         page,
@@ -51,7 +51,7 @@ export class PageService {
   }
 
   getByApiIdAndId(apiId: string, pageId: string, withContent: boolean = true) {
-    return this.http.get<Page>(`${this.configService.baseURL}/apis/${apiId}/pages/${pageId}${withContent ? '?include=content' : ''}`);
+    return this.http.get<Page>(`${this.configService.portalBaseURL}/apis/${apiId}/pages/${pageId}${withContent ? '?include=content' : ''}`);
   }
 
   getById(pageId: string, withContent: boolean = true): Observable<Page> {

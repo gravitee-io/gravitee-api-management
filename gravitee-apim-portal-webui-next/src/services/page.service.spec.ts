@@ -20,7 +20,7 @@ import { PageService } from './page.service';
 import { PageTreeNode } from '../components/page-tree/page-tree.component';
 import { fakePage, fakePagesResponse } from '../entities/page/page.fixtures';
 import { PagesResponse } from '../entities/page/pages-response';
-import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
+import { AppTestingModule, TESTING_BASE_URL, TESTING_PORTAL_BASE_URL } from '../testing/app-testing.module';
 
 describe('PageService', () => {
   let service: PageService;
@@ -142,7 +142,7 @@ describe('PageService', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/api-id/pages?homepage=false&page=1&size=-1`);
+      const req = httpTestingController.expectOne(`${TESTING_PORTAL_BASE_URL}/apis/api-id/pages?homepage=false&page=1&size=-1`);
       expect(req.request.method).toEqual('GET');
       req.flush(pagesResponse);
     });
@@ -155,7 +155,7 @@ describe('PageService', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/api-id/pages?homepage=true&page=2&size=1`);
+      const req = httpTestingController.expectOne(`${TESTING_PORTAL_BASE_URL}/apis/api-id/pages?homepage=true&page=2&size=1`);
       expect(req.request.method).toEqual('GET');
       req.flush(pagesResponse);
     });
@@ -198,7 +198,7 @@ describe('PageService', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/api-id/pages/${page.id}?include=content`);
+      const req = httpTestingController.expectOne(`${TESTING_PORTAL_BASE_URL}/apis/api-id/pages/${page.id}?include=content`);
       expect(req.request.method).toEqual('GET');
       req.flush(page);
     });

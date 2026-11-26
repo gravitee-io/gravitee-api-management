@@ -19,7 +19,7 @@ import { TestBed } from '@angular/core/testing';
 import { ApiProductsService } from './api-products.service';
 import { fakeApiProduct } from '../entities/api-product/api-product.fixture';
 import { fakePlan } from '../entities/plan/plan.fixture';
-import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
+import { AppTestingModule, TESTING_PORTAL_BASE_URL } from '../testing/app-testing.module';
 
 describe('ApiProductsService', () => {
   let service: ApiProductsService;
@@ -47,7 +47,7 @@ describe('ApiProductsService', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/api-products/${apiProduct.id}`);
+      const req = httpTestingController.expectOne(`${TESTING_PORTAL_BASE_URL}/api-products/${apiProduct.id}`);
       expect(req.request.method).toEqual('GET');
       expect(req.request.params.keys()).toHaveLength(0);
       req.flush(apiProduct);
@@ -61,7 +61,7 @@ describe('ApiProductsService', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/api-products/${apiProduct.id}`);
+      const req = httpTestingController.expectOne(`${TESTING_PORTAL_BASE_URL}/api-products/${apiProduct.id}`);
       expect(req.request.method).toEqual('GET');
       req.flush(apiProduct);
     });
@@ -77,7 +77,7 @@ describe('ApiProductsService', () => {
         },
       });
 
-      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/api-products/${apiProductId}`);
+      const req = httpTestingController.expectOne(`${TESTING_PORTAL_BASE_URL}/api-products/${apiProductId}`);
       req.flush({ message: 'API Product not found' }, { status: 404, statusText: 'Not Found' });
     });
   });
@@ -92,7 +92,7 @@ describe('ApiProductsService', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/api-products/${apiProductId}/plans?size=-1`);
+      const req = httpTestingController.expectOne(`${TESTING_PORTAL_BASE_URL}/api-products/${apiProductId}/plans?size=-1`);
       expect(req.request.method).toEqual('GET');
       req.flush(plansResponse);
     });

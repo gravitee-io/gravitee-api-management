@@ -27,11 +27,12 @@ describe('PortalService', () => {
   let httpMock: HttpTestingController;
 
   const baseURL = 'http://localhost:3000';
+  const portalBaseURL = `${baseURL}/portal/a-portal`;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [PortalService, { provide: ConfigService, useValue: { baseURL } }],
+      providers: [PortalService, { provide: ConfigService, useValue: { baseURL, portalBaseURL } }],
     });
 
     service = TestBed.inject(PortalService);
@@ -50,7 +51,7 @@ describe('PortalService', () => {
       expect(data).toEqual(mockResponse);
     });
 
-    const req = httpMock.expectOne(`${baseURL}/apis/${apiId}/informations`);
+    const req = httpMock.expectOne(`${portalBaseURL}/apis/${apiId}/informations`);
     expect(req.request.method).toBe('GET');
     req.flush(mockResponse);
   });
@@ -108,7 +109,7 @@ describe('PortalService', () => {
       expect(form).toEqual(mockForm);
     });
 
-    const req = httpMock.expectOne(`${baseURL}/apis/${apiId}/subscription-form`);
+    const req = httpMock.expectOne(`${portalBaseURL}/apis/${apiId}/subscription-form`);
     expect(req.request.method).toBe('GET');
     req.flush(mockForm);
   });
@@ -120,7 +121,7 @@ describe('PortalService', () => {
       expect(form).toBeNull();
     });
 
-    const req = httpMock.expectOne(`${baseURL}/apis/${apiId}/subscription-form`);
+    const req = httpMock.expectOne(`${portalBaseURL}/apis/${apiId}/subscription-form`);
     expect(req.request.method).toBe('GET');
     req.flush(null, { status: 404, statusText: 'Not Found' });
   });
