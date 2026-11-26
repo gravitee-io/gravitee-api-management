@@ -2620,8 +2620,8 @@
                 </dependency>
                 <dependency>
                     <groupId>com.graviteesource.reactor</groupId>
-                    <artifactId>gravitee-reactor-guardian</artifactId>
-                    <version>${gravitee-reactor-guardian.version}</version>
+                    <artifactId>gravitee-reactor-guardrail</artifactId>
+                    <version>${gravitee-reactor-guardrail.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
