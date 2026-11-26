@@ -16,6 +16,7 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
 import { MatIconHarness } from '@angular/material/icon/testing';
+import { MatTooltipHarness } from '@angular/material/tooltip/testing';
 
 export class GioWidgetLayoutHarness extends ComponentHarness {
   static hostSelector = 'gio-widget-layout';
@@ -23,6 +24,7 @@ export class GioWidgetLayoutHarness extends ComponentHarness {
   protected getCardElement = this.locatorFor(MatCardHarness);
   protected getTitleElement = this.locatorFor('mat-card-title');
   protected getTooltipIcon = this.locatorForOptional(MatIconHarness.with({ selector: '[svgIcon="gio:info"]' }));
+  protected getTooltip = this.locatorForOptional(MatTooltipHarness.with({ selector: '[svgIcon="gio:info"]' }));
   protected getLoader = this.locatorForOptional('gio-loader');
   protected getErrorContainer = this.locatorForOptional('.error');
   protected getErrorIcon = this.locatorForOptional(MatIconHarness.with({ selector: '[svgIcon="gio:alert-circle"]' }));
@@ -39,6 +41,15 @@ export class GioWidgetLayoutHarness extends ComponentHarness {
   async getTitleText(): Promise<string> {
     const titleElement = await this.getTitleElement();
     return titleElement.text();
+  }
+
+  async getTooltipText(): Promise<string | null> {
+    const tooltip = await this.getTooltip();
+    if (!tooltip) {
+      return null;
+    }
+    await tooltip.show();
+    return tooltip.getTooltipText();
   }
 
   /**

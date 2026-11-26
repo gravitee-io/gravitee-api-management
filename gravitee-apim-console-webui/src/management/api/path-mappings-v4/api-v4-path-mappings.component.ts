@@ -41,7 +41,7 @@ import {
 } from './api-v4-path-mappings-add-dialog.component';
 import { ApiV4PathMappingsEditDialogComponent, ApiV4PathMappingsEditDialogData } from './api-v4-path-mappings-edit-dialog.component';
 
-import { ApiV4, HttpListener } from '../../../entities/management-api-v2';
+import { ApiV4, firstHttpListener, storedPathMappings } from '../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
@@ -223,15 +223,6 @@ export class ApiV4PathMappingsComponent {
     const api = this.api();
     return api?.definitionVersion === 'V4' ? api : undefined;
   }
-}
-
-function storedPathMappings(api: ApiV4 | undefined): string[] {
-  const listener = firstHttpListener(api);
-  return listener?.pathMappings ? [...listener.pathMappings] : [];
-}
-
-function firstHttpListener(api: ApiV4 | undefined): HttpListener | undefined {
-  return api?.listeners.find((listener): listener is HttpListener => listener.type === 'HTTP');
 }
 
 function sameMappings(left: string[], right: string[]): boolean {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController, TestRequest } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
@@ -27,6 +27,7 @@ import { ApiAnalyticsProxyHarness } from './api-analytics-proxy.component.harnes
 import { CONSTANTS_TESTING, GioTestingModule, provideHighchartsTesting } from '../../../../../shared/testing';
 import { fakeAnalyticsHistogram } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram.fixture';
 import { fakeGroupByResponse } from '../../../../../entities/management-api-v2/analytics/analyticsGroupBy.fixture';
+import { GroupByResponse } from '../../../../../entities/management-api-v2/analytics/analyticsGroupBy';
 import { fakeAnalyticsStatsResponse } from '../../../../../entities/management-api-v2/analytics/analyticsStats.fixture';
 import { fakePagedResult, fakePlanV4, PlanV4 } from '../../../../../entities/management-api-v2';
 
@@ -37,7 +38,7 @@ describe('ApiAnalyticsProxyComponent', () => {
   let componentHarness: ApiAnalyticsProxyHarness;
   let httpTestingController: HttpTestingController;
 
-  const initComponent = async (queryParams = {}) => {
+  const initComponent = async (queryParams = {}, inputs: { groupPathsByMapping?: boolean } = {}) => {
     TestBed.configureTestingModule({
       imports: [ApiAnalyticsProxyComponent, NoopAnimationsModule, MatIconTestingModule, GioTestingModule],
       providers: [
@@ -58,6 +59,7 @@ describe('ApiAnalyticsProxyComponent', () => {
 
     await TestBed.compileComponents();
     fixture = TestBed.createComponent(ApiAnalyticsProxyComponent);
+    Object.entries(inputs).forEach(([name, value]) => fixture.componentRef.setInput(name, value));
     httpTestingController = TestBed.inject(HttpTestingController);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiAnalyticsProxyHarness);
     fixture.detectChanges();
@@ -86,17 +88,73 @@ describe('ApiAnalyticsProxyComponent', () => {
   });
 
   describe('Top Paths widget', () => {
-    it('should group Top Paths on the request uri', async () => {
+    const TOP_PATHS_TOOLTIP_BY_URI = 'Most frequently hit API paths';
+    const TOP_PATHS_TOOLTIP_BY_MAPPING =
+      'Most frequently hit path mappings. Counts only requests that matched a path mapping and passed security (401/403 excluded).';
+
+    it('should group Top Paths on the request uri by default', async () => {
       await initComponent();
 
-      const groupByRequests = httpTestingController.match(req => req.url.includes('type=GROUP_BY'));
-      const topPathsRequest = groupByRequests.find(req => new URL(req.request.urlWithParams).searchParams.get('field') === 'uri');
-      groupByRequests.forEach(req => req.flush(fakeGroupByResponse()));
+      const topPathsRequests = flushGroupByRequests({
+        uri: fakeGroupByResponse({ values: { '/charges/8f3a?expand=true': 2, '/charges/8f3a': 1, '/other': 1 }, metadata: {} }),
+      });
       handleAllRequests();
 
-      expect(topPathsRequest).toBeDefined();
-      expect(new URL(topPathsRequest!.request.urlWithParams).searchParams.get('order')).toBe('-count:_count');
+      expect(topPathsRequests.map(fieldOf)).toEqual(['uri']);
+      expect(new URL(topPathsRequests[0].request.urlWithParams).searchParams.get('order')).toBe('-count:_count');
+
+      const topPaths = await componentHarness.getWidgetByTitle('Top Paths');
+      expect(await topPaths.getTableHeaderTexts()).toEqual(['Path', 'Hits']);
+      expect(await topPaths.getTableData()).toEqual([
+        ['/charges/8f3a', '3'],
+        ['/other', '1'],
+      ]);
+      expect(await topPaths.getTooltipText()).toBe(TOP_PATHS_TOOLTIP_BY_URI);
     });
+
+    it('should group Top Paths on the path mapping when the API has path mappings', async () => {
+      await initComponent({}, { groupPathsByMapping: true });
+
+      const topPathsRequests = flushGroupByRequests({
+        'mapped-path': fakeGroupByResponse({
+          values: { '/charges/:chargeId': 3, '/charges': 1 },
+          metadata: { '/charges/:chargeId': { name: '/charges/:chargeId', order: 0 }, '/charges': { name: '/charges', order: 1 } },
+        }),
+      });
+      handleAllRequests();
+
+      expect(topPathsRequests.map(fieldOf)).toEqual(['mapped-path']);
+      expect(new URL(topPathsRequests[0].request.urlWithParams).searchParams.get('order')).toBe('-count:_count');
+
+      const topPaths = await componentHarness.getWidgetByTitle('Top Paths');
+      expect(await topPaths.getTableHeaderTexts()).toEqual(['Path mapping', 'Hits']);
+      expect(await topPaths.getTableData()).toEqual([
+        ['/charges/:chargeId', '3'],
+        ['/charges', '1'],
+      ]);
+      expect(await topPaths.getTooltipText()).toBe(TOP_PATHS_TOOLTIP_BY_MAPPING);
+    });
+
+    it('should keep every other widget on its own field when grouping Top Paths on the path mapping', async () => {
+      await initComponent({}, { groupPathsByMapping: true });
+
+      const groupByFields = httpTestingController.match(req => req.url.includes('type=GROUP_BY')).map(fieldOf);
+      handleAllRequests();
+
+      expect(groupByFields.sort()).toEqual(['application-id', 'application-id', 'host', 'mapped-path', 'plan-id', 'status']);
+    });
+
+    function flushGroupByRequests(responsesByField: Record<string, GroupByResponse>): TestRequest[] {
+      const groupByRequests = httpTestingController.match(req => req.url.includes('type=GROUP_BY'));
+      const topPathsRequests = groupByRequests.filter(req => ['uri', 'mapped-path'].includes(fieldOf(req)));
+      groupByRequests.forEach(req => req.flush(responsesByField[fieldOf(req)] ?? fakeGroupByResponse()));
+      fixture.detectChanges();
+      return topPathsRequests;
+    }
+
+    function fieldOf(req: TestRequest): string {
+      return new URL(req.request.urlWithParams).searchParams.get('field');
+    }
   });
 
   describe('Query parameters', () => {
