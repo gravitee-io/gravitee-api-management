@@ -20,11 +20,15 @@ import type { CredentialConsumer, CredentialConsumerWarning } from '../types/cre
 const TYPE_LABELS: Readonly<Record<string, string>> = {
     LLM_PROXY: 'LLM proxy',
     AI_WORKSPACE: 'AI workspace',
+    'llm-proxy': 'LLM proxy',
+    'llm-provider': 'LLM provider',
 };
 
 const CONSUMER_ROUTES: Readonly<Record<string, (id: string) => string>> = {
     'aim:LLM_PROXY': id => `llm-proxy/${id}`,
     'aim:AI_WORKSPACE': id => `ai-workspaces/${id}`,
+    'aim:llm-proxy': id => `llm-proxy/${id}`,
+    'aim:llm-provider': id => `catalog/providers/${id}`,
 };
 
 export function credentialConsumerHref(consumer: CredentialConsumer, currentPathname: string): string | undefined {
