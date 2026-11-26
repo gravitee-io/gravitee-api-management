@@ -78,7 +78,7 @@ public class DeployClusterUseCase {
 
         Cluster updatedCluster = clusterCrudService.update(cluster);
 
-        createAuditLog(beforeDeploy, updatedCluster, input.auditInfo());
+        createAuditLog(beforeDeploy, updatedCluster.withoutCredentials(), input.auditInfo());
 
         return new Output(
             clusterConfigurationAccessDomainService.visibleTo(

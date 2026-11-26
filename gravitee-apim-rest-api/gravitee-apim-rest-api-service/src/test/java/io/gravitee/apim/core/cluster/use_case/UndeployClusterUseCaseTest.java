@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.cluster.use_case;
 
+import static fixtures.core.model.ClusterConnectionsFixtures.aConnectionsConfigurationWithCredentials;
+import static io.gravitee.apim.core.cluster.use_case.ClusterAuditAssertions.assertCredentialsKeptOutOfTheAuditOnly;
 import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -284,5 +286,29 @@ class UndeployClusterUseCaseTest {
         var output = useCase.execute(new UndeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO));
 
         assertThat(output.cluster().getConfiguration()).isNull();
+    }
+
+    @Test
+    void should_keep_credentials_out_of_the_audit() {
+        Cluster existing = Cluster.builder()
+            .id(CLUSTER_ID)
+            .crossId(CLUSTER_CROSS_ID)
+            .type(ClusterType.KAFKA_CLUSTER)
+            .name("My Cluster")
+            .environmentId(ENV_ID)
+            .organizationId(ORG_ID)
+            .lifecycleState(ClusterLifecycleState.DEPLOYED)
+            .version(1)
+            .configuration(aConnectionsConfigurationWithCredentials())
+            .build();
+        clusterCrudService.initWith(List.of(existing));
+
+        useCase.execute(new UndeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO));
+
+        assertCredentialsKeptOutOfTheAuditOnly(
+            auditCrudService.storage().get(0).getPatch(),
+            eventCrudInMemory.storage().get(0).getPayload(),
+            clusterCrudService.storage().get(0).getConfiguration()
+        );
     }
 }
