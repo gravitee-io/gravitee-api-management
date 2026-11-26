@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.documentation;
 
+import io.gravitee.apim.core.documentation.domain_service.PageSourceDomainService;
 import io.gravitee.apim.core.documentation.exception.ApiPageNotAssociatedException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.use_case.ApiCreateDocumentationPageUseCase;
@@ -89,6 +90,9 @@ public class ApiPagesResource extends AbstractResource {
     @Inject
     private ApiUpdateFetchedPageContentUseCase apiUpdateFetchedPageContentUseCase;
 
+    @Inject
+    private PageSourceDomainService pageSourceDomainService;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
@@ -129,7 +133,8 @@ public class ApiPagesResource extends AbstractResource {
                 .execute(ApiCreateDocumentationPageUseCase.Input.builder().page(pageToCreate).auditInfo(getAuditInfo()).build())
                 .createdPage();
 
-            return Response.created(this.getLocationHeader(createdPage.getId())).entity(mapper.mapPage(createdPage)).build();
+            var entity = mapper.mapPage(withoutSensitiveData(createdPage));
+            return Response.created(this.getLocationHeader(createdPage.getId())).entity(entity).build();
         } else {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
@@ -172,7 +177,7 @@ public class ApiPagesResource extends AbstractResource {
 
         if (input != null) {
             var page = updateDocumentationPageUsecase.execute(input).page();
-            return Response.ok(mapper.mapPage(page)).build();
+            return Response.ok(mapper.mapPage(withoutSensitiveData(page))).build();
         } else {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
@@ -186,7 +191,7 @@ public class ApiPagesResource extends AbstractResource {
         var page = apiPublishDocumentationPageUsecase
             .execute(new ApiPublishDocumentationPageUseCase.Input(apiId, pageId, getAuditInfo()))
             .page();
-        return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(page)).build();
+        return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(withoutSensitiveData(page))).build();
     }
 
     @POST
@@ -197,7 +202,7 @@ public class ApiPagesResource extends AbstractResource {
         var page = apiUnpublishDocumentationPageUsecase
             .execute(new ApiUnpublishDocumentationPageUseCase.Input(apiId, pageId, getAuditInfo()))
             .page();
-        return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(page)).build();
+        return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(withoutSensitiveData(page))).build();
     }
 
     @POST
@@ -208,7 +213,7 @@ public class ApiPagesResource extends AbstractResource {
         var page = apiUpdateFetchedPageContentUseCase
             .execute(new ApiUpdateFetchedPageContentUseCase.Input(pageId, apiId, getAuditInfo()))
             .page();
-        return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(page)).build();
+        return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(withoutSensitiveData(page))).build();
     }
 
     @DELETE
@@ -224,5 +229,16 @@ public class ApiPagesResource extends AbstractResource {
             throw notFoundException;
         }
         return Response.noContent().build();
+    }
+
+    /**
+     * A page returned by a write carries the stored source secrets (the update restores them over the masked placeholder),
+     * so it is masked before it leaves. The copy is masked, never the page itself, which keeps the secrets it is stored with.
+     */
+    private Page withoutSensitiveData(Page page) {
+        var source = page.getSource();
+        var copy = page.toBuilder().source(source == null ? null : source.toBuilder().build()).build();
+        pageSourceDomainService.removeSensitiveData(copy);
+        return copy;
     }
 }
