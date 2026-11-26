@@ -23,10 +23,12 @@ import io.gravitee.apim.core.credential.domain_service.CredentialOwnerDomainServ
 import io.gravitee.apim.core.credential.model.Credential;
 import io.gravitee.apim.core.credential.model.CredentialActor;
 import io.gravitee.apim.core.credential.model.CredentialAuditEvent;
+import io.gravitee.apim.core.credential.model.CredentialConsumerWarning;
 import io.gravitee.apim.core.credential.model.UpdateCredentialCommand;
 import io.gravitee.apim.core.credential.service_provider.CredentialConsumerPort;
 import io.gravitee.apim.core.credential.service_provider.CredentialConsumers;
 import io.gravitee.common.utils.TimeProvider;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -41,7 +43,8 @@ public class UpdateCredentialUseCase {
 
     public record Input(CredentialActor actor, String credentialId, UpdateCredentialCommand command) {}
 
-    public record Output(Credential credential) {}
+    /** @param warnings the objects of the Gamma modules that kept the former references or configuration */
+    public record Output(Credential credential, List<CredentialConsumerWarning> warnings) {}
 
     public Output execute(Input input) {
         var actor = input.actor();
@@ -63,11 +66,11 @@ public class UpdateCredentialUseCase {
         var updated = credentialCrudService.update(changed);
 
         credentialAuditDomainService.record(actor, CredentialAuditEvent.CREDENTIAL_UPDATED, existing, updated);
-        if (reachesConsumers) {
-            credentialConsumers.changed(
+        var warnings = reachesConsumers
+            ? credentialConsumers.changed(
                 new CredentialConsumerPort.Change(actor.organizationId(), actor.environmentId(), updated.id(), actor.userId())
-            );
-        }
-        return new Output(updated);
+            )
+            : List.<CredentialConsumerWarning>of();
+        return new Output(updated, warnings);
     }
 }

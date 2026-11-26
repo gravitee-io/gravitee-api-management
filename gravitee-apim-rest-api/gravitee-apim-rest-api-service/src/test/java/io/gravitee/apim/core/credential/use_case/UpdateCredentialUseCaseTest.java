@@ -33,6 +33,7 @@ import io.gravitee.apim.core.credential.exception.SecretPermissionRequiredExcept
 import io.gravitee.apim.core.credential.model.Credential;
 import io.gravitee.apim.core.credential.model.CredentialActor;
 import io.gravitee.apim.core.credential.model.CredentialActor.SecretAccess;
+import io.gravitee.apim.core.credential.model.CredentialConsumerWarning;
 import io.gravitee.apim.core.credential.model.CredentialStrategy;
 import io.gravitee.apim.core.credential.model.SecretReference;
 import io.gravitee.apim.core.credential.model.UpdateCredentialCommand;
@@ -63,14 +64,22 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
         Credential credential,
         UnaryOperator<UpdateCredentialCommand.UpdateCredentialCommandBuilder> customizer
     ) {
+        return execute(actor, credential, customizer).credential();
+    }
+
+    private UpdateCredentialUseCase.Output execute(
+        CredentialActor actor,
+        Credential credential,
+        UnaryOperator<UpdateCredentialCommand.UpdateCredentialCommandBuilder> customizer
+    ) {
         var unchanged = UpdateCredentialCommand.builder()
             .name(credential.name())
             .serviceId(credential.serviceId())
             .expiresAt(credential.expiresAt())
             .configuration(credential.configuration());
-        return fixture.updateCredentialUseCase
-            .execute(new UpdateCredentialUseCase.Input(actor, credential.id(), customizer.apply(unchanged).build()))
-            .credential();
+        return fixture.updateCredentialUseCase.execute(
+            new UpdateCredentialUseCase.Input(actor, credential.id(), customizer.apply(unchanged).build())
+        );
     }
 
     @Test
@@ -133,6 +142,31 @@ class UpdateCredentialUseCaseTest extends AbstractUseCaseTest {
         );
 
         assertThat(fixture.consumers.changes()).isEmpty();
+    }
+
+    @Test
+    void should_return_the_warnings_of_the_consumers_that_kept_the_former_settings() {
+        var credential = fixture.givenACredential();
+        var warning = new CredentialConsumerWarning("aim", "llm-proxy", "p1", "Support bot", "You cannot update this LLM proxy.");
+        fixture.consumers.givenWarnings(warning);
+
+        var output = execute(fixture.owner(), credential, c -> c.references(Map.of("token", "/vault/secret/openai:token-v2")));
+
+        assertThat(output.warnings()).containsExactly(warning);
+    }
+
+    @Test
+    void should_return_no_warning_when_only_the_details_change() {
+        var credential = fixture.givenACredential();
+        fixture.consumers.givenWarnings(
+            new CredentialConsumerWarning("aim", "llm-proxy", "p1", "Support bot", "You cannot update this LLM proxy.")
+        );
+
+        var output = execute(fixture.owner(), credential, c ->
+            c.name("OpenAI staging").references(Map.of("token", "/vault/secret/openai:token"))
+        );
+
+        assertThat(output.warnings()).isEmpty();
     }
 
     @Test
