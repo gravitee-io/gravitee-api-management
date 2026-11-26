@@ -117,12 +117,13 @@ tags:
           `ENVIRONMENT_DASHBOARD` permissions, whatever its module.
     - name: Metric definitions
       description: |
-          The additional metrics of an environment: fields a plugin or the gateway attaches to a request
-          (`additional-metrics.<rawKey>`), whether the product reads them under a built-in name, an
+          The additional and custom metrics of an environment: fields a plugin or the gateway attaches to a
+          request (`additional-metrics.<rawKey>`), whether the product reads them under a built-in name, an
           administrator declared them, or they were found in the environment's documents. A record gives
-          a key a label, a description, a unit, and hides it from the pickers when `exposed` is `false`.
+          a key a label, a description, a unit, and keeps it out of the pickers when `exposed` is `false`.
           The custom metrics the assign-metrics policy writes (`custom.<name>`) are listed when found, as
-          `DISCOVERED` keyword entries of the `custom` namespace; they cannot be declared.
+          `DISCOVERED` keyword entries of the `custom` namespace, or `DECLARED` once a record describes them.
+          They take a record like an additional metric (label, description and `exposed`) but no unit.
 
           A record is named by its field's wire name, in the `name` query parameter or in the body, never
           in a path segment: keys contain `/`, and an encoded `%2F` is refused by the server.
@@ -135,8 +136,14 @@ tags:
           | Edit a record, or declare a listed key | `PUT /metric-definitions/record?name=` | 200 replaced, 201 created |
           | Delete a record | `DELETE /metric-definitions/record?name=` | 204; 404 when the environment holds none |
 
-          Every write refuses a key a built-in entry reads, the reserved `<type>_custom_<name>` form and a
-          `custom.<name>` (400).
+          Every write refuses (400) a key a built-in entry reads, the reserved
+          `additional-metrics.<type>_custom_<name>` form, the `additional-metrics.<type>_custom.<name>` decoy
+          (it reads the additional metrics map, not the policy's `custom.<name>`), a name holding a control
+          character or an unpaired UTF-16 surrogate (`invalid_name`; such a key is still listed, read-only),
+          and a unit on a `custom.<name>` record.
+
+          `exposed: false` only keeps a key out of the pickers: its values are still returned by queries, values
+          listings and logs. It is not a redaction.
 
           Reads need a login only; discovered entries and `lastSeen` are traffic data, served only to a
           caller with `API_ANALYTICS[READ]` or `API_LOG[READ]` on one API of the environment, or
@@ -184,8 +191,8 @@ paths:
                 were left out), and every entry backed by an additional metric carries its `lastSeen`. The
                 custom metrics the assign-metrics policy writes are among them: `custom.<name>` entries of
                 type `KEYWORD`, `namespace: custom`, labelled from their name like an additional key ("Fraud tier"), with no `apiTypes`, sharing
-                the 200 entries with the additional metric fields; `<type>_custom_<name>` keys are listed
-                too. The discovery pass is reused for a few minutes: a field a newly deployed plugin starts writing
+                the 200 entries with the additional metric fields, and `DECLARED` like one once a record describes them; typed
+                `additional-metrics.<type>_custom_<name>` keys are listed too. The discovery pass is reused for a few minutes: a field a newly deployed plugin starts writing
                 appears after the next refresh. When the pass fails, the catalog is served without them and
                 `truncated` is `true`.
                 Any other caller gets no `DISCOVERED` entry and no `lastSeen`: a login is enough for the rest.
@@ -1629,8 +1636,8 @@ paths:
                 when `DISCOVERED` entries may be missing.
 
                 The environment's `keyword_` and `bool_` keys, exposed records and discovered keys alike,
-                and its discovered custom metrics (`custom.<name>`, `namespace: custom`, labelled from their
-                name like an additional key), come as facets under the same kind rule: in `dimensions` with their origin, and
+                and its custom metrics (`custom.<name>`, `namespace: custom`, labelled from their record or else
+                from their name like an additional key; exposed records and discovered keys alike), come as facets under the same kind rule: in `dimensions` with their origin, and
                 among the `facets` of every metric served for one of the facet's kinds, the built-ins read
                 from the request documents (`HTTP_REQUESTS`, `HTTP_ERRORS`, `HTTP_ERROR_RATE`, the gateway and endpoint
                 response times, the gateway latency, the request and response content lengths, and the LLM
@@ -2297,9 +2304,9 @@ paths:
         get:
             tags:
                 - Metric definitions
-            summary: List the additional metrics of the environment
+            summary: List the additional and custom metrics of the environment
             description: |
-                Every additional metric of the environment, one entry per key, resolved `BUILT_IN` ›
+                Every additional and custom metric of the environment, one entry per key, resolved `BUILT_IN` ›
                 `DECLARED` › `DISCOVERED`: a key read under a built-in name is listed once under that name, a
                 declared key keeps `DECLARED` whether or not documents carry it, and a key found in the
                 documents with no record is `DISCOVERED`. Entries with `exposed: false` are listed too.
@@ -2375,7 +2382,7 @@ paths:
         post:
             tags:
                 - Metric definitions
-            summary: Declare an additional metric
+            summary: Declare an additional or custom metric
             description: |
                 Creates the record on a key, whether or not documents carry it yet. Refused when the
                 environment already declares the key: use `PUT /metric-definitions/record` to edit it.
@@ -2542,19 +2549,25 @@ components:
             description: |
                 The name or a field breaks a rule, named by `technicalCode`:
 
-                - `observability.metric_definition.invalid_name`: not `additional-metrics.` followed by a type
+                - `observability.metric_definition.invalid_name`: neither `additional-metrics.` followed by a type
                   prefix and segments of letters, digits, `-`, `_` and `/` joined by single dots, 256 characters
-                  at most (a `"` is refused here, and so is a custom metric `custom.<name>`);
+                  at most (a `"` is refused here), nor `custom.<name>` with a `<name>` of 1 to 256 characters, not
+                  blank, with no leading or trailing dot, no `..`, and none of `"`, `\` and `*`; on `POST` and
+                  `PUT`, also a name holding a control character (CR, LF, NUL…) or an unpaired UTF-16 surrogate:
+                  such a key is still listed and can be read, never declared. A name echoed in an error message has
+                  those characters written as `\uXXXX` escapes;
                 - `observability.metric_definition.unknown_type_prefix`: the prefix is not `long_`, `int_`,
                   `double_`, `bool_`, `keyword_`, `string_` or `json_`;
-                - `observability.metric_definition.reserved_key`: a `<type>_custom_<name>` key, kept for the
-                  typed custom metrics, or a `<type>_custom.<name>` key, which would read another map than the
+                - `observability.metric_definition.reserved_key`: an `additional-metrics.<type>_custom_<name>` key, kept for the
+                  typed custom metrics, or an `additional-metrics.<type>_custom.<name>` key, which would read another map than the
                   custom metric `custom.<name>` the Assign metrics policy writes;
                 - `observability.metric_definition.built_in_key`: a built-in entry reads the key; built-in entries
                   are read-only;
                 - `observability.metric_definition.duplicate`: on `POST`, the environment already declares the key;
                 - `observability.metric_definition.label_too_long` (64), `description_too_long` (512),
                   `invalid_unit` (a named unit, or a suffix of at most 16 printable characters);
+                - `observability.metric_definition.unit_not_allowed`: a unit on a `custom.<name>` record (a custom
+                  metric takes no unit);
                 - `observability.metric_definition.invalid_body`: no body, or a property the schema does not
                   list, named in the message.
             content:
@@ -2634,12 +2647,13 @@ components:
             in: query
             required: true
             description: |
-                Wire name of the additional metric field the record is on, `additional-metrics.<rawKey>`.
-                Percent-encode it as a query value; it is never a path segment.
+                Wire name of the field the record is on: `additional-metrics.<rawKey>` (256 characters at most)
+                or `custom.<name>` (a `<name>` of 256 characters at most). Percent-encode it as a query value;
+                it is never a path segment.
             example: "additional-metrics.keyword_mcp-proxy_tools/call"
             schema:
                 type: string
-                maxLength: 256
+                maxLength: 263
         catalogOriginsParam:
             name: origin
             in: query
@@ -2798,7 +2812,9 @@ components:
                 (`additional-metrics.long_failover_count`) and, in the filter catalog, for a key a built-in
                 metric reads and no built-in filter reads (`additional-metrics.long_llm-proxy_tokens-sent`,
                 `origin: BUILT_IN`), or `custom.<name>` for a custom metric the assign-metrics policy writes,
-                always a `DISCOVERED` `KEYWORD` entry of the `custom` namespace, labelled from its name like an additional key (`custom.customer.tier` → "Customer tier").
+                a `KEYWORD` entry of the `custom` namespace: `DECLARED` and labelled by its record when one
+                describes it, `DISCOVERED` and labelled from its name like an additional key otherwise
+                (`custom.customer.tier` → "Customer tier").
             properties:
                 origin:
                     $ref: "#/components/schemas/CatalogOrigin"
@@ -4410,8 +4426,8 @@ components:
                     description: |
                         Where the entry comes from: `BUILT_IN` for a facet of the engine catalog, `DECLARED` or
                         `DISCOVERED` for a `keyword_` or `bool_` additional metric field of the environment,
-                        named `additional-metrics.<rawKey>` as `by` accepts it, `DISCOVERED` for a custom metric
-                        `custom.<name>`.
+                        named `additional-metrics.<rawKey>` as `by` accepts it, and for a custom metric
+                        `custom.<name>` (`DECLARED` when a record describes it).
                 lastSeen:
                     type: string
                     format: date-time
@@ -4686,7 +4702,7 @@ components:
         MetricDefinitionEntry:
             type: object
             description: |
-                One additional metric of the environment, with the catalog flags of `CatalogEntryFlags`: `origin`,
+                One additional or custom metric of the environment, with the catalog flags of `CatalogEntryFlags`: `origin`,
                 `rawKey`, `valueType` and `exposed` are always present here, `lastSeen` and `namespace` as the
                 flags describe them.
                 Unlike the filter catalog, this list also serves entries with `exposed: false`.
@@ -4697,7 +4713,8 @@ components:
                 name:
                     type: string
                     description: |
-                        Wire name: the built-in name of a `BUILT_IN` entry, `additional-metrics.<rawKey>` otherwise.
+                        Wire name: the built-in name of a `BUILT_IN` entry, `additional-metrics.<rawKey>` or
+                        `custom.<name>` otherwise.
                     example: "additional-metrics.double_checkout_basket-value"
                 label:
                     type: string
@@ -4754,7 +4771,7 @@ components:
 
         MetricDefinitionRecord:
             type: object
-            description: The record an environment holds on one additional metric key.
+            description: The record an environment holds on one additional or custom metric key.
             required: [name, rawKey, valueType, exposed, createdAt, updatedAt]
             properties:
                 name:
@@ -4762,9 +4779,14 @@ components:
                     example: "additional-metrics.double_checkout_basket-value"
                 rawKey:
                     type: string
+                    description: |
+                        The key as `CatalogEntryFlags.rawKey` serves it: the additional metric key without its root,
+                        or `custom.<name>` for a custom metric.
                     example: "double_checkout_basket-value"
                 valueType:
-                    $ref: "#/components/schemas/AdditionalMetricValueType"
+                    allOf:
+                        - $ref: "#/components/schemas/AdditionalMetricValueType"
+                    description: Read from the key's type prefix; always `KEYWORD` for a custom metric.
                 label:
                     type: string
                     maxLength: 64
@@ -4774,9 +4796,12 @@ components:
                     maxLength: 512
                 unit:
                     type: string
-                    description: A named unit or a free suffix of at most 16 printable characters, shown as written (see `MetricDefinitionEntry.unit`).
+                    description: A named unit or a free suffix of at most 16 printable characters, shown as written (see `MetricDefinitionEntry.unit`). Never set on a custom metric, which takes no unit.
                 exposed:
                     type: boolean
+                    description: |
+                        Whether the pickers offer the key. `false` keeps it out of the filter and analytics
+                        definitions only: queries, values listings and logs still return its values.
                 createdAt:
                     type: string
                     format: date-time
@@ -4800,10 +4825,14 @@ components:
                     maxLength: 512
                 unit:
                     type: string
-                    description: A named unit or a free suffix of at most 16 printable characters, shown as written (see `MetricDefinitionEntry.unit`).
+                    description: |
+                        A named unit or a free suffix of at most 16 printable characters, shown as written (see
+                        `MetricDefinitionEntry.unit`). Refused on a `custom.<name>` key with
+                        `observability.metric_definition.unit_not_allowed`.
                 exposed:
                     type: boolean
                     default: true
+                    description: Whether the pickers offer the key; `false` is not a redaction (see `MetricDefinitionRecord.exposed`).
 
         DeclareMetricDefinitionRequest:
             type: object
@@ -4813,8 +4842,10 @@ components:
             properties:
                 name:
                     type: string
-                    maxLength: 256
-                    description: Wire name of the field to declare, `additional-metrics.<rawKey>`.
+                    maxLength: 263
+                    description: |
+                        Wire name of the field to declare: `additional-metrics.<rawKey>` (256 characters at most)
+                        or `custom.<name>` (a `<name>` of 256 characters at most).
                     example: "additional-metrics.double_checkout_basket-value"
                 label:
                     type: string
@@ -4824,10 +4855,14 @@ components:
                     maxLength: 512
                 unit:
                     type: string
-                    description: A named unit or a free suffix of at most 16 printable characters, shown as written (see `MetricDefinitionEntry.unit`).
+                    description: |
+                        A named unit or a free suffix of at most 16 printable characters, shown as written (see
+                        `MetricDefinitionEntry.unit`). Refused on a `custom.<name>` key with
+                        `observability.metric_definition.unit_not_allowed`.
                 exposed:
                     type: boolean
                     default: true
+                    description: Whether the pickers offer the key; `false` is not a redaction (see `MetricDefinitionRecord.exposed`).
 
         Error:
             type: object

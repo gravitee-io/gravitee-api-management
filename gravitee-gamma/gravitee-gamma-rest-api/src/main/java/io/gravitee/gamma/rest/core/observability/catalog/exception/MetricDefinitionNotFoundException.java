@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.core.observability.catalog.exception;
 
 import io.gravitee.apim.core.exception.NotFoundDomainException;
+import io.gravitee.gamma.rest.core.observability.catalog.model.MetricDefinitionNames;
 
 /**
  * No record on this key in the caller's environment, whether none exists or it belongs to another environment.
@@ -25,6 +26,9 @@ import io.gravitee.apim.core.exception.NotFoundDomainException;
 public class MetricDefinitionNotFoundException extends NotFoundDomainException {
 
     public MetricDefinitionNotFoundException(String name) {
-        super("No metric definition '" + name + "' in this environment", name);
+        super(
+            "No metric definition '" + MetricDefinitionNames.printable(name) + "' in this environment",
+            MetricDefinitionNames.printable(name)
+        );
     }
 }

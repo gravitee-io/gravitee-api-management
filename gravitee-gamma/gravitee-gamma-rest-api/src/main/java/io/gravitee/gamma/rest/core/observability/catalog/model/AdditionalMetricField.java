@@ -48,9 +48,15 @@ public record AdditionalMetricField(Root root, String rawKey, AdditionalMetricVa
         return root == Root.CUSTOM ? name() : rawKey;
     }
 
-    /** {@code <type>_custom_<name>}: kept for the typed custom metrics of assign-metrics. */
+    /** {@code additional-metrics.<type>_custom_<name>}: kept for the typed custom metrics of assign-metrics. */
     public boolean isReserved() {
-        return rawKey.startsWith(valueType.prefix() + RESERVED_SEGMENT);
+        // The typed family lives in the additional-metrics map (OBS-172); under the custom root that name is a plain key.
+        return root == Root.ADDITIONAL_METRICS && rawKey.startsWith(valueType.prefix() + RESERVED_SEGMENT);
+    }
+
+    /** Whether a record may give the field a unit: a custom metric takes none, whatever its value type. */
+    public boolean takesUnit() {
+        return root != Root.CUSTOM;
     }
 
     /**
@@ -59,6 +65,14 @@ public record AdditionalMetricField(Root root, String rawKey, AdditionalMetricVa
      */
     public boolean namesCustomMetric() {
         return root == Root.ADDITIONAL_METRICS && rawKey.startsWith(valueType.prefix() + Root.CUSTOM.prefix());
+    }
+
+    /** The custom metric a {@link #namesCustomMetric() decoy} looks like: {@code custom.<name>}; a decoy only. */
+    public String customMetricLookalike() {
+        if (!namesCustomMetric()) {
+            throw new IllegalStateException(name() + " does not name a custom metric after its type prefix");
+        }
+        return Root.CUSTOM.prefix() + rawKey.substring(valueType.prefix().length() + Root.CUSTOM.prefix().length());
     }
 
     public String derivedLabel() {

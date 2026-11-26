@@ -233,6 +233,81 @@ class ListMetricDefinitionsUseCaseTest {
             );
     }
 
+    /** A record turns a discovered custom key into a declared one, still in the custom namespace and still seen. */
+    @Test
+    void should_list_a_described_custom_key_as_declared_with_the_record_label_and_description() {
+        fixture.givenDescribed("custom.fraud-tier", "Fraud level", "Tier the fraud check assigns");
+        fixture.ports.givenDiscovered(
+            List.of(
+                new DiscoveredAdditionalMetric(AdditionalMetricField.Root.CUSTOM, "fraud-tier", AdditionalMetricValueType.KEYWORD, SEEN)
+            ),
+            false
+        );
+
+        var catalog = fixture.listed();
+
+        assertThat(catalog.entries())
+            .extracting(
+                AdditionalMetricCatalogEntry::name,
+                entry -> entry.field().servedRawKey(),
+                AdditionalMetricCatalogEntry::origin,
+                AdditionalMetricCatalogEntry::label,
+                AdditionalMetricCatalogEntry::description,
+                AdditionalMetricCatalogEntry::unit,
+                AdditionalMetricCatalogEntry::namespace,
+                AdditionalMetricCatalogEntry::lastSeen
+            )
+            .containsExactly(
+                tuple(
+                    "custom.fraud-tier",
+                    "custom.fraud-tier",
+                    CatalogOrigin.DECLARED,
+                    "Fraud level",
+                    "Tier the fraud check assigns",
+                    null,
+                    "custom",
+                    SEEN
+                )
+            );
+        assertThat(fixture.ports.lastUncountedKeys()).containsExactly("custom.fraud-tier");
+    }
+
+    /**
+     * Records come back from each store in its own collation (JDBC sorts in Java by UTF-16 unit, Mongo by code point,
+     * the in-memory store not at all): the catalog sorts them by served raw key, declared before discovered.
+     */
+    @Test
+    void should_order_declared_keys_by_served_raw_key_before_discovered_ones_whatever_the_store_order() {
+        fixture.givenDeclared("custom.\uD83D\uDE80-tier");
+        fixture.givenDeclared("custom.\uFF5Ftier");
+        fixture.givenDeclared("additional-metrics.keyword_x");
+        fixture.givenDeclared("custom.keyword_x");
+        fixture.ports.givenDiscovered(
+            List.of(new DiscoveredAdditionalMetric(AdditionalMetricField.Root.CUSTOM, "a-first", AdditionalMetricValueType.KEYWORD, SEEN)),
+            false
+        );
+
+        assertThat(fixture.listed().entries())
+            .extracting(entry -> entry.field().servedRawKey(), AdditionalMetricCatalogEntry::origin)
+            .containsExactly(
+                tuple("custom.keyword_x", CatalogOrigin.DECLARED),
+                tuple("custom.\uD83D\uDE80-tier", CatalogOrigin.DECLARED),
+                tuple("custom.\uFF5Ftier", CatalogOrigin.DECLARED),
+                tuple("keyword_x", CatalogOrigin.DECLARED),
+                tuple("custom.a-first", CatalogOrigin.DISCOVERED)
+            );
+    }
+
+    /** Settings lists every record: exposed=false only keeps the key out of the pickers. */
+    @Test
+    void should_still_list_a_custom_record_that_is_not_exposed() {
+        fixture.givenDeclared(ENVIRONMENT, "custom.fraud-tier", "Fraud level", null, false);
+
+        assertThat(fixture.listed().entries())
+            .extracting(AdditionalMetricCatalogEntry::name, AdditionalMetricCatalogEntry::origin, AdditionalMetricCatalogEntry::exposed)
+            .containsExactly(tuple("custom.fraud-tier", CatalogOrigin.DECLARED, false));
+    }
+
     @Test
     void should_serve_no_discovered_entry_no_last_seen_and_no_truncation_and_run_no_discovery_for_a_caller_who_does_not_read_traffic() {
         fixture.ports.givenBuiltIn("keyword_mcp-proxy_tools/call", "MCP_PROXY_TOOL");
