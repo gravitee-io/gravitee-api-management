@@ -213,6 +213,21 @@ class PortalNavigationItemApiOwnedConsoleMigrationUpgraderTest {
     }
 
     @Test
+    void should_leave_api_owned_documentation_under_a_listing_when_the_api_is_missing() throws UpgraderException {
+        var page = page("api-documentation", ROW, 0, "docs");
+        page.setReferenceType(PortalNavigationReferenceType.API);
+        page.setReferenceId("deleted-api");
+        repository.initWith(List.of(section(SECTION), row(ROW, "deleted-api", SECTION), page));
+
+        assertThat(new PortalNavigationItemApiOwnedRekeyUpgrader(repository).upgrade()).isTrue();
+        assertThat(upgrader.upgrade()).isTrue();
+
+        assertThat(repository.get("api-documentation").getParentId()).isEqualTo(ROW);
+        assertThat(repository.get("api-documentation").getReferenceType()).isEqualTo(PortalNavigationReferenceType.API);
+        assertThat(repository.get("api-documentation").getReferenceId()).isEqualTo("deleted-api");
+    }
+
+    @Test
     void should_merge_the_children_of_two_standalone_listings_of_one_api() throws UpgraderException {
         repository.initWith(
             List.of(
