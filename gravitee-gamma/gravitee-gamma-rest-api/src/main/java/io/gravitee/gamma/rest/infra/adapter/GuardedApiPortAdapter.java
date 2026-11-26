@@ -59,6 +59,10 @@ public class GuardedApiPortAdapter implements GuardedApiPort {
             .map(GuardedApis::of);
     }
 
+    /**
+     * Numbers the page it serves as it was asked: {@link ApiQueryService} hands over the page of the API repository,
+     * which counts from zero.
+     */
     @Override
     public Page<ApiReference> findByGuardrail(String environmentId, String guardrailId, int pageNumber, int pageSize) {
         var page = apiQueryService.search(
@@ -67,7 +71,12 @@ public class GuardedApiPortAdapter implements GuardedApiPort {
             new PageableImpl(pageNumber, pageSize),
             ApiFieldFilter.builder().definitionExcluded(true).pictureExcluded(true).build()
         );
-        return page.map(api -> new ApiReference(api.getId(), api.getName()));
+        var apis = page
+            .getContent()
+            .stream()
+            .map(api -> new ApiReference(api.getId(), api.getName()))
+            .toList();
+        return new Page<>(apis, pageNumber, apis.size(), page.getTotalElements());
     }
 
     /**
