@@ -50,7 +50,51 @@ class SpiFilterRegistryTest {
         assertThat(result).hasSize(StaticFilters.values().length + ExtensibleFilters.values().length);
         assertThat(result)
             .extracting(FilterSpec::name)
-            .contains("API", "HTTP_STATUS", "API_TYPE", "HTTP_GATEWAY_RESPONSE_TIME", "MCP_PROXY_METHOD", "URI", "HTTP_PATH")
+            .contains(
+                "API",
+                "HTTP_STATUS",
+                "API_TYPE",
+                "HTTP_GATEWAY_RESPONSE_TIME",
+                "MCP_PROXY_METHOD",
+                "URI",
+                "HTTP_PATH",
+                "HTTP_PATH_MAPPING"
+            );
+    }
+
+    @Test
+    void should_offer_the_path_mapping_filter_on_analytics_for_every_kind_whose_gateway_writes_it() {
+        FilterRegistry registry = registryWith();
+
+        FilterSpec pathMapping = byName(registry, "HTTP_PATH_MAPPING");
+
+        assertThat(pathMapping.label()).isEqualTo("Path mapping");
+        assertThat(pathMapping.type()).isEqualTo(FilterType.KEYWORD);
+        assertThat(pathMapping.operators()).containsExactly(FilterOperator.EQ, FilterOperator.IN);
+        assertThat(pathMapping.signals()).containsExactly(Signal.ANALYTICS);
+        for (ApiType apiType : List.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.A2A, ApiType.MESSAGE)) {
+            assertThat(registry.getFilters(Set.of(Signal.ANALYTICS), Set.of(apiType)))
+                .as("HTTP_PATH_MAPPING on %s", apiType)
+                .extracting(FilterSpec::name)
+                .contains("HTTP_PATH_MAPPING");
+        }
+    }
+
+    @Test
+    void should_not_offer_the_path_mapping_filter_where_no_analytics_metric_applies_it() {
+        FilterRegistry registry = registryWith();
+
+        // NATIVE and EDGE write no mapped-path; on AuthZ the engine ignores it for the decision metrics and empties the operation/search ones.
+        for (ApiType apiType : List.of(ApiType.AUTHZ, ApiType.AUTHZ_DECISION, ApiType.NATIVE, ApiType.EDGE)) {
+            assertThat(registry.getFilters(Set.of(), Set.of(apiType)))
+                .as("HTTP_PATH_MAPPING on %s", apiType)
+                .extracting(FilterSpec::name)
+                .isNotEmpty()
+                .doesNotContain("HTTP_PATH_MAPPING");
+        }
+        assertThat(registry.getFilters(Set.of(Signal.LOGS), Set.of()))
+            .extracting(FilterSpec::name)
+            .isNotEmpty()
             .doesNotContain("HTTP_PATH_MAPPING");
     }
 
