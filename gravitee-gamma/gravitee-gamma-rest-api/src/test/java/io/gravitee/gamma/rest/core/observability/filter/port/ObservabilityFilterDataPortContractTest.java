@@ -78,6 +78,17 @@ public abstract class ObservabilityFilterDataPortContractTest {
     }
 
     @Test
+    void should_narrow_consumer_ips_to_a_full_address_only() {
+        givenKeywordValues("CONSUMER_IP", List.of(new FilterValue("192.168.65.1", null), new FilterValue("192.168.65.10", null)));
+
+        var full = port().listKeywordValues("CONSUMER_IP", "192.168.65.1", null, null, 1, 10, Set.of(), null);
+        var partial = port().listKeywordValues("CONSUMER_IP", "192.168", null, null, 1, 10, Set.of(), null);
+
+        assertThat(full.data()).extracting(FilterValue::value).containsExactly("192.168.65.1");
+        assertThat(partial.data()).isEmpty();
+    }
+
+    @Test
     void should_ignore_a_blank_query() {
         givenKeywordValues("ENTRYPOINT", List.of(new FilterValue("http-proxy", null)));
 

@@ -122,6 +122,12 @@ describe('KeywordValueInputComponent', () => {
       fixture.destroy();
     }));
 
+    it('should invite a search by full address for the consumer IP', () => {
+      configureFor({ name: 'CONSUMER_IP', label: 'Consumer IP', type: 'KEYWORD', operators: ['EQ', 'IN'] });
+
+      expect(valueInput().placeholder).toBe('Search (full IP address)');
+    });
+
     it('should invite a search by name for an entity filter', () => {
       configureFor(KEYWORD_DEFINITION);
 
