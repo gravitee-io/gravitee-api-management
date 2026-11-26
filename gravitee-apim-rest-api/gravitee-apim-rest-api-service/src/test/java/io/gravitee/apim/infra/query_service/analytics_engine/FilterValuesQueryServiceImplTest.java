@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.query_service.analytics_engine;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.times;
@@ -27,6 +28,7 @@ import io.gravitee.apim.core.analytics_engine.model.FilterName;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.FilterValue;
 import io.gravitee.apim.core.analytics_engine.model.TrafficScope;
+import io.gravitee.apim.core.analytics_engine.use_case.GetFilterValuesUseCase;
 import io.gravitee.apim.core.observability.model.FilterType;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
@@ -366,8 +368,8 @@ class FilterValuesQueryServiceImplTest {
     }
 
     /**
-     * Every keyword filter the catalog declares lists its values: one with no field would answer a 500 instead. The
-     * Kafka topic and operation are read from the event-metrics documents, which hold no value pool to list.
+     * Every keyword filter the catalog declares lists its values, except those the values use case refuses before the
+     * store: one with no field would answer a 500 instead.
      */
     @ParameterizedTest
     @MethodSource("keywordFiltersOfTheCatalog")
@@ -386,7 +388,20 @@ class FilterValuesQueryServiceImplTest {
             .stream()
             .filter(filter -> filter.type() == FilterType.KEYWORD)
             .map(FilterSpec::name)
-            .filter(name -> !Set.of(FilterSpec.Name.NATIVE_TOPIC, FilterSpec.Name.NATIVE_OPERATION).contains(name));
+            .filter(name -> !GetFilterValuesUseCase.withoutValueListing().contains(name));
+    }
+
+    /** The filters the values use case refuses hold no field here: listing their values would read nothing. */
+    @Test
+    void should_hold_no_field_for_the_keyword_filters_refused_before_the_store() {
+        assertThat(GetFilterValuesUseCase.withoutValueListing()).isNotEmpty();
+
+        assertThat(GetFilterValuesUseCase.withoutValueListing()).allSatisfy(name ->
+            assertThatThrownBy(() -> service.searchFilterValues(ORG_ID, ENV_ID, name, null, null, 1, 10, null, null, null)).isInstanceOf(
+                UnsupportedOperationException.class
+            )
+        );
+        verifyNoInteractions(analyticsRepository);
     }
 
     static Stream<Arguments> filterToEsFieldMappings() {

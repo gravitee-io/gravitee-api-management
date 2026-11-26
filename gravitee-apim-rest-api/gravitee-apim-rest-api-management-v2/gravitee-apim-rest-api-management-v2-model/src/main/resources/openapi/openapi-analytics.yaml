@@ -363,6 +363,7 @@ paths:
                   `MESSAGE_CONNECTOR_TYPE` and `MESSAGE_CONNECTOR_ID`, whose field is on message documents, return
                   no values.
                 - NUMBER and STRING filters are not supported and return 400.
+                - `NATIVE_TOPIC` and `NATIVE_OPERATION` hold no value pool to list and return 400.
                 - An additional metric field `additional-metrics.<rawKey>` (OBS-70 grammar) is accepted as well: a
                   `keyword_` field returns its distinct values like a KEYWORD filter, any other value type returns 400.
                   A key holding `/` cannot travel in this path segment.
@@ -455,7 +456,9 @@ paths:
                                             totalCount: 3
                 "400":
                     description: |
-                        The filter type does not support value listing (NUMBER or STRING filters).
+                        The filter does not support value listing (NUMBER or STRING filters, `NATIVE_TOPIC`,
+                        `NATIVE_OPERATION`, an additional metric field that is not a `keyword_` one), technical code
+                        `observability.filter.value_listing_not_supported`.
                     content:
                         application/json:
                             schema:
