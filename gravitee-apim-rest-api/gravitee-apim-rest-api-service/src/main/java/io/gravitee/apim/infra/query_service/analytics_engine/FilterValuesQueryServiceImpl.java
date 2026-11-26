@@ -173,7 +173,8 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
 
     /**
      * Maps domain filter names to Elasticsearch field names.
-     * Mirrors the mapping in HTTPFieldResolver (ES module) to keep the repository API simple (String field name).
+     * Mirrors the mapping in HTTPFieldResolver and, for the message connectors, MessageFieldResolver (ES module) to keep
+     * the repository API simple (String field name).
      */
     private static String resolveEsFieldName(FilterSpec.Name filterName) {
         return switch (filterName) {
