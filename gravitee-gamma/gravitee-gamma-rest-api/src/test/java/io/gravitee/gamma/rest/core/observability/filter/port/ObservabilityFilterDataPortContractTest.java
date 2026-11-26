@@ -56,16 +56,47 @@ public abstract class ObservabilityFilterDataPortContractTest {
     }
 
     @Test
-    void should_narrow_values_by_a_case_insensitive_substring_of_value_or_label() {
+    void should_narrow_id_based_values_by_a_case_insensitive_substring_of_their_name() {
         givenKeywordValues(
             "API",
             List.of(new FilterValue("api-1", "Petstore"), new FilterValue("api-2", "Weather"), new FilterValue("pet-3", "Other"))
         );
 
-        var page = port().listKeywordValues("API", "PET", null, null, 1, 10, Set.of(), null);
+        var page = port().listKeywordValues("API", "STORE", null, null, 1, 10, Set.of(), null);
 
-        assertThat(page.data()).extracting(FilterValue::value).containsExactly("api-1", "pet-3");
-        assertThat(page.totalElements()).isEqualTo(2L);
+        assertThat(page.data()).extracting(FilterValue::value).containsExactly("api-1");
+        assertThat(page.totalElements()).isEqualTo(1L);
+    }
+
+    @Test
+    void should_not_narrow_id_based_values_by_their_id() {
+        givenKeywordValues("API", List.of(new FilterValue("pet-3", "Other")));
+
+        var page = port().listKeywordValues("API", "pet", null, null, 1, 10, Set.of(), null);
+
+        assertThat(page.data()).isEmpty();
+    }
+
+    @Test
+    void should_ignore_a_blank_query() {
+        givenKeywordValues("ENTRYPOINT", List.of(new FilterValue("http-proxy", null)));
+
+        var page = port().listKeywordValues("ENTRYPOINT", "  ", null, null, 1, 10, Set.of(), null);
+
+        assertThat(page.data()).extracting(FilterValue::value).containsExactly("http-proxy");
+    }
+
+    @Test
+    void should_narrow_direct_values_to_those_starting_with_the_query_whatever_its_case() {
+        givenKeywordValues(
+            "ENTRYPOINT",
+            List.of(new FilterValue("http-proxy", null), new FilterValue("mcp-studio", null), new FilterValue("sse-http", null))
+        );
+
+        var page = port().listKeywordValues("ENTRYPOINT", "HTTP", null, null, 1, 10, Set.of(), null);
+
+        assertThat(page.data()).extracting(FilterValue::value).containsExactly("http-proxy");
+        assertThat(page.totalElements()).isEqualTo(1L);
     }
 
     @Test

@@ -49,6 +49,9 @@ public final class ElasticsearchDsl {
     public static final class Query {
 
         public static final String TERM = "term";
+        public static final String PREFIX = "prefix";
+        public static final String VALUE = "value";
+        public static final String CASE_INSENSITIVE = "case_insensitive";
         public static final String RANGE = "range";
         public static final String GTE = "gte";
         public static final String LTE = "lte";

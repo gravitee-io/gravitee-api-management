@@ -29,9 +29,13 @@ import java.util.Set;
 /**
  * In-memory {@link ObservabilityFilterDataPort}: the distinct values a KEYWORD filter holds in the
  * store, seeded per filter name, served with the same query narrowing and 1-based pagination the
- * real store applies. Records the last listing call so a test can assert what the use case asked for.
+ * real store applies: the names containing the query for an id-based filter, the values starting with
+ * it for any other, whatever its case; a blank query narrows nothing. Records the last listing call so a
+ * test can assert what the use case asked for.
  */
 public class InMemoryObservabilityFilterDataPort implements ObservabilityFilterDataPort {
+
+    private static final Set<String> ID_BASED_FILTERS = Set.of("API", "APPLICATION", "PLAN", "API_PRODUCT");
 
     private final Map<String, List<FilterValue>> valuesByFilter = new HashMap<>();
     private final Map<String, Map<String, String>> labelsByFilter = new HashMap<>();
@@ -85,7 +89,7 @@ public class InMemoryObservabilityFilterDataPort implements ObservabilityFilterD
         List<FilterValue> matching = valuesByFilter
             .getOrDefault(filterName, List.of())
             .stream()
-            .filter(value -> needle == null || matches(value, needle))
+            .filter(value -> needle == null || matches(filterName, value, needle))
             .toList();
         int fromIndex = (int) Math.min((long) (page - 1) * perPage, matching.size());
         int toIndex = Math.min(fromIndex + perPage, matching.size());
@@ -109,7 +113,10 @@ public class InMemoryObservabilityFilterDataPort implements ObservabilityFilterD
             .toList();
     }
 
-    private static boolean matches(FilterValue value, String needle) {
-        return (value.value().toLowerCase().contains(needle) || (value.label() != null && value.label().toLowerCase().contains(needle)));
+    private static boolean matches(String filterName, FilterValue value, String needle) {
+        if (!ID_BASED_FILTERS.contains(filterName)) {
+            return value.value().toLowerCase().startsWith(needle);
+        }
+        return value.label() != null && value.label().toLowerCase().contains(needle);
     }
 }

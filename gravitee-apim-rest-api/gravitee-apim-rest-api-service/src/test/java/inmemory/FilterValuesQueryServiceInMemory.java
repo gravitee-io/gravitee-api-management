@@ -65,7 +65,12 @@ public class FilterValuesQueryServiceInMemory
             throw new UnsupportedOperationException("Calls are not stored with their entrypoint");
         }
         var values = valuesOf(filterName, authorizedApiIds, apiProductId)
-            .filter(value -> searchPattern == null || value.equalsIgnoreCase(searchPattern))
+            .filter(
+                value ->
+                    searchPattern == null ||
+                    searchPattern.isBlank() ||
+                    value.regionMatches(true, 0, searchPattern, 0, searchPattern.length())
+            )
             .sorted()
             .toList();
         var pageValues = values.stream().skip((long) (page - 1) * size).limit(size).map(FilterValue::new).toList();
