@@ -38,6 +38,8 @@ export interface Credential {
     updatedAt?: string;
     rotatedAt?: string;
     manageable?: boolean;
+    /** Set on the answer of an update: the objects that kept the former references or configuration. */
+    consumerWarnings?: CredentialConsumerWarning[];
 }
 
 export interface CredentialsPagination {
@@ -82,4 +84,8 @@ export interface CredentialConsumer {
     type: string;
     id: string;
     name: string;
+}
+
+export interface CredentialConsumerWarning extends CredentialConsumer {
+    message: string;
 }

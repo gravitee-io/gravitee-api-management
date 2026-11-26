@@ -15,7 +15,7 @@
  */
 jest.mock('@gravitee/gamma-modules-sdk/routing', () => jest.requireActual('../../users/testing/buildModuleNavPathForTests'));
 
-import { credentialConsumerHref, credentialConsumerTypeLabel } from './credentialConsumers';
+import { consumerWarningsMessage, credentialConsumerHref, credentialConsumerTypeLabel } from './credentialConsumers';
 
 const CURRENT_PATH = '/environments/env-1/platform/credentials/cred-1';
 
@@ -29,6 +29,22 @@ describe('credential consumers', () => {
 
     it('gives no link to a consumer it does not know', () => {
         expect(credentialConsumerHref({ module: 'apim', type: 'API', id: 'api-1', name: 'API' }, CURRENT_PATH)).toBeUndefined();
+    });
+
+    it('names each object that kept the former settings and why', () => {
+        expect(
+            consumerWarningsMessage([
+                { module: 'aim', type: 'llm-proxy', id: 'proxy-1', name: 'Support bot', message: 'You cannot update this LLM proxy.' },
+                { module: 'aim', type: 'llm-proxy', id: 'proxy-2', name: 'Triage', message: 'It has changes that are not deployed.' },
+            ]),
+        ).toBe(
+            'Support bot kept the former settings of the credential: You cannot update this LLM proxy. Triage kept the former settings of the credential: It has changes that are not deployed.',
+        );
+    });
+
+    it('has no message when every object took the change', () => {
+        expect(consumerWarningsMessage([])).toBeUndefined();
+        expect(consumerWarningsMessage(undefined)).toBeUndefined();
     });
 
     it('labels known types and humanizes the others', () => {

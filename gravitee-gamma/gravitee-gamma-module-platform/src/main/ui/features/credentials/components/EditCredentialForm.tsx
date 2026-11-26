@@ -27,6 +27,7 @@ import { useHasEnvironmentPermission } from '../../../shared/hooks/useEnvironmen
 import { notify } from '../../../shared/notify';
 import { useRotateCredential, useUpdateCredential } from '../hooks/useCredentialMutations';
 import type { Credential } from '../types/credential';
+import { consumerWarningsMessage } from '../utils/credentialConsumers';
 import {
     draftFromCredential,
     rotationValues,
@@ -68,8 +69,9 @@ export function EditCredentialForm({ credential }: Readonly<{ credential: Creden
         if (Object.keys(draftErrors).length > 0) {
             return;
         }
+        let updated: Credential;
         try {
-            await updateMutation.mutateAsync({ id: credential.id, payload: toUpdateCredentialPayload(draft, credential) });
+            updated = await updateMutation.mutateAsync({ id: credential.id, payload: toUpdateCredentialPayload(draft, credential) });
         } catch (error) {
             notify.error(userSafeFailureMessage(error, 'The credential could not be updated.'));
             return;
@@ -84,6 +86,10 @@ export function EditCredentialForm({ credential }: Readonly<{ credential: Creden
             }
         }
         notify.success(values ? 'Credential updated and its secret replaced' : 'Credential updated');
+        const warnings = consumerWarningsMessage(updated.consumerWarnings);
+        if (warnings) {
+            notify.error(warnings);
+        }
         backToCredential();
     }
 
