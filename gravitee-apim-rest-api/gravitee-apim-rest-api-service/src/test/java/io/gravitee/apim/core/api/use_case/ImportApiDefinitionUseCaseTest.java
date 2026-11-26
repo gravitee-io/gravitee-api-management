@@ -474,6 +474,18 @@ class ImportApiDefinitionUseCaseTest {
         }
 
         @Test
+        void should_create_default_alerts_for_the_imported_api() {
+            var importDefinition = anApiProxyImportDefinition();
+            importDefinition.getApiExport().setId("a-custom-id");
+
+            useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
+
+            assertThat(importDefinitionCreateDomainServiceTestInitializer.apiDefaultAlertsDomainService.storage()).containsExactly(
+                "a-custom-id"
+            );
+        }
+
+        @Test
         void should_create_a_new_api_with_primary_owner_as_in_definition() {
             var importDefinition = anApiProxyImportDefinition();
             final String customId = "a-custom-id";

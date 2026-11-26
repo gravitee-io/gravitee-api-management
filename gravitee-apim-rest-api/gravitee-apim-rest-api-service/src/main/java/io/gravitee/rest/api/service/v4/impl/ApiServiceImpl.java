@@ -353,6 +353,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         ApiEntity createdApiEntity = apiMapper.toEntity(executionContext, createdApi, primaryOwner, true, true, true);
         GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, createdApiEntity);
 
+        alertService.createDefaults(executionContext, AlertReferenceType.API, createdApi.getId());
+
         searchEngineService.index(executionContext, apiWithMetadata, false);
         return createdApiEntity;
     }

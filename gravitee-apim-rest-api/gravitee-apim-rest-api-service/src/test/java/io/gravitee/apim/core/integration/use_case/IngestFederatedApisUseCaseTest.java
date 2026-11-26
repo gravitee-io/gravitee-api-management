@@ -34,6 +34,7 @@ import fixtures.core.model.IntegrationApiFixtures;
 import fixtures.core.model.LicenseFixtures;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiDefaultAlertsDomainServiceInMemory;
 import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
@@ -275,7 +276,8 @@ class IngestFederatedApisUseCaseTest {
             notificationConfigCrudService,
             parametersQueryService,
             workflowCrudService,
-            createCategoryApiDomainService
+            createCategoryApiDomainService,
+            new ApiDefaultAlertsDomainServiceInMemory()
         );
         var kafkaPortRanges = new inmemory.KafkaPortRangeCrudServiceInMemory();
         var deletePlanDomainService = new DeletePlanDomainService(

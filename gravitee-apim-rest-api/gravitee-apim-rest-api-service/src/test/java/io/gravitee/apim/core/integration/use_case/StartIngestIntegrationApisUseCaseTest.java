@@ -27,6 +27,7 @@ import fixtures.core.model.LicenseFixtures;
 import inmemory.A2aAgentFetcherInMemory;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiDefaultAlertsDomainServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.AsyncJobCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
@@ -269,7 +270,8 @@ class StartIngestIntegrationApisUseCaseTest {
         notificationConfigCrudService,
         parametersQueryService,
         workflowCrudService,
-        createCategoryApiDomainService
+        createCategoryApiDomainService,
+        new ApiDefaultAlertsDomainServiceInMemory()
     );
 
     private StartIngestIntegrationApisUseCase useCase;

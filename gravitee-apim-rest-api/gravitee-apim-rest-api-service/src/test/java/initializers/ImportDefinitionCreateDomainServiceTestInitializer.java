@@ -19,6 +19,7 @@ import static org.mockito.Mockito.mock;
 
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiDefaultAlertsDomainServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
@@ -103,6 +104,7 @@ public class ImportDefinitionCreateDomainServiceTestInitializer {
     public final ApiMetadataQueryServiceInMemory apiMetadataQueryServiceInMemory = new ApiMetadataQueryServiceInMemory(metadataCrudService);
     public final IndexerInMemory indexer = new IndexerInMemory();
     public final FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
+    public final ApiDefaultAlertsDomainServiceInMemory apiDefaultAlertsDomainService = new ApiDefaultAlertsDomainServiceInMemory();
     public final NotificationConfigCrudServiceInMemory notificationConfigCrudService = new NotificationConfigCrudServiceInMemory();
     public final WorkflowCrudServiceInMemory workflowCrudService = new WorkflowCrudServiceInMemory();
     public final PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
@@ -150,7 +152,8 @@ public class ImportDefinitionCreateDomainServiceTestInitializer {
             notificationConfigCrudService,
             parametersQueryService,
             workflowCrudService,
-            createCategoryApiDomainService
+            createCategoryApiDomainService,
+            apiDefaultAlertsDomainService
         );
 
         var planValidatorService = new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService);

@@ -19,6 +19,7 @@ import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.o
 import static io.gravitee.apim.core.workflow.model.Workflow.newApiReviewWorkflow;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.alert.domain_service.ApiDefaultAlertsDomainService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
@@ -59,11 +60,12 @@ public class CreateApiDomainService {
     private final ParametersQueryService parametersQueryService;
     private final WorkflowCrudService workflowCrudService;
     private final CreateCategoryApiDomainService createCategoryApiDomainService;
+    private final ApiDefaultAlertsDomainService apiDefaultAlertsDomainService;
 
     /**
      * Create a new API in the datastore.
      * <p>
-     * This method will create the API, its primary owner, its default mail notification, its default metadata and its flows.
+     * This method will create the API, its primary owner, its default mail notification, its default metadata, its default alerts and its flows.
      * </p>
      * <p>
      * Once created, the API is indexed in the search engine.
@@ -82,7 +84,7 @@ public class CreateApiDomainService {
     /**
      * Create a new API in the datastore.
      * <p>
-     * This method will create the API, its primary owner, its default mail notification, its default metadata and its flows.
+     * This method will create the API, its primary owner, its default mail notification, its default metadata, its default alerts and its flows.
      * </p>
      * <p>
      * Once created, the API is indexed in the search engine.
@@ -113,6 +115,8 @@ public class CreateApiDomainService {
         createDefaultMailNotification(created);
 
         createDefaultMetadata(created, auditInfo);
+
+        createDefaultAlerts(created, auditInfo);
 
         var createdFlows = saveApiFlows(api);
 
@@ -154,6 +158,15 @@ public class CreateApiDomainService {
     private void createDefaultMetadata(Api api, AuditInfo auditInfo) {
         switch (api.getDefinitionVersion()) {
             case V4 -> apiMetadataDomainService.createDefaultApiMetadata(api.getId(), auditInfo);
+            case V2, FEDERATED, FEDERATED_AGENT -> {
+                // nothing to do
+            }
+        }
+    }
+
+    private void createDefaultAlerts(Api api, AuditInfo auditInfo) {
+        switch (api.getDefinitionVersion()) {
+            case V4 -> apiDefaultAlertsDomainService.createDefaultAlerts(api.getId(), auditInfo);
             case V2, FEDERATED, FEDERATED_AGENT -> {
                 // nothing to do
             }
