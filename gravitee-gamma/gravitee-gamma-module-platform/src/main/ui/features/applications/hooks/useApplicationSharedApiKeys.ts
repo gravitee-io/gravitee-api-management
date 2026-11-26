@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { listApplicationApiKeys, renewApplicationApiKey, revokeApplicationApiKey } from '../services/applicationSharedApiKeys';
 import { mapApiKeysToRows } from '../utils/applicationSubscriptionApiKeyMapper';
