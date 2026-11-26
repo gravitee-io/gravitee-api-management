@@ -85,7 +85,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -600,7 +599,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .guardrailIds(valuesOf(query.conditions(), StaticFilters.GUARDRAIL.filterName()))
             .outcomes(valuesOf(query.conditions(), StaticFilters.GUARDRAIL_OUTCOME.filterName()))
             .text(text)
-            .textApiIds(apisNamed(text, query.apisById()))
+            .textApiIds(query.textApiIds() == null ? Set.of() : query.textApiIds())
             .build();
         var result = guardrailDecisionLogsCrudService.searchDecisionLogs(executionContext, filters, pageable);
         var entries = result
@@ -609,24 +608,6 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .map(decision -> mapGuardrailDecisionToLogEntry(decision, query.apisById()))
             .toList();
         return new LogsPage(entries, result.total());
-    }
-
-    /**
-     * The apis in scope whose name holds the text, in any case: a decision carries the id of its api, not its name, so
-     * a search on the proxy a row shows is a search on these ids.
-     */
-    private static Set<String> apisNamed(String text, Map<String, ApiReference> apisById) {
-        if (text == null || text.isBlank() || apisById == null) {
-            return Set.of();
-        }
-        var needle = text.trim().toLowerCase(Locale.ROOT);
-        return apisById
-            .entrySet()
-            .stream()
-            .filter(entry -> entry.getValue() != null && entry.getValue().name() != null)
-            .filter(entry -> entry.getValue().name().toLowerCase(Locale.ROOT).contains(needle))
-            .map(Map.Entry::getKey)
-            .collect(Collectors.toSet());
     }
 
     private LogEntry mapGuardrailDecisionToLogEntry(GuardrailDecisionLog decision, Map<String, ApiReference> apisById) {
@@ -647,12 +628,22 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                     .enforced(decision.enforced())
                     .transformationType(decision.transformationType())
                     .verdict(decision.verdict())
-                    .reasons(decision.reasons())
+                    .steps(stepsOf(decision.steps()))
                     .findings(findingsOf(decision.findings()))
                     .durationNanos(decision.durationNanos())
                     .build()
             )
             .build();
+    }
+
+    private static List<GuardrailDecision.Step> stepsOf(List<GuardrailDecisionLog.Step> steps) {
+        if (steps == null) {
+            return List.of();
+        }
+        return steps
+            .stream()
+            .map(step -> new GuardrailDecision.Step(step.guardrailPolicy(), step.verdict(), step.reason()))
+            .toList();
     }
 
     private static List<GuardrailDecision.Finding> findingsOf(List<GuardrailDecisionLog.Finding> findings) {

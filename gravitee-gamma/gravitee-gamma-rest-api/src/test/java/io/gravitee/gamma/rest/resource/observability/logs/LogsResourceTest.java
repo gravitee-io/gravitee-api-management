@@ -171,7 +171,7 @@ class LogsResourceTest extends AbstractResourceTest {
                         .enforced("TRANSFORM")
                         .transformationType("REDACT")
                         .verdict("REDACT")
-                        .reasons(List.of("Redact PII: REDACT — 1 passage"))
+                        .steps(List.of(new GuardrailDecision.Step("Redact PII", "REDACT", "1 passage")))
                         .findings(List.of(new GuardrailDecision.Finding("Redact PII", "EMAIL", "$.messages[0].content", "TRANSFORM")))
                         .durationNanos(4_200L)
                         .build()
@@ -197,7 +197,10 @@ class LogsResourceTest extends AbstractResourceTest {
             assertThat(guardrail.get("enforced").asText()).isEqualTo("TRANSFORM");
             assertThat(guardrail.get("transformationType").asText()).isEqualTo("REDACT");
             assertThat(guardrail.get("verdict").asText()).isEqualTo("REDACT");
-            assertThat(guardrail.get("reasons").get(0).asText()).isEqualTo("Redact PII: REDACT — 1 passage");
+            assertThat(guardrail.get("steps").get(0).get("guardrailPolicy").asText()).isEqualTo("Redact PII");
+            assertThat(guardrail.get("steps").get(0).get("verdict").asText()).isEqualTo("REDACT");
+            assertThat(guardrail.get("steps").get(0).get("reason").asText()).isEqualTo("1 passage");
+            assertThat(guardrail.has("reasons")).isFalse();
             assertThat(guardrail.get("findings").get(0).get("guardrailPolicy").asText()).isEqualTo("Redact PII");
             assertThat(guardrail.get("findings").get(0).get("rule").asText()).isEqualTo("EMAIL");
             assertThat(guardrail.get("findings").get(0).get("location").asText()).isEqualTo("$.messages[0].content");

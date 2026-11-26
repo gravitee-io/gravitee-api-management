@@ -66,7 +66,7 @@ class GuardrailDecisionLogSourceMapperTest {
                 .enforced("TRANSFORM")
                 .transformationType("REDACT")
                 .verdict("REDACT")
-                .reasons(List.of("Redact PII: REDACT — 1 passage"))
+                .steps(List.of(new GuardrailDecisionLog.Step("Redact PII", "REDACT", "1 passage")))
                 .findings(List.of(new GuardrailDecisionLog.Finding("Redact PII", "EMAIL", "$.choices[0].message.content", "TRANSFORM")))
                 .durationNanos(9_100_000L)
                 .build()
@@ -91,8 +91,45 @@ class GuardrailDecisionLogSourceMapperTest {
         assertThat(decision.enforced()).isEqualTo("DENY");
         assertThat(decision.transformationType()).isNull();
         assertThat(decision.durationNanos()).isNull();
-        assertThat(decision.reasons()).isEmpty();
+        assertThat(decision.steps()).isEmpty();
         assertThat(decision.findings()).isEmpty();
+    }
+
+    /** The gateway writes one line per guardrail policy: "<policy>: <verdict>", then " — <reasons>" when it gave any. */
+    @Test
+    void reads_the_guardrail_policy_sequence_from_the_lines_the_gateway_writes() {
+        var decision = map(
+            """
+            { "reasons": ["Topic check: CONTINUE", "Block credentials: BLOCK — Blocked by guardrail; llm-rule matched: messages[0].user"] }
+            """
+        );
+
+        assertThat(decision.steps()).containsExactly(
+            new GuardrailDecisionLog.Step("Topic check", "CONTINUE", null),
+            new GuardrailDecisionLog.Step("Block credentials", "BLOCK", "Blocked by guardrail; llm-rule matched: messages[0].user")
+        );
+    }
+
+    /** A name its findings carry is matched whole, even when it holds ": " itself. */
+    @Test
+    void keeps_a_guardrail_policy_name_holding_a_colon_whole_when_its_findings_name_it() {
+        var decision = map(
+            """
+            {
+              "reasons": ["PII: email: REDACT — 1 passage"],
+              "matched-rules": [ { "id": "EMAIL", "name": "EMAIL", "effect": "TRANSFORM", "annotations": { "guardrail": "PII: email" } } ]
+            }
+            """
+        );
+
+        assertThat(decision.steps()).containsExactly(new GuardrailDecisionLog.Step("PII: email", "REDACT", "1 passage"));
+    }
+
+    @Test
+    void keeps_a_line_it_cannot_split_as_the_guardrail_policy_name() {
+        assertThat(map("{ \"reasons\": [\"unexpected\"] }").steps()).containsExactly(
+            new GuardrailDecisionLog.Step("unexpected", null, null)
+        );
     }
 
     @Test

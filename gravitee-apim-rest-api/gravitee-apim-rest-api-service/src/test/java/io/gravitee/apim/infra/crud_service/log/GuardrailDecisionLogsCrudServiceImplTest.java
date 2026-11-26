@@ -23,6 +23,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.log.crud_service.GuardrailDecisionLogsCrudService;
 import io.gravitee.apim.core.log.model.GuardrailDecisionLog;
 import io.gravitee.apim.core.log.model.GuardrailDecisionLogFilters;
@@ -133,6 +134,24 @@ class GuardrailDecisionLogsCrudServiceImplTest {
         ).isInstanceOf(TechnicalManagementException.class);
     }
 
+    /** A page past the store's result window is the caller's error: a 400, not a 500. */
+    @Test
+    void turns_a_page_the_store_refuses_into_a_validation_error() throws Exception {
+        when(metricsRepository.searchGuardrailDecisionLogs(any(), any())).thenThrow(
+            new IllegalArgumentException("Page 600 of 20 goes past the 10000 Guardrail decisions a search serves.")
+        );
+
+        assertThatThrownBy(() ->
+            service.searchDecisionLogs(
+                CONTEXT,
+                GuardrailDecisionLogFilters.builder().apiIds(Set.of("api-1")).build(),
+                new PageableImpl(600, 20)
+            )
+        )
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("Page 600 of 20");
+    }
+
     private static io.gravitee.repository.log.v4.model.guardrail.GuardrailDecisionLog aStoredDecision() {
         return io.gravitee.repository.log.v4.model.guardrail.GuardrailDecisionLog.builder()
             .eventId("evt-1")
@@ -146,7 +165,9 @@ class GuardrailDecisionLogsCrudServiceImplTest {
             .enforced("TRANSFORM")
             .transformationType("REDACT")
             .verdict("REDACT")
-            .reasons(List.of("Redact PII: REDACT — 1 passage"))
+            .steps(
+                List.of(new io.gravitee.repository.log.v4.model.guardrail.GuardrailDecisionLog.Step("Redact PII", "REDACT", "1 passage"))
+            )
             .findings(
                 List.of(
                     new io.gravitee.repository.log.v4.model.guardrail.GuardrailDecisionLog.Finding(
@@ -174,7 +195,7 @@ class GuardrailDecisionLogsCrudServiceImplTest {
             .enforced("TRANSFORM")
             .transformationType("REDACT")
             .verdict("REDACT")
-            .reasons(List.of("Redact PII: REDACT — 1 passage"))
+            .steps(List.of(new GuardrailDecisionLog.Step("Redact PII", "REDACT", "1 passage")))
             .findings(List.of(new GuardrailDecisionLog.Finding("Redact PII", "EMAIL", "$.choices[0].message.content", "TRANSFORM")))
             .durationNanos(9_100_000L)
             .build();

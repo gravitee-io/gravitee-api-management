@@ -20,7 +20,8 @@ import lombok.Builder;
 
 /**
  * What one run of a Guardrail decided on a call, as the gateway recorded it. A decision names rules and where they
- * matched, never the content of the exchange.
+ * matched. The gateway records no content of the exchange itself; a step's reason is what its guardrail policy wrote, and
+ * nothing stops a policy from quoting what it matched.
  *
  * @author GraviteeSource Team
  */
@@ -37,7 +38,7 @@ public record GuardrailDecisionLog(
     String enforced,
     String transformationType,
     String verdict,
-    List<String> reasons,
+    List<Step> steps,
     List<Finding> findings,
     Long durationNanos
 ) {
@@ -48,4 +49,13 @@ public record GuardrailDecisionLog(
      * @param effect what the guardrail policy concluded: {@code DENY}, {@code TRANSFORM} or {@code ALLOW}.
      */
     public record Finding(String guardrailPolicy, String rule, String location, String effect) {}
+
+    /**
+     * One guardrail policy of the sequence, in the order it ran.
+     *
+     * @param guardrailPolicy the name of the guardrail policy.
+     * @param verdict what it concluded, as the policy words it: {@code BLOCK}, {@code CONTINUE}, {@code REDACT}...
+     * @param reason why, as the policy gave it; {@code null} when it gave none.
+     */
+    public record Step(String guardrailPolicy, String verdict, String reason) {}
 }

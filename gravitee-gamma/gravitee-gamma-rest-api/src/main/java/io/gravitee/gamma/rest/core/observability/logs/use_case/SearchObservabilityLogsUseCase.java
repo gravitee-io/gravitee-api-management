@@ -29,12 +29,15 @@ import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.EntrypointScopeProvider;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
+import io.gravitee.gamma.rest.core.observability.logs.model.ApiReference;
 import io.gravitee.gamma.rest.core.observability.logs.model.EntrypointScope;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsPage;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort;
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -122,6 +125,9 @@ public class SearchObservabilityLogsUseCase {
             .recordType(recordType)
             .entrypointScope(entrypointScope)
             .trafficScope(scope.trafficScope())
+            .textApiIds(
+                recordType == RecordType.GUARDRAIL_DECISION ? apisNamed(searchText(effectiveConditions), scope.apisById()) : Set.of()
+            )
             .build();
 
         var result = logsDataPort.searchLogs(input.organizationId, input.environmentId, query);
@@ -344,5 +350,29 @@ public class SearchObservabilityLogsUseCase {
 
     private static boolean isEntrypointCondition(FilterCondition condition) {
         return StaticFilters.ENTRYPOINT.filterName().equals(condition.name());
+    }
+
+    private static String searchText(List<FilterCondition> conditions) {
+        return conditions
+            .stream()
+            .filter(condition -> StaticFilters.GUARDRAIL_SEARCH.filterName().equals(condition.name()))
+            .flatMap(condition -> condition.values().stream())
+            .findFirst()
+            .orElse(null);
+    }
+
+    /** The APIs of the scope whose name holds the search text, in any case: the proxy name a row shows is searchable too. */
+    private static Set<String> apisNamed(String text, Map<String, ApiReference> apisById) {
+        if (text == null || text.isBlank() || apisById == null) {
+            return Set.of();
+        }
+        var needle = text.trim().toLowerCase(Locale.ROOT);
+        return apisById
+            .entrySet()
+            .stream()
+            .filter(entry -> entry.getValue() != null && entry.getValue().name() != null)
+            .filter(entry -> entry.getValue().name().toLowerCase(Locale.ROOT).contains(needle))
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toSet());
     }
 }
