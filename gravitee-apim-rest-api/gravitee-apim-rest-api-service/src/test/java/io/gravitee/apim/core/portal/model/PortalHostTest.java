@@ -41,6 +41,8 @@ class PortalHostTest {
             "http://partners.localhost:4100/next, partners.localhost:4100",
             "http://localhost:4100, localhost:4100",
             "http://127.0.0.1:4100/next, 127.0.0.1:4100",
+            "https://Developers.Acme.io./, developers.acme.io",
+            "http://partners.localhost.:4100/next, partners.localhost:4100",
         }
     )
     @SneakyThrows
