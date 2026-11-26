@@ -68,6 +68,11 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
 
     @Override
     public void removeSensitiveData(Page page) {
+        // Without its fetcher plugin, which fields are secret is unknown: hide the whole configuration rather than return it raw
+        if (page.getSource() != null && loadPlugin(page.getSource()).isEmpty()) {
+            page.getSource().setConfiguration(null);
+            return;
+        }
         loadFetcher(page).ifPresent(fetcher -> {
             FetcherConfiguration fetcherConfiguration = fetcher.getConfiguration();
             Field[] fields = fetcherConfiguration.getClass().getDeclaredFields();
@@ -90,6 +95,15 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
     @Override
     public void mergeSensitiveData(Page oldPage, Page newPage) {
         if (oldPage.getSource() == null || newPage.getSource() == null) {
+            return;
+        }
+        // The read hid this configuration because its plugin is missing: sent back as is, it must not erase the stored one
+        if (
+            newPage.getSource().getConfiguration() == null &&
+            Objects.equals(oldPage.getSource().getType(), newPage.getSource().getType()) &&
+            loadPlugin(oldPage.getSource()).isEmpty()
+        ) {
+            newPage.getSource().setConfiguration(oldPage.getSource().getConfiguration());
             return;
         }
         if (oldPage.getSource().getConfiguration() == null || newPage.getSource().getConfiguration() == null) {
