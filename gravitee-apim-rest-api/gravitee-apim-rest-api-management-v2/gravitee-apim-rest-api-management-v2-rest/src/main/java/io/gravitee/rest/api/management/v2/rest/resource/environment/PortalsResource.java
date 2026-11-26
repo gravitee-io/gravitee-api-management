@@ -76,7 +76,7 @@ public class PortalsResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.CREATE) })
     public Response createPortal(@Valid @NotNull CreatePortal createPortal) {
         var created = createPortalUseCase
             .execute(new CreatePortalUseCase.Input(getAuditInfo(), createPortal.getName(), createPortal.getUrl()))

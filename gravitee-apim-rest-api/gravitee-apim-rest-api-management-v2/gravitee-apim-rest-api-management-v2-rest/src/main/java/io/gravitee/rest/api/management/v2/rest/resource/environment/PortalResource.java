@@ -79,7 +79,7 @@ public class PortalResource extends AbstractResource {
     @PATCH
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.UPDATE) })
     public Portal updatePortal(@PathParam("portalId") String portalId, JsonNode body) {
         var update = parsePortalUpdate(body);
         var summary = renamePortalUseCase.execute(
