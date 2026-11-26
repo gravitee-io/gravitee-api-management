@@ -23,6 +23,8 @@ describe('credential consumers', () => {
     it.each([
         ['LLM_PROXY', '/environments/env-1/aim/llm-proxy/proxy%2F1'],
         ['AI_WORKSPACE', '/environments/env-1/aim/ai-workspaces/proxy%2F1'],
+        ['llm-proxy', '/environments/env-1/aim/llm-proxy/proxy%2F1'],
+        ['llm-provider', '/environments/env-1/aim/catalog/providers/proxy%2F1'],
     ])('links an AIM %s to its page in the current environment', (type, href) => {
         expect(credentialConsumerHref({ module: 'aim', type, id: 'proxy/1', name: 'Proxy' }, CURRENT_PATH)).toBe(href);
     });
@@ -50,6 +52,8 @@ describe('credential consumers', () => {
     it('labels known types and humanizes the others', () => {
         expect(credentialConsumerTypeLabel('LLM_PROXY')).toBe('LLM proxy');
         expect(credentialConsumerTypeLabel('AI_WORKSPACE')).toBe('AI workspace');
+        expect(credentialConsumerTypeLabel('llm-proxy')).toBe('LLM proxy');
+        expect(credentialConsumerTypeLabel('llm-provider')).toBe('LLM provider');
         expect(credentialConsumerTypeLabel('WORKFLOW_TOOL')).toBe('Workflow tool');
     });
 });
