@@ -70,6 +70,7 @@ gravitee-resource-ai-vector-store-aws-s3
 gravitee-resource-ai-model-text-embedding
 gravitee-resource-ai-model-token-classification
 gravitee-resource-ai-model-decision-remote
+gravitee-resource-ai-model-token-classification-remote
 gravitee-resource-schema-registry-confluent
 gravitee-resource-schema-registry-embedded
 
@@ -108,6 +109,7 @@ gravitee-policy-guardrail-llm-rule
 gravitee-policy-guardrail-llm-decision-binary
 gravitee-policy-guardrail-llm-decision-scoring
 gravitee-policy-guardrail-llm-http-evaluator
+gravitee-policy-guardrail-llm-pii-redaction
 gravitee-policy-human-approval
 gravitee-policy-authz-pep
 gravitee-policy-authz-list-filter
