@@ -217,7 +217,7 @@ describe('MetricsConfigurationPage', () => {
         await screen.findByText('Basket value');
         expect(mockUseHasPermission).toHaveBeenCalledWith({ anyOf: ['environment-settings-u'] });
         expect(screen.getByRole('button', { name: 'Declare a metric' })).not.toBeNull();
-        expect(screen.getByRole('button', { name: 'Edit Basket value' })).not.toBeNull();
+        expect(screen.getByRole('button', { name: 'Edit Basket value (double_checkout_basket-value)' })).not.toBeNull();
     });
 
     it('is read-only without environment-settings-u', async () => {
@@ -227,6 +227,8 @@ describe('MetricsConfigurationPage', () => {
         expect(screen.queryByRole('button', { name: 'Declare a metric' })).toBeNull();
         expect(screen.queryByRole('button', { name: /^Edit / })).toBeNull();
         // The reader is on the page that edits the catalog: the note names the missing right, not another place.
+        expect(screen.queryByText(READ_ONLY_SETTINGS_MESSAGE)).toBeNull();
+        await userEvent.setup().click(screen.getByRole('button', { name: 'Information' }));
         expect(screen.getByText(READ_ONLY_SETTINGS_MESSAGE)).not.toBeNull();
         expect(screen.queryByText(/go to Platform/)).toBeNull();
     });
@@ -234,6 +236,7 @@ describe('MetricsConfigurationPage', () => {
     it('shows no read-only note to a holder of environment-settings-u', async () => {
         renderPage();
         await screen.findByText('Basket value');
+        expect(screen.queryByRole('button', { name: 'Information' })).toBeNull();
         expect(screen.queryByText(READ_ONLY_SETTINGS_MESSAGE)).toBeNull();
     });
 
@@ -248,8 +251,8 @@ describe('MetricsConfigurationPage', () => {
         await user.click(screen.getByRole('button', { name: 'Declare a metric' }));
         const sheet = await screen.findByRole('dialog', { name: 'Declare a metric' });
         await user.click(within(sheet).getByRole('combobox', { name: 'Type' }));
-        await user.click(await screen.findByRole('option', { name: 'double: decimal number' }));
-        await user.type(within(sheet).getByLabelText('Name'), 'checkout_basket-value');
+        await user.click(await screen.findByRole('option', { name: /^double ?: decimal number$/ }));
+        await user.type(within(sheet).getByLabelText('Key'), 'checkout_basket-value');
         await user.type(within(sheet).getByLabelText('Label'), 'Basket value');
         await user.type(within(sheet).getByLabelText('Description'), 'Value of the basket at checkout');
         await user.click(within(sheet).getByRole('combobox', { name: 'Unit' }));
@@ -261,8 +264,23 @@ describe('MetricsConfigurationPage', () => {
         const row = await waitFor(() => rowOf('Basket value'));
         expect(within(row).getByText('Declared')).not.toBeNull();
         expect(within(row).getByText('double_checkout_basket-value')).not.toBeNull();
-        expect(within(row).getByText('No data in the last 30 days')).not.toBeNull();
+        expect(within(row).getByText('Not in 30 days')).not.toBeNull();
         expect(within(row).getByText('€')).not.toBeNull();
+    });
+
+    it('switches the Source to Custom when the typed key starts with custom.', async () => {
+        const user = userEvent.setup();
+        renderPage();
+        await screen.findByText('Basket value');
+
+        await user.click(screen.getByRole('button', { name: 'Declare a metric' }));
+        const sheet = await screen.findByRole('dialog', { name: 'Declare a metric' });
+        expect(within(sheet).getByRole('radio', { name: 'Custom' }).getAttribute('aria-checked')).toBe('false');
+        await user.type(within(sheet).getByLabelText('Key'), 'custom.order.channel');
+
+        expect(within(sheet).getByRole('radio', { name: 'Custom' }).getAttribute('aria-checked')).toBe('true');
+        expect((within(sheet).getByLabelText('Key') as HTMLInputElement).value).toBe('order.channel');
+        expect(within(sheet).getByText('custom.order.channel')).not.toBeNull();
     });
 
     it('does not retry a failed declaration: the sheet reports it at once', async () => {
@@ -278,7 +296,7 @@ describe('MetricsConfigurationPage', () => {
 
         await user.click(screen.getByRole('button', { name: 'Declare a metric' }));
         const sheet = await screen.findByRole('dialog', { name: 'Declare a metric' });
-        await user.type(within(sheet).getByLabelText('Name'), 'checkout_channel-count');
+        await user.type(within(sheet).getByLabelText('Key'), 'checkout_channel-count');
         await user.click(within(sheet).getByRole('button', { name: 'Declare' }));
 
         // Under the module's defaults the failure would surface only after two retries, seconds later.
@@ -321,7 +339,7 @@ describe('MetricsConfigurationPage', () => {
         renderPage();
         await screen.findByText('Basket value');
 
-        await user.click(screen.getByRole('button', { name: 'Edit Basket value' }));
+        await user.click(screen.getByRole('button', { name: 'Edit Basket value (double_checkout_basket-value)' }));
         const sheet = await screen.findByRole('dialog', { name: 'Edit metric' });
         const label = within(sheet).getByLabelText('Label');
         await user.clear(label);
@@ -340,7 +358,7 @@ describe('MetricsConfigurationPage', () => {
         renderPage();
         await screen.findByText('Basket value');
 
-        await user.click(screen.getByRole('button', { name: 'Edit Basket value' }));
+        await user.click(screen.getByRole('button', { name: 'Edit Basket value (double_checkout_basket-value)' }));
         const sheet = await screen.findByRole('dialog', { name: 'Edit metric' });
         await user.click(within(sheet).getByRole('button', { name: 'Delete record' }));
         const confirmation = await screen.findByRole('dialog', { name: 'Delete this record?' });
