@@ -326,7 +326,8 @@ paths:
                       Case-insensitive. ENUM and `bool_` fields: values or labels containing it.
                       `API`/`APPLICATION`/`PLAN`/`API_PRODUCT`: names containing it. Other KEYWORD,
                       `additional-metrics.keyword_*` and `custom.*`: stored values starting with it. On
-                      `ENTRYPOINT`, `(none)` when the query starts its value or label.
+                      `ENTRYPOINT`, `(none)` when the query starts its value or label. `CONSUMER_IP`: a full IP
+                      address only.
                   example: proxy
                   schema:
                       type: string

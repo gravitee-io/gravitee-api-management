@@ -34,6 +34,9 @@ export interface FilterDefinition {
 
 export const ID_BASED_FILTER_NAMES: ReadonlyArray<string> = ['API', 'APPLICATION', 'PLAN', 'API_PRODUCT'];
 
+/** The filter on the consumer IP, an `ip` field: only a full address finds a value. */
+export const CONSUMER_IP_FILTER_NAME = 'CONSUMER_IP';
+
 /** Emitted by keyword-style value inputs: API ids plus parallel display labels. */
 export interface FilterValueSelection {
   values: string[];

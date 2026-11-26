@@ -21,8 +21,8 @@ import java.util.Set;
 import lombok.Builder;
 
 /**
- * @param searchPattern narrows the values to those starting with it, whatever their case, absent or blank when every value
- *                      of the field is offered
+ * @param searchPattern narrows the values to those starting with it, whatever their case, or, on an {@code ip} field, to
+ *                      the full address it spells; absent or blank when every value of the field is offered
  * @param trafficScope narrows the calls of {@code apiIds} the values come from, absent when the caller is not
  *                     scoped by API kind
  * @param values       the only values to offer, absent when every value of the field is offered

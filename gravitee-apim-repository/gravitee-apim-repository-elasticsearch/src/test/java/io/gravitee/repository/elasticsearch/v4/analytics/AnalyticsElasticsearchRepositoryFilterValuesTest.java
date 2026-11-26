@@ -157,6 +157,26 @@ class AnalyticsElasticsearchRepositoryFilterValuesTest extends AbstractElasticse
     }
 
     @Nested
+    class Ip_field {
+
+        @Test
+        void should_offer_a_full_address_typed() {
+            assertThat(values("remote-address", MESSAGE_API, "127.0.0.1")).containsExactly("127.0.0.1");
+        }
+
+        @Test
+        void should_offer_no_value_for_the_start_of_an_address() {
+            assertThat(values("remote-address", MESSAGE_API, "127")).isEmpty();
+            assertThat(values("remote-address", MESSAGE_API, "127.0.0.")).isEmpty();
+        }
+
+        @Test
+        void should_offer_every_address_when_nothing_was_typed() {
+            assertThat(values("remote-address", MESSAGE_API, null)).containsExactly("127.0.0.1");
+        }
+    }
+
+    @Nested
     class Constraints_kept_with_a_prefix {
 
         @Test
