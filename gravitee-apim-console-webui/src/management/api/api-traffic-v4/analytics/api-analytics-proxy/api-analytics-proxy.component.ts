@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, computed, effect, inject, OnDestroy, OnInit, Signal } from '@angular/core';
+import { Component, computed, effect, inject, input, OnDestroy, OnInit, Signal } from '@angular/core';
 import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -120,6 +120,8 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
   private readonly apiId: string = this.activatedRoute.snapshot.params.apiId;
   private activatedRouteQueryParams = toSignal(this.activatedRoute.queryParams);
   private planService = inject(ApiPlanV2Service);
+
+  public readonly groupPathsByMapping = input(false);
 
   public topRowTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public leftColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
@@ -377,7 +379,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     });
 
     this.rightColumnTransformed$ = this.rightColumnWidgets.map(widgetConfig => {
-      return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
+      return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(this.groupTopPathsByMapping(widgetConfig));
     });
   }
 
@@ -408,6 +410,25 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       relativeTo: this.activatedRoute,
       queryParams: queryParamsForLogs,
     });
+  }
+
+  private groupTopPathsByMapping(widgetConfig: ApiAnalyticsDashboardWidgetConfig): ApiAnalyticsDashboardWidgetConfig {
+    if (!this.groupPathsByMapping() || widgetConfig.groupByField !== 'uri') {
+      return widgetConfig;
+    }
+    return {
+      ...widgetConfig,
+      tooltip:
+        'Most frequently hit path mappings. Counts only requests that matched a path mapping and passed security (401/403 excluded).',
+      groupByField: 'mapped-path',
+      mergeGroupByUriPath: false,
+      tableData: {
+        columns: [
+          { label: 'Path mapping', dataType: 'string' },
+          { label: 'Hits', dataType: 'number' },
+        ],
+      },
+    };
   }
 
   private updateQueryParamsFromFilters(filters: ApiAnalyticsProxyFilters): void {
