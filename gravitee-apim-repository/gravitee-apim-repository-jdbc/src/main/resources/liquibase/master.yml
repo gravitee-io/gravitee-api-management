@@ -482,8 +482,6 @@ databaseChangeLog:
     - include:
         - file: liquibase/changelogs/v4_14_0/19_add_access_point_id_to_portals.yml
     - include:
-<<<<<<< HEAD
         - file: liquibase/changelogs/v4_14_0/20_rename_guardians_to_guardrails.yml
-=======
+    - include:
         - file: liquibase/changelogs/v4_14_0/20_add_created_from_console_to_portals.yml
->>>>>>> 9482553 (feat(rest-api): create a portal within the license limit (#23088))
