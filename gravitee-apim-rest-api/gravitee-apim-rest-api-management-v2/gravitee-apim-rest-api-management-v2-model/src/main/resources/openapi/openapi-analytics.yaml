@@ -417,7 +417,7 @@ paths:
                     Optional search string, case-insensitive. ENUM filters: values containing it. ID-based filters
                     (`API`, `APPLICATION`, `PLAN`, `API_PRODUCT`): names containing it. Other KEYWORD filters and
                     additional metric fields: stored values starting with it (`gol` finds `gold`, `old` does not).
-                    An exact value is still returned, possibly with longer ones.
+                    An exact value is still returned, possibly with longer ones. `CONSUMER_IP`: a full IP address only.
                   schema:
                       type: string
             responses:

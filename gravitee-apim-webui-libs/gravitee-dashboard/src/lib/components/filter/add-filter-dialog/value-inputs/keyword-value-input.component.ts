@@ -46,7 +46,7 @@ import { catchError, debounceTime, distinctUntilChanged, filter, finalize, map, 
 
 import { isMultiSelectForFilter } from './filter-value-multi-select.util';
 import { FILTER_VALUES_PROVIDER, FilterValueItem } from '../../filter-providers';
-import { FilterDefinition, FilterValueSelection, ID_BASED_FILTER_NAMES } from '../../filter.model';
+import { CONSUMER_IP_FILTER_NAME, FilterDefinition, FilterValueSelection, ID_BASED_FILTER_NAMES } from '../../filter.model';
 
 interface KeywordOption {
   value: string;
@@ -239,7 +239,12 @@ export class KeywordValueInputComponent {
   protected readonly isMultiSelect = computed(() => isMultiSelectForFilter(this.definition(), this.selectedOperator()));
 
   protected readonly isIdBased = computed(() => ID_BASED_FILTER_NAMES.includes(this.definition().name as string));
-  protected readonly searchLabel = computed(() => (this.isIdBased() ? 'Search by name' : 'Search (starts with)'));
+  protected readonly searchLabel = computed(() => {
+    if (this.isIdBased()) {
+      return 'Search by name';
+    }
+    return this.definition().name === CONSUMER_IP_FILTER_NAME ? 'Search (full IP address)' : 'Search (starts with)';
+  });
 
   protected readonly chipInputPlaceholder = computed(() => (this.selectedChips().length > 0 ? '' : this.searchLabel()));
 

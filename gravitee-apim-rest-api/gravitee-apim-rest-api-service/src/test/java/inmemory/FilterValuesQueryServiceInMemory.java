@@ -65,16 +65,25 @@ public class FilterValuesQueryServiceInMemory
             throw new UnsupportedOperationException("Calls are not stored with their entrypoint");
         }
         var values = valuesOf(filterName, authorizedApiIds, apiProductId)
-            .filter(
-                value ->
-                    searchPattern == null ||
-                    searchPattern.isBlank() ||
-                    value.regionMatches(true, 0, searchPattern, 0, searchPattern.length())
-            )
+            .filter(value -> matches(filterName, value, searchPattern))
             .sorted()
             .toList();
         var pageValues = values.stream().skip((long) (page - 1) * size).limit(size).map(FilterValue::new).toList();
         return new FilterValuesPage(pageValues, null, (long) values.size());
+    }
+
+    /**
+     * As the store matches: a full address on {@code CONSUMER_IP}, the start of the value, whatever its case, elsewhere.
+     * An address is compared as written: the store also matches another spelling of the same address, this fake does not.
+     */
+    private static boolean matches(FilterName filterName, String value, String searchPattern) {
+        if (searchPattern == null || searchPattern.isBlank()) {
+            return true;
+        }
+        if (filterName == FilterSpec.Name.CONSUMER_IP) {
+            return value.equalsIgnoreCase(searchPattern);
+        }
+        return value.regionMatches(true, 0, searchPattern, 0, searchPattern.length());
     }
 
     @Override
