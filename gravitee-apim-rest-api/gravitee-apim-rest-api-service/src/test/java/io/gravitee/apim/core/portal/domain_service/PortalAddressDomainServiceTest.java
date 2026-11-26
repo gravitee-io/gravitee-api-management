@@ -24,7 +24,11 @@ import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
+import java.net.URI;
+import java.net.URL;
 import java.util.List;
+import java.util.Optional;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -84,6 +88,16 @@ class PortalAddressDomainServiceTest {
     class ResolveUrls {
 
         @Test
+        void should_keep_the_environment_portal_path_for_a_portal_at_the_shared_access_point() {
+            installation.withPortalUrl(ENV_ID, "https://acme.com/portal");
+            cut.accessPoints().initWith(List.of(aPortalAccessPoint("shared", ENV_ID, "acme.com", true)));
+
+            assertThat(cut.resolveUrls(ENV_ID, List.of(aPortal(PORTAL_ID, ENV_ID, "shared")))).hasEntrySatisfying(PORTAL_ID, url ->
+                assertThat(url).hasToString("https://acme.com/portal/next")
+            );
+        }
+
+        @Test
         void should_build_the_url_from_the_access_point_alone_whatever_the_environment_portal_path() {
             installation.withPortalUrl(ENV_ID, "https://portal.example.com/developers");
             cut.accessPoints().initWith(List.of(aPortalAccessPoint("partners", ENV_ID, "partners.example.com:8443", true)));
@@ -121,6 +135,84 @@ class PortalAddressDomainServiceTest {
             assertThat(
                 cut.resolveUrls(ENV_ID, List.of(aPortal(PORTAL_ID, ENV_ID, null), aPortal(OTHER_PORTAL_ID, ENV_ID, "elsewhere")))
             ).isEmpty();
+        }
+    }
+
+    @Nested
+    class FollowPortalUrl {
+
+        private static final PortalId PARTNERS_PORTAL_ID = PortalId.of("00000000-0000-0000-0000-000000000003");
+
+        @BeforeEach
+        void setUp() {
+            cut
+                .accessPoints()
+                .initWith(
+                    List.of(
+                        aPortalAccessPoint("previous-shared", ENV_ID, "localhost:4100", false),
+                        aPortalAccessPoint("partners", ENV_ID, "partners.localhost:4100", false)
+                    )
+                );
+            portals.initWith(
+                List.of(
+                    aPortal(PORTAL_ID, ENV_ID, "previous-shared"),
+                    aPortal(OTHER_PORTAL_ID, ENV_ID, "previous-shared"),
+                    aPortal(PARTNERS_PORTAL_ID, ENV_ID, "partners")
+                )
+            );
+        }
+
+        @Test
+        void should_move_the_portals_at_the_previous_shared_access_point_to_the_new_portal_url_host() {
+            installation.withPortalUrl(ENV_ID, "https://portal.acme.io/developers");
+
+            var moved = cut.followPortalUrl(ENV_ID, Optional.of(url("http://localhost:4100/next")));
+
+            assertThat(moved).isEqualTo(2);
+            var newShared = cut
+                .accessPoints()
+                .storage()
+                .stream()
+                .filter(accessPoint -> accessPoint.getHost().equals("portal.acme.io"))
+                .findFirst();
+            assertThat(newShared).hasValueSatisfying(accessPoint -> assertThat(accessPoint.isSecured()).isTrue());
+            assertThat(cut.accessPoints().storage()).extracting(AccessPoint::getId).doesNotContain("previous-shared").contains("partners");
+            assertThat(portals.storage())
+                .filteredOn(portal -> !portal.getId().equals(PARTNERS_PORTAL_ID))
+                .extracting(Portal::getAccessPointId)
+                .containsOnly(newShared.orElseThrow().getId());
+            assertThat(cut.resolveUrls(ENV_ID, portals.storage()))
+                .hasEntrySatisfying(PORTAL_ID, url -> assertThat(url).hasToString("https://portal.acme.io/developers/next"))
+                .hasEntrySatisfying(PARTNERS_PORTAL_ID, url -> assertThat(url).hasToString("http://partners.localhost:4100/next"));
+        }
+
+        @Test
+        void should_keep_the_portals_when_only_the_path_of_the_portal_url_changes() {
+            installation.withPortalUrl(ENV_ID, "http://localhost:4100/developers");
+
+            assertThat(cut.followPortalUrl(ENV_ID, Optional.of(url("http://localhost:4100/next")))).isZero();
+            assertThat(portals.storage()).extracting(Portal::getAccessPointId).containsOnly("previous-shared", "partners");
+        }
+
+        @Test
+        void should_keep_the_portals_without_a_previous_portal_url() {
+            installation.withPortalUrl(ENV_ID, "https://portal.acme.io");
+
+            assertThat(cut.followPortalUrl(ENV_ID, Optional.empty())).isZero();
+            assertThat(cut.accessPoints().storage()).extracting(AccessPoint::getId).containsOnly("previous-shared", "partners");
+        }
+
+        @Test
+        void should_keep_the_portals_while_the_new_portal_url_cannot_be_resolved() {
+            installation.withPortalUrl(ENV_ID, null);
+
+            assertThat(cut.followPortalUrl(ENV_ID, Optional.of(url("http://localhost:4100/next")))).isZero();
+            assertThat(portals.storage()).extracting(Portal::getAccessPointId).containsOnly("previous-shared", "partners");
+        }
+
+        @SneakyThrows
+        private static URL url(String value) {
+            return URI.create(value).toURL();
         }
     }
 

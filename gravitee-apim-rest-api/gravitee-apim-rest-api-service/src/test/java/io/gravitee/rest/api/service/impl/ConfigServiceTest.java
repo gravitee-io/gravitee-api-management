@@ -71,6 +71,7 @@ import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalAddressDomainService;
 import io.gravitee.apim.core.portal.exception.SeveralPortalsInEnvironmentException;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -93,11 +94,14 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.validator.SenderSettingsValidator;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -145,6 +149,9 @@ class ConfigServiceTest {
 
     @Mock
     private DefaultPortalDomainService defaultPortalDomainService;
+
+    @Mock
+    private PortalAddressDomainService portalAddressDomainService;
 
     @BeforeEach
     public void setup() {
@@ -445,6 +452,43 @@ class ConfigServiceTest {
             );
         inOrder.verify(defaultPortalDomainService).ensureDefault("DEFAULT", "DEFAULT");
         inOrder.verify(defaultPortalDomainService).linkUnlinkedPortals("DEFAULT");
+    }
+
+    @Test
+    @SneakyThrows
+    void should_move_the_shared_portals_from_the_portal_url_read_before_saving() {
+        var previousUrl = Optional.of(URI.create("http://localhost:4100/next").toURL());
+        when(portalAddressDomainService.portalUrl("DEFAULT")).thenReturn(previousUrl);
+        PortalSettingsEntity portalSettingsEntity = new PortalSettingsEntity();
+        portalSettingsEntity.getPortal().setUrl("https://portal.acme.io");
+
+        configService.save(GraviteeContext.getExecutionContext(), portalSettingsEntity);
+
+        var inOrder = inOrder(portalAddressDomainService, mockParameterService, defaultPortalDomainService);
+        inOrder.verify(portalAddressDomainService).portalUrl("DEFAULT");
+        inOrder
+            .verify(mockParameterService)
+            .save(
+                GraviteeContext.getExecutionContext(),
+                PORTAL_URL,
+                "https://portal.acme.io",
+                "DEFAULT",
+                ParameterReferenceType.ENVIRONMENT
+            );
+        inOrder.verify(portalAddressDomainService).followPortalUrl("DEFAULT", previousUrl);
+        inOrder.verify(defaultPortalDomainService).linkUnlinkedPortals("DEFAULT");
+    }
+
+    @Test
+    void should_resolve_the_saved_portal_url_rather_than_the_one_read_before_saving() {
+        when(portalAddressDomainService.portalUrl("DEFAULT")).thenAnswer(invocation -> {
+            GraviteeContext.getCurrentParameters().put(PORTAL_URL, "http://localhost:4100");
+            return Optional.empty();
+        });
+
+        configService.save(GraviteeContext.getExecutionContext(), new PortalSettingsEntity());
+
+        assertThat(GraviteeContext.getCurrentParameters()).doesNotContainKey(PORTAL_URL);
     }
 
     @Test
