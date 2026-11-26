@@ -26,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.credential.model.CredentialConsumer;
+import io.gravitee.apim.core.credential.model.CredentialConsumerWarning;
 import io.gravitee.gamma.rest.resources.credential.dto.CredentialDto;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -117,6 +118,37 @@ class CredentialResourceTest extends AbstractCredentialResourceTest {
             var updated = response.readEntity(CredentialDto.class);
             assertThat(updated.name()).isEqualTo("OpenAI production");
             assertThat(updated.secretReferences().get("token").reference()).isEqualTo("/vault/secret/openai:prod");
+        }
+
+        @Test
+        void should_return_the_objects_that_kept_the_former_settings() {
+            var credential = givenACredential();
+            credentialConsumers.givenWarnings(
+                new CredentialConsumerWarning("aim", "llm-proxy", "proxy-1", "Support bot", "You cannot update this LLM proxy.")
+            );
+
+            var response = rootTarget(credential.id())
+                .request()
+                .put(json(Map.of("name", "OpenAI", "references", Map.of("token", "/vault/secret/openai:prod"))));
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var warning = response.readEntity(JsonNode.class).get("consumerWarnings").get(0);
+            assertThat(warning.get("module").asText()).isEqualTo("aim");
+            assertThat(warning.get("type").asText()).isEqualTo("llm-proxy");
+            assertThat(warning.get("id").asText()).isEqualTo("proxy-1");
+            assertThat(warning.get("name").asText()).isEqualTo("Support bot");
+            assertThat(warning.get("message").asText()).isEqualTo("You cannot update this LLM proxy.");
+        }
+
+        @Test
+        void should_return_no_warning_when_every_object_took_the_change() {
+            var credential = givenACredential();
+
+            var response = rootTarget(credential.id())
+                .request()
+                .put(json(Map.of("name", "OpenAI", "references", Map.of("token", "/vault/secret/openai:prod"))));
+
+            assertThat(response.readEntity(JsonNode.class).get("consumerWarnings")).isEmpty();
         }
 
         @Test

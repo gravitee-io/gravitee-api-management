@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.tuple;
 import io.gravitee.apim.core.credential.service_provider.CredentialConsumerPort;
 import io.gravitee.apim.core.credential.service_provider.CredentialConsumerPort.Change;
 import io.gravitee.apim.core.credential.service_provider.CredentialConsumerPort.Consumer;
+import io.gravitee.apim.core.credential.service_provider.CredentialConsumerPort.Warning;
 import io.gravitee.apim.core.credential.service_provider.CredentialConsumers;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,15 +52,23 @@ class ModuleCredentialConsumersTest {
     static class ListeningPort implements CredentialConsumerPort {
 
         private final List<Change> received = new ArrayList<>();
+        private final String module;
         private final boolean failing;
+        private final List<Warning> warnings;
 
         ListeningPort(boolean failing) {
+            this("aim", failing, List.of());
+        }
+
+        ListeningPort(String module, boolean failing, List<Warning> warnings) {
+            this.module = module;
             this.failing = failing;
+            this.warnings = warnings;
         }
 
         @Override
         public String module() {
-            return "aim";
+            return module;
         }
 
         @Override
@@ -68,11 +77,12 @@ class ModuleCredentialConsumersTest {
         }
 
         @Override
-        public void changed(Change change) {
+        public List<Warning> changed(Change change) {
             if (failing) {
                 throw new IllegalStateException("module down");
             }
             received.add(change);
+            return warnings;
         }
     }
 
@@ -170,5 +180,35 @@ class ModuleCredentialConsumersTest {
         collector().changed(CHANGE);
 
         assertThat(other.received).containsExactly(CHANGE);
+    }
+
+    @Test
+    void should_gather_the_warnings_of_every_module() {
+        loadModule(
+            "aim.credentialConsumers",
+            new ListeningPort("aim", false, List.of(new Warning("llm-proxy", "p1", "Support bot", "You cannot update this LLM proxy.")))
+        );
+        loadModule(
+            "authz.credentialConsumers",
+            new ListeningPort("authz", false, List.of(new Warning("policy-sync", "p2", "Policy sync", "The sync is paused.")))
+        );
+
+        assertThat(collector().changed(CHANGE))
+            .extracting("module", "type", "id", "name", "message")
+            .containsExactlyInAnyOrder(
+                tuple("aim", "llm-proxy", "p1", "Support bot", "You cannot update this LLM proxy."),
+                tuple("authz", "policy-sync", "p2", "Policy sync", "The sync is paused.")
+            );
+    }
+
+    @Test
+    void should_keep_the_warnings_of_the_other_modules_when_one_fails() {
+        loadModule("aim.credentialConsumers", new ListeningPort(true));
+        loadModule(
+            "authz.credentialConsumers",
+            new ListeningPort("authz", false, List.of(new Warning("policy-sync", "p2", "Policy sync", "The sync is paused.")))
+        );
+
+        assertThat(collector().changed(CHANGE)).extracting("module", "id").containsExactly(tuple("authz", "p2"));
     }
 }
