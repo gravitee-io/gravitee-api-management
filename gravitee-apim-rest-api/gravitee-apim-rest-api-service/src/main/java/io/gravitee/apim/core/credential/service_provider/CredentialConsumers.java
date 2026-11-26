@@ -16,12 +16,13 @@
 package io.gravitee.apim.core.credential.service_provider;
 
 import io.gravitee.apim.core.credential.model.CredentialConsumer;
+import io.gravitee.apim.core.credential.model.CredentialConsumerWarning;
 import java.util.List;
 
 /** The objects of every Gamma module that use a credential. */
 public interface CredentialConsumers {
     List<CredentialConsumer> of(String environmentId, String credentialId);
 
-    /** Tells every module; a module that fails is logged, so the change it reacts to stands. */
-    void changed(CredentialConsumerPort.Change change);
+    /** Tells every module and returns their warnings; a module that fails is logged, so the change it reacts to stands. */
+    List<CredentialConsumerWarning> changed(CredentialConsumerPort.Change change);
 }

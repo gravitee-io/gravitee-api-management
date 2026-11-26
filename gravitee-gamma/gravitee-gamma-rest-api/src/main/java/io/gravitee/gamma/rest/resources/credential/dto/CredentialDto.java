@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.gravitee.apim.core.credential.model.Credential;
 import io.gravitee.apim.core.credential.model.CredentialActor;
+import io.gravitee.apim.core.credential.model.CredentialConsumerWarning;
 import io.gravitee.apim.core.credential.model.CredentialStrategy;
 import io.gravitee.apim.core.credential.model.SecretReference;
 import java.time.Instant;
@@ -47,7 +48,8 @@ public record CredentialDto(
     @JsonFormat(shape = JsonFormat.Shape.STRING) Instant createdAt,
     @JsonFormat(shape = JsonFormat.Shape.STRING) Instant updatedAt,
     @JsonFormat(shape = JsonFormat.Shape.STRING) Instant rotatedAt,
-    boolean manageable
+    boolean manageable,
+    List<CredentialConsumerWarning> consumerWarnings
 ) {
     /** @param managed whether Gravitee stores the value behind the reference */
     public record SecretReferenceDto(String reference, boolean managed) {}
@@ -56,8 +58,22 @@ public record CredentialDto(
         return from(credential, caller, null);
     }
 
+    /** @param consumerWarnings the objects of the Gamma modules that kept the former settings of the updated credential */
+    public static CredentialDto updated(Credential credential, CredentialActor caller, List<CredentialConsumerWarning> consumerWarnings) {
+        return of(credential, caller, null, consumerWarnings);
+    }
+
     /** @param ownerName null when the owner is no longer a user */
     public static CredentialDto from(Credential credential, CredentialActor caller, String ownerName) {
+        return of(credential, caller, ownerName, null);
+    }
+
+    private static CredentialDto of(
+        Credential credential,
+        CredentialActor caller,
+        String ownerName,
+        List<CredentialConsumerWarning> consumerWarnings
+    ) {
         var references = new LinkedHashMap<String, SecretReferenceDto>();
         credential.secretReferences().forEach((field, reference) -> references.put(field, from(reference)));
         return new CredentialDto(
@@ -74,7 +90,8 @@ public record CredentialDto(
             credential.createdAt(),
             credential.updatedAt(),
             credential.rotatedAt(),
-            credential.isManageableBy(caller)
+            credential.isManageableBy(caller),
+            consumerWarnings
         );
     }
 
