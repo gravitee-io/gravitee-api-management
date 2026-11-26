@@ -23,7 +23,8 @@ interface ModuleProduct {
     readonly tagline: string;
 }
 
-const PORTALS_MODULE_ID = 'portals' as const;
+/** Module id for the Developer Portals module. Portal editor in classic console is used until Gamma owns the editor. */
+export const PORTALS_MODULE_ID = 'portals' as const;
 
 /**
  * Gravitee products, in the order the app switcher and the home page present them: the products of the
