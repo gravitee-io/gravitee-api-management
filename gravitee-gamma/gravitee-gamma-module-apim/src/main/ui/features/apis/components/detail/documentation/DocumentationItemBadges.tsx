@@ -69,7 +69,7 @@ export function ApiPortalsPublicationBadge({ portalNames }: Readonly<{ portalNam
             </Badge>
         </ExplainedBadge>
     ) : (
-        <ExplainedBadge explanation="Not in any developer portal. Publish the API to choose a portal and the section it appears in.">
+        <ExplainedBadge explanation="Publish the API to choose a portal and the section it appears in.">
             <Badge variant="outline">Not published</Badge>
         </ExplainedBadge>
     );

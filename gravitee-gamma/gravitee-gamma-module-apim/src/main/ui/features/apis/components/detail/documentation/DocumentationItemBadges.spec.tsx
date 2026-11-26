@@ -117,8 +117,6 @@ describe('ApiPortalsPublicationBadge', () => {
     it('explains that an API published nowhere gets its portal and section when published', async () => {
         render(<ApiPortalsPublicationBadge portalNames={[]} />);
 
-        expect(await tooltipOf('Not published')).toBe(
-            'Not in any developer portal. Publish the API to choose a portal and the section it appears in.',
-        );
+        expect(await tooltipOf('Not published')).toBe('Publish the API to choose a portal and the section it appears in.');
     });
 });

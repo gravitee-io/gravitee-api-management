@@ -430,6 +430,19 @@ describe('ApiDocumentationPage', () => {
             expect(screen.queryByRole('button', { name: 'Publish' })).not.toBeInTheDocument();
         });
 
+        it('keeps the publication status when refreshing the portals fails', () => {
+            givenDocumentation({ items: [GUIDES], publications: [publication(true)] });
+            mockUseApiPublishPortals.mockReturnValue({
+                data: { data: [{ id: 'DEFAULT', name: 'Developer Portal', default: true }] },
+                isSuccess: false,
+                isError: true,
+            });
+            renderPage();
+
+            expect(screen.getByText('Published in APIs')).toBeInTheDocument();
+            expect(screen.getByRole('button', { name: 'Unpublish' })).toBeInTheDocument();
+        });
+
         it('claims no publication status when the documentation failed to load', () => {
             mockUseApiDocumentation.mockReturnValue({ data: undefined, isLoading: false, isError: true });
             renderPage();
@@ -660,6 +673,29 @@ describe('ApiDocumentationPage', () => {
             expect(mockUnpublish).toHaveBeenCalledWith(PARTNERS_PORTAL_ID);
             expect(notify.success).toHaveBeenCalledWith("Unpublished from 'Partners'");
             expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        });
+
+        it('still says the API stays elsewhere when the portal of the confirmation was unpublished meanwhile', async () => {
+            const user = userEvent.setup();
+            const { rerender } = renderPage();
+
+            await user.click(screen.getByRole('button', { name: 'Unpublish from Partners' }));
+            givenDocumentation({ items: [GUIDES], publications: [inDeveloperPortal] });
+            rerender(pageTree());
+
+            expect(screen.getByRole('dialog')).toHaveTextContent('It stays published in 1 other portal.');
+        });
+
+        it('keeps the confirmation open while unpublishing, so that it cannot close the one of another portal', async () => {
+            mockUnpublish.mockReturnValue(new Promise(() => {}));
+            mockUseUnpublishApiFromPortal.mockReturnValue({ mutateAsync: mockUnpublish, isPending: true });
+            const user = userEvent.setup();
+            renderPage();
+
+            await user.click(screen.getByRole('button', { name: 'Unpublish from Partners' }));
+            await user.keyboard('{Escape}');
+
+            expect(screen.getByRole('dialog', { name: 'Unpublish "Payment API" from "Partners"?' })).toBeInTheDocument();
         });
 
         it('closes the confirmation and says so when the API was unpublished from that portal meanwhile', async () => {

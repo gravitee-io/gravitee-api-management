@@ -105,9 +105,11 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
     const { api } = useApiDetailContext();
     const { data, isLoading, isError } = useApiDocumentation(apiId);
     const portalsQuery = useApiPublishPortals(apiId);
-    const portals = portalsQuery.isSuccess ? portalsQuery.data.data : [];
+    // Read from the data rather than the status: a failed refresh keeps the portals already loaded
+    const loadedPortals = portalsQuery.data?.data;
+    const portals = loadedPortals ?? [];
     // A listing the Automation API keeps in a portal it manages can be neither shown as published nor unpublished here
-    const publications = portalsQuery.isSuccess ? publicationsInPortals(data?.publications ?? [], portals) : undefined;
+    const publications = loadedPortals ? publicationsInPortals(data?.publications ?? [], portals) : undefined;
     const published = publishedPublications(publications ?? [], portals);
     const hasSeveralPortals = portals.length > 1;
     const deleteMutation = useDeleteApiDocumentationItem(apiId);
@@ -314,13 +316,17 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
 
             <ConfirmDialog
                 open={portalToUnpublish !== null}
-                onOpenChange={open => !open && setPortalToUnpublish(null)}
+                // Dismissed mid-request, the confirmation of another portal would be closed when this request ends
+                onOpenChange={open => !open && !unpublishMutation.isPending && setPortalToUnpublish(null)}
                 title={
                     hasSeveralPortals && portalToUnpublish
                         ? `Unpublish "${api?.name ?? 'this API'}" from "${portalToUnpublish.name}"?`
                         : `Unpublish "${api?.name ?? 'this API'}"?`
                 }
-                description={unpublishDescription(hasSeveralPortals, published.length)}
+                description={unpublishDescription(
+                    hasSeveralPortals,
+                    published.filter(({ portal }) => portal.id !== portalToUnpublish?.id).length,
+                )}
                 confirmLabel="Unpublish"
                 pendingLabel="Unpublishing…"
                 icon={<EyeOffIcon className="size-4" aria-hidden />}
@@ -419,9 +425,8 @@ function PublicationAction({
 }
 
 // The documentation stays published as long as one portal shows the API.
-function unpublishDescription(hasSeveralPortals: boolean, publishedPortalCount: number): string {
+function unpublishDescription(hasSeveralPortals: boolean, otherPortalCount: number): string {
     if (!hasSeveralPortals) return 'The API and its documentation will become invisible in the developer portal.';
-    const otherPortalCount = publishedPortalCount - 1;
     return otherPortalCount > 0
         ? `The API will become invisible in this portal. It stays published in ${otherPortalCount} other ${otherPortalCount === 1 ? 'portal' : 'portals'}.`
         : 'The API and its documentation will become invisible in this portal.';
