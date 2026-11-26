@@ -37,9 +37,10 @@ import {
     TriangleAlertIcon,
     ZapIcon,
 } from '@gravitee/graphene-core/icons';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { SubscriptionApproveDialog } from './SubscriptionApproveDialog';
+import { currentDatetimeLocalMinute, datetimeLocalToIso, isBeforeCurrentMinute, offsetToDatetimeLocal } from './subscriptionDateTime';
 import { notify } from '../../../../../../shared/notify';
 import {
     useApproveSubscription,
@@ -53,7 +54,6 @@ import {
 } from '../../../../hooks/useSubscriptionActions';
 import { useApiPlans } from '../../../../hooks/useSubscriptions';
 import type { ApproveSubscriptionPayload, Plan, Subscription, SubscriptionContext, SubscriptionPlan } from '../../../../types/subscription';
-import { dateInputToOffsetDateTime, localDateInputToday, offsetDateTimeToDateInput } from '../../../../utils/dateInputToOffsetDateTime';
 
 type InlineAction = 'pause' | 'resume' | 'close' | 'resumeFailure' | null;
 
@@ -91,6 +91,9 @@ export function SubscriptionActionsBar({
     const [endDateOpen, setEndDateOpen] = useState(false);
     const [selectedPlanId, setSelectedPlanId] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [endDateIncomplete, setEndDateIncomplete] = useState(false);
+    const [endDateCheckedAt, setEndDateCheckedAt] = useState<Date | null>(null);
+    const endDateInputRef = useRef<HTMLInputElement>(null);
 
     const { data: plans = [] } = useApiPlans(ctx);
     const transferPlans = useMemo(() => getTransferablePlans(plans, subscription.plan), [plans, subscription.plan]);
@@ -179,12 +182,27 @@ export function SubscriptionActionsBar({
     }, [selectedPlanId, transferMutation]);
 
     const openEndDateDialog = useCallback(() => {
-        setEndDate(offsetDateTimeToDateInput(subscription.endingAt));
+        setEndDate(offsetToDatetimeLocal(subscription.endingAt));
+        setEndDateIncomplete(false);
+        setEndDateCheckedAt(null);
         setEndDateOpen(true);
     }, [subscription.endingAt]);
 
+    const endDateInPast = isBeforeCurrentMinute(endDate, endDateCheckedAt ?? undefined);
+
     const handleEndDate = useCallback(() => {
-        const endingAt = endDate.trim() ? dateInputToOffsetDateTime(endDate) : null;
+        const trimmed = endDate.trim();
+        const checkedAt = new Date();
+        if (endDateInputRef.current?.validity.badInput) {
+            setEndDateIncomplete(true);
+            return;
+        }
+        if (endDateIncomplete) return;
+        if (trimmed && isBeforeCurrentMinute(trimmed, checkedAt)) {
+            setEndDateCheckedAt(checkedAt);
+            return;
+        }
+        const endingAt = trimmed ? datetimeLocalToIso(trimmed) : null;
         endDateMutation.mutate(
             {
                 endingAt,
@@ -203,7 +221,7 @@ export function SubscriptionActionsBar({
                 onError: error => notify.error(error, 'Failed to update end date.'),
             },
         );
-    }, [endDate, endDateMutation, subscription.startingAt, subscription.consumerConfiguration, subscription.metadata]);
+    }, [endDate, endDateIncomplete, endDateMutation, subscription.startingAt, subscription.consumerConfiguration, subscription.metadata]);
 
     if (isKubernetes) {
         return (
@@ -434,12 +452,23 @@ export function SubscriptionActionsBar({
                     <div className="space-y-2 py-2">
                         <Label htmlFor="end-date">End date (leave empty to remove)</Label>
                         <Input
+                            ref={endDateInputRef}
                             id="end-date"
-                            type="date"
+                            type="datetime-local"
                             value={endDate}
-                            min={localDateInputToday()}
-                            onChange={e => setEndDate(e.target.value)}
+                            min={currentDatetimeLocalMinute(endDateCheckedAt ?? undefined)}
+                            onChange={e => {
+                                setEndDate(e.target.value);
+                                setEndDateIncomplete(e.target.validity.badInput);
+                                setEndDateCheckedAt(null);
+                            }}
+                            onBlur={e => setEndDateIncomplete(e.currentTarget.validity.badInput)}
                         />
+                        {endDateIncomplete ? (
+                            <p className="text-sm text-destructive">Enter both a date and a time.</p>
+                        ) : endDateInPast ? (
+                            <p className="text-sm text-destructive">Date and time must not be earlier than the current minute.</p>
+                        ) : null}
                     </div>
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setEndDateOpen(false)}>
@@ -448,7 +477,12 @@ export function SubscriptionActionsBar({
                         <Button
                             type="button"
                             onClick={handleEndDate}
-                            disabled={endDateMutation.isPending || endDate === offsetDateTimeToDateInput(subscription.endingAt)}
+                            disabled={
+                                endDateMutation.isPending ||
+                                endDateIncomplete ||
+                                endDate === offsetToDatetimeLocal(subscription.endingAt) ||
+                                endDateInPast
+                            }
                         >
                             {endDateMutation.isPending ? 'Saving…' : 'Save'}
                         </Button>
