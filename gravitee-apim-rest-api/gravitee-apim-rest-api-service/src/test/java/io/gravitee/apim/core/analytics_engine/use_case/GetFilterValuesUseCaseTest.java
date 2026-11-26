@@ -1767,9 +1767,24 @@ class GetFilterValuesUseCaseTest {
             when(definitionQueryService.getAllFilters()).thenReturn(
                 List.of(
                     FilterSpecFixtures.number(FilterSpec.Name.HTTP_STATUS, "Status Code", new NumberRange(100, 599)),
-                    FilterSpecFixtures.string(FilterSpec.Name.HTTP_PATH, "Path")
+                    FilterSpecFixtures.string(FilterSpec.Name.HTTP_PATH, "Path"),
+                    FilterSpecFixtures.keyword(FilterSpec.Name.NATIVE_TOPIC, "Kafka Topic"),
+                    FilterSpecFixtures.keyword(FilterSpec.Name.NATIVE_OPERATION, "Kafka Operation")
                 )
             );
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "NATIVE_TOPIC", "NATIVE_OPERATION" })
+        void should_reject_a_keyword_filter_whose_store_holds_no_value_pool(String filterName) {
+            givenReadableApis("api-1");
+
+            assertThatThrownBy(() -> useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, filterName, null, null, 1, 10, "ka")))
+                .isInstanceOfSatisfying(ValidationDomainException.class, refusal ->
+                    assertThat(refusal.getTechnicalCode()).isEqualTo("observability.filter.value_listing_not_supported")
+                )
+                .hasMessage("Filter '" + filterName + "' of type KEYWORD does not support value listing");
+            verifyNoInteractions(filterValuesQueryService);
         }
 
         @Test
@@ -1890,7 +1905,7 @@ class GetFilterValuesUseCaseTest {
                 )
             )
                 .isInstanceOf(ValidationDomainException.class)
-                .hasMessage("Filter type LONG does not support value listing");
+                .hasMessage("Filter 'additional-metrics.long_failover_count' of type LONG does not support value listing");
         }
 
         @Test

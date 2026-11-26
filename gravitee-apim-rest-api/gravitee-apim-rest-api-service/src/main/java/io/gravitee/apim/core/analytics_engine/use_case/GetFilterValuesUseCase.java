@@ -71,6 +71,14 @@ public class GetFilterValuesUseCase {
         FilterSpec.Name.API_PRODUCT
     );
 
+    /** KEYWORD filters whose store holds no value pool to list: the Kafka topic and operation live in the event metrics. */
+    private static final Set<FilterSpec.Name> WITHOUT_VALUE_LISTING = Set.of(
+        FilterSpec.Name.NATIVE_TOPIC,
+        FilterSpec.Name.NATIVE_OPERATION
+    );
+
+    private static final String VALUE_LISTING_NOT_SUPPORTED = "observability.filter.value_listing_not_supported";
+
     private static final Map<ApiType, String> PLATFORM_TO_WIRE_API_TYPE = Map.of(
         ApiType.PROXY,
         "HTTP_PROXY",
@@ -172,6 +180,11 @@ public class GetFilterValuesUseCase {
 
     public record Output(FilterValuesPage valuesPage) {}
 
+    /** The KEYWORD filters this use case refuses before reading the store. */
+    public static Set<FilterSpec.Name> withoutValueListing() {
+        return WITHOUT_VALUE_LISTING;
+    }
+
     public Output execute(Input input) {
         if (input.page() < 1 || input.page() > MAX_PAGE) {
             throw new ValidationDomainException("page must be between 1 and " + MAX_PAGE, Map.of("page", String.valueOf(input.page())));
@@ -191,7 +204,12 @@ public class GetFilterValuesUseCase {
         var scope = scope(input, dataKindOf(filterSpec));
         return switch (filterSpec.type()) {
             case ENUM -> handleEnum(filterSpec, input);
-            case KEYWORD -> handleKeyword(input, filterSpecName, scope.context(), scope.trafficScope());
+            case KEYWORD -> {
+                if (WITHOUT_VALUE_LISTING.contains(filterSpecName)) {
+                    throw valueListingNotSupported(input, filterSpec.type().name());
+                }
+                yield handleKeyword(input, filterSpecName, scope.context(), scope.trafficScope());
+            }
             case NUMBER, STRING -> throw valueListingNotSupported(input, filterSpec.type().name());
         };
     }
@@ -212,8 +230,9 @@ public class GetFilterValuesUseCase {
 
     private static ValidationDomainException valueListingNotSupported(Input input, String filterType) {
         return new ValidationDomainException(
-            "Filter type " + filterType + " does not support value listing",
-            Map.of("filterName", input.filterName(), "filterType", filterType)
+            "Filter '" + input.filterName() + "' of type " + filterType + " does not support value listing",
+            Map.of("filterName", input.filterName(), "filterType", filterType),
+            VALUE_LISTING_NOT_SUPPORTED
         );
     }
 
