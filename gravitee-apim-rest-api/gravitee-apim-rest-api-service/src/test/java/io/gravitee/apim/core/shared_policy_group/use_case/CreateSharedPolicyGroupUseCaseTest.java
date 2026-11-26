@@ -16,10 +16,15 @@
 package io.gravitee.apim.core.shared_policy_group.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import fakes.FakePolicyValidationDomainService;
 import fixtures.core.model.SharedPolicyGroupFixtures;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.CredentialCrudServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -27,13 +32,19 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plugin.model.FlowPhase;
 import io.gravitee.apim.core.policy.exception.UnexpectedPoliciesException;
+import io.gravitee.apim.core.secret.domain_service.SecretReferencePermissionDomainService;
+import io.gravitee.apim.core.secret.exception.InvalidSecretReferenceException;
+import io.gravitee.apim.core.secret.exception.SecretReferenceNotAllowedException;
 import io.gravitee.apim.core.shared_policy_group.domain_service.ValidateCreateSharedPolicyGroupDomainService;
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupDuplicateCrossIdException;
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupInvalidPhaseException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupAuditEvent;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
+import io.gravitee.apim.infra.credential.SpelSecretExpressionParser;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.ApiType;
@@ -70,8 +81,20 @@ public class CreateSharedPolicyGroupUseCaseTest {
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     private final FakePolicyValidationDomainService policyValidationDomainService = new FakePolicyValidationDomainService();
+    private final PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
+    private final SecretReferencePermissionDomainService secretReferencePermissionDomainService =
+        new SecretReferencePermissionDomainService(
+            new SpelSecretExpressionParser(),
+            permissionDomainService,
+            new CredentialCrudServiceInMemory(),
+            GraviteeJacksonMapper.getInstance()
+        );
     private final ValidateCreateSharedPolicyGroupDomainService validateCreateSharedPolicyGroupDomainService =
-        new ValidateCreateSharedPolicyGroupDomainService(sharedPolicyGroupCrudService, policyValidationDomainService);
+        new ValidateCreateSharedPolicyGroupDomainService(
+            sharedPolicyGroupCrudService,
+            policyValidationDomainService,
+            secretReferencePermissionDomainService
+        );
     private CreateSharedPolicyGroupUseCase createSharedPolicyGroupUseCase;
 
     @BeforeAll
@@ -305,5 +328,43 @@ public class CreateSharedPolicyGroupUseCaseTest {
         Assertions.assertThat(throwable)
             .isInstanceOf(SharedPolicyGroupInvalidPhaseException.class)
             .hasMessage("Invalid phase SUBSCRIBE for API type PROXY");
+    }
+
+    @Test
+    void should_refuse_a_step_that_references_a_secret_of_another_environment_and_store_nothing() {
+        when(permissionDomainService.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
+        var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroup();
+        toCreate.setSteps(List.of(stepReferencing("/gravitee/db-password:value?envId=other-env")));
+
+        assertThatThrownBy(() -> createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO)))
+            .isInstanceOf(InvalidSecretReferenceException.class)
+            .hasMessageContaining("?envId=env-id");
+        assertThat(sharedPolicyGroupCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_refuse_a_step_that_references_a_stored_secret_without_the_secret_read_permission() {
+        var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroup();
+        toCreate.setSteps(List.of(stepReferencing("/gravitee/db-password:value?envId=env-id")));
+
+        assertThatThrownBy(() ->
+            createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO))
+        ).isInstanceOf(SecretReferenceNotAllowedException.class);
+        assertThat(sharedPolicyGroupCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_create_a_step_that_references_a_stored_secret_with_the_secret_read_permission() {
+        when(permissionDomainService.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
+        var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroup();
+        toCreate.setSteps(List.of(stepReferencing("/gravitee/db-password:value?envId=env-id")));
+
+        var created = createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO));
+
+        assertThat(created.sharedPolicyGroup().getSteps()).hasSize(1);
+    }
+
+    private static Step stepReferencing(String path) {
+        return Step.builder().policy("policy").enabled(true).configuration("{ \"value\": \"{#secrets.get('" + path + "')}\" }").build();
     }
 }
