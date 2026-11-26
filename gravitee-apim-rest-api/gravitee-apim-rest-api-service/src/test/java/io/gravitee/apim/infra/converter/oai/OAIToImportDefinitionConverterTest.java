@@ -772,6 +772,21 @@ class OAIToImportDefinitionConverterTest {
     class PathMappings {
 
         @Test
+        void should_report_a_skipped_wildcard_path_whether_or_not_path_mappings_are_requested() {
+            for (boolean withPathMapping : List.of(true, false)) {
+                var result = OAIToImportDefinitionConverter.INSTANCE.toImportDefinition(
+                    specWithOperations("/pets", "/a/**"),
+                    List.of(),
+                    false,
+                    withPathMapping
+                );
+
+                assertThat(result.getSkippedPaths()).containsExactly("/a/**");
+                assertThat(flowPaths(result)).contains("/pets").doesNotContain("/a/**");
+            }
+        }
+
+        @Test
         void should_fill_http_listener_path_mappings_when_requested() {
             var result = OAIToImportDefinitionConverter.INSTANCE.toImportDefinition(specWithPaths("/pets/{petId}"), List.of(), false, true);
 
@@ -798,6 +813,22 @@ class OAIToImportDefinitionConverterTest {
 
             var listener = (HttpListener) result.getApiExport().getListeners().getFirst();
             assertThat(listener.getPathMappings()).isEmpty();
+        }
+
+        private static List<String> flowPaths(io.gravitee.apim.core.api.model.import_definition.ImportDefinition result) {
+            return ((List<Flow>) result.getApiExport().getFlows()).stream()
+                .flatMap(flow -> flow.getSelectors().stream())
+                .filter(HttpSelector.class::isInstance)
+                .map(selector -> ((HttpSelector) selector).getPath())
+                .toList();
+        }
+
+        private OpenAPI specWithOperations(String... paths) {
+            var openAPI = specWithPaths(paths);
+            for (var path : paths) {
+                openAPI.getPaths().get(path).setGet(new io.swagger.v3.oas.models.Operation());
+            }
+            return openAPI;
         }
 
         private OpenAPI specWithPaths(String... paths) {

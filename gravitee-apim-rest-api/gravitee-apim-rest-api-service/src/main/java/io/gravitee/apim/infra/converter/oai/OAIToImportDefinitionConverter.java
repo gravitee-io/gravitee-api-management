@@ -58,6 +58,7 @@ public class OAIToImportDefinitionConverter {
     ) {
         var xGraviteeIODefinition = getXGraviteeIODefinition(specification);
         var serverUrls = OAIServersConverter.INSTANCE.convert(specification.getServers());
+        var flowsConversion = flowsConversion(specification, visitors, skipFlows);
         var importDefinitionBuilder = ImportDefinition.builder();
         var apiBuilder = ApiExport.builder()
             .name(specification.getInfo().getTitle())
@@ -69,7 +70,7 @@ public class OAIToImportDefinitionConverter {
             .definitionVersion(DefinitionVersion.V4)
             .apiVersion(specification.getInfo().getVersion())
             .type(ApiType.PROXY)
-            .flows(skipFlows ? new ArrayList<>() : OAIToFlowsConverter.INSTANCE.convert(specification, visitors))
+            .flows(flowsConversion.flows())
             .listeners(
                 OAIToListenersConverter.INSTANCE.convert(
                     xGraviteeIODefinition,
@@ -115,7 +116,18 @@ public class OAIToImportDefinitionConverter {
             importDefinitionBuilder.metadata(OAIToMetadataConverter.INSTANCE.convert(xGraviteeIODefinition.getMetadata()));
         }
 
-        return importDefinitionBuilder.apiExport(apiBuilder.build()).build();
+        return importDefinitionBuilder.apiExport(apiBuilder.build()).skippedPaths(flowsConversion.skippedPaths()).build();
+    }
+
+    private OAIToFlowsConverter.FlowsConversion flowsConversion(
+        OpenAPI specification,
+        Collection<? extends OAIOperationVisitor> visitors,
+        boolean skipFlows
+    ) {
+        if (skipFlows) {
+            return new OAIToFlowsConverter.FlowsConversion(new ArrayList<>(), List.of());
+        }
+        return OAIToFlowsConverter.INSTANCE.convert(specification, visitors);
     }
 
     private XGraviteeIODefinition getXGraviteeIODefinition(OpenAPI specification) {

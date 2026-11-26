@@ -36,9 +36,12 @@ class OAIToFlowsConverterTest {
     void should_skip_invalid_wildcard_path_and_keep_the_other_paths() {
         var spec = specWithOperations("/pets", "/a/**", "/charges/{id}", "/users/@me", "/files/*");
 
-        var flows = OAIToFlowsConverter.INSTANCE.convert(spec, List.of());
+        var conversion = OAIToFlowsConverter.INSTANCE.convert(spec, List.of());
 
-        assertThat(flows).extracting(OAIToFlowsConverterTest::httpPath).containsExactly("/pets", "/charges/:id", "/users/@me", "/files/*");
+        assertThat(conversion.flows())
+            .extracting(OAIToFlowsConverterTest::httpPath)
+            .containsExactly("/pets", "/charges/:id", "/users/@me", "/files/*");
+        assertThat(conversion.skippedPaths()).containsExactly("/a/**");
     }
 
     @Test
@@ -50,9 +53,10 @@ class OAIToFlowsConverterTest {
         spec.setPaths(new Paths());
         spec.getPaths().addPathItem("/a/**", wildcard);
 
-        var flows = OAIToFlowsConverter.INSTANCE.convert(spec, List.of());
+        var conversion = OAIToFlowsConverter.INSTANCE.convert(spec, List.of());
 
-        assertThat(flows).isEmpty();
+        assertThat(conversion.flows()).isEmpty();
+        assertThat(conversion.skippedPaths()).containsExactly("/a/**");
     }
 
     @Test

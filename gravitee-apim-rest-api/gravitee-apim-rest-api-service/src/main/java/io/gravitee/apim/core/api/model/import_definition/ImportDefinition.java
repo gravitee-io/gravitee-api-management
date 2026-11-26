@@ -45,6 +45,10 @@ public class ImportDefinition {
 
     private List<Media> apiMedia;
 
+    /** Paths dropped during OpenAPI import. Not part of the stored API. */
+    @Builder.Default
+    private List<String> skippedPaths = List.of();
+
     public boolean isNative() {
         return apiExport.getType() == ApiType.NATIVE;
     }

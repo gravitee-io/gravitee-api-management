@@ -21,6 +21,7 @@ import io.gravitee.apim.core.api.domain_service.import_definition.ImportDefiniti
 import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
+import java.util.List;
 import lombok.Builder;
 
 @UseCase
@@ -40,7 +41,11 @@ public class OAIToImportApiUseCase {
         }
     }
 
-    public record Output(ApiWithFlows apiWithFlows) {}
+    public record Output(ApiWithFlows apiWithFlows, List<String> skippedPaths) {
+        public Output(ApiWithFlows apiWithFlows) {
+            this(apiWithFlows, List.of());
+        }
+    }
 
     private final OAIDomainService oaiDomainService;
     private final ImportDefinitionCreateDomainService importDefinitionCreateDomainService;
@@ -66,7 +71,8 @@ public class OAIToImportApiUseCase {
 
         if (importDefinition != null) {
             final ApiWithFlows apiWithFlows = importDefinitionCreateDomainService.create(input.auditInfo, importDefinition);
-            return new Output(apiWithFlows);
+            var skippedPaths = importDefinition.getSkippedPaths() == null ? List.<String>of() : importDefinition.getSkippedPaths();
+            return new Output(apiWithFlows, skippedPaths);
         }
 
         return null;
