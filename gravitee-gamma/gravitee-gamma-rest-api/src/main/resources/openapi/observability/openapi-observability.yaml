@@ -303,7 +303,9 @@ paths:
                 read none. Searching `API` by name offers the APIs the caller reads. With `apiProduct`, only
                 the calls made through that API product count; a holder of `AI_WORKSPACE_USER[READ]` on that
                 workspace also gets the values of its calls, as the workspace rule of *Analytics* counts them,
-                except for the fields read from the logs. `NATIVE_TOPIC` and
+                except for the fields read from the logs. `MESSAGE_CONNECTOR_TYPE` and `MESSAGE_CONNECTOR_ID` are
+                read from the message documents, which carry no API product: with `apiProduct` they offer no value.
+                `NATIVE_TOPIC` and
                 `NATIVE_OPERATION` are the exception: their values live in a stream the store does not
                 aggregate over, and they return 400.
                 NUMBER and STRING filters have no enumerable values and return 400. `page` is capped at

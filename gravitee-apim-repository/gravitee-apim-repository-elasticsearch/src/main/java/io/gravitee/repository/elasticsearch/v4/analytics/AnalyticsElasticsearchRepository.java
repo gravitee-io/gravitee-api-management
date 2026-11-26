@@ -65,6 +65,12 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     private final String[] clusters;
     private static final String KEYWORD = "keyword";
 
+    /**
+     * Fields only the message documents carry: their values are read there. Those documents hold no API product, so a
+     * request scoped to one finds no value.
+     */
+    private static final Set<String> MESSAGE_ONLY_FIELDS = messageOnlyFields();
+
     private static final SearchResponseStatusOverTimeAdapter searchResponseStatusOverTimeAdapter =
         new SearchResponseStatusOverTimeAdapter();
 
@@ -75,6 +81,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     private final HTTPTimeSeriesQueryAdapter httpTimeSeriesQueryAdapter = new HTTPTimeSeriesQueryAdapter();
     private final NativeTimeSeriesQueryAdapter nativeTimeSeriesQueryAdapter = new NativeTimeSeriesQueryAdapter();
     private final FilterAdapter messageFilterAdapter = new FilterAdapter(new MessageFieldResolver());
+
     private final MeasuresResponseAdapter measuresResponseAdapter = new MeasuresResponseAdapter();
     private final FacetsResponseAdapter facetsResponseAdapter = new FacetsResponseAdapter();
     private final TimeSeriesResponseAdapter timeSeriesResponseAdapter = new TimeSeriesResponseAdapter();
@@ -997,6 +1004,11 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         return call.map(Optional::of).timeout(remaining.toMillis(), TimeUnit.MILLISECONDS, Single.just(Optional.empty())).blockingGet();
     }
 
+    private static Set<String> messageOnlyFields() {
+        var resolver = new MessageFieldResolver();
+        return Set.of(resolver.fromFilter(Filter.Name.MESSAGE_CONNECTOR_ID), resolver.fromFilter(Filter.Name.MESSAGE_CONNECTOR_TYPE));
+    }
+
     private static Duration remaining(Instant deadline) {
         var remaining = Duration.between(TimeProvider.instantNow(), deadline);
         return remaining.isNegative() ? Duration.ZERO : remaining;
@@ -1004,8 +1016,10 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public FilterValuesResult searchFilterValues(QueryContext queryContext, FilterValuesQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
-        var esQuery = filterValuesQueryAdapter.adapt(query);
+        var onMessages = MESSAGE_ONLY_FIELDS.contains(query.esFieldName());
+        var type = onMessages ? Type.V4_MESSAGE_METRICS : Type.V4_METRICS;
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), type, clusters);
+        var esQuery = onMessages ? filterValuesQueryAdapter.adaptOnMessages(query) : filterValuesQueryAdapter.adapt(query);
 
         log.debug("Filter values query: {}", esQuery);
 
