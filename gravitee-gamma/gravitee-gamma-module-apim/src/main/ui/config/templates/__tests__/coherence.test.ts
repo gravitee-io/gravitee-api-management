@@ -21,6 +21,15 @@ const widgets = HTTP_PROXY_DASHBOARD.widgets;
 
 const templateWidgets = observabilityTemplates.flatMap(template => template.dashboard.widgets);
 
+// The templates are written on the legacy 12-column grid; the library converts them on read.
+const GRID_COLUMNS = 12;
+
+type Cell = { x: number; y: number; cols: number; rows: number };
+
+function overlap(a: Cell, b: Cell): boolean {
+    return a.x < b.x + b.cols && b.x < a.x + a.cols && a.y < b.y + b.rows && b.y < a.y + a.rows;
+}
+
 describe('HTTP Proxy dashboard template coherence', () => {
     it('cartesian widgets never showTotal on mixed-unit or dual-axis series', () => {
         for (const widget of widgets) {
@@ -76,6 +85,66 @@ describe('HTTP Proxy dashboard template coherence', () => {
 
             expect('metric' in widget ? widget.metric : undefined).toBeUndefined();
             expect('valueLabel' in widget ? widget.valueLabel : undefined).toBe('Requests');
+        }
+    });
+
+    it('ranks every request by raw path, and the matched ones by path mapping, in two widgets', () => {
+        const topPaths = widgets.find(widget => widget.title === 'Top 5 Paths');
+        const topPathMappings = widgets.find(widget => widget.title === 'Top 5 Path mappings');
+
+        expect(topPaths).toEqual(
+            expect.objectContaining({
+                id: 'http-proxy-top-request-paths',
+                type: 'bar',
+                by: ['HTTP_PATH'],
+                description: 'Most-requested paths, after the API context path, query string excluded.',
+            }),
+        );
+        expect(topPathMappings).toEqual(
+            expect.objectContaining({
+                id: 'http-proxy-top-paths',
+                type: 'bar',
+                by: ['HTTP_PATH_MAPPING'],
+                description:
+                    'Counts only requests that matched a path mapping and passed security (401/403 excluded). Empty for APIs without path mappings.',
+            }),
+        );
+    });
+
+    it('puts the two path widgets side by side, raw paths on the left, in the same shape', () => {
+        const topPaths = widgets.find(widget => widget.id === 'http-proxy-top-request-paths')!.layout;
+        const topPathMappings = widgets.find(widget => widget.id === 'http-proxy-top-paths')!.layout;
+
+        expect(topPathMappings).toEqual({ ...topPaths, x: topPaths.x + topPaths.cols });
+    });
+
+    it('fills every row of the HTTP Proxy overview', () => {
+        const rows = new Map<number, number>();
+        for (const { layout } of widgets) {
+            for (let y = layout.y; y < layout.y + layout.rows; y++) {
+                rows.set(y, (rows.get(y) ?? 0) + layout.cols);
+            }
+        }
+
+        expect(rows.size).toBeGreaterThan(0);
+        expect([...rows.entries()].filter(([, cols]) => cols !== GRID_COLUMNS)).toEqual([]);
+    });
+
+    it('lays out every template widget inside the grid without overlap', () => {
+        for (const template of observabilityTemplates) {
+            const cells = template.dashboard.widgets.map(widget => ({ id: widget.id, ...widget.layout }));
+            expect(cells.length).toBeGreaterThan(0);
+
+            for (const cell of cells) {
+                expect(cell.x + cell.cols).toBeLessThanOrEqual(GRID_COLUMNS);
+            }
+            const overlaps = cells.flatMap((cell, index) =>
+                cells
+                    .slice(index + 1)
+                    .filter(other => overlap(cell, other))
+                    .map(other => `${cell.id} / ${other.id}`),
+            );
+            expect(overlaps).toEqual([]);
         }
     });
 
