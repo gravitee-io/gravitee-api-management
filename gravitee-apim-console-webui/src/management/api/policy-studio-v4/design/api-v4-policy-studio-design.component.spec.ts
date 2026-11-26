@@ -225,6 +225,42 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
     });
   });
 
+  describe('API returned without endpoint groups', () => {
+    let policyStudioHarness: GioPolicyStudioHarness;
+
+    beforeEach(async () => {
+      const api = fakeApiV4({
+        id: API_ID,
+        type: 'MESSAGE',
+        listeners: [{ type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] }],
+        endpointGroups: undefined,
+        flows: [
+          {
+            name: 'my flow',
+            enabled: true,
+            selectors: [{ type: 'CHANNEL', channel: 'my-channel', channelOperator: 'EQUALS' }],
+          },
+        ],
+      });
+
+      expectEntrypointsGetRequest([{ id: 'webhook', name: 'Webhook', supportedModes: ['SUBSCRIBE'] }]);
+      expectEndpointsGetRequest([{ id: 'kafka', name: 'Kafka', supportedModes: ['PUBLISH', 'SUBSCRIBE'] }]);
+      expectGetPolicies();
+      expectGetSharedPolicyGroupPolicyPluginRequest(httpTestingController);
+      expectListApiPlans(API_ID, [fakePlanV4({ name: 'PlanA' })]);
+      expectGetApi(api);
+      policyStudioHarness = await loader.getHarness(GioPolicyStudioHarness);
+    });
+
+    it('should display the API flows, with phases disabled as no endpoint is shown', async () => {
+      const flowsMenu = await policyStudioHarness.getFlowsMenu();
+      expect(flowsMenu.find(group => group.name === 'All plans')?.flows.map(flow => flow.name)).toEqual(['my flow']);
+
+      await policyStudioHarness.selectFlowInMenu('my flow');
+      expect(await (await policyStudioHarness.getSelectedFlowPhase('SUBSCRIBE')).getSteps()).toEqual('DISABLED');
+    });
+  });
+
   describe('MESSAGE API type', () => {
     let api: ApiV4;
     let planA: PlanV4;

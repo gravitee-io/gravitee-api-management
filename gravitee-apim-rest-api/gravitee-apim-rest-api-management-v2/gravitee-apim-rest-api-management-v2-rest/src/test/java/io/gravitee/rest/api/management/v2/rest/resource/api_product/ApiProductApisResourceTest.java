@@ -17,10 +17,14 @@ package io.gravitee.rest.api.management.v2.rest.resource.api_product;
 
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static io.gravitee.rest.api.management.v2.rest.resource.api.ApiDefinitionFixtures.httpApi;
+import static io.gravitee.rest.api.management.v2.rest.resource.api.ApiDefinitionFixtures.nativeApi;
+import static io.gravitee.rest.api.management.v2.rest.resource.api.ApiDefinitionFixtures.v2Api;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
@@ -32,18 +36,28 @@ import io.gravitee.apim.core.api_product.use_case.GetApiProductApisUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductExistsUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.rest.api.management.v2.rest.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
+import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class ApiProductApisResourceTest extends AbstractResourceTest {
 
@@ -163,6 +177,53 @@ class ApiProductApisResourceTest extends AbstractResourceTest {
                         input.pageable().getPageSize() == 20
                 )
             );
+        }
+
+        static Stream<Arguments> apisOfEachDefinitionType() {
+            return Stream.of(
+                Arguments.of(httpApi("api-1"), (Function<Api, Collection<?>>) api -> api.getApiV4().getEndpointGroups()),
+                Arguments.of(nativeApi("api-1"), (Function<Api, Collection<?>>) api -> api.getApiV4().getEndpointGroups()),
+                Arguments.of(v2Api("api-1"), (Function<Api, Collection<?>>) api -> api.getApiV2().getProxy().getGroups())
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("apisOfEachDefinitionType")
+        void should_return_api_without_endpoints_when_caller_cannot_read_its_definition(
+            GenericApiEntity api,
+            Function<Api, Collection<?>> endpoints
+        ) {
+            givenApiProductExists();
+            when(getApiProductApisUseCase.execute(any())).thenReturn(
+                new GetApiProductApisUseCase.Output(new Page<>(List.of(api), 1, 10, 1))
+            );
+            when(
+                permissionService.hasPermission(any(), eq(RolePermission.API_DEFINITION), eq("api-1"), eq(RolePermissionAction.READ))
+            ).thenReturn(false);
+
+            Response response = rootTarget().request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var result = response.readEntity(ApisResponse.class).getData().getFirst();
+            assertThat(endpoints.apply(result)).isNullOrEmpty();
+        }
+
+        @ParameterizedTest
+        @MethodSource("apisOfEachDefinitionType")
+        void should_return_api_with_endpoints_when_caller_can_read_its_definition(
+            GenericApiEntity api,
+            Function<Api, Collection<?>> endpoints
+        ) {
+            givenApiProductExists();
+            when(getApiProductApisUseCase.execute(any())).thenReturn(
+                new GetApiProductApisUseCase.Output(new Page<>(List.of(api), 1, 10, 1))
+            );
+
+            Response response = rootTarget().request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var result = response.readEntity(ApisResponse.class).getData().getFirst();
+            assertThat(endpoints.apply(result)).hasSize(1);
         }
     }
 }

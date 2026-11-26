@@ -34,8 +34,6 @@ import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.BaseOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationOriginContext;
-import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
-import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.context.OriginContext;
@@ -51,7 +49,6 @@ import java.util.Map;
 import java.util.Set;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -59,9 +56,7 @@ import org.mockito.Captor;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class ApisResource_SearchApisTest extends AbstractResourceTest {
-
-    private static final String ENVIRONMENT = "fake-env";
+public class ApisResource_SearchApisTest extends AbstractApisResourceTest {
 
     @Captor
     ArgumentCaptor<QueryBuilder<ApiEntity>> apiQueryBuilderCaptor;
@@ -69,20 +64,6 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT + "/apis/_search";
-    }
-
-    @BeforeEach
-    public void init() {
-        GraviteeContext.cleanContext();
-        GraviteeContext.setCurrentOrganization(ORGANIZATION);
-        GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
-
-        EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId(ENVIRONMENT);
-        environment.setOrganizationId(ORGANIZATION);
-
-        when(environmentService.findById(ENVIRONMENT)).thenReturn(environment);
-        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environment);
     }
 
     @Test

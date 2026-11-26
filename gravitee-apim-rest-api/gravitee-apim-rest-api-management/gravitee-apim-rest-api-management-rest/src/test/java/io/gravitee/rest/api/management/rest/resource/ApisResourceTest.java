@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.common.component.Lifecycle.State.STARTED;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,6 +30,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.api.ApiCRDStatusEntity;
@@ -37,6 +39,8 @@ import io.gravitee.rest.api.model.api.ApiListItem;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.api.ApiValidationResult;
 import io.gravitee.rest.api.model.api.NewApiEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
@@ -61,6 +65,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_reject_unsupported_sort_field() {
+        reset(apiService);
         final Response response = envTarget().queryParam("order", "name) , (select 1 from users").request().get();
 
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
@@ -301,6 +306,57 @@ public class ApisResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void get_should_list_only_the_first_virtual_host_without_host_when_caller_cannot_read_definition() {
+        when(apiService.search(eq(GraviteeContext.getExecutionContext()), any(), isNull(), isNull())).thenReturn(
+            new Page<>(List.of(apiWithVirtualHosts("api1")), 1, 1, 1)
+        );
+        when(
+            permissionService.hasPermission(any(), eq(RolePermission.API_DEFINITION), eq("api1"), eq(RolePermissionAction.READ))
+        ).thenReturn(false);
+
+        final Response response = envTarget().queryParam("crossId", "cross-id").request().get();
+
+        assertEquals(OK_200, response.getStatus());
+        List<ApiListItem> resultList = response.readEntity(new GenericType<>() {});
+        assertThat(resultList.getFirst().getVirtualHosts()).containsExactly(new VirtualHost(null, "/first"));
+        assertThat(resultList.getFirst().getContextPath()).isEqualTo("/first");
+    }
+
+    @Test
+    public void get_should_list_no_virtual_host_when_caller_cannot_read_definition_of_an_api_without_virtual_hosts() {
+        ApiEntity api = apiWithVirtualHosts("api1");
+        api.getProxy().setVirtualHosts(List.of());
+        when(apiService.search(eq(GraviteeContext.getExecutionContext()), any(), isNull(), isNull())).thenReturn(
+            new Page<>(List.of(api), 1, 1, 1)
+        );
+        when(
+            permissionService.hasPermission(any(), eq(RolePermission.API_DEFINITION), eq("api1"), eq(RolePermissionAction.READ))
+        ).thenReturn(false);
+
+        final Response response = envTarget().queryParam("crossId", "cross-id").request().get();
+
+        assertEquals(OK_200, response.getStatus());
+        List<ApiListItem> resultList = response.readEntity(new GenericType<>() {});
+        assertThat(resultList.getFirst().getVirtualHosts()).isEmpty();
+    }
+
+    @Test
+    public void get_should_list_every_virtual_host_when_caller_can_read_definition() {
+        when(apiService.search(eq(GraviteeContext.getExecutionContext()), any(), isNull(), isNull())).thenReturn(
+            new Page<>(List.of(apiWithVirtualHosts("api1")), 1, 1, 1)
+        );
+
+        final Response response = envTarget().queryParam("crossId", "cross-id").request().get();
+
+        assertEquals(OK_200, response.getStatus());
+        List<ApiListItem> resultList = response.readEntity(new GenericType<>() {});
+        assertThat(resultList.getFirst().getVirtualHosts()).containsExactly(
+            new VirtualHost("first.host", "/first"),
+            new VirtualHost("second.host", "/second")
+        );
+    }
+
+    @Test
     public void shouldImportApiFromURL() {
         reset(apiDuplicatorService);
 
@@ -336,6 +392,16 @@ public class ApisResourceTest extends AbstractResourceTest {
             .post(Entity.text("http://localhost:8080/api/my-api-id"));
 
         assertEquals(OK_200, response.getStatus());
+    }
+
+    private ApiEntity apiWithVirtualHosts(String apiId) {
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId(apiId);
+        apiEntity.setUpdatedAt(new Date());
+        Proxy proxy = new Proxy();
+        proxy.setVirtualHosts(List.of(new VirtualHost("first.host", "/first"), new VirtualHost("second.host", "/second")));
+        apiEntity.setProxy(proxy);
+        return apiEntity;
     }
 
     private ApiEntity mockApi(String apiId) {

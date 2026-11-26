@@ -166,4 +166,21 @@ describe('RuntimeAlertCreateService', () => {
       })
       .flush(api);
   });
+
+  it.each([
+    { definitionVersion: 'V4', api: fakeProxyApiV4({ id: API_ID, endpointGroups: undefined }) },
+    { definitionVersion: 'V2', api: fakeApiV2({ id: API_ID, proxy: undefined }) },
+  ])('should get no ENDPOINTS names for an API $definitionVersion returned without endpoints', ({ api }) => {
+    let names: Tuple[];
+    service.loadDataFromMetric('endpoint.name', Scope.API, API_ID).subscribe(value => (names = value));
+
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+        method: 'GET',
+      })
+      .flush(api);
+
+    expect(names).toStrictEqual([]);
+  });
 });

@@ -37,9 +37,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
-import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
-import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -56,31 +54,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class ApisResource_GetApisTest extends AbstractResourceTest {
-
-    private static final String ENVIRONMENT = "fake-env";
-
-    @Override
-    protected String contextPath() {
-        return "/environments/" + ENVIRONMENT + "/apis";
-    }
-
-    @BeforeEach
-    public void init() {
-        GraviteeContext.cleanContext();
-        GraviteeContext.setCurrentOrganization(ORGANIZATION);
-        GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
-
-        EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId(ENVIRONMENT);
-        environment.setOrganizationId(ORGANIZATION);
-
-        when(environmentService.findById(ENVIRONMENT)).thenReturn(environment);
-        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environment);
-    }
+public class ApisResource_GetApisTest extends AbstractApisResourceTest {
 
     @Test
     public void should_return_404_when_environment_does_not_exist() {

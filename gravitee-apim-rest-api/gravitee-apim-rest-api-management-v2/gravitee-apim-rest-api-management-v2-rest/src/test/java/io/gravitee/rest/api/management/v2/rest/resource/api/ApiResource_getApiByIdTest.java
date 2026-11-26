@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -277,6 +278,34 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertNotNull((responseApi.getListeners().get(0).getHttpListener()).getPathMappings());
         assertTrue((responseApi.getListeners().get(0).getHttpListener()).getPathMappings().isEmpty());
         assertNull((responseApi.getListeners().get(0).getHttpListener()).getPaths().get(0).getHost());
+        assertThat(responseApi.getEndpointGroups()).isNullOrEmpty();
+    }
+
+    @Test
+    public void should_compute_deployment_state_of_filtered_api_V4_on_the_complete_api() {
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenReturn(
+            this.fakeApiEntityV4()
+        );
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_DEFINITION,
+                API,
+                RolePermissionAction.READ
+            )
+        ).thenReturn(false);
+        // Synchronized only when compared with the complete API, as the deployed definition is
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), any())).thenAnswer(invocation -> {
+            ApiEntity api = invocation.getArgument(1);
+            return api.getEndpointGroups() != null && !api.getEndpointGroups().isEmpty();
+        });
+
+        final Response response = rootTarget(API).request().get();
+
+        assertEquals(OK_200, response.getStatus());
+        final ApiV4 responseApi = response.readEntity(ApiV4.class);
+        assertEquals(GenericApi.DeploymentStateEnum.DEPLOYED, responseApi.getDeploymentState());
+        assertThat(responseApi.getEndpointGroups()).isNullOrEmpty();
     }
 
     @Test
@@ -416,6 +445,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertEquals(0, responseApi.getResponseTemplates().size());
         assertNotNull(responseApi.getListeners());
         assertNotNull(responseApi.getListeners().get(0));
+        assertThat(responseApi.getEndpointGroups()).isNullOrEmpty();
     }
 
     @Test

@@ -82,6 +82,7 @@ public class ApiProductApisResource extends AbstractResource {
     private ApisResponse toApisResponse(Page<GenericApiEntity> apisPage, PaginationParam paginationParam) {
         long totalCount = apisPage.getTotalElements();
         int pageItemsCount = Math.toIntExact(apisPage.getPageElements());
+        filterSensitiveDataOfApisWithoutDefinitionRead(apisPage.getContent());
         List<Api> data = apisPage
             .getContent()
             .stream()
