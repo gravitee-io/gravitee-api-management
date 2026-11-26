@@ -136,6 +136,31 @@ class PageSourceDomainServiceImplTest {
     }
 
     @Test
+    void should_drop_the_source_configuration_when_no_plugin_can_mask_it() {
+        when(pluginManager.get("dummy-fetcher")).thenReturn(null);
+        Page page = Page.builder()
+            .source(PageSource.builder().type("dummy-fetcher").configuration("{\"sensitiveData\":\"I'm a sensitive data\"}").build())
+            .build();
+
+        cut.removeSensitiveData(page);
+
+        assertThat(page.getSource().getType()).isEqualTo("dummy-fetcher");
+        assertThat(page.getSource().getConfiguration()).isNull();
+    }
+
+    @Test
+    void should_keep_the_stored_configuration_when_the_configuration_hidden_for_a_missing_plugin_is_sent_back() {
+        when(pluginManager.get("dummy-fetcher")).thenReturn(null);
+        var storedConfiguration = "{\"sensitiveData\":\"stored-secret-token\"}";
+        var oldPage = pageWithSource(storedConfiguration);
+        var newPage = pageWithSource(null);
+
+        cut.mergeSensitiveData(oldPage, newPage);
+
+        assertThat(newPage.getSource().getConfiguration()).isEqualTo(storedConfiguration);
+    }
+
+    @Test
     @SuppressWarnings("unchecked")
     void should_merge_sensitive_data_from_old_page_to_new_page() throws JsonProcessingException {
         // Arrange
