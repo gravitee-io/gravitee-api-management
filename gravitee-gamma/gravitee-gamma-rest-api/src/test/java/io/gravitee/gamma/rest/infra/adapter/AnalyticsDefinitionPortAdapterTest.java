@@ -428,19 +428,51 @@ class AnalyticsDefinitionPortAdapterTest extends AnalyticsDefinitionPortContract
 
     @Test
     void should_leave_out_a_catalog_filter_the_analytics_endpoints_refuse() {
-        assertThat(catalog.getFilters(MetricSpec.Name.HTTP_REQUESTS))
+        assertThat(catalog.getFilters(MetricSpec.Name.MESSAGE_PAYLOAD_SIZE))
             .extracting(filter -> filter.name().name())
-            .contains("HTTP_PATH_MAPPING");
+            .contains("MESSAGE_CONNECTOR_ID");
+        assertThat(analyticsFilterNames()).doesNotContain("MESSAGE_CONNECTOR_ID");
 
-        var httpRequests = adapter
-            .metricsOf(ApiType.HTTP_PROXY)
+        var payloadSize = metricOf(ApiType.MESSAGE, "MESSAGE_PAYLOAD_SIZE");
+
+        assertThat(payloadSize.filters()).doesNotContain("MESSAGE_CONNECTOR_ID").contains("API");
+    }
+
+    @Test
+    void should_offer_the_path_mapping_as_a_filter_and_a_facet_under_the_gamma_label() {
+        for (var kind : List.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.A2A)) {
+            var httpRequests = metricOf(kind, "HTTP_REQUESTS");
+
+            assertThat(httpRequests.filters()).as("filters of HTTP_REQUESTS on %s", kind).contains("HTTP_PATH_MAPPING");
+            assertThat(httpRequests.facets())
+                .as("facets of HTTP_REQUESTS on %s", kind)
+                .filteredOn(dimension -> dimension.name().equals("HTTP_PATH_MAPPING"))
+                .extracting(DimensionDefinition::label)
+                .containsExactly("Path mapping");
+        }
+    }
+
+    /** Why the filter is not offered on AuthZ: no AuthZ metric of the catalog accepts it. */
+    @Test
+    void should_not_find_the_path_mapping_among_the_filters_of_any_authz_metric() {
+        var authzMetrics = adapter.metricsOf(ApiType.AUTHZ);
+
+        assertThat(authzMetrics).isNotEmpty();
+        assertThat(authzMetrics).allSatisfy(metric ->
+            assertThat(catalog.getFilters(MetricSpec.Name.valueOf(metric.name())))
+                .as("catalog filters of %s", metric.name())
+                .extracting(filter -> filter.name().name())
+                .doesNotContain("HTTP_PATH_MAPPING")
+        );
+    }
+
+    private MetricDefinition metricOf(ApiType kind, String name) {
+        return adapter
+            .metricsOf(kind)
             .stream()
-            .filter(metric -> metric.name().equals("HTTP_REQUESTS"))
+            .filter(metric -> metric.name().equals(name))
             .findFirst()
             .orElseThrow();
-
-        assertThat(httpRequests.filters()).doesNotContain("HTTP_PATH_MAPPING").contains("API", "HTTP_STATUS");
-        assertThat(httpRequests.facets()).extracting(DimensionDefinition::name).contains("HTTP_PATH_MAPPING");
     }
 
     /** Gamma checks a query's conditions against its own filter registry, not the engine catalog. */

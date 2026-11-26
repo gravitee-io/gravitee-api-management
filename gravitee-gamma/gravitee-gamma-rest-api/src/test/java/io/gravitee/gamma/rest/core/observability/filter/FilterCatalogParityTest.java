@@ -70,6 +70,7 @@ class FilterCatalogParityTest {
             "CONSUMER_IP",
             "HTTP_USER_AGENT_DEVICE",
             "HTTP_USER_AGENT_OS_NAME",
+            "HTTP_PATH_MAPPING",
         }
     )
     void should_offer_for_message_an_analytics_filter_the_message_search_applies(String name) {
