@@ -364,6 +364,20 @@ public class CreateSharedPolicyGroupUseCaseTest {
         assertThat(created.sharedPolicyGroup().getSteps()).hasSize(1);
     }
 
+    @Test
+    void should_refuse_a_step_whose_policy_sanitizes_away_a_reference_to_a_secret_of_another_environment() {
+        when(permissionDomainService.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
+        var step = stepReferencing("/gravitee/db-password:value?envId=other-env");
+        step.setPolicy(FakePolicyValidationDomainService.SANITIZING_POLICY);
+        var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroup();
+        toCreate.setSteps(List.of(step));
+
+        assertThatThrownBy(() ->
+            createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO))
+        ).isInstanceOf(InvalidSecretReferenceException.class);
+        assertThat(sharedPolicyGroupCrudService.storage()).isEmpty();
+    }
+
     private static Step stepReferencing(String path) {
         return Step.builder().policy("policy").enabled(true).configuration("{ \"value\": \"{#secrets.get('" + path + "')}\" }").build();
     }
