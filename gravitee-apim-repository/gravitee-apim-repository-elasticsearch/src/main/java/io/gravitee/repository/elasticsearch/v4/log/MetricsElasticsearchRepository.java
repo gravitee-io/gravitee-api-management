@@ -251,10 +251,12 @@ public class MetricsElasticsearchRepository extends AbstractElasticsearchReposit
         query.validate();
         var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.DECISIONS, clusters);
+        // Outside the try: a page past the window is the caller's error, not a search that went wrong.
+        var searchQuery = SearchGuardrailDecisionLogsQueryAdapter.adapt(queryContext, query, configuration.getMaxResultWindow());
 
         try {
-            return this.client.search(index, null, SearchGuardrailDecisionLogsQueryAdapter.adapt(queryContext, query))
-                .map(SearchGuardrailDecisionLogsResponseAdapter::adapt)
+            return this.client.search(index, null, searchQuery)
+                .map(response -> SearchGuardrailDecisionLogsResponseAdapter.adapt(response, configuration.getMaxResultWindow()))
                 .blockingGet();
         } catch (RuntimeException e) {
             throw new AnalyticsException("Failed to search Guardrail decision logs for apis " + query.getApiIds(), e);

@@ -44,5 +44,10 @@ public record LogsSearchQuery(
     /** Absent for decision rows, which carry no entrypoint. */
     EntrypointScope entrypointScope,
     /** Which calls of {@code apiIds} are searched; absent when the API type alone decides. */
-    TrafficScope trafficScope
+    TrafficScope trafficScope,
+    /**
+     * The APIs of the scope whose name holds the {@code GUARDRAIL_SEARCH} text, which the search also matches on;
+     * empty without that text or outside a Guardrail decision search.
+     */
+    Set<String> textApiIds
 ) {}
