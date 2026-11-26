@@ -1,6 +1,8 @@
 resourcePackages:
   - io.gravitee.rest.api.management.rest.resource
 cacheTTL: 0
+modelConverterClasses:
+  - io.gravitee.rest.api.management.rest.swagger.DateAsEpochMillisModelConverter
 openAPI:
   servers:
     - url: /management

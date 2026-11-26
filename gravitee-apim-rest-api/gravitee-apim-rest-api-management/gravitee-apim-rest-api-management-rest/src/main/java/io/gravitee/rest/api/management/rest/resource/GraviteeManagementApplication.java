@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import com.fasterxml.jackson.databind.JavaType;
 import io.gravitee.rest.api.management.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.management.rest.provider.BadRequestExceptionMapper;
 import io.gravitee.rest.api.management.rest.provider.ByteArrayOutputStreamWriter;
@@ -44,18 +43,7 @@ import io.gravitee.rest.api.rest.filter.MaintenanceFilter;
 import io.gravitee.rest.api.rest.filter.PermissionsFilter;
 import io.gravitee.rest.api.rest.filter.SecurityContextFilter;
 import io.gravitee.rest.api.rest.filter.UriBuilderRequestFilter;
-import io.swagger.converter.ModelConverter;
-import io.swagger.converter.ModelConverterContext;
-import io.swagger.converter.ModelConverters;
-import io.swagger.models.Model;
-import io.swagger.models.properties.LongProperty;
-import io.swagger.models.properties.Property;
-import io.swagger.util.Json;
 import jakarta.inject.Inject;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-import java.util.Date;
-import java.util.Iterator;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -70,34 +58,6 @@ public class GraviteeManagementApplication extends ResourceConfig {
 
     @Inject
     public GraviteeManagementApplication() {
-        ModelConverters.getInstance().addConverter(
-            new ModelConverter() {
-                @Override
-                public Property resolveProperty(
-                    Type type,
-                    ModelConverterContext context,
-                    Annotation[] annotations,
-                    Iterator<ModelConverter> chain
-                ) {
-                    final JavaType jType = Json.mapper().constructType(type);
-                    if (jType != null) {
-                        final Class<?> cls = jType.getRawClass();
-                        if (Date.class.isAssignableFrom(cls)) {
-                            //DateTimeProperty property =
-                            //        (DateTimeProperty) chain.next().resolveProperty(type, context, annotations, chain);
-                            return new LongProperty();
-                        }
-                    }
-
-                    return chain.hasNext() ? chain.next().resolveProperty(type, context, annotations, chain) : null;
-                }
-
-                @Override
-                public Model resolve(Type type, ModelConverterContext context, Iterator<ModelConverter> chain) {
-                    return chain.next().resolve(type, context, chain);
-                }
-            }
-        );
         //Main resource
         register(OrganizationsResource.class);
         register(V1OrganizationsResource.class);

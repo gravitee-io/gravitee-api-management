@@ -195,6 +195,9 @@
                     <outputFileName>console-openapi</outputFileName>
                     <outputFormat>JSONANDYAML</outputFormat>
                     <prettyPrint>false</prettyPrint>
+                    <modelConverterClasses>
+                        <modelConverterClass>io.gravitee.rest.api.management.rest.swagger.DateAsEpochMillisModelConverter</modelConverterClass>
+                    </modelConverterClasses>
                 </configuration>
                 <executions>
                     <execution>
