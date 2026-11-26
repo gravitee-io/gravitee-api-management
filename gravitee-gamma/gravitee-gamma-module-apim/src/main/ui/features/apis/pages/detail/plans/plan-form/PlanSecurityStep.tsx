@@ -93,7 +93,12 @@ export function PlanSecurityStep({
     const resourceOptions = useMemo<ApiResourceOption[]>(() => {
         const iconByType = new Map(plugins.map(p => [p.id, p.icon]));
         const source = isProduct ? (resources ?? []) : (api?.resources ?? []);
-        return source.map(r => ({ name: r.name, type: r.type, icon: iconByType.get(r.type) }));
+        return source.map(r => ({
+            name: r.name,
+            type: r.type,
+            icon: iconByType.get(r.type),
+            ...(isProduct ? { enabled: r.enabled } : {}),
+        }));
     }, [api?.resources, isProduct, plugins, resources]);
 
     return (

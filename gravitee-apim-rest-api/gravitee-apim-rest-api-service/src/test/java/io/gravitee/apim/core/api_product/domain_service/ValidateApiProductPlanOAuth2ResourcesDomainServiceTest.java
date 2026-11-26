@@ -179,6 +179,18 @@ class ValidateApiProductPlanOAuth2ResourcesDomainServiceTest {
                 .satisfies(error -> assertThat(error.getMessage()).doesNotContain(expression, "{#"));
         }
 
+        @ParameterizedTest
+        @ValueSource(strings = { "{#x}", "{ #x}", "{(#x)}", "{T(java.lang.Math).random()}" })
+        void should_reject_any_oauth_resource_expression_before_the_resource_lookup(String expression) {
+            var plan = oauth2ProductPlan("{\"oauthResource\":\"" + expression + "\"}");
+            var product = productWithResources(resource("oauth", "oauth2", true));
+
+            assertThatThrownBy(() -> service.validate(plan, product))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("OAuth2 plan '" + PLAN_NAME + "' does not support an expression for the OAuth2 resource")
+                .satisfies(error -> assertThat(error.getMessage()).doesNotContain(expression).doesNotContain("unknown resource"));
+        }
+
         @Test
         void should_reject_oauth_resource_type_outside_the_allow_list() {
             var plan = oauth2ProductPlan("{\"oauthResource\":\"oauth\"}");
@@ -263,6 +275,18 @@ class ValidateApiProductPlanOAuth2ResourcesDomainServiceTest {
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessage("OAuth2 plan '" + PLAN_NAME + "' does not support an expression for the cache resource")
                 .satisfies(error -> assertThat(error.getMessage()).doesNotContain(expression, "{#"));
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "{#x}", "{ #x}", "{(#x)}", "{T(java.lang.Math).random()}" })
+        void should_reject_any_cache_resource_expression_before_the_resource_lookup(String expression) {
+            var plan = oauth2ProductPlan("{\"oauthResource\":\"oauth\",\"oauthCacheResource\":\"" + expression + "\"}");
+            var product = productWithResources(resource("oauth", "oauth2", true), resource("cache", "cache", true));
+
+            assertThatThrownBy(() -> service.validate(plan, product))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("OAuth2 plan '" + PLAN_NAME + "' does not support an expression for the cache resource")
+                .satisfies(error -> assertThat(error.getMessage()).doesNotContain(expression).doesNotContain("unknown resource"));
         }
 
         @Test

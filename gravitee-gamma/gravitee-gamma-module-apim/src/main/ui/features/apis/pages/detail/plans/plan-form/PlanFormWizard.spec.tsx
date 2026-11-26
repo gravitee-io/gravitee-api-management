@@ -635,7 +635,7 @@ const PRODUCT_RESOURCES: ApiResource[] = [
 ];
 
 const API_ONLY_RESOURCES: ApiResource[] = [
-    { name: 'api-only-oauth', type: 'oauth2', enabled: true },
+    { name: 'api-only-oauth', type: 'oauth2', enabled: false },
     { name: 'api-only-cache', type: 'cache', enabled: true },
 ];
 
@@ -675,8 +675,11 @@ describe('PlanFormWizard OAuth2 resources', () => {
         const oauthList = await screen.findByRole('listbox');
         expect(within(oauthList).getByText('prod-oauth')).toBeInTheDocument();
         expect(within(oauthList).getByText('prod-oauth-off')).toBeInTheDocument();
+        expect(within(oauthList).getByRole('option', { name: /prod-oauth-off/ })).toHaveTextContent('Disabled');
+        expect(within(oauthList).getByRole('option', { name: /^prod-oauth / })).not.toHaveTextContent('Disabled');
         expect(within(oauthList).queryByText('api-only-oauth')).not.toBeInTheDocument();
         expect(within(oauthList).queryByText('prod-cache')).not.toBeInTheDocument();
+        expect(screen.queryByText(/Supports EL/)).not.toBeInTheDocument();
 
         await user.click(screen.getByLabelText(/Cache resource/i));
         const cacheList = await screen.findByRole('listbox');
@@ -725,7 +728,9 @@ describe('PlanFormWizard OAuth2 resources', () => {
 
         const oauthList = await screen.findByRole('listbox');
         expect(within(oauthList).getByText('api-only-oauth')).toBeInTheDocument();
+        expect(within(oauthList).queryByText('Disabled')).not.toBeInTheDocument();
         expect(within(oauthList).queryByText('prod-oauth')).not.toBeInTheDocument();
+        expect(screen.getByText(/Supports EL/)).toBeInTheDocument();
         expect(screen.queryByText(/API Product/i)).not.toBeInTheDocument();
     });
 });
