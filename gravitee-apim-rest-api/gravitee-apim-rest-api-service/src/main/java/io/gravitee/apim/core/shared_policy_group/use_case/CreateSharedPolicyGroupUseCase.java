@@ -52,7 +52,7 @@ public class CreateSharedPolicyGroupUseCase {
             .updatedAt(TimeProvider.now())
             .build();
 
-        validateCreateSharedPolicyGroup.validate(sharedPolicyGroupToCreate, input.auditInfo().environmentId());
+        validateCreateSharedPolicyGroup.validate(sharedPolicyGroupToCreate, input.auditInfo());
 
         var createdSharedPolicyGroup = this.sharedPolicyGroupCrudService.create(sharedPolicyGroupToCreate);
 
