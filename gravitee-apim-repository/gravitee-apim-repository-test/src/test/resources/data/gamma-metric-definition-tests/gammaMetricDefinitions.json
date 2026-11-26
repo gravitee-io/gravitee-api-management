@@ -36,5 +36,23 @@
     "exposed": true,
     "createdAt": 1000000000000,
     "updatedAt": 1000000000000
+  },
+  {
+    "id": "gmd-5",
+    "environmentId": "ROOTS_ENV",
+    "rawKey": "custom.keyword_x",
+    "label": "Custom spelling",
+    "exposed": true,
+    "createdAt": 1000000000000,
+    "updatedAt": 1000000000000
+  },
+  {
+    "id": "gmd-6",
+    "environmentId": "ROOTS_ENV",
+    "rawKey": "keyword_x",
+    "label": "Additional spelling",
+    "exposed": true,
+    "createdAt": 1000000000000,
+    "updatedAt": 1000000000000
   }
 ]

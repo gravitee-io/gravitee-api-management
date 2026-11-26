@@ -1,0 +1,32 @@
+databaseChangeLog:
+  # raw_key also holds custom keys with their root: 'custom.' (7) + a key of up to 256 UTF-16 units.
+  # MODIFY / ALTER COLUMN resets nullability on SQL Server, hence the NOT NULL restored right after.
+  - changeSet:
+      id: 4.14.0_22_widen_gamma_metric_definitions_raw_key
+      author: GraviteeSource Team
+      dbms: "!mysql, !mariadb"
+      changes:
+        - modifyDataType:
+            tableName: ${gravitee_prefix}gamma_metric_definitions
+            columnName: raw_key
+            newDataType: nvarchar(263)
+        - addNotNullConstraint:
+            tableName: ${gravitee_prefix}gamma_metric_definitions
+            columnName: raw_key
+            columnDataType: nvarchar(263)
+
+  # On MySQL and MariaDB, nvarchar is utf8mb3, which cannot hold the 4-byte characters (emoji) custom keys, labels,
+  # descriptions and unit suffixes may contain. The binary collation of raw_key has no functional effect: lookups and
+  # the unique constraint go through raw_key_hash, and records are sorted in Java.
+  - changeSet:
+      id: 4.14.0_22_widen_gamma_metric_definitions_raw_key_mysql
+      author: GraviteeSource Team
+      dbms: mysql, mariadb
+      changes:
+        - sql:
+            sql: >-
+              ALTER TABLE `${gravitee_prefix}gamma_metric_definitions`
+              MODIFY `raw_key` varchar(263) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+              MODIFY `label` varchar(64) CHARACTER SET utf8mb4 NULL,
+              MODIFY `description` varchar(512) CHARACTER SET utf8mb4 NULL,
+              MODIFY `unit` varchar(32) CHARACTER SET utf8mb4 NULL
