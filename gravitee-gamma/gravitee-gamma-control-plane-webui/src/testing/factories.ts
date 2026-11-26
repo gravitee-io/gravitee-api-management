@@ -21,6 +21,7 @@ export const TEST_CONFIG: BootstrapConfig = {
     managementBaseURL: 'http://api.test/management',
     organizationId: 'test-org',
     gammaBaseURL: 'http://api.test/gamma',
+    consoleUrl: 'http://console.test',
     identityProviders: [],
     localLoginEnabled: true,
     registrationEnabled: false,
