@@ -208,12 +208,29 @@ class PortalsResource_CreateTest extends AbstractResourceTest {
     }
 
     @Test
-    void should_return_403_without_the_create_permission() {
-        shouldReturn403(RolePermission.ENVIRONMENT_DOCUMENTATION, ENVIRONMENT, RolePermissionAction.CREATE, () ->
+    void should_return_403_without_the_portal_create_permission() {
+        shouldReturn403(RolePermission.ENVIRONMENT_PORTAL, ENVIRONMENT, RolePermissionAction.CREATE, () ->
             rootTarget().request().post(json(new CreatePortal().name("Partners")))
         );
         assertThat(portalCrudService.storage()).hasSize(1);
         verify(portalStarterContentDomainService, never()).seed(any(), eq(ENVIRONMENT), any());
+    }
+
+    @Test
+    void should_create_a_portal_without_the_documentation_create_permission() {
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.ENVIRONMENT_DOCUMENTATION,
+                ENVIRONMENT,
+                RolePermissionAction.CREATE
+            )
+        ).thenReturn(false);
+
+        var response = rootTarget().request().post(json(new CreatePortal().name("Partners")));
+
+        assertThat(response.getStatus()).isEqualTo(CREATED_201);
+        assertThat(portalCrudService.storage()).hasSize(2);
     }
 
     @SneakyThrows
