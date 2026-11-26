@@ -15,6 +15,14 @@
  */
 package io.gravitee.apim.core.cluster.use_case;
 
+import static fixtures.core.model.ClusterConfigurationFixtures.BOOTSTRAP_SERVERS;
+import static fixtures.core.model.ClusterConfigurationFixtures.KEYSTORE_CONTENT;
+import static fixtures.core.model.ClusterConfigurationFixtures.NEW_SASL_PASSWORD;
+import static fixtures.core.model.ClusterConfigurationFixtures.SASL_JAAS_CONFIG;
+import static fixtures.core.model.ClusterConfigurationFixtures.SASL_PASSWORD;
+import static fixtures.core.model.ClusterConfigurationFixtures.TRUSTSTORE_PASSWORD;
+import static fixtures.core.model.ClusterConfigurationFixtures.aConfigurationWithCredentials;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
@@ -239,7 +247,7 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
         // Then
         assertThat(output.cluster().getConfiguration()).isNull();
         assertThat(clusterCrudService.findByIdAndEnvironmentId(GENERATED_UUID, ENV_ID).getConfiguration()).isEqualTo(
-            credentialsConfiguration()
+            aConfigurationWithCredentials()
         );
     }
 
@@ -253,20 +261,64 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
         var output = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
 
         // Then
-        assertThat(output.cluster().getConfiguration()).isEqualTo(credentialsConfiguration());
+        assertThat(output.cluster().getConfiguration()).isEqualTo(aConfigurationWithCredentials());
     }
 
-    private static Map<String, Object> credentialsConfiguration() {
-        return Map.of(
-            "bootstrapServers",
-            "localhost:9092",
-            "security",
-            Map.of("protocol", "SASL_SSL", "sasl", Map.of("mechanism", Map.of("type", "PLAIN", "username", "u", "password", "p")))
+    @Test
+    void should_audit_the_fields_that_changed() {
+        // Given
+        givenStoredClusterWithCredentials();
+        var toUpdate = UpdateCluster.builder().name("Cluster 1 - 2").build();
+
+        // When
+        updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
+
+        // Then
+        assertThatJson(auditCrudService.storage().get(0).getPatch()).isEqualTo(
+            "[{\"op\": \"replace\", \"path\": \"/name\", \"value\": \"Cluster 1 - 2\"}]"
+        );
+    }
+
+    @Test
+    void should_keep_credentials_out_of_the_audit() {
+        // Given
+        givenStoredClusterWithCredentials();
+        var toUpdate = UpdateCluster.builder().configuration(aConfigurationWithCredentials("localhost:9093", NEW_SASL_PASSWORD)).build();
+
+        // When
+        updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
+
+        // Then
+        var patch = auditCrudService.storage().get(0).getPatch();
+        assertThatJson(patch).isEqualTo(
+            "[{\"op\": \"replace\", \"path\": \"/configuration/bootstrapServers\", \"value\": \"localhost:9093\"}]"
+        );
+        assertThat(patch).doesNotContain(SASL_PASSWORD, SASL_JAAS_CONFIG, TRUSTSTORE_PASSWORD, KEYSTORE_CONTENT);
+    }
+
+    @Test
+    void should_record_a_credential_only_update_without_the_credentials() {
+        // Given
+        givenStoredClusterWithCredentials();
+        var toUpdate = UpdateCluster.builder().configuration(aConfigurationWithCredentials(BOOTSTRAP_SERVERS, NEW_SASL_PASSWORD)).build();
+
+        // When
+        updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
+
+        // Then
+        assertThat(auditCrudService.storage())
+            .singleElement()
+            .satisfies(audit -> {
+                assertThat(audit.getEvent()).isEqualTo(ClusterAuditEvent.CLUSTER_UPDATED.name());
+                assertThatJson(audit.getPatch()).isEqualTo("[]");
+            });
+        assertThat(clusterCrudService.findByIdAndEnvironmentId(GENERATED_UUID, ENV_ID).getConfiguration()).isEqualTo(
+            aConfigurationWithCredentials(BOOTSTRAP_SERVERS, NEW_SASL_PASSWORD)
         );
     }
 
     private void givenStoredClusterWithCredentials() {
-        existingCluster.setConfiguration(credentialsConfiguration());
+        existingCluster.setConfiguration(aConfigurationWithCredentials());
         ((ClusterCrudServiceInMemory) clusterCrudService).initWith(List.of(existingCluster));
     }
 }
