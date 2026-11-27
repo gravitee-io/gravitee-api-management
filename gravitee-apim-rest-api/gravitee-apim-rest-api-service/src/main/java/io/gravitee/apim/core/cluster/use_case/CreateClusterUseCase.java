@@ -104,7 +104,7 @@ public class CreateClusterUseCase {
                 .environmentId(auditInfo.environmentId())
                 .event(ClusterAuditEvent.CLUSTER_CREATED)
                 .actor(auditInfo.actor())
-                .newValue(cluster)
+                .newValue(cluster.withoutCredentials())
                 .createdAt(cluster.getCreatedAt().atZone(TimeProvider.clock().getZone()))
                 .properties(Map.of(AuditProperties.CLUSTER, cluster.getId()))
                 .build()

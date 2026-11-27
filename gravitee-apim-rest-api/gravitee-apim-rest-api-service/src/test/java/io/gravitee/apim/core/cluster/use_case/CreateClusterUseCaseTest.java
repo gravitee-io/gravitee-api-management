@@ -15,6 +15,14 @@
  */
 package io.gravitee.apim.core.cluster.use_case;
 
+import static fixtures.core.model.ClusterConfigurationFixtures.BOOTSTRAP_SERVERS;
+import static fixtures.core.model.ClusterConfigurationFixtures.KEYSTORE_CONTENT;
+import static fixtures.core.model.ClusterConfigurationFixtures.SASL_JAAS_CONFIG;
+import static fixtures.core.model.ClusterConfigurationFixtures.SASL_PASSWORD;
+import static fixtures.core.model.ClusterConfigurationFixtures.TRUSTSTORE_PASSWORD;
+import static fixtures.core.model.ClusterConfigurationFixtures.aConfigurationWithCredentials;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.json;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
@@ -120,6 +128,24 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .build()
             );
+    }
+
+    @Test
+    void should_keep_credentials_out_of_the_audit() {
+        // Given
+        var toCreate = CreateCluster.builder().name("Cluster 1").configuration(aConfigurationWithCredentials()).build();
+
+        // When
+        createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO));
+
+        // Then
+        var patch = auditCrudService.storage().get(0).getPatch();
+        assertThatJson(patch)
+            .inPath("$[?(@.path == '/configuration')].value")
+            .isArray()
+            .containsExactly(json(Map.of("bootstrapServers", BOOTSTRAP_SERVERS, "security", Map.of("protocol", "SASL_SSL"))));
+        assertThat(patch).doesNotContain(SASL_PASSWORD, SASL_JAAS_CONFIG, TRUSTSTORE_PASSWORD, KEYSTORE_CONTENT);
+        assertThat(clusterCrudService.storage().get(0).getConfiguration()).isEqualTo(aConfigurationWithCredentials());
     }
 
     @Test

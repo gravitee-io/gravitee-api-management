@@ -63,13 +63,14 @@ public class UpdateClusterUseCase {
             input.updateCluster().setConfiguration(null);
         }
 
+        Cluster clusterBeforeUpdate = clusterToUpdate.withoutCredentials();
         clusterToUpdate.update(input.updateCluster());
 
         validateClusterService.validate(clusterToUpdate);
 
         Cluster updatedCluster = clusterCrudService.update(clusterToUpdate);
 
-        createAuditLog(clusterToUpdate, updatedCluster, input.auditInfo());
+        createAuditLog(clusterBeforeUpdate, updatedCluster.withoutCredentials(), input.auditInfo());
 
         return new Output(
             clusterConfigurationAccessDomainService.visibleTo(
