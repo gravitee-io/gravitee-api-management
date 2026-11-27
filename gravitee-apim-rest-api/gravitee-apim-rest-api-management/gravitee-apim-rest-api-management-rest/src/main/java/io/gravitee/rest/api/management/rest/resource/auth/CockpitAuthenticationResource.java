@@ -22,6 +22,7 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.proc.BadJOSEException;
 import com.nimbusds.jose.proc.JWSAlgorithmFamilyJWSKeySelector;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
@@ -44,10 +45,14 @@ import io.gravitee.rest.api.service.v4.ApiSearchService;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
@@ -60,9 +65,11 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPublicKey;
+import java.text.ParseException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import javax.inject.Singleton;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -143,8 +150,33 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
         @QueryParam(value = "token") final String token,
         @Context final HttpServletResponse httpResponse
     ) {
+        return exchangeToken(httpServletRequest, token, httpResponse, Response::temporaryRedirect);
+    }
+
+    /** Same exchange as the GET, with the token in the request body so it stays out of URLs, access logs and browser history. */
+    @POST
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response tokenExchangeFromForm(
+        @Context final HttpServletRequest httpServletRequest,
+        @FormParam(value = "token") final String token,
+        @Context final HttpServletResponse httpResponse
+    ) {
+        // 303 makes the browser follow the redirect with a GET instead of replaying the POST.
+        return exchangeToken(httpServletRequest, token, httpResponse, Response::seeOther);
+    }
+
+    private Response exchangeToken(
+        final HttpServletRequest httpServletRequest,
+        final String token,
+        final HttpServletResponse httpResponse,
+        final Function<URI, Response.ResponseBuilder> redirect
+    ) {
         if (!enabled) {
             return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        if (token == null || token.isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
         try {
@@ -191,12 +223,12 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
                     url = uriComponents.toUriString();
                 }
 
-                return Response.temporaryRedirect(
-                    new URI("%s/environments/%s/auth/console?token=%s".formatted(url, environmentId, tokenEntity.getToken()))
-                ).build();
+                return redirect
+                    .apply(new URI("%s/environments/%s/auth/console?token=%s".formatted(url, environmentId, tokenEntity.getToken())))
+                    .build();
             } else if (APPLICATION_GAMMA.equalsIgnoreCase(application)) {
                 final String gammaUrl = installationAccessQueryService.getGammaUrl(organizationId);
-                return Response.temporaryRedirect(new URI("%s/environments/%s".formatted(gammaUrl, environmentId))).build();
+                return redirect.apply(new URI("%s/environments/%s".formatted(gammaUrl, environmentId))).build();
             } else {
                 final String apiCrossId = jwtClaimsSet.getStringClaim(API_CLAIM);
                 final String apiId = Optional.ofNullable(apiCrossId)
@@ -211,8 +243,14 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
                 );
 
                 // Redirect the user.
-                return Response.temporaryRedirect(new URI(url)).build();
+                return redirect.apply(new URI(url)).build();
             }
+        } catch (ParseException e) {
+            log.warn("Cockpit authentication rejected: the token is not a valid JWT");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        } catch (BadJOSEException e) {
+            log.warn("Cockpit authentication rejected: the token failed verification");
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         } catch (UserNotFoundException e) {
             log.error("Authentication failed", e);
             return Response.status(Response.Status.FORBIDDEN).build();

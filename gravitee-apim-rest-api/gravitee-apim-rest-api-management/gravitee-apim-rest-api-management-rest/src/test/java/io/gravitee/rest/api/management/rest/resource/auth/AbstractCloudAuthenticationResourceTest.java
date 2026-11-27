@@ -51,6 +51,8 @@ import io.gravitee.rest.api.service.common.JWTHelper;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Form;
 import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
@@ -171,7 +173,24 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
         when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
         when(installationAccessQueryService.getConsoleUrl(ORGANIZATION_ID)).thenReturn(rootTarget("console").getUri().toString());
         final Response response = rootTarget(PATH).queryParam("token", "invalid").request().get();
-        assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotAuthenticateWithoutToken() {
+        final Response response = rootTarget(PATH).request().get();
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotAuthenticateWithTokenNotSignedByCockpit() {
+        String jwt = JWT.create()
+            .withSubject(JWT_SUBJECT)
+            .withClaim(ORG_CLAIM, ORGANIZATION_ID)
+            .withClaim(ENVIRONMENT_CLAIM, ENVIRONMENT_ID)
+            .sign(Algorithm.HMAC256("not-the-cockpit-key-".repeat(2)));
+        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
     }
 
     @Test
@@ -280,6 +299,43 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
     }
 
     @Test
+    public void shouldNotAuthenticateWithFormPostIfCockpitIsNotEnabled() {
+        System.clearProperty(getPropertyPrefix() + ".enabled");
+        final Response response = postToken("test");
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotAuthenticateWithInvalidTokenInFormPost() {
+        final Response response = postToken("invalid");
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldAuthenticateToGammaWithFormPost() {
+        UserEntity userEntity = mockUserEntity();
+        String gcat = "Bearer cockpit-session-token";
+
+        String jwt = this.generateJWT(
+            userEntity.getId(),
+            ORGANIZATION_ID,
+            ENVIRONMENT_ID,
+            "audience",
+            null,
+            null,
+            "gamma_console",
+            Map.of(JWTHelper.Claims.GCAT, gcat)
+        );
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true)).thenReturn(userEntity);
+        when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
+        when(installationAccessQueryService.getGammaUrl(ORGANIZATION_ID)).thenReturn("http://localhost:4200");
+        final Response response = postToken(jwt);
+        assertEquals(HttpStatusCode.SEE_OTHER_303, response.getStatus());
+        assertEquals("http://localhost:4200/environments/" + ENVIRONMENT_ID, response.getLocation().toString());
+        assertEquals(gcat, sessionCookieJwt().getClaim(JWTHelper.Claims.GCAT).asString());
+    }
+
+    @Test
     public void shouldRecordConnectionWhenAuthenticatingToConsole() {
         UserEntity userEntity = mockUserEntity();
 
@@ -331,6 +387,10 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
         final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
         verify(cookieGenerator, never()).generate(any(), any());
+    }
+
+    private Response postToken(String token) {
+        return rootTarget(PATH).request().post(Entity.form(new Form().param("token", token)));
     }
 
     /** The cookie generator is a mock in the test context, so the session cookie is read from what the resource asked it to build. */
