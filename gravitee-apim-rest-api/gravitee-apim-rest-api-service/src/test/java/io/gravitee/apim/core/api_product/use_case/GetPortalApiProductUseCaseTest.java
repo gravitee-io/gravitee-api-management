@@ -51,13 +51,11 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -409,11 +407,8 @@ class GetPortalApiProductUseCaseTest {
         }
     }
 
-    @SneakyThrows
     private PortalId givenPortal(String environmentId) {
-        return portalCrudService
-            .create(Portal.create(environmentId, ORGANIZATION_ID, "Portal", URI.create("https://portal.example.com").toURL()))
-            .getId();
+        return portalCrudService.create(Portal.create(environmentId, ORGANIZATION_ID, "Portal", "portal-access-point")).getId();
     }
 
     private static GetPortalApiProductUseCase.Input input(String userId) {
