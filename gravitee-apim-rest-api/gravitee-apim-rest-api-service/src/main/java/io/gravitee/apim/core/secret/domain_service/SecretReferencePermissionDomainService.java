@@ -208,9 +208,7 @@ public class SecretReferencePermissionDomainService {
             }
         } else {
             var nodeEnabled = enabled && node.path("enabled").asBoolean(true);
-            node
-                .properties()
-                .forEach(field -> collect(field.getValue(), pattern, pointer + "/" + field.getKey(), nodeEnabled, references));
+            node.properties().forEach(field -> collect(field.getValue(), pattern, pointer + "/" + field.getKey(), nodeEnabled, references));
         }
     }
 
