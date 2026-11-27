@@ -37,7 +37,7 @@ export class PortalAuthenticationHarness extends ComponentHarness {
   private readonly skipLoginToggle = this.locatorForOptional(
     MatSlideToggleHarness.with({ selector: '[data-testid="skip-login-single-idp-toggle"]' }),
   );
-  private readonly skipLoginField = this.locatorFor('[data-testid="skip-login-single-idp-field"]');
+  private readonly skipLoginSwitch = this.locatorForOptional('[data-testid="skip-login-single-idp-toggle"] button');
   private readonly table = this.locatorFor(MatTableHarness);
   private readonly tableWrapper = this.locatorFor(GioTableWrapperHarness);
   private readonly saveBar = this.locatorFor(GioSaveBarHarness);
@@ -55,8 +55,14 @@ export class PortalAuthenticationHarness extends ComponentHarness {
     return this.skipLoginToggle();
   }
 
-  async getSkipLoginHelpText(): Promise<string> {
-    return (await this.skipLoginField()).text();
+  async getSkipLoginHelpText(): Promise<string | null> {
+    const toggleSwitch = await this.skipLoginSwitch();
+    const descriptionId = await toggleSwitch?.getAttribute('aria-describedby');
+    if (!descriptionId) {
+      return null;
+    }
+    const description = await this.locatorForOptional(`#${descriptionId}`)();
+    return description ? description.text() : null;
   }
 
   async getSkipLoginReadonlyTooltip(): Promise<string> {
