@@ -31,6 +31,7 @@ import io.gravitee.discovery.api.ServiceDiscovery;
 import io.gravitee.discovery.api.service.Service;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.services.endpoint.discovery.factory.ServiceDiscoveryFactory;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
@@ -58,7 +59,7 @@ import org.springframework.beans.factory.annotation.Value;
 @CustomLog
 public class EndpointDiscoveryVerticle extends AbstractVerticle implements EventListener<ReactorEvent, Reactable> {
 
-    private final Map<Api, List<ServiceDiscovery>> apiServiceDiscoveries = new HashMap<>();
+    private final Map<String, List<ServiceDiscovery>> apiServiceDiscoveries = new HashMap<>();
 
     @Autowired
     private EventManager eventManager;
@@ -83,27 +84,32 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
 
     @Override
     public void onEvent(Event<ReactorEvent, Reactable> event) {
-        Reactable reactable = event.content();
-        if (reactable instanceof Api) {
+        if (event.content() instanceof Api api) {
             switch (event.type()) {
                 case DEPLOY:
-                    lookupForServiceDiscovery((Api) event.content());
+                    lookupForServiceDiscovery(api);
                     break;
                 case UNDEPLOY:
-                    stopServiceDiscovery((Api) event.content());
+                    stopServiceDiscovery(api);
                     break;
                 case UPDATE:
-                    stopServiceDiscovery((Api) event.content());
-                    lookupForServiceDiscovery((Api) event.content());
+                    stopServiceDiscovery(api);
+                    lookupForServiceDiscovery(api);
                     break;
             }
-        } else {
-            log.debug("Endpoint discovery service does not apply to V4 API which now uses a dedicated API service.");
+        } else if (event.content() instanceof ReactableApi<?> api) {
+            // A V2 API migrated to V4 is updated and undeployed with its V4 definition:
+            // stop the V2 service discoveries still running for that API id.
+            if (event.type() == ReactorEvent.UNDEPLOY || event.type() == ReactorEvent.UPDATE) {
+                stopServiceDiscovery(api);
+            } else {
+                log.debug("Endpoint discovery service does not apply to V4 API which now uses a dedicated API service.");
+            }
         }
     }
 
-    private void stopServiceDiscovery(Api api) {
-        List<ServiceDiscovery> discoveries = apiServiceDiscoveries.remove(api);
+    private void stopServiceDiscovery(ReactableApi<?> api) {
+        List<ServiceDiscovery> discoveries = apiServiceDiscoveries.remove(api.getId());
         if (discoveries != null) {
             log.info("Stop service discovery for API id[{}] name[{}]", api.getId(), api.getName());
             discoveries.forEach(serviceDiscovery -> {
@@ -143,9 +149,9 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
         if (serviceDiscoveryPlugin != null) {
             ServiceDiscovery serviceDiscovery = serviceDiscoveryFactory.create(serviceDiscoveryPlugin, discoveryService.getConfiguration());
 
-            List<ServiceDiscovery> discoveries = apiServiceDiscoveries.getOrDefault(api, new ArrayList<>());
+            List<ServiceDiscovery> discoveries = apiServiceDiscoveries.getOrDefault(api.getId(), new ArrayList<>());
             discoveries.add(serviceDiscovery);
-            apiServiceDiscoveries.put(api, discoveries);
+            apiServiceDiscoveries.put(api.getId(), discoveries);
 
             try {
                 final Set<Endpoint> endpoints = group.getEndpoints() == null ? new HashSet<>() : group.getEndpoints();
