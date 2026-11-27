@@ -59,6 +59,12 @@ export class PortalAuthenticationHarness extends ComponentHarness {
     return (await this.skipLoginField()).text();
   }
 
+  async getSkipLoginReadonlyTooltip(): Promise<string> {
+    const tooltip = await this.locatorFor(MatTooltipHarness.with({ selector: '[data-testid="skip-login-single-idp-field"]' }))();
+    await tooltip.show();
+    return tooltip.getTooltipText();
+  }
+
   // gio-form-slide-toggle has no harness: its label is greyed out through this class
   async isLocalLoginLabelDisabled(): Promise<boolean> {
     const label = await this.locatorFor('[data-testid="local-login-field"] .form-slide-toggle__field__text')();

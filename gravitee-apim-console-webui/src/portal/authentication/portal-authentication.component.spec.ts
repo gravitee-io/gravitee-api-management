@@ -520,6 +520,16 @@ describe('PortalAuthenticationComponent', () => {
 
       expect(await (await harness.getSkipLoginToggle()).isDisabled()).toBe(true);
     });
+
+    it('should disable the skip login toggle when the system configuration provides it', async () => {
+      await init();
+      const settings = settingsWith({ skipLoginWithSingleIdp: true });
+      settings.metadata = { readonly: ['portal.next.skipLoginWithSingleIdp.enabled'] };
+      await load([google], [fakeIdentityProviderActivation({ identityProvider: 'google' })], settings);
+
+      expect(await (await harness.getSkipLoginToggle()).isDisabled()).toBe(true);
+      expect(await harness.getSkipLoginReadonlyTooltip()).toBe('Configuration provided by the system');
+    });
   });
 
   function settingsWith({

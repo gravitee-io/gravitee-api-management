@@ -50,6 +50,7 @@ import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard
 
 const FORCE_LOGIN_PROPERTY = 'portal.authentication.forceLogin.enabled';
 const LOCAL_LOGIN_PROPERTY = 'portal.authentication.localLogin.enabled';
+const SKIP_LOGIN_PROPERTY = 'portal.next.skipLoginWithSingleIdp.enabled';
 
 interface AuthenticationForm {
   forceLogin: FormControl<boolean>;
@@ -140,6 +141,7 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
   readonly isSkipLoginToggleVisible = computed(() => this.activePortalIdentityProviderCount() === 1);
   readonly isForceLoginReadonly = computed(() => this.isSystemReadonly(FORCE_LOGIN_PROPERTY));
   readonly isLocalLoginReadonly = computed(() => this.isSystemReadonly(LOCAL_LOGIN_PROPERTY));
+  readonly isSkipLoginReadonly = computed(() => this.isSystemReadonly(SKIP_LOGIN_PROPERTY));
   private readonly rows = computed<IdentityProviderRow[]>(() => {
     if (!this.dataResource.hasValue()) {
       return [];
@@ -295,7 +297,7 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
       localLogin,
       !this.canUpdateSettings || PortalSettingsService.isReadonly(settings, LOCAL_LOGIN_PROPERTY) || !hasPortalLoginProvider,
     );
-    setDisabled(skipLoginWithSingleIdp, !this.canUpdateSettings);
+    setDisabled(skipLoginWithSingleIdp, !this.canUpdateSettings || PortalSettingsService.isReadonly(settings, SKIP_LOGIN_PROPERTY));
     this.authenticationForm.reset({
       forceLogin: settings.authentication?.forceLogin?.enabled ?? false,
       localLogin: settings.authentication?.localLogin?.enabled ?? true,
