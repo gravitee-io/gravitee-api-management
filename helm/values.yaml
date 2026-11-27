@@ -2667,6 +2667,8 @@ gateway:
 
 portal:
   enabled: true
+  # Portal Next only. Empty uses the portal ID returned by /ui/bootstrap.
+  portalId: ""
   name: portal
   replicaCount: 1
   image:
