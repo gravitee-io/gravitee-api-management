@@ -32,6 +32,7 @@ import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.ThemeCrudServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
+import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -46,6 +47,7 @@ import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyn
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalHostTemplate;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
@@ -284,7 +286,46 @@ class CreateOrUpdatePortalUseCaseTest {
     }
 
     @Test
+    void should_create_a_portal_on_a_generated_host_when_a_template_is_configured() {
+        installationAccessQueryService.withPortalHostTemplate(PortalHostTemplate.parse("{portal-slug}.portals.acme.io"));
+        var portal = Portal.create(
+            PortalId.random(),
+            AUDIT_INFO.environmentId(),
+            AUDIT_INFO.organizationId(),
+            "Partners",
+            PortalFixtures.PORTAL_ACCESS_POINT_ID
+        );
+
+        var output = useCase.execute(inputFor(AUDIT_INFO, portal));
+
+        assertThat(urlOf(output.portal())).hasToString("https://partners.portals.acme.io/next");
+    }
+
+    @Test
+    void should_keep_the_access_point_of_the_default_portal_it_replaces_when_a_template_is_configured() {
+        installationAccessQueryService.withPortalHostTemplate(PortalHostTemplate.parse("{portal-slug}.portals.acme.io"));
+        portalCrudService.initWith(List.of(aDefaultPortal()));
+
+        var output = useCase.execute(inputFor(AUDIT_INFO, PortalFixtures.aPortal()));
+
+        assertThat(output.portal().getAccessPointId()).isEqualTo(PortalFixtures.PORTAL_ACCESS_POINT_ID);
+        assertThat(addresses.accessPoints().storage()).isEmpty();
+    }
+
+    @Test
+    void should_keep_the_access_point_of_an_existing_portal_when_a_template_is_configured() {
+        var portal = PortalFixtures.aPortal();
+        portalCrudService.initWith(List.of(portal));
+        installationAccessQueryService.withPortalHostTemplate(PortalHostTemplate.parse("{portal-slug}.portals.acme.io"));
+
+        var output = useCase.execute(inputFor(AUDIT_INFO, portal));
+
+        assertThat(output.portal().getAccessPointId()).isEqualTo(portal.getAccessPointId());
+    }
+
+    @Test
     void should_create_a_portal_without_access_point_on_a_multi_tenant_installation() {
+        installationAccessQueryService.withPortalHostTemplate(PortalHostTemplate.parse("{portal-slug}.portals.acme.io"));
         addresses.installationType().set(InstallationType.MULTI_TENANT);
 
         var output = useCase.execute(inputFor(AUDIT_INFO, PortalFixtures.aPortal()));
@@ -626,6 +667,52 @@ class CreateOrUpdatePortalUseCaseTest {
         assertThatThrownBy(() -> failingUseCase.execute(inputFor(AUDIT_INFO, PortalFixtures.aPortal()))).hasMessage("portal store is down");
 
         assertThat(failingPortals.storage()).singleElement().extracting(Portal::getId).isEqualTo(DEFAULT_PORTAL_ID);
+    }
+
+    @Test
+    void should_release_the_generated_access_point_when_the_new_portal_cannot_be_stored() {
+        installationAccessQueryService.withPortalHostTemplate(PortalHostTemplate.parse("{portal-slug}.portals.acme.io"));
+        var failingUseCase = aUseCase(failingToCreate(), () -> false);
+
+        assertThatThrownBy(() -> failingUseCase.execute(inputFor(AUDIT_INFO, PortalFixtures.aPortal()))).hasMessage("portal store is down");
+
+        assertThat(addresses.accessPoints().storage()).isEmpty();
+    }
+
+    @Test
+    void should_keep_the_access_point_of_the_default_portal_when_its_replacement_cannot_be_stored() {
+        installationAccessQueryService.withPortalHostTemplate(PortalHostTemplate.parse("{portal-slug}.portals.acme.io"));
+        var failingPortals = failingToCreate();
+        failingPortals.initWith(List.of(aDefaultPortal()));
+        var failingUseCase = aUseCase(failingPortals, () -> false);
+        addresses
+            .accessPoints()
+            .initWith(
+                List.of(
+                    AccessPoint.builder()
+                        .id(PortalFixtures.PORTAL_ACCESS_POINT_ID)
+                        .referenceType(AccessPoint.ReferenceType.ENVIRONMENT)
+                        .referenceId(AUDIT_INFO.environmentId())
+                        .target(AccessPoint.Target.PORTAL_INSTANCE)
+                        .host("portal.acme.io")
+                        .build()
+                )
+            );
+
+        assertThatThrownBy(() -> failingUseCase.execute(inputFor(AUDIT_INFO, PortalFixtures.aPortal()))).hasMessage("portal store is down");
+
+        assertThat(addresses.accessPoints().storage())
+            .extracting(AccessPoint::getId)
+            .containsExactly(PortalFixtures.PORTAL_ACCESS_POINT_ID);
+    }
+
+    private static PortalCrudServiceInMemory failingToCreate() {
+        return new PortalCrudServiceInMemory() {
+            @Override
+            public Portal create(Portal portal) {
+                throw new IllegalStateException("portal store is down");
+            }
+        };
     }
 
     @ParameterizedTest

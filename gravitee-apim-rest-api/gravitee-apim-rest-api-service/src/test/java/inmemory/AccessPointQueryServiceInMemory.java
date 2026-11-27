@@ -30,7 +30,16 @@ public class AccessPointQueryServiceInMemory implements AccessPointQueryService,
 
     @Override
     public Optional<ReferenceContext> getReferenceContext(String host) {
-        return Optional.empty();
+        return storage
+            .stream()
+            .filter(accessPoint -> accessPoint.getHost().equals(host))
+            .findFirst()
+            .map(accessPoint ->
+                ReferenceContext.builder()
+                    .referenceId(accessPoint.getReferenceId())
+                    .referenceType(ReferenceContext.Type.valueOf(accessPoint.getReferenceType().name()))
+                    .build()
+            );
     }
 
     @Override
@@ -112,6 +121,21 @@ public class AccessPointQueryServiceInMemory implements AccessPointQueryService,
     public List<AccessPoint> getPortalInstanceAccessPoints(final String environmentId) {
         return portalInstances()
             .filter(accessPoint -> environmentId.equals(accessPoint.getReferenceId()))
+            .toList();
+    }
+
+    @Override
+    public List<AccessPoint> findPortalInstancesByHost(final String host) {
+        return portalInstances()
+            .filter(accessPoint -> host.equals(accessPoint.getHost()))
+            .toList();
+    }
+
+    @Override
+    public List<AccessPoint> findByHost(final String host) {
+        return storage
+            .stream()
+            .filter(accessPoint -> host.equals(accessPoint.getHost()))
             .toList();
     }
 

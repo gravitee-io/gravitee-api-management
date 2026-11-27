@@ -16,13 +16,16 @@
 package io.gravitee.apim.core.portal.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.PortalAddressDomainServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import io.gravitee.apim.core.access_point.model.AccessPoint;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.installation.model.InstallationType;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalHostTemplate;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import java.net.URI;
@@ -35,6 +38,8 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class PortalAddressDomainServiceTest {
@@ -57,12 +62,12 @@ class PortalAddressDomainServiceTest {
     }
 
     @Nested
-    class SharedAccessPoint {
+    class NewPortalAccessPoint {
 
         @Test
-        void should_share_one_access_point_between_the_environment_portals() {
-            var first = cut.sharedAccessPoint(ENV_ID);
-            var second = cut.sharedAccessPoint(ENV_ID);
+        void should_share_the_environment_access_point_when_no_template_is_configured() {
+            var first = cut.newPortalAccessPoint(ENV_ID, "Partners");
+            var second = cut.newPortalAccessPoint(ENV_ID, "Docs");
 
             assertThat(first).isPresent().isEqualTo(second);
             assertThat(cut.accessPoints().storage())
@@ -77,9 +82,91 @@ class PortalAddressDomainServiceTest {
         }
 
         @Test
+        void should_create_an_access_point_on_a_generated_host_keeping_the_port() {
+            installation.withPortalHostTemplate(PortalHostTemplate.parse("{portal-slug}.localhost"));
+
+            var accessPointId = cut.newPortalAccessPoint(ENV_ID, "Partners Portal");
+
+            assertThat(cut.accessPoints().storage())
+                .singleElement()
+                .satisfies(accessPoint -> {
+                    assertThat(accessPoint.getId()).isEqualTo(accessPointId.orElseThrow());
+                    assertThat(accessPoint.getHost()).isEqualTo("partners-portal.localhost:4100");
+                    assertThat(accessPoint.isSecured()).isFalse();
+                });
+        }
+
+        @Test
+        void should_drop_the_default_https_port_from_a_generated_host() {
+            installation.withPortalUrl(ENV_ID, "https://portal.example.com/developers");
+            installation.withPortalHostTemplate(PortalHostTemplate.parse("{portal-slug}.example.com"));
+
+            cut.newPortalAccessPoint(ENV_ID, "Partners");
+
+            assertThat(cut.accessPoints().storage())
+                .singleElement()
+                .satisfies(accessPoint -> {
+                    assertThat(accessPoint.getHost()).isEqualTo("partners.example.com");
+                    assertThat(accessPoint.isSecured()).isTrue();
+                });
+        }
+
+        @Test
+        void should_add_a_numeric_suffix_while_any_access_point_uses_the_host() {
+            installation.withPortalHostTemplate(PortalHostTemplate.parse("{portal-slug}.localhost"));
+            cut
+                .accessPoints()
+                .initWith(
+                    List.of(
+                        anAccessPoint("taken-1", OTHER_ENV_ID, AccessPoint.Target.PORTAL_INSTANCE, "partners.localhost:4100"),
+                        anAccessPoint("taken-2", ENV_ID, AccessPoint.Target.CONSOLE, "partners-2.localhost:4100")
+                    )
+                );
+
+            var accessPointId = cut.newPortalAccessPoint(ENV_ID, "Partners").orElseThrow();
+
+            assertThat(cut.accessPoints().storage())
+                .filteredOn(accessPoint -> accessPoint.getId().equals(accessPointId))
+                .singleElement()
+                .extracting(AccessPoint::getHost)
+                .isEqualTo("partners-3.localhost:4100");
+        }
+
+        @Test
+        void should_fall_back_to_a_fixed_slug_when_the_name_has_no_usable_character() {
+            installation.withPortalHostTemplate(PortalHostTemplate.parse("{portal-slug}.localhost"));
+
+            cut.newPortalAccessPoint(ENV_ID, "!!!");
+
+            assertThat(cut.accessPoints().storage()).singleElement().extracting(AccessPoint::getHost).isEqualTo("portal.localhost:4100");
+        }
+
+        @Test
+        void should_shorten_a_long_name_to_a_valid_dns_label() {
+            installation.withPortalHostTemplate(PortalHostTemplate.parse("{portal-slug}.localhost"));
+
+            cut.newPortalAccessPoint(ENV_ID, "a".repeat(39) + " " + "b".repeat(30));
+
+            assertThat(cut.accessPoints().storage())
+                .singleElement()
+                .extracting(AccessPoint::getHost)
+                .isEqualTo("a".repeat(39) + ".localhost:4100");
+        }
+
+        @Test
         void should_create_no_access_point_on_a_multi_tenant_installation() {
+            installation.withPortalHostTemplate(PortalHostTemplate.parse("{portal-slug}.localhost"));
             cut.installationType().set(InstallationType.MULTI_TENANT);
 
+            assertThat(cut.newPortalAccessPoint(ENV_ID, "Partners")).isEmpty();
+            assertThat(cut.accessPoints().storage()).isEmpty();
+        }
+
+        @Test
+        void should_create_no_shared_access_point_on_a_multi_tenant_installation() {
+            cut.installationType().set(InstallationType.MULTI_TENANT);
+
+            assertThat(cut.newPortalAccessPoint(ENV_ID, "Partners")).isEmpty();
             assertThat(cut.sharedAccessPoint(ENV_ID)).isEmpty();
             assertThat(cut.accessPoints().storage()).isEmpty();
         }
@@ -87,8 +174,9 @@ class PortalAddressDomainServiceTest {
         @Test
         void should_return_empty_when_the_environment_has_no_usable_portal_url() {
             installation.withPortalUrl(ENV_ID, null);
+            installation.withPortalHostTemplate(PortalHostTemplate.parse("{portal-slug}.localhost"));
 
-            assertThat(cut.sharedAccessPoint(ENV_ID)).isEmpty();
+            assertThat(cut.newPortalAccessPoint(ENV_ID, "Partners")).isEmpty();
             assertThat(cut.accessPoints().storage()).isEmpty();
         }
     }
@@ -231,6 +319,74 @@ class PortalAddressDomainServiceTest {
         @SneakyThrows
         private static URL url(String value) {
             return URI.create(value).toURL();
+        }
+    }
+
+    @Nested
+    class ValidateCustomUrl {
+
+        @Test
+        void should_keep_scheme_host_and_port_with_a_lowercase_host() {
+            assertThat(cut.validateCustomUrl(PORTAL_ID, "HTTPS://Developers.Acme.io:8443/")).hasToString("https://developers.acme.io:8443");
+        }
+
+        @Test
+        void should_accept_the_host_the_portal_already_has() {
+            cut.accessPoints().initWith(List.of(aPortalAccessPoint("own", ENV_ID, "developers.acme.io", true)));
+            portals.initWith(List.of(aPortal(PORTAL_ID, ENV_ID, "own")));
+
+            assertThat(cut.validateCustomUrl(PORTAL_ID, "https://developers.acme.io")).hasToString("https://developers.acme.io");
+        }
+
+        @Test
+        void should_refuse_a_host_used_by_a_portal_of_another_environment() {
+            cut.accessPoints().initWith(List.of(aPortalAccessPoint("taken", OTHER_ENV_ID, "developers.acme.io", true)));
+            portals.initWith(List.of(aPortal(OTHER_PORTAL_ID, OTHER_ENV_ID, "taken")));
+
+            assertThatThrownBy(() -> cut.validateCustomUrl(PORTAL_ID, "https://DEVELOPERS.acme.io"))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("developers.acme.io")
+                .extracting("technicalCode")
+                .isEqualTo("portal.url.exists");
+        }
+
+        @Test
+        void should_refuse_a_host_used_by_an_access_point_that_serves_no_portal() {
+            cut.accessPoints().initWith(List.of(anAccessPoint("console", ENV_ID, AccessPoint.Target.CONSOLE, "developers.acme.io")));
+
+            assertThatThrownBy(() -> cut.validateCustomUrl(PORTAL_ID, "https://developers.acme.io"))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("developers.acme.io")
+                .extracting("technicalCode")
+                .isEqualTo("portal.url.exists");
+        }
+
+        @Test
+        void should_refuse_the_host_of_a_portal_access_point_no_portal_is_served_at() {
+            cut.accessPoints().initWith(List.of(aPortalAccessPoint("orphan", ENV_ID, "developers.acme.io", true)));
+
+            assertThatThrownBy(() -> cut.validateCustomUrl(PORTAL_ID, "https://developers.acme.io"))
+                .isInstanceOf(ValidationDomainException.class)
+                .extracting("technicalCode")
+                .isEqualTo("portal.url.exists");
+        }
+
+        @ParameterizedTest
+        @ValueSource(
+            strings = {
+                "",
+                "developers.acme.io",
+                "/portal",
+                "ftp://developers.acme.io",
+                "https://user:secret@developers.acme.io",
+                "https://developers.acme.io/portal",
+                "https://developers.acme.io?a=b",
+                "https://developers.acme.io#top",
+                "https://developers acme.io",
+            }
+        )
+        void should_refuse_a_url_an_access_point_cannot_serve(String url) {
+            assertThatThrownBy(() -> cut.validateCustomUrl(PORTAL_ID, url)).isInstanceOf(ValidationDomainException.class);
         }
     }
 

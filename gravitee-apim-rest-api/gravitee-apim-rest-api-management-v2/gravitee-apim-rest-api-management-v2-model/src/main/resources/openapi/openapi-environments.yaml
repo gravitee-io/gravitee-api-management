@@ -1125,7 +1125,8 @@ paths:
       summary: Create a portal
       description: |-
         User must have the ENVIRONMENT_PORTAL[create] permission.
-        Creates a portal in the environment, served at the URL sent or at a generated URL when none is sent.
+        Creates a portal in the environment, served at the URL sent or at a generated URL when none is sent. On a
+        multi-tenant installation, no URL can be sent and the portal is created without one.
         A new portal is never the default portal.
       operationId: createPortal
       requestBody:
@@ -1146,7 +1147,9 @@ paths:
         required: true
       responses:
         "201":
-          description: The created portal, with the URL sent, or a generated URL when none was sent
+          description: |-
+            The created portal, with the URL sent, or a generated URL when none was sent. No URL on a multi-tenant
+            installation.
           content:
             application/json:
               schema:
@@ -1154,7 +1157,8 @@ paths:
         "400":
           description: |-
             Invalid payload, an empty name, or a refused URL: one that is not an absolute `http` or `https` URL, that
-            has a username or password, a query string or a fragment, or that is longer than 256 characters. Also returned when no URL is sent and the
+            has a path, a username or password, a query string or a fragment, that is longer than 256 characters, whose
+            host another portal or access point already uses, or any URL on a multi-tenant installation. Also returned when no URL is sent and the
             environment's portal URL cannot be resolved, and when the environment has no default portal: its portal
             URL is not set yet, or its portals are managed through the Automation API
           content:
@@ -4235,11 +4239,14 @@ components:
         url:
           type: string
           description: |-
-            The absolute `http` or `https` URL the portal is served at, unique in the environment. When left out, a
-            URL is generated. It cannot be changed yet.
+            The absolute `http` or `https` URL of the host the portal is served at: only its scheme, host and port are
+            kept, and the portal opens at the root of that host, under `/next`. When left out, the portal is served
+            at a generated host, or at the environment's portal URL when no host template is configured. It cannot be
+            changed yet.
 
-            Refused: a scheme other than `http` or `https` (in any case), a relative URL, a username or password, a
-            query string, a fragment, or more than 256 characters.
+            Refused: a scheme other than `http` or `https` (in any case), a relative URL, a path, a username or
+            password, a query string, a fragment, a host already used by another portal or access point, or any URL
+            on a multi-tenant installation.
           example: https://partners.example.com
       required: [ name ]
     UpdatePortal:
