@@ -42,6 +42,18 @@ export class ApiService {
   }
 
   details(apiId: string): Observable<Api> {
+    return this.http.get<Api>(`${this.configService.portalBaseURL}/apis/${apiId}`, {
+      params: {
+        [PortalApiViewParam.QUERY_PARAM_NAME]: PortalApiViewParam.DOCUMENTATION,
+      },
+    });
+  }
+
+  /**
+   * The details of an API the user already subscribed to. A user's subscriptions are shared by every portal, so the API may not be
+   * one this portal lists.
+   */
+  detailsForSubscribedApi(apiId: string): Observable<Api> {
     return this.http.get<Api>(`${this.configService.baseURL}/apis/${apiId}`, {
       params: {
         [PortalApiViewParam.QUERY_PARAM_NAME]: PortalApiViewParam.DOCUMENTATION,

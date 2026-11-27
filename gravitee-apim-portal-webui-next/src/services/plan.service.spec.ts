@@ -19,7 +19,7 @@ import { TestBed } from '@angular/core/testing';
 import { PlanService } from './plan.service';
 import { fakePlansResponse } from '../entities/plan/plan.fixture';
 import { PlansResponse } from '../entities/plan/plans-response';
-import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
+import { AppTestingModule, TESTING_BASE_URL, TESTING_PORTAL_BASE_URL } from '../testing/app-testing.module';
 
 describe('PlanService', () => {
   let service: PlanService;
@@ -42,6 +42,22 @@ describe('PlanService', () => {
       const plansResponse: PlansResponse = fakePlansResponse();
 
       service.list('api-id').subscribe(response => {
+        expect(response).toMatchObject(plansResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${TESTING_PORTAL_BASE_URL}/apis/api-id/plans?size=-1`);
+      expect(req.request.method).toEqual('GET');
+
+      req.flush(plansResponse);
+    });
+  });
+
+  describe('listForSubscribedApi', () => {
+    it('should list the plans outside of the portal, whose APIs a subscription may not be on', done => {
+      const plansResponse: PlansResponse = fakePlansResponse();
+
+      service.listForSubscribedApi('api-id').subscribe(response => {
         expect(response).toMatchObject(plansResponse);
         done();
       });

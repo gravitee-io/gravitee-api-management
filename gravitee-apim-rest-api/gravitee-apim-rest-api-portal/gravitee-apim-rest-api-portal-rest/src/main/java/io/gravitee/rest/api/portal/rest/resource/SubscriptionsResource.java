@@ -17,7 +17,10 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static java.util.Collections.emptyList;
 
+import io.gravitee.apim.core.api.use_case.GetApiForPortalUseCase;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.PortalApiProductAccessDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.subscription.model.SubscriptionConfiguration;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
@@ -71,6 +74,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
@@ -114,10 +118,24 @@ public class SubscriptionsResource extends AbstractResource {
     @Inject
     private PortalApiProductAccessDomainService portalApiProductAccessDomainService;
 
+    @Inject
+    private PortalNavigationAccessDomainService portalNavigationAccessDomainService;
+
+    @Inject
+    private GetApiForPortalUseCase getApiForPortalUseCase;
+
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createSubscription(@Valid @NotNull(message = "Input must not be null.") SubscriptionInput subscriptionInput) {
+        return createSubscription(subscriptionInput, Optional.empty());
+    }
+
+    /**
+     * @param portalId the portal that must list the plan's API or API product; empty on the unscoped path, where a listing on any portal
+     *                 of the environment does
+     */
+    Response createSubscription(SubscriptionInput subscriptionInput, Optional<PortalId> portalId) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String applicationId = subscriptionInput.getApplication();
         if (hasPermission(executionContext, RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.CREATE)) {
@@ -125,12 +143,23 @@ public class SubscriptionsResource extends AbstractResource {
             boolean isApiProductPlan = GenericPlanEntity.ReferenceType.API_PRODUCT == plan.getReferenceType();
 
             if (isApiProductPlan) {
+                var portal = portalId.map(id ->
+                    portalNavigationAccessDomainService.resolveScope(
+                        executionContext.getOrganizationId(),
+                        executionContext.getEnvironmentId(),
+                        Optional.of(id)
+                    )
+                );
                 portalApiProductAccessDomainService.findAccessible(
                     executionContext.getEnvironmentId(),
                     plan.getReferenceId(),
-                    PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull())
+                    PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull()),
+                    portal
                 );
-            } else if (!accessControlService.canConsumeApiFromPortal(executionContext, plan.getReferenceId())) {
+            } else if (
+                !accessControlService.canConsumeApiFromPortal(executionContext, plan.getReferenceId()) ||
+                (portalId.isPresent() && !isListedOnPortal(executionContext, plan.getReferenceId(), portalId))
+            ) {
                 throw new ApiNotFoundException(plan.getReferenceId());
             }
 
@@ -170,6 +199,20 @@ public class SubscriptionsResource extends AbstractResource {
             return Response.ok(subscription).build();
         }
         throw new ForbiddenAccessException();
+    }
+
+    private boolean isListedOnPortal(ExecutionContext executionContext, String apiId, Optional<PortalId> portalId) {
+        return getApiForPortalUseCase
+            .execute(
+                new GetApiForPortalUseCase.Input(
+                    executionContext.getEnvironmentId(),
+                    executionContext.getOrganizationId(),
+                    apiId,
+                    getAuthenticatedUserOrNull(),
+                    portalId
+                )
+            )
+            .visible();
     }
 
     private SubscriptionConfiguration getSubscriptionConfiguration(SubscriptionInput subscriptionInput) {

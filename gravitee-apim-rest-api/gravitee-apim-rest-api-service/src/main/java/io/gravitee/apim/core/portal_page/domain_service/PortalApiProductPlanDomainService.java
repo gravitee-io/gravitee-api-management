@@ -21,11 +21,13 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanExcludedGroupsDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanSearchQueryService;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
@@ -36,8 +38,16 @@ public class PortalApiProductPlanDomainService {
     private final PlanSearchQueryService planSearchQueryService;
     private final PlanExcludedGroupsDomainService planExcludedGroupsDomainService;
 
-    public List<Plan> findAccessiblePlans(String environmentId, String apiProductId, PortalNavigationItemViewerContext viewerContext) {
-        var accessibleApiProduct = portalApiProductAccessDomainService.findAccessible(environmentId, apiProductId, viewerContext);
+    /**
+     * @param portal the portal that must list the API product; empty when a listing on any portal of the environment does
+     */
+    public List<Plan> findAccessiblePlans(
+        String environmentId,
+        String apiProductId,
+        PortalNavigationItemViewerContext viewerContext,
+        Optional<NavigationItemReference.PortalReference> portal
+    ) {
+        var accessibleApiProduct = portalApiProductAccessDomainService.findAccessible(environmentId, apiProductId, viewerContext, portal);
         var userId = viewerContext.userId().orElse(null);
         var query = PlanQuery.builder()
             .referenceId(apiProductId)

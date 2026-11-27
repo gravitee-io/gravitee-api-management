@@ -95,6 +95,12 @@ public class PortalScopedApisResourceNotAuthenticatedTest extends AbstractResour
     }
 
     @Test
+    void should_not_find_anonymously_a_public_api_the_portal_does_not_list() {
+        assertThat(target(portal + "/apis/api-unlisted").request().get().getStatus()).isEqualTo(404);
+        assertThat(target(portal + "/apis/api-unlisted/plans").request().get().getStatus()).isEqualTo(404);
+    }
+
+    @Test
     void should_search_a_known_portal_anonymously() {
         assertThat(search(target(portal + "/apis/_search")).getStatus()).isEqualTo(200);
     }

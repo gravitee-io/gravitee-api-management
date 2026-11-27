@@ -17,24 +17,45 @@ package io.gravitee.apim.core.plan.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.PortalApiProductPlanDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
 @RequiredArgsConstructor
 public class GetPortalApiProductPlansUseCase {
 
+    private final PortalNavigationAccessDomainService accessService;
     private final PortalApiProductPlanDomainService portalApiProductPlanDomainService;
 
     public Output execute(Input input) {
+        var portal = input
+            .portalId()
+            .map(portalId -> accessService.resolveScope(input.organizationId(), input.environmentId(), Optional.of(portalId)));
         return new Output(
-            portalApiProductPlanDomainService.findAccessiblePlans(input.environmentId(), input.apiProductId(), input.viewerContext())
+            portalApiProductPlanDomainService.findAccessiblePlans(
+                input.environmentId(),
+                input.apiProductId(),
+                input.viewerContext(),
+                portal
+            )
         );
     }
 
-    public record Input(String environmentId, String apiProductId, PortalNavigationItemViewerContext viewerContext) {}
+    /**
+     * @param portalId the portal that must list the API product; empty on the unscoped paths, where a listing on any portal of the environment does
+     */
+    public record Input(
+        String environmentId,
+        String organizationId,
+        String apiProductId,
+        PortalNavigationItemViewerContext viewerContext,
+        Optional<PortalId> portalId
+    ) {}
 
     public record Output(List<Plan> plans) {}
 }

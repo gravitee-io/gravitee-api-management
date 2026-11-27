@@ -69,7 +69,7 @@ export class SubscriptionService {
   }
 
   subscribe(createSubscription: CreateSubscription): Observable<Subscription> {
-    return this.http.post<Subscription>(`${this.configService.baseURL}/subscriptions`, createSubscription);
+    return this.http.post<Subscription>(`${this.configService.portalBaseURL}/subscriptions`, createSubscription);
   }
 
   update(subscriptionId: string, updatedSubscription: UpdateSubscription) {

@@ -4684,6 +4684,203 @@ paths:
                     $ref: "#/components/responses/PortalNotFoundError"
                 500:
                     $ref: "#/components/responses/InternalServerError"
+    /portal/{portalId}/apis/{apiId}:
+        parameters:
+            - $ref: "#/components/parameters/portalIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - Api
+            parameters:
+                - $ref: "#/components/parameters/apiIncludeParam"
+            summary: Get an API of a portal
+            description: |
+                Only for an API the portal lists for the current user, as `/portal/{portalId}/apis/_search` finds it, otherwise a 404 is returned,
+                even for a public API that another portal lists. The rules of `/apis/{apiId}` with `view=documentation` still apply on top.
+            operationId: getPortalApiByApiId
+            x-gravitee-portal: next
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    description: API definition
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Api"
+                404:
+                    $ref: "#/components/responses/APINotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /portal/{portalId}/apis/{apiId}/plans:
+        parameters:
+            - $ref: "#/components/parameters/portalIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - Api
+            parameters:
+                - $ref: "#/components/parameters/pageNumberParam"
+                - $ref: "#/components/parameters/pageSizeParam"
+            summary: List plans for an API of a portal
+            description: |
+                Only for an API the portal lists for the current user, as `/portal/{portalId}/apis/_search` finds it, otherwise a 404 is returned,
+                even for a public API that another portal lists. The rules of `/apis/{apiId}/plans` still apply on top.
+            operationId: getPortalApiPlansByApiId
+            x-gravitee-portal: next
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    description: List accessible plans for current user
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PlansResponse"
+                404:
+                    $ref: "#/components/responses/APINotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /portal/{portalId}/apis/{apiId}/subscription-form:
+        parameters:
+            - $ref: "#/components/parameters/portalIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - Portal
+            summary: Get the subscription form for an API of a portal
+            description: |
+                Only for an API the portal lists for the current user, as `/portal/{portalId}/apis/_search` finds it, otherwise a 404 is returned,
+                even for a public API that another portal lists. The rules of `/apis/{apiId}/subscription-form` still apply on top.
+            operationId: getPortalApiSubscriptionForm
+            x-gravitee-portal: next
+            security:
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    description: The subscription form content with resolved options.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/SubscriptionForm"
+                404:
+                    $ref: "#/components/responses/APINotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /portal/{portalId}/api-products/{apiProductId}:
+        parameters:
+            - $ref: "#/components/parameters/portalIdParam"
+            - $ref: "#/components/parameters/apiProductIdParam"
+        get:
+            tags:
+                - Api Product
+            summary: Get an API Product of a portal
+            description: |
+                Only for an API Product the portal lists for the current user, otherwise a 404 is returned. The rules of `/api-products/{apiProductId}` still
+                apply on top, and the API Product's APIs are limited to those the portal lists.
+            operationId: getPortalApiProductByApiProductId
+            x-gravitee-portal: next
+            security:
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    description: API Product details
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PortalApiProductDetails"
+                404:
+                    description: Portal or API Product not found, or API Product not listed on the portal.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /portal/{portalId}/api-products/{apiProductId}/plans:
+        parameters:
+            - $ref: "#/components/parameters/portalIdParam"
+            - $ref: "#/components/parameters/apiProductIdParam"
+        get:
+            tags:
+                - Api Product
+            parameters:
+                - $ref: "#/components/parameters/pageNumberParam"
+                - $ref: "#/components/parameters/pageSizeParam"
+            summary: List plans for an API Product of a portal
+            description: |
+                Only for an API Product the portal lists for the current user, otherwise a 404 is returned. The rules of
+                `/api-products/{apiProductId}/plans` still apply on top.
+            operationId: getPortalApiProductPlans
+            x-gravitee-portal: next
+            security:
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    description: List of accessible API Product plans
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiProductPlansResponse"
+                404:
+                    description: Portal or API Product not found, or API Product not listed on the portal.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /portal/{portalId}/subscriptions:
+        parameters:
+            - $ref: "#/components/parameters/portalIdParam"
+        post:
+            tags:
+                - Subscription
+            requestBody:
+                description: Use to create a subscription.
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/SubscriptionInput"
+            summary: Create a subscription from a portal.
+            description: |
+                Same as `POST /subscriptions`, only to a plan of an API or API Product the portal lists for the current user.
+                Subscribing to one the portal does not list returns a 404, even for a public API that another portal lists.
+                Reading and managing subscriptions stays on `/subscriptions`, shared by every portal.
+
+                User must have APPLICATION_SUBSCRIPTION[CREATE] permission.
+            operationId: createPortalSubscription
+            x-gravitee-portal: next
+            responses:
+                200:
+                    description: Created subscription.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Subscription"
+                400:
+                    description: Input must not be null.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    description: Portal or plan not found, or the plan's API or API Product not listed on the portal.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
 
 components:
     requestBodies:

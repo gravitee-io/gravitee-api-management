@@ -101,6 +101,26 @@ describe('ApiService', () => {
 
       const req = httpTestingController.expectOne(
         request =>
+          request.url === `${TESTING_PORTAL_BASE_URL}/apis/${apiId}` &&
+          request.params.get(PortalApiViewParam.QUERY_PARAM_NAME) === PortalApiViewParam.DOCUMENTATION,
+      );
+      expect(req.request.method).toEqual('GET');
+      req.flush(api);
+    });
+  });
+
+  describe('detailsForSubscribedApi', () => {
+    it('should read the API outside of the portal, which a subscription may not be on', done => {
+      const apiId = 'subscribed-api';
+      const api = fakeApi({ id: apiId });
+
+      service.detailsForSubscribedApi(apiId).subscribe(response => {
+        expect(response).toMatchObject(api);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(
+        request =>
           request.url === `${TESTING_BASE_URL}/apis/${apiId}` &&
           request.params.get(PortalApiViewParam.QUERY_PARAM_NAME) === PortalApiViewParam.DOCUMENTATION,
       );

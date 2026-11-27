@@ -29,10 +29,10 @@ export class ApiProductsService {
   private readonly configService = inject(ConfigService);
 
   getById(apiProductId: string): Observable<ApiProduct> {
-    return this.http.get<ApiProduct>(`${this.configService.baseURL}/api-products/${apiProductId}`);
+    return this.http.get<ApiProduct>(`${this.configService.portalBaseURL}/api-products/${apiProductId}`);
   }
 
   listPlans(apiProductId: string): Observable<PlansResponse> {
-    return this.http.get<PlansResponse>(`${this.configService.baseURL}/api-products/${apiProductId}/plans?size=-1`);
+    return this.http.get<PlansResponse>(`${this.configService.portalBaseURL}/api-products/${apiProductId}/plans?size=-1`);
   }
 }

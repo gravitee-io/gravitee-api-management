@@ -444,6 +444,39 @@ class PortalNavigationApiVisibilityDomainServiceTest {
                 .containsExactly("categorized-api");
         }
 
+        @Test
+        void api_is_visible_by_id_on_a_portal_that_lists_it_publicly() {
+            assertThat(domainService.isApiVisibleToUser(ENV_ID, portalB, SHARED_API_ID, null)).isTrue();
+        }
+
+        @Test
+        void public_api_is_not_visible_by_id_on_a_portal_that_does_not_list_it() {
+            assertThat(domainService.isApiVisibleToUser(ENV_ID, portalA, PUBLIC_API_ID, null)).isFalse();
+            assertThat(domainService.isApiVisibleToUser(ENV_ID, portalA, PUBLIC_API_ID, USER_ID)).isFalse();
+        }
+
+        @Test
+        void private_listing_is_not_visible_by_id_to_non_member_although_another_portal_lists_the_api_publicly() {
+            assertThat(domainService.isApiVisibleToUser(ENV_ID, portalA, SHARED_API_ID, null)).isFalse();
+            assertThat(domainService.isApiVisibleToUser(ENV_ID, portalA, SHARED_API_ID, USER_ID)).isFalse();
+        }
+
+        @Test
+        void private_listing_is_visible_by_id_to_member() {
+            membershipQueryService.initWith(List.of(apiMembership(USER_ID, SHARED_API_ID)));
+
+            assertThat(domainService.isApiVisibleToUser(ENV_ID, portalA, SHARED_API_ID, USER_ID)).isTrue();
+        }
+
+        @Test
+        void unpublished_listing_is_not_visible_by_id() {
+            var unpublished = listing("unpublished-api", PortalVisibility.PUBLIC, portalB);
+            unpublished.setPublished(false);
+            navQueryService.initWith(List.of(unpublished));
+
+            assertThat(domainService.isApiVisibleToUser(ENV_ID, portalB, "unpublished-api", USER_ID)).isFalse();
+        }
+
         private PortalNavigationApi listing(String apiId, PortalVisibility visibility, NavigationItemReference.PortalReference portal) {
             var item = publishedApiNavItem(apiId, visibility);
             item.changeOwner(portal);

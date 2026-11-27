@@ -28,8 +28,8 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 
 /**
- * The APIs of one portal. Only the search is scoped: an API's details are the same whichever portal shows it.
- * The search always applies the navigation rules of the documentation view, the only ones that know which portal shows an API.
+ * The APIs of one portal: the search finds, and an API's page opens, only for the APIs the portal lists.
+ * Both always apply the navigation rules of the documentation view, the only ones that know which portal shows an API.
  */
 public class PortalApisResource extends AbstractResource {
 
@@ -43,5 +43,10 @@ public class PortalApisResource extends AbstractResource {
     public Response searchApis(@QueryParam("q") String query, @BeanParam PaginationParam paginationParam) {
         var portalId = PortalScope.fromPath(uriInfo);
         return resourceContext.getResource(ApisResource.class).searchNavigationApis(query, paginationParam, portalId);
+    }
+
+    @Path("{apiId}")
+    public PortalApiResource getPortalApiResource() {
+        return resourceContext.getResource(PortalApiResource.class);
     }
 }
