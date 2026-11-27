@@ -40,7 +40,8 @@ import lombok.RequiredArgsConstructor;
  * The gateway resolves the {@code {#secrets.get(...)}} references of a definition with the rights of whoever deployed it,
  * so a save may only add references to Gravitee's secret store that its user could read: with {@code ENVIRONMENT_SECRET[READ]},
  * in the environment of the definition, and to the secret of a credential only for the owner of that credential or an
- * admin. A reference whose path the gateway works out per request can name any secret, so it needs the read permission too.
+ * admin. A reference whose path the gateway works out per request can name any secret, so it needs the read permission too,
+ * unless the text the path starts with already names another provider.
  * The references a definition already had are kept, whoever saves it.
  */
 @DomainService
@@ -73,12 +74,18 @@ public class SecretReferencePermissionDomainService {
         var needsSecretRead = false;
         for (String expression : added) {
             var path = pathUnlessDynamic(expression);
-            var storeReference = path.flatMap(SecretReferencePermissionDomainService::asStoreReference);
-            if (path.isPresent() && storeReference.isEmpty()) {
+            if (path.isEmpty()) {
+                // A provider named in full by the leading text stays the provider whatever the request adds after it.
+                var prefix = expressionParser.pathPrefix(expression);
+                needsSecretRead |= prefix.isEmpty() || asStoreReference(prefix.get()).isPresent();
+                continue;
+            }
+            var storeReference = asStoreReference(path.get());
+            if (storeReference.isEmpty()) {
                 continue;
             }
             needsSecretRead = true;
-            storeReference.ifPresent(reference -> validateStoreReference(organizationId, environmentId, userId, reference));
+            validateStoreReference(organizationId, environmentId, userId, storeReference.get());
         }
         if (needsSecretRead && userId != null && !canReadSecrets(organizationId, environmentId, userId)) {
             throw new SecretReferenceNotAllowedException(

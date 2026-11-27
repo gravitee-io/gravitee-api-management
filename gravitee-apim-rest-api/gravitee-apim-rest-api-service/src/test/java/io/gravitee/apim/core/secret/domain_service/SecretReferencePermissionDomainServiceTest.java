@@ -77,6 +77,21 @@ class SecretReferencePermissionDomainServiceTest {
         verifyNoInteractions(permissionDomainService);
     }
 
+    @ParameterizedTest
+    @ValueSource(
+        strings = {
+            "{#secrets.get('/vault/secret/tenants/' + #context.attributes['tenant'], 'token')}",
+            "{#secrets.get('/vault/secret/' + #request.headers['x-secret'][0])}",
+            "{#secrets.get(' /vault/' + #context.attributes['tenant'] + ':token')}",
+            "{#secrets.get('/kubernetes/backend')}",
+        }
+    )
+    void should_accept_a_reference_whose_fixed_text_names_another_secret_provider_without_the_secret_permission(String reference) {
+        assertThatCode(() -> validate(null, header(reference))).doesNotThrowAnyException();
+
+        verifyNoInteractions(permissionDomainService);
+    }
+
     @Nested
     class SecretRead {
 
@@ -99,6 +114,9 @@ class SecretReferencePermissionDomainServiceTest {
             strings = {
                 "{#secrets.get(#request.headers['x-secret'][0])}",
                 "{#secrets.get('/gravitee/' + #context.attributes['key'] + ':value?envId=env-id')}",
+                "{#secrets.get('/vau' + #context.attributes['provider'] + '/db:password')}",
+                "{#secrets.get(#context.attributes['provider'] + '/vault/db:password')}",
+                "{#secrets.get('/gravitee/db-password')}",
             }
         )
         void should_refuse_a_reference_whose_path_the_gateway_works_out_per_request_without_the_secret_read_permission(String reference) {

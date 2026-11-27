@@ -25,4 +25,10 @@ public interface SecretExpressionParser {
      * @throws io.gravitee.apim.core.credential.exception.InvalidCredentialException for anything else
      */
     Optional<String> literalPath(String field, String expression);
+
+    /**
+     * @param expression a {@code {#secrets.get(...)}} lookup, whatever its arguments
+     * @return the text the secret path starts with, empty when the path starts with an expression or the lookup does not parse
+     */
+    Optional<String> pathPrefix(String expression);
 }
