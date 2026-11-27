@@ -63,9 +63,19 @@ public enum CredentialStrategy {
     }
 
     public void requireSomeSecretFields(Set<String> fields) {
-        if (fields.isEmpty() || !secretFields.containsAll(fields)) {
+        if (fields.isEmpty()) {
             throw new InvalidCredentialException(
                 "Give one or more of the secret fields " + secretFields + " of a " + name() + " credential."
+            );
+        }
+        var unknown = fields
+            .stream()
+            .filter(field -> !secretFields.contains(field))
+            .sorted()
+            .toList();
+        if (!unknown.isEmpty()) {
+            throw new InvalidCredentialException(
+                "A " + name() + " credential has no secret field " + unknown + ". Its secret fields are " + secretFields + "."
             );
         }
     }
