@@ -96,7 +96,7 @@ const yarn = {
 };
 
 const orbs = {
-  aikido: '1.0.3',
+  aikido: '1.0.4',
   artifactory: '1.0.1',
   awsCli: '5.1.2',
   awsS3: '4.1.0',
