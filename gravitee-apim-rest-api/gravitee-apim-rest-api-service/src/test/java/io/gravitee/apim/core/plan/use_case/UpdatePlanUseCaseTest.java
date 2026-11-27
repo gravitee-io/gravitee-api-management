@@ -629,6 +629,32 @@ class UpdatePlanUseCaseTest {
 
             assertThatCode(() -> updatePlanUseCase.execute(input)).doesNotThrowAnyException();
         }
+
+        @Test
+        void should_refuse_enabling_a_stored_flow_with_a_store_secret_reference_without_the_secret_read_permission() {
+            flowCrudService.savePlanFlows(PLAN_ID, List.of(Flow.builder().name(REFERENCE).enabled(false).build()));
+            var input = new UpdatePlanUseCase.Input(
+                planMinimal(),
+                _api -> List.of(Flow.builder().name(REFERENCE).enabled(true).build()),
+                API_ID,
+                A_USER
+            );
+
+            assertThatThrownBy(() -> updatePlanUseCase.execute(input)).isInstanceOf(SecretReferenceNotAllowedException.class);
+        }
+
+        @Test
+        void should_refuse_moving_a_stored_flow_reference_to_the_security_configuration_without_the_secret_read_permission() {
+            flowCrudService.savePlanFlows(PLAN_ID, List.of(Flow.builder().name(REFERENCE).build()));
+            var input = new UpdatePlanUseCase.Input(
+                planMinimal().toBuilder().securityConfiguration("{\"key\":\"" + REFERENCE + "\"}").build(),
+                _api -> List.of(),
+                API_ID,
+                A_USER
+            );
+
+            assertThatThrownBy(() -> updatePlanUseCase.execute(input)).isInstanceOf(SecretReferenceNotAllowedException.class);
+        }
     }
 
     @Test
