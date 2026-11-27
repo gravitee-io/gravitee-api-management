@@ -37,7 +37,7 @@ import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { IdentityProviderActivation, IdentityProviderListItem } from '../../entities/identity-provider';
-import { PortalSettings } from '../../entities/portal/portalSettings';
+import { PortalSettings, PortalSettingsPortalNext } from '../../entities/portal/portalSettings';
 import { EnvironmentIdentityProviderService } from '../../services-ngx/environment-identity-provider.service';
 import { IdentityProviderService } from '../../services-ngx/identity-provider.service';
 import { PortalSettingsService } from '../../services-ngx/portal-settings.service';
@@ -270,10 +270,7 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
               forceLogin: { ...settings.authentication?.forceLogin, enabled: formValue.forceLogin },
               localLogin: { ...settings.authentication?.localLogin, enabled: formValue.localLogin },
             },
-            portalNext: {
-              ...settings.portalNext,
-              skipLoginWithSingleIdp: { ...settings.portalNext?.skipLoginWithSingleIdp, enabled: formValue.skipLoginWithSingleIdp },
-            },
+            portalNext: this.toPortalNextToSave(settings, formValue),
           }),
         ),
         tap(() => this.snackBarService.success('Authentication configuration successfully updated.')),
@@ -284,6 +281,17 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => this.dataResource.reload());
+  }
+
+  private toPortalNextToSave(settings: PortalSettings, formValue: AuthenticationFormValue): PortalSettingsPortalNext {
+    // Hidden, the toggle offers no choice: keep the value stored now, not the one loaded with the page
+    if (!this.isSkipLoginToggleVisible()) {
+      return settings.portalNext;
+    }
+    return {
+      ...settings.portalNext,
+      skipLoginWithSingleIdp: { ...settings.portalNext?.skipLoginWithSingleIdp, enabled: formValue.skipLoginWithSingleIdp },
+    };
   }
 
   private isSystemReadonly(property: string): boolean {

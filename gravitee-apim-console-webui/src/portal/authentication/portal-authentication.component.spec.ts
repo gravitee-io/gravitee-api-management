@@ -452,6 +452,37 @@ describe('PortalAuthenticationComponent', () => {
       await load([google, github], activations, saveRequest.request.body);
     });
 
+    it('should save the latest stored skip login value while the toggle is hidden', async () => {
+      await init();
+      const activations = [
+        fakeIdentityProviderActivation({ identityProvider: 'google' }),
+        fakeIdentityProviderActivation({ identityProvider: 'github' }),
+      ];
+      await load([google, github], activations, settingsWith({ skipLoginWithSingleIdp: false }));
+
+      await (await harness.getForceLoginToggle()).toggle();
+      await harness.submit();
+
+      expectGetSettings(settingsWith({ skipLoginWithSingleIdp: true }));
+      const saveRequest = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.env.baseURL}/settings` });
+      expect(saveRequest.request.body.portalNext.skipLoginWithSingleIdp.enabled).toBe(true);
+      saveRequest.flush(saveRequest.request.body);
+      expectEnvironmentSettingsReload();
+      await load([google, github], activations, saveRequest.request.body);
+    });
+
+    it('should save the latest stored skip login value when the login form is forced on', async () => {
+      await init();
+      await load([google], [], settingsWith({ localLogin: false, skipLoginWithSingleIdp: false }));
+
+      expectGetSettings(settingsWith({ localLogin: false, skipLoginWithSingleIdp: true }));
+      const saveRequest = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.env.baseURL}/settings` });
+      expect(saveRequest.request.body.portalNext.skipLoginWithSingleIdp.enabled).toBe(true);
+      saveRequest.flush(saveRequest.request.body);
+      expectEnvironmentSettingsReload();
+      await load([google], [], saveRequest.request.body);
+    });
+
     it('should hide the skip login toggle while a second identity provider is active and show it again, still on', async () => {
       await init();
       const settings = settingsWith({ skipLoginWithSingleIdp: true });
