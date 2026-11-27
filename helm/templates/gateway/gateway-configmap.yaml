@@ -82,6 +82,9 @@ data:
         {{- if $server.alpn }}
         alpn: {{ $server.alpn | default "true" }}
         {{- end }}
+        {{- if hasKey $server "handle100Continue" }}
+        handle100Continue: {{ $server.handle100Continue }}
+        {{- end }}
         {{- if $server.ssl }}
         secured: true
         ssl:
@@ -165,6 +168,9 @@ data:
       maxInitialLineLength: {{ .Values.gateway.http.maxInitialLineLength }}
       maxFormAttributeSize: {{ .Values.gateway.http.maxFormAttributeSize }}
       alpn: {{ .Values.gateway.http.alpn | default "true" }}
+      {{- if hasKey .Values.gateway.http "handle100Continue" }}
+      handle100Continue: {{ .Values.gateway.http.handle100Continue }}
+      {{- end }}
       {{- if .Values.gateway.http.pathHandling }}
       pathHandling: {{ .Values.gateway.http.pathHandling }}
       {{- end }}

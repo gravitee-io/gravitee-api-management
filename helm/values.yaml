@@ -1550,6 +1550,10 @@ gateway:
     maxInitialLineLength: 4096
     maxFormAttributeSize: 2048
     alpn: "true"
+    # Answer `Expect: 100-continue` requests with an interim `100 Continue` response so clients that
+    # wait for it before sending the body can proceed. Not rendered unless set; the gateway
+    # default is false. Also accepted on each entry of `gateway.servers`.
+    # handle100Continue: true
     # HTTP/2 flow-control windows, in bytes. A client may only send this many bytes of request
     # body before waiting for the gateway to acknowledge them, so upload throughput is bounded
     # by window size / round-trip time. The 65535 bytes protocol default throttles large uploads
