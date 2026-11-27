@@ -33,4 +33,14 @@ public class PortalResource extends AbstractResource {
     public PortalApisResource getPortalApisResource() {
         return resourceContext.getResource(PortalApisResource.class);
     }
+
+    @Path("api-products")
+    public PortalApiProductsResource getPortalApiProductsResource() {
+        return resourceContext.getResource(PortalApiProductsResource.class);
+    }
+
+    @Path("subscriptions")
+    public PortalSubscriptionsResource getPortalSubscriptionsResource() {
+        return resourceContext.getResource(PortalSubscriptionsResource.class);
+    }
 }

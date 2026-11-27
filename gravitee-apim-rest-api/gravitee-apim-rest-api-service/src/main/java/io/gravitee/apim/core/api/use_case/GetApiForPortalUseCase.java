@@ -16,22 +16,35 @@
 package io.gravitee.apim.core.api.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import jakarta.annotation.Nullable;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
 @RequiredArgsConstructor
 public class GetApiForPortalUseCase {
 
+    private final PortalNavigationAccessDomainService accessService;
     private final PortalNavigationApiVisibilityDomainService visibilityDomainService;
 
     public Output execute(Input input) {
-        boolean visible = visibilityDomainService.isApiVisibleToUser(input.environmentId(), input.apiId(), input.userId());
+        boolean visible = input
+            .portalId()
+            .map(portalId -> {
+                var portal = accessService.resolveScope(input.organizationId(), input.environmentId(), Optional.of(portalId));
+                return visibilityDomainService.isApiVisibleToUser(input.environmentId(), portal, input.apiId(), input.userId());
+            })
+            .orElseGet(() -> visibilityDomainService.isApiVisibleToUser(input.environmentId(), input.apiId(), input.userId()));
         return new Output(visible);
     }
 
-    public record Input(String environmentId, String apiId, @Nullable String userId) {}
+    /**
+     * @param portalId the portal whose listings decide; empty on the unscoped paths, where a listing on any portal of the environment does
+     */
+    public record Input(String environmentId, String organizationId, String apiId, @Nullable String userId, Optional<PortalId> portalId) {}
 
     public record Output(boolean visible) {}
 }

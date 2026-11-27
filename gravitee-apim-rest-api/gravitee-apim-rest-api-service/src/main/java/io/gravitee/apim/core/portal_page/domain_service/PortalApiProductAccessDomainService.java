@@ -19,11 +19,13 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
@@ -36,7 +38,15 @@ public class PortalApiProductAccessDomainService {
     private final PortalNavigationApiProductVisibilityDomainService apiProductVisibilityDomainService;
     private final PortalNavigationApiVisibilityDomainService apiVisibilityDomainService;
 
-    public AccessibleApiProduct findAccessible(String environmentId, String apiProductId, PortalNavigationItemViewerContext viewerContext) {
+    /**
+     * @param portal the portal whose listings decide; empty when a listing on any portal of the environment does
+     */
+    public AccessibleApiProduct findAccessible(
+        String environmentId,
+        String apiProductId,
+        PortalNavigationItemViewerContext viewerContext,
+        Optional<NavigationItemReference.PortalReference> portal
+    ) {
         var apiProduct = apiProductQueryService
             .findById(apiProductId)
             .filter(product -> environmentId.equals(product.getEnvironmentId()))
@@ -51,6 +61,7 @@ public class PortalApiProductAccessDomainService {
             .search(
                 PortalNavigationItemQueryCriteria.builder()
                     .environmentId(environmentId)
+                    .reference(portal.orElse(null))
                     .published(true)
                     .type(PortalNavigationItemType.API_PRODUCT)
                     .apiProductIds(Set.of(apiProductId))

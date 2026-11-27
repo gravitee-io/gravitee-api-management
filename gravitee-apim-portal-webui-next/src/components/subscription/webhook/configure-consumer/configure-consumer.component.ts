@@ -120,7 +120,7 @@ export class ConfigureConsumerComponent implements OnInit {
       throw new Error('Consumer configuration is only supported for API subscriptions');
     }
 
-    return combineLatest([this.planService.list(subscription.api), of(subscription)]);
+    return combineLatest([this.planService.listForSubscribedApi(subscription.api), of(subscription)]);
   }
 
   private toUpdateSubscription(updatedValues: ConsumerConfigurationValues): UpdateSubscription {

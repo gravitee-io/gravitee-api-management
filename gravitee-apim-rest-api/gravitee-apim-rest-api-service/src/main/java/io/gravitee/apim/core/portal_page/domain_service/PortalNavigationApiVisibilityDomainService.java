@@ -29,6 +29,7 @@ import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQuer
 import jakarta.annotation.Nullable;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -139,10 +140,33 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
      * Checks if an API is visible in portal navigation for the given user, looking it up by API ID.
      */
     public boolean isApiVisibleToUser(String environmentId, String apiId, @Nullable String userId) {
+        return isListedFor(environmentId, null, apiId, userId);
+    }
+
+    /**
+     * Checks if one portal lists the API for the given user. Like {@link #resolveVisibleItems(String, NavigationItemReference.PortalReference, String, String)},
+     * only that portal's listings count: a listing on another portal does not make the API visible here.
+     */
+    public boolean isApiVisibleToUser(
+        String environmentId,
+        NavigationItemReference.PortalReference portal,
+        String apiId,
+        @Nullable String userId
+    ) {
+        return isListedFor(environmentId, Objects.requireNonNull(portal, "portal"), apiId, userId);
+    }
+
+    private boolean isListedFor(
+        String environmentId,
+        @Nullable NavigationItemReference.PortalReference portal,
+        String apiId,
+        @Nullable String userId
+    ) {
         return queryService
             .search(
                 PortalNavigationItemQueryCriteria.builder()
                     .environmentId(environmentId)
+                    .reference(portal)
                     .published(true)
                     .root(false)
                     .type(PortalNavigationItemType.API)

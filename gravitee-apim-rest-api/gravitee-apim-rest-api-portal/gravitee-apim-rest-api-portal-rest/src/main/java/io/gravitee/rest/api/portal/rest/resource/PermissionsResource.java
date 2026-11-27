@@ -36,6 +36,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -65,7 +66,13 @@ public class PermissionsResource extends AbstractResource {
         if (apiId != null) {
             if (PortalApiViewParam.isDocumentationView(view)) {
                 var output = getApiForPortalUseCase.execute(
-                    new GetApiForPortalUseCase.Input(executionContext.getEnvironmentId(), apiId, getAuthenticatedUserOrNull())
+                    new GetApiForPortalUseCase.Input(
+                        executionContext.getEnvironmentId(),
+                        executionContext.getOrganizationId(),
+                        apiId,
+                        getAuthenticatedUserOrNull(),
+                        Optional.empty()
+                    )
                 );
                 if (!output.visible()) {
                     throw new ApiNotFoundException(apiId);

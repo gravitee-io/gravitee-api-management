@@ -22,12 +22,16 @@ import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.PortalApiProductDetails;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.PortalApiProductAccessDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -39,18 +43,23 @@ public class GetPortalApiProductUseCase {
     private static final Comparator<String> NULL_SAFE_STRING_COMPARATOR = Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER);
     private static final ApiFieldFilter API_FIELD_FILTER = ApiFieldFilter.builder().definitionExcluded(true).pictureExcluded(true).build();
 
+    private final PortalNavigationAccessDomainService accessService;
     private final PortalApiProductAccessDomainService portalApiProductAccessDomainService;
     private final PortalNavigationApiVisibilityDomainService apiVisibilityDomainService;
     private final ApiQueryService apiQueryService;
 
     public Output execute(Input input) {
+        var portal = input
+            .portalId()
+            .map(portalId -> accessService.resolveScope(input.organizationId(), input.environmentId(), Optional.of(portalId)));
         var accessibleApiProduct = portalApiProductAccessDomainService.findAccessible(
             input.environmentId(),
             input.apiProductId(),
-            input.viewerContext()
+            input.viewerContext(),
+            portal
         );
         var apiProduct = accessibleApiProduct.apiProduct();
-        var apis = findAccessibleApis(apiProduct, input);
+        var apis = findAccessibleApis(apiProduct, input, portal);
         var tags = apiProduct.getTags() == null
             ? List.<String>of()
             : apiProduct.getTags().stream().sorted(NULL_SAFE_STRING_COMPARATOR).toList();
@@ -69,16 +78,23 @@ public class GetPortalApiProductUseCase {
         );
     }
 
-    private List<PortalApiProductDetails.ApiSummary> findAccessibleApis(ApiProduct apiProduct, Input input) {
+    private List<PortalApiProductDetails.ApiSummary> findAccessibleApis(
+        ApiProduct apiProduct,
+        Input input,
+        Optional<NavigationItemReference.PortalReference> portal
+    ) {
         if (apiProduct.getApiIds() == null || apiProduct.getApiIds().isEmpty()) {
             return List.of();
         }
 
-        Set<String> visibleApiIds = input
-            .viewerContext()
-            .userId()
-            .map(userId -> apiVisibilityDomainService.resolveVisibleItems(input.environmentId(), userId))
-            .orElseGet(() -> apiVisibilityDomainService.resolveVisibleItems(input.environmentId()))
+        var userId = input.viewerContext().userId();
+        Set<String> visibleApiIds = portal
+            .map(scope -> apiVisibilityDomainService.resolveVisibleItems(input.environmentId(), scope, userId.orElse(null), null))
+            .orElseGet(() ->
+                userId
+                    .map(id -> apiVisibilityDomainService.resolveVisibleItems(input.environmentId(), id))
+                    .orElseGet(() -> apiVisibilityDomainService.resolveVisibleItems(input.environmentId()))
+            )
             .stream()
             .map(PortalNavigationApi::getApiId)
             .filter(apiProduct.getApiIds()::contains)
@@ -103,7 +119,17 @@ public class GetPortalApiProductUseCase {
             .toList();
     }
 
-    public record Input(String environmentId, String apiProductId, PortalNavigationItemViewerContext viewerContext) {}
+    /**
+     * @param portalId the portal that must list the API product and its APIs; empty on the unscoped paths, where a listing on any portal of
+     *                 the environment does
+     */
+    public record Input(
+        String environmentId,
+        String organizationId,
+        String apiProductId,
+        PortalNavigationItemViewerContext viewerContext,
+        Optional<PortalId> portalId
+    ) {}
 
     public record Output(PortalApiProductDetails apiProduct) {}
 }

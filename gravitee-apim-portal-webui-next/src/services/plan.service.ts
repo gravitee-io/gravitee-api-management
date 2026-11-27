@@ -30,6 +30,14 @@ export class PlanService {
   ) {}
 
   list(apiId: string): Observable<PlansResponse> {
+    return this.http.get<PlansResponse>(`${this.configService.portalBaseURL}/apis/${apiId}/plans?size=-1`);
+  }
+
+  /**
+   * The plans of an API the user already subscribed to. A user's subscriptions are shared by every portal, so the API may not be
+   * one this portal lists.
+   */
+  listForSubscribedApi(apiId: string): Observable<PlansResponse> {
     return this.http.get<PlansResponse>(`${this.configService.baseURL}/apis/${apiId}/plans?size=-1`);
   }
 }
