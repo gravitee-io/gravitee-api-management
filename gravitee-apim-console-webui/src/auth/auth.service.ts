@@ -55,11 +55,43 @@ export class AccessTokenFilteringStateStore extends WebStorageStateStore {
   }
 }
 
+/**
+ * A StateStore that removes the `openid` scope from the sign-in state before it is persisted.
+ *
+ * When the Management API does not expose the IdP `id_token`, its token response carries an empty one, and
+ * oidc-client-ts rejects a sign-in whose state scope includes `openid` without a valid ID token. The scope sent to
+ * the identity provider is unchanged: the authorization request is built before the state is stored.
+ */
+export class OpenIdScopeFilteringStateStore extends WebStorageStateStore {
+  override set(key: string, value: string): Promise<void> {
+    return super.set(key, removeOpenIdScope(value));
+  }
+}
+
+const removeOpenIdScope = (value: string): string => {
+  let parsed: { scope?: unknown } | null;
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    // Not a JSON-serialised state - store as-is.
+    return value;
+  }
+  if (typeof parsed?.scope !== 'string') {
+    return value;
+  }
+  const scope = parsed.scope
+    .split(' ')
+    .filter(name => name !== 'openid')
+    .join(' ');
+  return JSON.stringify({ ...parsed, scope });
+};
+
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private oidcManagers: Record<string, UserManager> = {};
+  private readonly isIdTokenExposed: boolean;
 
   private set providerIdSelectedStore(providerId: string | null) {
     if (!providerId) {
@@ -89,6 +121,10 @@ export class AuthService {
     const oidcUserStore = stripIdpAccessTokenFromStorage
       ? new AccessTokenFilteringStateStore({ store: window.localStorage })
       : new WebStorageStateStore({ store: window.localStorage });
+    this.isIdTokenExposed = this.constants.org?.settings?.authentication?.exposeIdToken?.enabled !== false;
+    const oidcStateStore = this.isIdTokenExposed
+      ? new WebStorageStateStore({ store: window.localStorage })
+      : new OpenIdScopeFilteringStateStore({ store: window.localStorage });
 
     // Initialize manager for each identity provider
     constants.org.identityProviders?.forEach(idp => {
@@ -100,6 +136,7 @@ export class AuthService {
         response_type: 'code',
         post_logout_redirect_uri: `${(window.location.origin + window.location.pathname).replace(/\/$/, '') + this.locationStrategy.prepareExternalUrl('/_login')}`,
         userStore: oidcUserStore,
+        stateStore: oidcStateStore,
         loadUserInfo: false,
         extraHeaders: {
           // Needed for Gravitee APIM POST method
@@ -240,8 +277,7 @@ export class AuthService {
   }
 
   private signoutRedirectArgs(user: User | null): SignoutRedirectArgs {
-    const idTokenExposed = this.constants.org?.settings?.authentication?.exposeIdToken?.enabled !== false;
-    if (idTokenExposed && user?.id_token) {
+    if (this.isIdTokenExposed && user?.id_token) {
       return { id_token_hint: user.id_token };
     }
     // oidc-client-ts adds client_id from settings when id_token_hint is omitted (Keycloak 18+ RP-initiated logout).

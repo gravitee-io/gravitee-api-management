@@ -21,6 +21,7 @@ import { licenseService } from '@gravitee/gamma-modules-sdk';
 
 import type { CurrentUser, SocialIdentityProvider } from './auth.types';
 import { normalizeCurrentUser } from './normalizeCurrentUser';
+import { OpenIdScopeFilteringStateStore } from './openIdScopeFilteringStateStore';
 import { isPlatformUnavailable, managementApi } from '../../shared/api/api-client';
 import { useBootstrapStore } from '../../shared/config/bootstrap.store';
 import { useEnvironmentStore } from '../environment/environment.store';
@@ -50,6 +51,9 @@ function getOrCreateUserManager(provider: SocialIdentityProvider): UserManager {
         response_mode: 'query',
         loadUserInfo: false,
         userStore: new WebStorageStateStore({ store: window.localStorage }),
+        stateStore: config.idTokenExposed
+            ? new WebStorageStateStore({ store: window.localStorage })
+            : new OpenIdScopeFilteringStateStore({ store: window.localStorage }),
         fetchRequestCredentials: 'include',
         extraHeaders: {
             'X-Requested-With': 'XMLHttpRequest',

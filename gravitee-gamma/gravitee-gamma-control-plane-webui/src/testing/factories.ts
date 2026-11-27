@@ -26,6 +26,7 @@ export const TEST_CONFIG: BootstrapConfig = {
     localLoginEnabled: true,
     registrationEnabled: false,
     automaticValidationEnabled: false,
+    idTokenExposed: true,
 };
 
 export const TEST_MANAGEMENT_BASE = `${TEST_CONFIG.managementBaseURL}/organizations/${TEST_CONFIG.organizationId}`;
