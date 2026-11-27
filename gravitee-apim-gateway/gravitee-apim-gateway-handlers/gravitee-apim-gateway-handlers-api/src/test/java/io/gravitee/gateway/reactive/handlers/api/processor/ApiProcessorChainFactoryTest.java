@@ -225,21 +225,56 @@ class ApiProcessorChainFactoryTest {
     }
 
     @Test
-    void shouldReturnPathMappingsPatternBeforeApiExecutionChainWithPathMappingsPattern() {
+    void shouldReturnPathMappingsPatternBeforeSecurityChainWithPathMappingsPattern() {
+        io.gravitee.definition.model.Api apiModel = new io.gravitee.definition.model.Api();
+        apiModel.setPathMappings(Map.of("/tot", Pattern.compile("")));
+        final Proxy proxy = new Proxy();
+        apiModel.setProxy(proxy);
+        Api api = new Api(apiModel);
+        ProcessorChain processorChain = apiProcessorChainFactory.beforeSecurityChain(api, TracingContext.noop());
+        assertThat(processorChain.getId()).isEqualTo("before-security-chain");
+        Flowable<Processor> processors = extractProcessorChain(processorChain);
+        processors
+            .test()
+            .assertComplete()
+            .assertValueCount(1)
+            .assertValueAt(0, processor -> processor instanceof PathMappingProcessor);
+    }
+
+    @Test
+    void shouldReturnPathMappingBeforeCorsOnBeforeSecurityChain() {
+        io.gravitee.definition.model.Api apiModel = new io.gravitee.definition.model.Api();
+        apiModel.setPathMappings(Map.of("/tot", Pattern.compile("")));
+        final Proxy proxy = new Proxy();
+        Cors cors = new Cors();
+        cors.setEnabled(true);
+        proxy.setCors(cors);
+        apiModel.setProxy(proxy);
+        Api api = new Api(apiModel);
+        ProcessorChain processorChain = apiProcessorChainFactory.beforeSecurityChain(api, TracingContext.noop());
+        Flowable<Processor> processors = extractProcessorChain(processorChain);
+        processors
+            .test()
+            .assertComplete()
+            .assertValueCount(2)
+            .assertValueAt(0, processor -> processor instanceof PathMappingProcessor)
+            .assertValueAt(1, processor -> processor instanceof CorsPreflightRequestProcessor);
+    }
+
+    @Test
+    void shouldNotReturnPathMappingOnBeforeApiExecutionWhenPathMappingsAreSet() {
         io.gravitee.definition.model.Api apiModel = new io.gravitee.definition.model.Api();
         apiModel.setPathMappings(Map.of("/tot", Pattern.compile("")));
         final Proxy proxy = new Proxy();
         apiModel.setProxy(proxy);
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api, TracingContext.noop());
-        assertThat(processorChain.getId()).isEqualTo("before-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
             .test()
             .assertComplete()
-            .assertValueCount(2)
-            .assertValueAt(0, processor -> processor instanceof SubscriptionProcessor)
-            .assertValueAt(1, processor -> processor instanceof PathMappingProcessor);
+            .assertValueCount(1)
+            .assertValueAt(0, processor -> processor instanceof SubscriptionProcessor);
     }
 
     @Test
