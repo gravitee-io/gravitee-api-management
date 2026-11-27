@@ -235,6 +235,9 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
       aiWorkspaces: {
         enabled: false,
       },
+      skipLoginWithSingleIdp: {
+        enabled: false,
+      },
       applications: {
         membership: {
           enabled: false,

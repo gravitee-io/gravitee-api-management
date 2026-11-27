@@ -271,6 +271,9 @@ export interface PortalSettingsPortalNext {
   aiWorkspaces?: {
     enabled?: boolean;
   };
+  skipLoginWithSingleIdp?: {
+    enabled?: boolean;
+  };
   applications?: {
     membership?: {
       enabled?: boolean;

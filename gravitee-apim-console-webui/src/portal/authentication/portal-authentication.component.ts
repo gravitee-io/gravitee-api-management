@@ -37,7 +37,7 @@ import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { IdentityProviderActivation, IdentityProviderListItem } from '../../entities/identity-provider';
-import { PortalSettings } from '../../entities/portal/portalSettings';
+import { PortalSettings, PortalSettingsPortalNext } from '../../entities/portal/portalSettings';
 import { EnvironmentIdentityProviderService } from '../../services-ngx/environment-identity-provider.service';
 import { IdentityProviderService } from '../../services-ngx/identity-provider.service';
 import { PortalSettingsService } from '../../services-ngx/portal-settings.service';
@@ -50,10 +50,12 @@ import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard
 
 const FORCE_LOGIN_PROPERTY = 'portal.authentication.forceLogin.enabled';
 const LOCAL_LOGIN_PROPERTY = 'portal.authentication.localLogin.enabled';
+const SKIP_LOGIN_PROPERTY = 'portal.next.skipLoginWithSingleIdp.enabled';
 
 interface AuthenticationForm {
   forceLogin: FormControl<boolean>;
   localLogin: FormControl<boolean>;
+  skipLoginWithSingleIdp: FormControl<boolean>;
 }
 
 type AuthenticationFormValue = ReturnType<FormGroup<AuthenticationForm>['getRawValue']>;
@@ -70,6 +72,7 @@ interface IdentityProviderRow {
   description: string;
   logo: string;
   isActivated: boolean;
+  isActiveOnPortal: boolean;
   isActivationDisabled: boolean;
   activationTooltip: string;
 }
@@ -114,6 +117,7 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
   readonly authenticationForm = new FormGroup<AuthenticationForm>({
     forceLogin: new FormControl(false, { nonNullable: true }),
     localLogin: new FormControl(true, { nonNullable: true }),
+    skipLoginWithSingleIdp: new FormControl(false, { nonNullable: true }),
   });
   readonly formInitialValues = signal<AuthenticationFormValue | null>(null);
   readonly filters = signal<GioTableWrapperFilters>({ pagination: { index: 1, size: 10 }, searchTerm: '' });
@@ -128,6 +132,7 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
   });
   readonly isForceLoginReadonly = computed(() => this.isSystemReadonly(FORCE_LOGIN_PROPERTY));
   readonly isLocalLoginReadonly = computed(() => this.isSystemReadonly(LOCAL_LOGIN_PROPERTY));
+  readonly isSkipLoginReadonly = computed(() => this.isSystemReadonly(SKIP_LOGIN_PROPERTY));
   private readonly rows = computed<IdentityProviderRow[]>(() => {
     if (!this.dataResource.hasValue()) {
       return [];
@@ -140,9 +145,11 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
       ),
     );
   });
+  private readonly activePortalIdentityProviderCount = computed(() => this.rows().filter(row => row.isActiveOnPortal).length);
+  readonly isSkipLoginToggleVisible = computed(() => this.activePortalIdentityProviderCount() === 1);
   private readonly filteredRows = computed(() =>
     gioTableFilterCollection(this.rows(), this.filters(), {
-      searchTermIgnoreKeys: ['logo', 'isActivated', 'isActivationDisabled', 'activationTooltip'],
+      searchTermIgnoreKeys: ['logo', 'isActivated', 'isActiveOnPortal', 'isActivationDisabled', 'activationTooltip'],
     }),
   );
   readonly pagedRows = computed(() => this.filteredRows().filteredCollection);
@@ -153,10 +160,8 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
       if (!this.dataResource.hasValue()) {
         return;
       }
-      const { identityProviders, activations, settings } = this.dataResource.value();
-      const portalIdentityProviderIds = identityProviders.filter(identityProvider => identityProvider.enabled).map(({ id }) => id);
-      const hasPortalLoginProvider = activations.some(activation => portalIdentityProviderIds.includes(activation.identityProvider));
-      this.applySettings(settings, hasPortalLoginProvider);
+      const hasPortalLoginProvider = this.activePortalIdentityProviderCount() > 0;
+      this.applySettings(this.dataResource.value().settings, hasPortalLoginProvider);
       this.formInitialValues.set(this.authenticationForm.getRawValue());
 
       // Without any identity provider usable on the portal, the login form is the only way to log in to it
@@ -258,6 +263,7 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
               forceLogin: { ...settings.authentication?.forceLogin, enabled: formValue.forceLogin },
               localLogin: { ...settings.authentication?.localLogin, enabled: formValue.localLogin },
             },
+            portalNext: this.toPortalNextToSave(settings, formValue),
           }),
         ),
         tap(() => this.snackBarService.success('Authentication configuration successfully updated.')),
@@ -270,20 +276,33 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
       .subscribe(() => this.dataResource.reload());
   }
 
+  private toPortalNextToSave(settings: PortalSettings, formValue: AuthenticationFormValue): PortalSettingsPortalNext {
+    // Hidden, the toggle offers no choice: keep the value stored now, not the one loaded with the page
+    if (!this.isSkipLoginToggleVisible()) {
+      return settings.portalNext;
+    }
+    return {
+      ...settings.portalNext,
+      skipLoginWithSingleIdp: { ...settings.portalNext?.skipLoginWithSingleIdp, enabled: formValue.skipLoginWithSingleIdp },
+    };
+  }
+
   private isSystemReadonly(property: string): boolean {
     return this.dataResource.hasValue() && PortalSettingsService.isReadonly(this.dataResource.value().settings, property);
   }
 
   private applySettings(settings: PortalSettings, hasPortalLoginProvider: boolean): void {
-    const { forceLogin, localLogin } = this.authenticationForm.controls;
+    const { forceLogin, localLogin, skipLoginWithSingleIdp } = this.authenticationForm.controls;
     setDisabled(forceLogin, !this.canUpdateSettings || PortalSettingsService.isReadonly(settings, FORCE_LOGIN_PROPERTY));
     setDisabled(
       localLogin,
       !this.canUpdateSettings || PortalSettingsService.isReadonly(settings, LOCAL_LOGIN_PROPERTY) || !hasPortalLoginProvider,
     );
+    setDisabled(skipLoginWithSingleIdp, !this.canUpdateSettings || PortalSettingsService.isReadonly(settings, SKIP_LOGIN_PROPERTY));
     this.authenticationForm.reset({
       forceLogin: settings.authentication?.forceLogin?.enabled ?? false,
       localLogin: settings.authentication?.localLogin?.enabled ?? true,
+      skipLoginWithSingleIdp: settings.portalNext?.skipLoginWithSingleIdp?.enabled ?? false,
     });
   }
 }
@@ -303,6 +322,7 @@ function toIdentityProviderRow(identityProvider: IdentityProviderListItem, isAct
     description: identityProvider.description,
     logo: `assets/logo_${identityProvider.type.toLowerCase()}-idp.svg`,
     isActivated,
+    isActiveOnPortal: isAllowedOnPortal && isActivated,
     isActivationDisabled: !isAllowedOnPortal && !isActivated,
     activationTooltip,
   };

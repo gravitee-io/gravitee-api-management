@@ -64,6 +64,30 @@
             data-testid="local-login-toggle"
           />
         </gio-form-slide-toggle>
+
+        @if (isSkipLoginToggleVisible()) {
+          <gio-form-slide-toggle
+            data-testid="skip-login-single-idp-field"
+            [matTooltip]="'Configuration provided by the system'"
+            [matTooltipDisabled]="!isSkipLoginReadonly()"
+          >
+            @if (isSkipLoginReadonly()) {
+              <mat-icon gioFormPrefix>lock</mat-icon>
+            }
+            <gio-form-label>Skip Login display when single IdP</gio-form-label>
+            <span class="gio-form-slide-toggle__description" id="skip-login-single-idp-description">
+              Visitors who click Sign in go straight to your identity provider. Takes effect only when the login form and self-registration
+              are both off.
+            </span>
+            <mat-slide-toggle
+              formControlName="skipLoginWithSingleIdp"
+              gioFormSlideToggle
+              aria-label="Skip Login display when single IdP"
+              aria-describedby="skip-login-single-idp-description"
+              data-testid="skip-login-single-idp-toggle"
+            />
+          </gio-form-slide-toggle>
+        }
       </mat-card-content>
 
       <gio-save-bar [form]="authenticationForm" [formInitialValues]="formInitialValues()" (resetClicked)="reset()" />

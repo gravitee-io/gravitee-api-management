@@ -216,6 +216,9 @@ describe('PortalSettingsComponent', () => {
           aiWorkspaces: {
             enabled: false,
           },
+          skipLoginWithSingleIdp: {
+            enabled: false,
+          },
           applications: {
             membership: {
               enabled: false,

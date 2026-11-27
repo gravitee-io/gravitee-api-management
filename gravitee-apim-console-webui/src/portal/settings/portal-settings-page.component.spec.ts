@@ -228,6 +228,18 @@ describe('PortalSettingsPageComponent', () => {
     expect(savedSettings.portalNext.analytics.enabled).toBe(true);
   });
 
+  it('keeps a stored skip login value when another setting is saved', async () => {
+    const settings = fakePortalSettings();
+    settings.portalNext.skipLoginWithSingleIdp = { enabled: true };
+    await init(settings);
+
+    await (await harness.getAnalyticsToggle()).toggle();
+    await harness.submit();
+
+    const savedSettings = portalSettingsService.save.mock.calls[0][0] as PortalSettings;
+    expect(savedSettings.portalNext.skipLoginWithSingleIdp).toEqual({ enabled: true });
+  });
+
   it('saves AI Workspaces as off when the setting was never stored', async () => {
     const settings = fakePortalSettings();
     settings.portalNext.aiWorkspaces = undefined;
