@@ -24,8 +24,6 @@ import io.gravitee.gamma.definition.approval.ApprovalRule;
 import io.gravitee.gateway.api.genericevent.GenericEvent;
 import io.gravitee.gateway.handlers.api.manager.DeployedApprovalRule;
 import java.time.Instant;
-import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
@@ -49,79 +47,29 @@ class ApprovalRuleReader {
         if (!event.id().equals(wire.getId()) || !event.environmentId().equals(wire.getEnvironmentId())) {
             throw new UnreadableApprovalEventException("the payload names another rule or environment than the event");
         }
-        // Dropping only the invalid bindings and entity ids keeps the rest of the rule gating; refusing the rule would stop all of it.
-        List<ToolBinding> bindings = validBindings(wire.getToolBindings());
-        List<String> entityIds = validEntityIds(wire.getToolEntityIds());
-        Long createdAt = parseInstant(wire.getCreatedAt());
-        Long updatedAt = parseInstant(wire.getUpdatedAt());
-        List<String> invalid = invalidFields(wire, bindings, entityIds, createdAt, updatedAt);
-        if (!invalid.isEmpty()) {
-            throw new UnreadableApprovalEventException("missing or invalid " + invalid);
+        List<String> unreadable = wire.unreadableFields();
+        if (!unreadable.isEmpty()) {
+            throw new UnreadableApprovalEventException("missing or invalid " + unreadable);
         }
         return new DeployedApprovalRule(
             wire.getId(),
             wire.getEnvironmentId(),
             event.organizationId(),
             isBlank(wire.getToolPattern()) ? null : wire.getToolPattern(),
-            bindings,
-            entityIds,
+            toolBindings(wire.usableToolBindings()),
+            wire.usableToolEntityIds(),
             conditions(wire.getArgumentConditions()),
             wire.getPriority(),
-            createdAt,
-            updatedAt
+            Instant.parse(wire.getCreatedAt()).toEpochMilli(),
+            Instant.parse(wire.getUpdatedAt()).toEpochMilli()
         );
     }
 
-    private static List<ToolBinding> validBindings(List<ApprovalRule.ToolBinding> received) {
-        return received == null
-            ? List.of()
-            : received
-                .stream()
-                .filter(binding -> binding != null && !isBlank(binding.getApiId()) && !isBlank(binding.getToolName()))
-                .map(binding -> new ToolBinding(binding.getApiId(), binding.getToolName()))
-                .toList();
-    }
-
-    private static List<String> validEntityIds(List<String> received) {
-        return received == null
-            ? List.of()
-            : received
-                .stream()
-                .filter(entityId -> !isBlank(entityId))
-                .distinct()
-                .toList();
-    }
-
-    private static List<String> invalidFields(
-        ApprovalRule wire,
-        List<ToolBinding> bindings,
-        List<String> entityIds,
-        Long createdAt,
-        Long updatedAt
-    ) {
-        List<String> invalid = new ArrayList<>();
-        if (isBlank(wire.getToolPattern()) && bindings.isEmpty() && entityIds.isEmpty()) {
-            invalid.add("toolPattern, toolBindings or toolEntityIds");
-        }
-        if (
-            wire.getArgumentConditions() != null &&
-            wire
-                .getArgumentConditions()
-                .stream()
-                .anyMatch(condition -> condition == null || isBlank(condition.getPath()) || condition.getOperator() == null)
-        ) {
-            invalid.add("argumentConditions");
-        }
-        if (wire.getPriority() == null) {
-            invalid.add("priority");
-        }
-        if (createdAt == null) {
-            invalid.add("createdAt");
-        }
-        if (updatedAt == null) {
-            invalid.add("updatedAt");
-        }
-        return invalid;
+    private static List<ToolBinding> toolBindings(List<ApprovalRule.ToolBinding> usable) {
+        return usable
+            .stream()
+            .map(binding -> new ToolBinding(binding.getApiId(), binding.getToolName()))
+            .toList();
     }
 
     private static List<ArgumentCondition> conditions(List<ApprovalRule.ArgumentCondition> received) {
@@ -131,17 +79,6 @@ class ApprovalRuleReader {
                 .stream()
                 .map(condition -> new ArgumentCondition(condition.getPath(), condition.getOperator(), condition.getValue()))
                 .toList();
-    }
-
-    private static Long parseInstant(String value) {
-        if (isBlank(value)) {
-            return null;
-        }
-        try {
-            return Instant.parse(value).toEpochMilli();
-        } catch (DateTimeParseException e) {
-            return null;
-        }
     }
 
     private static boolean isBlank(String value) {

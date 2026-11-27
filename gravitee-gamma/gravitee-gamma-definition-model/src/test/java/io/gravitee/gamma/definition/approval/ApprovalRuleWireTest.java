@@ -18,6 +18,7 @@ package io.gravitee.gamma.definition.approval;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -85,5 +86,65 @@ class ApprovalRuleWireTest {
 
         assertThat(rule.getArgumentConditions()).containsExactly(new ApprovalRule.ArgumentCondition("to", "EQ", "x"));
         assertThat(rule.getToolBindings()).containsExactly(new ApprovalRule.ToolBinding("api-1", "transfer"));
+    }
+
+    @Test
+    void should_be_readable_when_every_field_it_needs_is_valid() {
+        assertThat(readableRule().build().unreadableFields()).isEmpty();
+    }
+
+    @Test
+    void should_name_each_field_that_keeps_it_from_being_evaluated() {
+        ApprovalRule rule = readableRule().priority(null).createdAt("yesterday").updatedAt(null).build();
+
+        assertThat(rule.unreadableFields()).containsExactly("priority", "createdAt", "updatedAt");
+    }
+
+    @Test
+    void should_treat_a_rule_that_sends_no_selector_as_readable() {
+        ApprovalRule rule = readableRule().toolPattern(null).build();
+
+        assertThat(rule.unreadableFields()).isEmpty();
+    }
+
+    @Test
+    void should_treat_a_rule_whose_selectors_are_all_unusable_as_unreadable() {
+        assertThat(readableRule().toolPattern(" ").build().unreadableFields()).containsExactly(
+            "toolPattern, toolBindings or toolEntityIds"
+        );
+        assertThat(
+            readableRule().toolPattern(null).toolBindings(List.of(new ApprovalRule.ToolBinding("", "transfer"))).build().unreadableFields()
+        ).containsExactly("toolPattern, toolBindings or toolEntityIds");
+    }
+
+    @Test
+    void should_expose_only_the_usable_tool_bindings_and_entity_ids() {
+        ApprovalRule rule = readableRule()
+            .toolBindings(List.of(new ApprovalRule.ToolBinding("api-1", "transfer"), new ApprovalRule.ToolBinding("", "refund")))
+            .toolEntityIds(Arrays.asList("payments.refund", "", null))
+            .build();
+
+        assertThat(rule.usableToolBindings()).containsExactly(new ApprovalRule.ToolBinding("api-1", "transfer"));
+        assertThat(rule.usableToolEntityIds()).containsExactly("payments.refund");
+    }
+
+    @Test
+    void should_name_an_argument_condition_with_no_path_or_no_operator() {
+        assertThat(
+            readableRule().argumentConditions(List.of(new ApprovalRule.ArgumentCondition(" ", "GT", "1"))).build().unreadableFields()
+        ).containsExactly("argumentConditions");
+        assertThat(
+            readableRule().argumentConditions(Arrays.asList((ApprovalRule.ArgumentCondition) null)).build().unreadableFields()
+        ).containsExactly("argumentConditions");
+    }
+
+    private static ApprovalRule.ApprovalRuleBuilder readableRule() {
+        return ApprovalRule.builder()
+            .id("approval-rule-1")
+            .environmentId("env-1")
+            .toolPattern("payments.*")
+            .priority(10)
+            .createdAt("2026-09-14T00:00:00Z")
+            .updatedAt("2026-09-15T00:00:00Z");
     }
 }
