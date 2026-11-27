@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -111,7 +110,6 @@ import io.gravitee.repository.media.api.MediaRepository;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
-import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
@@ -152,7 +150,6 @@ public class DeleteEnvironmentCommandHandlerTest {
     private static final String DICTIONARY_ID = "dic#1";
     private static final String PLAN_ID_1 = "plan#1";
     private static final String PLAN_ID_2 = "plan#2";
-    private static final String ALERT_ID_1 = "alert#1";
     private static final String GROUP_ID_1 = "group#1";
     private static final String GROUP_ID_2 = "group#2";
     private static final String NOT_FOUND_ENV_ID = "not-found";
@@ -409,9 +406,6 @@ public class DeleteEnvironmentCommandHandlerTest {
         when(ratingRepository.deleteByReferenceIdAndReferenceType(API_ID_2, RatingReferenceType.API)).thenReturn(List.of(API_ID_2));
         when(applicationRepository.deleteByEnvironmentId(ENV_ID)).thenReturn(List.of(APP_ID_1, APP_ID_2));
         when(planRepository.deleteByEnvironmentId(ENV_ID)).thenReturn(List.of(PLAN_ID_1, PLAN_ID_2));
-        AlertTriggerEntity alert = mock(AlertTriggerEntity.class);
-        when(alert.getId()).thenReturn(ALERT_ID_1);
-        when(alertService.findByReference(AlertReferenceType.ENVIRONMENT, ENV_ID)).thenReturn(List.of(alert));
         when(groupRepository.deleteByEnvironmentId(ENV_ID)).thenReturn(List.of(GROUP_ID_1, GROUP_ID_2));
         when(subscriptionRepository.deleteByEnvironmentId(ENV_ID)).thenReturn(List.of(SUBSCRIPTION_ID_1, SUBSCRIPTION_ID_2));
         when(userRepository.findBySource(COCKPIT_SOURCE, COCKPIT_USER_ID, ORG_ID)).thenReturn(
@@ -555,7 +549,7 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(planRepository).deleteByEnvironmentId(ENV_ID);
         verify(flowRepository).deleteByReferenceIdAndReferenceType(PLAN_ID_1, FlowReferenceType.PLAN);
         verify(flowRepository).deleteByReferenceIdAndReferenceType(PLAN_ID_2, FlowReferenceType.PLAN);
-        verify(alertService).delete(ALERT_ID_1, ENV_ID);
+        verify(alertService).deleteAll(AlertReferenceType.ENVIRONMENT, ENV_ID);
         verify(apiHeaderRepository).deleteByEnvironmentId(ENV_ID);
         verify(accessPointRepository).deleteByReferenceIdAndReferenceType(ENV_ID, AccessPointReferenceType.ENVIRONMENT);
         verify(parameterRepository).deleteByReferenceIdAndReferenceType(ENV_ID, ParameterReferenceType.ENVIRONMENT);
@@ -704,6 +698,7 @@ public class DeleteEnvironmentCommandHandlerTest {
     }
 
     private void verifyDeleteApi(ExecutionContext executionContext, String apiId) throws TechnicalException {
+        verify(alertService).deleteAll(AlertReferenceType.API, apiId);
         verify(membershipRepository).deleteByReferenceIdAndReferenceType(apiId, MembershipReferenceType.API);
         verify(genericNotificationConfigRepository).deleteByReferenceIdAndReferenceType(apiId, NotificationReferenceType.API);
         verify(searchEngineService).delete(executionContext, ApiEntity.builder().id(apiId).build());

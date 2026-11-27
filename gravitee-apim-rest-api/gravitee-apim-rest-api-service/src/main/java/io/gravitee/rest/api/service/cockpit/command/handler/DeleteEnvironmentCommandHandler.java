@@ -401,9 +401,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
                     throw new TechnicalManagementException(e);
                 }
             });
-        alertService
-            .findByReference(AlertReferenceType.ENVIRONMENT, environment.getId())
-            .forEach(alert -> alertService.delete(alert.getId(), environment.getId()));
+        alertService.deleteAll(AlertReferenceType.ENVIRONMENT, environment.getId());
 
         apiHeaderRepository.deleteByEnvironmentId(environment.getId());
         accessPointRepository.deleteByReferenceIdAndReferenceType(environment.getId(), AccessPointReferenceType.ENVIRONMENT);
@@ -496,7 +494,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         apiRepository
             .deleteByEnvironmentId(executionContext.getEnvironmentId())
             .forEach(apiId -> {
-                alertService.findByReference(AlertReferenceType.API, apiId).forEach(alert -> alertService.delete(alert.getId(), apiId));
+                alertService.deleteAll(AlertReferenceType.API, apiId);
                 searchEngineService.delete(executionContext, ApiEntity.builder().id(apiId).build());
                 deletePages(executionContext, PageReferenceType.API, apiId);
 

@@ -21,10 +21,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.alert.api.trigger.Trigger;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.AlertTrigger;
+import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.NewAlertTriggerEntity;
 import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
 import io.gravitee.rest.api.service.exceptions.AlertNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.List;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -120,5 +122,47 @@ public class AlertService_DeleteTest extends AlertServiceTest {
         verify(alertTriggerRepository, times(1)).delete(eq(alert.getId()));
         verify(alertEventRepository, times(1)).deleteAll(eq(alert.getId()));
         verify(triggerProvider, times(1)).unregister(any(Trigger.class));
+    }
+
+    @Test
+    public void delete_should_remove_alert_with_unreadable_definition() throws TechnicalException, JsonProcessingException {
+        final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
+        final AlertTrigger alertTrigger = getAlertTriggerWithUnreadableDefinition(alert);
+
+        when(alertTriggerRepository.findById(alert.getId())).thenReturn(Optional.of(alertTrigger));
+
+        alertService.delete(alert.getId(), alert.getReferenceId());
+
+        verify(alertTriggerRepository, times(1)).delete(alertTrigger.getId());
+        verify(alertEventRepository, times(1)).deleteAll(alert.getId());
+        verify(triggerProvider, never()).unregister(any(Trigger.class));
+    }
+
+    @Test
+    public void deleteAll_should_remove_every_stored_alert_of_the_reference() throws TechnicalException, JsonProcessingException {
+        final NewAlertTriggerEntity readable = getNewAlertTriggerEntity();
+        final NewAlertTriggerEntity unreadable = getNewAlertTriggerEntity();
+        unreadable.setReferenceId(readable.getReferenceId());
+
+        when(alertTriggerRepository.findByReferenceAndReferenceId(AlertReferenceType.API.name(), readable.getReferenceId())).thenReturn(
+            List.of(getAlertTriggerWithUnreadableDefinition(unreadable), getAlertTriggerFromNew(readable))
+        );
+
+        alertService.deleteAll(AlertReferenceType.API, readable.getReferenceId());
+
+        verify(alertTriggerRepository, times(1)).delete(unreadable.getId());
+        verify(alertEventRepository, times(1)).deleteAll(unreadable.getId());
+        verify(alertTriggerRepository, times(1)).delete(readable.getId());
+        verify(alertEventRepository, times(1)).deleteAll(readable.getId());
+        verify(triggerProvider, times(1)).unregister(any(Trigger.class));
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void deleteAll_should_throw_TechnicalManagementException_when_technicalException() throws TechnicalException {
+        when(alertTriggerRepository.findByReferenceAndReferenceId(AlertReferenceType.API.name(), "api-id")).thenThrow(
+            TechnicalException.class
+        );
+
+        alertService.deleteAll(AlertReferenceType.API, "api-id");
     }
 }

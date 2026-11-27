@@ -455,6 +455,13 @@ public class ApplicationAlertServiceTest {
     }
 
     @Test
+    public void shouldDeleteAllAlertsOfApplication() {
+        cut.deleteAll(APPLICATION_ID);
+
+        verify(alertService, times(1)).deleteAll(AlertReferenceType.APPLICATION, APPLICATION_ID);
+    }
+
+    @Test
     public void shouldHandleNotificationTemplateUpdatedEventStatusAlert() throws Exception {
         NotificationTemplateEntity notificationTemplate = new NotificationTemplateEntity();
         notificationTemplate.setHook(AlertHook.CONSUMER_HTTP_STATUS.name());

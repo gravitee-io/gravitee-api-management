@@ -23,6 +23,7 @@ import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.alert.api.condition.StringCondition;
 import io.gravitee.alert.api.trigger.Dampening;
 import io.gravitee.alert.api.trigger.Trigger.Severity;
@@ -59,6 +60,9 @@ import org.mockito.Mock;
  * @author GraviteeSource Team
  */
 public class AlertServiceTest {
+
+    private static final String RATE_CONDITION_WITHOUT_COMPARISON =
+        "[{\"operator\":\"GT\",\"threshold\":2.0,\"duration\":5,\"timeUnit\":\"MINUTES\",\"sampleSize\":1,\"type\":\"RATE\"}]";
 
     protected final ObjectMapper objectMapper = new ObjectMapper();
     protected final AlertTriggerConverter alertTriggerConverter = new AlertTriggerConverter(objectMapper);
@@ -254,6 +258,15 @@ public class AlertServiceTest {
         alert.setEnabled(false);
         alert.setDefinition(objectMapper.writeValueAsString(alertEntity));
         alert.setEnvironmentId(environmentId);
+        return alert;
+    }
+
+    @NotNull
+    protected AlertTrigger getAlertTriggerWithUnreadableDefinition(NewAlertTriggerEntity alertEntity) throws JsonProcessingException {
+        final AlertTrigger alert = getAlertTriggerFromNew(alertEntity);
+        final ObjectNode definition = (ObjectNode) objectMapper.readTree(alert.getDefinition());
+        definition.set("conditions", objectMapper.readTree(RATE_CONDITION_WITHOUT_COMPARISON));
+        alert.setDefinition(objectMapper.writeValueAsString(definition));
         return alert;
     }
 

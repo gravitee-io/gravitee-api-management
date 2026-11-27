@@ -114,7 +114,6 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.WorkflowReferenceType;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
-import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
@@ -1694,8 +1693,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             genericNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
             portalNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
             // Delete alerts
-            final List<AlertTriggerEntity> alerts = alertService.findByReference(AlertReferenceType.API, apiId);
-            alerts.forEach(alert -> alertService.delete(alert.getId(), alert.getReferenceId()));
+            alertService.deleteAll(AlertReferenceType.API, apiId);
             // delete all reference on api quality rule
             apiQualityRuleRepository.deleteByApi(apiId);
             // Delete all api category order entries

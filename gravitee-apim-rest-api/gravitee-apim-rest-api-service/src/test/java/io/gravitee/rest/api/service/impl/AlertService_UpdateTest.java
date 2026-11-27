@@ -15,16 +15,20 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.gravitee.alert.api.condition.Condition;
 import io.gravitee.alert.api.trigger.Trigger;
 import io.gravitee.alert.api.trigger.TriggerProvider;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.service.exceptions.AlertConditionInvalidException;
 import io.gravitee.rest.api.service.exceptions.AlertNotFoundException;
 import io.gravitee.rest.api.service.exceptions.AlertUnavailableException;
 import io.gravitee.rest.api.service.exceptions.NodeAlertNotAllowedInCloudException;
@@ -143,6 +147,25 @@ public class AlertService_UpdateTest extends AlertServiceTest {
         when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
 
         alertService.update(executionContext, alert);
+    }
+
+    @Test
+    public void update_should_reject_rate_condition_without_comparison() throws TechnicalException, JsonProcessingException {
+        mockAlertSetting(true);
+
+        final UpdateAlertTriggerEntity updateAlertTriggerEntity = getUpdateAlertTriggerEntity();
+        updateAlertTriggerEntity.setConditions(
+            List.of(
+                new GraviteeMapper().readValue(
+                    "{\"type\":\"RATE\",\"operator\":\"GT\",\"threshold\":2,\"duration\":5,\"timeUnit\":\"MINUTES\",\"comparison\":{}}",
+                    Condition.class
+                )
+            )
+        );
+
+        assertThrows(AlertConditionInvalidException.class, () -> alertService.update(executionContext, updateAlertTriggerEntity));
+
+        verify(alertTriggerRepository, never()).update(any());
     }
 
     private void mockAlertSetting(boolean enabled) {

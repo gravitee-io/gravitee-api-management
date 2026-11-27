@@ -32,6 +32,7 @@ import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -167,6 +168,7 @@ public class ApiService_DeleteTest {
         verify(mediaService, times(1)).deleteAllByApi(API_ID);
         verify(apiMetadataService, times(1)).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
         verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, null);
+        verify(alertService, times(1)).deleteAll(AlertReferenceType.API, API_ID);
     }
 
     @Test(expected = ApiNotDeletableException.class)

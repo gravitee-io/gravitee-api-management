@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
@@ -79,5 +80,36 @@ public class AlertService_FindByReferenceTest extends AlertServiceTest {
         );
 
         alertService.findByReference(alert.getReferenceType(), alert.getReferenceId());
+    }
+
+    @Test
+    public void findByReference_should_skip_unreadable_trigger() throws TechnicalException, JsonProcessingException {
+        NewAlertTriggerEntity readable = getNewAlertTriggerEntity();
+        AlertTrigger unreadable = getAlertTriggerWithUnreadableDefinition(getNewAlertTriggerEntity());
+
+        when(alertTriggerRepository.findByReferenceAndReferenceId(REFERENCE_TYPE.name(), REFERENCE_ID)).thenReturn(
+            List.of(unreadable, getAlertTriggerFromNew(readable))
+        );
+
+        List<AlertTriggerEntity> results = alertService.findByReference(REFERENCE_TYPE, REFERENCE_ID);
+
+        assertEquals(1, results.size());
+        assertEquals(readable.getId(), results.get(0).getId());
+    }
+
+    @Test
+    public void findByReferenceWithEventCounts_should_skip_unreadable_trigger() throws TechnicalException, JsonProcessingException {
+        NewAlertTriggerEntity readable = getNewAlertTriggerEntity();
+        AlertTrigger unreadable = getAlertTriggerWithUnreadableDefinition(getNewAlertTriggerEntity());
+
+        when(alertTriggerRepository.findByReferenceAndReferenceId(REFERENCE_TYPE.name(), REFERENCE_ID)).thenReturn(
+            List.of(unreadable, getAlertTriggerFromNew(readable))
+        );
+        when(alertEventRepository.search(any(), any())).thenReturn(new Page<>(List.of(), 0, 0, 0));
+
+        List<AlertTriggerEntity> results = alertService.findByReferenceWithEventCounts(REFERENCE_TYPE, REFERENCE_ID);
+
+        assertEquals(1, results.size());
+        assertEquals(readable.getId(), results.get(0).getId());
     }
 }

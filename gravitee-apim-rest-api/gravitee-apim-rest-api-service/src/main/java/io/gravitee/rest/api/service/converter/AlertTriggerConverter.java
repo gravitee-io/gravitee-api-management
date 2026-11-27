@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.alert.NewAlertTriggerEntity;
 import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -158,7 +159,7 @@ public class AlertTriggerConverter {
 
             return alertTriggerEntity;
         } catch (Exception ex) {
-            log.error("An unexpected error occurs while transforming the alert trigger from its definition", ex);
+            log.error("An unexpected error occurs while transforming the alert trigger [{}] from its definition", alert.getId(), ex);
         }
 
         return null;
@@ -168,9 +169,8 @@ public class AlertTriggerConverter {
         return alerts
             .stream()
             .map(this::toAlertTriggerEntity)
-            .sorted(
-                comparing(alertTriggerEntity -> alertTriggerEntity != null ? alertTriggerEntity.getName() : null, nullsLast(naturalOrder()))
-            )
+            .filter(Objects::nonNull)
+            .sorted(comparing(AlertTriggerEntity::getName, nullsLast(naturalOrder())))
             .collect(toList());
     }
 

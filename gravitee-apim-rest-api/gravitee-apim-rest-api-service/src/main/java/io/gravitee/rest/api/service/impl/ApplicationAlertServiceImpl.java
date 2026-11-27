@@ -286,9 +286,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
 
     @Override
     public void deleteAll(String applicationId) {
-        alertService
-            .findByReference(AlertReferenceType.APPLICATION, applicationId)
-            .forEach(trigger -> alertService.delete(trigger.getId(), applicationId));
+        alertService.deleteAll(AlertReferenceType.APPLICATION, applicationId);
     }
 
     @Override
