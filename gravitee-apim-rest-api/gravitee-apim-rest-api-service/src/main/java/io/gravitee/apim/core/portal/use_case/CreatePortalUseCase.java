@@ -29,7 +29,9 @@ import io.gravitee.apim.core.portal.model.PortalSummary;
 import io.gravitee.apim.core.portal_page.domain_service.PortalStarterContentDomainService;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import jakarta.annotation.Nullable;
+import java.net.URL;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -52,11 +54,7 @@ public class CreatePortalUseCase {
         var organizationId = input.auditInfo().organizationId();
         var environmentId = input.auditInfo().environmentId();
         var name = portalNameDomainService.validateAndNormalize(input.name());
-        if (input.url() != null) {
-            throw new ValidationDomainException(
-                "A portal URL cannot be chosen yet: leave it out to serve the portal at the environment's portal URL"
-            );
-        }
+        var customUrl = Optional.ofNullable(input.url()).map(this::validateCustomUrl);
 
         var portals = portalCrudService.findByEnvironmentId(environmentId);
         ensureDefaultPortal(portals);
@@ -66,14 +64,24 @@ public class CreatePortalUseCase {
         }
         portalNameDomainService.ensureUnique(environmentId, name, null);
         // On a multi-tenant installation, Cloud owns the access points: the portal gets none.
-        var accessPointId = portalAddressDomainService.sharedAccessPoint(environmentId);
+        var accessPointId = customUrl
+            .map(url -> portalAddressDomainService.newCustomAccessPoint(environmentId, url))
+            .or(() -> portalAddressDomainService.newPortalAccessPoint(environmentId, name));
         if (accessPointId.isEmpty() && portalAddressDomainService.assignsAccessPoints()) {
             throw new ValidationDomainException("The environment has no valid portal URL to serve the portal at");
         }
 
-        var created = portalCrudService.create(Portal.createFromConsole(environmentId, organizationId, name, accessPointId.orElse(null)));
+        var created = createOrRelease(Portal.createFromConsole(environmentId, organizationId, name, accessPointId.orElse(null)));
         seedOrUndo(organizationId, environmentId, created);
         return new Output(portalSummaryDomainService.summarize(environmentId, List.of(created)).getFirst());
+    }
+
+    /** The portal is served at the root of the URL's host: a path is refused, as on a multi-tenant installation any URL. */
+    private URL validateCustomUrl(String url) {
+        if (!portalAddressDomainService.assignsAccessPoints()) {
+            throw new ValidationDomainException("A portal URL cannot be chosen on a multi-tenant installation");
+        }
+        return portalAddressDomainService.validateCustomUrl(null, url);
     }
 
     /**
@@ -91,6 +99,16 @@ public class CreatePortalUseCase {
         );
     }
 
+    /** The access point is stored first: a portal that cannot be stored would otherwise leave its host taken. */
+    private Portal createOrRelease(Portal portal) {
+        try {
+            return portalCrudService.create(portal);
+        } catch (RuntimeException creationFailure) {
+            undo(creationFailure, () -> portalAddressDomainService.release(portal));
+            throw creationFailure;
+        }
+    }
+
     /**
      * Nothing is transactional: a portal left half seeded would hold its name and a place in the license limit, with
      * nothing to seed it again, so the portal and what was seeded are deleted before the failure is reported.
@@ -102,7 +120,9 @@ public class CreatePortalUseCase {
         } catch (RuntimeException seedingFailure) {
             // Kept when its items cannot be deleted: left to no portal, moveOrphans would give them to the default one
             if (undo(seedingFailure, () -> portalStarterContentDomainService.deleteAll(environmentId, owner))) {
-                undo(seedingFailure, () -> portalCrudService.delete(created.getId()));
+                if (undo(seedingFailure, () -> portalCrudService.delete(created.getId()))) {
+                    undo(seedingFailure, () -> portalAddressDomainService.release(created));
+                }
             }
             throw seedingFailure;
         }

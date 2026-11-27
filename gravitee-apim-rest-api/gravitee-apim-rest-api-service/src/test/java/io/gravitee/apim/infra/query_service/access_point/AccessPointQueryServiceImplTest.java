@@ -92,6 +92,36 @@ public class AccessPointQueryServiceImplTest {
     }
 
     @Nested
+    class FindByHost {
+
+        @Test
+        void should_return_the_access_points_of_every_target_on_the_host() throws TechnicalException {
+            when(accessPointRepository.findByTargetAndHost(any(), eq("portal.acme.io"))).thenReturn(List.of());
+            when(accessPointRepository.findByTargetAndHost(AccessPointTarget.CONSOLE, "portal.acme.io")).thenReturn(
+                List.of(AccessPoint.builder().id("console").host("portal.acme.io").target(AccessPointTarget.CONSOLE).build())
+            );
+            when(accessPointRepository.findByTargetAndHost(AccessPointTarget.PORTAL_INSTANCE, "portal.acme.io")).thenReturn(
+                List.of(AccessPoint.builder().id("portal").host("portal.acme.io").target(AccessPointTarget.PORTAL_INSTANCE).build())
+            );
+
+            var result = service.findByHost("portal.acme.io");
+
+            Assertions.assertThat(result)
+                .extracting(io.gravitee.apim.core.access_point.model.AccessPoint::getId)
+                .containsExactlyInAnyOrder("console", "portal");
+        }
+
+        @Test
+        void should_throw_when_the_lookup_fails() throws TechnicalException {
+            when(accessPointRepository.findByTargetAndHost(any(), eq("portal.acme.io"))).thenThrow(new TechnicalException("error"));
+
+            var result = Assertions.catchThrowable(() -> service.findByHost("portal.acme.io"));
+
+            Assertions.assertThat(result).isInstanceOf(TechnicalManagementException.class).hasMessageContaining("portal.acme.io");
+        }
+    }
+
+    @Nested
     class GetConsoleUrl {
 
         @Test

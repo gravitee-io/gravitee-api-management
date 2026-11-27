@@ -88,6 +88,48 @@ class InstallationAccessQueryServiceImplTest {
     }
 
     @Test
+    void should_read_the_generated_portal_host_template() {
+        when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
+        setValue("portalGeneratedHost", "{portal-slug}.localhost");
+
+        cut.afterPropertiesSet();
+
+        assertThat(cut.getPortalHostTemplate()).hasValueSatisfying(template ->
+            assertThat(template.hostFor("partners")).isEqualTo("partners.localhost")
+        );
+    }
+
+    @Test
+    void should_have_no_generated_portal_host_template_when_it_is_blank() {
+        when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
+        setValue("portalGeneratedHost", "  ");
+
+        cut.afterPropertiesSet();
+
+        assertThat(cut.getPortalHostTemplate()).isEmpty();
+    }
+
+    @Test
+    void should_refuse_to_start_with_an_invalid_generated_portal_host_template() {
+        when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
+        setValue("portalGeneratedHost", "https://{portal-slug}.example.com");
+
+        assertThatThrownBy(() -> cut.afterPropertiesSet()).isInstanceOf(
+            InstallationAccessQueryServiceImpl.InvalidInstallationUrlException.class
+        );
+    }
+
+    @Test
+    void should_ignore_the_generated_portal_host_template_on_a_multi_tenant_installation() {
+        when(installationTypeDomainService.isMultiTenant()).thenReturn(true);
+        setValue("portalGeneratedHost", "{portal-slug}.localhost");
+
+        cut.afterPropertiesSet();
+
+        assertThat(cut.getPortalHostTemplate()).isEmpty();
+    }
+
+    @Test
     void should_throw_validation_error_when_api_url_is_malformed() {
         when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
         setValue("consoleApiUrl", "wrong");
