@@ -68,7 +68,6 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
-import java.net.URI;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -151,7 +150,7 @@ class PortalScopedResourcesTest extends AbstractPortalNavigationResourceTest {
                 PortalNavigationStructure.empty(),
                 null,
                 false,
-                URI.create("https://partners.example.com").toURL()
+                "partners-access-point"
             )
         );
     }
@@ -338,7 +337,7 @@ class PortalScopedResourcesTest extends AbstractPortalNavigationResourceTest {
             PortalNavigationStructure.empty(),
             null,
             false,
-            URI.create("https://other.example.com").toURL()
+            "other-access-point"
         );
         portalCrudService.initWith(List.of(partners, other));
         request("GET", "portal-navigation-items", null, 404);
@@ -371,7 +370,7 @@ class PortalScopedResourcesTest extends AbstractPortalNavigationResourceTest {
             PortalNavigationStructure.empty(),
             null,
             true,
-            URI.create("https://other.example.com").toURL()
+            "other-access-point"
         );
         portalCrudService.initWith(List.of(current, other));
         request("GET", "portal-navigation-items", null, 404);

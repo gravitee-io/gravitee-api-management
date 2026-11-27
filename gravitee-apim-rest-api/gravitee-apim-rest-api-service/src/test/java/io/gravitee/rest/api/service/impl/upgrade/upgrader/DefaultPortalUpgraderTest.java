@@ -21,11 +21,11 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.when;
 
 import inmemory.InstallationAccessQueryServiceInMemory;
+import inmemory.PortalAddressDomainServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalContentOwnershipDomainService;
-import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
@@ -34,6 +34,7 @@ import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.net.URL;
 import java.util.LinkedHashSet;
 import java.util.List;
 import lombok.SneakyThrows;
@@ -61,6 +62,7 @@ class DefaultPortalUpgraderTest {
 
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
     private final InstallationAccessQueryServiceInMemory installationAccessQueryService = new InstallationAccessQueryServiceInMemory();
+    private PortalAddressDomainServiceInMemory addresses;
     private DefaultPortalUpgrader upgrader;
 
     @BeforeEach
@@ -71,13 +73,10 @@ class DefaultPortalUpgraderTest {
             .withPortalUrl(ENV_A.getId(), "https://a.acme.io")
             .withPortalUrl(ENV_B.getId(), "https://b.acme.io/")
             .withPortalUrl(ENV_C.getId(), "https://c.acme.io");
+        addresses = new PortalAddressDomainServiceInMemory(portalCrudService, installationAccessQueryService);
         upgrader = new DefaultPortalUpgrader(
             environmentRepository,
-            new DefaultPortalDomainService(
-                portalCrudService,
-                new PortalUrlDomainService(installationAccessQueryService),
-                contentOwnership()
-            )
+            new DefaultPortalDomainService(portalCrudService, addresses, contentOwnership())
         );
     }
 
@@ -104,7 +103,7 @@ class DefaultPortalUpgraderTest {
             PortalNavigationStructure.empty(),
             null,
             false,
-            DefaultPortalUpgrader.URL_PLACEHOLDER
+            null
         );
     }
 
@@ -120,7 +119,7 @@ class DefaultPortalUpgraderTest {
                     p.getEnvironmentId(),
                     p.getName(),
                     String.valueOf(p.isDefault()),
-                    p.getUrl().toString()
+                    String.valueOf(p.getAccessPointId())
                 )
             )
             .toList();
@@ -139,7 +138,7 @@ class DefaultPortalUpgraderTest {
                 assertThat(portal.isDefault()).isTrue();
                 assertThat(portal.getName()).isEqualTo("Developer Portal");
             })
-            .extracting(Portal::getEnvironmentId, Portal::getOrganizationId, portal -> portal.getUrl().toString())
+            .extracting(Portal::getEnvironmentId, Portal::getOrganizationId, portal -> urlOf(portal).toString())
             .containsExactlyInAnyOrder(
                 tuple("env-a", "org-1", "https://a.acme.io/next"),
                 tuple("env-b", "org-1", "https://b.acme.io/next"),
@@ -158,9 +157,10 @@ class DefaultPortalUpgraderTest {
             }
         };
         memoizingInstallationAccess.withPortalUrl(ENV_A.getId(), "https://a.acme.io").withPortalUrl(ENV_B.getId(), "https://b.acme.io");
+        addresses = new PortalAddressDomainServiceInMemory(portalCrudService, memoizingInstallationAccess);
         upgrader = new DefaultPortalUpgrader(
             environmentRepository,
-            new DefaultPortalDomainService(portalCrudService, new PortalUrlDomainService(memoizingInstallationAccess), contentOwnership())
+            new DefaultPortalDomainService(portalCrudService, addresses, contentOwnership())
         );
         givenEnvironments(ENV_A, ENV_B);
         // a value memoized on this thread before the upgrader runs, e.g. by an earlier upgrader
@@ -169,7 +169,7 @@ class DefaultPortalUpgraderTest {
         assertThat(upgrader.upgrade()).isTrue();
 
         assertThat(portalCrudService.storage())
-            .extracting(Portal::getEnvironmentId, portal -> portal.getUrl().toString())
+            .extracting(Portal::getEnvironmentId, portal -> urlOf(portal).toString())
             .containsExactlyInAnyOrder(tuple("env-a", "https://a.acme.io/next"), tuple("env-b", "https://b.acme.io/next"));
     }
 
@@ -191,33 +191,6 @@ class DefaultPortalUpgraderTest {
 
     @Test
     @SneakyThrows
-    void should_replace_placeholder_url_on_every_portal() {
-        givenEnvironments(ENV_A, ENV_B);
-        portalCrudService.initWith(
-            List.of(
-                aPortal(AUTOMATION_PORTAL_ID, ENV_A, "Automation Portal"),
-                Portal.of(
-                    SECOND_PORTAL_ID,
-                    ENV_B.getId(),
-                    "org-1",
-                    "Developer Portal",
-                    PortalNavigationStructure.empty(),
-                    null,
-                    true,
-                    DefaultPortalUpgrader.URL_PLACEHOLDER
-                )
-            )
-        );
-
-        assertThat(upgrader.upgrade()).isTrue();
-
-        assertThat(portalCrudService.storage())
-            .extracting(portal -> portal.getUrl().toString())
-            .containsExactlyInAnyOrder("https://a.acme.io/next", "https://b.acme.io/next");
-    }
-
-    @Test
-    @SneakyThrows
     void should_postpone_the_default_portal_of_an_environment_whose_url_cannot_be_resolved() {
         installationAccessQueryService.reset();
         installationAccessQueryService.withPortalUrl(ENV_B.getId(), "https://b.acme.io");
@@ -229,7 +202,7 @@ class DefaultPortalUpgraderTest {
             .singleElement()
             .satisfies(portal -> {
                 assertThat(portal.getEnvironmentId()).isEqualTo(ENV_B.getId());
-                assertThat(portal.getUrl()).hasToString("https://b.acme.io/next");
+                assertThat(urlOf(portal)).hasToString("https://b.acme.io/next");
             });
     }
 
@@ -280,5 +253,9 @@ class DefaultPortalUpgraderTest {
             .isLessThan(UpgraderOrder.ENVIRONMENTS_DEFAULT_PORTAL_PAGE_UPGRADER)
             .isLessThan(UpgraderOrder.ENVIRONMENTS_DEFAULT_PORTAL_NAVIGATION_ITEMS_UPGRADER)
             .isLessThan(UpgraderOrder.ENVIRONMENTS_DEFAULT_APIS_FOLDER_UPGRADER);
+    }
+
+    private URL urlOf(Portal portal) {
+        return addresses.resolveUrls(portal.getEnvironmentId(), List.of(portal)).get(portal.getId());
     }
 }

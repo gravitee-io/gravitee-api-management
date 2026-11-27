@@ -25,6 +25,7 @@ import fixtures.core.model.LicenseFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.NavigationPortalDomainServiceInMemory;
+import inmemory.PortalAddressDomainServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
@@ -39,7 +40,6 @@ import io.gravitee.apim.core.portal.domain_service.PortalLogoDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalNameDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalQuotaDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalSummaryDomainService;
-import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.exception.PortalLimitReachedException;
 import io.gravitee.apim.core.portal.exception.PortalNameAlreadyExistsException;
 import io.gravitee.apim.core.portal.model.Portal;
@@ -54,13 +54,10 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.node.api.license.LicenseManager;
-import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -87,6 +84,7 @@ class CreatePortalUseCaseTest {
     private FailingPortalPageContentCrudService pageContentCrudService;
     private FailingPortalNavigationItemsCrudService navigationItemsCrudService;
     private PortalStarterContentDomainService starterContentDomainService;
+    private PortalAddressDomainServiceInMemory addresses;
     private CreatePortalUseCase cut;
 
     @BeforeEach
@@ -116,13 +114,18 @@ class CreatePortalUseCaseTest {
             navigationItemsQueryService,
             navigationItemsCrudService
         );
+        addresses = new PortalAddressDomainServiceInMemory(portalCrudService, installationAccessQueryService);
         cut = new CreatePortalUseCase(
             new PortalNameDomainService(portalCrudService),
             new PortalQuotaDomainService(licenseManager),
-            new PortalUrlDomainService(installationAccessQueryService),
+            addresses,
             portalCrudService,
             starterContentDomainService,
-            new PortalSummaryDomainService(new PortalLogoDomainService(new ThemeQueryServiceInMemory()), navigationItemsQueryService)
+            new PortalSummaryDomainService(
+                new PortalLogoDomainService(new ThemeQueryServiceInMemory()),
+                navigationItemsQueryService,
+                addresses
+            )
         );
     }
 
@@ -133,20 +136,15 @@ class CreatePortalUseCaseTest {
     }
 
     private Portal givenDefaultPortal() {
-        return portalCrudService.create(Portal.createDefault(ENV_ID, ORG_ID, "Developer Portal", url("https://portal.acme.io/next")));
+        return portalCrudService.create(Portal.createDefault(ENV_ID, ORG_ID, "Developer Portal", "default-portal-access-point"));
     }
 
     private Portal givenAutomationPortal(String environmentId, String name) {
-        return portalCrudService.create(Portal.create(environmentId, ORG_ID, name, url("https://automation.acme.io")));
+        return portalCrudService.create(Portal.create(environmentId, ORG_ID, name, "automation-access-point"));
     }
 
     private CreatePortalUseCase.Output create(String name, String url) {
         return cut.execute(new CreatePortalUseCase.Input(AUDIT_INFO, name, url));
-    }
-
-    @SneakyThrows
-    private static URL url(String value) {
-        return URI.create(value).toURL();
     }
 
     @Test
@@ -174,26 +172,24 @@ class CreatePortalUseCaseTest {
     }
 
     @Test
-    void should_serve_the_portal_at_the_url_sent() {
+    void should_serve_the_portal_at_the_environment_shared_access_point() {
         givenDefaultPortal();
-        var created = create("Partners", "https://partners.example.com").portal().portal();
+        var created = create("Partners", null).portal().portal();
 
-        assertThat(created.getUrl()).hasToString("https://partners.example.com");
-        assertThat(portalCrudService.findByIdAndEnvironmentId(created.getId(), ENV_ID)).hasValueSatisfying(stored ->
-            assertThat(stored.getUrl()).hasToString("https://partners.example.com")
+        assertThat(created.getAccessPointId()).isNotNull();
+        assertThat(addresses.accessPoints().storage())
+            .singleElement()
+            .satisfies(accessPoint -> {
+                assertThat(accessPoint.getId()).isEqualTo(created.getAccessPointId());
+                assertThat(accessPoint.getHost()).isEqualTo("portal.acme.io");
+            });
+        assertThat(addresses.resolveUrls(ENV_ID, List.of(created))).hasEntrySatisfying(created.getId(), url ->
+            assertThat(url).hasToString("https://portal.acme.io/next")
         );
     }
 
     @Test
-    void should_serve_the_portal_at_the_environment_portal_url_when_no_url_is_sent() {
-        givenDefaultPortal();
-        var created = create("Partners", null).portal().portal();
-
-        assertThat(created.getUrl()).hasToString("https://portal.acme.io/next");
-    }
-
-    @Test
-    void should_refuse_when_no_url_is_sent_and_the_environment_portal_url_cannot_be_resolved() {
+    void should_refuse_when_the_environment_portal_url_cannot_be_resolved() {
         givenDefaultPortal();
         installationAccessQueryService.reset();
 
@@ -204,65 +200,14 @@ class CreatePortalUseCaseTest {
     }
 
     @ParameterizedTest
-    @ValueSource(
-        strings = {
-            "ftp://x",
-            "/relative",
-            "partners.example.com",
-            "https://user:pw@x.io",
-            "https://x.io?a=b",
-            "https://x.io#f",
-            "https://x.io?",
-            "https://x.io#",
-            "https://",
-            "",
-            "not a url",
-        }
-    )
-    void should_refuse_a_url_that_is_not_an_absolute_http_or_https_url(String url) {
-        assertThatThrownBy(() -> create("Partners", url))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("absolute http or https URL");
-        assertThat(portalCrudService.storage()).isEmpty();
-    }
-
-    @Test
-    void should_refuse_a_url_longer_than_the_stored_url_can_be() {
+    @ValueSource(strings = { "https://partners.example.com", "not a url", "" })
+    void should_refuse_a_url_until_portal_urls_can_be_chosen(String url) {
         givenDefaultPortal();
-        var url = "https://partners.example.com/" + "a".repeat(257 - "https://partners.example.com/".length());
 
         assertThatThrownBy(() -> create("Partners", url))
             .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("256 characters");
+            .hasMessageContaining("cannot be chosen yet");
         assertThat(portalCrudService.storage()).extracting(Portal::getName).containsExactly("Developer Portal");
-    }
-
-    @Test
-    void should_refuse_when_no_url_is_sent_and_the_environment_portal_url_is_longer_than_the_stored_url_can_be() {
-        givenDefaultPortal();
-        installationAccessQueryService.withPortalUrl(ENV_ID, "https://portal.acme.io/" + "a".repeat(240));
-
-        assertThatThrownBy(() -> create("Partners", null))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("256 characters");
-        assertThat(portalCrudService.storage()).extracting(Portal::getName).containsExactly("Developer Portal");
-    }
-
-    @Test
-    void should_accept_a_url_as_long_as_the_stored_url_can_be() {
-        givenDefaultPortal();
-        var url = "https://partners.example.com/" + "a".repeat(256 - "https://partners.example.com/".length());
-
-        assertThat(create("Partners", url).portal().portal().getUrl()).hasToString(url);
-    }
-
-    @Test
-    void should_accept_an_uppercase_scheme() {
-        givenDefaultPortal();
-        var created = create("Partners", "HTTPS://partners.example.com").portal().portal();
-
-        assertThat(created.getUrl().getProtocol()).isEqualTo("https");
-        assertThat(created.getUrl().getHost()).isEqualTo("partners.example.com");
     }
 
     @Test
@@ -373,7 +318,7 @@ class CreatePortalUseCaseTest {
 
     @Test
     void should_refuse_when_the_environment_has_no_default_portal_yet() {
-        assertThatThrownBy(() -> create("Partners", "https://partners.example.com"))
+        assertThatThrownBy(() -> create("Partners", null))
             .isInstanceOf(ValidationDomainException.class)
             .hasMessageContaining("no default portal yet");
         assertThat(portalCrudService.storage()).isEmpty();
@@ -383,7 +328,7 @@ class CreatePortalUseCaseTest {
     void should_refuse_when_the_environment_portals_are_managed_through_the_automation_api() {
         givenAutomationPortal(ENV_ID, "Automation Portal");
 
-        assertThatThrownBy(() -> create("Partners", "https://partners.example.com"))
+        assertThatThrownBy(() -> create("Partners", null))
             .isInstanceOf(ValidationDomainException.class)
             .hasMessageContaining("Automation API");
         assertThat(portalCrudService.storage()).extracting(Portal::getName).containsExactly("Automation Portal");

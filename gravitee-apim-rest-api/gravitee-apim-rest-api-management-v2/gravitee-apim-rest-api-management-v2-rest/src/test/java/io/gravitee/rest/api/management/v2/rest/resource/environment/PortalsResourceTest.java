@@ -27,9 +27,11 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.LicenseFixtures;
+import inmemory.AccessPointQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
+import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
@@ -57,7 +59,6 @@ import java.net.URI;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -74,6 +75,9 @@ class PortalsResourceTest extends AbstractResourceTest {
 
     @Inject
     private PortalCrudServiceInMemory portalCrudService;
+
+    @Inject
+    private AccessPointQueryServiceInMemory accessPointQueryService;
 
     @Inject
     private PortalNavigationItemsCrudServiceInMemory portalNavigationItemsCrudService;
@@ -100,11 +104,19 @@ class PortalsResourceTest extends AbstractResourceTest {
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
+        var elsewherePortalId = PortalId.random();
         portalCrudService.initWith(
             List.of(
-                portal(PARTNERS_PORTAL_ID, ENVIRONMENT, "Partners", false, "https://partners.acme.io"),
-                portal(DEFAULT_PORTAL_ID, ENVIRONMENT, "Developer Portal", true, "https://portal.acme.io/next"),
-                portal(PortalId.random(), "other-env", "Elsewhere", false, "https://elsewhere.acme.io")
+                portal(PARTNERS_PORTAL_ID, ENVIRONMENT, "Partners", false),
+                portal(DEFAULT_PORTAL_ID, ENVIRONMENT, "Developer Portal", true),
+                portal(elsewherePortalId, "other-env", "Elsewhere", false)
+            )
+        );
+        accessPointQueryService.initWith(
+            List.of(
+                portalAccessPoint(PARTNERS_PORTAL_ID, ENVIRONMENT, "partners.acme.io"),
+                portalAccessPoint(DEFAULT_PORTAL_ID, ENVIRONMENT, "portal.acme.io"),
+                portalAccessPoint(elsewherePortalId, "other-env", "elsewhere.acme.io")
             )
         );
         portalNavigationItemsCrudService.initWith(
@@ -117,6 +129,7 @@ class PortalsResourceTest extends AbstractResourceTest {
         super.tearDown();
         GraviteeContext.cleanContext();
         portalCrudService.reset();
+        accessPointQueryService.reset();
         portalNavigationItemsCrudService.reset();
         themeQueryService.reset();
         when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anEnterpriseLicense());
@@ -154,7 +167,7 @@ class PortalsResourceTest extends AbstractResourceTest {
 
             var partners = body.getData().get(1);
             assertThat(partners.getId()).isEqualTo(PARTNERS_PORTAL_ID.id());
-            assertThat(partners.getUrl()).isEqualTo("https://partners.acme.io");
+            assertThat(partners.getUrl()).isEqualTo("https://partners.acme.io/next");
             assertThat(partners.getDefault()).isFalse();
             assertThat(partners.getPublishedApisCount()).isEqualTo(2);
 
@@ -226,7 +239,7 @@ class PortalsResourceTest extends AbstractResourceTest {
             var body = response.readEntity(Portal.class);
             assertThat(body.getId()).isEqualTo(PARTNERS_PORTAL_ID.id());
             assertThat(body.getName()).isEqualTo("Partners");
-            assertThat(body.getUrl()).isEqualTo("https://partners.acme.io");
+            assertThat(body.getUrl()).isEqualTo("https://partners.acme.io/next");
             assertThat(body.getDefault()).isFalse();
             assertThat(body.getLogoUrl()).endsWith("/environments/" + ENVIRONMENT + "/portals/" + PARTNERS_PORTAL_ID + "/logo");
             assertThat(body.getPublishedApisCount()).isEqualTo(2);
@@ -309,7 +322,7 @@ class PortalsResourceTest extends AbstractResourceTest {
                 var renamed = response.readEntity(Portal.class);
                 assertThat(renamed.getName()).isEqualTo("Elsewhere");
                 assertThat(renamed.getDefault()).isFalse();
-                assertThat(renamed.getUrl()).isEqualTo("https://partners.acme.io");
+                assertThat(renamed.getUrl()).isEqualTo("https://partners.acme.io/next");
                 assertThat(renamed.getPublishedApisCount()).isEqualTo(2);
             }
         }
@@ -634,14 +647,18 @@ class PortalsResourceTest extends AbstractResourceTest {
             .build();
     }
 
-    @SneakyThrows
-    private static io.gravitee.apim.core.portal.model.Portal portal(
-        PortalId id,
-        String environmentId,
-        String name,
-        boolean defaultPortal,
-        String url
-    ) {
-        return of(id, environmentId, ORGANIZATION, name, PortalNavigationStructure.empty(), null, defaultPortal, URI.create(url).toURL());
+    private static io.gravitee.apim.core.portal.model.Portal portal(PortalId id, String environmentId, String name, boolean defaultPortal) {
+        return of(id, environmentId, ORGANIZATION, name, PortalNavigationStructure.empty(), null, defaultPortal, "ap-" + id);
+    }
+
+    private static AccessPoint portalAccessPoint(PortalId portalId, String environmentId, String host) {
+        return AccessPoint.builder()
+            .id("ap-" + portalId)
+            .referenceType(AccessPoint.ReferenceType.ENVIRONMENT)
+            .referenceId(environmentId)
+            .target(AccessPoint.Target.PORTAL_INSTANCE)
+            .host(host)
+            .secured(true)
+            .build();
     }
 }

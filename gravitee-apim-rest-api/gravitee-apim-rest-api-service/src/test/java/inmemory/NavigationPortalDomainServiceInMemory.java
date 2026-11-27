@@ -19,14 +19,10 @@ import fixtures.core.model.PortalNavigationItemFixtures;
 import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
 import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalContentOwnershipDomainService;
-import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
-import java.net.URI;
-import java.net.URL;
-import lombok.SneakyThrows;
 
 /**
  * The real resolver over in-memory portals, where every environment has a portal URL: an environment
@@ -47,7 +43,7 @@ public class NavigationPortalDomainServiceInMemory extends NavigationPortalDomai
         super(
             new DefaultPortalDomainService(
                 portalCrudService,
-                new PortalUrlDomainService(everyEnvironmentHasAPortalUrl()),
+                new PortalAddressDomainServiceInMemory(portalCrudService, everyEnvironmentHasAPortalUrl()),
                 new PortalContentOwnershipDomainService(portalCrudService, new PortalNavigationItemsCrudServiceInMemory())
             ),
             portalCrudService
@@ -70,7 +66,7 @@ public class NavigationPortalDomainServiceInMemory extends NavigationPortalDomai
                 PortalNavigationStructure.empty(),
                 null,
                 true,
-                portalUrl()
+                "default-portal-access-point"
             )
         );
     }
@@ -91,21 +87,22 @@ public class NavigationPortalDomainServiceInMemory extends NavigationPortalDomai
     }
 
     public PortalId givenDefaultPortal(String organizationId, String environmentId) {
-        return portalCrudService.create(Portal.createDefault(environmentId, organizationId, "Developer Portal", portalUrl())).getId();
+        return portalCrudService
+            .create(Portal.createDefault(environmentId, organizationId, "Developer Portal", "default-portal-access-point"))
+            .getId();
     }
 
     public PortalId givenAutomationPortal(String organizationId, String environmentId) {
-        return portalCrudService.create(Portal.create(environmentId, organizationId, "Automation Portal", portalUrl())).getId();
+        return portalCrudService
+            .create(Portal.create(environmentId, organizationId, "Automation Portal", "automation-portal-access-point"))
+            .getId();
     }
 
     /** A portal the console manages besides the default one. */
     public PortalId givenConsolePortal(String organizationId, String environmentId, String name) {
-        return portalCrudService.create(Portal.createFromConsole(environmentId, organizationId, name, portalUrl())).getId();
-    }
-
-    @SneakyThrows
-    private static URL portalUrl() {
-        return URI.create(PORTAL_URL + "/next").toURL();
+        return portalCrudService
+            .create(Portal.createFromConsole(environmentId, organizationId, name, "console-portal-access-point"))
+            .getId();
     }
 
     private static InstallationAccessQueryServiceInMemory everyEnvironmentHasAPortalUrl() {

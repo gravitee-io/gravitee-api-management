@@ -102,7 +102,7 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
                 PortalNavigationStructure.empty(),
                 null,
                 true,
-                PortalFixtures.PORTAL_URL
+                PortalFixtures.PORTAL_ACCESS_POINT_ID
             )
         );
     }
@@ -202,7 +202,7 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
     @Test
     void should_return_400_when_the_section_belongs_to_a_portal_managed_through_the_automation_api() {
         var automationPortalId = portalCrudService
-            .create(Portal.create(ENVIRONMENT, ORGANIZATION, "Automation Portal", PortalFixtures.PORTAL_URL))
+            .create(Portal.create(ENVIRONMENT, ORGANIZATION, "Automation Portal", PortalFixtures.PORTAL_ACCESS_POINT_ID))
             .getId();
         var automationPortalSection = aSectionOf(automationPortalId, "Partners");
         portalNavigationItemCrudService.initWith(List.of(automationPortalSection));

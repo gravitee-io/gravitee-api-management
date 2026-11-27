@@ -20,6 +20,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.LicenseFixtures;
+import inmemory.InstallationAccessQueryServiceInMemory;
+import inmemory.PortalAddressDomainServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
@@ -37,7 +39,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.node.api.license.LicenseManager;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.SneakyThrows;
@@ -69,7 +70,8 @@ class GetPortalsStatsUseCaseTest {
             new PortalQuotaDomainService(licenseManager),
             new PortalSummaryDomainService(
                 new PortalLogoDomainService(new ThemeQueryServiceInMemory()),
-                new PortalNavigationItemsQueryServiceInMemory(navigationItems)
+                new PortalNavigationItemsQueryServiceInMemory(navigationItems),
+                new PortalAddressDomainServiceInMemory(portalCrudService, new InstallationAccessQueryServiceInMemory())
             )
         );
     }
@@ -131,7 +133,7 @@ class GetPortalsStatsUseCaseTest {
             PortalNavigationStructure.empty(),
             null,
             defaultPortal,
-            URI.create("https://portal.acme.io").toURL()
+            "portal-access-point"
         );
     }
 }

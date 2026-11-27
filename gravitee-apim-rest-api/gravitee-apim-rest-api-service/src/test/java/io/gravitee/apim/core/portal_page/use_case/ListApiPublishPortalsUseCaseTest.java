@@ -39,7 +39,9 @@ class ListApiPublishPortalsUseCaseTest {
     @Test
     void should_return_the_default_portal_first_and_then_the_others_by_name() {
         var partners = navigationPortals.givenConsolePortal(ORG_ID, ENV_ID, "partners");
-        var developer = portalCrudService.create(Portal.createDefault(ENV_ID, ORG_ID, "Developer Portal", PortalFixtures.PORTAL_URL));
+        var developer = portalCrudService.create(
+            Portal.createDefault(ENV_ID, ORG_ID, "Developer Portal", PortalFixtures.PORTAL_ACCESS_POINT_ID)
+        );
         var beta = navigationPortals.givenConsolePortal(ORG_ID, ENV_ID, "Beta");
 
         assertThat(portals()).containsExactly(
@@ -51,15 +53,17 @@ class ListApiPublishPortalsUseCaseTest {
 
     @Test
     void should_not_return_the_portals_managed_through_the_automation_api() {
-        var developer = portalCrudService.create(Portal.createDefault(ENV_ID, ORG_ID, "Developer Portal", PortalFixtures.PORTAL_URL));
-        portalCrudService.create(Portal.create(ENV_ID, ORG_ID, "Automation Portal", PortalFixtures.PORTAL_URL));
+        var developer = portalCrudService.create(
+            Portal.createDefault(ENV_ID, ORG_ID, "Developer Portal", PortalFixtures.PORTAL_ACCESS_POINT_ID)
+        );
+        portalCrudService.create(Portal.create(ENV_ID, ORG_ID, "Automation Portal", PortalFixtures.PORTAL_ACCESS_POINT_ID));
 
         assertThat(portals()).containsExactly(new PublishPortal(developer.getId(), "Developer Portal", true));
     }
 
     @Test
     void should_not_return_the_portals_of_another_environment() {
-        portalCrudService.create(Portal.createDefault("other-env", ORG_ID, "Elsewhere", PortalFixtures.PORTAL_URL));
+        portalCrudService.create(Portal.createDefault("other-env", ORG_ID, "Elsewhere", PortalFixtures.PORTAL_ACCESS_POINT_ID));
 
         assertThat(portals()).isEmpty();
     }

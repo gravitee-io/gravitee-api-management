@@ -34,7 +34,6 @@ import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.SubscriptionFormQueryServiceInMemory;
 import inmemory.SubscriptionSearchQueryServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
-import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
@@ -777,11 +776,6 @@ public class ResourceContextConfiguration {
     @Bean
     public ResourceService resourceService() {
         return mock(ResourceService.class);
-    }
-
-    @Bean
-    public AccessPointQueryService accessPointQueryService() {
-        return mock(AccessPointQueryService.class);
     }
 
     @Bean

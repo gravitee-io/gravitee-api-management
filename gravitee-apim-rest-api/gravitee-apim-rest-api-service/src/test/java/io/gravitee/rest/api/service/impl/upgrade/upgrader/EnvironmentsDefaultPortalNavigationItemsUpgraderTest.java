@@ -249,7 +249,7 @@ public class EnvironmentsDefaultPortalNavigationItemsUpgraderTest {
                         PortalNavigationStructure.empty(),
                         null,
                         true,
-                        PortalFixtures.PORTAL_URL
+                        PortalFixtures.PORTAL_ACCESS_POINT_ID
                     )
                 )
             );
@@ -277,7 +277,7 @@ public class EnvironmentsDefaultPortalNavigationItemsUpgraderTest {
                         PortalNavigationStructure.empty(),
                         null,
                         true,
-                        PortalFixtures.PORTAL_URL
+                        PortalFixtures.PORTAL_ACCESS_POINT_ID
                     ),
                     PortalFixtures.aPortal(
                         PortalId.of("22222222-2222-2222-2222-222222222222"),

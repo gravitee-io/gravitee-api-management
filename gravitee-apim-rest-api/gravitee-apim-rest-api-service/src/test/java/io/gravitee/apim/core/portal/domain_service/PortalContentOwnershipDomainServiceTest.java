@@ -34,11 +34,8 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
-import java.net.URI;
-import java.net.URL;
 import java.util.List;
 import java.util.Optional;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -55,7 +52,7 @@ class PortalContentOwnershipDomainServiceTest {
     private static final NavigationItemReference ON_ZERO_UUID = new NavigationItemReference.PortalReference(
         PortalId.of("00000000-0000-0000-0000-000000000000")
     );
-    private static final URL PORTAL_URL = url("https://portal.acme.io/next");
+    private static final String PORTAL_ACCESS_POINT_ID = "portal-access-point";
 
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
     private final PortalNavigationItemsCrudServiceInMemory navigationItemCrudService = new PortalNavigationItemsCrudServiceInMemory();
@@ -64,17 +61,21 @@ class PortalContentOwnershipDomainServiceTest {
         navigationItemCrudService
     );
 
-    @SneakyThrows
-    private static URL url(String value) {
-        return URI.create(value).toURL();
-    }
-
     private static NavigationItemReference onPortal(PortalId portalId) {
         return new NavigationItemReference.PortalReference(portalId);
     }
 
     private static Portal aPortal(PortalId id, boolean defaultPortal) {
-        return Portal.of(id, ENV_ID, ORG_ID, "Portal " + id, PortalNavigationStructure.empty(), null, defaultPortal, PORTAL_URL);
+        return Portal.of(
+            id,
+            ENV_ID,
+            ORG_ID,
+            "Portal " + id,
+            PortalNavigationStructure.empty(),
+            null,
+            defaultPortal,
+            PORTAL_ACCESS_POINT_ID
+        );
     }
 
     private PortalNavigationFolder storedFolder(String environmentId, NavigationItemReference reference) {

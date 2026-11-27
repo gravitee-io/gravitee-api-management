@@ -32,7 +32,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -55,7 +54,7 @@ public final class PortalNavigationFixtures {
                 PortalNavigationStructure.empty(),
                 null,
                 true,
-                URI.create("https://portal.example.com/next").toURL()
+                "portal-access-point"
             )
         );
         return id;

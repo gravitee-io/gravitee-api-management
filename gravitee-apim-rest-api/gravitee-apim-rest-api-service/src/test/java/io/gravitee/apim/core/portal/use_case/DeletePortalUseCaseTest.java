@@ -24,6 +24,7 @@ import fixtures.core.model.PortalFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.InstallationAccessQueryServiceInMemory;
+import inmemory.PortalAddressDomainServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalListingCrudServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
@@ -33,6 +34,7 @@ import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.ThemeCrudServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
+import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
@@ -92,6 +94,7 @@ class DeletePortalUseCaseTest {
     private CreateOrUpdatePortalUseCase setupUseCase;
     private DeletePortalUseCase useCase;
     private DefaultPortalDomainService defaultPortalDomainService;
+    private PortalAddressDomainServiceInMemory addresses;
 
     @BeforeEach
     void setUp() {
@@ -110,11 +113,11 @@ class DeletePortalUseCaseTest {
         var scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService, () -> false);
         var themeQueryService = new ThemeQueryServiceInMemory(themeCrudService);
         var currentThemeDomainService = new CurrentThemeDomainService(themeQueryService, themeCrudService);
-        var portalUrlDomainService = new PortalUrlDomainService(
-            new InstallationAccessQueryServiceInMemory()
-                .withPortalUrl("environment-id", "https://portal.acme.io")
-                .withPortalUrl("other-env", "https://other.acme.io")
-        );
+        var installationAccessQueryService = new InstallationAccessQueryServiceInMemory()
+            .withPortalUrl("environment-id", "https://portal.acme.io")
+            .withPortalUrl("other-env", "https://other.acme.io");
+        var portalUrlDomainService = new PortalUrlDomainService(installationAccessQueryService);
+        addresses = new PortalAddressDomainServiceInMemory(portalCrudService, installationAccessQueryService);
         var contentOwnership = new PortalContentOwnershipDomainService(portalCrudService, navCrudService);
         setupUseCase = new CreateOrUpdatePortalUseCase(
             new ValidatePortalDomainService(scopeEnforcer, portalUrlDomainService),
@@ -130,11 +133,11 @@ class DeletePortalUseCaseTest {
             scopeEnforcer,
             themeCrudService,
             currentThemeDomainService,
-            portalUrlDomainService,
+            addresses,
             contentOwnership
         );
-        useCase = new DeletePortalUseCase(portalCrudService, navSync, themeCrudService, currentThemeDomainService);
-        defaultPortalDomainService = new DefaultPortalDomainService(portalCrudService, portalUrlDomainService, contentOwnership);
+        useCase = new DeletePortalUseCase(portalCrudService, navSync, themeCrudService, currentThemeDomainService, addresses);
+        defaultPortalDomainService = new DefaultPortalDomainService(portalCrudService, addresses, contentOwnership);
     }
 
     @AfterEach
@@ -306,6 +309,45 @@ class DeletePortalUseCaseTest {
         assertThat(created.isDefault()).isTrue();
         assertThat(portalCrudService.storage()).singleElement().extracting(Portal::getId).isEqualTo(created.getId());
         assertThat(consoleRow.getReference()).isEqualTo(new NavigationItemReference.PortalReference(created.getId()));
+    }
+
+    @Test
+    void should_delete_the_access_point_a_deleted_portal_was_alone_on() {
+        var portal = PortalFixtures.aPortal();
+        portalCrudService.initWith(List.of(portal));
+        addresses.accessPoints().initWith(List.of(aPortalAccessPoint(portal.getAccessPointId())));
+
+        useCase.execute(new DeletePortalUseCase.Input(AUDIT_INFO, portal.getId()));
+
+        assertThat(addresses.accessPoints().storage()).isEmpty();
+    }
+
+    @Test
+    void should_keep_an_access_point_another_portal_is_still_served_at() {
+        var portal = PortalFixtures.aPortal();
+        var sharing = PortalFixtures.aPortal(
+            PortalId.of("00000000-0000-0000-0000-0000000000b2"),
+            portal.getEnvironmentId(),
+            portal.getOrganizationId(),
+            "Sharing Portal"
+        );
+        portalCrudService.initWith(List.of(portal, sharing));
+        addresses.accessPoints().initWith(List.of(aPortalAccessPoint(portal.getAccessPointId())));
+
+        useCase.execute(new DeletePortalUseCase.Input(AUDIT_INFO, portal.getId()));
+
+        assertThat(addresses.accessPoints().storage()).extracting(AccessPoint::getId).containsExactly(portal.getAccessPointId());
+    }
+
+    private static AccessPoint aPortalAccessPoint(String id) {
+        return AccessPoint.builder()
+            .id(id)
+            .referenceType(AccessPoint.ReferenceType.ENVIRONMENT)
+            .referenceId("environment-id")
+            .target(AccessPoint.Target.PORTAL_INSTANCE)
+            .host("portal.acme.io")
+            .secured(true)
+            .build();
     }
 
     @Test

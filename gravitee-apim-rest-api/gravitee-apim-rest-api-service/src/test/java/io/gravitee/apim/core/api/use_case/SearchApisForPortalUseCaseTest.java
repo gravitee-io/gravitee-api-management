@@ -48,7 +48,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.rest.api.model.common.PageableImpl;
-import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import lombok.SneakyThrows;
@@ -310,16 +309,14 @@ class SearchApisForPortalUseCaseTest {
                 PortalNavigationStructure.empty(),
                 null,
                 true,
-                URI.create("https://portal.example.com").toURL()
+                "portal-access-point"
             )
         );
     }
 
     @SneakyThrows
     private PortalId givenPortal(String environmentId, String organizationId) {
-        return portalCrudService
-            .create(Portal.create(environmentId, organizationId, "Portal", URI.create("https://portal.example.com").toURL()))
-            .getId();
+        return portalCrudService.create(Portal.create(environmentId, organizationId, "Portal", "portal-access-point")).getId();
     }
 
     private PortalNavigationApi publishedApiNavItem(String apiId, PortalVisibility visibility, PortalId portalId) {
