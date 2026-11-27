@@ -201,6 +201,24 @@ public class PortalAddressDomainService {
         return candidates.size() == 1 ? Optional.of(candidates.getFirst()) : Optional.empty();
     }
 
+    /**
+     * @return the scheme, host and port of the portal's own access point; empty when it has none, when it is served at the
+     *     environment's portal URL, or when that URL cannot be resolved to tell
+     */
+    public Optional<String> ownOrigin(Portal portal) {
+        var environmentUrl = portalUrl(portal.getEnvironmentId());
+        if (portal.getAccessPointId() == null || environmentUrl.isEmpty()) {
+            return Optional.empty();
+        }
+        return accessPointQueryService
+            .getPortalInstanceAccessPoints(portal.getEnvironmentId())
+            .stream()
+            .filter(accessPoint -> accessPoint.getId().equals(portal.getAccessPointId()))
+            .filter(accessPoint -> !isAt(accessPoint, environmentUrl.get()))
+            .map(AccessPoint::buildInstallationAccess)
+            .findFirst();
+    }
+
     /** Deletes the access point of a deleted or never stored portal, unless another portal is served at it. */
     public void release(Portal portal) {
         var accessPointId = portal.getAccessPointId();

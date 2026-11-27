@@ -4242,7 +4242,8 @@ components:
             The absolute `http` or `https` URL of the host the portal is served at: only its scheme, host and port are
             kept, and the portal opens at the root of that host, under `/next`. When left out, the portal is served
             at a generated host, or at the environment's portal URL when no host template is configured. It cannot be
-            changed yet.
+            changed yet. A portal at its own host calls the Portal API on that host, so the reverse proxy must also
+            route the Portal API path (`/portal` by default) there.
 
             Refused: a scheme other than `http` or `https` (in any case), a relative URL, a path, a username or
             password, a query string, a fragment, a host already used by another portal or access point, or any URL

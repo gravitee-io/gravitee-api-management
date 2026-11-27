@@ -445,6 +445,43 @@ class PortalAddressDomainServiceTest {
     }
 
     @Nested
+    class OwnOrigin {
+
+        @Test
+        void should_return_the_origin_of_the_portal_own_access_point() {
+            cut.accessPoints().initWith(List.of(aPortalAccessPoint("partners", ENV_ID, "partners.localhost:4100", false)));
+
+            assertThat(cut.ownOrigin(aPortal(PORTAL_ID, ENV_ID, "partners"))).contains("http://partners.localhost:4100");
+        }
+
+        @Test
+        void should_return_a_secured_origin_for_a_secured_access_point() {
+            cut.accessPoints().initWith(List.of(aPortalAccessPoint("partners", ENV_ID, "partners-portal.com", true)));
+
+            assertThat(cut.ownOrigin(aPortal(PORTAL_ID, ENV_ID, "partners"))).contains("https://partners-portal.com");
+        }
+
+        @Test
+        void should_return_nothing_for_the_access_point_at_the_environment_portal_url() {
+            cut.accessPoints().initWith(List.of(aPortalAccessPoint("shared", ENV_ID, "localhost:4100", false)));
+
+            assertThat(cut.ownOrigin(aPortal(PORTAL_ID, ENV_ID, "shared"))).isEmpty();
+        }
+
+        @Test
+        void should_return_nothing_for_a_portal_without_access_point() {
+            assertThat(cut.ownOrigin(aPortal(PORTAL_ID, ENV_ID, null))).isEmpty();
+        }
+
+        @Test
+        void should_return_nothing_when_the_environment_portal_url_cannot_be_resolved() {
+            cut.accessPoints().initWith(List.of(aPortalAccessPoint("partners", OTHER_ENV_ID, "partners.localhost:4100", false)));
+
+            assertThat(cut.ownOrigin(aPortal(PORTAL_ID, OTHER_ENV_ID, "partners"))).isEmpty();
+        }
+    }
+
+    @Nested
     class Release {
 
         @Test
