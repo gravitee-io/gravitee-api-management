@@ -48,12 +48,9 @@ import lombok.RequiredArgsConstructor;
  * in the environment of the definition, and to the secret of a credential only for the owner of that credential or an
  * admin. A reference whose path the gateway works out per request can name any secret, so it needs the read permission too,
  * unless the text the path starts with already names another provider.
- * A definition may not use the {@code #secrets} variable in any other way, even where the previous one did: the gateway
- * rewrites each reference to its internal {@code fromGrant} and {@code fromEL} functions, which resolve any secret of the
- * environment that a deployed context was granted. A reference the definition already had at the same place, with the same
- * {@code enabled} state, is kept whoever saves it, so a save that moves or copies a reference, or enables the step or flow
- * around it, is checked again. An element of a list is placed by its id or name where that is unique among its siblings,
- * so a reorder keeps its references.
+ * A definition may not use the {@code #secrets} variable in any other way. A reference the definition already had at the
+ * same place with the same {@code enabled} state is kept whoever saves it; list elements are placed by id or name where
+ * unique.
  */
 @DomainService
 @RequiredArgsConstructor
@@ -210,11 +207,12 @@ public class SecretReferencePermissionDomainService {
             var nodeEnabled = enabled && node.path("enabled").asBoolean(true);
             node
                 .properties()
-                .forEach(field -> collect(field.getValue(), pattern, pointer + "/" + escaped(field.getKey()), nodeEnabled, references));
+                .forEach(field ->
+                    collect(field.getValue(), pattern, pointer + "/" + jsonPointerSegment(field.getKey()), nodeEnabled, references)
+                );
         }
     }
 
-    // A plugin configuration is JSON, so each of its values gets its own place and a reference moved inside it counts as added.
     private void collectEmbedded(String text, Pattern pattern, String pointer, boolean enabled, Set<Reference> references) {
         embeddedJson(text).ifPresentOrElse(
             embedded -> collect(embedded, pattern, pointer, enabled, references),
@@ -230,7 +228,6 @@ public class SecretReferencePermissionDomainService {
         try {
             return Optional.ofNullable(objectMapper.readTree(trimmed)).filter(JsonNode::isContainerNode);
         } catch (JsonProcessingException e) {
-            // An expression such as {#secrets.get(...)} starts with { too, and is scanned as text.
             return Optional.empty();
         }
     }
@@ -257,11 +254,10 @@ public class SecretReferencePermissionDomainService {
                 count++;
             }
         }
-        return count == 1 ? Optional.of(escaped(value.textValue())) : Optional.empty();
+        return count == 1 ? Optional.of(jsonPointerSegment(value.textValue())) : Optional.empty();
     }
 
-    // RFC 6901 escaping, so a key or a name with a / cannot spell the place of another value.
-    private static String escaped(String segment) {
+    private static String jsonPointerSegment(String segment) {
         return segment.replace("~", "~0").replace("/", "~1");
     }
 
