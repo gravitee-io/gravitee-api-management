@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.resource.observability.analytics;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -36,6 +37,7 @@ import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.observability.model.AdditionalMetricField;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.gamma.rest.core.observability.analytics.model.DataKind;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort.MeasuresQuery;
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.AnalyticsRequestPipeline;
@@ -429,6 +431,13 @@ class AnalyticsResourceTest extends AbstractResourceTest {
             assertBadRequest(response, "observability.filter.end_user_not_displayed");
         }
 
+        @Test
+        void should_answer_400_to_totals_scoped_by_end_user_while_the_organization_does_not_display_it() {
+            var response = post("measures", Map.of("timeRange", TIME_RANGE, "metrics", REQUEST_COUNT, "scopeBy", List.of("USER")));
+
+            assertBadRequest(response, "observability.filter.end_user_not_displayed");
+        }
+
         private static Map<String, Object> measures(List<Map<String, Object>> filters) {
             return Map.of("timeRange", TIME_RANGE, "metrics", REQUEST_COUNT, "filters", filters);
         }
@@ -657,6 +666,36 @@ class AnalyticsResourceTest extends AbstractResourceTest {
                 case "facets" -> verify(analyticsDataPort, never()).computeFacets(any());
                 default -> verify(analyticsDataPort, never()).computeTimeSeries(any());
             }
+        }
+    }
+
+    @Nested
+    class ScopeBy {
+
+        @Test
+        void should_count_totals_scoped_by_a_field_identifying_callers_on_the_apis_whose_requests_the_caller_reads() {
+            when(analyticsDataPort.loadAccessibleApis(any(), any(), eq(DataKind.PER_REQUEST))).thenReturn(
+                List.of(new AccessibleApi("logged-api", "Logged API", ApiType.HTTP_PROXY))
+            );
+
+            var response = post("measures", Map.of("timeRange", TIME_RANGE, "metrics", REQUEST_COUNT, "scopeBy", List.of("CONSUMER_IP")));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            var captor = ArgumentCaptor.forClass(MeasuresQuery.class);
+            verify(analyticsDataPort).computeMeasures(captor.capture());
+            assertThat(captor.getValue().groups())
+                .singleElement()
+                .satisfies(group -> assertThat(group.apiIds()).containsExactly("logged-api"));
+        }
+
+        @Test
+        void should_answer_400_rather_than_500_when_scope_by_holds_a_null() {
+            var response = post(
+                "measures",
+                Map.of("timeRange", TIME_RANGE, "metrics", REQUEST_COUNT, "scopeBy", Arrays.asList("HTTP_STATUS", null))
+            );
+
+            assertBadRequest(response, "observability.query.null_entry");
         }
     }
 

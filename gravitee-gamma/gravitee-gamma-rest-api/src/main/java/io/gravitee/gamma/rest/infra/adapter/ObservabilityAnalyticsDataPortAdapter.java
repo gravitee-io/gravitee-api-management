@@ -157,6 +157,11 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
     }
 
     @Override
+    public void validateFacetNames(List<String> names) {
+        toApimFacetNames(names);
+    }
+
+    @Override
     public JsonNode computeMeasures(MeasuresQuery query) {
         var auditInfo = currentAuditInfo(query.organizationId(), query.environmentId());
         var responses = new ArrayList<MeasuresResponse>();

@@ -42,6 +42,9 @@ import lombok.AllArgsConstructor;
  * more condition sets than the cap fall back the same way instead of being refused, so a library already
  * deployed keeps an answer.
  *
+ * <p>{@code scopeBy} names the {@code by} of the facets request these measures total: the request reads the
+ * APIs that facets request reads, so a total never counts calls its buckets cannot, and it is never grouped.
+ *
  * @author GraviteeSource Team
  */
 @UseCase
@@ -49,6 +52,8 @@ import lombok.AllArgsConstructor;
 public class ComputeObservabilityMeasuresUseCase {
 
     static final int MAX_METRIC_CONDITION_SETS = 10;
+    /** As many as a facets request groups by. */
+    public static final int MAX_SCOPE_BY = 3;
 
     private final ObservabilityAnalyticsDataPort analyticsDataPort;
     private final AnalyticsRequestPipeline pipeline;
@@ -59,7 +64,8 @@ public class ComputeObservabilityMeasuresUseCase {
         List<FilterCondition> filters,
         Instant from,
         Instant to,
-        List<AnalyticsMetricQuery> metrics
+        List<AnalyticsMetricQuery> metrics,
+        List<String> scopeBy
     ) {}
 
     public record Output(JsonNode response) {}
@@ -68,14 +74,21 @@ public class ComputeObservabilityMeasuresUseCase {
         if (input.metrics == null || input.metrics.isEmpty()) {
             throw InvalidObservabilityQueryException.missingMetrics();
         }
+        var scopeBy = input.scopeBy != null ? input.scopeBy : List.<String>of();
+        if (scopeBy.size() > MAX_SCOPE_BY) {
+            throw InvalidObservabilityQueryException.tooManyScopeBy(scopeBy.size(), MAX_SCOPE_BY);
+        }
         // Before the request is prepared: a refused metric never reaches the data.
         var identified = validateIds(input.metrics);
         pipeline.validateMetricConditions(input.metrics.stream().map(AnalyticsMetricQuery::filters).toList());
         var applied = identified ? appliedWithIds(input.metrics) : appliedWithoutIds(input.metrics);
 
         var metricConditions = input.metrics.stream().map(AnalyticsMetricQuery::filters).toList();
-        pipeline.requireEndUserDisplayed(input.organizationId, input.filters, metricConditions, List.of());
-        var kind = pipeline.dataKindOf(input.filters, metricConditions, List.of());
+        pipeline.requireEndUserDisplayed(input.organizationId, input.filters, metricConditions, scopeBy);
+        if (!scopeBy.isEmpty()) {
+            analyticsDataPort.validateFacetNames(scopeBy);
+        }
+        var kind = pipeline.dataKindOf(input.filters, metricConditions, scopeBy);
         var prepared = pipeline.prepare(
             input.organizationId,
             input.environmentId,

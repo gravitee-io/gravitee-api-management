@@ -41,6 +41,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
+import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
@@ -49,12 +50,16 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -99,6 +104,16 @@ class ComputeObservabilityMeasuresUseCaseTest {
                     new FilterSpec(
                         "API",
                         "API",
+                        FilterType.KEYWORD,
+                        List.of(FilterOperator.EQ, FilterOperator.IN),
+                        null,
+                        null,
+                        Set.of(Signal.LOGS, Signal.ANALYTICS),
+                        ApiType.ALL
+                    ),
+                    new FilterSpec(
+                        "API_PRODUCT",
+                        "API Product",
                         FilterType.KEYWORD,
                         List.of(FilterOperator.EQ, FilterOperator.IN),
                         null,
@@ -174,7 +189,8 @@ class ComputeObservabilityMeasuresUseCaseTest {
                 List.of(),
                 FROM,
                 TO,
-                List.of(new AnalyticsMetricQuery(null, "HTTP_REQUESTS", List.of("COUNT"), List.of(byConsumerIp)))
+                List.of(new AnalyticsMetricQuery(null, "HTTP_REQUESTS", List.of("COUNT"), List.of(byConsumerIp))),
+                List.of()
             )
         );
 
@@ -412,7 +428,7 @@ class ComputeObservabilityMeasuresUseCaseTest {
 
         @Test
         void should_reject_a_request_without_metrics_before_loading_the_accessible_apis() {
-            var input = new ComputeObservabilityMeasuresUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, List.of());
+            var input = new ComputeObservabilityMeasuresUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, List.of(), List.of());
 
             assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(InvalidObservabilityQueryException.class)
@@ -529,26 +545,164 @@ class ComputeObservabilityMeasuresUseCaseTest {
                     List.of(BY_END_USER),
                     FROM,
                     TO,
-                    List.of(metric("HTTP_REQUESTS", BY_END_USER))
+                    List.of(metric("HTTP_REQUESTS", BY_END_USER)),
+                    List.of()
                 )
             );
 
             assertThat(computedQuery().groups()).allSatisfy(group -> assertThat(group.apiIds()).containsExactly("logged-api"));
         }
+    }
 
-        private ComputeObservabilityMeasuresUseCase useCaseDisplayingTheEndUser() {
-            var pipeline = new AnalyticsRequestPipeline(
-                new ObservabilityFilterValidator(filterRegistry),
-                new AccessibleApiScopeDomainService(),
-                new EntrypointScopeProviderAdapter(),
-                new EndUserDisplayDomainService(organizationId -> true)
+    /** The totals of a facets request's rows: {@code scopeBy} scopes them like those rows and never groups them. */
+    @Nested
+    class ScopeBy {
+
+        private static final String PLUGIN_CALLER_FIELD = "PLUGIN_CLIENT_KEY";
+        private static final FilterCondition ON_WORKSPACE = new FilterCondition("API_PRODUCT", FilterOperator.IN, List.of("workspace"));
+
+        static Stream<String> fieldsIdentifyingCallers() {
+            return Stream.concat(StaticFilters.identifying().stream().sorted(), Stream.of(PLUGIN_CALLER_FIELD));
+        }
+
+        /** The caller reads the analytics of api-1 and api-2, the requests of api-1 only. */
+        @ParameterizedTest
+        @MethodSource("fieldsIdentifyingCallers")
+        void should_count_only_the_apis_whose_requests_the_caller_reads_when_scoped_by_a_field_identifying_callers(String field) {
+            lenient().when(filterRegistry.identifiesCaller(PLUGIN_CALLER_FIELD)).thenReturn(true);
+            givenTheCallerReadsTheRequestsOfApi1Only();
+            when(analyticsDataPort.computeMeasures(any())).thenReturn(JsonNodeFactory.instance.objectNode());
+
+            useCaseDisplayingTheEndUser().execute(
+                input(List.of(), List.of(field), metric("HTTP_REQUESTS"), metric("HTTP_GATEWAY_RESPONSE_TIME", SERVER_ERRORS))
             );
-            return new ComputeObservabilityMeasuresUseCase(analyticsDataPort, pipeline);
+
+            assertThat(computedQuery().groups())
+                .hasSize(2)
+                .allSatisfy(group -> assertThat(group.apiIds()).containsExactly("api-1"));
+        }
+
+        @Test
+        void should_count_the_workspace_apis_the_caller_reads_no_other_way_without_scope_by() {
+            givenTheWorkspaceHoldsAnApiTheCallerReadsNoOtherWay();
+            when(analyticsDataPort.narrowsByApiProduct(any())).thenReturn(true);
+            when(analyticsDataPort.computeMeasures(any())).thenReturn(JsonNodeFactory.instance.objectNode());
+
+            useCase.execute(input(List.of(ON_WORKSPACE), List.of(), metric("HTTP_REQUESTS")));
+
+            assertThat(computedQuery().groups())
+                .singleElement()
+                .satisfies(group -> assertThat(group.apiIds()).containsExactlyInAnyOrder("api-1", "api-2", "workspace-api"));
+        }
+
+        @Test
+        void should_not_widen_to_the_workspace_apis_when_scoped_by_a_field_identifying_callers() {
+            givenTheWorkspaceHoldsAnApiTheCallerReadsNoOtherWay();
+            givenTheCallerReadsTheRequestsOfApi1Only();
+            when(analyticsDataPort.computeMeasures(any())).thenReturn(JsonNodeFactory.instance.objectNode());
+
+            useCase.execute(input(List.of(ON_WORKSPACE), List.of("CONSUMER_IP"), metric("HTTP_REQUESTS")));
+
+            assertThat(computedQuery().groups())
+                .singleElement()
+                .satisfies(group -> assertThat(group.apiIds()).containsExactly("api-1"));
+            verify(analyticsDataPort, never()).loadWorkspaceApis(any(), any(), any());
+        }
+
+        @Test
+        void should_refuse_a_scope_by_the_end_user_before_loading_the_accessible_apis_while_it_is_not_displayed() {
+            assertThatThrownBy(() -> useCase.execute(input(List.of(), List.of("USER"), metric("HTTP_REQUESTS"))))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.end_user_not_displayed");
+            verify(analyticsDataPort, never()).loadAccessibleApis(any(), any(), any());
+        }
+
+        @Test
+        void should_read_aggregates_when_scoped_by_fields_identifying_no_caller() {
+            when(analyticsDataPort.computeMeasures(any())).thenReturn(JsonNodeFactory.instance.objectNode());
+
+            useCase.execute(input(List.of(), List.of("API", "HTTP_STATUS", "PLAN"), metric("HTTP_REQUESTS")));
+
+            assertThat(computedQuery().groups())
+                .singleElement()
+                .satisfies(group -> assertThat(group.apiIds()).containsExactlyInAnyOrder("api-1", "api-2"));
+            verify(analyticsDataPort, never()).loadAccessibleApis(ORG_ID, ENV_ID, DataKind.PER_REQUEST);
+        }
+
+        @ParameterizedTest
+        @NullAndEmptySource
+        void should_read_aggregates_without_scope_by(List<String> scopeBy) {
+            when(analyticsDataPort.computeMeasures(any())).thenReturn(JsonNodeFactory.instance.objectNode());
+
+            useCase.execute(input(List.of(), scopeBy, metric("HTTP_REQUESTS")));
+
+            assertThat(computedQuery().groups())
+                .singleElement()
+                .satisfies(group -> assertThat(group.apiIds()).containsExactlyInAnyOrder("api-1", "api-2"));
+            verify(analyticsDataPort, never()).loadAccessibleApis(ORG_ID, ENV_ID, DataKind.PER_REQUEST);
+        }
+
+        /** Like the facets a facets request names, whatever the caller can read. */
+        @Test
+        void should_refuse_a_scope_by_name_the_facets_refuse_before_loading_the_accessible_apis() {
+            doThrow(InvalidObservabilityQueryException.unknownFacet("HTTP_NOPE"))
+                .when(analyticsDataPort)
+                .validateFacetNames(List.of("HTTP_NOPE"));
+
+            assertThatThrownBy(() -> useCase.execute(input(List.of(), List.of("HTTP_NOPE"), metric("HTTP_REQUESTS"))))
+                .isInstanceOf(InvalidObservabilityQueryException.class)
+                .extracting("technicalCode")
+                .isEqualTo("observability.query.unknown_facet");
+            verify(analyticsDataPort, never()).loadAccessibleApis(any(), any(), any());
+        }
+
+        @Test
+        void should_refuse_more_scope_by_entries_than_a_facets_request_accepts_before_any_data_access() {
+            var scopeBy = List.of("API", "HTTP_STATUS", "PLAN", "APPLICATION");
+
+            assertThatThrownBy(() -> useCase.execute(input(List.of(), scopeBy, metric("HTTP_REQUESTS"))))
+                .isInstanceOf(InvalidObservabilityQueryException.class)
+                .extracting("technicalCode")
+                .isEqualTo("observability.query.too_many_scope_by");
+            verifyNoInteractions(analyticsDataPort);
+        }
+
+        private void givenTheCallerReadsTheRequestsOfApi1Only() {
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID, DataKind.PER_REQUEST)).thenReturn(
+                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
+            );
+        }
+
+        private void givenTheWorkspaceHoldsAnApiTheCallerReadsNoOtherWay() {
+            lenient()
+                .when(analyticsDataPort.loadWorkspaceApis(ORG_ID, ENV_ID, "workspace"))
+                .thenReturn(List.of(new AccessibleApi("workspace-api", "Workspace API", ApiType.HTTP_PROXY)));
+        }
+
+        private static ComputeObservabilityMeasuresUseCase.Input input(
+            List<FilterCondition> filters,
+            List<String> scopeBy,
+            AnalyticsMetricQuery... metrics
+        ) {
+            return new ComputeObservabilityMeasuresUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, List.of(metrics), scopeBy);
         }
     }
 
+    private ComputeObservabilityMeasuresUseCase useCaseDisplayingTheEndUser() {
+        var pipeline = new AnalyticsRequestPipeline(
+            new ObservabilityFilterValidator(filterRegistry),
+            new AccessibleApiScopeDomainService(),
+            new EntrypointScopeProviderAdapter(),
+            new EndUserDisplayDomainService(organizationId -> true)
+        );
+        return new ComputeObservabilityMeasuresUseCase(analyticsDataPort, pipeline);
+    }
+
     private ComputeObservabilityMeasuresUseCase.Output execute(List<FilterCondition> filters, AnalyticsMetricQuery... metrics) {
-        return useCase.execute(new ComputeObservabilityMeasuresUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, List.of(metrics)));
+        return useCase.execute(
+            new ComputeObservabilityMeasuresUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, List.of(metrics), List.of())
+        );
     }
 
     private MeasuresQuery computedQuery() {

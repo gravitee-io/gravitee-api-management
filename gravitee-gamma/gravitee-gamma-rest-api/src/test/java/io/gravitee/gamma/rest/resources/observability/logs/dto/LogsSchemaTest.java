@@ -35,6 +35,7 @@ class LogsSchemaTest {
         {
             "LogEntry, io.gravitee.gamma.rest.resources.observability.logs.dto.LogEntryDto",
             "LogDetail, io.gravitee.gamma.rest.resources.observability.logs.dto.LogDetailDto",
+            "AnalyticsMeasuresRequest, io.gravitee.gamma.rest.resources.observability.analytics.dto.AnalyticsMeasuresRequestDto",
         }
     )
     void should_serialize_exactly_the_properties_of_its_schema(String schemaName, Class<? extends Record> dto) {

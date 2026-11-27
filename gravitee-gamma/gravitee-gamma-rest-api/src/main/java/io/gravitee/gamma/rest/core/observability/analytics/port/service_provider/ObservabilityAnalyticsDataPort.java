@@ -155,6 +155,9 @@ public interface ObservabilityAnalyticsDataPort {
 
     void validate(TimeSeriesQuery query);
 
+    /** Refuses a name a facets request could not group by, as {@link #validate(FacetsQuery)} refuses its facets. */
+    void validateFacetNames(List<String> names);
+
     JsonNode emptyFacetsResponse();
     JsonNode emptyTimeSeriesResponse();
 }

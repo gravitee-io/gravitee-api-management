@@ -38,6 +38,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Analytics computation endpoints under
@@ -82,7 +83,8 @@ public class AnalyticsResource {
                 toFilters(request != null ? request.filters() : null),
                 request != null && request.timeRange() != null ? request.timeRange().from() : null,
                 request != null && request.timeRange() != null ? request.timeRange().to() : null,
-                toMetrics(request != null ? request.metrics() : null)
+                toMetrics(request != null ? request.metrics() : null),
+                RequestEntries.map(request != null ? request.scopeBy() : null, "scopeBy", Function.identity())
             )
         );
         return output.response();

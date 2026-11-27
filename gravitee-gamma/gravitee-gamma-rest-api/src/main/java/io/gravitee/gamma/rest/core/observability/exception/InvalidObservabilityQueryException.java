@@ -116,6 +116,13 @@ public class InvalidObservabilityQueryException extends ValidationDomainExceptio
         );
     }
 
+    public static InvalidObservabilityQueryException tooManyScopeBy(int count, int max) {
+        return new InvalidObservabilityQueryException(
+            "'scopeBy' names " + count + " fields, at most " + max + " are allowed, as many as a facets request groups by",
+            "observability.query.too_many_scope_by"
+        );
+    }
+
     public static InvalidObservabilityQueryException partialMetricIds() {
         return new InvalidObservabilityQueryException(
             "Either every metric carries an 'id' or none does",

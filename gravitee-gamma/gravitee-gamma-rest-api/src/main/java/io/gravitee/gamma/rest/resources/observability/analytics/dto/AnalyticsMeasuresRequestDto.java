@@ -22,6 +22,13 @@ import java.util.List;
 
 /**
  * POST body for {@code /observability/analytics/measures}.
+ *
+ * @param scopeBy the {@code by} of the facets request these measures total: scopes them like its buckets, never groups them
  */
 @RejectUnknownProperties
-public record AnalyticsMeasuresRequestDto(TimeRangeDto timeRange, List<FilterConditionDto> filters, List<MetricQueryDto> metrics) {}
+public record AnalyticsMeasuresRequestDto(
+    TimeRangeDto timeRange,
+    List<FilterConditionDto> filters,
+    List<MetricQueryDto> metrics,
+    List<String> scopeBy
+) {}

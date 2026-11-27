@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.infra.adapter;
 
+import static io.gravitee.gamma.rest.core.observability.analytics.use_case.ComputeObservabilityMeasuresUseCase.MAX_SCOPE_BY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -1485,6 +1486,54 @@ class ObservabilityAnalyticsDataPortAdapterTest {
             assertThatThrownBy(() -> adapter.validate(query))
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessageContaining("at least one facet");
+        }
+
+        @Test
+        void should_accept_as_scope_the_names_a_facets_request_groups_by() {
+            adapter.validateFacetNames(List.of("USER", "CONSUMER_IP", "additional-metrics.keyword_fraud-check_tier", "custom.tier"));
+
+            verifyNoInteractions(computeMeasuresUseCase, computeFacetsUseCase);
+        }
+
+        @Test
+        void should_group_a_facets_request_by_as_many_fields_as_measures_accept_in_scope_by() {
+            var facets = List.of("API", "PLAN", "HTTP_STATUS", "APPLICATION");
+
+            adapter.validate(facetsQueryOnEmptyScope(facets.subList(0, MAX_SCOPE_BY)));
+            assertThatThrownBy(() -> adapter.validate(facetsQueryOnEmptyScope(facets.subList(0, MAX_SCOPE_BY + 1))))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Cannot query for more than " + MAX_SCOPE_BY + " facets, got " + (MAX_SCOPE_BY + 1));
+        }
+
+        private FacetsQuery facetsQueryOnEmptyScope(List<String> facets) {
+            return new FacetsQuery(
+                ORG,
+                ENV,
+                emptyScope,
+                facets,
+                null,
+                List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of())),
+                List.of(),
+                Map.of()
+            );
+        }
+
+        @Test
+        void should_refuse_as_scope_an_unknown_facet_naming_it() {
+            assertThatThrownBy(() -> adapter.validateFacetNames(List.of("USER", "HTTP_NOPE")))
+                .isInstanceOf(InvalidObservabilityQueryException.class)
+                .hasMessageContaining("HTTP_NOPE")
+                .extracting("technicalCode")
+                .isEqualTo("observability.query.unknown_facet");
+        }
+
+        @Test
+        void should_refuse_as_scope_a_custom_facet_outside_the_grammar_naming_it() {
+            assertThatThrownBy(() -> adapter.validateFacetNames(List.of("custom.a..b")))
+                .isInstanceOf(InvalidObservabilityQueryException.class)
+                .hasMessage("Facet 'custom.a..b' is not a valid field name: " + AdditionalMetricField.CUSTOM_NAME_RULE)
+                .extracting("technicalCode")
+                .isEqualTo("observability.query.invalid_name");
         }
 
         @Test
