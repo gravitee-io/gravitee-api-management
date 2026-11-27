@@ -61,7 +61,7 @@ public class UndeployClusterDomainService {
 
         Cluster updatedCluster = clusterCrudService.update(cluster);
 
-        createAuditLog(beforeUndeploy, updatedCluster, auditInfo);
+        createAuditLog(beforeUndeploy, updatedCluster.withoutCredentials(), auditInfo);
 
         return updatedCluster;
     }
