@@ -16,12 +16,16 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -29,10 +33,13 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
@@ -47,6 +54,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
     private static final String API = "my-api";
     private static final String PLAN = "my-plan";
+    private static final String SECURITY_DEFINITION = "{\"signature\":\"HMAC_HS256\",\"resolverParameter\":\"plan-key\"}";
 
     @Override
     protected String contextPath() {
@@ -91,7 +99,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             v4Api(DefinitionVersion.V4)
         );
 
-        final Response response = envTarget().path(API).path("plans").path(PLAN).request().get();
+        final Response response = planTarget().request().get();
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         verify(apiService, never()).findById(any(), eq(API));
@@ -100,9 +108,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_403_when_getting_plans_of_public_api_exposed_in_no_portal_without_permission() {
-        ApiEntity v2Api = readableV2Api();
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(v2Api);
-        when(apiService.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(v2Api);
+        mockReadableV2Api();
         withoutPlanOrLogPermission();
         when(accessControlService.canAccessApiFromPortal(any(ExecutionContext.class), any(ApiEntity.class))).thenReturn(false);
 
@@ -114,23 +120,163 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_403_when_getting_a_plan_of_public_api_exposed_in_no_portal_without_permission() {
-        ApiEntity v2Api = readableV2Api();
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(v2Api);
-        when(apiService.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(v2Api);
+        mockReadableV2Api();
         withoutPlanOrLogPermission();
         when(accessControlService.canAccessApiFromPortal(any(ExecutionContext.class), any(ApiEntity.class))).thenReturn(false);
 
-        final Response response = envTarget().path(API).path("plans").path(PLAN).request().get();
+        final Response response = planTarget().request().get();
 
         assertEquals(FORBIDDEN_403, response.getStatus());
         verify(planService, never()).findById(any(), any());
     }
 
     @Test
+    public void should_return_only_plan_summary_to_portal_visibility_caller_without_permissions() {
+        mockPortalVisibleV2ApiWithPlan();
+        withoutPermission(RolePermission.API_PLAN);
+        withoutPermission(RolePermission.API_GATEWAY_DEFINITION);
+
+        assertPlanSummaryOnly(getPlan(), PlanStatus.PUBLISHED);
+    }
+
+    @Test
+    public void should_return_only_plan_summary_to_caller_without_gateway_definition_read() {
+        mockPortalVisibleV2ApiWithPlan();
+        withoutPermission(RolePermission.API_GATEWAY_DEFINITION);
+
+        assertPlanSummaryOnly(getPlan(), PlanStatus.PUBLISHED);
+    }
+
+    @Test
+    public void should_return_only_plan_summary_to_member_with_plan_read_without_gateway_definition_read() {
+        mockPortalVisibleV2ApiWithPlan();
+        notExposedInPortal();
+        withoutAnyPermission();
+        withReadPermission(RolePermission.API_PLAN);
+
+        assertPlanSummaryOnly(getPlan(), PlanStatus.PUBLISHED);
+    }
+
+    @Test
+    public void should_return_only_plan_summary_to_caller_without_plan_read() {
+        mockPortalVisibleV2ApiWithPlan();
+        withoutPermission(RolePermission.API_PLAN);
+
+        assertPlanSummaryOnly(getPlan(), PlanStatus.PUBLISHED);
+    }
+
+    @Test
+    public void should_return_full_plan_to_caller_with_plan_and_gateway_definition_read() {
+        mockPortalVisibleV2ApiWithPlan();
+        notExposedInPortal();
+        withOnlyPlanAndGatewayDefinitionRead();
+
+        assertFullPlan(getPlan(), PlanStatus.PUBLISHED);
+    }
+
+    @Test
+    public void should_return_only_plan_summary_after_update_to_caller_without_gateway_definition_read() {
+        mockV2ApiWithPlanWrites();
+        withoutPermission(RolePermission.API_GATEWAY_DEFINITION);
+
+        final Response response = planTarget().request().put(Entity.json(planUpdate()));
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        assertPlanSummaryOnly(response.readEntity(JsonNode.class), PlanStatus.PUBLISHED);
+    }
+
+    @Test
+    public void should_return_only_plan_summary_after_close_to_caller_without_gateway_definition_read() {
+        assertPlanSummaryAfterStatusChange("_close", PlanStatus.CLOSED);
+    }
+
+    @Test
+    public void should_return_only_plan_summary_after_publish_to_caller_without_gateway_definition_read() {
+        assertPlanSummaryAfterStatusChange("_publish", PlanStatus.PUBLISHED);
+    }
+
+    @Test
+    public void should_return_only_plan_summary_after_deprecate_to_caller_without_gateway_definition_read() {
+        assertPlanSummaryAfterStatusChange("_deprecate", PlanStatus.DEPRECATED);
+    }
+
+    @Test
+    public void should_return_only_plan_summary_after_depreciate_to_caller_without_gateway_definition_read() {
+        assertPlanSummaryAfterStatusChange("_depreciate", PlanStatus.DEPRECATED);
+    }
+
+    @Test
+    public void should_return_full_plan_after_update_to_caller_with_plan_and_gateway_definition_read() {
+        mockV2ApiWithPlanWrites();
+        withOnlyPlanAndGatewayDefinitionRead();
+        withPlanUpdatePermission();
+
+        final Response response = planTarget().request().put(Entity.json(planUpdate()));
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        assertFullPlan(response.readEntity(JsonNode.class), PlanStatus.PUBLISHED);
+    }
+
+    @Test
+    public void should_return_full_plan_after_close_to_caller_with_plan_and_gateway_definition_read() {
+        assertFullPlanAfterStatusChange("_close", PlanStatus.CLOSED);
+    }
+
+    @Test
+    public void should_return_full_plan_after_publish_to_caller_with_plan_and_gateway_definition_read() {
+        assertFullPlanAfterStatusChange("_publish", PlanStatus.PUBLISHED);
+    }
+
+    @Test
+    public void should_return_full_plan_after_deprecate_to_caller_with_plan_and_gateway_definition_read() {
+        assertFullPlanAfterStatusChange("_deprecate", PlanStatus.DEPRECATED);
+    }
+
+    @Test
+    public void should_return_full_plan_after_depreciate_to_caller_with_plan_and_gateway_definition_read() {
+        assertFullPlanAfterStatusChange("_depreciate", PlanStatus.DEPRECATED);
+    }
+
+    @Test
+    public void should_list_plan_summaries_to_portal_visibility_caller_without_permissions() {
+        mockPortalVisibleV2ApiWithPlan();
+        withoutPermission(RolePermission.API_PLAN);
+        withoutPermission(RolePermission.API_GATEWAY_DEFINITION);
+        withoutPermission(RolePermission.API_LOG);
+
+        final Response response = envTarget().path(API).path("plans").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        assertSinglePlanSummary(response.readEntity(JsonNode.class));
+    }
+
+    @Test
+    public void should_list_plan_summaries_to_member_with_plan_read_without_gateway_definition_read() {
+        assertPlanSummariesListedToMemberWithReadPermission(RolePermission.API_PLAN);
+    }
+
+    @Test
+    public void should_list_plan_summaries_to_member_with_log_read_without_gateway_definition_read() {
+        assertPlanSummariesListedToMemberWithReadPermission(RolePermission.API_LOG);
+    }
+
+    @Test
+    public void should_list_full_plans_to_caller_with_plan_and_gateway_definition_read() {
+        mockPortalVisibleV2ApiWithPlan();
+        notExposedInPortal();
+        withOnlyPlanAndGatewayDefinitionRead();
+
+        final Response response = envTarget().path(API).path("plans").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        JsonNode plans = response.readEntity(JsonNode.class);
+        assertThat(plans).hasSize(1);
+        assertFullPlan(plans.get(0), PlanStatus.PUBLISHED);
+    }
+
+    @Test
     public void shouldGetApiPlansForV2Api() {
-        ApiEntity v2Api = readableV2Api();
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(v2Api);
-        when(apiService.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(v2Api);
+        mockReadableV2Api();
 
         PlanEntity publishedPlan = new PlanEntity();
         publishedPlan.setId("published-plan");
@@ -209,7 +355,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         when(planService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(existingPlan);
         when(planService.close(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(closedPlan);
 
-        final Response response = envTarget().path(API).path("plans").path(PLAN).path("_close").request().post(Entity.json(""));
+        final Response response = planTarget().path("_close").request().post(Entity.json(""));
 
         assertEquals(OK_200, response.getStatus());
         verify(planService, times(1)).close(eq(GraviteeContext.getExecutionContext()), eq(PLAN));
@@ -227,29 +373,227 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         when(apiService.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(api);
         when(planService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(existingPlan);
 
-        final Response response = envTarget().path(API).path("plans").path(PLAN).request().delete();
+        final Response response = planTarget().request().delete();
 
         assertEquals(NO_CONTENT_204, response.getStatus());
         verify(planService, times(1)).delete(eq(GraviteeContext.getExecutionContext()), eq(PLAN));
     }
 
-    private void withoutPlanOrLogPermission() {
+    private void mockPortalVisibleV2ApiWithPlan() {
+        mockReadableV2Api();
+        when(accessControlService.canAccessApiFromPortal(any(ExecutionContext.class), any(ApiEntity.class))).thenReturn(true);
+        when(planService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(
+            planWithFlowsAndSecurityDefinition(PlanStatus.PUBLISHED)
+        );
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API)).thenReturn(
+            Set.of(planWithFlowsAndSecurityDefinition(PlanStatus.PUBLISHED))
+        );
+        when(groupService.isUserAuthorizedToAccessApiData(any(ApiEntity.class), any(), any())).thenReturn(true);
+    }
+
+    private void assertPlanSummaryAfterStatusChange(String action, PlanStatus expectedStatus) {
+        mockV2ApiWithPlanWrites();
+        withoutPermission(RolePermission.API_GATEWAY_DEFINITION);
+
+        final Response response = planTarget().path(action).request().post(Entity.json(""));
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        assertPlanSummaryOnly(response.readEntity(JsonNode.class), expectedStatus);
+    }
+
+    private void assertFullPlanAfterStatusChange(String action, PlanStatus expectedStatus) {
+        mockV2ApiWithPlanWrites();
+        withOnlyPlanAndGatewayDefinitionRead();
+        withPlanUpdatePermission();
+
+        final Response response = planTarget().path(action).request().post(Entity.json(""));
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        assertFullPlan(response.readEntity(JsonNode.class), expectedStatus);
+    }
+
+    private void assertPlanSummariesListedToMemberWithReadPermission(RolePermission permission) {
+        mockPortalVisibleV2ApiWithPlan();
+        notExposedInPortal();
+        withoutAnyPermission();
+        withReadPermission(permission);
+
+        final Response response = envTarget().path(API).path("plans").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        assertSinglePlanSummary(response.readEntity(JsonNode.class));
+    }
+
+    private JsonNode getPlan() {
+        final Response response = planTarget().request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        return response.readEntity(JsonNode.class);
+    }
+
+    private void mockV2ApiWithPlanWrites() {
+        when(planService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(
+            planWithFlowsAndSecurityDefinition(PlanStatus.STAGING)
+        );
+        when(planService.update(eq(GraviteeContext.getExecutionContext()), any(UpdatePlanEntity.class))).thenReturn(
+            planWithFlowsAndSecurityDefinition(PlanStatus.PUBLISHED)
+        );
+        when(planService.close(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(
+            planWithFlowsAndSecurityDefinition(PlanStatus.CLOSED)
+        );
+        when(planService.publish(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(
+            planWithFlowsAndSecurityDefinition(PlanStatus.PUBLISHED)
+        );
+        when(planService.deprecate(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(
+            planWithFlowsAndSecurityDefinition(PlanStatus.DEPRECATED)
+        );
+    }
+
+    private static PlanEntity planWithFlowsAndSecurityDefinition(PlanStatus status) {
+        Flow flow = new Flow();
+        flow.setName("plan-flow");
+        PlanEntity plan = new PlanEntity();
+        plan.setId(PLAN);
+        plan.setName("JWT plan");
+        plan.setApi(API);
+        plan.setStatus(status);
+        plan.setType(PlanType.API);
+        plan.setValidation(PlanValidationType.MANUAL);
+        plan.setSecurity(PlanSecurityType.JWT);
+        plan.setSecurityDefinition(SECURITY_DEFINITION);
+        plan.setFlows(List.of(flow));
+        plan.setPaths(Map.of("/", List.of(new Rule())));
+        plan.setDescription("JWT plan description");
+        plan.setCharacteristics(List.of("secured"));
+        plan.setOrder(2);
+        plan.setCommentRequired(true);
+        plan.setCommentMessage("Why do you need it?");
+        plan.setGeneralConditions("conditions-page");
+        plan.setTags(Set.of("internal"));
+        plan.setSelectionRule("#context.attributes['jwt'] != null");
+        plan.setExcludedGroups(List.of("excluded-group"));
+        plan.setCrossId("plan-cross-id");
+        plan.setHrid("plan-hrid");
+        plan.setEnvironmentId("DEFAULT");
+        plan.setCreatedAt(new Date(1_000L));
+        plan.setUpdatedAt(new Date(2_000L));
+        plan.setPublishedAt(new Date(3_000L));
+        plan.setClosedAt(new Date(4_000L));
+        return plan;
+    }
+
+    private static UpdatePlanEntity planUpdate() {
+        UpdatePlanEntity updatePlanEntity = new UpdatePlanEntity();
+        updatePlanEntity.setId(PLAN);
+        updatePlanEntity.setName("JWT plan");
+        updatePlanEntity.setDescription("JWT plan description");
+        updatePlanEntity.setValidation(PlanValidationType.AUTO);
+        return updatePlanEntity;
+    }
+
+    private static void assertFullPlan(JsonNode plan, PlanStatus expectedStatus) {
+        assertThat(plan.get("status").asText()).isEqualTo(expectedStatus.name());
+        assertThat(plan.get("security").asText()).isEqualTo(PlanSecurityType.JWT.name());
+        assertThat(plan.get("securityDefinition").asText()).isEqualTo(SECURITY_DEFINITION);
+        assertThat(plan.get("flows")).hasSize(1);
+        assertThat(plan.get("flows").get(0).get("name").asText()).isEqualTo("plan-flow");
+        assertThat(plan.get("paths").has("/")).isTrue();
+        assertThat(plan.get("tags")).hasSize(1);
+        assertThat(plan.get("selection_rule").asText()).isEqualTo("#context.attributes['jwt'] != null");
+        assertThat(plan.get("excluded_groups")).hasSize(1);
+        assertThat(plan.get("crossId").asText()).isEqualTo("plan-cross-id");
+    }
+
+    private static void assertSinglePlanSummary(JsonNode plans) {
+        assertThat(plans).hasSize(1);
+        assertPlanSummaryOnly(plans.get(0), PlanStatus.PUBLISHED);
+    }
+
+    private static void assertPlanSummaryOnly(JsonNode plan, PlanStatus expectedStatus) {
+        assertThat(plan.get("id").asText()).isEqualTo(PLAN);
+        assertThat(plan.get("name").asText()).isEqualTo("JWT plan");
+        assertThat(plan.get("security").asText()).isEqualTo(PlanSecurityType.JWT.name());
+        assertThat(plan.get("status").asText()).isEqualTo(expectedStatus.name());
+        assertThat(plan.get("type").asText()).isEqualTo(PlanType.API.name());
+        assertThat(plan.get("validation").asText()).isEqualTo(PlanValidationType.MANUAL.name());
+        assertThat(plan.get("api").asText()).isEqualTo(API);
+        assertThat(plan.get("description").asText()).isEqualTo("JWT plan description");
+        assertThat(plan.get("characteristics")).hasSize(1);
+        assertThat(plan.get("order").asInt()).isEqualTo(2);
+        assertThat(plan.get("comment_required").asBoolean()).isTrue();
+        assertThat(plan.get("comment_message").asText()).isEqualTo("Why do you need it?");
+        assertThat(plan.get("general_conditions").asText()).isEqualTo("conditions-page");
+        assertThat(plan.path("flows")).isEmpty();
+        assertThat(plan.path("paths")).isEmpty();
+        assertAbsent(
+            plan,
+            "securityDefinition",
+            "tags",
+            "selection_rule",
+            "excluded_groups",
+            "crossId",
+            "hrid",
+            "environmentId",
+            "created_at",
+            "updated_at",
+            "published_at",
+            "closed_at"
+        );
+    }
+
+    private static void assertAbsent(JsonNode plan, String... fields) {
+        for (String field : fields) {
+            assertThat(plan.path(field).isMissingNode() || plan.path(field).isNull()).as(field).isTrue();
+        }
+    }
+
+    private void withoutPermission(RolePermission permission) {
+        when(
+            permissionService.hasPermission(any(ExecutionContext.class), eq(permission), eq(API), any(RolePermissionAction[].class))
+        ).thenReturn(false);
+    }
+
+    private void withoutAnyPermission() {
+        when(
+            permissionService.hasPermission(
+                any(ExecutionContext.class),
+                any(RolePermission.class),
+                anyString(),
+                any(RolePermissionAction[].class)
+            )
+        ).thenReturn(false);
+    }
+
+    private void withOnlyPlanAndGatewayDefinitionRead() {
+        withoutAnyPermission();
+        withReadPermission(RolePermission.API_PLAN);
+        withReadPermission(RolePermission.API_GATEWAY_DEFINITION);
+    }
+
+    private void withPlanUpdatePermission() {
         when(
             permissionService.hasPermission(
                 any(ExecutionContext.class),
                 eq(RolePermission.API_PLAN),
                 eq(API),
-                any(RolePermissionAction[].class)
+                eq(RolePermissionAction.UPDATE)
             )
-        ).thenReturn(false);
+        ).thenReturn(true);
+    }
+
+    private void notExposedInPortal() {
+        when(accessControlService.canAccessApiFromPortal(any(ExecutionContext.class), any(ApiEntity.class))).thenReturn(false);
+    }
+
+    private void withReadPermission(RolePermission permission) {
         when(
-            permissionService.hasPermission(
-                any(ExecutionContext.class),
-                eq(RolePermission.API_LOG),
-                eq(API),
-                any(RolePermissionAction[].class)
-            )
-        ).thenReturn(false);
+            permissionService.hasPermission(any(ExecutionContext.class), eq(permission), eq(API), eq(RolePermissionAction.READ))
+        ).thenReturn(true);
+    }
+
+    private void withoutPlanOrLogPermission() {
+        withoutPermission(RolePermission.API_PLAN);
+        withoutPermission(RolePermission.API_LOG);
     }
 
     private static io.gravitee.rest.api.model.v4.api.ApiEntity v4Api(DefinitionVersion definitionVersion) {
@@ -257,6 +601,16 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         api.setId(API);
         api.setDefinitionVersion(definitionVersion);
         return api;
+    }
+
+    private void mockReadableV2Api() {
+        ApiEntity v2Api = readableV2Api();
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(v2Api);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(v2Api);
+    }
+
+    private WebTarget planTarget() {
+        return envTarget().path(API).path("plans").path(PLAN);
     }
 
     private static ApiEntity readableV2Api() {
