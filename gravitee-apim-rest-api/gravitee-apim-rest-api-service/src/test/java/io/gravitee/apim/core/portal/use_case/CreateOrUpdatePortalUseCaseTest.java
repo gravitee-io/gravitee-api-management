@@ -32,6 +32,7 @@ import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.ThemeCrudServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
+import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -666,6 +667,52 @@ class CreateOrUpdatePortalUseCaseTest {
         assertThatThrownBy(() -> failingUseCase.execute(inputFor(AUDIT_INFO, PortalFixtures.aPortal()))).hasMessage("portal store is down");
 
         assertThat(failingPortals.storage()).singleElement().extracting(Portal::getId).isEqualTo(DEFAULT_PORTAL_ID);
+    }
+
+    @Test
+    void should_release_the_generated_access_point_when_the_new_portal_cannot_be_stored() {
+        installationAccessQueryService.withPortalHostTemplate(PortalHostTemplate.parse("{portal-slug}.portals.acme.io"));
+        var failingUseCase = aUseCase(failingToCreate(), () -> false);
+
+        assertThatThrownBy(() -> failingUseCase.execute(inputFor(AUDIT_INFO, PortalFixtures.aPortal()))).hasMessage("portal store is down");
+
+        assertThat(addresses.accessPoints().storage()).isEmpty();
+    }
+
+    @Test
+    void should_keep_the_access_point_of_the_default_portal_when_its_replacement_cannot_be_stored() {
+        installationAccessQueryService.withPortalHostTemplate(PortalHostTemplate.parse("{portal-slug}.portals.acme.io"));
+        var failingPortals = failingToCreate();
+        failingPortals.initWith(List.of(aDefaultPortal()));
+        var failingUseCase = aUseCase(failingPortals, () -> false);
+        addresses
+            .accessPoints()
+            .initWith(
+                List.of(
+                    AccessPoint.builder()
+                        .id(PortalFixtures.PORTAL_ACCESS_POINT_ID)
+                        .referenceType(AccessPoint.ReferenceType.ENVIRONMENT)
+                        .referenceId(AUDIT_INFO.environmentId())
+                        .target(AccessPoint.Target.PORTAL_INSTANCE)
+                        .host("portal.acme.io")
+                        .build()
+                )
+            );
+
+        assertThatThrownBy(() -> failingUseCase.execute(inputFor(AUDIT_INFO, PortalFixtures.aPortal()))).hasMessage("portal store is down");
+
+        assertThat(addresses.accessPoints().storage())
+            .extracting(AccessPoint::getId)
+            .containsExactly(PortalFixtures.PORTAL_ACCESS_POINT_ID);
+    }
+
+    private static PortalCrudServiceInMemory failingToCreate() {
+        return new PortalCrudServiceInMemory() {
+            @Override
+            public Portal create(Portal portal) {
+                throw new IllegalStateException("portal store is down");
+            }
+        };
     }
 
     @ParameterizedTest

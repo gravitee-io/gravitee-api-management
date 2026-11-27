@@ -170,18 +170,11 @@ public class PortalAddressDomainService {
     public URL validateCustomUrl(@Nullable PortalId portalId, String rawUrl) {
         var url = parseCustomUrl(rawUrl);
         var host = PortalHost.of(url);
-        // Like a generated host, a custom one must not shadow a console, an API or another portal.
+        // Like a generated host, a custom one must not shadow a console, an API or another portal, nor get a second access point.
         var taken = accessPointQueryService
             .findByHost(host.value())
             .stream()
-            .anyMatch(
-                accessPoint ->
-                    accessPoint.getTarget() != AccessPoint.Target.PORTAL_INSTANCE ||
-                    portalCrudService
-                        .findByAccessPointId(accessPoint.getId())
-                        .stream()
-                        .anyMatch(portal -> !portal.getId().equals(portalId))
-            );
+            .anyMatch(accessPoint -> accessPoint.getTarget() != AccessPoint.Target.PORTAL_INSTANCE || !servesOnly(accessPoint, portalId));
         if (taken) {
             throw new ValidationDomainException("Host [%s] is already in use".formatted(host.value()), URL_EXISTS_TECHNICAL_CODE);
         }
@@ -193,12 +186,17 @@ public class PortalAddressDomainService {
         return createAccessPoint(environmentId, customUrl.getProtocol(), PortalHost.of(customUrl).value()).getId();
     }
 
-    /** Deletes the access point of a deleted portal, unless another portal is still served at it. */
-    public void release(Portal deletedPortal) {
-        var accessPointId = deletedPortal.getAccessPointId();
+    /** Deletes the access point of a deleted or never stored portal, unless another portal is served at it. */
+    public void release(Portal portal) {
+        var accessPointId = portal.getAccessPointId();
         if (accessPointId != null && portalCrudService.findByAccessPointId(accessPointId).isEmpty()) {
             accessPointCrudService.delete(accessPointId);
         }
+    }
+
+    private boolean servesOnly(AccessPoint accessPoint, @Nullable PortalId portalId) {
+        var served = portalCrudService.findByAccessPointId(accessPoint.getId());
+        return !served.isEmpty() && served.stream().allMatch(portal -> portal.getId().equals(portalId));
     }
 
     private String sharedAccessPoint(String environmentId, URL environmentUrl) {

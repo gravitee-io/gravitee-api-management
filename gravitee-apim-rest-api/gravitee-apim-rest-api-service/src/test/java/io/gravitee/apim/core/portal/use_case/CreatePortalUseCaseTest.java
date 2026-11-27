@@ -80,7 +80,7 @@ class CreatePortalUseCaseTest {
         .actor(AuditActor.builder().userId("user-id").build())
         .build();
 
-    private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
+    private final FailingPortalCrudService portalCrudService = new FailingPortalCrudService();
     private final InstallationAccessQueryServiceInMemory installationAccessQueryService = new InstallationAccessQueryServiceInMemory();
     private final LicenseManager licenseManager = mock(LicenseManager.class);
     private PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService;
@@ -311,6 +311,27 @@ class CreatePortalUseCaseTest {
     }
 
     @Test
+    void should_release_the_generated_access_point_when_the_portal_cannot_be_stored() {
+        givenDefaultPortal();
+        installationAccessQueryService.withPortalHostTemplate(PortalHostTemplate.parse("{portal-slug}.portals.acme.io"));
+        portalCrudService.failCreating();
+
+        assertThatThrownBy(() -> create("Partners", null)).hasMessage("portal storage unavailable");
+
+        assertThat(addresses.accessPoints().storage()).isEmpty();
+    }
+
+    @Test
+    void should_release_the_custom_access_point_when_the_portal_cannot_be_stored() {
+        givenDefaultPortal();
+        portalCrudService.failCreating();
+
+        assertThatThrownBy(() -> create("Partners", "https://partners.example.com")).hasMessage("portal storage unavailable");
+
+        assertThat(addresses.accessPoints().storage()).isEmpty();
+    }
+
+    @Test
     void should_seed_the_starter_content_of_the_new_portal_and_leave_the_default_portal_unchanged() {
         var defaultPortal = new NavigationItemReference.PortalReference(givenDefaultPortal().getId());
         starterContentDomainService.seed(ORG_ID, ENV_ID, defaultPortal);
@@ -534,6 +555,23 @@ class CreatePortalUseCaseTest {
             .stream()
             .filter(item -> portal.equals(item.getReference()))
             .toList();
+    }
+
+    private static class FailingPortalCrudService extends PortalCrudServiceInMemory {
+
+        private boolean failCreating;
+
+        void failCreating() {
+            failCreating = true;
+        }
+
+        @Override
+        public Portal create(Portal portal) {
+            if (failCreating) {
+                throw new IllegalStateException("portal storage unavailable");
+            }
+            return super.create(portal);
+        }
     }
 
     /** Fails every page content creation after the given number of successful ones. */

@@ -92,8 +92,9 @@ public class CreateOrUpdatePortalUseCase {
         );
         var resolvedActiveThemeId = resolveActiveThemeId(input, existing.map(Portal::getActiveThemeId).orElse(null));
         var portalToSave = existing.orElseGet(() -> newPortal(input));
-        portalToSave.update(input.name(), sanitized.structure(), resolvedActiveThemeId);
-        var saved = existing.isPresent() ? portalCrudService.update(portalToSave) : portalCrudService.create(portalToSave);
+        var saved = existing.isPresent()
+            ? update(portalToSave, input.name(), sanitized.structure(), resolvedActiveThemeId)
+            : createOrRelease(portalToSave, input.name(), sanitized.structure(), resolvedActiveThemeId);
         // Deleted only once the new portal is stored, so a failed creation leaves the environment its default portal,
         // and looked up on every write, so the next one finishes a replacement whose delete failed
         portalAutomationScopeEnforcer
@@ -150,6 +151,26 @@ public class CreateOrUpdatePortalUseCase {
             throw new ValidationDomainException("Portal URL of environment [" + environmentId + "] cannot be resolved");
         }
         return Portal.create(input.portalId(), environmentId, input.auditInfo().organizationId(), input.name(), accessPointId.orElse(null));
+    }
+
+    private Portal update(Portal portal, String name, PortalNavigationStructure structure, String activeThemeId) {
+        portal.update(name, structure, activeThemeId);
+        return portalCrudService.update(portal);
+    }
+
+    /** The access point is stored first: a portal that cannot be stored would otherwise leave its host taken. */
+    private Portal createOrRelease(Portal portal, String name, PortalNavigationStructure structure, String activeThemeId) {
+        try {
+            portal.update(name, structure, activeThemeId);
+            return portalCrudService.create(portal);
+        } catch (RuntimeException creationFailure) {
+            try {
+                portalAddressDomainService.release(portal);
+            } catch (RuntimeException releaseFailure) {
+                creationFailure.addSuppressed(releaseFailure);
+            }
+            throw creationFailure;
+        }
     }
 
     private String resolveActiveThemeId(Input input, String currentActiveThemeId) {

@@ -71,7 +71,7 @@ public class CreatePortalUseCase {
             throw new ValidationDomainException("The environment has no valid portal URL to serve the portal at");
         }
 
-        var created = portalCrudService.create(Portal.createFromConsole(environmentId, organizationId, name, accessPointId.orElse(null)));
+        var created = createOrRelease(Portal.createFromConsole(environmentId, organizationId, name, accessPointId.orElse(null)));
         seedOrUndo(organizationId, environmentId, created);
         return new Output(portalSummaryDomainService.summarize(environmentId, List.of(created)).getFirst());
     }
@@ -97,6 +97,16 @@ public class CreatePortalUseCase {
                 ? "The environment has no default portal yet: set its portal URL first"
                 : "The environment's portals are managed through the Automation API"
         );
+    }
+
+    /** The access point is stored first: a portal that cannot be stored would otherwise leave its host taken. */
+    private Portal createOrRelease(Portal portal) {
+        try {
+            return portalCrudService.create(portal);
+        } catch (RuntimeException creationFailure) {
+            undo(creationFailure, () -> portalAddressDomainService.release(portal));
+            throw creationFailure;
+        }
     }
 
     /**
