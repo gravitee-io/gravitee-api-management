@@ -178,7 +178,7 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
             .organizationId("organization2")
             .name("Console Portal")
             .createdFromConsole(true)
-            .url("https://console-portal.example")
+            .accessPointId("console-portal-access-point")
             .build();
 
         portalRepository.create(toCreate);
