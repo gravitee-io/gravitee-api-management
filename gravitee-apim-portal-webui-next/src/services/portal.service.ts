@@ -60,7 +60,7 @@ export class PortalService {
   }
 
   public getSubscriptionForm(apiId: string): Observable<SubscriptionForm | null> {
-    return this.http.get<SubscriptionForm>(`${this.configService.baseURL}/apis/${apiId}/subscription-form`).pipe(
+    return this.http.get<SubscriptionForm>(`${this.configService.portalBaseURL}/apis/${apiId}/subscription-form`).pipe(
       catchError(err => {
         if (err.status === 404) {
           return of(null);

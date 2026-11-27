@@ -19,22 +19,33 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
+import inmemory.PortalCrudServiceInMemory;
+import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.ApiProductKind;
+import io.gravitee.apim.core.api_product.model.PortalApiProductDetails;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
+import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalApiProductAccessDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -43,10 +54,12 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -58,11 +71,13 @@ class GetPortalApiProductUseCaseTest {
     private static final String NAVIGATION_ITEM_ID = "00000000-0000-0000-0000-000000000102";
     private static final String USER_ID = "user-id";
     private static final String GROUP_ID = "group-id";
+    private static final String ORGANIZATION_ID = PortalNavigationItemFixtures.ORG_ID;
 
     private ApiProductQueryServiceInMemory apiProductQueryService;
     private ApiQueryServiceInMemory apiQueryService;
     private MembershipQueryServiceInMemory membershipQueryService;
     private PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService;
+    private PortalCrudServiceInMemory portalCrudService;
     private GetPortalApiProductUseCase useCase;
 
     @BeforeEach
@@ -91,7 +106,21 @@ class GetPortalApiProductUseCaseTest {
             apiProductVisibilityDomainService,
             apiVisibilityDomainService
         );
-        useCase = new GetPortalApiProductUseCase(portalApiProductAccessDomainService, apiVisibilityDomainService, apiQueryService);
+        portalCrudService = new PortalCrudServiceInMemory();
+        var accessService = new PortalNavigationAccessDomainService(
+            portalCrudService,
+            new ApiCrudServiceInMemory(),
+            navigationItemsQueryService,
+            new PortalPageContentQueryServiceInMemory(),
+            new ApiOwnedNavigationDomainService(navigationItemsQueryService, new PortalNavigationItemsCrudServiceInMemory()),
+            apiQueryService
+        );
+        useCase = new GetPortalApiProductUseCase(
+            accessService,
+            portalApiProductAccessDomainService,
+            apiVisibilityDomainService,
+            apiQueryService
+        );
     }
 
     @Test
@@ -259,6 +288,16 @@ class GetPortalApiProductUseCaseTest {
             .build();
     }
 
+    private static Membership apiMembership(String userId, String apiId) {
+        return Membership.builder()
+            .id("api-membership")
+            .memberId(userId)
+            .memberType(Membership.Type.USER)
+            .referenceType(Membership.ReferenceType.API)
+            .referenceId(apiId)
+            .build();
+    }
+
     private static Membership groupMembership(String userId, String groupId) {
         return Membership.builder()
             .id("group-membership")
@@ -269,7 +308,116 @@ class GetPortalApiProductUseCaseTest {
             .build();
     }
 
+    @Nested
+    class Within_a_portal {
+
+        private PortalId portalA;
+        private PortalId portalB;
+
+        @BeforeEach
+        void two_portals() {
+            portalA = givenPortal(ENVIRONMENT_ID);
+            portalB = givenPortal(ENVIRONMENT_ID);
+        }
+
+        @Test
+        void should_return_api_product_listed_on_the_portal() {
+            var api = api("api-a", "Alpha API", "1.0");
+            var navigationItem = publicApiProductNavigationItem();
+            var apiItem = publicApiNavigationItem(api);
+            navigationItem.changeOwner(new NavigationItemReference.PortalReference(portalB));
+            apiItem.changeOwner(new NavigationItemReference.PortalReference(portalB));
+            givenProductAndNavigation(apiProduct(Set.of(api.getId())), navigationItem, apiItem);
+            apiQueryService.initWith(List.of(api));
+
+            var result = useCase.execute(scopedInput(null, portalB)).apiProduct();
+
+            assertThat(result.id()).isEqualTo(API_PRODUCT_ID);
+            assertThat(result.apis()).extracting(PortalApiProductDetails.ApiSummary::id).containsExactly("api-a");
+        }
+
+        @Test
+        void should_reject_api_product_listed_only_on_another_portal() {
+            var navigationItem = publicApiProductNavigationItem();
+            navigationItem.changeOwner(new NavigationItemReference.PortalReference(portalB));
+            givenProductAndNavigation(apiProduct(Set.of()), navigationItem);
+
+            assertThatThrownBy(() -> useCase.execute(scopedInput(null, portalA))).isInstanceOf(ApiProductNotFoundException.class);
+            assertThatThrownBy(() -> useCase.execute(scopedInput(USER_ID, portalA))).isInstanceOf(ApiProductNotFoundException.class);
+        }
+
+        @Test
+        void should_list_only_the_apis_the_portal_lists() {
+            var onPortal = api("api-a", "Alpha API", "1.0");
+            var elsewhere = api("api-b", "Beta API", "1.0");
+            var navigationItem = publicApiProductNavigationItem();
+            navigationItem.changeOwner(new NavigationItemReference.PortalReference(portalB));
+            var onPortalItem = publicApiNavigationItem(onPortal);
+            onPortalItem.changeOwner(new NavigationItemReference.PortalReference(portalB));
+            var elsewhereItem = PortalNavigationItemFixtures.anApi(
+                PortalNavigationItemId.random().toString(),
+                "Beta API",
+                null,
+                elsewhere.getId()
+            );
+            elsewhereItem.changeOwner(new NavigationItemReference.PortalReference(portalA));
+            givenProductAndNavigation(apiProduct(Set.of(onPortal.getId(), elsewhere.getId())), navigationItem, onPortalItem, elsewhereItem);
+            apiQueryService.initWith(List.of(onPortal, elsewhere));
+
+            var result = useCase.execute(scopedInput(null, portalB)).apiProduct();
+
+            assertThat(result.apis()).extracting(PortalApiProductDetails.ApiSummary::id).containsExactly("api-a");
+        }
+
+        @Test
+        void should_list_a_private_api_of_the_portal_to_a_member_only() {
+            var api = api("api-a", "Alpha API", "1.0");
+            var navigationItem = publicApiProductNavigationItem();
+            navigationItem.changeOwner(new NavigationItemReference.PortalReference(portalB));
+            var apiItem = publicApiNavigationItem(api);
+            apiItem.changeOwner(new NavigationItemReference.PortalReference(portalB));
+            apiItem.setVisibility(PortalVisibility.PRIVATE);
+            givenProductAndNavigation(apiProduct(Set.of(api.getId())), navigationItem, apiItem);
+            apiQueryService.initWith(List.of(api));
+
+            assertThat(useCase.execute(scopedInput(USER_ID, portalB)).apiProduct().apis()).isEmpty();
+
+            membershipQueryService.initWith(List.of(apiMembership(USER_ID, api.getId())));
+
+            assertThat(useCase.execute(scopedInput(USER_ID, portalB)).apiProduct().apis())
+                .extracting(PortalApiProductDetails.ApiSummary::id)
+                .containsExactly("api-a");
+        }
+
+        @Test
+        void should_throw_portal_not_found_for_an_unknown_portal() {
+            givenProductAndNavigation(apiProduct(Set.of()), publicApiProductNavigationItem());
+
+            assertThatThrownBy(() -> useCase.execute(scopedInput(null, PortalId.random()))).isInstanceOf(PortalNotFoundException.class);
+        }
+
+        private GetPortalApiProductUseCase.Input scopedInput(String userId, PortalId portalId) {
+            return new GetPortalApiProductUseCase.Input(
+                ENVIRONMENT_ID,
+                ORGANIZATION_ID,
+                API_PRODUCT_ID,
+                PortalNavigationItemViewerContext.forPortal(userId),
+                Optional.of(portalId)
+            );
+        }
+    }
+
+    private PortalId givenPortal(String environmentId) {
+        return portalCrudService.create(Portal.create(environmentId, ORGANIZATION_ID, "Portal", "portal-access-point")).getId();
+    }
+
     private static GetPortalApiProductUseCase.Input input(String userId) {
-        return new GetPortalApiProductUseCase.Input(ENVIRONMENT_ID, API_PRODUCT_ID, PortalNavigationItemViewerContext.forPortal(userId));
+        return new GetPortalApiProductUseCase.Input(
+            ENVIRONMENT_ID,
+            ORGANIZATION_ID,
+            API_PRODUCT_ID,
+            PortalNavigationItemViewerContext.forPortal(userId),
+            Optional.empty()
+        );
     }
 }

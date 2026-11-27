@@ -21,9 +21,14 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PlanFixtures;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
+import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.PortalApiProductPlanDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDomainService;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -40,6 +45,11 @@ class GetPortalApiProductPlansUseCaseTest {
     private static final String API_PRODUCT_ID = "api-product-id";
     private static final PortalNavigationItemViewerContext VIEWER_CONTEXT = PortalNavigationItemViewerContext.forPortal("user-id");
 
+    private static final String ORGANIZATION_ID = "organization-id";
+
+    @Mock
+    private PortalNavigationAccessDomainService accessService;
+
     @Mock
     private PortalApiProductPlanDomainService portalApiProductPlanDomainService;
 
@@ -47,7 +57,7 @@ class GetPortalApiProductPlansUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new GetPortalApiProductPlansUseCase(portalApiProductPlanDomainService);
+        useCase = new GetPortalApiProductPlansUseCase(accessService, portalApiProductPlanDomainService);
     }
 
     @Test
@@ -55,9 +65,9 @@ class GetPortalApiProductPlansUseCaseTest {
         var first = PlanFixtures.HttpV4.anApiKey().toBuilder().id("plan-1").order(1).build();
         var second = PlanFixtures.HttpV4.anApiKey().toBuilder().id("plan-2").order(2).build();
         var input = input();
-        when(portalApiProductPlanDomainService.findAccessiblePlans(ENVIRONMENT_ID, API_PRODUCT_ID, VIEWER_CONTEXT)).thenReturn(
-            List.of(first, second)
-        );
+        when(
+            portalApiProductPlanDomainService.findAccessiblePlans(ENVIRONMENT_ID, API_PRODUCT_ID, VIEWER_CONTEXT, Optional.empty())
+        ).thenReturn(List.of(first, second));
 
         var output = useCase.execute(input);
 
@@ -67,14 +77,54 @@ class GetPortalApiProductPlansUseCaseTest {
     @Test
     void should_not_load_plans_when_api_product_is_inaccessible() {
         var input = input();
-        when(portalApiProductPlanDomainService.findAccessiblePlans(ENVIRONMENT_ID, API_PRODUCT_ID, VIEWER_CONTEXT)).thenThrow(
-            new ApiProductNotFoundException(API_PRODUCT_ID)
-        );
+        when(
+            portalApiProductPlanDomainService.findAccessiblePlans(ENVIRONMENT_ID, API_PRODUCT_ID, VIEWER_CONTEXT, Optional.empty())
+        ).thenThrow(new ApiProductNotFoundException(API_PRODUCT_ID));
 
         assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(ApiProductNotFoundException.class);
     }
 
+    @Test
+    void should_look_up_plans_within_the_given_portal() {
+        var portalId = PortalId.random();
+        var portal = new NavigationItemReference.PortalReference(portalId);
+        var plan = PlanFixtures.HttpV4.anApiKey().toBuilder().id("plan-1").build();
+        when(accessService.resolveScope(ORGANIZATION_ID, ENVIRONMENT_ID, Optional.of(portalId))).thenReturn(portal);
+        when(
+            portalApiProductPlanDomainService.findAccessiblePlans(ENVIRONMENT_ID, API_PRODUCT_ID, VIEWER_CONTEXT, Optional.of(portal))
+        ).thenReturn(List.of(plan));
+
+        var output = useCase.execute(
+            new GetPortalApiProductPlansUseCase.Input(
+                ENVIRONMENT_ID,
+                ORGANIZATION_ID,
+                API_PRODUCT_ID,
+                VIEWER_CONTEXT,
+                Optional.of(portalId)
+            )
+        );
+
+        assertThat(output.plans()).containsExactly(plan);
+    }
+
+    @Test
+    void should_reject_an_unknown_portal() {
+        var portalId = PortalId.random();
+        when(accessService.resolveScope(ORGANIZATION_ID, ENVIRONMENT_ID, Optional.of(portalId))).thenThrow(
+            new PortalNotFoundException(portalId.toString())
+        );
+        var input = new GetPortalApiProductPlansUseCase.Input(
+            ENVIRONMENT_ID,
+            ORGANIZATION_ID,
+            API_PRODUCT_ID,
+            VIEWER_CONTEXT,
+            Optional.of(portalId)
+        );
+
+        assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(PortalNotFoundException.class);
+    }
+
     private static GetPortalApiProductPlansUseCase.Input input() {
-        return new GetPortalApiProductPlansUseCase.Input(ENVIRONMENT_ID, API_PRODUCT_ID, VIEWER_CONTEXT);
+        return new GetPortalApiProductPlansUseCase.Input(ENVIRONMENT_ID, ORGANIZATION_ID, API_PRODUCT_ID, VIEWER_CONTEXT, Optional.empty());
     }
 }

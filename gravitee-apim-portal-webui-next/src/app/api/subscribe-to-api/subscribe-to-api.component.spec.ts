@@ -48,7 +48,7 @@ import {
   SubscriptionsResponse,
 } from '../../../entities/subscription';
 import { ConfigService } from '../../../services/config.service';
-import { AppTestingModule, TESTING_BASE_URL } from '../../../testing/app-testing.module';
+import { AppTestingModule, TESTING_BASE_URL, TESTING_PORTAL_BASE_URL } from '../../../testing/app-testing.module';
 
 describe('SubscribeToApiComponent', () => {
   let fixture: ComponentFixture<SubscribeToApiComponent>;
@@ -82,6 +82,7 @@ describe('SubscribeToApiComponent', () => {
           provide: ConfigService,
           useValue: {
             baseURL: TESTING_BASE_URL,
+            portalBaseURL: TESTING_PORTAL_BASE_URL,
             configuration: {
               plan: {
                 security: {
@@ -106,7 +107,7 @@ describe('SubscribeToApiComponent', () => {
     fixture.detectChanges();
 
     expectGetSubscriptionForm(subscriptionForm);
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/${API_ID}/plans?size=-1`).flush({
+    httpTestingController.expectOne(`${TESTING_PORTAL_BASE_URL}/apis/${API_ID}/plans?size=-1`).flush({
       data: [
         fakePlan({ id: KEYLESS_PLAN_ID, security: 'KEY_LESS' }),
         fakePlan({ id: API_KEY_PLAN_ID, security: 'API_KEY', comment_required: false, general_conditions: undefined }),
@@ -1241,7 +1242,7 @@ describe('SubscribeToApiComponent', () => {
   }
 
   function expectGetSubscriptionForm(subscriptionForm: SubscriptionForm | null) {
-    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/${API_ID}/subscription-form`);
+    const req = httpTestingController.expectOne(`${TESTING_PORTAL_BASE_URL}/apis/${API_ID}/subscription-form`);
     if (subscriptionForm) {
       req.flush(subscriptionForm);
     } else {
@@ -1250,7 +1251,7 @@ describe('SubscribeToApiComponent', () => {
   }
 
   function expectPostCreateSubscription(expectedCreateSubscription: CreateSubscription, response: Subscription = fakeSubscription()) {
-    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/subscriptions`);
+    const req = httpTestingController.expectOne(`${TESTING_PORTAL_BASE_URL}/subscriptions`);
 
     expect(req.request.body).toEqual(expectedCreateSubscription);
     req.flush(response);

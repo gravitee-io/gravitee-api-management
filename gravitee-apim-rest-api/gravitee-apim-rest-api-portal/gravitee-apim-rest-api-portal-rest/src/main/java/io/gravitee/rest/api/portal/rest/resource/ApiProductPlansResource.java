@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static io.gravitee.rest.api.service.common.GraviteeContext.getExecutionContext;
 
 import io.gravitee.apim.core.plan.use_case.GetPortalApiProductPlansUseCase;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.portal.rest.mapper.ApiProductPlanMapper;
@@ -29,6 +30,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
+import java.util.Optional;
 import java.util.UUID;
 
 public class ApiProductPlansResource extends AbstractResource {
@@ -42,9 +44,23 @@ public class ApiProductPlansResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response getApiProductPlans(@PathParam("apiProductId") UUID apiProductId, @BeanParam PaginationParam paginationParam) {
+        return getPlans(apiProductId, paginationParam, Optional.empty());
+    }
+
+    /**
+     * @param portalId the portal that must list the API product; empty on the unscoped path, where a listing on any portal of the
+     *                 environment does
+     */
+    Response getPlans(UUID apiProductId, PaginationParam paginationParam, Optional<PortalId> portalId) {
         var executionContext = getExecutionContext();
         var output = getPortalApiProductPlansUseCase.execute(
-            new GetPortalApiProductPlansUseCase.Input(executionContext.getEnvironmentId(), apiProductId.toString(), viewerContext())
+            new GetPortalApiProductPlansUseCase.Input(
+                executionContext.getEnvironmentId(),
+                executionContext.getOrganizationId(),
+                apiProductId.toString(),
+                viewerContext(),
+                portalId
+            )
         );
         var plans = output.plans().stream().map(apiProductPlanMapper::map).toList();
 

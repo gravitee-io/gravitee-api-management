@@ -25,7 +25,7 @@ import {
   SubscriptionsResponse,
   SubscriptionStatusEnum,
 } from '../entities/subscription';
-import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
+import { AppTestingModule, TESTING_BASE_URL, TESTING_PORTAL_BASE_URL } from '../testing/app-testing.module';
 
 describe('SubscriptionService', () => {
   let service: SubscriptionService;
@@ -126,6 +126,21 @@ describe('SubscriptionService', () => {
       `${TESTING_BASE_URL}/subscriptions/${subscription.id}?include=keys&include=consumerConfiguration&include=apiProduct`,
     );
     expect(req.request.method).toEqual('GET');
+    req.flush(subscription);
+  });
+
+  it('should subscribe through the portal', done => {
+    const subscription = fakeSubscription();
+
+    service.subscribe({ application: 'application-id', plan: 'plan-id' }).subscribe(response => {
+      expect(response).toEqual(subscription);
+      done();
+    });
+
+    const req = httpTestingController.expectOne(`${TESTING_PORTAL_BASE_URL}/subscriptions`);
+    expect(req.request.method).toEqual('POST');
+    expect(req.request.body).toEqual({ application: 'application-id', plan: 'plan-id' });
+
     req.flush(subscription);
   });
 

@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.security.config;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -29,6 +30,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -44,6 +46,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 class BasicSecurityConfigurerAdapterTest extends AbstractSecurityConfigurerAdapterTest {
 
     private static final String API_PATH = "/environments/DEFAULT/apis/my-api";
+    private static final String PORTAL_PATH = "/environments/DEFAULT/portal/6c2b1e9e-0000-4000-8000-000000000000";
 
     @Autowired
     private EnvironmentService environmentService;
@@ -71,6 +74,30 @@ class BasicSecurityConfigurerAdapterTest extends AbstractSecurityConfigurerAdapt
     @Test
     void should_leave_other_paths_unchanged_with_a_trailing_slash() throws Exception {
         mockMvc.perform(get(API_PATH + "/metrics/")).andExpect(status().isNotFound());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "", "/plans", "/subscription-form" })
+    void should_let_anonymous_users_read_an_api_page_on_a_portal(String subPath) throws Exception {
+        mockMvc.perform(get(PORTAL_PATH + "/apis/my-api" + subPath)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void should_require_authentication_to_read_an_api_product_on_a_portal() throws Exception {
+        mockMvc.perform(get(PORTAL_PATH + "/api-products/my-api-product")).andExpect(status().isUnauthorized());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "/subscribers", "/subscribers/" })
+    void should_require_authentication_to_read_the_subscribers_of_an_api_on_a_portal(String subscribersPath) throws Exception {
+        mockMvc.perform(get(PORTAL_PATH + "/apis/my-api" + subscribersPath)).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void should_require_authentication_to_subscribe_on_a_portal() throws Exception {
+        mockMvc
+            .perform(post(PORTAL_PATH + "/subscriptions").contentType(MediaType.APPLICATION_JSON).content("{}"))
+            .andExpect(status().isUnauthorized());
     }
 
     @Configuration
