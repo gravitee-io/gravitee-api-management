@@ -17,6 +17,9 @@ package io.gravitee.apim.core.portal.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import inmemory.InstallationAccessQueryServiceInMemory;
+import inmemory.PortalAddressDomainServiceInMemory;
+import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
 import io.gravitee.apim.core.portal.model.Portal;
@@ -33,11 +36,8 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.core.theme.model.ThemeType;
-import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -63,7 +63,8 @@ class PortalSummaryDomainServiceTest {
         navigationItems.clear();
         cut = new PortalSummaryDomainService(
             new PortalLogoDomainService(themeQueryService),
-            new PortalNavigationItemsQueryServiceInMemory(navigationItems)
+            new PortalNavigationItemsQueryServiceInMemory(navigationItems),
+            new PortalAddressDomainServiceInMemory(new PortalCrudServiceInMemory(), new InstallationAccessQueryServiceInMemory())
         );
     }
 
@@ -228,16 +229,7 @@ class PortalSummaryDomainServiceTest {
     }
 
     private static Portal portal(PortalId id, boolean defaultPortal) {
-        return Portal.of(
-            id,
-            ENV_ID,
-            ORG_ID,
-            "Portal " + id,
-            PortalNavigationStructure.empty(),
-            null,
-            defaultPortal,
-            url("https://partners.acme.io")
-        );
+        return Portal.of(id, ENV_ID, ORG_ID, "Portal " + id, PortalNavigationStructure.empty(), null, defaultPortal, "portal-access-point");
     }
 
     private static PortalNavigationApi api(
@@ -304,10 +296,5 @@ class PortalSummaryDomainServiceTest {
             .enabled(enabled)
             .logo(logo)
             .build();
-    }
-
-    @SneakyThrows
-    private static URL url(String value) {
-        return URI.create(value).toURL();
     }
 }

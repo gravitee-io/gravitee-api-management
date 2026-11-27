@@ -43,8 +43,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import java.net.URI;
-import java.net.URL;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -102,11 +100,6 @@ class PortalReferencesUpgraderTest {
         when(environmentRepository.findAll()).thenReturn(new LinkedHashSet<>(List.of(environments)));
     }
 
-    @SneakyThrows
-    private static URL portalUrl() {
-        return URI.create("https://portal.acme.io/next").toURL();
-    }
-
     private void givenPortal(PortalId id, Environment environment, boolean defaultPortal) {
         portalCrudService.create(
             Portal.of(
@@ -117,7 +110,7 @@ class PortalReferencesUpgraderTest {
                 PortalNavigationStructure.empty(),
                 null,
                 defaultPortal,
-                portalUrl()
+                "portal-access-point"
             )
         );
     }

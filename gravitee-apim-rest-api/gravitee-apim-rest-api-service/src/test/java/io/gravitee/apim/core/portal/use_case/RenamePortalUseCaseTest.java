@@ -24,6 +24,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+import inmemory.InstallationAccessQueryServiceInMemory;
+import inmemory.PortalAddressDomainServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
@@ -33,9 +35,7 @@ import io.gravitee.apim.core.portal.domain_service.PortalNameDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalSummaryDomainService;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.Portal;
-import java.net.URI;
 import java.util.List;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -50,7 +50,8 @@ class RenamePortalUseCaseTest {
         new PortalNameDomainService(portalCrudService),
         new PortalSummaryDomainService(
             new PortalLogoDomainService(new ThemeQueryServiceInMemory()),
-            new PortalNavigationItemsQueryServiceInMemory()
+            new PortalNavigationItemsQueryServiceInMemory(),
+            new PortalAddressDomainServiceInMemory(portalCrudService, new InstallationAccessQueryServiceInMemory())
         )
     );
 
@@ -135,8 +136,7 @@ class RenamePortalUseCaseTest {
         return portal;
     }
 
-    @SneakyThrows
     private static Portal portal(String name) {
-        return Portal.create(ENVIRONMENT, "organization", name, URI.create("https://partners.example.org").toURL());
+        return Portal.create(ENVIRONMENT, "organization", name, "partners-access-point");
     }
 }

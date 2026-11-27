@@ -148,7 +148,7 @@ public class EnvironmentCommandHandlerTest {
         // ParameterService memoizes portal.url per thread by key only: simulate the value read for env X
         doAnswer(invocation -> GraviteeContext.getCurrentParameters().put(Key.PORTAL_URL, "https://x.acme.io"))
             .when(defaultPortalDomainService)
-            .syncUrl("env-x");
+            .linkUnlinkedPortals("env-x");
         var memoizedWhenHandlingY = new AtomicReference<String>();
         doAnswer(invocation -> {
             memoizedWhenHandlingY.set(GraviteeContext.getCurrentParameters().get(Key.PORTAL_URL));
@@ -190,7 +190,7 @@ public class EnvironmentCommandHandlerTest {
 
     @Test
     @SneakyThrows
-    void should_succeed_and_sync_the_url_when_the_environment_has_several_portals() {
+    void should_succeed_and_link_unlinked_portals_when_the_environment_has_several_portals() {
         when(defaultPortalDomainService.ensureDefault("orga#1", "env-multi")).thenThrow(
             new SeveralPortalsInEnvironmentException("env-multi", List.of("[p1] \"One\"", "[p2] \"Two\""))
         );
@@ -203,7 +203,7 @@ public class EnvironmentCommandHandlerTest {
 
         obs.await();
         obs.assertValue(reply -> reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
-        verify(defaultPortalDomainService).syncUrl("env-multi");
+        verify(defaultPortalDomainService).linkUnlinkedPortals("env-multi");
         verify(createDefaultPortalNavigationItemsUseCase).execute("orga#1", "env-multi");
     }
 
@@ -219,7 +219,7 @@ public class EnvironmentCommandHandlerTest {
 
     @Test
     @SneakyThrows
-    void should_ensure_default_portal_and_sync_url_after_updating_access_points() {
+    void should_ensure_default_portal_and_link_unlinked_portals_after_updating_access_points() {
         String envId = "env#1";
         String orgId = "orga#1";
         EnvironmentCommandPayload environmentPayload = EnvironmentCommandPayload.builder()
@@ -243,7 +243,7 @@ public class EnvironmentCommandHandlerTest {
         var inOrder = inOrder(accessPointService, defaultPortalDomainService);
         inOrder.verify(accessPointService).updateAccessPoints(any(), eq(envId), any());
         inOrder.verify(defaultPortalDomainService).ensureDefault(orgId, envId);
-        inOrder.verify(defaultPortalDomainService).syncUrl(envId);
+        inOrder.verify(defaultPortalDomainService).linkUnlinkedPortals(envId);
     }
 
     @Test

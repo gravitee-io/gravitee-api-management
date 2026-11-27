@@ -121,7 +121,7 @@ class GetPortalLogoUseCaseTest {
             PortalNavigationStructure.empty(),
             null,
             true,
-            URI.create("https://portal.acme.io").toURL()
+            "portal-access-point"
         );
         portalCrudService.initWith(List.of(portal));
         return portal;

@@ -35,5 +35,8 @@ public interface PortalCrudService {
 
     List<Portal> findByActiveThemeIdAndEnvironmentId(String activeThemeId, String environmentId);
 
+    /** @return the portals served at this access point */
+    List<Portal> findByAccessPointId(String accessPointId);
+
     void delete(PortalId portalId);
 }

@@ -208,6 +208,30 @@ class AccessPointCrudServiceImplTest {
     }
 
     @Nested
+    class Create {
+
+        @Test
+        void should_store_a_created_access_point_with_a_generated_id_and_publish_it() throws Exception {
+            when(accessPointRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            var created = service.create(
+                AccessPoint.builder()
+                    .referenceType(AccessPoint.ReferenceType.ENVIRONMENT)
+                    .referenceId("env-id")
+                    .target(AccessPoint.Target.PORTAL_INSTANCE)
+                    .host("partners.acme.io")
+                    .secured(true)
+                    .build()
+            );
+
+            assertThat(created.getId()).isEqualTo("random-id");
+            assertThat(created.getTarget()).isEqualTo(AccessPoint.Target.PORTAL_INSTANCE);
+            verify(accessPointRepository).create(argThat(stored -> stored.getStatus() == AccessPointStatus.CREATED));
+            verify(eventManager).publishEvent(eq(AccessPointEvent.CREATED), any());
+        }
+    }
+
+    @Nested
     class UpdateAccessPoints {
 
         @ParameterizedTest

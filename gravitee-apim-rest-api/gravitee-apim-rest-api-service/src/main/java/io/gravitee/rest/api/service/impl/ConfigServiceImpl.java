@@ -28,6 +28,7 @@ import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalAddressDomainService;
 import io.gravitee.apim.core.portal.exception.SeveralPortalsInEnvironmentException;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -50,6 +51,7 @@ import io.gravitee.rest.api.service.NewsletterService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.ReCaptchaService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.validator.SenderSettingsValidator;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -97,6 +99,10 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     @Lazy
     @Autowired
     private DefaultPortalDomainService defaultPortalDomainService;
+
+    @Lazy
+    @Autowired
+    private PortalAddressDomainService portalAddressDomainService;
 
     private static final String SENSITIVE_VALUE = "********";
 
@@ -398,9 +404,13 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
         );
         validateSenderSettings(portalSettingsEntity.getEmail(), storedEmail, false);
         Object[] objects = getObjectArray(portalSettingsEntity);
+        var previousPortalUrl = portalAddressDomainService.portalUrl(executionContext.getEnvironmentId());
         saveConfigByReference(executionContext, objects, executionContext.getEnvironmentId(), ParameterReferenceType.ENVIRONMENT);
+        // ParameterService memoizes each key for the request: forget the portal URL read above, so the saved one is resolved.
+        GraviteeContext.getCurrentParameters().remove(Key.PORTAL_URL);
         ensureDefaultPortal(executionContext);
-        defaultPortalDomainService.syncUrl(executionContext.getEnvironmentId());
+        portalAddressDomainService.followPortalUrl(executionContext.getEnvironmentId(), previousPortalUrl);
+        defaultPortalDomainService.linkUnlinkedPortals(executionContext.getEnvironmentId());
     }
 
     /**

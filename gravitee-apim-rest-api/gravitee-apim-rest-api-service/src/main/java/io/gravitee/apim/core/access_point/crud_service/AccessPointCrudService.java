@@ -25,4 +25,8 @@ public interface AccessPointCrudService {
 
     /** Deletes the access points of this reference, except those a portal is served at. */
     void deleteUnreferencedAccessPoints(final AccessPoint.ReferenceType referenceType, String referenceId);
+
+    AccessPoint create(AccessPoint accessPoint);
+
+    void delete(String accessPointId);
 }

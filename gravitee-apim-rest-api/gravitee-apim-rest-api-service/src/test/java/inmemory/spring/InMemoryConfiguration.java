@@ -183,6 +183,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public AccessPointCrudServiceInMemory accessPointCrudService(AccessPointQueryServiceInMemory accessPointQueryService) {
+        return new AccessPointCrudServiceInMemory(accessPointQueryService);
+    }
+
+    @Bean
     public InstallationAccessQueryServiceInMemory installationAccessService() {
         return new InstallationAccessQueryServiceInMemory();
     }

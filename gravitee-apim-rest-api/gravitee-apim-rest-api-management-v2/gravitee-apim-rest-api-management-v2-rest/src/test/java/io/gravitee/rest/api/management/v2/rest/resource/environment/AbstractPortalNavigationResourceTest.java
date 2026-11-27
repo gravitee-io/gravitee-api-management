@@ -22,7 +22,6 @@ import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import jakarta.inject.Inject;
-import java.net.URI;
 import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
@@ -50,7 +49,7 @@ abstract class AbstractPortalNavigationResourceTest extends AbstractResourceTest
                     PortalNavigationStructure.empty(),
                     null,
                     true,
-                    URI.create("https://portal.example.com/next").toURL()
+                    "portal-access-point"
                 )
             )
         );

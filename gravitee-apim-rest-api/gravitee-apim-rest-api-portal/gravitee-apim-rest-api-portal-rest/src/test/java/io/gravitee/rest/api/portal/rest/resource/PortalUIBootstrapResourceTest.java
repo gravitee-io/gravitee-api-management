@@ -29,12 +29,9 @@ import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.client.WebTarget;
-import java.net.URI;
-import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import lombok.SneakyThrows;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.AfterEach;
@@ -47,6 +44,7 @@ class PortalUIBootstrapResourceTest extends AbstractResourceTest {
     private static final String ORG_ID = "DEFAULT";
     private static final String ENVIRONMENT = "DEFAULT";
     private static final String OTHER_ENV_ID = "env-2";
+    private static final String ACCESS_POINT_ID = "portal-access-point";
     private static final String PORTAL_API_URL = "https://api.acme.io/portal";
     private static final PortalId DEFAULT_ENV_PORTAL_ID = PortalId.of("11111111-1111-1111-1111-111111111111");
     private static final String REQUEST_URL = "https://apim.acme.io/portal/ui/bootstrap";
@@ -152,7 +150,7 @@ class PortalUIBootstrapResourceTest extends AbstractResourceTest {
                     PortalNavigationStructure.empty(),
                     null,
                     false,
-                    url()
+                    ACCESS_POINT_ID
                 )
             )
         );
@@ -184,11 +182,6 @@ class PortalUIBootstrapResourceTest extends AbstractResourceTest {
     }
 
     private static Portal aDefaultPortal(PortalId id, String environmentId) {
-        return Portal.of(id, environmentId, ORG_ID, "Developer Portal", PortalNavigationStructure.empty(), null, true, url());
-    }
-
-    @SneakyThrows
-    private static URL url() {
-        return URI.create("https://portal.acme.io/next").toURL();
+        return Portal.of(id, environmentId, ORG_ID, "Developer Portal", PortalNavigationStructure.empty(), null, true, ACCESS_POINT_ID);
     }
 }

@@ -95,7 +95,7 @@ class ApiDocumentationNavigationResource_PublishPortalsTest extends AbstractReso
             "Partners"
         );
         var developer = portalCrudService.create(
-            Portal.createDefault(ENVIRONMENT, ORGANIZATION, "Developer Portal", PortalFixtures.PORTAL_URL)
+            Portal.createDefault(ENVIRONMENT, ORGANIZATION, "Developer Portal", PortalFixtures.PORTAL_ACCESS_POINT_ID)
         );
 
         Response response = rootTarget().request().get();
@@ -114,9 +114,9 @@ class ApiDocumentationNavigationResource_PublishPortalsTest extends AbstractReso
     @Test
     void should_not_list_the_portals_managed_through_the_automation_api() {
         var developer = portalCrudService.create(
-            Portal.createDefault(ENVIRONMENT, ORGANIZATION, "Developer Portal", PortalFixtures.PORTAL_URL)
+            Portal.createDefault(ENVIRONMENT, ORGANIZATION, "Developer Portal", PortalFixtures.PORTAL_ACCESS_POINT_ID)
         );
-        portalCrudService.create(Portal.create(ENVIRONMENT, ORGANIZATION, "Automation Portal", PortalFixtures.PORTAL_URL));
+        portalCrudService.create(Portal.create(ENVIRONMENT, ORGANIZATION, "Automation Portal", PortalFixtures.PORTAL_ACCESS_POINT_ID));
 
         Response response = rootTarget().request().get();
 
@@ -132,7 +132,9 @@ class ApiDocumentationNavigationResource_PublishPortalsTest extends AbstractReso
 
     @Test
     void should_not_expose_any_other_field_of_a_portal() {
-        portalCrudService.create(Portal.createDefault(ENVIRONMENT, ORGANIZATION, "Developer Portal", PortalFixtures.PORTAL_URL));
+        portalCrudService.create(
+            Portal.createDefault(ENVIRONMENT, ORGANIZATION, "Developer Portal", PortalFixtures.PORTAL_ACCESS_POINT_ID)
+        );
 
         Response response = rootTarget().request().get();
 

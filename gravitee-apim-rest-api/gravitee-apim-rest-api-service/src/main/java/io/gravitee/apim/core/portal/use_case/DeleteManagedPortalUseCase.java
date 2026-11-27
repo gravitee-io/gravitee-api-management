@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
+import io.gravitee.apim.core.portal.domain_service.PortalAddressDomainService;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_listing.crud_service.PortalListingCrudService;
@@ -54,6 +55,7 @@ public class DeleteManagedPortalUseCase {
     private final PortalPageContentQueryService contentQuery;
     private final ApiOwnedNavigationDomainService apiNavigation;
     private final PortalListingCrudService listings;
+    private final PortalAddressDomainService addresses;
 
     public record Input(String environmentId, PortalId portalId) {}
 
@@ -224,5 +226,6 @@ public class DeleteManagedPortalUseCase {
             .findAllByPortalIdAndEnvironmentId(input.portalId(), input.environmentId())
             .forEach(listing -> listings.delete(listing.getId()));
         portals.delete(input.portalId());
+        addresses.release(portal);
     }
 }

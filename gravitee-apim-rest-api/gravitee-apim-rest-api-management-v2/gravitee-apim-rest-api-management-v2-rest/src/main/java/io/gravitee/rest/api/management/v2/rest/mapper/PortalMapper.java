@@ -37,7 +37,7 @@ public interface PortalMapper {
         return new Portal()
             .id(portal.getId().id())
             .name(portal.getName())
-            .url(portal.getUrl().toString())
+            .url(summary.url() == null ? null : summary.url().toString())
             ._default(portal.isDefault())
             .logoUrl(summary.hasLogo() ? ManagementApiLinkHelper.portalLogoURL(uriInfo.getBaseUriBuilder(), portal.getId()) : null)
             .publishedApisCount(summary.publishedApisCount());

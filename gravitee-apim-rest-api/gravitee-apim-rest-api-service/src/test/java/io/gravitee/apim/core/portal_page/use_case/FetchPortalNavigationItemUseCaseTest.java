@@ -49,7 +49,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -93,7 +92,7 @@ class FetchPortalNavigationItemUseCaseTest {
                     PortalNavigationStructure.empty(),
                     null,
                     true,
-                    URI.create(NavigationPortalDomainServiceInMemory.PORTAL_URL).toURL()
+                    "portal-access-point"
                 )
             );
 

@@ -35,7 +35,6 @@ import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.SubscriptionSearchQueryServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
-import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
@@ -772,11 +771,6 @@ public class ResourceContextConfiguration {
     @Bean
     public CategoryDomainService categoryDomainService() {
         return mock(CategoryDomainService.class);
-    }
-
-    @Bean
-    public AccessPointQueryService accessPointQueryService() {
-        return mock(AccessPointQueryService.class);
     }
 
     @Bean

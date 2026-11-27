@@ -17,6 +17,8 @@ package io.gravitee.apim.core.portal.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import inmemory.InstallationAccessQueryServiceInMemory;
+import inmemory.PortalAddressDomainServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
@@ -27,7 +29,6 @@ import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.model.PortalSummary;
 import io.gravitee.rest.api.model.common.PageableImpl;
-import java.net.URI;
 import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,7 +56,8 @@ class ListPortalsUseCaseTest {
             portalCrudService,
             new PortalSummaryDomainService(
                 new PortalLogoDomainService(new ThemeQueryServiceInMemory()),
-                new PortalNavigationItemsQueryServiceInMemory()
+                new PortalNavigationItemsQueryServiceInMemory(),
+                new PortalAddressDomainServiceInMemory(portalCrudService, new InstallationAccessQueryServiceInMemory())
             )
         );
     }
@@ -153,7 +155,7 @@ class ListPortalsUseCaseTest {
             PortalNavigationStructure.empty(),
             null,
             defaultPortal,
-            URI.create("https://portal.acme.io").toURL()
+            "portal-access-point"
         );
     }
 }

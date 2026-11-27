@@ -19,10 +19,10 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
+import io.gravitee.apim.core.portal.domain_service.PortalAddressDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalNameDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalQuotaDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalSummaryDomainService;
-import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.exception.PortalLimitReachedException;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalSummary;
@@ -30,7 +30,6 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalStarterContentDoma
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import jakarta.annotation.Nullable;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -39,7 +38,7 @@ public class CreatePortalUseCase {
 
     private final PortalNameDomainService portalNameDomainService;
     private final PortalQuotaDomainService portalQuotaDomainService;
-    private final PortalUrlDomainService portalUrlDomainService;
+    private final PortalAddressDomainService portalAddressDomainService;
     private final PortalCrudService portalCrudService;
     private final PortalStarterContentDomainService portalStarterContentDomainService;
     private final PortalSummaryDomainService portalSummaryDomainService;
@@ -53,7 +52,11 @@ public class CreatePortalUseCase {
         var organizationId = input.auditInfo().organizationId();
         var environmentId = input.auditInfo().environmentId();
         var name = portalNameDomainService.validateAndNormalize(input.name());
-        var sentUrl = Optional.ofNullable(input.url()).map(portalUrlDomainService::parseSentUrl);
+        if (input.url() != null) {
+            throw new ValidationDomainException(
+                "A portal URL cannot be chosen yet: leave it out to serve the portal at the environment's portal URL"
+            );
+        }
 
         var portals = portalCrudService.findByEnvironmentId(environmentId);
         ensureDefaultPortal(portals);
@@ -62,13 +65,11 @@ public class CreatePortalUseCase {
             throw new PortalLimitReachedException(quota.limit());
         }
         portalNameDomainService.ensureUnique(environmentId, name, null);
-        var url = sentUrl
-            .or(() -> portalUrlDomainService.resolveDefaultPortalUrl(environmentId).map(portalUrlDomainService::requireStorable))
-            .orElseThrow(() ->
-                new ValidationDomainException("The environment has no valid portal URL to serve the portal at: send its URL")
-            );
+        var accessPointId = portalAddressDomainService
+            .sharedAccessPoint(environmentId)
+            .orElseThrow(() -> new ValidationDomainException("The environment has no valid portal URL to serve the portal at"));
 
-        var created = portalCrudService.create(Portal.createFromConsole(environmentId, organizationId, name, url));
+        var created = portalCrudService.create(Portal.createFromConsole(environmentId, organizationId, name, accessPointId));
         seedOrUndo(organizationId, environmentId, created);
         return new Output(portalSummaryDomainService.summarize(environmentId, List.of(created)).getFirst());
     }

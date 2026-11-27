@@ -31,7 +31,6 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationAccessDo
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
-import java.net.URI;
 import lombok.SneakyThrows;
 
 final class PortalNavigationUseCaseTestFixtures {
@@ -56,7 +55,7 @@ final class PortalNavigationUseCaseTestFixtures {
                 PortalNavigationStructure.empty(),
                 null,
                 true,
-                URI.create("https://portal.example.com").toURL()
+                "portal-access-point"
             )
         );
         return new PortalNavigationAccessDomainService(
