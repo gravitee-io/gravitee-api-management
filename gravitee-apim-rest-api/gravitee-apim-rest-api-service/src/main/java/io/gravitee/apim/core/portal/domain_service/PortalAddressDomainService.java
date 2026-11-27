@@ -19,16 +19,22 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
 import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalHost;
+import io.gravitee.apim.core.portal.model.PortalHostTemplate;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.utils.StringUtils;
+import jakarta.annotation.Nullable;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -41,13 +47,43 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PortalAddressDomainService {
 
+    private static final String URL_EXISTS_TECHNICAL_CODE = "portal.url.exists";
+    private static final String FALLBACK_SLUG = "portal";
     private static final String NEXT_PORTAL_PATH = "/next";
+    // Below PortalHostTemplate.MAX_SLUG_LENGTH, so a collision suffix always fits.
+    private static final int MAX_BASE_SLUG_LENGTH = 40;
+    private static final Set<String> HTTP_SCHEMES = Set.of("http", "https");
 
     private final PortalCrudService portalCrudService;
     private final AccessPointQueryService accessPointQueryService;
     private final AccessPointCrudService accessPointCrudService;
+    private final InstallationAccessQueryService installationAccessQueryService;
     private final PortalUrlDomainService portalUrlDomainService;
     private final InstallationTypeDomainService installationTypeDomainService;
+
+    /**
+     * The access point of a new portal: one on a generated host, or without a configured host template, the one the
+     * environment's portals share at its portal URL.
+     *
+     * @return empty when the environment has no usable portal URL, or when the installation does not
+     * {@linkplain #assignsAccessPoints() assign access points}
+     */
+    public Optional<String> newPortalAccessPoint(String environmentId, String portalName) {
+        if (!assignsAccessPoints()) {
+            return Optional.empty();
+        }
+        var environmentUrl = portalUrlDomainService.resolveDefaultPortalUrl(environmentId);
+        if (environmentUrl.isEmpty()) {
+            return Optional.empty();
+        }
+        var template = installationAccessQueryService.getPortalHostTemplate();
+        if (template.isEmpty()) {
+            return Optional.of(sharedAccessPoint(environmentId, environmentUrl.get()));
+        }
+        var url = environmentUrl.get();
+        var host = firstFreeHost(url, template.get(), portalName);
+        return Optional.of(createAccessPoint(environmentId, url.getProtocol(), host).getId());
+    }
 
     /** False on a multi-tenant installation: Cloud owns its access points there, so APIM creates none. */
     public boolean assignsAccessPoints() {
@@ -126,12 +162,41 @@ public class PortalAddressDomainService {
             .collect(Collectors.toMap(Portal::getId, portal -> toUrl(accessPoints.get(portal.getAccessPointId()), portalUrl)));
     }
 
-    /** Deletes the access point of a deleted portal, unless another portal is still served at it. */
-    public void release(Portal deletedPortal) {
-        var accessPointId = deletedPortal.getAccessPointId();
+    /**
+     * @param portalId the portal the host may already be given to; null for a portal not stored yet
+     * @return {@code rawUrl} with a lowercase host: an access point keeps a scheme, a host and a port, not a path
+     * @throws ValidationDomainException when it cannot serve a portal, or its host belongs to another portal
+     */
+    public URL validateCustomUrl(@Nullable PortalId portalId, String rawUrl) {
+        var url = parseCustomUrl(rawUrl);
+        var host = PortalHost.of(url);
+        // Like a generated host, a custom one must not shadow a console, an API or another portal, nor get a second access point.
+        var taken = accessPointQueryService
+            .findByHost(host.value())
+            .stream()
+            .anyMatch(accessPoint -> accessPoint.getTarget() != AccessPoint.Target.PORTAL_INSTANCE || !servesOnly(accessPoint, portalId));
+        if (taken) {
+            throw new ValidationDomainException("Host [%s] is already in use".formatted(host.value()), URL_EXISTS_TECHNICAL_CODE);
+        }
+        return url;
+    }
+
+    /** @return the access point of a portal served at a custom URL, {@linkplain #validateCustomUrl validated} first */
+    public String newCustomAccessPoint(String environmentId, URL customUrl) {
+        return createAccessPoint(environmentId, customUrl.getProtocol(), PortalHost.of(customUrl).value()).getId();
+    }
+
+    /** Deletes the access point of a deleted or never stored portal, unless another portal is served at it. */
+    public void release(Portal portal) {
+        var accessPointId = portal.getAccessPointId();
         if (accessPointId != null && portalCrudService.findByAccessPointId(accessPointId).isEmpty()) {
             accessPointCrudService.delete(accessPointId);
         }
+    }
+
+    private boolean servesOnly(AccessPoint accessPoint, @Nullable PortalId portalId) {
+        var served = portalCrudService.findByAccessPointId(accessPoint.getId());
+        return !served.isEmpty() && served.stream().allMatch(portal -> portal.getId().equals(portalId));
     }
 
     private String sharedAccessPoint(String environmentId, URL environmentUrl) {
@@ -164,6 +229,34 @@ public class PortalAddressDomainService {
         );
     }
 
+    private String firstFreeHost(URL environmentUrl, PortalHostTemplate template, String portalName) {
+        var slug = baseSlug(portalName);
+        var host = hostAndPort(environmentUrl, template.hostFor(slug));
+        for (int suffix = 2; isTaken(host); suffix++) {
+            host = hostAndPort(environmentUrl, template.hostFor(slug + "-" + suffix));
+        }
+        return host;
+    }
+
+    // Any access point, whatever its target: a generated portal host must not shadow a console, an API or another portal.
+    private boolean isTaken(String host) {
+        return !accessPointQueryService.findByHost(host).isEmpty();
+    }
+
+    private static String hostAndPort(URL environmentUrl, String host) {
+        var port = environmentUrl.getPort();
+        return port == -1 || port == environmentUrl.getDefaultPort() ? host : host + ":" + port;
+    }
+
+    private static String baseSlug(String portalName) {
+        var slug = StringUtils.slugify(portalName);
+        if (slug == null || slug.isEmpty()) {
+            return FALLBACK_SLUG;
+        }
+        var shortened = slug.substring(0, Math.min(slug.length(), MAX_BASE_SLUG_LENGTH));
+        return shortened.endsWith("-") ? shortened.substring(0, shortened.length() - 1) : shortened;
+    }
+
     private static boolean isSecured(String scheme) {
         return "https".equalsIgnoreCase(scheme);
     }
@@ -178,5 +271,39 @@ public class PortalAddressDomainService {
         } catch (URISyntaxException | MalformedURLException | IllegalArgumentException e) {
             throw new IllegalStateException("Access point [%s] does not form a valid portal URL".formatted(accessPoint.getId()), e);
         }
+    }
+
+    private static URL parseCustomUrl(String rawUrl) {
+        try {
+            var uri = new URI(rawUrl);
+            // A user-info part would put credentials in the stored host and in the logs.
+            if (
+                uri.getScheme() == null ||
+                !HTTP_SCHEMES.contains(uri.getScheme().toLowerCase(Locale.ROOT)) ||
+                uri.getHost() == null ||
+                uri.getRawUserInfo() != null ||
+                uri.getRawQuery() != null ||
+                uri.getRawFragment() != null ||
+                (uri.getRawPath() != null && !uri.getRawPath().isEmpty() && !"/".equals(uri.getRawPath()))
+            ) {
+                throw invalidCustomUrl(null);
+            }
+            return new URI(
+                uri.getScheme().toLowerCase(Locale.ROOT),
+                null,
+                uri.getHost().toLowerCase(Locale.ROOT),
+                uri.getPort(),
+                null,
+                null,
+                null
+            ).toURL();
+        } catch (URISyntaxException | MalformedURLException | NullPointerException e) {
+            throw invalidCustomUrl(e);
+        }
+    }
+
+    private static ValidationDomainException invalidCustomUrl(@Nullable Exception cause) {
+        var message = "A portal URL must be an absolute http(s) URL with no path, credentials, query string or fragment";
+        return cause == null ? new ValidationDomainException(message) : new ValidationDomainException(message, cause);
     }
 }

@@ -162,11 +162,20 @@ class PortalsResource_CreateTest extends AbstractResourceTest {
     }
 
     @Test
-    void should_return_400_for_a_url_until_portal_urls_can_be_chosen() {
+    void should_create_a_portal_served_at_the_root_of_the_host_of_the_url_sent() {
         var response = rootTarget().request().post(json(new CreatePortal().name("Partners").url("https://partners.example.com")));
 
+        assertThat(response.getStatus()).isEqualTo(CREATED_201);
+        var body = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Portal.class);
+        assertThat(body.getUrl()).isEqualTo("https://partners.example.com/next");
+    }
+
+    @Test
+    void should_return_400_for_a_url_with_a_path() {
+        var response = rootTarget().request().post(json(new CreatePortal().name("Partners").url("https://partners.example.com/portal")));
+
         assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
-        assertThat(response.readEntity(Error.class).getMessage()).contains("cannot be chosen yet");
+        assertThat(response.readEntity(Error.class).getMessage()).contains("no path");
         assertThat(portalCrudService.storage()).hasSize(1);
         verify(portalStarterContentDomainService, never()).seed(any(), any(), any());
     }

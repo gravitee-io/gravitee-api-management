@@ -39,6 +39,17 @@ public interface AccessPointQueryService {
 
     List<AccessPoint> getPortalInstanceAccessPoints(final String environmentId);
 
+    /** @return the portal access points on this host, in every environment: stored data may hold several */
+    List<AccessPoint> findPortalInstancesByHost(final String host);
+
+    /**
+     * Unlike {@link #getReferenceContext(String)}, which reads a failed lookup as no access point, this one fails: it guards
+     * the hosts given to new access points.
+     *
+     * @return the access points on this host, whatever their target and environment
+     */
+    List<AccessPoint> findByHost(final String host);
+
     List<AccessPoint> getGatewayAccessPoints(final String environmentId);
 
     List<AccessPoint> getKafkaGatewayAccessPoints(final String environmentId);

@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.installation.query_service;
 
 import io.gravitee.apim.core.installation.model.RestrictedDomain;
+import io.gravitee.apim.core.portal.model.PortalHostTemplate;
 import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
@@ -53,6 +54,9 @@ public interface InstallationAccessQueryService {
 
     /** @return the base URL of every portal access point of this environment */
     List<String> getPortalInstanceUrls(final String environmentId);
+
+    /** @return the host template of generated portal URLs; empty when none is configured or on a multi-tenant installation */
+    Optional<PortalHostTemplate> getPortalHostTemplate();
 
     List<RestrictedDomain> getGatewayRestrictedDomains(final String environmentId);
 

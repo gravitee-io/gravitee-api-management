@@ -23,6 +23,7 @@ import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainS
 import io.gravitee.apim.core.installation.model.InstallationType;
 import io.gravitee.apim.core.installation.model.RestrictedDomain;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
+import io.gravitee.apim.core.portal.model.PortalHostTemplate;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -82,6 +83,11 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
     @Value("${installation.api.proxyPath.gamma:${http.api.gamma.entrypoint:${http.api.entrypoint:/}gamma}}")
     private String gammaProxyPath;
 
+    @Value("${installation.standalone.portal.generatedHost:#{null}}")
+    private String portalGeneratedHost;
+
+    private PortalHostTemplate portalHostTemplate;
+
     private final Map<String, String> consoleUrls = new HashMap<>();
     private final Map<String, String> portalUrls = new HashMap<>();
     private final Map<String, String> gammaUrls = new HashMap<>();
@@ -116,6 +122,19 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
             validateApiUrl(consoleApiUrl);
             validateApiUrl(portalApiUrl);
             validateApiUrl(gammaApiUrl);
+
+            portalHostTemplate = parsePortalHostTemplate();
+        }
+    }
+
+    private PortalHostTemplate parsePortalHostTemplate() {
+        if (Strings.isNullOrEmpty(portalGeneratedHost) || portalGeneratedHost.isBlank()) {
+            return null;
+        }
+        try {
+            return PortalHostTemplate.parse(portalGeneratedHost);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidInstallationUrlException("Installation 'portal' generatedHost is invalid: " + e.getMessage());
         }
     }
 
@@ -127,6 +146,11 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
     @Override
     public List<String> getPortalInstanceUrls(final String environmentId) {
         return accessPointQueryService.getPortalInstanceAccessPoints(environmentId).stream().map(this::buildHttpUrl).toList();
+    }
+
+    @Override
+    public Optional<PortalHostTemplate> getPortalHostTemplate() {
+        return Optional.ofNullable(portalHostTemplate);
     }
 
     private void validateApiUrl(String apiURL) {

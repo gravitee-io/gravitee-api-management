@@ -17,6 +17,7 @@ package inmemory;
 
 import io.gravitee.apim.core.installation.model.RestrictedDomain;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
+import io.gravitee.apim.core.portal.model.PortalHostTemplate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,14 +30,21 @@ import java.util.Optional;
 public class InstallationAccessQueryServiceInMemory implements InstallationAccessQueryService {
 
     private final Map<String, String> portalUrls = new HashMap<>();
+    private PortalHostTemplate portalHostTemplate;
 
     public InstallationAccessQueryServiceInMemory withPortalUrl(final String environmentId, final String portalUrl) {
         portalUrls.put(environmentId, portalUrl);
         return this;
     }
 
+    public InstallationAccessQueryServiceInMemory withPortalHostTemplate(final PortalHostTemplate template) {
+        portalHostTemplate = template;
+        return this;
+    }
+
     public void reset() {
         portalUrls.clear();
+        portalHostTemplate = null;
     }
 
     @Override
@@ -47,6 +55,11 @@ public class InstallationAccessQueryServiceInMemory implements InstallationAcces
     @Override
     public List<String> getPortalInstanceUrls(final String environmentId) {
         return List.of();
+    }
+
+    @Override
+    public Optional<PortalHostTemplate> getPortalHostTemplate() {
+        return Optional.ofNullable(portalHostTemplate);
     }
 
     @Override
