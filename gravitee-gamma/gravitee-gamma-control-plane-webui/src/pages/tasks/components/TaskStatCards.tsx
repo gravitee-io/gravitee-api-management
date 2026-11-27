@@ -48,24 +48,16 @@ function StatCard({ Icon, title, total }: { Icon: LucideIcon; title: string; tot
 interface TaskStatCardsProps {
     /** Absent when the user has no human approvals to count. */
     readonly approvals?: StatValue;
-    /** AIM lists approvals per environment, unlike the other tasks, which span them all. */
-    readonly approvalsEnvironmentName?: string;
     readonly total: StatValue;
     readonly subscriptions: number | null;
     readonly reviews: number | null;
     readonly promotions: number | null;
 }
 
-export function TaskStatCards({ approvals, approvalsEnvironmentName, total, subscriptions, reviews, promotions }: TaskStatCardsProps) {
+export function TaskStatCards({ approvals, total, subscriptions, reviews, promotions }: TaskStatCardsProps) {
     return (
         <div className="flex flex-wrap gap-4">
-            {approvals !== undefined && (
-                <StatCard
-                    Icon={ShieldCheckIcon}
-                    title={approvalsEnvironmentName ? `Approvals in ${approvalsEnvironmentName}` : 'Approvals'}
-                    total={approvals}
-                />
-            )}
+            {approvals !== undefined && <StatCard Icon={ShieldCheckIcon} title="Human Approvals" total={approvals} />}
             <StatCard Icon={InboxIcon} title="Pending tasks" total={total} />
             <StatCard Icon={KeyIcon} title="Subscriptions" total={subscriptions} />
             <StatCard Icon={EyeIcon} title="API reviews" total={reviews} />

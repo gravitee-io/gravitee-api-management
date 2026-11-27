@@ -41,7 +41,7 @@ function statCount(title: string): string | undefined {
     return card?.querySelector('p.text-2xl')?.textContent ?? undefined;
 }
 
-const APPROVALS_CARD = 'Approvals in Environment 1';
+const APPROVALS_CARD = 'Human Approvals';
 
 function promotionsCount(): string | undefined {
     return statCount('Promotions');

@@ -69,7 +69,9 @@ export const TEST_HUMAN_APPROVALS_RESPONSE = {
 };
 
 export const tasksHandlers = [
-    http.get(`${TEST_GAMMA_BASE}/environments/:envId/modules/aim/_settings`, () => HttpResponse.json({ features: ['hitl'] })),
+    http.get(`${TEST_GAMMA_BASE}/environments/:envId/modules/aim/_settings`, () =>
+        HttpResponse.json({ features: [], licensedFeatures: ['gamma-aim-hitl'] }),
+    ),
     http.get(`${TEST_GAMMA_BASE}/environments/:envId/modules/aim/approvals`, () => HttpResponse.json(TEST_HUMAN_APPROVALS_RESPONSE)),
     http.get(`${TEST_MANAGEMENT_BASE}/user/tasks`, () => HttpResponse.json(TEST_TASKS_RESPONSE)),
     http.get(`${TEST_MANAGEMENT_BASE}/settings`, () => HttpResponse.json({ scheduler: { tasks: 10 } })),
