@@ -55,6 +55,12 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <!-- ConditionSyntaxPortAdapter checks Guardrail conditions with the gateway's own parser. -->
+            <groupId>io.gravitee.el</groupId>
+            <artifactId>gravitee-expression-language</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <!-- TracingRepository / OtelLogRepository SPIs (OTEL_TRACES / OTEL_LOGS scopes) — backing
                  store for the global trace explorer. Beans wired by the repository plugin handler in
                  the parent rest-api context — provided scope. -->

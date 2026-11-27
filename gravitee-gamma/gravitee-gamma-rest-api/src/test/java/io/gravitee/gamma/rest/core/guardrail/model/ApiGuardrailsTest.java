@@ -38,9 +38,9 @@ class ApiGuardrailsTest {
         assertThat(ApiGuardrails.of(internalFlow).list())
             .as("enabled guardrails")
             .containsExactly(
-                new ApiGuardrails.Enabled("guardrail-1", Phase.REQUEST, 1),
-                new ApiGuardrails.Enabled("guardrail-2", Phase.REQUEST, 2),
-                new ApiGuardrails.Enabled("guardrail-3", Phase.RESPONSE, 1)
+                new ApiGuardrails.Enabled("guardrail-1", Phase.REQUEST, 1, null),
+                new ApiGuardrails.Enabled("guardrail-2", Phase.REQUEST, 2, null),
+                new ApiGuardrails.Enabled("guardrail-3", Phase.RESPONSE, 1, null)
             );
     }
 
@@ -80,7 +80,7 @@ class ApiGuardrailsTest {
 
         var replaced = guardrails.replace(
             Phase.REQUEST,
-            List.of(new GuardrailRef("guardrail-2", "Two"), new GuardrailRef("guardrail-3", "Three"))
+            List.of(new GuardrailRef("guardrail-2", "Two", null), new GuardrailRef("guardrail-3", "Three", null))
         );
 
         assertSoftly(softly -> {
@@ -88,8 +88,8 @@ class ApiGuardrailsTest {
                 .assertThat(replaced.list())
                 .as("enabled guardrails")
                 .containsExactly(
-                    new ApiGuardrails.Enabled("guardrail-2", Phase.REQUEST, 1),
-                    new ApiGuardrails.Enabled("guardrail-3", Phase.REQUEST, 2)
+                    new ApiGuardrails.Enabled("guardrail-2", Phase.REQUEST, 1, null),
+                    new ApiGuardrails.Enabled("guardrail-3", Phase.REQUEST, 2, null)
                 );
             softly
                 .assertThat(replaced.internalFlow().getRequest())
@@ -109,14 +109,25 @@ class ApiGuardrailsTest {
 
         var replaced = guardrails.replace(Phase.REQUEST, List.of());
 
-        assertThat(replaced.list()).as("enabled guardrails").containsExactly(new ApiGuardrails.Enabled("guardrail-2", Phase.RESPONSE, 1));
+        assertThat(replaced.list())
+            .as("enabled guardrails")
+            .containsExactly(new ApiGuardrails.Enabled("guardrail-2", Phase.RESPONSE, 1, null));
     }
 
     @Test
     void should_run_a_guardrail_on_an_api_that_ran_none() {
-        var replaced = ApiGuardrails.of(null).replace(Phase.RESPONSE, List.of(new GuardrailRef("guardrail-1", "One")));
+        var replaced = ApiGuardrails.of(null).replace(Phase.RESPONSE, List.of(new GuardrailRef("guardrail-1", "One", null)));
 
         assertThat(replaced.internalFlow().getResponse()).as("response steps").containsExactly(GuardrailSteps.of("guardrail-1", "One"));
+    }
+
+    @Test
+    void should_run_a_guardrail_named_without_a_condition_on_every_call() {
+        var replaced = ApiGuardrails.of(null).replace(Phase.REQUEST, List.of(new GuardrailRef("guardrail-1", "One")));
+
+        assertThat(replaced.list())
+            .as("enabled guardrails")
+            .containsExactly(new ApiGuardrails.Enabled("guardrail-1", Phase.REQUEST, 1, null));
     }
 
     @Test
@@ -139,7 +150,7 @@ class ApiGuardrailsTest {
 
         var replaced = guardrails.replace(
             Phase.REQUEST,
-            List.of(new GuardrailRef("guardrail-2", "Two"), new GuardrailRef("guardrail-3", "Three"))
+            List.of(new GuardrailRef("guardrail-2", "Two", null), new GuardrailRef("guardrail-3", "Three", null))
         );
 
         assertThat(replaced.internalFlow().getRequest())
@@ -161,6 +172,84 @@ class ApiGuardrailsTest {
         assertThat(replaced.internalFlow().getRequest())
             .as("request steps")
             .containsExactly(GuardrailSteps.of("guardrail-1", "One"), aPolicy());
+    }
+
+    @Test
+    void should_run_a_first_guardrail_after_the_step_setting_the_attributes_its_condition_reads() {
+        var guardrails = ApiGuardrails.of(Flow.builder().request(List.of(anAiHubStep())).build());
+
+        var replaced = guardrails.replace(Phase.REQUEST, List.of(new GuardrailRef("guardrail-1", "One", A_CONDITION)));
+
+        assertThat(replaced.internalFlow().getRequest())
+            .as("request steps")
+            .containsExactly(anAiHubStep(), GuardrailSteps.of("guardrail-1", "One", A_CONDITION));
+    }
+
+    /** The other steps set what a condition reads: a block evaluated before them would run on no call. */
+    @Test
+    void should_move_a_block_of_guardrails_after_the_other_steps_once_one_carries_a_condition() {
+        var guardrails = ApiGuardrails.of(
+            Flow.builder().request(List.of(GuardrailSteps.of("guardrail-1", "One"), anAiHubStep(), aPolicy())).build()
+        );
+
+        var replaced = guardrails.replace(
+            Phase.REQUEST,
+            List.of(new GuardrailRef("guardrail-1", "One"), new GuardrailRef("guardrail-2", "Two", A_CONDITION))
+        );
+
+        assertThat(replaced.internalFlow().getRequest())
+            .as("request steps")
+            .containsExactly(
+                anAiHubStep(),
+                aPolicy(),
+                GuardrailSteps.of("guardrail-1", "One"),
+                GuardrailSteps.of("guardrail-2", "Two", A_CONDITION)
+            );
+    }
+
+    @Test
+    void should_write_the_condition_of_each_guardrail_on_its_step() {
+        var replaced = ApiGuardrails.of(null).replace(
+            Phase.REQUEST,
+            List.of(new GuardrailRef("guardrail-1", "One", A_CONDITION), new GuardrailRef("guardrail-2", "Two", null))
+        );
+
+        assertThat(replaced.internalFlow().getRequest())
+            .as("request steps")
+            .containsExactly(GuardrailSteps.of("guardrail-1", "One", A_CONDITION), GuardrailSteps.of("guardrail-2", "Two"));
+    }
+
+    @Test
+    void should_list_the_condition_each_guardrail_runs_under() {
+        var guardrails = ApiGuardrails.of(
+            Flow.builder()
+                .request(
+                    List.of(anAiHubStep(), GuardrailSteps.of("guardrail-1", "One", A_CONDITION), GuardrailSteps.of("guardrail-2", "Two"))
+                )
+                .response(List.of(GuardrailSteps.of("guardrail-3", "Three", "  ")))
+                .build()
+        );
+
+        assertSoftly(softly -> {
+            softly
+                .assertThat(guardrails.attachmentsOf(Phase.REQUEST))
+                .as("attachments of the request phase")
+                .containsExactly(new ApiGuardrailAttachment("guardrail-1", A_CONDITION), new ApiGuardrailAttachment("guardrail-2", null));
+            softly
+                .assertThat(guardrails.list())
+                .as("enabled guardrails, a blank condition read as none")
+                .containsExactly(
+                    new ApiGuardrails.Enabled("guardrail-1", Phase.REQUEST, 1, A_CONDITION),
+                    new ApiGuardrails.Enabled("guardrail-2", Phase.REQUEST, 2, null),
+                    new ApiGuardrails.Enabled("guardrail-3", Phase.RESPONSE, 1, null)
+                );
+        });
+    }
+
+    private static final String A_CONDITION = "{#context.attributes['aihub.team'] == 'team-a'}";
+
+    private static Step anAiHubStep() {
+        return Step.builder().name("AI Hub").policy("ai-hub").build();
     }
 
     private static Step aPolicy() {

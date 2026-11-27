@@ -40,6 +40,29 @@ class GuardrailStepsTest {
     }
 
     @Test
+    void should_build_a_step_running_the_guardrail_only_on_the_calls_its_condition_selects() {
+        var step = GuardrailSteps.of("guardrail-1", "Credential leakage", "{#context.attributes['team'] == 'team-a'}");
+
+        assertSoftly(softly -> {
+            softly.assertThat(step.getCondition()).as("condition").isEqualTo("{#context.attributes['team'] == 'team-a'}");
+            softly.assertThat(GuardrailSteps.guardrailIdOf(step)).as("guardrail id").contains("guardrail-1");
+        });
+    }
+
+    @Test
+    void should_build_a_step_running_the_guardrail_on_every_call_without_a_condition() {
+        assertSoftly(softly -> {
+            softly
+                .assertThat(GuardrailSteps.of("guardrail-1", "Credential leakage").getCondition())
+                .as("condition of the short form")
+                .isNull();
+            softly
+                .assertThat(GuardrailSteps.of("guardrail-1", "Credential leakage", null))
+                .isEqualTo(GuardrailSteps.of("guardrail-1", "Credential leakage"));
+        });
+    }
+
+    @Test
     void should_read_the_guardrails_of_both_phases_in_execution_order() {
         var flow = Flow.builder()
             .request(List.of(GuardrailSteps.of("guardrail-1", "One"), aPolicy(), GuardrailSteps.of("guardrail-2", "Two")))
