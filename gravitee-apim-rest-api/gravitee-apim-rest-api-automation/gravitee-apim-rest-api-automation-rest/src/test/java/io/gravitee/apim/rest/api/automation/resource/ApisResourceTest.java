@@ -33,6 +33,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.rest.api.automation.helpers.SharedPolicyGroupIdHelper;
 import io.gravitee.apim.rest.api.automation.model.ApiV4State;
+import io.gravitee.apim.rest.api.automation.model.FlowMode;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import io.gravitee.definition.model.v4.analytics.tracing.MaskingType;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -44,6 +45,7 @@ import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -265,6 +267,72 @@ class ApisResourceTest extends AbstractResourceTest {
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(state.getHrid()).isEqualTo("api-hrid");
             });
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = { false, true })
+        void should_read_a_hyphenated_flow_mode(boolean dryRun) {
+            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class))).thenAnswer(call ->
+                Validator.Result.ofValue(call.getArgument(0))
+            );
+
+            var state = expectEntity("api-with-hyphenated-flow-mode.json", dryRun, false);
+
+            assertThat(state.getFlowExecution().getMode()).isEqualTo(FlowMode.BEST_MATCH);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "best-match", "BEST-MATCH", "Best-Match", "best_match" })
+        void should_read_every_spelling_of_best_match_gko_4_11_accepted(String mode) {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", false)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-with-hyphenated-flow-mode.json").replace("best-match", mode)))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(200);
+                assertThat(response.readEntity(ApiV4State.class).getFlowExecution().getMode()).isEqualTo(FlowMode.BEST_MATCH);
+            }
+        }
+
+        @Test
+        void should_reject_an_unknown_flow_mode() {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", false)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-with-hyphenated-flow-mode.json").replace("best-match", "best match")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(400);
+            }
+        }
+
+        @ParameterizedTest
+        @ValueSource(ints = { 257, 4000 })
+        void should_accept_a_step_description_up_to_4000_characters(int length) {
+            try (var response = putWithStepDescription(length)) {
+                assertThat(response.getStatus()).isEqualTo(200);
+            }
+        }
+
+        @Test
+        void should_reject_a_step_description_over_4000_characters() {
+            try (var response = putWithStepDescription(4001)) {
+                assertThat(response.getStatus()).isEqualTo(400);
+            }
+        }
+
+        private Response putWithStepDescription(int length) {
+            var flow = """
+                { "enabled": true, "request": [ { "enabled": true, "policy": "transform-headers", "description": "%s" } ] }
+                """.formatted("d".repeat(length));
+            return rootTarget()
+                .queryParam("dryRun", false)
+                .request()
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .put(Entity.json(readJSON("api-with-hrid.json").replaceFirst("\"flows\": \\[]", "\"flows\": [" + flow + "]")));
         }
 
         @ParameterizedTest

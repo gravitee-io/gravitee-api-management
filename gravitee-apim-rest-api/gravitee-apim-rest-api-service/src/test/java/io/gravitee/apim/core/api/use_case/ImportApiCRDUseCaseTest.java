@@ -189,6 +189,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
+import io.gravitee.rest.api.service.exceptions.EndpointConfigurationValidationException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.vertx.rxjava3.core.Vertx;
 import java.security.GeneralSecurityException;
@@ -1628,6 +1629,19 @@ class ImportApiCRDUseCaseTest {
             var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().build())));
 
             assertThat(throwable).isSameAs(domain);
+        }
+
+        @Test
+        void should_let_a_refused_update_keep_its_4xx_status() {
+            givenExistingApi();
+            givenExistingPlans(List.of(KEYLESS));
+            // what the legacy update throws for an endpoint inheriting the configuration of a group without shared configuration
+            var refusal = new EndpointConfigurationValidationException("Endpoint [default] has no configuration to inherit");
+            when(updateApiDomainService.update(any(), any(), any())).thenThrow(refusal);
+
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().build())));
+
+            assertThat(throwable).isSameAs(refusal);
         }
 
         @Test
