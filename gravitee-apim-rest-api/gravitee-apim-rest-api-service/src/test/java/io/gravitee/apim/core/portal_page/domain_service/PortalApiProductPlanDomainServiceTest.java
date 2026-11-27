@@ -28,6 +28,8 @@ import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.plan.domain_service.PlanExcludedGroupsDomainService;
 import io.gravitee.apim.core.plan.query_service.PlanSearchQueryService;
+import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
@@ -123,6 +125,19 @@ class PortalApiProductPlanDomainServiceTest {
         assertThatThrownBy(() ->
             domainService.findAccessiblePlans(ENVIRONMENT_ID, API_PRODUCT_ID, VIEWER_CONTEXT, Optional.empty())
         ).isInstanceOf(ApiProductNotFoundException.class);
+        verifyNoInteractions(planSearchQueryService, planExcludedGroupsDomainService);
+    }
+
+    @Test
+    void should_require_the_api_product_on_the_given_portal() {
+        var portal = Optional.of(new NavigationItemReference.PortalReference(PortalId.random()));
+        when(portalApiProductAccessDomainService.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, VIEWER_CONTEXT, portal)).thenThrow(
+            new ApiProductNotFoundException(API_PRODUCT_ID)
+        );
+
+        assertThatThrownBy(() -> domainService.findAccessiblePlans(ENVIRONMENT_ID, API_PRODUCT_ID, VIEWER_CONTEXT, portal)).isInstanceOf(
+            ApiProductNotFoundException.class
+        );
         verifyNoInteractions(planSearchQueryService, planExcludedGroupsDomainService);
     }
 

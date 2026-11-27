@@ -24,20 +24,18 @@ import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 
 /**
- * The page of an API on one portal. Each read first requires the portal to list the API for the viewer, then answers as the unscoped
- * path does, so the unscoped rules still apply on top. The check sits in each method rather than in a sub-resource locator so that it
+ * The page of an API on one portal: its details, plans and subscription form. Each read first requires the portal to list the API for
+ * the viewer, then answers as the unscoped path does, so the unscoped rules still apply on top. The check sits in each method rather than in a sub-resource locator so that it
  * runs after {@link RequirePortalAuth}, like the unscoped reads.
  */
 public class PortalApiResource extends AbstractResource {
@@ -62,44 +60,6 @@ public class PortalApiResource extends AbstractResource {
     public Response getApiPlans(@PathParam("apiId") String apiId, @BeanParam PaginationParam paginationParam) {
         requireListed(apiId);
         return resourceContext.getResource(ApiPlansResource.class).getApiPlansByApiId(apiId, paginationParam);
-    }
-
-    @GET
-    @Path("pages")
-    @Produces(MediaType.APPLICATION_JSON)
-    @RequirePortalAuth
-    public Response getApiPages(
-        @HeaderParam("Accept-Language") String acceptLang,
-        @PathParam("apiId") String apiId,
-        @BeanParam PaginationParam paginationParam,
-        @QueryParam("homepage") Boolean homepage,
-        @QueryParam("parent") String parent
-    ) {
-        requireListed(apiId);
-        return resourceContext.getResource(ApiPagesResource.class).getPagesByApiId(acceptLang, apiId, paginationParam, homepage, parent);
-    }
-
-    @GET
-    @Path("pages/{pageId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    @RequirePortalAuth
-    public Response getApiPage(
-        @HeaderParam("Accept-Language") String acceptLang,
-        @PathParam("apiId") String apiId,
-        @PathParam("pageId") String pageId,
-        @QueryParam("include") List<String> include
-    ) {
-        requireListed(apiId);
-        return resourceContext.getResource(ApiPageResource.class).getPageByApiIdAndPageId(acceptLang, apiId, pageId, include);
-    }
-
-    @GET
-    @Path("informations")
-    @Produces(MediaType.APPLICATION_JSON)
-    @RequirePortalAuth
-    public Response getApiInformations(@Context Request request, @PathParam("apiId") String apiId) {
-        requireListed(apiId);
-        return resourceContext.getResource(ApiInformationsResource.class).getApiInformations(request, apiId);
     }
 
     @GET

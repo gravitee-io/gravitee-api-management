@@ -27,9 +27,11 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import fixtures.core.model.SubscriptionFormFixtures;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import inmemory.SubscriptionFormQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
@@ -80,6 +82,9 @@ public class PortalScopedApiResourceTest extends AbstractResourceTest {
     @Autowired
     private ApiProductQueryServiceInMemory apiProductQueryService;
 
+    @Autowired
+    private SubscriptionFormQueryServiceInMemory subscriptionFormQueryService;
+
     private PortalId portal;
     private PortalId otherPortal;
 
@@ -105,6 +110,7 @@ public class PortalScopedApiResourceTest extends AbstractResourceTest {
         portalNavigationItemsQueryService.reset();
         portalCrudService.reset();
         apiProductQueryService.reset();
+        subscriptionFormQueryService.reset();
     }
 
     @Nested
@@ -131,21 +137,49 @@ public class PortalScopedApiResourceTest extends AbstractResourceTest {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { "plans", "pages", "pages/a-page", "informations", "subscription-form" })
+        @ValueSource(strings = { "plans", "subscription-form" })
+        void should_answer_the_sub_resources_of_an_api_the_portal_lists(String subPath) {
+            givenTheUnscopedRulesAllow();
+
+            assertThat(target(portal + "/apis/" + OWN_API + "/" + subPath).request().get().getStatus()).isEqualTo(200);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "plans", "subscription-form" })
         void should_not_find_the_sub_resources_of_an_api_another_portal_lists(String subPath) {
+            givenTheUnscopedRulesAllow();
+            assertThat(root().path("environments/" + ENV_ID + "/apis/" + OTHER_API + "/" + subPath).request().get().getStatus()).isEqualTo(
+                200
+            );
+
             assertThat(target(portal + "/apis/" + OTHER_API + "/" + subPath).request().get().getStatus()).isEqualTo(404);
         }
 
-        @Test
-        void should_list_the_plans_of_an_api_the_portal_lists() {
+        @ParameterizedTest
+        @ValueSource(strings = { "pages", "pages/a-page", "informations", "ratings", "subscribers" })
+        void should_not_route_the_other_sub_resources_under_a_portal(String subPath) {
+            givenTheUnscopedRulesAllow();
+
+            assertThat(target(portal + "/apis/" + OWN_API + "/" + subPath).request().get().getStatus()).isEqualTo(404);
+        }
+
+        private void givenTheUnscopedRulesAllow() {
             doReturn(true)
                 .when(accessControlService)
                 .canConsumeApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class));
+            doReturn(true).when(accessControlService).canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(String.class));
             doReturn(Set.of())
                 .when(planSearchService)
                 .findByApi(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(true));
-
-            assertThat(target(portal + "/apis/" + OWN_API + "/plans").request().get().getStatus()).isEqualTo(200);
+            subscriptionFormQueryService.initWith(
+                List.of(
+                    SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                        .apiIds(List.of(OWN_API, OTHER_API))
+                        .environmentId(ENV_ID)
+                        .enabled(true)
+                        .build()
+                )
+            );
         }
 
         @Test

@@ -31,7 +31,6 @@ import inmemory.SubscriptionQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
-import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.ApiProductKind;
 import io.gravitee.apim.core.api_product.model.PortalApiProductDetails;
@@ -291,6 +290,16 @@ class GetPortalApiProductUseCaseTest {
             .build();
     }
 
+    private static Membership apiMembership(String userId, String apiId) {
+        return Membership.builder()
+            .id("api-membership")
+            .memberId(userId)
+            .memberType(Membership.Type.USER)
+            .referenceType(Membership.ReferenceType.API)
+            .referenceId(apiId)
+            .build();
+    }
+
     private static Membership groupMembership(String userId, String groupId) {
         return Membership.builder()
             .id("group-membership")
@@ -360,6 +369,26 @@ class GetPortalApiProductUseCaseTest {
             var result = useCase.execute(scopedInput(null, portalB)).apiProduct();
 
             assertThat(result.apis()).extracting(PortalApiProductDetails.ApiSummary::id).containsExactly("api-a");
+        }
+
+        @Test
+        void should_list_a_private_api_of_the_portal_to_a_member_only() {
+            var api = api("api-a", "Alpha API", "1.0");
+            var navigationItem = publicApiProductNavigationItem();
+            navigationItem.changeOwner(new NavigationItemReference.PortalReference(portalB));
+            var apiItem = publicApiNavigationItem(api);
+            apiItem.changeOwner(new NavigationItemReference.PortalReference(portalB));
+            apiItem.setVisibility(PortalVisibility.PRIVATE);
+            givenProductAndNavigation(apiProduct(Set.of(api.getId())), navigationItem, apiItem);
+            apiQueryService.initWith(List.of(api));
+
+            assertThat(useCase.execute(scopedInput(USER_ID, portalB)).apiProduct().apis()).isEmpty();
+
+            membershipQueryService.initWith(List.of(apiMembership(USER_ID, api.getId())));
+
+            assertThat(useCase.execute(scopedInput(USER_ID, portalB)).apiProduct().apis())
+                .extracting(PortalApiProductDetails.ApiSummary::id)
+                .containsExactly("api-a");
         }
 
         @Test
