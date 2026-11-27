@@ -471,7 +471,7 @@ reached through an internal name:
 
 ```yaml
 portal:
-    portalId: 'e9c87445-920f-4a26-a36d-c6334a05ca37'
+  portalId: "e9c87445-920f-4a26-a36d-c6334a05ca37"
 ```
 
 An explicit ID wins over the bootstrap's one. The same configuration file is
@@ -479,8 +479,8 @@ served to every host of the deployment, so an explicit ID pins all of them to th
 portal: deployments serving several portals, each on its own host, leave it unset.
 An unknown ID, or the ID of a portal of another environment, opens the startup
 error page without falling back to another portal. The value must be a string; it
-is trimmed, and a blank one is omitted. The dot segments `.` and `..` are refused. It needs APIM 4.14 or later: earlier
-Portal Next images ignore it.
+is trimmed, and a blank one is omitted. The dot segments `.` and `..` are refused.
+It needs APIM 4.14 or later: earlier Portal Next images ignore it.
 
 Only Portal Next receives this value. `config-next.json` is mounted at
 `/usr/share/nginx/html/next/browser/assets/config.json`; Classic Portal keeps its
