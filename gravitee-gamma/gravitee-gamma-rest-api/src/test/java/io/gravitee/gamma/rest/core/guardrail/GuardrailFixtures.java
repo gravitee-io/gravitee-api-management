@@ -54,7 +54,9 @@ import io.gravitee.gamma.rest.core.guardrail.model.Guardrail;
 import io.gravitee.gamma.rest.core.guardrail.model.GuardrailLifecycleState;
 import io.gravitee.gamma.rest.core.guardrail.model.UpdateGuardrailCommand;
 import io.gravitee.gamma.rest.core.guardrail.port.repository.GuardrailRepository;
+import io.gravitee.gamma.rest.core.guardrail.port.service_provider.ConditionSyntaxPort;
 import io.gravitee.gamma.rest.core.guardrail.use_case.DeployGuardrailUseCase;
+import io.gravitee.gamma.rest.infra.adapter.ConditionSyntaxPortAdapter;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -397,6 +399,14 @@ public final class GuardrailFixtures {
             .name("Support assistant")
             .type(ApiType.LLM_PROXY)
             .supportsGuardrails(true);
+    }
+
+    /**
+     * The real reading of a step condition rather than a double: it parses with the gateway's own expression
+     * language and touches nothing else, and a double would have to re-implement that parser to answer the same.
+     */
+    public static ConditionSyntaxPort aConditionSyntax() {
+        return new ConditionSyntaxPortAdapter();
     }
 
     public static Guardrail.GuardrailBuilder aGuardrail() {

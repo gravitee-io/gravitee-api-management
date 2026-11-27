@@ -19,10 +19,12 @@ import static io.gravitee.gamma.rest.core.guardrail.GuardrailFixtures.API_ID;
 import static io.gravitee.gamma.rest.core.guardrail.GuardrailFixtures.ENVIRONMENT_ID;
 import static io.gravitee.gamma.rest.core.guardrail.GuardrailFixtures.GUARDRAIL_ID;
 import static io.gravitee.gamma.rest.core.guardrail.GuardrailFixtures.ORGANIZATION_ID;
+import static io.gravitee.gamma.rest.core.guardrail.GuardrailFixtures.aConditionSyntax;
 import static io.gravitee.gamma.rest.core.guardrail.GuardrailFixtures.aGuardedApi;
 import static io.gravitee.gamma.rest.core.guardrail.GuardrailFixtures.aGuardrail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
@@ -32,6 +34,7 @@ import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.definition.model.guardrail.GuardrailSteps;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.guardrail.Guardrail.GuardrailBuilder;
 import io.gravitee.definition.model.v4.guardrail.Guardrail.Phase;
 import io.gravitee.gamma.rest.core.guardrail.GuardrailAuditFixture;
@@ -44,10 +47,12 @@ import io.gravitee.gamma.rest.core.guardrail.exception.GuardrailIncompatibleApiT
 import io.gravitee.gamma.rest.core.guardrail.exception.GuardrailNotDeployedException;
 import io.gravitee.gamma.rest.core.guardrail.exception.GuardrailNotFoundException;
 import io.gravitee.gamma.rest.core.guardrail.exception.GuardrailPhaseMismatchException;
+import io.gravitee.gamma.rest.core.guardrail.exception.InvalidApiGuardrailConditionException;
 import io.gravitee.gamma.rest.core.guardrail.exception.TooManyApiGuardrailsException;
 import io.gravitee.gamma.rest.core.guardrail.inmemory.InMemoryGuardedApiPort;
 import io.gravitee.gamma.rest.core.guardrail.inmemory.InMemoryGuardrailRepository;
 import io.gravitee.gamma.rest.core.guardrail.model.ApiGuardrail;
+import io.gravitee.gamma.rest.core.guardrail.model.ApiGuardrailAttachment;
 import io.gravitee.gamma.rest.core.guardrail.model.Guardrail;
 import java.time.Instant;
 import java.util.List;
@@ -55,6 +60,7 @@ import java.util.Set;
 import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class SetApiGuardrailsDomainServiceTest {
@@ -86,9 +92,9 @@ class SetApiGuardrailsDomainServiceTest {
                 .assertThat(enabled)
                 .as("guardrails enabled on the API")
                 .containsExactly(
-                    new ApiGuardrail(GUARDRAIL_ID, "Credential leakage", Phase.REQUEST, 1, List.of()),
-                    new ApiGuardrail("guardrail-0", "Prompt injection", Phase.REQUEST, 2, List.of()),
-                    new ApiGuardrail("guardrail-2", "Toxicity", Phase.RESPONSE, 1, List.of())
+                    new ApiGuardrail(GUARDRAIL_ID, "Credential leakage", Phase.REQUEST, 1, List.of(), null),
+                    new ApiGuardrail("guardrail-0", "Prompt injection", Phase.REQUEST, 2, List.of(), null),
+                    new ApiGuardrail("guardrail-2", "Toxicity", Phase.RESPONSE, 1, List.of(), null)
                 );
             var stored = apis.findById(ENVIRONMENT_ID, API_ID).orElseThrow().internalFlow();
             softly
@@ -167,7 +173,7 @@ class SetApiGuardrailsDomainServiceTest {
             softly
                 .assertThat(enabled)
                 .as("guardrails enabled on the API, named as the revision the gateways run names them")
-                .containsExactly(new ApiGuardrail(GUARDRAIL_ID, "Credential leakage", Phase.RESPONSE, 1, List.of()));
+                .containsExactly(new ApiGuardrail(GUARDRAIL_ID, "Credential leakage", Phase.RESPONSE, 1, List.of(), null));
             softly
                 .assertThat(apis.findById(ENVIRONMENT_ID, API_ID).orElseThrow().internalFlow().getResponse())
                 .as("stored response steps, named as the deployed revision is")
@@ -441,10 +447,225 @@ class SetApiGuardrailsDomainServiceTest {
             .isEmpty();
     }
 
+    /** The calls each Guardrail runs on: an expression the gateway evaluates before the Guardrail's step. */
+    @Nested
+    class Conditions {
+
+        private static final String TEAM_A = "{#context.attributes['aihub.team'] == 'team-a'}";
+        private static final String TEAM_B = "{#context.attributes['aihub.team'] == 'team-b'}";
+
+        @Test
+        void should_run_each_guardrail_under_its_condition() {
+            givenDeployedGuardrail(d -> d.id("guardrail-0").name("Prompt injection").phase(Phase.REQUEST));
+            givenDeployedGuardrail(d -> d.name("Credential leakage").phase(Phase.REQUEST));
+            givenDeployedGuardrail(d -> d.id("guardrail-2").name("Toxicity").phase(Phase.RESPONSE));
+            apis.givenApi(aGuardedApi().build());
+
+            var enabled = service.setAttachments(
+                API_ID,
+                List.of(new ApiGuardrailAttachment(GUARDRAIL_ID, TEAM_A), new ApiGuardrailAttachment("guardrail-0", null)),
+                List.of(new ApiGuardrailAttachment("guardrail-2", TEAM_B)),
+                actor
+            );
+
+            assertSoftly(softly -> {
+                softly
+                    .assertThat(enabled)
+                    .as("guardrails enabled on the API")
+                    .containsExactly(
+                        new ApiGuardrail(GUARDRAIL_ID, "Credential leakage", Phase.REQUEST, 1, List.of(), TEAM_A),
+                        new ApiGuardrail("guardrail-0", "Prompt injection", Phase.REQUEST, 2, List.of(), null),
+                        new ApiGuardrail("guardrail-2", "Toxicity", Phase.RESPONSE, 1, List.of(), TEAM_B)
+                    );
+                softly
+                    .assertThat(storedInternalFlow().getRequest())
+                    .as("stored request steps")
+                    .containsExactly(
+                        GuardrailSteps.of(GUARDRAIL_ID, "Credential leakage", TEAM_A),
+                        GuardrailSteps.of("guardrail-0", "Prompt injection")
+                    );
+                softly
+                    .assertThat(storedInternalFlow().getResponse())
+                    .as("stored response steps")
+                    .containsExactly(GuardrailSteps.of("guardrail-2", "Toxicity", TEAM_B));
+            });
+        }
+
+        /** A caller setting the Guardrails by id does not make a Guardrail that runs on some calls run on all of them. */
+        @Test
+        void should_keep_the_condition_a_guardrail_runs_under_when_the_guardrails_are_set_by_id() {
+            givenDeployedGuardrail(d -> d.name("Credential leakage").phase(Phase.REQUEST));
+            givenDeployedGuardrail(d -> d.id("guardrail-0").name("Prompt injection").phase(Phase.REQUEST));
+            apis.givenApi(
+                aGuardedApi()
+                    .internalFlow(Flow.builder().request(List.of(GuardrailSteps.of(GUARDRAIL_ID, "Credential leakage", TEAM_A))).build())
+                    .build()
+            );
+
+            var enabled = service.set(API_ID, List.of("guardrail-0", GUARDRAIL_ID), List.of(), actor);
+
+            assertSoftly(softly -> {
+                softly
+                    .assertThat(enabled)
+                    .as("guardrails enabled on the API")
+                    .extracting(ApiGuardrail::guardrailId, ApiGuardrail::condition)
+                    .containsExactly(tuple("guardrail-0", null), tuple(GUARDRAIL_ID, TEAM_A));
+                softly
+                    .assertThat(storedInternalFlow().getRequest())
+                    .as("stored request steps")
+                    .containsExactly(
+                        GuardrailSteps.of("guardrail-0", "Prompt injection"),
+                        GuardrailSteps.of(GUARDRAIL_ID, "Credential leakage", TEAM_A)
+                    );
+            });
+        }
+
+        @Test
+        void should_change_or_drop_the_condition_a_guardrail_runs_under() {
+            givenDeployedGuardrail(d -> d.name("Credential leakage").phase(Phase.REQUEST));
+            givenDeployedGuardrail(d -> d.id("guardrail-0").name("Prompt injection").phase(Phase.REQUEST));
+            givenDeployedGuardrail(d -> d.id("guardrail-3").name("Secrets").phase(Phase.REQUEST));
+            apis.givenApi(
+                aGuardedApi()
+                    .internalFlow(
+                        Flow.builder()
+                            .request(
+                                List.of(
+                                    GuardrailSteps.of(GUARDRAIL_ID, "Credential leakage", TEAM_A),
+                                    GuardrailSteps.of("guardrail-0", "Prompt injection", TEAM_A),
+                                    GuardrailSteps.of("guardrail-3", "Secrets", TEAM_A)
+                                )
+                            )
+                            .build()
+                    )
+                    .build()
+            );
+
+            service.setAttachments(
+                API_ID,
+                List.of(
+                    new ApiGuardrailAttachment(GUARDRAIL_ID, TEAM_B),
+                    new ApiGuardrailAttachment("guardrail-0", null),
+                    new ApiGuardrailAttachment("guardrail-3", "  ")
+                ),
+                List.of(),
+                actor
+            );
+
+            assertThat(storedInternalFlow().getRequest())
+                .as("stored request steps, a blank condition dropped like a missing one")
+                .containsExactly(
+                    GuardrailSteps.of(GUARDRAIL_ID, "Credential leakage", TEAM_B),
+                    GuardrailSteps.of("guardrail-0", "Prompt injection"),
+                    GuardrailSteps.of("guardrail-3", "Secrets")
+                );
+        }
+
+        /** The condition reads attributes the other steps set, so a Guardrail under one goes after them. */
+        @Test
+        void should_run_a_first_guardrail_under_a_condition_after_the_steps_already_in_the_phase() {
+            givenDeployedGuardrail(d -> d.name("Credential leakage").phase(Phase.REQUEST));
+            apis.givenApi(aGuardedApi().internalFlow(Flow.builder().request(List.of(anAiHubStep())).build()).build());
+
+            service.setAttachments(API_ID, List.of(new ApiGuardrailAttachment(GUARDRAIL_ID, TEAM_A)), List.of(), actor);
+
+            assertThat(storedInternalFlow().getRequest())
+                .as("stored request steps")
+                .containsExactly(anAiHubStep(), GuardrailSteps.of(GUARDRAIL_ID, "Credential leakage", TEAM_A));
+        }
+
+        @Test
+        void should_run_a_first_guardrail_without_a_condition_before_the_steps_already_in_the_phase() {
+            givenDeployedGuardrail(d -> d.name("Credential leakage").phase(Phase.REQUEST));
+            apis.givenApi(aGuardedApi().internalFlow(Flow.builder().request(List.of(anAiHubStep())).build()).build());
+
+            service.set(API_ID, List.of(GUARDRAIL_ID), List.of(), actor);
+
+            assertThat(storedInternalFlow().getRequest())
+                .as("stored request steps")
+                .containsExactly(GuardrailSteps.of(GUARDRAIL_ID, "Credential leakage"), anAiHubStep());
+        }
+
+        /** A block that ran before the other steps would read none of what they set once a condition applies. */
+        @Test
+        void should_move_a_block_of_guardrails_after_the_other_steps_once_one_carries_a_condition() {
+            givenDeployedGuardrail(d -> d.name("Credential leakage").phase(Phase.REQUEST));
+            apis.givenApi(
+                aGuardedApi()
+                    .internalFlow(
+                        Flow.builder().request(List.of(GuardrailSteps.of(GUARDRAIL_ID, "Credential leakage"), anAiHubStep())).build()
+                    )
+                    .build()
+            );
+
+            service.setAttachments(API_ID, List.of(new ApiGuardrailAttachment(GUARDRAIL_ID, TEAM_A)), List.of(), actor);
+
+            assertThat(storedInternalFlow().getRequest())
+                .as("stored request steps")
+                .containsExactly(anAiHubStep(), GuardrailSteps.of(GUARDRAIL_ID, "Credential leakage", TEAM_A));
+        }
+
+        /** The gateway answers every call of the API with an error when a condition does not parse. */
+        @Test
+        void should_refuse_a_condition_that_does_not_parse_naming_the_guardrail_and_leave_the_api_as_it_was() {
+            givenDeployedGuardrail(d -> d.name("Credential leakage").phase(Phase.REQUEST));
+            var ran = Flow.builder().request(List.of(GuardrailSteps.of(GUARDRAIL_ID, "Credential leakage", TEAM_A))).build();
+            apis.givenApi(aGuardedApi().internalFlow(ran).build());
+            var broken = List.of(new ApiGuardrailAttachment(GUARDRAIL_ID, "{#context.attributes['aihub.team'] == }"));
+
+            assertSoftly(softly -> {
+                softly
+                    .assertThatThrownBy(() -> service.setAttachments(API_ID, broken, List.of(), actor))
+                    .as("a condition that does not parse")
+                    .isInstanceOf(InvalidApiGuardrailConditionException.class)
+                    .hasMessageContaining(GUARDRAIL_ID);
+                softly.assertThat(storedInternalFlow()).as("the API, left as it was").isEqualTo(ran);
+                softly.assertThat(audits.storage()).as("nothing audited").isEmpty();
+            });
+        }
+
+        /** The gateway reads {@code {!…}} as text rather than as an expression, and then skips the Guardrail on every call. */
+        @Test
+        void should_refuse_a_condition_the_gateway_would_read_as_text() {
+            givenDeployedGuardrail(d -> d.name("Credential leakage").phase(Phase.REQUEST));
+            apis.givenApi(aGuardedApi().build());
+            var negated = List.of(new ApiGuardrailAttachment(GUARDRAIL_ID, "{!(#context.attributes['aihub.team'] == 'team-a')}"));
+
+            assertThatThrownBy(() -> service.setAttachments(API_ID, negated, List.of(), actor))
+                .as("a negation outside of parentheses")
+                .isInstanceOf(InvalidApiGuardrailConditionException.class)
+                .hasMessageContaining(GUARDRAIL_ID);
+        }
+
+        @Test
+        void should_tell_an_invalid_condition_apart_from_the_other_faults_in_one_refusal() {
+            givenDeployedGuardrail(d -> d.name("Credential leakage").phase(Phase.REQUEST));
+            apis.givenApi(aGuardedApi().build());
+            var attachments = List.of(new ApiGuardrailAttachment(GUARDRAIL_ID, "{#a ==}"), new ApiGuardrailAttachment("ghost", null));
+
+            assertThatThrownBy(() -> service.setAttachments(API_ID, attachments, List.of(), actor))
+                .as("an invalid condition and an unknown id")
+                .isInstanceOf(ApiGuardrailSequenceRefusedException.class)
+                .asInstanceOf(InstanceOfAssertFactories.throwable(ApiGuardrailSequenceRefusedException.class))
+                .extracting(ApiGuardrailSequenceRefusedException::getParameters, InstanceOfAssertFactories.map(String.class, String.class))
+                .as("what each refusal is")
+                .containsEntry("invalidConditionGuardrailIds", GUARDRAIL_ID)
+                .containsEntry("notFoundGuardrailIds", "ghost");
+        }
+
+        private Flow storedInternalFlow() {
+            return apis.findById(ENVIRONMENT_ID, API_ID).orElseThrow().internalFlow();
+        }
+
+        private static Step anAiHubStep() {
+            return Step.builder().name("AI Hub").policy("ai-hub").build();
+        }
+    }
+
     private SetApiGuardrailsDomainService serviceOn(InMemoryGuardedApiPort port) {
         return new SetApiGuardrailsDomainService(
             port,
-            new ValidateApiGuardrailsDomainService(guardrails, publications.service(guardrails)),
+            new ValidateApiGuardrailsDomainService(guardrails, publications.service(guardrails), aConditionSyntax()),
             new DescribeApiGuardrailsDomainService(publications.service(guardrails), port),
             audits.service
         );
