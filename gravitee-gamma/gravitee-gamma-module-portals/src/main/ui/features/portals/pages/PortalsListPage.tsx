@@ -98,7 +98,7 @@ function PortalsListContent() {
                         <h2 className="text-base font-medium">All portals</h2>
                         <div role="group" aria-label="Portal controls" className="flex min-w-0 flex-wrap items-center gap-2">
                             <PortalSearchInput value={search} onChange={setSearch} />
-                            <NewPortalButton />
+                            <NewPortalButton quota={stats.data?.quota} quotaLoading={stats.isFetching} quotaError={stats.isError} />
                         </div>
                     </CardHeader>
                     <CardContent className="min-w-0 space-y-4" aria-busy={portals.isFetching}>

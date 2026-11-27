@@ -13,13 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
+
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
+
+import { portalKeys } from '../utils/queryKeys';
 
 export function PortalOverviewPlaceholderPage() {
     const { portalId } = useParams<{ portalId: string }>();
+    const environmentId = useEnvironment()?.id ?? '';
+    const { data: refreshStatus } = useQuery({
+        queryKey: portalKeys.creationRefresh(environmentId, portalId ?? ''),
+        queryFn: async () => 'success',
+        enabled: false,
+    });
     return (
         <div>
             <h1>Portal overview</h1>
+            {refreshStatus === 'error' ? <p role="alert">Portal created, but the portal list or quota could not be refreshed.</p> : null}
             <p>{portalId}</p>
         </div>
     );
