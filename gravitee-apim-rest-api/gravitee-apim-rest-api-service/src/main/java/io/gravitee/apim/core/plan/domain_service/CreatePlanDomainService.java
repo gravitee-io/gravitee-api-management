@@ -79,7 +79,7 @@ public class CreatePlanDomainService {
     public PlanWithFlows create(Plan plan, List<? extends AbstractFlow> flows, Api api, AuditInfo auditInfo) {
         return switch (api.getDefinitionVersion()) {
             case V4 -> createV4ApiPlan(plan, flows, api, auditInfo);
-            case FEDERATED, FEDERATED_AGENT -> createFederatedApiPlan(plan, auditInfo);
+            case FEDERATED, FEDERATED_AGENT -> createFederatedApiPlan(plan, api, auditInfo);
             case V2 -> createV2ApiPlan(plan, flows, api, auditInfo);
             case null, default -> throw new IllegalStateException(api.getDefinitionVersion() + " is not supported");
         };
@@ -171,8 +171,8 @@ public class CreatePlanDomainService {
         return new PlanWithFlows(createdPlan, createdFlows);
     }
 
-    private PlanWithFlows createFederatedApiPlan(Plan plan, AuditInfo auditInfo) {
-        var createdPlan = planCrudService.create(plan);
+    private PlanWithFlows createFederatedApiPlan(Plan plan, Api api, AuditInfo auditInfo) {
+        var createdPlan = planCrudService.create(plan.toBuilder().environmentId(api.getEnvironmentId()).build());
         createAuditLog(createdPlan, auditInfo);
         return new PlanWithFlows(createdPlan, Collections.emptyList());
     }

@@ -53,6 +53,7 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
@@ -226,6 +227,45 @@ class CreatePlanDomainServiceTest {
             assertThat(throwable)
                 .isInstanceOf(PlanInvalidException.class)
                 .hasMessage("Security type is required for plan with 'STANDARD' mode");
+        }
+    }
+
+    @Nested
+    class FederatedApiPlan {
+
+        private static final String API_ENVIRONMENT_ID = "api-environment-id";
+
+        static Stream<Api> federatedApis() {
+            return Stream.of(
+                ApiFixtures.aFederatedApi().toBuilder().id(API_ID).environmentId(API_ENVIRONMENT_ID).build(),
+                ApiFixtures.aFederatedAgent()
+                    .toBuilder()
+                    .id(API_ID)
+                    .environmentId(API_ENVIRONMENT_ID)
+                    .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
+                    .build()
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("federatedApis")
+        void should_create_plan_in_the_environment_of_the_api(Api api) {
+            var plan = fixtures.core.model.PlanFixtures.aFederatedPlan().toBuilder().environmentId(null).referenceId(API_ID).build();
+
+            var result = service.create(plan, List.of(), api, AUDIT_INFO);
+
+            assertThat(result.getEnvironmentId()).isEqualTo(API_ENVIRONMENT_ID);
+            assertThat(planCrudService.storage()).extracting(Plan::getEnvironmentId).containsExactly(API_ENVIRONMENT_ID);
+        }
+
+        @ParameterizedTest
+        @MethodSource("federatedApis")
+        void should_keep_the_federated_plan_definition_version(Api api) {
+            var plan = fixtures.core.model.PlanFixtures.aFederatedPlan().toBuilder().referenceId(API_ID).build();
+
+            service.create(plan, List.of(), api, AUDIT_INFO);
+
+            assertThat(planCrudService.storage()).extracting(Plan::getDefinitionVersion).containsExactly(DefinitionVersion.FEDERATED);
         }
     }
 

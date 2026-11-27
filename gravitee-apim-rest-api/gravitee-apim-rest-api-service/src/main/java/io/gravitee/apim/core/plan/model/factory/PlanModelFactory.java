@@ -89,6 +89,7 @@ public class PlanModelFactory {
             .id(id)
             .name(plan.name())
             .description(plan.description())
+            .environmentId(federatedApi.getEnvironmentId())
             .referenceId(federatedApi.getId())
             .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API)
             .federatedPlanDefinition(
