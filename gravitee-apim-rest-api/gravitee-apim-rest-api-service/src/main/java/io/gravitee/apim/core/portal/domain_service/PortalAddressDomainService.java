@@ -19,6 +19,7 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
 import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
+import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalHost;
@@ -30,6 +31,7 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -45,9 +47,21 @@ public class PortalAddressDomainService {
     private final AccessPointQueryService accessPointQueryService;
     private final AccessPointCrudService accessPointCrudService;
     private final PortalUrlDomainService portalUrlDomainService;
+    private final InstallationTypeDomainService installationTypeDomainService;
 
-    /** @return the access point the environment's portals share at its portal URL; empty when that URL is not usable */
+    /** False on a multi-tenant installation: Cloud owns its access points there, so APIM creates none. */
+    public boolean assignsAccessPoints() {
+        return !installationTypeDomainService.isMultiTenant();
+    }
+
+    /**
+     * @return the access point the environment's portals share at its portal URL; empty when that URL is not usable, or when
+     * the installation does not {@linkplain #assignsAccessPoints() assign access points}
+     */
     public Optional<String> sharedAccessPoint(String environmentId) {
+        if (!assignsAccessPoints()) {
+            return Optional.empty();
+        }
         return portalUrlDomainService.resolveDefaultPortalUrl(environmentId).map(url -> sharedAccessPoint(environmentId, url));
     }
 
@@ -64,7 +78,7 @@ public class PortalAddressDomainService {
      * @return the number of portals moved
      */
     public int followPortalUrl(String environmentId, Optional<URL> previousUrl) {
-        if (previousUrl.isEmpty()) {
+        if (!assignsAccessPoints() || previousUrl.isEmpty()) {
             return 0;
         }
         var currentUrl = portalUrl(environmentId);
@@ -85,6 +99,15 @@ public class PortalAddressDomainService {
             accessPointCrudService.delete(previous.get().getId());
         }
         return moved.size();
+    }
+
+    /** The ids of the existing access points the environment's portals can be served at. */
+    public Set<String> accessPointIds(String environmentId) {
+        return accessPointQueryService
+            .getPortalInstanceAccessPoints(environmentId)
+            .stream()
+            .map(AccessPoint::getId)
+            .collect(Collectors.toSet());
     }
 
     /**
