@@ -187,12 +187,13 @@ public class SecretReferencePermissionDomainService {
     private Set<Reference> references(Pattern pattern, @Nullable Object definition) {
         var references = new HashSet<Reference>();
         if (definition != null) {
-            collect(objectMapper.valueToTree(definition), pattern, "", true, references);
+            collect(objectMapper.valueToTree(definition), pattern, "", true, true, references);
         }
         return references;
     }
 
-    private void collect(JsonNode node, Pattern pattern, String pointer, boolean enabled, Set<Reference> references) {
+    /** @param model whether the node belongs to the definition model rather than to JSON parsed out of one of its strings */
+    private void collect(JsonNode node, Pattern pattern, String pointer, boolean enabled, boolean model, Set<Reference> references) {
         if (node.isTextual()) {
             collectEmbedded(node.textValue(), pattern, pointer, enabled, references);
         } else if (node instanceof POJONode pojo && pojo.getPojo() instanceof RawValue raw) {
@@ -201,23 +202,23 @@ public class SecretReferencePermissionDomainService {
         } else if (node.isArray()) {
             var places = placesOf(node);
             for (var i = 0; i < node.size(); i++) {
-                collect(node.get(i), pattern, pointer + "/" + places.get(i), enabled, references);
+                collect(node.get(i), pattern, pointer + "/" + places.get(i), enabled, model, references);
             }
         } else {
-            var nodeEnabled = enabled && node.path("enabled").asBoolean(true);
+            // The gateway ignores unknown fields of a plugin configuration, so an enabled field in one disables nothing.
+            var nodeEnabled = model ? enabled && node.path("enabled").asBoolean(true) : enabled;
             node
                 .properties()
                 .forEach(field ->
-                    collect(field.getValue(), pattern, pointer + "/" + jsonPointerSegment(field.getKey()), nodeEnabled, references)
+                    collect(field.getValue(), pattern, pointer + "/" + jsonPointerSegment(field.getKey()), nodeEnabled, model, references)
                 );
         }
     }
 
+    // Jackson stops at the end of the first JSON value, so the raw text is scanned too.
     private void collectEmbedded(String text, Pattern pattern, String pointer, boolean enabled, Set<Reference> references) {
-        embeddedJson(text).ifPresentOrElse(
-            embedded -> collect(embedded, pattern, pointer, enabled, references),
-            () -> collect(text, pattern, pointer, enabled, references)
-        );
+        collect(text, pattern, pointer, enabled, references);
+        embeddedJson(text).ifPresent(embedded -> collect(embedded, pattern, pointer, enabled, false, references));
     }
 
     private Optional<JsonNode> embeddedJson(String text) {
