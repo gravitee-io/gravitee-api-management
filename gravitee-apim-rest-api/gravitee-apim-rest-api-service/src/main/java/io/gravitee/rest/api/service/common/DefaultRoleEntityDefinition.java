@@ -193,6 +193,7 @@ public interface DefaultRoleEntityDefinition {
             .put(ApiPermission.LOG.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(ApiPermission.NATIVE_LOG.getName(), new char[] { READ.getId() })
             .put(ApiPermission.NATIVE_ANALYTICS.getName(), new char[] { READ.getId() })
+            .put(ApiPermission.LIVE_SESSION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(ApiPermission.DOCUMENTATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(ApiPermission.AUDIT.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(ApiPermission.RATING.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })

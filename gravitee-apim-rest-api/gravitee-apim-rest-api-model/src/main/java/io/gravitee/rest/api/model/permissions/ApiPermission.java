@@ -46,7 +46,8 @@ public enum ApiPermission implements Permission {
     REVIEWS("REVIEWS", 2900),
     QUALITY_RULE("QUALITY_RULE", 3000),
     NATIVE_LOG("NATIVE_LOG", 3100),
-    NATIVE_ANALYTICS("NATIVE_ANALYTICS", 3200);
+    NATIVE_ANALYTICS("NATIVE_ANALYTICS", 3200),
+    LIVE_SESSION("LIVE_SESSION", 3300);
 
     String name;
     int mask;
