@@ -67,7 +67,8 @@ public abstract class ApiAdapterDecorator implements ApiAdapter {
             case KUBERNETES -> new OriginContext.Kubernetes(
                 source.getMode() != null
                     ? OriginContext.Kubernetes.Mode.valueOf(source.getMode().toUpperCase())
-                    : OriginContext.Kubernetes.Mode.FULLY_MANAGED
+                    : OriginContext.Kubernetes.Mode.FULLY_MANAGED,
+                source.getSyncFrom() != null ? source.getSyncFrom().toUpperCase() : OriginContext.Origin.MANAGEMENT.name()
             );
             case INTEGRATION -> new OriginContext.Integration(source.getIntegrationId(), null, null);
         };
