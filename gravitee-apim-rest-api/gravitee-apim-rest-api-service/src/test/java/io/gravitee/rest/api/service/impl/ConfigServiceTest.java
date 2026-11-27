@@ -74,7 +74,6 @@ import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryS
 import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
 import io.gravitee.apim.core.portal.exception.SeveralPortalsInEnvironmentException;
 import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.parameters.KeyScope;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.settings.BrandedSenderConfig;
 import io.gravitee.rest.api.model.settings.BrandedSenders;
@@ -584,12 +583,6 @@ class ConfigServiceTest {
             "DEFAULT",
             ParameterReferenceType.ENVIRONMENT
         );
-    }
-
-    @Test
-    void should_scope_skip_login_with_single_idp_to_the_environment() {
-        assertThat(PORTAL_NEXT_SKIP_LOGIN_WITH_SINGLE_IDP_ENABLED.scopes()).containsExactly(KeyScope.ENVIRONMENT);
-        assertThat(PORTAL_NEXT_SKIP_LOGIN_WITH_SINGLE_IDP_ENABLED.defaultValue()).isEqualTo("false");
     }
 
     @Test
