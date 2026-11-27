@@ -246,6 +246,15 @@ describe('PortalAuthenticationComponent', () => {
       expect((await harness.getRows()).map(row => row.id)).toEqual(['github']);
     });
 
+    it('should not match the search on the activation state', async () => {
+      await init();
+      await load([google, github], [fakeIdentityProviderActivation({ identityProvider: 'google' })], settingsWith({ localLogin: true }));
+
+      await harness.search('true');
+
+      expect(await harness.getRows()).toEqual([]);
+    });
+
     it('should display an empty message when there is no identity provider', async () => {
       await init();
       await load([], [], settingsWith({ localLogin: true }));

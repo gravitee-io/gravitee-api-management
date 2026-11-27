@@ -72,6 +72,7 @@ interface IdentityProviderRow {
   description: string;
   logo: string;
   isActivated: boolean;
+  isActiveOnPortal: boolean;
   isActivationDisabled: boolean;
   activationTooltip: string;
 }
@@ -129,16 +130,6 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
         this.portalSettingsService.get(),
       ]).pipe(map(([identityProviders, activations, settings]) => ({ identityProviders, activations, settings }))),
   });
-  private readonly activePortalIdentityProviderCount = computed(() => {
-    if (!this.dataResource.hasValue()) {
-      return 0;
-    }
-    const { identityProviders, activations } = this.dataResource.value();
-    return identityProviders.filter(
-      identityProvider => identityProvider.enabled && activations.some(activation => activation.identityProvider === identityProvider.id),
-    ).length;
-  });
-  readonly isSkipLoginToggleVisible = computed(() => this.activePortalIdentityProviderCount() === 1);
   readonly isForceLoginReadonly = computed(() => this.isSystemReadonly(FORCE_LOGIN_PROPERTY));
   readonly isLocalLoginReadonly = computed(() => this.isSystemReadonly(LOCAL_LOGIN_PROPERTY));
   readonly isSkipLoginReadonly = computed(() => this.isSystemReadonly(SKIP_LOGIN_PROPERTY));
@@ -154,9 +145,11 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
       ),
     );
   });
+  private readonly activePortalIdentityProviderCount = computed(() => this.rows().filter(row => row.isActiveOnPortal).length);
+  readonly isSkipLoginToggleVisible = computed(() => this.activePortalIdentityProviderCount() === 1);
   private readonly filteredRows = computed(() =>
     gioTableFilterCollection(this.rows(), this.filters(), {
-      searchTermIgnoreKeys: ['logo', 'isActivated', 'isActivationDisabled', 'activationTooltip'],
+      searchTermIgnoreKeys: ['logo', 'isActivated', 'isActiveOnPortal', 'isActivationDisabled', 'activationTooltip'],
     }),
   );
   readonly pagedRows = computed(() => this.filteredRows().filteredCollection);
@@ -329,6 +322,7 @@ function toIdentityProviderRow(identityProvider: IdentityProviderListItem, isAct
     description: identityProvider.description,
     logo: `assets/logo_${identityProvider.type.toLowerCase()}-idp.svg`,
     isActivated,
+    isActiveOnPortal: isAllowedOnPortal && isActivated,
     isActivationDisabled: !isAllowedOnPortal && !isActivated,
     activationTooltip,
   };
