@@ -88,6 +88,28 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
     }
 
     @Test
+    public void should_return_one_access_point_from_a_host_several_share() throws Exception {
+        for (var target : List.of(AccessPointTarget.PORTAL, AccessPointTarget.PORTAL_INSTANCE)) {
+            accessPointRepository.create(
+                AccessPoint.builder()
+                    .id("shared-" + target.name())
+                    .host("shared.portal.example.com")
+                    .target(target)
+                    .referenceId("environment-with-shared-host")
+                    .referenceType(AccessPointReferenceType.ENVIRONMENT)
+                    .status(AccessPointStatus.CREATED)
+                    .updatedAt(new Date(1486771200000L))
+                    .build()
+            );
+        }
+
+        Optional<AccessPoint> accessPoint = accessPointRepository.findByHost("shared.portal.example.com");
+
+        assertTrue(accessPoint.isPresent());
+        assertEquals("environment-with-shared-host", accessPoint.get().getReferenceId());
+    }
+
+    @Test
     public void should_return_access_point_from_target() throws Exception {
         List<AccessPoint> accessPoints = accessPointRepository.findByTarget(AccessPointTarget.PORTAL);
 
