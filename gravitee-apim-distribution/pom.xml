@@ -236,7 +236,7 @@
     <gravitee-resource-ai-vector-store-redis.version>2.0.0</gravitee-resource-ai-vector-store-redis.version>
     <gravitee-resource-ai-vector-store-aws-s3.version>2.0.0</gravitee-resource-ai-vector-store-aws-s3.version>
     <gravitee-resource-ai-model-text-embedding.version>2.0.1</gravitee-resource-ai-model-text-embedding.version>
-    <gravitee-resource-ai-model-decision-remote.version>1.0.0-alpha.5</gravitee-resource-ai-model-decision-remote.version>
+    <gravitee-resource-ai-model-decision-remote.version>1.0.0-alpha.6</gravitee-resource-ai-model-decision-remote.version>
     <gravitee-resource-ai-model-token-classification-remote.version>1.0.0-alpha.1</gravitee-resource-ai-model-token-classification-remote.version>
     <gravitee-policy-ai-semantic-caching.version>3.1.2</gravitee-policy-ai-semantic-caching.version>
     <gravitee-policy-ai-routing.version>1.1.0</gravitee-policy-ai-routing.version>
