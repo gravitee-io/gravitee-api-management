@@ -77,28 +77,52 @@ describe('initApp', () => {
     expect(navigate).toHaveBeenCalledWith(['/503'], { state: {} });
   });
 
-  it.each([undefined, 'configured-portal'])(
-    'should resolve bootstrap portal before navigation independently of deployment portal %p and route unknown portal to /503',
-    async portalId => {
-      const initialized = startInitializer();
-      httpTestingController.expectNone(request => request.url.includes('/portal-navigation-items'));
-      httpTestingController.expectOne('./assets/config.json').flush({ baseURL: 'https://apim.example.com/portal', portalId });
-      httpTestingController.expectNone(request => request.url.includes('/portal-navigation-items'));
-      httpTestingController
-        .expectOne(bootstrapUrl)
-        .flush({ baseURL: 'https://apim.example.com/portal', environmentId: 'DEFAULT', portalId: 'default-portal' });
-      const environmentURL = 'https://apim.example.com/portal/environments/DEFAULT';
-      httpTestingController.expectOne(`${environmentURL}/theme?type=PORTAL_NEXT`).flush({});
-      httpTestingController.expectOne(`${environmentURL}/configuration`).flush({});
-      httpTestingController.expectOne(`${environmentURL}/user`).flush({}, { status: 401, statusText: 'Unauthorized' });
-      const navigation = httpTestingController.expectOne(
-        request => request.url === `${environmentURL}/portal/default-portal/portal-navigation-items`,
-      );
-      navigation.flush({}, { status: 404, statusText: 'Not Found' });
-      await initialized;
-      expect(navigate).toHaveBeenCalledWith(['/503'], { state: { status: 404 } });
-    },
-  );
+  it('should resolve the bootstrap portal before navigation and route an unknown portal to /503', async () => {
+    const initialized = startInitializer();
+    httpTestingController.expectNone(request => request.url.includes('/portal-navigation-items'));
+    httpTestingController.expectOne('./assets/config.json').flush({ baseURL: 'https://apim.example.com/portal' });
+    httpTestingController.expectNone(request => request.url.includes('/portal-navigation-items'));
+    httpTestingController
+      .expectOne(bootstrapUrl)
+      .flush({ baseURL: 'https://apim.example.com/portal', environmentId: 'DEFAULT', portalId: 'default-portal' });
+    const environmentURL = 'https://apim.example.com/portal/environments/DEFAULT';
+    httpTestingController.expectOne(`${environmentURL}/theme?type=PORTAL_NEXT`).flush({});
+    httpTestingController.expectOne(`${environmentURL}/configuration`).flush({});
+    httpTestingController.expectOne(`${environmentURL}/user`).flush({}, { status: 401, statusText: 'Unauthorized' });
+    const navigation = httpTestingController.expectOne(
+      request => request.url === `${environmentURL}/portal/default-portal/portal-navigation-items`,
+    );
+    navigation.flush({}, { status: 404, statusText: 'Not Found' });
+    await initialized;
+    expect(navigate).toHaveBeenCalledWith(['/503'], { state: { status: 404 } });
+  });
+
+  it('should send portal-scoped requests to the configured portal and route an unknown one to /503', async () => {
+    const initialized = startInitializer();
+    httpTestingController.expectOne('./assets/config.json').flush({ baseURL: 'https://apim.example.com/portal', portalId: 'portal-b' });
+    httpTestingController.expectNone(request => request.url.includes('/portal-navigation-items'));
+    httpTestingController
+      .expectOne(bootstrapUrl)
+      .flush({ baseURL: 'https://apim.example.com/portal', environmentId: 'DEFAULT', portalId: 'portal-a' });
+    const environmentURL = 'https://apim.example.com/portal/environments/DEFAULT';
+    httpTestingController.expectOne(`${environmentURL}/theme?type=PORTAL_NEXT`).flush({});
+    httpTestingController.expectOne(`${environmentURL}/configuration`).flush({});
+    httpTestingController.expectOne(`${environmentURL}/user`).flush({}, { status: 401, statusText: 'Unauthorized' });
+    httpTestingController
+      .expectOne(request => request.url === `${environmentURL}/portal/portal-b/portal-navigation-items`)
+      .flush({}, { status: 404, statusText: 'Not Found' });
+    await initialized;
+    expect(navigate).toHaveBeenCalledWith(['/503'], { state: { status: 404 } });
+    httpTestingController.expectNone(request => request.url.includes('/portal-navigation-items'));
+  });
+
+  it('should stop startup before the bootstrap request when the configured portal ID is invalid', async () => {
+    const initialized = startInitializer();
+    httpTestingController.expectOne('./assets/config.json').flush({ baseURL: 'https://apim.example.com/portal', portalId: 12 });
+    httpTestingController.expectNone(bootstrapUrl);
+    await initialized;
+    expect(navigate).toHaveBeenCalledWith(['/503'], { state: {} });
+  });
 
   it('should complete startup for a valid empty portal and an anonymous user', async () => {
     const initialized = runInitializer();

@@ -23,6 +23,7 @@ import { Configuration } from '../entities/configuration/configuration';
 interface Config {
   baseURL: string;
   environmentId?: string;
+  portalId?: unknown;
 }
 
 interface BootstrapConfig extends Config {
@@ -68,13 +69,16 @@ export class ConfigService {
   public initBaseURL(): Observable<string> {
     return this.httpClient.get<Config>('./assets/config.json').pipe(
       switchMap(configJson => {
+        const configuredPortalId = this.readPortalId(configJson.portalId);
         const baseURL = this._sanitizeBaseURLs(configJson);
         const enforcedEnvironmentId = this._getEnforcedEnvironmentId(configJson);
         const bootstrapUrl = `${baseURL}/ui/bootstrap${enforcedEnvironmentId ? `?environmentId=${enforcedEnvironmentId}` : ''}`;
 
         return this.httpClient.get<BootstrapConfig>(bootstrapUrl).pipe(
           map(bootstrapConfig => {
-            const portalId = this.readPortalId(bootstrapConfig.portalId);
+            // Read before choosing: an invalid bootstrap portal ID fails startup even when one is configured.
+            const bootstrapPortalId = this.readPortalId(bootstrapConfig.portalId);
+            const portalId = configuredPortalId ?? bootstrapPortalId;
             if (!portalId) {
               throw new Error('Portal ID is required');
             }

@@ -31,6 +31,11 @@ annotations:
   ###########
   artifacthub.io/changes: |
     - kind: added
+      description: "Add optional `portal.portalId` to choose the portal served by Portal Next, rendered only in `config-next.json`; empty keeps the portal returned by the bootstrap (PORTAL-379)"
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/23287
+    - kind: added
       description: "Add `es.ssl.trustAll` and `es.ssl.truststore`, also under `api.otelTraces.elasticsearch.ssl` and `api.otelLogs.elasticsearch.ssl`; from APIM 4.14 the Elasticsearch certificate is verified by default, and `trustAll: true` restores the previous behavior"
       links:
         - name: Github PR
