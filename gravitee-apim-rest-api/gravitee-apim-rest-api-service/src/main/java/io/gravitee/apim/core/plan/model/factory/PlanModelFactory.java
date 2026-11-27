@@ -86,6 +86,7 @@ public class PlanModelFactory {
             .id(id)
             .name(plan.name())
             .description(plan.description())
+            .environmentId(federatedApi.getEnvironmentId())
             .apiId(federatedApi.getId())
             .federatedPlanDefinition(
                 FederatedPlan.builder()

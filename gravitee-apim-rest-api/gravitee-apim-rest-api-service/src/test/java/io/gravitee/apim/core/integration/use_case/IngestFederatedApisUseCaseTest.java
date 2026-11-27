@@ -19,6 +19,7 @@ import static fixtures.core.model.AsyncJobFixture.aPendingFederatedApiIngestionJ
 import static fixtures.core.model.RoleFixtures.apiPrimaryOwnerRoleId;
 import static io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doThrow;
@@ -954,6 +955,7 @@ class IngestFederatedApisUseCaseTest {
                             .name("My Plan 1")
                             .description("Description 1")
                             .validation(Plan.PlanValidationType.MANUAL)
+                            .environmentId(ENVIRONMENT_ID)
                             .apiId("environment-idintegration-idasset-uid")
                             .federatedPlanDefinition(
                                 FederatedPlan.builder()
@@ -975,6 +977,7 @@ class IngestFederatedApisUseCaseTest {
                             .name("My Plan 2")
                             .description("Description 2")
                             .validation(Plan.PlanValidationType.MANUAL)
+                            .environmentId(ENVIRONMENT_ID)
                             .apiId("environment-idintegration-idasset-uid")
                             .federatedPlanDefinition(
                                 FederatedPlan.builder()
@@ -1060,6 +1063,7 @@ class IngestFederatedApisUseCaseTest {
                             .id("environment-idintegration-idasset-uidplan1")
                             .name("Updated Plan 1")
                             .description("Updated description 1")
+                            .environmentId(ENVIRONMENT_ID)
                             .validation(Plan.PlanValidationType.MANUAL)
                             .apiId("environment-idintegration-idasset-uid")
                             .federatedPlanDefinition(
@@ -1076,6 +1080,67 @@ class IngestFederatedApisUseCaseTest {
                             .build()
                     )
             );
+        }
+
+        @Test
+        void should_set_the_api_environment_on_an_existing_plan_stored_without_one() {
+            // Given
+            givenAnIngestJob(INGEST_JOB);
+            givenExistingApi(ApiFixtures.aFederatedApi().toBuilder().id(ENVIRONMENT_ID + INTEGRATION_ID + "asset-uid").build());
+            givenExistingPlans(aStoredFederatedPlan(null));
+
+            // When
+            useCase
+                .execute(
+                    new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(anIntegrationApiWithOnePlan()), false)
+                )
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
+
+            // Then
+            assertThat(planCrudService.storage())
+                .extracting(Plan::getId, Plan::getEnvironmentId)
+                .containsExactly(tuple("environment-idintegration-idasset-uidplan1", ENVIRONMENT_ID));
+        }
+
+        @Test
+        void should_keep_the_environment_stored_on_an_existing_plan() {
+            // Given
+            givenAnIngestJob(INGEST_JOB);
+            givenExistingApi(ApiFixtures.aFederatedApi().toBuilder().id(ENVIRONMENT_ID + INTEGRATION_ID + "asset-uid").build());
+            givenExistingPlans(aStoredFederatedPlan("stored-environment-id"));
+
+            // When
+            useCase
+                .execute(
+                    new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(anIntegrationApiWithOnePlan()), false)
+                )
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
+
+            // Then
+            assertThat(planCrudService.storage())
+                .extracting(Plan::getId, Plan::getEnvironmentId)
+                .containsExactly(tuple("environment-idintegration-idasset-uidplan1", "stored-environment-id"));
+        }
+
+        @Test
+        void should_create_new_plan_in_the_environment_of_the_api() {
+            // Given
+            givenAnIngestJob(INGEST_JOB);
+            var apiToIngest = anIntegrationApiWithOnePlan();
+            givenExistingApi(ApiFixtures.aFederatedApi().toBuilder().id(ENVIRONMENT_ID + INTEGRATION_ID + "asset-uid").build());
+
+            // When
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
+
+            // Then
+            assertThat(planCrudService.storage())
+                .extracting(Plan::getId, Plan::getEnvironmentId)
+                .containsExactly(tuple("environment-idintegration-idasset-uidplan1", ENVIRONMENT_ID));
         }
 
         @Test
@@ -1198,6 +1263,35 @@ class IngestFederatedApisUseCaseTest {
                         .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                         .build()
                 );
+        }
+
+        private IntegrationApi anIntegrationApiWithOnePlan() {
+            return IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .plans(List.of(new IntegrationApi.Plan("plan1", "My Plan 1", "Description 1", IntegrationApi.PlanType.API_KEY, List.of())))
+                .build();
+        }
+
+        private Plan aStoredFederatedPlan(String environmentId) {
+            return Plan.builder()
+                .id("environment-idintegration-idasset-uidplan1")
+                .name("My Plan 1")
+                .description("Description 1")
+                .environmentId(environmentId)
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .definitionVersion(DefinitionVersion.FEDERATED)
+                .federatedPlanDefinition(
+                    FederatedPlan.builder()
+                        .id("generated-id")
+                        .providerId("plan1")
+                        .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY.getLabel()).build())
+                        .status(PlanStatus.PUBLISHED)
+                        .mode(PlanMode.STANDARD)
+                        .build()
+                )
+                .validation(Plan.PlanValidationType.MANUAL)
+                .apiId("environment-idintegration-idasset-uid")
+                .build();
         }
     }
 

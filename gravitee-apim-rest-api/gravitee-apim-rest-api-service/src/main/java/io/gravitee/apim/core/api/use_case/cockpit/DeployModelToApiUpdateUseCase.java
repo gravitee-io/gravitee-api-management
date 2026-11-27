@@ -101,6 +101,7 @@ public class DeployModelToApiUpdateUseCase {
             planCrudService.create(
                 new Plan(input.apiId(), deployModelToApiDomainService.createDefaultPlan())
                     .toBuilder()
+                    .environmentId(input.auditInfo().environmentId())
                     .needRedeployAt(Date.from(TimeProvider.now().toInstant()))
                     .validation(Plan.PlanValidationType.AUTO)
                     .build()

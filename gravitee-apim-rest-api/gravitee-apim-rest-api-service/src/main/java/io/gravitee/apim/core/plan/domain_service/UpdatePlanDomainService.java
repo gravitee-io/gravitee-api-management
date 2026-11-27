@@ -239,6 +239,9 @@ public class UpdatePlanDomainService {
         }
 
         var toUpdate = existingPlan.update(planToUpdate);
+        if (toUpdate.getEnvironmentId() == null) {
+            toUpdate = toUpdate.toBuilder().environmentId(planToUpdate.getEnvironmentId()).build();
+        }
 
         Plan updated = orderAwareUpdate(existingPlan, toUpdate);
 
