@@ -1125,7 +1125,8 @@ paths:
       summary: Create a portal
       description: |-
         User must have the ENVIRONMENT_PORTAL[create] permission.
-        Creates a portal in the environment, served at the URL sent or at a generated URL when none is sent.
+        Creates a portal in the environment, served at the environment's portal URL. On a multi-tenant installation,
+        the portal is created without a URL.
         A new portal is never the default portal.
       operationId: createPortal
       requestBody:
@@ -1133,30 +1134,22 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/CreatePortal"
-            examples:
-              withoutUrl:
-                summary: A portal whose URL is generated
-                value:
-                  name: Partners Portal
-              withUrl:
-                summary: A portal served at a given URL
-                value:
-                  name: Partners Portal
-                  url: https://partners.example.com
+            example:
+              name: Partners Portal
         required: true
       responses:
         "201":
-          description: The created portal, with the URL sent, or a generated URL when none was sent
+          description: The created portal, with the environment's portal URL, or no URL on a multi-tenant installation
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Portal"
         "400":
           description: |-
-            Invalid payload, an empty name, or a refused URL: one that is not an absolute `http` or `https` URL, that
-            has a username or password, a query string or a fragment, or that is longer than 256 characters. Also returned when no URL is sent and the
-            environment's portal URL cannot be resolved, and when the environment has no default portal: its portal
-            URL is not set yet, or its portals are managed through the Automation API
+            Invalid payload, an empty name, or a `url` sent: a portal URL cannot be chosen yet. Also returned when the
+            environment's portal URL cannot be resolved on an installation that is not multi-tenant, and when the
+            environment has no default portal: its portal URL is not set yet, or its portals are managed through the
+            Automation API
           content:
             application/json:
               schema:
@@ -4235,12 +4228,8 @@ components:
         url:
           type: string
           description: |-
-            The absolute `http` or `https` URL the portal is served at, unique in the environment. When left out, a
-            URL is generated. It cannot be changed yet.
-
-            Refused: a scheme other than `http` or `https` (in any case), a relative URL, a username or password, a
-            query string, a fragment, or more than 256 characters.
-          example: https://partners.example.com
+            Not accepted yet: a request that sends it is refused with 400. The portal is served at the environment's
+            portal URL, or has no URL on a multi-tenant installation.
       required: [ name ]
     UpdatePortal:
       type: object
