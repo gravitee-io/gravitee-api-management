@@ -111,6 +111,7 @@ import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -712,6 +713,7 @@ public class ApiServiceImplTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isNotEmpty();
 
+        verify(alertService).createDefaults(executionContext, AlertReferenceType.API, API_ID);
         verify(primaryOwnerService).getPrimaryOwner(executionContext, USER_NAME, apiEntity.getPrimaryOwner());
         verify(apiValidationService).validateAndSanitizeImportApiForCreation(executionContext, apiEntity, apiEntity.getPrimaryOwner());
 

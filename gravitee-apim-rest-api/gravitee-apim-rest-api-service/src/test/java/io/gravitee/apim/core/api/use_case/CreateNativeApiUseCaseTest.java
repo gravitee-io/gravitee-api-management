@@ -26,6 +26,7 @@ import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.NewApiFixtures;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiDefaultAlertsDomainServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.CreateCategoryApiDomainServiceInMemory;
@@ -174,7 +175,8 @@ class CreateNativeApiUseCaseTest {
             notificationConfigCrudService,
             parametersQueryService,
             workflowCrudService,
-            createCategoryApiDomainService
+            createCategoryApiDomainService,
+            new ApiDefaultAlertsDomainServiceInMemory()
         );
         useCase = new CreateNativeApiUseCase(validateApiDomainService, apiPrimaryOwnerFactory, createApiDomainService);
 

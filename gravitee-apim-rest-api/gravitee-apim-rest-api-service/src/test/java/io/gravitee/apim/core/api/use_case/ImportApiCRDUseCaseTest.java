@@ -47,6 +47,7 @@ import fixtures.definition.ApiDefinitionFixtures;
 import fixtures.definition.FlowFixtures;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiDefaultAlertsDomainServiceInMemory;
 import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
@@ -251,6 +252,7 @@ class ImportApiCRDUseCaseTest {
     GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
     MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
     NotificationConfigCrudServiceInMemory notificationConfigCrudService = new NotificationConfigCrudServiceInMemory();
+    ApiDefaultAlertsDomainServiceInMemory apiDefaultAlertsDomainService = new ApiDefaultAlertsDomainServiceInMemory();
     MetadataCrudServiceInMemory metadataCrudService = new MetadataCrudServiceInMemory();
     ApiMetadataQueryServiceInMemory apiMetadataQueryService = new ApiMetadataQueryServiceInMemory(metadataCrudService);
     RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
@@ -585,7 +587,8 @@ class ImportApiCRDUseCaseTest {
             notificationConfigCrudService,
             parametersQueryService,
             workflowCrudService,
-            createCategoryApiDomainService
+            createCategoryApiDomainService,
+            apiDefaultAlertsDomainService
         );
     }
 
@@ -593,6 +596,7 @@ class ImportApiCRDUseCaseTest {
     void tearDown() {
         Stream.of(
             apiCrudService,
+            apiDefaultAlertsDomainService,
             applicationCrudService,
             auditCrudService,
             flowCrudService,
@@ -705,6 +709,13 @@ class ImportApiCRDUseCaseTest {
                         )
                     );
             });
+        }
+
+        @Test
+        void should_create_default_alerts() {
+            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().build()));
+
+            assertThat(apiDefaultAlertsDomainService.storage()).containsExactly(API_ID);
         }
 
         @Test

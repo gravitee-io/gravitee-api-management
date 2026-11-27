@@ -26,6 +26,7 @@ import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.NewApiFixtures;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiDefaultAlertsDomainServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.CreateCategoryApiDomainServiceInMemory;
@@ -124,6 +125,7 @@ class CreateHttpApiUseCaseTest {
     GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
     MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
     NotificationConfigCrudServiceInMemory notificationConfigCrudService = new NotificationConfigCrudServiceInMemory();
+    ApiDefaultAlertsDomainServiceInMemory apiDefaultAlertsDomainService = new ApiDefaultAlertsDomainServiceInMemory();
     ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
     MetadataCrudServiceInMemory metadataCrudService = new MetadataCrudServiceInMemory();
     ApiMetadataQueryServiceInMemory apiMetadataQueryService = new ApiMetadataQueryServiceInMemory(metadataCrudService);
@@ -184,7 +186,8 @@ class CreateHttpApiUseCaseTest {
             notificationConfigCrudService,
             parametersQueryService,
             workflowCrudService,
-            createCategoryApiDomainService
+            createCategoryApiDomainService,
+            apiDefaultAlertsDomainService
         );
         useCase = new CreateHttpApiUseCase(validateApiDomainService, apiPrimaryOwnerFactory, createApiDomainService);
 
@@ -203,6 +206,7 @@ class CreateHttpApiUseCaseTest {
     void tearDown() {
         Stream.of(
             apiCrudService,
+            apiDefaultAlertsDomainService,
             auditCrudService,
             flowCrudService,
             groupQueryService,
@@ -585,6 +589,18 @@ class CreateHttpApiUseCaseTest {
                 .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                 .build()
         );
+    }
+
+    @Test
+    void should_create_default_alerts_for_a_v4_api() {
+        // Given
+        var newApi = NewApiFixtures.aProxyApiV4();
+
+        // When
+        useCase.execute(new Input(newApi, AUDIT_INFO));
+
+        // Then
+        assertThat(apiDefaultAlertsDomainService.storage()).containsExactly("generated-id");
     }
 
     @Test
