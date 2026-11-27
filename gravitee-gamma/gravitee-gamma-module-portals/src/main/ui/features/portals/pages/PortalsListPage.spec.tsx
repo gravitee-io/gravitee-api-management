@@ -114,7 +114,7 @@ describe('PortalsListPage', () => {
         expect(screen.getByText('https://z.example.com')).toBeVisible();
         expect(screen.getAllByText('No public URL yet')).toHaveLength(9);
         expect(screen.getByText('Z')).toBeVisible();
-        expect(screen.getByRole('button', { name: 'New Portal' })).toHaveAttribute('aria-disabled', 'true');
+        expect(screen.getByRole('button', { name: 'New Portal' })).toHaveAttribute('aria-disabled', 'false');
         expect(screen.queryByRole('link', { name: /configure/i })).not.toBeInTheDocument();
         expect(screen.getByText('Page 1 of 2')).toBeVisible();
     });
@@ -376,7 +376,7 @@ describe('PortalsListPage', () => {
         expect(screen.queryByText('old')).not.toBeInTheDocument();
     });
 
-    it('keeps row and external action reachable as separate tab stops and leaves New Portal inert', async () => {
+    it('keeps row and external action reachable as separate tab stops and opens New Portal', async () => {
         server.use(
             http.get(`${TEST_V2_BASE}/portals`, () =>
                 HttpResponse.json(createPortalsResponse({ data: [createPortal({ url: 'https://portal.example.com' })] })),
@@ -390,11 +390,10 @@ describe('PortalsListPage', () => {
         expect(screen.getByRole('link', { name: 'View Portal: Developer Portal' })).toHaveFocus();
         const create = screen.getByRole('button', { name: 'New Portal' });
         act(() => create.focus());
-        await user.keyboard('{Enter} ');
-        expect(create).toHaveFocus();
-        expect(create).toHaveAccessibleDescription('Creating portals is coming soon.');
+        await user.keyboard('{Enter}');
+        expect(screen.getByRole('dialog')).toBeVisible();
+        await user.keyboard('{Escape}');
         expect(screen.getByLabelText('Current path')).toHaveTextContent('/list');
-        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
 
     it('distinguishes initial loading, an empty collection and an empty search result', async () => {
@@ -598,5 +597,22 @@ describe('PortalsListPage', () => {
         await screen.findByText('Second environment');
         expect(requests[0].searchParams.get('page')).toBe('1');
         expect(requests[0].searchParams.has('q')).toBe(false);
+    });
+    it('creates a portal and opens its returned overview', async () => {
+        const user = userEvent.setup();
+        const post = jest.fn();
+        server.use(
+            http.post(`${TEST_V2_BASE}/portals`, () => {
+                post();
+                return HttpResponse.json(createPortal({ id: 'created-portal' }), { status: 201 });
+            }),
+        );
+        renderList();
+        await screen.findByText('Developer Portal');
+        await waitFor(() => expect(screen.getByRole('button', { name: 'New Portal' })).toHaveAttribute('aria-disabled', 'false'));
+        await user.click(screen.getByRole('button', { name: 'New Portal' }));
+        await user.type(screen.getByRole('textbox', { name: 'Name' }), 'Partners{Enter}');
+        expect(await screen.findByRole('heading', { name: 'Overview destination' })).toBeVisible();
+        expect(post).toHaveBeenCalledTimes(1);
     });
 });

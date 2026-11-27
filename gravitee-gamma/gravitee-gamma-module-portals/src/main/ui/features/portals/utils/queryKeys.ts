@@ -15,6 +15,8 @@
  */
 export const portalKeys = {
     all: ['portals'] as const,
+    creationRefresh: (environmentId: string, portalId: string) => ['portal-creation-refresh', environmentId, portalId] as const,
+    environment: (environmentId: string) => [...portalKeys.all, environmentId] as const,
     list: (environmentId: string, query: string, page: number, perPage: number) =>
         [...portalKeys.all, environmentId, 'list', { query, page, perPage }] as const,
     stats: (environmentId: string) => [...portalKeys.all, environmentId, 'stats'] as const,
