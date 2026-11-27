@@ -21,6 +21,7 @@ import static io.gravitee.gamma.rest.core.guardrail.GuardrailFixtures.aGuardedAp
 import static io.gravitee.gamma.rest.core.guardrail.GuardrailFixtures.aGuardrail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
@@ -71,6 +72,23 @@ class DescribeApiGuardrailsDomainServiceTest {
                 new ApiGuardrail("missing", null, Phase.REQUEST, 2, List.of()),
                 new ApiGuardrail("second", "Toxicity", Phase.RESPONSE, 1, List.of())
             );
+    }
+
+    /** What a module compares its own conditions with, to know whether the API needs them written again. */
+    @Test
+    void should_return_the_condition_each_guardrail_runs_under() {
+        givenDeployed(d -> d.id("first").name("Prompt injection"));
+        var teamA = "{#context.attributes['aihub.team'] == 'team-a'}";
+        var enabled = ApiGuardrails.of(
+            Flow.builder()
+                .request(List.of(GuardrailSteps.of("first", "Prompt injection", teamA), GuardrailSteps.of("missing", "Missing", teamA)))
+                .build()
+        );
+
+        assertThat(service.describe(ENVIRONMENT_ID, enabled))
+            .as("conditions of the guardrails, also of one the environment no longer runs")
+            .extracting(ApiGuardrail::guardrailId, ApiGuardrail::condition)
+            .containsExactly(tuple("first", teamA), tuple("missing", teamA));
     }
 
     /** A rename nobody deployed changes nothing the calls of the API meet, so it changes nothing here either. */
@@ -176,7 +194,7 @@ class DescribeApiGuardrailsDomainServiceTest {
 
             assertThat(describeByApi.describe(ENVIRONMENT_ID, API_ID))
                 .as("guardrails of the API, named by the revision the gateways run")
-                .containsExactly(new ApiGuardrail("first", "Prompt injection", Phase.REQUEST, 1, List.of()));
+                .containsExactly(new ApiGuardrail("first", "Prompt injection", Phase.REQUEST, 1, List.of(), null));
         }
 
         @Test
