@@ -120,6 +120,7 @@ class PortalUIBootstrapResourceTest extends AbstractResourceTest {
         installationTypeDomainService.reset();
         when(installationAccessQueryService.getPortalAPIUrl(ENVIRONMENT)).thenReturn(PORTAL_API_URL);
         when(installationAccessQueryService.getPortalAPIUrl(OTHER_ENV_ID)).thenReturn(PORTAL_API_URL);
+        when(installationAccessQueryService.getPortalUrl(ENVIRONMENT)).thenReturn("https://portal.acme.io");
         var otherEnvironment = new EnvironmentEntity();
         otherEnvironment.setId(OTHER_ENV_ID);
         otherEnvironment.setOrganizationId(ORG_ID);
@@ -366,6 +367,56 @@ class PortalUIBootstrapResourceTest extends AbstractResourceTest {
         var bootstrap = response.readEntity(Map.class);
         assertThat(bootstrap.get("portalId")).isEqualTo(DEFAULT_ENV_PORTAL_ID.toString());
         assertThat(bootstrap.get("environmentId")).isEqualTo(ENVIRONMENT);
+    }
+
+    // A cookie the Portal API sets on another site is not sent back from the portal's own domain.
+    @Test
+    void should_call_the_portal_api_on_the_host_of_a_portal_at_its_own_address() {
+        portalCrudService.initWith(
+            List.of(
+                aDefaultPortal(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT),
+                aPortalOn(PARTNERS_PORTAL_ID, ENVIRONMENT, ORG_ID, "http://partners.localhost:4100/next")
+            )
+        );
+
+        var response = bootstrap().queryParam("host", "partners.localhost:4100").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        var bootstrap = response.readEntity(Map.class);
+        assertThat(bootstrap.get("portalId")).isEqualTo(PARTNERS_PORTAL_ID.toString());
+        assertThat(bootstrap.get("baseURL")).isEqualTo("http://partners.localhost:4100/portal");
+    }
+
+    @Test
+    void should_call_the_configured_portal_api_for_a_portal_at_the_environment_portal_url() {
+        portalCrudService.initWith(
+            List.of(
+                aDefaultPortal(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT),
+                aPortalOn(PARTNERS_PORTAL_ID, ENVIRONMENT, ORG_ID, "http://partners.localhost:4100/next")
+            )
+        );
+
+        var response = bootstrap().queryParam("host", "portal.acme.io").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        var bootstrap = response.readEntity(Map.class);
+        assertThat(bootstrap.get("portalId")).isEqualTo(DEFAULT_ENV_PORTAL_ID.toString());
+        assertThat(bootstrap.get("baseURL")).isEqualTo(PORTAL_API_URL);
+    }
+
+    @Test
+    void should_call_the_configured_portal_api_when_no_portal_is_on_the_host() {
+        portalCrudService.initWith(
+            List.of(
+                aDefaultPortal(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT),
+                aPortalOn(PARTNERS_PORTAL_ID, ENVIRONMENT, ORG_ID, "http://partners.localhost:4100/next")
+            )
+        );
+
+        var response = bootstrap().queryParam("host", "unknown.acme.io").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        assertThat(response.readEntity(Map.class).get("baseURL")).isEqualTo(PORTAL_API_URL);
     }
 
     @ParameterizedTest

@@ -112,8 +112,15 @@ public class PortalUIBootstrapResource {
             .or(() -> defaultPortalDomainService.findDefaultOrOnly(environmentId))
             .map(portal -> portal.getId().toString())
             .orElse(null);
-        String portalApiUrl = installationAccessQueryService.getPortalAPIUrl(environmentId);
-        String baseUrl = portalApiUrl != null ? portalApiUrl : portalApiUrlFromRequest(httpServletRequest);
+        // On its own host, the portal calls the Portal API there: the browser does not send back a login cookie set by
+        // the Portal API of another site.
+        String baseUrl = addressedPortal
+            .flatMap(portalAddressDomainService::ownOrigin)
+            .map(origin -> origin + getPortalProxyPath())
+            .orElseGet(() -> {
+                String portalApiUrl = installationAccessQueryService.getPortalAPIUrl(environmentId);
+                return portalApiUrl != null ? portalApiUrl : portalApiUrlFromRequest(httpServletRequest);
+            });
         return Response.ok(
             PortalUIBootstrapEntity.builder()
                 .organizationId(organizationId)
