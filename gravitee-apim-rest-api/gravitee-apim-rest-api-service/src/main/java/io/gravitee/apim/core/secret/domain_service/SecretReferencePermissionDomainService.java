@@ -30,11 +30,13 @@ import io.gravitee.apim.core.secret.exception.SecretReferenceNotAllowedException
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import jakarta.annotation.Nullable;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -45,7 +47,8 @@ import lombok.RequiredArgsConstructor;
  * unless the text the path starts with already names another provider.
  * A save may not add any other use of the {@code #secrets} variable: the gateway rewrites each reference to its internal
  * {@code fromGrant} and {@code fromEL} functions, which resolve any secret of the environment that a deployed context
- * was granted. The references a definition already had are kept, whoever saves it.
+ * was granted. A reference the definition already had at the same place, with the same {@code enabled} state, is kept
+ * whoever saves it, so a save that moves or copies a reference, or enables the step or flow around it, is checked again.
  */
 @DomainService
 @RequiredArgsConstructor
@@ -76,15 +79,19 @@ public class SecretReferencePermissionDomainService {
         @Nullable Object previous,
         Object definition
     ) {
-        var addedInternalCalls = find(INTERNAL_SECRETS_CALL, definition);
-        addedInternalCalls.removeAll(find(INTERNAL_SECRETS_CALL, previous));
+        var addedInternalCalls = expressions(INTERNAL_SECRETS_CALL, definition);
+        addedInternalCalls.removeAll(expressions(INTERNAL_SECRETS_CALL, previous));
         if (!addedInternalCalls.isEmpty()) {
             throw new InvalidSecretReferenceException(
                 "This definition calls the gateway's internal secret functions. Reference a secret with {#secrets.get(...)} only."
             );
         }
-        var added = find(SECRETS_GET, definition);
-        added.removeAll(find(SECRETS_GET, previous));
+        var stored = references(SECRETS_GET, previous);
+        var added = references(SECRETS_GET, definition)
+            .stream()
+            .filter(reference -> !stored.contains(reference) && !stored.contains(reference.enabledAgain()))
+            .map(Reference::expression)
+            .collect(Collectors.toCollection(TreeSet::new));
         var needsSecretRead = false;
         for (String expression : added) {
             var path = pathUnlessDynamic(expression);
@@ -177,33 +184,51 @@ public class SecretReferencePermissionDomainService {
         }
     }
 
-    private Set<String> find(Pattern pattern, @Nullable Object definition) {
-        var matches = new TreeSet<String>();
-        if (definition != null) {
-            collect(objectMapper.valueToTree(definition), pattern, matches);
-        }
-        return matches;
+    private Set<String> expressions(Pattern pattern, @Nullable Object definition) {
+        return references(pattern, definition).stream().map(Reference::expression).collect(Collectors.toSet());
     }
 
-    private static void collect(JsonNode node, Pattern pattern, Set<String> matches) {
+    private Set<Reference> references(Pattern pattern, @Nullable Object definition) {
+        var references = new HashSet<Reference>();
+        if (definition != null) {
+            collect(objectMapper.valueToTree(definition), pattern, "", true, references);
+        }
+        return references;
+    }
+
+    private static void collect(JsonNode node, Pattern pattern, String pointer, boolean enabled, Set<Reference> references) {
         if (node.isTextual()) {
-            collect(node.textValue(), pattern, matches);
+            collect(node.textValue(), pattern, pointer, enabled, references);
         } else if (node instanceof POJONode pojo && pojo.getPojo() instanceof RawValue raw) {
             // A plugin configuration is a @JsonRawValue string, which valueToTree keeps unparsed.
-            collect(String.valueOf(raw.rawValue()), pattern, matches);
+            collect(String.valueOf(raw.rawValue()), pattern, pointer, enabled, references);
+        } else if (node.isArray()) {
+            for (var i = 0; i < node.size(); i++) {
+                collect(node.get(i), pattern, pointer + "/" + i, enabled, references);
+            }
         } else {
-            node.forEach(child -> collect(child, pattern, matches));
+            var nodeEnabled = enabled && node.path("enabled").asBoolean(true);
+            node
+                .properties()
+                .forEach(field -> collect(field.getValue(), pattern, pointer + "/" + field.getKey(), nodeEnabled, references));
         }
     }
 
-    private static void collect(String text, Pattern pattern, Set<String> matches) {
+    private static void collect(String text, Pattern pattern, String pointer, boolean enabled, Set<Reference> references) {
         // A plugin configuration is JSON held in a string, so its quotes reach this text escaped.
         var unescaped = JSON_UNICODE_ESCAPE.matcher(text.replace("\\\"", "\"")).replaceAll(escape ->
             Matcher.quoteReplacement(String.valueOf((char) Integer.parseInt(escape.group(1), 16)))
         );
         var matcher = pattern.matcher(unescaped);
         while (matcher.find()) {
-            matches.add(matcher.group());
+            references.add(new Reference(pointer, matcher.group(), enabled));
+        }
+    }
+
+    private record Reference(String pointer, String expression, boolean enabled) {
+        // The gateway does not resolve a reference in a disabled step or flow, so disabling a stored one needs no check.
+        Reference enabledAgain() {
+            return enabled ? this : new Reference(pointer, expression, true);
         }
     }
 }

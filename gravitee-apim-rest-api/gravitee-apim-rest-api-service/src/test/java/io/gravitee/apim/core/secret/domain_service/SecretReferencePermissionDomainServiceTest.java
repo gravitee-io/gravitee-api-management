@@ -171,6 +171,44 @@ class SecretReferencePermissionDomainServiceTest {
         }
 
         @Test
+        void should_refuse_a_stored_reference_moved_to_another_place_without_the_secret_read_permission() {
+            var moved = Map.of("endpoints", List.of(Map.of("password", STORE_REFERENCE)));
+
+            assertThatThrownBy(() -> validate(header(STORE_REFERENCE), moved)).isInstanceOf(NotAllowedDomainException.class);
+        }
+
+        @Test
+        void should_refuse_a_stored_reference_copied_to_a_second_place_without_the_secret_read_permission() {
+            var copied = Map.of(
+                "headers",
+                List.of(Map.of("name", "Authorization", "value", STORE_REFERENCE), Map.of("name", "X-Copy", "value", STORE_REFERENCE))
+            );
+
+            assertThatThrownBy(() -> validate(header(STORE_REFERENCE), copied)).isInstanceOf(NotAllowedDomainException.class);
+        }
+
+        @Test
+        void should_refuse_a_disabled_step_with_a_stored_reference_that_a_save_enables_without_the_secret_read_permission() {
+            assertThatThrownBy(() -> validate(flowWithStep(false, true), flowWithStep(true, true))).isInstanceOf(
+                NotAllowedDomainException.class
+            );
+        }
+
+        @Test
+        void should_refuse_a_disabled_flow_with_a_stored_reference_that_a_save_enables_without_the_secret_read_permission() {
+            assertThatThrownBy(() -> validate(flowWithStep(true, false), flowWithStep(true, true))).isInstanceOf(
+                NotAllowedDomainException.class
+            );
+        }
+
+        @Test
+        void should_accept_a_save_that_disables_the_step_of_a_stored_reference_whoever_saves_it() {
+            assertThatCode(() -> validate(flowWithStep(true, true), flowWithStep(false, true))).doesNotThrowAnyException();
+
+            verifyNoInteractions(permissionDomainService);
+        }
+
+        @Test
         void should_skip_the_permission_check_without_a_user() {
             assertThatCode(() -> service.validate(ORG_ID, ENV_ID, null, null, header(STORE_REFERENCE))).doesNotThrowAnyException();
         }
@@ -322,6 +360,17 @@ class SecretReferencePermissionDomainServiceTest {
         when(
             permissionDomainService.hasPermission(ORG_ID, USER_ID, RolePermission.ENVIRONMENT_SECRET, ENV_ID, RolePermissionAction.READ)
         ).thenReturn(true);
+    }
+
+    private static Map<String, Object> flowWithStep(boolean stepEnabled, boolean flowEnabled) {
+        var step = new Step();
+        step.setPolicy("transform-headers");
+        step.setEnabled(stepEnabled);
+        step.setConfiguration("{\"addHeaders\":[{\"name\":\"Authorization\",\"value\":\"Bearer " + STORE_REFERENCE + "\"}]}");
+        var flow = new Flow();
+        flow.setEnabled(flowEnabled);
+        flow.setRequest(List.of(step));
+        return Map.of("flows", List.of(flow));
     }
 
     private static Map<String, Object> header(String value) {
