@@ -163,10 +163,11 @@ public class PortalAddressDomainService {
     }
 
     /**
+     * @param portalId the portal the host may already be given to; null for a portal not stored yet
      * @return {@code rawUrl} with a lowercase host: an access point keeps a scheme, a host and a port, not a path
      * @throws ValidationDomainException when it cannot serve a portal, or its host belongs to another portal
      */
-    public URL validateCustomUrl(PortalId portalId, String rawUrl) {
+    public URL validateCustomUrl(@Nullable PortalId portalId, String rawUrl) {
         var url = parseCustomUrl(rawUrl);
         var host = PortalHost.of(url);
         // Like a generated host, a custom one must not shadow a console, an API or another portal.
@@ -185,6 +186,11 @@ public class PortalAddressDomainService {
             throw new ValidationDomainException("Host [%s] is already in use".formatted(host.value()), URL_EXISTS_TECHNICAL_CODE);
         }
         return url;
+    }
+
+    /** @return the access point of a portal served at a custom URL, {@linkplain #validateCustomUrl validated} first */
+    public String newCustomAccessPoint(String environmentId, URL customUrl) {
+        return createAccessPoint(environmentId, customUrl.getProtocol(), PortalHost.of(customUrl).value()).getId();
     }
 
     /** Deletes the access point of a deleted portal, unless another portal is still served at it. */

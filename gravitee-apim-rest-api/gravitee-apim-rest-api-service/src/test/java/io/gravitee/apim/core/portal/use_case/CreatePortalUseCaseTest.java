@@ -33,6 +33,7 @@ import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
+import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -45,6 +46,7 @@ import io.gravitee.apim.core.portal.exception.PortalLimitReachedException;
 import io.gravitee.apim.core.portal.exception.PortalNameAlreadyExistsException;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalHostTemplate;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalStarterContentDomainService;
@@ -211,15 +213,101 @@ class CreatePortalUseCaseTest {
         assertThat(portalCrudService.storage()).hasSize(1);
     }
 
+    @Test
+    void should_serve_the_portal_at_the_root_of_the_host_of_the_url_sent() {
+        givenDefaultPortal();
+
+        var created = create("Partners", "HTTPS://Partners.Example.com/").portal().portal();
+
+        assertThat(addresses.accessPoints().storage())
+            .singleElement()
+            .satisfies(accessPoint -> {
+                assertThat(accessPoint.getId()).isEqualTo(created.getAccessPointId());
+                assertThat(accessPoint.getHost()).isEqualTo("partners.example.com");
+                assertThat(accessPoint.isSecured()).isTrue();
+            });
+        assertThat(addresses.resolveUrls(ENV_ID, List.of(created))).hasEntrySatisfying(created.getId(), url ->
+            assertThat(url).hasToString("https://partners.example.com/next")
+        );
+    }
+
+    @Test
+    void should_serve_the_portal_at_a_generated_host_when_no_url_is_sent_and_a_template_is_set() {
+        givenDefaultPortal();
+        installationAccessQueryService.withPortalHostTemplate(PortalHostTemplate.parse("{portal-slug}.portals.acme.io"));
+
+        var created = create("Partners", null).portal().portal();
+
+        assertThat(addresses.resolveUrls(ENV_ID, List.of(created))).hasEntrySatisfying(created.getId(), url ->
+            assertThat(url).hasToString("https://partners.portals.acme.io/next")
+        );
+    }
+
     @ParameterizedTest
-    @ValueSource(strings = { "https://partners.example.com", "not a url", "" })
-    void should_refuse_a_url_until_portal_urls_can_be_chosen(String url) {
+    @ValueSource(
+        strings = {
+            "https://partners.example.com/portal",
+            "ftp://partners.example.com",
+            "partners.example.com",
+            "https://user:pw@partners.example.com",
+            "https://partners.example.com?a=b",
+            "https://partners.example.com#f",
+            "not a url",
+            "",
+        }
+    )
+    void should_refuse_a_url_an_access_point_cannot_serve(String url) {
         givenDefaultPortal();
 
         assertThatThrownBy(() -> create("Partners", url))
             .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("cannot be chosen yet");
+            .hasMessageContaining("no path");
         assertThat(portalCrudService.storage()).extracting(Portal::getName).containsExactly("Developer Portal");
+        assertThat(addresses.accessPoints().storage()).isEmpty();
+    }
+
+    @Test
+    void should_refuse_a_url_whose_host_is_already_in_use() {
+        givenDefaultPortal();
+        addresses
+            .accessPoints()
+            .initWith(
+                List.of(
+                    AccessPoint.builder()
+                        .id("console")
+                        .referenceType(AccessPoint.ReferenceType.ORGANIZATION)
+                        .referenceId(ORG_ID)
+                        .target(AccessPoint.Target.CONSOLE)
+                        .host("partners.example.com")
+                        .build()
+                )
+            );
+
+        assertThatThrownBy(() -> create("Partners", "https://partners.example.com"))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("partners.example.com");
+        assertThat(portalCrudService.storage()).extracting(Portal::getName).containsExactly("Developer Portal");
+    }
+
+    @Test
+    void should_refuse_a_url_on_a_multi_tenant_installation() {
+        givenDefaultPortal();
+        addresses.installationType().set(InstallationType.MULTI_TENANT);
+
+        assertThatThrownBy(() -> create("Partners", "https://partners.example.com"))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("multi-tenant");
+        assertThat(addresses.accessPoints().storage()).isEmpty();
+    }
+
+    @Test
+    void should_release_the_access_point_of_a_portal_undone_when_seeding_fails() {
+        givenDefaultPortal();
+        pageContentCrudService.failAfter(0);
+
+        assertThatThrownBy(() -> create("Partners", "https://partners.example.com")).hasMessage("page content storage unavailable");
+
+        assertThat(addresses.accessPoints().storage()).isEmpty();
     }
 
     @Test
