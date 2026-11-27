@@ -235,6 +235,67 @@ class SecretReferencePermissionDomainServiceTest {
         }
     }
 
+    @Nested
+    class InternalSecretFunction {
+
+        private static final String FROM_GRANT = "{#secrets.fromGrant('ctx-1', #secret_field_access_control_var)}";
+
+        @ParameterizedTest
+        @ValueSource(
+            strings = {
+                FROM_GRANT,
+                "{#secrets.fromGrant('ctx-1', 'token', #secret_field_access_control_var)}",
+                "{#secrets.fromEL('ctx-1', '/gravitee/credential.cred-1.token:value', #secret_field_access_control_var)}",
+                "{#secrets?.fromGrant('ctx-1', #secret_field_access_control_var)}",
+                "{#secrets['fromGrant']('ctx-1', #secret_field_access_control_var)}",
+                "{#secrets . fromEL ('ctx-1', 'name', #secret_field_access_control_var)}",
+                "{#secrets.get('/vault/secret/db:password') + #secrets.fromGrant('ctx-1', #secret_field_access_control_var)}",
+            }
+        )
+        void should_refuse_a_call_to_the_internal_secret_functions_of_the_gateway(String expression) {
+            givenSecretRead();
+
+            assertThatThrownBy(() -> validate(null, header(expression)))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("#secrets.get");
+        }
+
+        @Test
+        void should_refuse_an_internal_secret_function_inside_a_plugin_configuration() {
+            var definition = Map.of("flows", List.of(Map.of("configuration", "{\"value\":\"" + FROM_GRANT.replace("'", "\\\"") + "\"}")));
+
+            assertThatThrownBy(() -> validate(null, definition)).isInstanceOf(ValidationDomainException.class);
+        }
+
+        @Test
+        void should_refuse_an_internal_secret_function_that_a_json_escape_hides() {
+            var step = new Step();
+            step.setPolicy("transform-headers");
+            step.setConfiguration("{\"value\":\"" + FROM_GRANT.replace("#", "\\u0023").replace("'", "\\\"") + "\"}");
+            var flow = new Flow();
+            flow.setRequest(List.of(step));
+
+            assertThatThrownBy(() -> validate(null, Map.of("flows", List.of(flow)))).isInstanceOf(ValidationDomainException.class);
+        }
+
+        @Test
+        void should_refuse_an_internal_secret_function_without_a_user() {
+            assertThatThrownBy(() -> service.validate(ORG_ID, ENV_ID, null, null, header(FROM_GRANT))).isInstanceOf(
+                ValidationDomainException.class
+            );
+        }
+
+        @Test
+        void should_keep_an_internal_secret_function_the_previous_definition_had() {
+            assertThatCode(() -> validate(header(FROM_GRANT), header(FROM_GRANT))).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_accept_a_variable_whose_name_starts_with_secrets() {
+            assertThatCode(() -> validate(null, header("{#secretsHeader.value}"))).doesNotThrowAnyException();
+        }
+    }
+
     private void validate(Object previous, Object definition) {
         service.validate(ORG_ID, ENV_ID, USER_ID, previous, definition);
     }
