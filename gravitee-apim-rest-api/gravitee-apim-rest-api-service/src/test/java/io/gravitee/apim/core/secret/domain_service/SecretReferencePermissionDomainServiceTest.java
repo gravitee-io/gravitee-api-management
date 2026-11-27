@@ -209,6 +209,83 @@ class SecretReferencePermissionDomainServiceTest {
         }
 
         @Test
+        void should_keep_the_stored_references_of_elements_with_an_id_whatever_their_order_whoever_saves_it() {
+            var withReference = Map.of("id", "plan-1", "security", STORE_REFERENCE);
+            var withoutReference = Map.of("id", "plan-2", "name", "Free");
+
+            assertThatCode(() ->
+                validate(List.of(withReference, withoutReference), List.of(withoutReference, withReference))
+            ).doesNotThrowAnyException();
+
+            verifyNoInteractions(permissionDomainService);
+        }
+
+        @Test
+        void should_keep_the_stored_references_of_a_named_element_when_an_earlier_one_is_removed_whoever_saves_it() {
+            var removed = Map.of("name", "first");
+            var kept = Map.of("name", "second", "value", STORE_REFERENCE);
+
+            assertThatCode(() -> validate(List.of(removed, kept), List.of(kept))).doesNotThrowAnyException();
+
+            verifyNoInteractions(permissionDomainService);
+        }
+
+        @Test
+        void should_refuse_a_stored_reference_moved_between_elements_with_the_same_name_without_the_secret_read_permission() {
+            var stored = List.of(Map.of("name", "same", "value", STORE_REFERENCE), Map.of("name", "same"));
+            var moved = List.of(Map.of("name", "same"), Map.of("name", "same", "value", STORE_REFERENCE));
+
+            assertThatThrownBy(() -> validate(stored, moved)).isInstanceOf(NotAllowedDomainException.class);
+        }
+
+        @Test
+        void should_keep_a_stored_reference_inside_a_plugin_configuration_whoever_saves_it() {
+            assertThatCode(() ->
+                validate(stepWith("{\"value\":\"" + STORE_REFERENCE + "\"}"), stepWith("{\"value\":\"" + STORE_REFERENCE + "\"}"))
+            ).doesNotThrowAnyException();
+
+            verifyNoInteractions(permissionDomainService);
+        }
+
+        @Test
+        void should_refuse_a_stored_reference_copied_inside_a_plugin_configuration_without_the_secret_read_permission() {
+            var stored = stepWith("{\"headers\":[{\"name\":\"X\",\"value\":\"" + STORE_REFERENCE + "\"}]}");
+            var copied = stepWith(
+                "{\"headers\":[{\"name\":\"X\",\"value\":\"" +
+                    STORE_REFERENCE +
+                    "\"},{\"name\":\"X-Copy\",\"value\":\"" +
+                    STORE_REFERENCE +
+                    "\"}]}"
+            );
+
+            assertThatThrownBy(() -> validate(stored, copied)).isInstanceOf(NotAllowedDomainException.class);
+        }
+
+        @Test
+        void should_refuse_a_stored_reference_moved_inside_a_plugin_configuration_without_the_secret_read_permission() {
+            var stored = stepWith("{\"password\":\"" + STORE_REFERENCE + "\"}");
+            var moved = stepWith("{\"url\":\"" + STORE_REFERENCE + "\"}");
+
+            assertThatThrownBy(() -> validate(stored, moved)).isInstanceOf(NotAllowedDomainException.class);
+        }
+
+        @Test
+        void should_refuse_a_stored_reference_moved_to_a_key_that_spells_its_old_place_without_the_secret_read_permission() {
+            var stored = stepWith("{\"proxy\":{\"password\":\"" + STORE_REFERENCE + "\"}}");
+            var moved = stepWith("{\"proxy/password\":\"" + STORE_REFERENCE + "\"}");
+
+            assertThatThrownBy(() -> validate(stored, moved)).isInstanceOf(NotAllowedDomainException.class);
+        }
+
+        @Test
+        void should_refuse_a_block_of_a_plugin_configuration_that_a_save_enables_without_the_secret_read_permission() {
+            var stored = stepWith("{\"proxy\":{\"enabled\":false,\"password\":\"" + STORE_REFERENCE + "\"}}");
+            var enabled = stepWith("{\"proxy\":{\"enabled\":true,\"password\":\"" + STORE_REFERENCE + "\"}}");
+
+            assertThatThrownBy(() -> validate(stored, enabled)).isInstanceOf(NotAllowedDomainException.class);
+        }
+
+        @Test
         void should_skip_the_permission_check_without_a_user() {
             assertThatCode(() -> service.validate(ORG_ID, ENV_ID, null, null, header(STORE_REFERENCE))).doesNotThrowAnyException();
         }
@@ -342,8 +419,8 @@ class SecretReferencePermissionDomainServiceTest {
         }
 
         @Test
-        void should_keep_an_internal_secret_function_the_previous_definition_had() {
-            assertThatCode(() -> validate(header(FROM_GRANT), header(FROM_GRANT))).doesNotThrowAnyException();
+        void should_refuse_an_internal_secret_function_the_previous_definition_had() {
+            assertThatThrownBy(() -> validate(header(FROM_GRANT), header(FROM_GRANT))).isInstanceOf(ValidationDomainException.class);
         }
 
         @Test
@@ -369,6 +446,15 @@ class SecretReferencePermissionDomainServiceTest {
         step.setConfiguration("{\"addHeaders\":[{\"name\":\"Authorization\",\"value\":\"Bearer " + STORE_REFERENCE + "\"}]}");
         var flow = new Flow();
         flow.setEnabled(flowEnabled);
+        flow.setRequest(List.of(step));
+        return Map.of("flows", List.of(flow));
+    }
+
+    private static Map<String, Object> stepWith(String configuration) {
+        var step = new Step();
+        step.setPolicy("transform-headers");
+        step.setConfiguration(configuration);
+        var flow = new Flow();
         flow.setRequest(List.of(step));
         return Map.of("flows", List.of(flow));
     }
