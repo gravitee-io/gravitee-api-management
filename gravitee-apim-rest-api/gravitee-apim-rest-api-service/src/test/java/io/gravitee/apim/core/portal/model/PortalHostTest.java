@@ -79,6 +79,7 @@ class PortalHostTest {
             "portal.example.com:",
             "portal.example.com:99999",
             "portal.example.com:abc",
+            "portal.example.com:4100.",
         }
     )
     void should_refuse_anything_that_is_not_a_host_and_port(String raw) {
