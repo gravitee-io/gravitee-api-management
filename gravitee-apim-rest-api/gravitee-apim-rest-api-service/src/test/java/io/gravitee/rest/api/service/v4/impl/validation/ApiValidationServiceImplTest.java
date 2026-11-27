@@ -45,6 +45,7 @@ import io.gravitee.apim.core.cluster.domain_service.ClusterBoundApisQueryService
 import io.gravitee.apim.core.cluster.domain_service.ValidateKafkaClusterBindingDomainService;
 import io.gravitee.apim.core.cluster.exception.ClusterBindingNotAllowedException;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
@@ -739,6 +740,32 @@ public class ApiValidationServiceImplTest {
                     existingApiEntity
                 )
             ).doesNotThrowAnyException();
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
+    }
+
+    @Test
+    public void should_refuse_an_update_that_calls_the_internal_secret_functions_of_the_gateway() {
+        var service = withARealSecretReferenceCheck();
+        ApiEntity existingApiEntity = new ApiEntity();
+        existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        existingApiEntity.setType(ApiType.PROXY);
+        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+        updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        updateApiEntity.setType(ApiType.PROXY);
+        updateApiEntity.setListeners(List.of(new HttpListener()));
+        updateApiEntity.setFlows(List.of(flowReading("{#secrets.fromGrant('ctx-1', #secret_field_access_control_var)}")));
+        authenticateAs("user-id");
+        try {
+            assertThatThrownBy(() ->
+                service.validateAndSanitizeUpdateApi(
+                    GraviteeContext.getExecutionContext(),
+                    updateApiEntity,
+                    new PrimaryOwnerEntity(),
+                    existingApiEntity
+                )
+            ).isInstanceOf(ValidationDomainException.class);
         } finally {
             SecurityContextHolder.clearContext();
         }
