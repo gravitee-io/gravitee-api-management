@@ -30,10 +30,11 @@ import lombok.RequiredArgsConstructor;
 /**
  * Names the Guardrails an API runs, the way the API lists them.
  *
- * <p>Everything but the order comes from the revision the gateways run, like the validation that let the Guardrail be
- * turned on: a name and effects read from a draft nobody deployed would describe something the calls of the API do not
- * meet. A Guardrail whose revision was withdrawn, or whose Guardrail the environment no longer holds, is therefore
- * listed without a name and without effects — the step is still there, and the API no longer deploys.
+ * <p>Everything but the order and the condition, which the API's steps carry, comes from the revision the gateways
+ * run, like the validation that let the Guardrail be turned on: a name and effects read from a draft nobody deployed
+ * would describe something the calls of the API do not meet. A Guardrail whose revision was withdrawn, or whose
+ * Guardrail the environment no longer holds, is therefore listed without a name and without effects — the step is
+ * still there, and the API no longer deploys.
  *
  * @author GraviteeSource Team
  */
@@ -72,9 +73,17 @@ public class DescribeApiGuardrailsDomainService {
                         deployed.getName(),
                         enabled.phase(),
                         enabled.order(),
-                        GuardrailPolicyEffects.of(deployed)
+                        GuardrailPolicyEffects.of(deployed),
+                        enabled.condition()
                     );
-                    case null, default -> new ApiGuardrail(enabled.guardrailId(), null, enabled.phase(), enabled.order(), List.of());
+                    case null, default -> new ApiGuardrail(
+                        enabled.guardrailId(),
+                        null,
+                        enabled.phase(),
+                        enabled.order(),
+                        List.of(),
+                        enabled.condition()
+                    );
                 }
             )
             .toList();

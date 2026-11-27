@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.infra.adapter;
 import static io.gravitee.gamma.rest.core.guardrail.GuardrailFixtures.API_ID;
 import static io.gravitee.gamma.rest.core.guardrail.GuardrailFixtures.ENVIRONMENT_ID;
 import static io.gravitee.gamma.rest.core.guardrail.GuardrailFixtures.GUARDRAIL_ID;
+import static io.gravitee.gamma.rest.core.guardrail.GuardrailFixtures.aConditionSyntax;
 import static io.gravitee.gamma.rest.core.guardrail.GuardrailFixtures.aGuardrail;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -33,6 +34,7 @@ import io.gravitee.definition.model.v4.guardrail.Guardrail.Phase;
 import io.gravitee.gamma.rest.core.guardrail.GuardrailPublicationFixture;
 import io.gravitee.gamma.rest.core.guardrail.domain_service.ValidateApiGuardrailsDomainService;
 import io.gravitee.gamma.rest.core.guardrail.exception.GuardrailNotFoundException;
+import io.gravitee.gamma.rest.core.guardrail.exception.InvalidApiGuardrailConditionException;
 import io.gravitee.gamma.rest.core.guardrail.inmemory.InMemoryGuardrailRepository;
 import io.gravitee.gamma.rest.core.guardrail.model.Guardrail;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeployableException;
@@ -70,7 +72,7 @@ class GuardrailsDeploymentValidatorAdapterTest {
     private final InMemoryGuardrailRepository guardrails = new InMemoryGuardrailRepository();
     private final GuardrailPublicationFixture publications = new GuardrailPublicationFixture();
     private final GuardrailsDeploymentValidatorAdapter validator = new GuardrailsDeploymentValidatorAdapter(
-        new ValidateApiGuardrailsDomainService(guardrails, publications.service(guardrails))
+        new ValidateApiGuardrailsDomainService(guardrails, publications.service(guardrails), aConditionSyntax())
     );
 
     private Flow deployedInternalFlow;
@@ -131,6 +133,35 @@ class GuardrailsDeploymentValidatorAdapterTest {
         assertThatThrownBy(() -> validate(question))
             .as("API running a response guardrail on its request phase")
             .isInstanceOf(ApiNotDeployableException.class);
+    }
+
+    /** A condition can reach the definition by another path than the Guardrails being set: an import, a direct write. */
+    @ParameterizedTest
+    @EnumSource(Question.class)
+    void should_refuse_an_api_running_a_guardrail_under_a_condition_the_gateway_cannot_evaluate(Question question) {
+        givenDeployedGuardrail(d -> d.phase(Phase.REQUEST));
+        deployedInternalFlow = Flow.builder()
+            .request(List.of(GuardrailSteps.of(GUARDRAIL_ID, "Credential leakage", "{#context.attributes['aihub.team'] == }")))
+            .build();
+
+        assertThatThrownBy(() -> validate(question))
+            .as("API running a guardrail under a broken condition")
+            .isInstanceOf(ApiNotDeployableException.class)
+            .cause()
+            .isInstanceOf(InvalidApiGuardrailConditionException.class);
+    }
+
+    @ParameterizedTest
+    @EnumSource(Question.class)
+    void should_let_an_api_deploy_a_guardrail_under_a_condition_the_gateway_can_evaluate(Question question) {
+        givenDeployedGuardrail(d -> d.phase(Phase.REQUEST));
+        deployedInternalFlow = Flow.builder()
+            .request(List.of(GuardrailSteps.of(GUARDRAIL_ID, "Credential leakage", "{#context.attributes['aihub.team'] == 'team-a'}")))
+            .build();
+
+        assertThatCode(() -> validate(question))
+            .as("API running a guardrail under a valid condition")
+            .doesNotThrowAnyException();
     }
 
     @ParameterizedTest

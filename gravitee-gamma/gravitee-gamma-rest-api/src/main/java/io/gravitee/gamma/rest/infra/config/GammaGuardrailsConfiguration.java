@@ -24,8 +24,10 @@ import io.gravitee.apim.core.deployment.service_provider.ApiDeploymentValidator;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.gamma.rest.core.guardrail.domain_service.ValidateApiGuardrailsDomainService;
 import io.gravitee.gamma.rest.core.guardrail.port.repository.GuardrailRepository;
+import io.gravitee.gamma.rest.core.guardrail.port.service_provider.ConditionSyntaxPort;
 import io.gravitee.gamma.rest.core.guardrail.port.service_provider.GuardedApiPort;
 import io.gravitee.gamma.rest.core.guardrail.port.service_provider.GuardedApiReadPermissionPort;
+import io.gravitee.gamma.rest.infra.adapter.ConditionSyntaxPortAdapter;
 import io.gravitee.gamma.rest.infra.adapter.GammaGuardrailRepositoryAdapter;
 import io.gravitee.gamma.rest.infra.adapter.GuardedApiPortAdapter;
 import io.gravitee.gamma.rest.infra.adapter.GuardedApiReadPermissionPortAdapter;
@@ -79,6 +81,11 @@ public class GammaGuardrailsConfiguration {
     @Bean
     public GuardedApiReadPermissionPort gammaGuardedApiReadPermissionPort(PermissionDomainService permissionDomainService) {
         return new GuardedApiReadPermissionPortAdapter(permissionDomainService);
+    }
+
+    @Bean
+    public ConditionSyntaxPort gammaConditionSyntaxPort() {
+        return new ConditionSyntaxPortAdapter();
     }
 
     /** Collected by APIM with the other {@link ApiDeploymentValidator}s, so a deployment runs it. */

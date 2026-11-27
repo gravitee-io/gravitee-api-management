@@ -29,7 +29,8 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Refuses to hand the gateways an API running a Guardrail they could not run: one the environment no longer holds, one
- * that was undeployed, or one whose deployed revision left the phase or the API type the definition counts on.
+ * that was undeployed, one whose deployed revision left the phase or the API type the definition counts on, or one
+ * under a condition they could not evaluate.
  *
  * <p>The same check runs when the Guardrails are set on the API. It runs again here because the two happen at different
  * times: a Guardrail can be withdrawn between the day a publisher turns it on and the day the API is redeployed, and
@@ -66,9 +67,9 @@ public class GuardrailsDeploymentValidatorAdapter implements ApiDeploymentValida
         }
         try {
             // Every phase in one call: a definition that is wrong on both is refused once, naming both.
-            validateApiGuardrails.validate(
+            validateApiGuardrails.validateAttachments(
                 guarded,
-                Arrays.stream(Phase.values()).collect(Collectors.toMap(Function.identity(), guardrails::idsOf))
+                Arrays.stream(Phase.values()).collect(Collectors.toMap(Function.identity(), guardrails::attachmentsOf))
             );
         } catch (ValidationDomainException | NotFoundDomainException e) {
             // The two families the validation declares, and those only: a technical failure of the Guardrail store is

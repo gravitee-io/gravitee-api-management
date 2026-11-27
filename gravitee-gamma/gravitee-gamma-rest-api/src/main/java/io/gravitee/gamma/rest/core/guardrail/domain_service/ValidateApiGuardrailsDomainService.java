@@ -24,12 +24,15 @@ import io.gravitee.gamma.rest.core.guardrail.exception.GuardrailIncompatibleApiT
 import io.gravitee.gamma.rest.core.guardrail.exception.GuardrailNotDeployedException;
 import io.gravitee.gamma.rest.core.guardrail.exception.GuardrailNotFoundException;
 import io.gravitee.gamma.rest.core.guardrail.exception.GuardrailPhaseMismatchException;
+import io.gravitee.gamma.rest.core.guardrail.exception.InvalidApiGuardrailConditionException;
 import io.gravitee.gamma.rest.core.guardrail.exception.TooManyApiGuardrailsException;
+import io.gravitee.gamma.rest.core.guardrail.model.ApiGuardrailAttachment;
 import io.gravitee.gamma.rest.core.guardrail.model.ApiGuardrails.GuardrailRef;
 import io.gravitee.gamma.rest.core.guardrail.model.GuardedApi;
 import io.gravitee.gamma.rest.core.guardrail.model.Guardrail;
 import io.gravitee.gamma.rest.core.guardrail.model.GuardrailDeployment;
 import io.gravitee.gamma.rest.core.guardrail.port.repository.GuardrailRepository;
+import io.gravitee.gamma.rest.core.guardrail.port.service_provider.ConditionSyntaxPort;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -49,7 +52,8 @@ import lombok.RequiredArgsConstructor;
  *
  * <p>Everything is read from the revision the gateways run, not from the draft: a draft a publisher has not deployed
  * yet must decide neither where a step goes nor whether the API may run it. A Guardrail is therefore refused unless
- * its deployed revision supports the API's type and runs in the phase it is listed on.
+ * its deployed revision supports the API's type and runs in the phase it is listed on — and, when it is listed under a
+ * condition, unless the gateway can evaluate that condition.
  *
  * <p>The whole sequence is judged before anything is refused, so a publisher who got three Guardrails wrong learns
  * all three from one answer. How that answer is shaped, and why:
@@ -78,44 +82,50 @@ public class ValidateApiGuardrailsDomainService {
 
     private final GuardrailRepository guardrailRepository;
     private final GuardrailDeploymentDomainService deployments;
+    private final ConditionSyntaxPort conditionSyntax;
 
     /**
-     * The Guardrails of every phase of one request, judged together so that one answer carries every fault.
+     * The Guardrails of every phase of one request and the conditions they run under, judged together so that one
+     * answer carries every fault.
      *
-     * @param guardrailIdsByPhase the sequence of each phase, in execution order. A phase the map leaves out is not
+     * @param attachmentsByPhase the sequence of each phase, in execution order. A phase the map leaves out is not
      *     judged and comes back absent; a phase mapped to an empty list runs no Guardrail.
+     * @return the Guardrails to write, each with its condition.
      * @throws TooManyApiGuardrailsException when a phase lists more Guardrails than an API may run, which is checked
      *     before anything is read.
      * @throws GuardrailNotFoundException when every fault of the request is a Guardrail the environment does not hold,
      *     naming all of them.
      * @throws DuplicateApiGuardrailException when that is the request's only fault; likewise
-     *     {@link GuardrailNotDeployedException}, {@link GuardrailIncompatibleApiTypeException} and
-     *     {@link GuardrailPhaseMismatchException}.
+     *     {@link GuardrailNotDeployedException}, {@link GuardrailIncompatibleApiTypeException},
+     *     {@link GuardrailPhaseMismatchException} and {@link InvalidApiGuardrailConditionException}.
      * @throws ApiGuardrailSequenceRefusedException when the request has several faults and they are not all "not
      *     found": its parameters say which ids are refused for which reason.
      */
-    public SequencedMap<Phase, List<GuardrailRef>> validate(GuardedApi api, Map<Phase, List<String>> guardrailIdsByPhase) {
-        guardrailIdsByPhase.forEach((phase, guardrailIds) -> {
-            if (guardrailIds.size() > MAX_GUARDRAILS_PER_PHASE) {
-                throw new TooManyApiGuardrailsException(phase, guardrailIds.size(), MAX_GUARDRAILS_PER_PHASE);
+    public SequencedMap<Phase, List<GuardrailRef>> validateAttachments(
+        GuardedApi api,
+        Map<Phase, List<ApiGuardrailAttachment>> attachmentsByPhase
+    ) {
+        attachmentsByPhase.forEach((phase, attachments) -> {
+            if (attachments.size() > MAX_GUARDRAILS_PER_PHASE) {
+                throw new TooManyApiGuardrailsException(phase, attachments.size(), MAX_GUARDRAILS_PER_PHASE);
             }
         });
-        var lookup = lookUp(api.environmentId(), guardrailIdsByPhase);
+        var lookup = lookUp(api.environmentId(), attachmentsByPhase);
 
         var refusals = new ArrayList<Refused>();
         var refs = new LinkedHashMap<Phase, List<GuardrailRef>>();
         for (var phase : Phase.values()) {
-            var guardrailIds = guardrailIdsByPhase.get(phase);
-            if (guardrailIds == null) {
+            var attachments = attachmentsByPhase.get(phase);
+            if (attachments == null) {
                 continue;
             }
             var phaseRefs = new ArrayList<GuardrailRef>();
             var listed = new HashSet<String>();
-            for (var guardrailId : guardrailIds) {
-                var refused = listed.add(guardrailId)
-                    ? refusalOf(api, phase, guardrailId, lookup)
-                    : Optional.of(new Refused(Refusal.LISTED_TWICE, guardrailId, phase, null));
-                refused.ifPresentOrElse(refusals::add, () -> phaseRefs.add(lookup.refOf(guardrailId)));
+            for (var attachment : attachments) {
+                var refused = listed.add(attachment.guardrailId())
+                    ? refusalOf(api, phase, attachment, lookup)
+                    : Optional.of(new Refused(Refusal.LISTED_TWICE, attachment.guardrailId(), phase, null, null));
+                refused.ifPresentOrElse(refusals::add, () -> phaseRefs.add(lookup.refOf(attachment)));
             }
             refs.put(phase, phaseRefs);
         }
@@ -129,8 +139,13 @@ public class ValidateApiGuardrailsDomainService {
      * One read of the store and one of the deployment history for the whole request, whatever the number of phases:
      * this runs on every deployment and every start of the API.
      */
-    private Lookup lookUp(String environmentId, Map<Phase, List<String>> guardrailIdsByPhase) {
-        var requested = guardrailIdsByPhase.values().stream().flatMap(List::stream).collect(Collectors.toSet());
+    private Lookup lookUp(String environmentId, Map<Phase, List<ApiGuardrailAttachment>> attachmentsByPhase) {
+        var requested = attachmentsByPhase
+            .values()
+            .stream()
+            .flatMap(List::stream)
+            .map(ApiGuardrailAttachment::guardrailId)
+            .collect(Collectors.toSet());
         var known = guardrailRepository
             .findByEnvironmentIdAndIds(environmentId, requested)
             .stream()
@@ -139,20 +154,23 @@ public class ValidateApiGuardrailsDomainService {
         return new Lookup(known, deployments.current(environmentId, requested));
     }
 
-    private static Optional<Refused> refusalOf(GuardedApi api, Phase phase, String guardrailId, Lookup lookup) {
+    private Optional<Refused> refusalOf(GuardedApi api, Phase phase, ApiGuardrailAttachment attachment, Lookup lookup) {
+        var guardrailId = attachment.guardrailId();
         if (!lookup.known().contains(guardrailId)) {
-            return Optional.of(new Refused(Refusal.NOT_FOUND, guardrailId, phase, null));
+            return Optional.of(new Refused(Refusal.NOT_FOUND, guardrailId, phase, null, null));
         }
         if (!(lookup.current().get(guardrailId) instanceof GuardrailDeployment.Published(var deployed, _, _))) {
-            return Optional.of(new Refused(Refusal.NOT_DEPLOYED, guardrailId, phase, null));
+            return Optional.of(new Refused(Refusal.NOT_DEPLOYED, guardrailId, phase, null, null));
         }
         if (!deployed.isCompatibleWith(api.type())) {
-            return Optional.of(new Refused(Refusal.INCOMPATIBLE_API_TYPE, guardrailId, phase, null));
+            return Optional.of(new Refused(Refusal.INCOMPATIBLE_API_TYPE, guardrailId, phase, null, null));
         }
         if (deployed.getPhase() != phase) {
-            return Optional.of(new Refused(Refusal.PHASE_MISMATCH, guardrailId, phase, deployed.getPhase()));
+            return Optional.of(new Refused(Refusal.PHASE_MISMATCH, guardrailId, phase, deployed.getPhase(), null));
         }
-        return Optional.empty();
+        return Optional.ofNullable(attachment.condition())
+            .flatMap(conditionSyntax::errorIn)
+            .map(error -> new Refused(Refusal.INVALID_CONDITION, guardrailId, phase, null, error));
     }
 
     private static RuntimeException refusalOf(GuardedApi api, List<Refused> refusals) {
@@ -170,6 +188,7 @@ public class ValidateApiGuardrailsDomainService {
                 case NOT_DEPLOYED -> new GuardrailNotDeployedException(refused.guardrailId());
                 case INCOMPATIBLE_API_TYPE -> new GuardrailIncompatibleApiTypeException(refused.guardrailId(), api.type());
                 case PHASE_MISMATCH -> new GuardrailPhaseMismatchException(refused.guardrailId(), refused.phase(), refused.deployedPhase());
+                case INVALID_CONDITION -> new InvalidApiGuardrailConditionException(refused.guardrailId(), refused.conditionError());
             };
         }
         // Once per id and per refusal: the same id refused for the same reason on both phases is one thing to fix.
@@ -182,8 +201,9 @@ public class ValidateApiGuardrailsDomainService {
 
     /** What the store and the deployment history answer for the Guardrails of one request. */
     private record Lookup(Set<String> known, Map<String, GuardrailDeployment> current) {
-        GuardrailRef refOf(String guardrailId) {
-            return new GuardrailRef(guardrailId, ((GuardrailDeployment.Published) current.get(guardrailId)).definition().getName());
+        GuardrailRef refOf(ApiGuardrailAttachment attachment) {
+            var deployed = ((GuardrailDeployment.Published) current.get(attachment.guardrailId())).definition();
+            return new GuardrailRef(attachment.guardrailId(), deployed.getName(), attachment.condition());
         }
     }
 
@@ -191,6 +211,7 @@ public class ValidateApiGuardrailsDomainService {
      * One fault of the request.
      *
      * @param deployedPhase the phase the deployed revision runs in, for a phase mismatch only.
+     * @param conditionError why the gateway cannot evaluate the condition, for an invalid condition only.
      */
-    private record Refused(Refusal kind, String guardrailId, Phase phase, Phase deployedPhase) {}
+    private record Refused(Refusal kind, String guardrailId, Phase phase, Phase deployedPhase, String conditionError) {}
 }
