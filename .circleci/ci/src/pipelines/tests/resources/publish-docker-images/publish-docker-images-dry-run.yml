@@ -561,4 +561,4 @@ orbs:
   keeper: gravitee-io/keeper@0.7.0
   slack: circleci/slack@4.12.5
   gh: circleci/github-cli@1.0.5
-  aikido: gravitee-io/aikido@1.0.3
+  aikido: gravitee-io/aikido@1.0.4
