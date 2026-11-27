@@ -19,10 +19,10 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
+import io.gravitee.apim.core.portal.domain_service.PortalAddressDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalContentOwnershipDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
-import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
@@ -56,10 +56,10 @@ public class CreateOrUpdatePortalUseCase {
     private final PortalAutomationScopeDomainService portalAutomationScopeEnforcer;
     private final ThemeCrudService themeCrudService;
     private final CurrentThemeDomainService currentThemeDomainService;
-    private final PortalUrlDomainService portalUrlDomainService;
+    private final PortalAddressDomainService portalAddressDomainService;
     private final PortalContentOwnershipDomainService portalContentOwnershipDomainService;
 
-    /** The portal as the Automation API declares it: no URL, a new portal is served at its environment's portal URL. */
+    /** The portal as the Automation API declares it: no URL, a new portal gets one from its environment. */
     public record Input(AuditInfo auditInfo, PortalId portalId, String name, PortalNavigationStructure structure, String activeThemeHrid) {}
 
     public record Output(Portal portal, PortalNavigationStructure structure, String activeThemeHrid, List<Validator.Error> errors) {
@@ -135,13 +135,18 @@ public class CreateOrUpdatePortalUseCase {
             .orElse(null);
     }
 
-    /** Validation has already refused a new portal whose URL cannot be resolved. */
+    /**
+     * Validation has already refused a new portal whose URL cannot be resolved. A portal replacing the default one takes
+     * over its access point, so the address already in use keeps opening a portal.
+     */
     private Portal newPortal(Input input) {
         var environmentId = input.auditInfo().environmentId();
-        var url = portalUrlDomainService
-            .resolveDefaultPortalUrl(environmentId)
+        var accessPointId = portalAutomationScopeEnforcer
+            .findReplaceableDefault(input.auditInfo(), input.portalId())
+            .map(Portal::getAccessPointId)
+            .or(() -> portalAddressDomainService.sharedAccessPoint(environmentId))
             .orElseThrow(() -> new ValidationDomainException("Portal URL of environment [" + environmentId + "] cannot be resolved"));
-        return Portal.create(input.portalId(), environmentId, input.auditInfo().organizationId(), input.name(), url);
+        return Portal.create(input.portalId(), environmentId, input.auditInfo().organizationId(), input.name(), accessPointId);
     }
 
     private String resolveActiveThemeId(Input input, String currentActiveThemeId) {

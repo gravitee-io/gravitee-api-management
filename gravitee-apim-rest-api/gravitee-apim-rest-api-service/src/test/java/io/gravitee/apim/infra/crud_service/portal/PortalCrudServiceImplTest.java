@@ -190,7 +190,7 @@ class PortalCrudServiceImplTest {
                 .environmentId(ENVIRONMENT)
                 .organizationId("organization-id")
                 .name(NAME)
-                .url("https://portal.example.com/next")
+                .accessPointId("access-point-id")
                 .defaultPortal(true)
                 .activeThemeId("theme-id")
                 .build();
@@ -200,7 +200,7 @@ class PortalCrudServiceImplTest {
                 assertThat(result.getId()).isEqualTo(portalId);
                 assertThat(result.getEnvironmentId()).isEqualTo(ENVIRONMENT);
                 assertThat(result.getName()).isEqualTo(NAME);
-                assertThat(result.getUrl().toString()).isEqualTo(stored.getUrl());
+                assertThat(result.getAccessPointId()).isEqualTo("access-point-id");
                 assertThat(result.isDefault()).isTrue();
                 assertThat(result.getActiveThemeId()).isEqualTo("theme-id");
             });

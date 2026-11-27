@@ -221,6 +221,7 @@ import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
 import io.gravitee.apim.core.portal.domain_service.NavigationPortalDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalAddressDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalContentOwnershipDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
@@ -1783,19 +1784,30 @@ public class ResourceContextConfiguration {
         PortalPageContentCrudService contentCrud,
         PortalPageContentQueryService contentQuery,
         ApiOwnedNavigationDomainService apiNavigation,
-        PortalListingCrudService listings
+        PortalListingCrudService listings,
+        PortalAddressDomainService portalAddressDomainService
     ) {
-        return new DeleteManagedPortalUseCase(portals, navigationQuery, navigationCrud, contentCrud, contentQuery, apiNavigation, listings);
+        return new DeleteManagedPortalUseCase(
+            portals,
+            navigationQuery,
+            navigationCrud,
+            contentCrud,
+            contentQuery,
+            apiNavigation,
+            listings,
+            portalAddressDomainService
+        );
     }
 
     @Bean
     public DefaultPortalDomainService defaultPortalDomainService(
         PortalCrudServiceInMemory portalCrudService,
-        PortalNavigationItemCrudService navigationItemCrudService
+        PortalNavigationItemCrudService navigationItemCrudService,
+        PortalAddressDomainService portalAddressDomainService
     ) {
         return new DefaultPortalDomainService(
             portalCrudService,
-            mock(PortalUrlDomainService.class),
+            portalAddressDomainService,
             new PortalContentOwnershipDomainService(portalCrudService, navigationItemCrudService)
         );
     }

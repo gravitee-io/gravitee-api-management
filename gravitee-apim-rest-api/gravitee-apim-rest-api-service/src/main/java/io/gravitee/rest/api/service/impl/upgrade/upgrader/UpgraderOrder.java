@@ -77,6 +77,8 @@ public class UpgraderOrder {
     public static final int ENVIRONMENTS_DEFAULT_APIS_FOLDER_UPGRADER = 727;
     // After every portal navigation upgrader, so nothing they write is left behind on a stale portal reference.
     public static final int PORTAL_REFERENCES_UPGRADER = 728;
+    // After DEFAULT_PORTAL_UPGRADER, so the default portals it creates are linked too.
+    public static final int PORTAL_ACCESS_POINT_UPGRADER = 729;
     public static final int CLUSTER_ROLES_UPGRADER = 900;
     public static final int CLUSTER_CROSS_ID_UPGRADER = 901;
     public static final int API_ENDPOINT_WEIGHT_UPGRADER = 560;

@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
+import io.gravitee.apim.core.portal.domain_service.PortalAddressDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.PortalId;
@@ -34,6 +35,7 @@ public class DeletePortalUseCase {
     private final PortalNavigationSyncDomainService navigationSyncDomainService;
     private final ThemeCrudService themeCrudService;
     private final CurrentThemeDomainService currentThemeDomainService;
+    private final PortalAddressDomainService portalAddressDomainService;
 
     public record Input(AuditInfo auditInfo, PortalId portalId) {}
 
@@ -53,5 +55,6 @@ public class DeletePortalUseCase {
                 .ifPresent(currentThemeDomainService::deactivateAndFallback);
         }
         portalCrudService.delete(input.portalId());
+        portalAddressDomainService.release(portal);
     }
 }

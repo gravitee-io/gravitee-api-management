@@ -115,7 +115,7 @@ class ValidatePortalListingUseCaseTest {
                     PortalNavigationStructure.empty(),
                     null,
                     true,
-                    PortalFixtures.PORTAL_URL
+                    PortalFixtures.PORTAL_ACCESS_POINT_ID
                 )
             )
         );

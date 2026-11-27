@@ -135,7 +135,7 @@ class ValidatePortalUseCaseTest {
             PortalNavigationStructure.empty(),
             null,
             defaultPortal,
-            PortalFixtures.PORTAL_URL
+            PortalFixtures.PORTAL_ACCESS_POINT_ID
         );
     }
 

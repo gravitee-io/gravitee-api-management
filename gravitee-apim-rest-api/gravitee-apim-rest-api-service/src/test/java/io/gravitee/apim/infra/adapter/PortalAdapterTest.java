@@ -24,7 +24,6 @@ import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
-import java.net.URI;
 import java.util.List;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -175,7 +174,7 @@ class PortalAdapterTest {
         }
 
         @Test
-        void to_repository_forwards_default_marker_and_url() throws Exception {
+        void to_repository_forwards_default_marker_and_access_point() {
             var portal = Portal.of(
                 PortalId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
                 "env",
@@ -184,40 +183,41 @@ class PortalAdapterTest {
                 PortalNavigationStructure.empty(),
                 null,
                 true,
-                URI.create("https://portal.example").toURL()
+                "access-point"
             );
 
             var repo = adapter.toRepository(portal);
 
             assertThat(repo.isDefaultPortal()).isTrue();
-            assertThat(repo.getUrl()).isEqualTo("https://portal.example");
+            assertThat(repo.getAccessPointId()).isEqualTo("access-point");
         }
 
         @Test
-        void to_entity_forwards_default_marker_and_url() throws Exception {
+        void to_entity_forwards_default_marker_and_access_point() {
             var repo = io.gravitee.repository.management.model.Portal.builder()
                 .id("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
                 .environmentId("env")
                 .organizationId("org")
                 .name("Portal")
                 .defaultPortal(true)
-                .url("https://portal.example")
+                .accessPointId("access-point")
                 .build();
 
             var entity = adapter.toEntity(repo);
 
             assertThat(entity.isDefault()).isTrue();
-            assertThat(entity.getUrl()).isEqualTo(URI.create("https://portal.example").toURL());
+            assertThat(entity.getAccessPointId()).isEqualTo("access-point");
         }
 
         @Test
-        void to_repository_forwards_created_from_console_marker() throws Exception {
-            var portal = Portal.createFromConsole("env", "org", "Partners", URI.create("https://partners.example").toURL());
+        void to_repository_forwards_created_from_console_marker() {
+            var portal = Portal.createFromConsole("env", "org", "Partners", "partners-access-point");
 
             var repo = adapter.toRepository(portal);
 
             assertThat(repo.isCreatedFromConsole()).isTrue();
             assertThat(repo.isDefaultPortal()).isFalse();
+            assertThat(repo.getAccessPointId()).isEqualTo("partners-access-point");
         }
 
         @Test
@@ -228,28 +228,13 @@ class PortalAdapterTest {
                 .organizationId("org")
                 .name("Partners")
                 .createdFromConsole(true)
-                .url("https://partners.example")
+                .accessPointId("partners-access-point")
                 .build();
 
             var entity = adapter.toEntity(repo);
 
             assertThat(entity.isCreatedFromConsole()).isTrue();
             assertThat(entity.isDefault()).isFalse();
-        }
-
-        @Test
-        void to_entity_throws_when_stored_url_is_malformed() {
-            var repo = io.gravitee.repository.management.model.Portal.builder()
-                .id("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
-                .environmentId("env")
-                .organizationId("org")
-                .name("Portal")
-                .url("not a url")
-                .build();
-
-            assertThatThrownBy(() -> adapter.toEntity(repo))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
         }
 
         @Test

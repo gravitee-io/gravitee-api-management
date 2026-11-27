@@ -98,7 +98,7 @@ class ApiDocumentationNavigationResource_PublishLocationsTest extends AbstractRe
                 PortalNavigationStructure.empty(),
                 null,
                 true,
-                PortalFixtures.PORTAL_URL
+                PortalFixtures.PORTAL_ACCESS_POINT_ID
             )
         );
     }
@@ -198,7 +198,7 @@ class ApiDocumentationNavigationResource_PublishLocationsTest extends AbstractRe
     @Test
     void should_return_400_for_a_portal_managed_through_the_automation_api() {
         var automationPortalId = portalCrudService
-            .create(Portal.create(ENVIRONMENT, ORGANIZATION, "Automation Portal", PortalFixtures.PORTAL_URL))
+            .create(Portal.create(ENVIRONMENT, ORGANIZATION, "Automation Portal", PortalFixtures.PORTAL_ACCESS_POINT_ID))
             .getId();
 
         assertThat(rootTarget().queryParam("portalId", automationPortalId.toString()).request().get()).hasStatus(BAD_REQUEST_400);

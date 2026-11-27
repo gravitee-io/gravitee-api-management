@@ -38,7 +38,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
-import java.net.URI;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -232,9 +231,7 @@ public class PortalScopedNavigationItemsResourceTest extends AbstractResourceTes
 
     @SneakyThrows
     static PortalId givenPortal(PortalCrudServiceInMemory portals, String environmentId) {
-        return portals
-            .create(Portal.create(environmentId, ORG_ID, "Portal", URI.create("https://portal.example.com/next").toURL()))
-            .getId();
+        return portals.create(Portal.create(environmentId, ORG_ID, "Portal", "portal-access-point")).getId();
     }
 
     static PortalNavigationPage page(PortalId portalId, PortalPageContentId contentId) {

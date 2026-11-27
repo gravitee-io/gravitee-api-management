@@ -27,12 +27,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.PortalFixtures;
+import inmemory.InstallationAccessQueryServiceInMemory;
+import inmemory.PortalAddressDomainServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalListingCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
+import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal.domain_service.PortalContentOwnershipDomainService;
@@ -67,6 +70,10 @@ class DeleteManagedPortalUseCaseTest {
     private final PortalListingCrudServiceInMemory listings = new PortalListingCrudServiceInMemory();
     private final PortalPageContentQueryServiceInMemory contentQuery = PortalPageContentQueryServiceInMemory.sharing(contents.storage());
     private final ApiOwnedNavigationDomainService apiNavigation = new ApiOwnedNavigationDomainService(query, navigation);
+    private final PortalAddressDomainServiceInMemory addresses = new PortalAddressDomainServiceInMemory(
+        portals,
+        new InstallationAccessQueryServiceInMemory()
+    );
     private final DeleteManagedPortalUseCase useCase = new DeleteManagedPortalUseCase(
         portals,
         query,
@@ -74,8 +81,44 @@ class DeleteManagedPortalUseCaseTest {
         contents,
         contentQuery,
         apiNavigation,
-        listings
+        listings,
+        addresses
     );
+
+    @Test
+    void should_delete_the_access_point_no_other_portal_is_served_at() {
+        portals.initWith(List.of(PortalFixtures.aPortal(TARGET, ENV_ID, ORG_ID, "Target")));
+        addresses.accessPoints().initWith(List.of(aPortalAccessPoint()));
+
+        useCase.execute(new DeleteManagedPortalUseCase.Input(ENV_ID, TARGET));
+
+        assertThat(addresses.accessPoints().storage()).isEmpty();
+    }
+
+    @Test
+    void should_keep_an_access_point_another_portal_is_served_at() {
+        portals.initWith(
+            List.of(PortalFixtures.aPortal(TARGET, ENV_ID, ORG_ID, "Target"), PortalFixtures.aPortal(OTHER, ENV_ID, ORG_ID, "Other"))
+        );
+        addresses.accessPoints().initWith(List.of(aPortalAccessPoint()));
+
+        useCase.execute(new DeleteManagedPortalUseCase.Input(ENV_ID, TARGET));
+
+        assertThat(addresses.accessPoints().storage())
+            .extracting(AccessPoint::getId)
+            .containsExactly(PortalFixtures.PORTAL_ACCESS_POINT_ID);
+    }
+
+    private static AccessPoint aPortalAccessPoint() {
+        return AccessPoint.builder()
+            .id(PortalFixtures.PORTAL_ACCESS_POINT_ID)
+            .referenceType(AccessPoint.ReferenceType.ENVIRONMENT)
+            .referenceId(ENV_ID)
+            .target(AccessPoint.Target.PORTAL_INSTANCE)
+            .host("target.portal.acme.io")
+            .secured(true)
+            .build();
+    }
 
     @Test
     void should_remove_owned_items_and_content_but_keep_other_portal_and_shared_content() {
@@ -113,7 +156,7 @@ class DeleteManagedPortalUseCaseTest {
             PortalNavigationStructure.empty(),
             null,
             true,
-            PortalFixtures.PORTAL_URL
+            PortalFixtures.PORTAL_ACCESS_POINT_ID
         );
         portals.initWith(List.of(defaultPortal));
         var folder = aFolder("folder");
@@ -143,7 +186,16 @@ class DeleteManagedPortalUseCaseTest {
                 throw new IllegalStateException("unavailable");
             }
         };
-        var failing = new DeleteManagedPortalUseCase(portals, query, navigation, failingContent, contentQuery, apiNavigation, listings);
+        var failing = new DeleteManagedPortalUseCase(
+            portals,
+            query,
+            navigation,
+            failingContent,
+            contentQuery,
+            apiNavigation,
+            listings,
+            addresses
+        );
 
         assertThatThrownBy(() -> failing.execute(new DeleteManagedPortalUseCase.Input(ENV_ID, TARGET))).hasMessage("unavailable");
         assertThat(portals.storage()).containsExactly(target);
@@ -169,7 +221,16 @@ class DeleteManagedPortalUseCaseTest {
                 throw new IllegalStateException("unavailable");
             }
         };
-        var failing = new DeleteManagedPortalUseCase(portals, query, navigation, failingContent, contentQuery, apiNavigation, listings);
+        var failing = new DeleteManagedPortalUseCase(
+            portals,
+            query,
+            navigation,
+            failingContent,
+            contentQuery,
+            apiNavigation,
+            listings,
+            addresses
+        );
 
         assertThatThrownBy(() -> failing.execute(new DeleteManagedPortalUseCase.Input(ENV_ID, TARGET))).hasMessage("unavailable");
         assertThat(listing.getPublished()).isFalse();
@@ -221,7 +282,7 @@ class DeleteManagedPortalUseCaseTest {
                 if (!published) navigation.create(otherListing);
             }
         };
-        var subject = new DeleteManagedPortalUseCase(portals, query, navigation, contents, contentQuery, racing, listings);
+        var subject = new DeleteManagedPortalUseCase(portals, query, navigation, contents, contentQuery, racing, listings, addresses);
 
         subject.execute(new DeleteManagedPortalUseCase.Input(ENV_ID, TARGET));
 

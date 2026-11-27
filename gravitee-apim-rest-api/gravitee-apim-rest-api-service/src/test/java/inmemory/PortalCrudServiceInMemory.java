@@ -86,6 +86,15 @@ public class PortalCrudServiceInMemory implements PortalCrudService, InMemoryAlt
     }
 
     @Override
+    public List<Portal> findByAccessPointId(String accessPointId) {
+        return storage
+            .stream()
+            .filter(p -> accessPointId.equals(p.getAccessPointId()))
+            .map(PortalCrudServiceInMemory::copyOf)
+            .toList();
+    }
+
+    @Override
     public void delete(PortalId portalId) {
         storage.removeIf(p -> portalId.equals(p.getId()));
     }
@@ -117,7 +126,7 @@ public class PortalCrudServiceInMemory implements PortalCrudService, InMemoryAlt
             portal.getActiveThemeId(),
             portal.isDefault(),
             portal.isCreatedFromConsole(),
-            portal.getUrl()
+            portal.getAccessPointId()
         );
     }
 }
