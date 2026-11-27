@@ -63,6 +63,7 @@ class PortalUIBootstrapResourceTest extends AbstractResourceTest {
     private static final PortalId DEFAULT_ENV_PORTAL_ID = PortalId.of("11111111-1111-1111-1111-111111111111");
     private static final String REQUEST_URL = "https://apim.acme.io/portal/ui/bootstrap";
     private static final PortalId OTHER_ENV_PORTAL_ID = PortalId.of("22222222-2222-2222-2222-222222222222");
+    private static final PortalId PARTNERS_PORTAL_ID = PortalId.of("33333333-3333-3333-3333-333333333333");
 
     @Autowired
     private PortalCrudServiceInMemory portalCrudService;
@@ -314,6 +315,57 @@ class PortalUIBootstrapResourceTest extends AbstractResourceTest {
         var bootstrap = response.readEntity(Map.class);
         assertThat(bootstrap.get("portalId")).isEqualTo(DEFAULT_ENV_PORTAL_ID.toString());
         assertThat(bootstrap.get("organizationId")).isEqualTo(ORG_ID);
+    }
+
+    @Test
+    void should_return_the_portal_on_the_host_of_the_requested_environment_on_a_multi_tenant_installation() {
+        installationTypeDomainService.set(InstallationType.MULTI_TENANT);
+        portalCrudService.initWith(
+            List.of(
+                aDefaultPortal(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT),
+                aPortalOn(OTHER_ENV_PORTAL_ID, OTHER_ENV_ID, OTHER_ORG_ID, "http://partners.localhost:4100/next")
+            )
+        );
+
+        var response = bootstrap().queryParam("environmentId", OTHER_ENV_ID).queryParam("host", "partners.localhost:4100").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        assertThat(response.readEntity(Map.class).get("portalId")).isEqualTo(OTHER_ENV_PORTAL_ID.toString());
+    }
+
+    // The environment of the Portal API access point the request came through scopes the lookup.
+    @Test
+    void should_return_the_portal_on_the_host_of_the_current_environment_on_a_multi_tenant_installation() {
+        installationTypeDomainService.set(InstallationType.MULTI_TENANT);
+        portalCrudService.initWith(
+            List.of(
+                aDefaultPortal(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT),
+                aPortalOn(PARTNERS_PORTAL_ID, ENVIRONMENT, ORG_ID, "http://partners.localhost:4100/next")
+            )
+        );
+
+        var response = bootstrap().queryParam("host", "partners.localhost:4100").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        assertThat(response.readEntity(Map.class).get("portalId")).isEqualTo(PARTNERS_PORTAL_ID.toString());
+    }
+
+    @Test
+    void should_not_return_a_portal_of_another_environment_than_the_current_one_on_a_multi_tenant_installation() {
+        installationTypeDomainService.set(InstallationType.MULTI_TENANT);
+        portalCrudService.initWith(
+            List.of(
+                aDefaultPortal(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT),
+                aPortalOn(OTHER_ENV_PORTAL_ID, OTHER_ENV_ID, OTHER_ORG_ID, "http://partners.localhost:4100/next")
+            )
+        );
+
+        var response = bootstrap().queryParam("host", "partners.localhost:4100").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        var bootstrap = response.readEntity(Map.class);
+        assertThat(bootstrap.get("portalId")).isEqualTo(DEFAULT_ENV_PORTAL_ID.toString());
+        assertThat(bootstrap.get("environmentId")).isEqualTo(ENVIRONMENT);
     }
 
     @ParameterizedTest
