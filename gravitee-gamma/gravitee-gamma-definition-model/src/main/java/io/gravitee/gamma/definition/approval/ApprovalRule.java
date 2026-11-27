@@ -20,6 +20,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.io.Serializable;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,7 +34,8 @@ import lombok.NoArgsConstructor;
  *
  * <p>Shared contract between the publisher (the AIM module) and the gateway.
  * Mirrors {@code Credential}: Lombok POJO with Bean Validation annotations and {@link Serializable},
- * no business invariants. The module's own approval rule model is richer; server-side code converts
+ * plus the one readability check of {@link #unreadableFields()}, which the gateway applies before it evaluates a rule.
+ * The module's own approval rule model is richer; server-side code converts
  * domain → wire when publishing the event.
  *
  * <p>Approvers and notification settings are deliberately absent: the gateway only decides whether a
@@ -86,6 +90,79 @@ public class ApprovalRule implements Serializable {
      *  to a specific Jackson time module on the gateway side. */
     @JsonProperty
     private String updatedAt;
+
+    /** The tool bindings that name both an API and a tool. The others name no call a gateway can place. */
+    public List<ToolBinding> usableToolBindings() {
+        return toolBindings == null
+            ? List.of()
+            : toolBindings
+                .stream()
+                .filter(binding -> binding != null && !isBlank(binding.getApiId()) && !isBlank(binding.getToolName()))
+                .toList();
+    }
+
+    /** The entity ids that name a tool, each once. */
+    public List<String> usableToolEntityIds() {
+        return toolEntityIds == null
+            ? List.of()
+            : toolEntityIds
+                .stream()
+                .filter(entityId -> !isBlank(entityId))
+                .distinct()
+                .toList();
+    }
+
+    /**
+     * The fields that keep the rule from being evaluated, by name; empty when it can be. A rule that sends no selector
+     * matches no call, so it is readable. A rule that sends selectors and has none usable covers calls that cannot be
+     * placed, so it is not.
+     */
+    public List<String> unreadableFields() {
+        List<String> unreadable = new ArrayList<>();
+        boolean sendsNoSelector = toolPattern == null && isEmpty(toolBindings) && isEmpty(toolEntityIds);
+        boolean hasUsableSelector = !isBlank(toolPattern) || !usableToolBindings().isEmpty() || !usableToolEntityIds().isEmpty();
+        if (!sendsNoSelector && !hasUsableSelector) {
+            unreadable.add("toolPattern, toolBindings or toolEntityIds");
+        }
+        if (
+            argumentConditions != null &&
+            argumentConditions
+                .stream()
+                .anyMatch(condition -> condition == null || isBlank(condition.getPath()) || condition.getOperator() == null)
+        ) {
+            unreadable.add("argumentConditions");
+        }
+        if (priority == null) {
+            unreadable.add("priority");
+        }
+        if (!isInstant(createdAt)) {
+            unreadable.add("createdAt");
+        }
+        if (!isInstant(updatedAt)) {
+            unreadable.add("updatedAt");
+        }
+        return unreadable;
+    }
+
+    private static boolean isInstant(String value) {
+        if (isBlank(value)) {
+            return false;
+        }
+        try {
+            Instant.parse(value);
+            return true;
+        } catch (DateTimeParseException e) {
+            return false;
+        }
+    }
+
+    private static boolean isEmpty(List<?> list) {
+        return list == null || list.isEmpty();
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
 
     @Data
     @NoArgsConstructor
