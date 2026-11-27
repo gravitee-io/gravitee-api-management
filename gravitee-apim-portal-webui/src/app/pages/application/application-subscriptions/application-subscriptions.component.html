@@ -143,6 +143,7 @@
 
       <div class="page__box-footer page__box-footer_subscriptions">
         <gv-table
+          data-testid="application-subscriptions-table"
           order="api"
           [items]="subscriptions"
           [options]="options"
@@ -179,11 +180,12 @@
       <div class="page__box-footer form__actions">
         <gv-confirm
           *ngIf="canCloseSubscription(selectedSubscription)"
+          data-testid="application-subscription-close-confirm"
           [message]="'application.subscriptions.close.message' | translate"
           danger
           (:gv-confirm:ok)="closeSubscription(selectedSubscription.id)"
         >
-          <gv-button link>{{ 'application.subscriptions.close.title' | translate }}</gv-button>
+          <gv-button link data-testid="application-subscription-close">{{ 'application.subscriptions.close.title' | translate }}</gv-button>
         </gv-confirm>
       </div>
     </div>
