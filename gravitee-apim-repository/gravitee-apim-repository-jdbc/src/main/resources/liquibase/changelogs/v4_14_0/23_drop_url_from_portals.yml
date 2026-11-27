@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.14.0_23_drop_url_from_portals
+      author: GraviteeSource Team
+      changes:
+        - dropDefaultValue:
+            tableName: ${gravitee_prefix}portals
+            columnName: url
+            columnDataType: nvarchar(256)
+        - dropColumn:
+            tableName: ${gravitee_prefix}portals
+            columnName: url
