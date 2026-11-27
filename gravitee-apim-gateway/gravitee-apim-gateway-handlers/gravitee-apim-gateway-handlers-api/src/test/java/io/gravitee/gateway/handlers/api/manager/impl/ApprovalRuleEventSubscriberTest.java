@@ -192,7 +192,9 @@ class ApprovalRuleEventSubscriberTest {
 
     @Test
     void should_deploy_a_rule_that_sends_no_selector_without_refusing_the_environment() {
-        subscriber.onUpsert(event("rule-1", "env-1", RULE.replace("\"toolPattern\":\"issue_refund\",", "")));
+        subscriber.onUpsert(
+            event("rule-1", "env-1", RULE.replace("\"toolPattern\":\"issue_refund\",", "\"toolBindings\":[],\"toolEntityIds\":[],"))
+        );
         subscriber.onCommit();
 
         assertThat(manager.receivesRules("org-1", "env-1")).isTrue();
@@ -214,6 +216,14 @@ class ApprovalRuleEventSubscriberTest {
     }
 
     @Test
+    void should_refuse_the_environment_when_a_rule_sends_only_a_selector_this_gateway_does_not_know() {
+        subscriber.onUpsert(event("rule-1", "env-1", RULE.replace("\"toolPattern\":\"issue_refund\",", "\"toolTags\":[\"payments\"],")));
+        subscriber.onCommit();
+
+        assertThat(manager.receivesRules("org-1", "env-1")).isFalse();
+    }
+
+    @Test
     void should_refuse_the_environment_when_the_only_entity_id_sent_is_blank() {
         subscriber.onUpsert(event("rule-1", "env-1", RULE.replace("\"toolPattern\":\"issue_refund\"", "\"toolEntityIds\":[\"\"]")));
         subscriber.onCommit();
@@ -225,7 +235,9 @@ class ApprovalRuleEventSubscriberTest {
     void should_stop_matching_a_rule_whose_latest_copy_names_no_tool() {
         subscriber.onUpsert(event("rule-1", "env-1", RULE));
         subscriber.onCommit();
-        subscriber.onUpsert(event("rule-1", "env-1", RULE.replace("\"toolPattern\":\"issue_refund\",", "")));
+        subscriber.onUpsert(
+            event("rule-1", "env-1", RULE.replace("\"toolPattern\":\"issue_refund\",", "\"toolBindings\":[],\"toolEntityIds\":[],"))
+        );
         subscriber.onCommit();
 
         assertThat(manager.receivesRules("org-1", "env-1")).isTrue();

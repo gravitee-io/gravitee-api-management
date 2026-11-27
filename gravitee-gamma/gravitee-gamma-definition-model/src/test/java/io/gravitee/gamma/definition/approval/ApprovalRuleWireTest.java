@@ -101,10 +101,35 @@ class ApprovalRuleWireTest {
     }
 
     @Test
-    void should_treat_a_rule_that_sends_no_selector_as_readable() {
-        ApprovalRule rule = readableRule().toolPattern(null).build();
+    void should_treat_a_rule_that_names_no_tool_as_readable_when_it_sends_the_empty_lists_aim_sends() {
+        ApprovalRule rule = readableRule().toolPattern(null).toolBindings(List.of()).toolEntityIds(List.of()).build();
 
         assertThat(rule.unreadableFields()).isEmpty();
+    }
+
+    @Test
+    void should_treat_a_rule_with_only_a_selector_it_does_not_know_as_unreadable() throws Exception {
+        String json =
+            "{\"id\": \"approval-rule-1\", \"environmentId\": \"env-1\", \"priority\": 10," +
+            " \"createdAt\": \"2026-09-14T00:00:00Z\", \"updatedAt\": \"2026-09-15T00:00:00Z\", \"toolTags\": [\"payments\"]}";
+
+        ApprovalRule rule = om.readValue(json, ApprovalRule.class);
+
+        assertThat(rule.unreadableFields()).containsExactly("toolPattern, toolBindings or toolEntityIds");
+    }
+
+    @Test
+    void should_treat_an_empty_tool_pattern_as_unreadable_not_as_no_pattern() {
+        ApprovalRule rule = readableRule().toolPattern("").toolBindings(List.of()).toolEntityIds(List.of()).build();
+
+        assertThat(rule.unreadableFields()).containsExactly("toolPattern, toolBindings or toolEntityIds");
+    }
+
+    @Test
+    void should_write_only_the_wire_fields_and_none_of_the_derived_views() throws Exception {
+        String json = om.writeValueAsString(readableRule().toolBindings(List.of()).toolEntityIds(List.of()).build());
+
+        assertThat(json).doesNotContain("unreadableFields", "usableToolBindings", "usableToolEntityIds");
     }
 
     @Test
