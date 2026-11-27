@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.management.model;
 
-import jakarta.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,9 +31,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Portal {
 
-    /** Stored until portals get a real URL; the column is mandatory, so it cannot stay empty. */
-    public static final String URL_PLACEHOLDER = "https://example.com/to-be-implemented";
-
     private String id;
     private String environmentId;
     private String organizationId;
@@ -42,10 +38,6 @@ public class Portal {
     private String portalNavigation;
     private String activeThemeId;
     private boolean defaultPortal;
-
-    @Nonnull
-    @Builder.Default
-    private String url = URL_PLACEHOLDER;
 
     /** The {@link AccessPoint} this portal is served at; null while its environment has no usable portal URL. */
     private String accessPointId;

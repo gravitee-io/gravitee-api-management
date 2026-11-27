@@ -89,25 +89,23 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_read_not_default_and_placeholder_url_when_not_set() throws Exception {
+    public void should_read_not_default_and_no_access_point_when_not_set() throws Exception {
         Optional<Portal> portal = portalRepository.findById("portal1");
 
         assertThat(portal).hasValueSatisfying(found -> {
             assertThat(found.isDefaultPortal()).isFalse();
-            assertThat(found.getUrl()).isEqualTo(Portal.URL_PLACEHOLDER);
             assertThat(found.getAccessPointId()).isNull();
         });
     }
 
     @Test
-    public void should_round_trip_default_portal_and_url_on_create() throws Exception {
+    public void should_round_trip_default_portal_and_access_point_on_create() throws Exception {
         Portal toCreate = Portal.builder()
             .id("default-portal")
             .environmentId("environment3")
             .organizationId("organization2")
             .name("Default Portal")
             .defaultPortal(true)
-            .url("https://portal.env3.example")
             .accessPointId("access-point-env3")
             .build();
 
@@ -115,20 +113,18 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertThat(portalRepository.findById("default-portal")).hasValueSatisfying(found -> {
             assertThat(found.isDefaultPortal()).isTrue();
-            assertThat(found.getUrl()).isEqualTo("https://portal.env3.example");
             assertThat(found.getAccessPointId()).isEqualTo("access-point-env3");
         });
     }
 
     @Test
-    public void should_round_trip_default_portal_and_url_on_update() throws Exception {
+    public void should_round_trip_default_portal_and_access_point_on_update() throws Exception {
         Portal toUpdate = Portal.builder()
             .id("portal1")
             .environmentId("environment1")
             .organizationId("organization1")
             .name("Default Portal")
             .defaultPortal(true)
-            .url("https://portal.env1.example")
             .accessPointId("access-point-env1")
             .build();
 
@@ -136,7 +132,6 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertThat(portalRepository.findById("portal1")).hasValueSatisfying(found -> {
             assertThat(found.isDefaultPortal()).isTrue();
-            assertThat(found.getUrl()).isEqualTo("https://portal.env1.example");
             assertThat(found.getAccessPointId()).isEqualTo("access-point-env1");
         });
     }
@@ -183,7 +178,7 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
             .organizationId("organization2")
             .name("Console Portal")
             .createdFromConsole(true)
-            .url("https://console-portal.example")
+            .accessPointId("console-portal-access-point")
             .build();
 
         portalRepository.create(toCreate);
@@ -216,7 +211,7 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(portal).hasValueSatisfying(found -> {
             assertThat(found.getId()).isEqualTo("portal3");
             assertThat(found.isDefaultPortal()).isTrue();
-            assertThat(found.getUrl()).isEqualTo("https://portal.env2.example");
+            assertThat(found.getAccessPointId()).isEqualTo("shared-access-point");
         });
     }
 
@@ -245,28 +240,23 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
 
         portal.setAccessPointId("access-point-a");
         portalRepository.update(portal);
-        assertThat(portalRepository.findById("portal3")).hasValueSatisfying(found -> {
-            assertThat(found.getAccessPointId()).isEqualTo("access-point-a");
-            assertThat(found.getUrl()).isEqualTo("https://portal.env2.example");
-        });
+        assertThat(portalRepository.findById("portal3")).hasValueSatisfying(found ->
+            assertThat(found.getAccessPointId()).isEqualTo("access-point-a")
+        );
         assertThat(portalRepository.findByAccessPointId("access-point-a")).extracting(Portal::getId).containsExactly("portal3");
         assertThat(portalRepository.findByAccessPointId("shared-access-point")).extracting(Portal::getId).containsExactly("portal4");
 
         portal.setAccessPointId("access-point-b");
         portalRepository.update(portal);
-        assertThat(portalRepository.findById("portal3")).hasValueSatisfying(found -> {
-            assertThat(found.getAccessPointId()).isEqualTo("access-point-b");
-            assertThat(found.getUrl()).isEqualTo("https://portal.env2.example");
-        });
+        assertThat(portalRepository.findById("portal3")).hasValueSatisfying(found ->
+            assertThat(found.getAccessPointId()).isEqualTo("access-point-b")
+        );
         assertThat(portalRepository.findByAccessPointId("access-point-a")).isEmpty();
         assertThat(portalRepository.findByAccessPointId("access-point-b")).extracting(Portal::getId).containsExactly("portal3");
 
         portal.setAccessPointId(null);
         portalRepository.update(portal);
-        assertThat(portalRepository.findById("portal3")).hasValueSatisfying(found -> {
-            assertThat(found.getAccessPointId()).isNull();
-            assertThat(found.getUrl()).isEqualTo("https://portal.env2.example");
-        });
+        assertThat(portalRepository.findById("portal3")).hasValueSatisfying(found -> assertThat(found.getAccessPointId()).isNull());
         assertThat(portalRepository.findByAccessPointId("access-point-a")).isEmpty();
         assertThat(portalRepository.findByAccessPointId("access-point-b")).isEmpty();
     }
@@ -387,7 +377,7 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
             .organizationId("organization2")
             .name(id)
             .defaultPortal(true)
-            .url("https://" + id + ".example")
+            .accessPointId("access-point-" + id)
             .build();
     }
 }
