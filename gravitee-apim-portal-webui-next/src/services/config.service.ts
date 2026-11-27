@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { DOCUMENT } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { catchError, map, Observable, switchMap, tap } from 'rxjs';
@@ -35,6 +36,7 @@ interface BootstrapConfig extends Config {
 })
 export class ConfigService {
   private readonly httpClient = inject(HttpClient);
+  private readonly document = inject(DOCUMENT);
   private _baseURL: string = '';
   private _portalId = '';
   private _configuration: Configuration = {};
@@ -72,7 +74,13 @@ export class ConfigService {
         const configuredPortalId = this.readPortalId(configJson.portalId);
         const baseURL = this._sanitizeBaseURLs(configJson);
         const enforcedEnvironmentId = this._getEnforcedEnvironmentId(configJson);
-        const bootstrapUrl = `${baseURL}/ui/bootstrap${enforcedEnvironmentId ? `?environmentId=${enforcedEnvironmentId}` : ''}`;
+        const bootstrapParams = new URLSearchParams();
+        if (enforcedEnvironmentId) {
+          bootstrapParams.set('environmentId', enforcedEnvironmentId);
+        }
+        // The Portal API is on another host, so it cannot tell from the request which address this app was opened at.
+        bootstrapParams.set('host', this.document.location.host);
+        const bootstrapUrl = `${baseURL}/ui/bootstrap?${bootstrapParams}`;
 
         return this.httpClient.get<BootstrapConfig>(bootstrapUrl).pipe(
           map(bootstrapConfig => {

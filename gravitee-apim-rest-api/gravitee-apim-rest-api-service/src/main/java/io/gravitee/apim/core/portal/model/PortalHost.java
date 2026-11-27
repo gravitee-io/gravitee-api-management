@@ -17,15 +17,41 @@ package io.gravitee.apim.core.portal.model;
 
 import java.net.URL;
 import java.util.Locale;
+import java.util.Optional;
+import java.util.regex.Pattern;
 
 /**
  * The address a portal answers at: its lowercase host, with the port unless it is the scheme's default. This is the
  * form a browser reports in {@code location.host}, so a stored URL and a browser's address compare equal.
  */
 public record PortalHost(String value) {
+    private static final int MAX_LENGTH = 256;
+    private static final int MAX_PORT = 65535;
+    // The dot ending the host, before any port: a dot after the port is not a host and port, so it is left to be refused.
+    private static final Pattern TRAILING_DOT = Pattern.compile("(?<!:\\d{0,5})\\.(?=(?::\\d*)?$)");
+    private static final Pattern HOST_AND_PORT = Pattern.compile("^(?:\\[[0-9a-f:.]+]|[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?)(?::(\\d{1,5}))?$");
+
     public static PortalHost of(URL url) {
-        var host = url.getHost().toLowerCase(Locale.ROOT);
+        var host = TRAILING_DOT.matcher(url.getHost().toLowerCase(Locale.ROOT)).replaceFirst("");
         var port = url.getPort();
         return new PortalHost(port == -1 || port == url.getDefaultPort() ? host : host + ":" + port);
+    }
+
+    /** @return empty unless {@code raw} is a host with an optional port, and nothing else */
+    public static Optional<PortalHost> parse(String raw) {
+        if (raw == null || raw.length() > MAX_LENGTH) {
+            return Optional.empty();
+        }
+        // A fully qualified name's trailing dot names the same host.
+        var normalized = TRAILING_DOT.matcher(raw.toLowerCase(Locale.ROOT)).replaceFirst("");
+        var matcher = HOST_AND_PORT.matcher(normalized);
+        if (!matcher.matches()) {
+            return Optional.empty();
+        }
+        var port = matcher.group(1);
+        if (port != null && Integer.parseInt(port) > MAX_PORT) {
+            return Optional.empty();
+        }
+        return Optional.of(new PortalHost(normalized));
     }
 }
