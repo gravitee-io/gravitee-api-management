@@ -71,6 +71,26 @@ public class SpelSecretExpressionParser implements SecretExpressionParser {
         return Optional.of(path.get() + ":" + text(key.get()).orElse(PLACEHOLDER_KEY));
     }
 
+    @Override
+    public Optional<String> pathPrefix(String expression) {
+        try {
+            return leadingText(argumentsOfSecretsGet(expression, expression).getFirst());
+        } catch (InvalidCredentialException e) {
+            return Optional.empty();
+        }
+    }
+
+    private static Optional<String> leadingText(SpelNode node) {
+        return switch (node) {
+            case StringLiteral literal -> Optional.of((String) literal.getLiteralValue().getValue());
+            case OpPlus plus when plus.getChildCount() == 2 -> {
+                var left = text(plus.getChild(0));
+                yield left.isPresent() ? Optional.of(left.get() + leadingText(plus.getChild(1)).orElse("")) : leadingText(plus.getChild(0));
+            }
+            default -> Optional.empty();
+        };
+    }
+
     // Text joined with + folds into one string, so the plain-path checks see the path the gateway resolves.
     private static Optional<String> text(SpelNode node) {
         return switch (node) {
