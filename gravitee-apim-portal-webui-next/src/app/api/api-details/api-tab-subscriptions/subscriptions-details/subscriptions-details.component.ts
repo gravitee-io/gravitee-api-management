@@ -16,7 +16,7 @@
 
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, Input, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -28,11 +28,13 @@ import { of } from 'rxjs/internal/observable/of';
 
 import { SubscriptionConsumerConfigurationComponent } from './subscription-consumer-configuration';
 import { ApiAccessComponent } from '../../../../../components/api-access/api-access.component';
+import { BannerComponent } from '../../../../../components/banner/banner.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../../../../components/confirm-dialog/confirm-dialog.component';
 import { LoaderComponent } from '../../../../../components/loader/loader.component';
 import { SubscriptionInfoComponent } from '../../../../../components/subscription-info/subscription-info.component';
 import { Api } from '../../../../../entities/api/api';
 import { Application } from '../../../../../entities/application/application';
+import { UserApplicationPermissions } from '../../../../../entities/permission/permission';
 import { PlanMode, PlanSecurityEnum, PlanUsageConfiguration } from '../../../../../entities/plan/plan';
 import {
   SubscriptionConsumerStatusEnum,
@@ -71,6 +73,7 @@ interface SubscriptionDetailsData {
   api?: Api;
   apiName?: string;
   hasDocumentationAccess: boolean;
+  canCloseSubscription: boolean;
   documentationNavigationTarget?: ApiDocumentationNavigationTarget;
   consumerConfiguration?: SubscriptionConsumerConfiguration;
 }
@@ -85,6 +88,7 @@ interface SubscriptionDetailsData {
     ReactiveFormsModule,
     AsyncPipe,
     ApiAccessComponent,
+    BannerComponent,
     SubscriptionInfoComponent,
     LoaderComponent,
     SubscriptionConsumerConfigurationComponent,
@@ -106,6 +110,8 @@ export class SubscriptionsDetailsComponent implements OnInit {
   subscriptionDetails$: Observable<SubscriptionDetailsVM> = of();
 
   isLoadingStatus: boolean = true;
+
+  readonly hasCloseSubscriptionFailed = signal(false);
 
   constructor(
     private subscriptionService: SubscriptionService,
@@ -138,12 +144,13 @@ export class SubscriptionsDetailsComponent implements OnInit {
       .afterClosed()
       .pipe(
         filter(confirmed => !!confirmed),
+        tap(() => this.hasCloseSubscriptionFailed.set(false)),
         switchMap(() => this.subscriptionService.close(this.subscriptionId)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: _ => this._subscriptionDetails.next(true),
-        error: err => console.error(err),
+        error: () => this.hasCloseSubscriptionFailed.set(true),
       });
   }
 
@@ -176,6 +183,23 @@ export class SubscriptionsDetailsComponent implements OnInit {
     );
   }
 
+  private getApplicationPermissions$(applicationId: string): Observable<UserApplicationPermissions | undefined> {
+    return this.permissionsService.getApplicationPermissions(applicationId).pipe(
+      catchError(error => {
+        if (error instanceof HttpErrorResponse && error.status === 404) {
+          return of(undefined);
+        }
+
+        return throwError(() => error);
+      }),
+    );
+  }
+
+  // The Portal API closes a subscription only with the application SUBSCRIPTION delete permission; API permissions do not grant it.
+  private canCloseSubscription(applicationPermissions?: UserApplicationPermissions): boolean {
+    return !!applicationPermissions?.SUBSCRIPTION?.includes('D');
+  }
+
   private loadDetails() {
     return this._subscriptionDetails.pipe(
       switchMap(() =>
@@ -190,6 +214,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
           plan: this.getPlanData$(subscription.plan),
           api: hasDocumentationAccess ? this.apiService.details(this.apiId).pipe(catchError(() => of(null))) : of(null),
           application: this.applicationService.get(subscription.application),
+          applicationPermissions: this.getApplicationPermissions$(subscription.application),
           hasDocumentationAccess: of(hasDocumentationAccess),
           documentationNavigationTarget: hasDocumentationAccess
             ? this.portalNavigationItemsService.searchNavigationItemsWithApis(1, this.apiId, 10).pipe(
@@ -202,7 +227,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
             : of(null),
         }),
       ),
-      map(({ subscription, plan, api, application, hasDocumentationAccess, documentationNavigationTarget }) => {
+      map(({ subscription, plan, api, application, applicationPermissions, hasDocumentationAccess, documentationNavigationTarget }) => {
         const subscriptionDetails: SubscriptionDetailsData = {
           application,
           subscription,
@@ -217,6 +242,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
           updatedAt: subscription.updated_at,
           entrypointUrls: api?.entrypoints ?? [],
           hasDocumentationAccess,
+          canCloseSubscription: this.canCloseSubscription(applicationPermissions),
           documentationNavigationTarget: documentationNavigationTarget ?? undefined,
         };
 
