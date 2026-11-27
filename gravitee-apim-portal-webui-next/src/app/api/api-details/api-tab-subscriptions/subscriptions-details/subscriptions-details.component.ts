@@ -210,7 +210,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
           subscription: of(subscription),
           apiPermissions: of(apiPermissions),
           plan: this.getPlanData$(subscription.plan),
-          api: apiPermissions ? this.apiService.details(this.apiId).pipe(catchError(() => of(null))) : of(null),
+          api: apiPermissions ? this.apiService.detailsForSubscribedApi(this.apiId).pipe(catchError(() => of(null))) : of(null),
           application: this.applicationService.get(subscription.application),
           applicationPermissions: this.getApplicationPermissions$(subscription.application),
           hasDocumentationAccess: of(!!apiPermissions),
@@ -325,7 +325,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
     planMode?: PlanMode;
     apiName?: string;
   }> {
-    return this.planService.list(this.apiId).pipe(
+    return this.planService.listForSubscribedApi(this.apiId).pipe(
       map(({ data }) => {
         if (data && data.some(p => p.id === planId)) {
           const foundPlan = data.find(plan => plan.id === planId);

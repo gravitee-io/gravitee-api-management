@@ -42,14 +42,14 @@ Portal identity comes from the bootstrap response, which selects the environment
 default or only portal. A `portalId` in `assets/config.json` is ignored.
 
 Navigation, homepage content, catalog searches (APIs and API Products), API
-searches, the pages of an API and of an API Product (details, plans, documentation
-pages, informations, subscription form) and subscribing use
-`/environments/{environmentId}/portal/{portalId}/...`, so they only work for what the
-portal lists. Theme, authentication, applications, reading and managing subscriptions,
-and existing category metadata keep their environment-level paths. The API analytics
-filter also searches within the selected portal. Subscription details, and the plans
-used to configure a subscription's consumer, can still be read when their API is not
-on that portal.
+searches, an API's details, plans and subscription form, an API Product's details
+and plans, and subscribing use `/environments/{environmentId}/portal/{portalId}/...`,
+so they only work for what the portal lists. Theme, authentication, applications,
+reading and managing subscriptions, the legacy API documentation pages and
+informations, and existing category metadata keep their environment-level paths. The
+API analytics filter also searches within the selected portal. Subscription details,
+including the API and plans they show and the consumer configuration, are read through
+environment-level paths, so they still work when their API is not on that portal.
 
 The backend must provide the bootstrap portal ID, portal-scoped navigation,
 portal-scoped API search and the portal-scoped API, API Product and subscribe

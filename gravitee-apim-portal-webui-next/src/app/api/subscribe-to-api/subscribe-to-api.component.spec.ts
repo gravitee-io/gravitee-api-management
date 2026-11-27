@@ -1258,7 +1258,7 @@ describe('SubscribeToApiComponent', () => {
   }
 
   function expectGetPage(page: Page) {
-    httpTestingController.expectOne(`${TESTING_PORTAL_BASE_URL}/apis/${API_ID}/pages/${page.id}?include=content`).flush(page);
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/${API_ID}/pages/${page.id}?include=content`).flush(page);
   }
 
   async function canGoToNextStep(): Promise<boolean> {

@@ -51,7 +51,7 @@ describe('PortalService', () => {
       expect(data).toEqual(mockResponse);
     });
 
-    const req = httpMock.expectOne(`${portalBaseURL}/apis/${apiId}/informations`);
+    const req = httpMock.expectOne(`${baseURL}/apis/${apiId}/informations`);
     expect(req.request.method).toBe('GET');
     req.flush(mockResponse);
   });

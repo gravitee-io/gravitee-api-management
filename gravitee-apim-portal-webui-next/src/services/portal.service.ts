@@ -44,7 +44,7 @@ export class PortalService {
   ) {}
 
   public getApiInformations(apiId: string): Observable<ApiInformation[]> {
-    return this.http.get<ApiInformation[]>(`${this.configService.portalBaseURL}/apis/${apiId}/informations`);
+    return this.http.get<ApiInformation[]>(`${this.configService.baseURL}/apis/${apiId}/informations`);
   }
 
   public getPortalHomepages(expands?: string): Observable<PortalPage[]> {
