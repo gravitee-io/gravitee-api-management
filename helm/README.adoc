@@ -91,6 +91,34 @@ ____
 NOTE: When you install APIM, it automatically uses the default values from the 'values.yml` config file which can be modified using the parameters in the tables the end of this page. For example, you can change the default value of host name from `apim.exmaple.com` to your specific host name by searching through our documentation and replacing the values you want to modify.
 
 
+=== Portal Next selection
+
+By default Portal Next serves the portal whose ID `/ui/bootstrap` returns, and
+`portal.portalId` is empty: it is omitted from `config-next.json`. Set it to serve
+a specific portal of the environment instead, for instance when the portal app is
+reached through an internal name:
+
+[source,yaml]
+----
+portal:
+  portalId: "e9c87445-920f-4a26-a36d-c6334a05ca37"
+----
+
+An explicit ID wins over the bootstrap's one. The same configuration file is
+served to every host of the deployment, so an explicit ID pins all of them to that
+portal: deployments serving several portals, each on its own host, leave it unset.
+An unknown ID, or the ID of a portal of another environment, opens the startup
+error page without falling back to another portal. The value must be a string; it
+is trimmed, and a blank one is omitted. The dot segments `.` and `..` are refused.
+It needs APIM 4.14 or later: earlier Portal Next images ignore it.
+
+Only Portal Next receives this value. `config-next.json` is mounted at
+`/usr/share/nginx/html/next/browser/assets/config.json`; Classic Portal keeps its
+separate `config.json`. An external volume named `config` supplied through
+`portal.extraVolumes` replaces the generated configuration: provide both keys
+yourself, with the desired `portalId` in `config-next.json`. Chart values are not
+merged into an external configuration.
+
 === Configuration
 
 The following tables list the configurable parameters of the Gravitee
