@@ -33,6 +33,7 @@ import jakarta.annotation.Nullable;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 
@@ -42,7 +43,9 @@ import lombok.RequiredArgsConstructor;
  * in the environment of the definition, and to the secret of a credential only for the owner of that credential or an
  * admin. A reference whose path the gateway works out per request can name any secret, so it needs the read permission too,
  * unless the text the path starts with already names another provider.
- * The references a definition already had are kept, whoever saves it.
+ * A save may not add any other use of the {@code #secrets} variable: the gateway rewrites each reference to its internal
+ * {@code fromGrant} and {@code fromEL} functions, which resolve any secret of the environment that a deployed context
+ * was granted. The references a definition already had are kept, whoever saves it.
  */
 @DomainService
 @RequiredArgsConstructor
@@ -50,6 +53,10 @@ public class SecretReferencePermissionDomainService {
 
     // Mirrors the gateway's RefParser, which finds a reference anywhere in a string, plugin configurations included.
     private static final Pattern SECRETS_GET = Pattern.compile("\\{#secrets\\.get\\(.*?\\)}", Pattern.DOTALL);
+    // SpEL reaches the gateway's internal functions through ?., [] and spaces as well as a plain dot.
+    private static final Pattern INTERNAL_SECRETS_CALL = Pattern.compile("#secrets(?![\\w$])(?!\\.get\\().*?(\\)}|$)", Pattern.DOTALL);
+    // A plugin configuration is JSON, so the gateway decodes an escape such as \\u0023 into # before it evaluates the expression.
+    private static final Pattern JSON_UNICODE_ESCAPE = Pattern.compile("\\\\u([0-9a-fA-F]{4})");
     private static final Pattern GATEWAY_TRIMMED = Pattern.compile("(^[ ']+)|([ ']+$)");
     private static final String SECRET_SCHEME = "secret://";
 
@@ -69,8 +76,15 @@ public class SecretReferencePermissionDomainService {
         @Nullable Object previous,
         Object definition
     ) {
-        var added = references(definition);
-        added.removeAll(references(previous));
+        var addedInternalCalls = find(INTERNAL_SECRETS_CALL, definition);
+        addedInternalCalls.removeAll(find(INTERNAL_SECRETS_CALL, previous));
+        if (!addedInternalCalls.isEmpty()) {
+            throw new InvalidSecretReferenceException(
+                "This definition calls the gateway's internal secret functions. Reference a secret with {#secrets.get(...)} only."
+            );
+        }
+        var added = find(SECRETS_GET, definition);
+        added.removeAll(find(SECRETS_GET, previous));
         var needsSecretRead = false;
         for (String expression : added) {
             var path = pathUnlessDynamic(expression);
@@ -163,30 +177,33 @@ public class SecretReferencePermissionDomainService {
         }
     }
 
-    private Set<String> references(@Nullable Object definition) {
-        var references = new TreeSet<String>();
+    private Set<String> find(Pattern pattern, @Nullable Object definition) {
+        var matches = new TreeSet<String>();
         if (definition != null) {
-            collect(objectMapper.valueToTree(definition), references);
+            collect(objectMapper.valueToTree(definition), pattern, matches);
         }
-        return references;
+        return matches;
     }
 
-    private static void collect(JsonNode node, Set<String> references) {
+    private static void collect(JsonNode node, Pattern pattern, Set<String> matches) {
         if (node.isTextual()) {
-            collect(node.textValue(), references);
+            collect(node.textValue(), pattern, matches);
         } else if (node instanceof POJONode pojo && pojo.getPojo() instanceof RawValue raw) {
             // A plugin configuration is a @JsonRawValue string, which valueToTree keeps unparsed.
-            collect(String.valueOf(raw.rawValue()), references);
+            collect(String.valueOf(raw.rawValue()), pattern, matches);
         } else {
-            node.forEach(child -> collect(child, references));
+            node.forEach(child -> collect(child, pattern, matches));
         }
     }
 
-    private static void collect(String text, Set<String> references) {
+    private static void collect(String text, Pattern pattern, Set<String> matches) {
         // A plugin configuration is JSON held in a string, so its quotes reach this text escaped.
-        var matcher = SECRETS_GET.matcher(text.replace("\\\"", "\""));
+        var unescaped = JSON_UNICODE_ESCAPE.matcher(text.replace("\\\"", "\"")).replaceAll(escape ->
+            Matcher.quoteReplacement(String.valueOf((char) Integer.parseInt(escape.group(1), 16)))
+        );
+        var matcher = pattern.matcher(unescaped);
         while (matcher.find()) {
-            references.add(matcher.group());
+            matches.add(matcher.group());
         }
     }
 }
