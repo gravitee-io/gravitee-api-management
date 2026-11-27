@@ -278,11 +278,27 @@ class SecretReferencePermissionDomainServiceTest {
         }
 
         @Test
-        void should_refuse_a_block_of_a_plugin_configuration_that_a_save_enables_without_the_secret_read_permission() {
-            var stored = stepWith("{\"proxy\":{\"enabled\":false,\"password\":\"" + STORE_REFERENCE + "\"}}");
-            var enabled = stepWith("{\"proxy\":{\"enabled\":true,\"password\":\"" + STORE_REFERENCE + "\"}}");
+        void should_refuse_a_step_that_a_save_enables_behind_an_enabled_field_of_its_configuration_without_the_secret_read_permission() {
+            var header = "{\"name\":\"Authorization\",\"value\":\"" + STORE_REFERENCE + "\"";
+            var stored = stepWith(false, "{\"addHeaders\":[" + header + "}]}");
+            var enabled = stepWith(true, "{\"addHeaders\":[" + header + ",\"enabled\":false}]}");
 
             assertThatThrownBy(() -> validate(stored, enabled)).isInstanceOf(NotAllowedDomainException.class);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "[1] ", "{} " })
+        void should_refuse_a_store_reference_after_a_json_value_in_a_plugin_configuration_without_the_secret_read_permission(
+            String prefix
+        ) {
+            var definition = stepWith("{\"value\":\"" + prefix + STORE_REFERENCE + "\"}");
+
+            assertThatThrownBy(() -> validate(null, definition)).isInstanceOf(NotAllowedDomainException.class);
+        }
+
+        @Test
+        void should_refuse_a_store_reference_after_a_json_value_in_a_text_field_without_the_secret_read_permission() {
+            assertThatThrownBy(() -> validate(null, header("[1] " + STORE_REFERENCE))).isInstanceOf(NotAllowedDomainException.class);
         }
 
         @Test
@@ -393,6 +409,15 @@ class SecretReferencePermissionDomainServiceTest {
                 .hasMessageContaining("#secrets.get");
         }
 
+        @ParameterizedTest
+        @ValueSource(strings = { "[1] ", "{} " })
+        void should_refuse_an_internal_secret_function_after_a_json_value(String prefix) {
+            assertThatThrownBy(() -> validate(null, stepWith("{\"value\":\"" + prefix + FROM_GRANT + "\"}"))).isInstanceOf(
+                ValidationDomainException.class
+            );
+            assertThatThrownBy(() -> validate(null, header(prefix + FROM_GRANT))).isInstanceOf(ValidationDomainException.class);
+        }
+
         @Test
         void should_refuse_an_internal_secret_function_inside_a_plugin_configuration() {
             var definition = Map.of("flows", List.of(Map.of("configuration", "{\"value\":\"" + FROM_GRANT.replace("'", "\\\"") + "\"}")));
@@ -451,8 +476,13 @@ class SecretReferencePermissionDomainServiceTest {
     }
 
     private static Map<String, Object> stepWith(String configuration) {
+        return stepWith(true, configuration);
+    }
+
+    private static Map<String, Object> stepWith(boolean stepEnabled, String configuration) {
         var step = new Step();
         step.setPolicy("transform-headers");
+        step.setEnabled(stepEnabled);
         step.setConfiguration(configuration);
         var flow = new Flow();
         flow.setRequest(List.of(step));
