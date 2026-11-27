@@ -96,3 +96,22 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: portal.portalId must be a string
+  - it: Should reject a dot-segment portal ID
+    set:
+      portal.portalId: '..'
+    asserts:
+      - failedTemplate:
+          errorMessage: portal.portalId must not be a dot segment
+  - it: Should reject a dot-segment portal ID surrounded by spaces
+    set:
+      portal.portalId: ' . '
+    asserts:
+      - failedTemplate:
+          errorMessage: portal.portalId must not be a dot segment
+  - it: Should accept a portal ID that contains a dot
+    set:
+      portal.portalId: 'v1.2'
+    asserts:
+      - matchRegex:
+          path: data["config-next.json"]
+          pattern: '"portalId": "v1.2"'

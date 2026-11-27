@@ -52,6 +52,9 @@ data:
       {{- fail "portal.portalId must be a string" }}
       {{- end }}
       {{- $portalId := .Values.portal.portalId | default "" | trim }}
+      {{- if or (eq $portalId ".") (eq $portalId "..") }}
+      {{- fail "portal.portalId must not be a dot segment" }}
+      {{- end }}
       {{- if $portalId }}
       "portalId": {{ $portalId | toJson }},
       {{- end }}
