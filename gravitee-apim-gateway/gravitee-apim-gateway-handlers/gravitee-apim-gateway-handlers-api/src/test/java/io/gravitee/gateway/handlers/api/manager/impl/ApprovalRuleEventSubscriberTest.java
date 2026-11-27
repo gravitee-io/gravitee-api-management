@@ -191,6 +191,48 @@ class ApprovalRuleEventSubscriberTest {
     }
 
     @Test
+    void should_deploy_a_rule_that_sends_no_selector_without_refusing_the_environment() {
+        subscriber.onUpsert(event("rule-1", "env-1", RULE.replace("\"toolPattern\":\"issue_refund\",", "")));
+        subscriber.onCommit();
+
+        assertThat(manager.receivesRules("org-1", "env-1")).isTrue();
+        assertThat(manager.candidates("env-1", "api-1", "issue_refund", "payments.refund")).isEmpty();
+    }
+
+    @Test
+    void should_refuse_the_environment_when_every_selector_sent_is_invalid() {
+        subscriber.onUpsert(
+            event(
+                "rule-1",
+                "env-1",
+                RULE.replace("\"toolPattern\":\"issue_refund\"", "\"toolBindings\":[{\"apiId\":\"\",\"toolName\":\"x\"}]")
+            )
+        );
+        subscriber.onCommit();
+
+        assertThat(manager.receivesRules("org-1", "env-1")).isFalse();
+    }
+
+    @Test
+    void should_refuse_the_environment_when_the_only_entity_id_sent_is_blank() {
+        subscriber.onUpsert(event("rule-1", "env-1", RULE.replace("\"toolPattern\":\"issue_refund\"", "\"toolEntityIds\":[\"\"]")));
+        subscriber.onCommit();
+
+        assertThat(manager.receivesRules("org-1", "env-1")).isFalse();
+    }
+
+    @Test
+    void should_stop_matching_a_rule_whose_latest_copy_names_no_tool() {
+        subscriber.onUpsert(event("rule-1", "env-1", RULE));
+        subscriber.onCommit();
+        subscriber.onUpsert(event("rule-1", "env-1", RULE.replace("\"toolPattern\":\"issue_refund\",", "")));
+        subscriber.onCommit();
+
+        assertThat(manager.receivesRules("org-1", "env-1")).isTrue();
+        assertThat(manager.candidates("env-1", null, "issue_refund", null)).isEmpty();
+    }
+
+    @Test
     void should_refuse_the_environment_when_an_argument_condition_is_null() {
         subscriber.onUpsert(
             event("rule-1", "env-1", RULE.replace("[{\"path\":\"amount\",\"operator\":\"GT\",\"value\":\"1000\"}]", "[null]"))
