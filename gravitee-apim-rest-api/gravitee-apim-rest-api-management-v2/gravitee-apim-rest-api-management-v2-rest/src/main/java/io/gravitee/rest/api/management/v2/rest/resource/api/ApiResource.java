@@ -15,11 +15,9 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
-import static io.gravitee.apim.core.utils.CollectionUtils.isNotEmpty;
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
@@ -42,11 +40,6 @@ import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.definition.model.Proxy;
-import io.gravitee.definition.model.VirtualHost;
-import io.gravitee.definition.model.v4.listener.Listener;
-import io.gravitee.definition.model.v4.listener.ListenerType;
-import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiCRDMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
@@ -85,6 +78,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.api.specgen.ApiSpecGenRe
 import io.gravitee.rest.api.management.v2.rest.resource.documentation.ApiPagesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.management.v2.rest.utils.ApiDefinitionFilter;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.RoleEntity;
@@ -321,8 +315,12 @@ public class ApiResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getApiById(@PathParam("apiId") String apiId) {
-        final GenericApiEntity apiEntity = getGenericApiEntityById(apiId, true);
-        return apiResponse(apiEntity);
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        final GenericApiEntity apiEntity = getGenericApiEntityById(apiId, false);
+        // The deployment state compares the API with its deployed definition: compute it before any filtering
+        final boolean isSynchronized = apiStateService.isSynchronized(executionContext, apiEntity);
+        prepareDataForResponse(apiId, executionContext, apiEntity);
+        return apiResponse(apiEntity, isSynchronized);
     }
 
     @PUT
@@ -989,7 +987,7 @@ public class ApiResource extends AbstractResource {
         if (hasPermission(executionContext, RolePermission.API_DEFINITION, apiId, RolePermissionAction.READ)) {
             setPicturesUrl(apiEntity);
         } else {
-            filterSensitiveData(apiEntity);
+            ApiDefinitionFilter.filterSensitiveData(apiEntity);
         }
     }
 
@@ -1025,58 +1023,6 @@ public class ApiResource extends AbstractResource {
             }
             default -> {}
         }
-    }
-
-    private void filterSensitiveData(GenericApiEntity apiEntity) {
-        switch (apiEntity) {
-            case ApiEntity asApiEntity -> filterSensitiveData(asApiEntity);
-            case NativeApiEntity asNativeApiEntity -> filterSensitiveData(asNativeApiEntity);
-            case io.gravitee.rest.api.model.api.ApiEntity asApiEntityV2 -> filterSensitiveData(asApiEntityV2);
-            case null, default -> {}
-        }
-    }
-
-    private void filterSensitiveData(ApiEntity apiEntity) {
-        List<Listener> listeners = apiEntity.getListeners();
-
-        stream(listeners)
-            .filter(listener -> ListenerType.HTTP == listener.getType())
-            .findFirst()
-            .ifPresent(first -> {
-                if (first instanceof HttpListener httpListener) {
-                    if (isNotEmpty(httpListener.getPaths())) {
-                        var path = httpListener.getPaths().getFirst();
-                        var filteredPath = new io.gravitee.definition.model.v4.listener.http.Path(path.getPath());
-                        httpListener.setPaths(List.of(filteredPath));
-                    }
-                    httpListener.setPathMappings(null);
-                }
-            });
-        apiEntity.setProperties(null);
-        apiEntity.setServices(null);
-        apiEntity.setResources(null);
-        apiEntity.setResponseTemplates(null);
-    }
-
-    private void filterSensitiveData(NativeApiEntity apiEntity) {
-        apiEntity.setProperties(null);
-        apiEntity.setServices(null);
-        apiEntity.setResources(null);
-    }
-
-    private void filterSensitiveData(io.gravitee.rest.api.model.api.ApiEntity apiEntity) {
-        final Proxy filteredProxy = new Proxy();
-        final VirtualHost virtualHost = apiEntity.getProxy().getVirtualHosts().getFirst();
-        virtualHost.setHost(null);
-        filteredProxy.setVirtualHosts(singletonList(virtualHost));
-
-        apiEntity.setProxy(filteredProxy);
-        apiEntity.setPaths(null);
-        apiEntity.setProperties(null);
-        apiEntity.setServices(null);
-        apiEntity.setResources(null);
-        apiEntity.setPathMappings(null);
-        apiEntity.setResponseTemplates(null);
     }
 
     private void checkApiLifeCycle(GenericApiEntity api, LifecycleAction action) {
@@ -1130,7 +1076,10 @@ public class ApiResource extends AbstractResource {
     }
 
     private Response apiResponse(GenericApiEntity apiEntity) {
-        boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
+        return apiResponse(apiEntity, apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity));
+    }
+
+    private Response apiResponse(GenericApiEntity apiEntity, boolean isSynchronized) {
         return Response.ok(ApiMapper.INSTANCE.map(apiEntity, uriInfo, isSynchronized))
             .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
             .lastModified(apiEntity.getUpdatedAt())

@@ -25,6 +25,7 @@ import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationLinks;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.management.v2.rest.utils.ApiDefinitionFilter;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
@@ -207,6 +208,18 @@ public abstract class AbstractResource {
             .filter(m -> m.getRoleId() != null && roleService.findById(m.getRoleId()).getScope().equals(RoleScope.API));
 
         return Stream.concat(streamUserMembership, streamGroupMembership);
+    }
+
+    /**
+     * Applies, API by API, the response filtering of the single API read: an API whose definition the caller
+     * cannot read is returned without its gateway definition details.
+     */
+    protected void filterSensitiveDataOfApisWithoutDefinitionRead(final Collection<? extends GenericApiEntity> apis) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        apis
+            .stream()
+            .filter(api -> !hasPermission(executionContext, RolePermission.API_DEFINITION, api.getId(), RolePermissionAction.READ))
+            .forEach(ApiDefinitionFilter::filterSensitiveData);
     }
 
     protected boolean canManageApi(final GenericApiEntity api) {

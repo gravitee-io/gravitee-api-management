@@ -225,7 +225,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
           }),
         );
 
-        this.endpointsInfo = api.endpointGroups.flatMap(endpointGroup =>
+        this.endpointsInfo = (api.endpointGroups ?? []).flatMap(endpointGroup =>
           endpointGroup.endpoints.map(endpoint => {
             const endpointPlugin = endpoints.find(endpointPlugin => endpointPlugin.id === endpoint.type);
             return {

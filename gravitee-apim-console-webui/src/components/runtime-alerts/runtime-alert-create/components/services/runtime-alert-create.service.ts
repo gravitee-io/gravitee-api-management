@@ -100,13 +100,13 @@ export class RuntimeAlertCreateService {
         if (api.definitionVersion === 'FEDERATED' || api.definitionVersion === 'FEDERATED_AGENT') {
           return [];
         }
-        return api.definitionVersion === 'V4' ? this.mapGroups(api.endpointGroups) : this.mapGroups(api.proxy.groups);
+        return api.definitionVersion === 'V4' ? this.mapGroups(api.endpointGroups) : this.mapGroups(api.proxy?.groups);
       }),
     );
   }
 
   private mapGroups(groups: (EndpointGroupV4 | EndpointGroupV2)[]) {
-    return groups.reduce((acc: Tuple[], group: EndpointGroupV4 | EndpointGroupV2) => this.groupToTuples(acc, group), []);
+    return (groups ?? []).reduce((acc: Tuple[], group: EndpointGroupV4 | EndpointGroupV2) => this.groupToTuples(acc, group), []);
   }
 
   private groupToTuples(acc: Tuple[], group: EndpointGroupV4 | EndpointGroupV2) {

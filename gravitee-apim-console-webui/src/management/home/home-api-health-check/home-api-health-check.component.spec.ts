@@ -29,7 +29,7 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { HomeModule } from '../home.module';
 import { fakePagedResult } from '../../../entities/pagedResult';
 import { GioQuickTimeRangeHarness } from '../components/gio-quick-time-range/gio-quick-time-range.harness';
-import { ApiV4, fakeApiV4 } from '../../../entities/management-api-v2';
+import { Api, ApiV4, fakeApiV2, fakeApiV4 } from '../../../entities/management-api-v2';
 
 describe('HomeApiHealthCheckComponent', () => {
   let fixture: ComponentFixture<HomeApiHealthCheckComponent>;
@@ -102,6 +102,24 @@ describe('HomeApiHealthCheckComponent', () => {
       },
     ]);
     expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', 'Health check has not been configured', '']]);
+  });
+
+  it('should display api without endpoint groups or services as not configured', async () => {
+    fixture.detectChanges();
+    const apiV4 = fakeApiV4({ id: 'api-v4' });
+    delete apiV4.endpointGroups;
+    const apiV2 = fakeApiV2({ id: 'api-v2' });
+    delete apiV2.services;
+    // For "Health-check of all APIs" check
+    await expectApisListRequest([], 'has_health_check:true', undefined, 1, 100);
+    // For table
+    await expectApisListRequest([apiV4, apiV2]);
+
+    const { rowCells } = await computeApisTableCells();
+    expect(rowCells).toEqual([
+      ['', '🪐 Planets (1.0)', '', 'Health check has not been configured', ''],
+      ['', '🪐 Planets (1.0)', '', 'Health check has not been configured', ''],
+    ]);
   });
 
   it('should display api with HeathCheck configured', async () => {
@@ -198,7 +216,7 @@ describe('HomeApiHealthCheckComponent', () => {
     return { headerCells, rowCells };
   }
 
-  async function expectApisListRequest(apis: ApiV4[] = [], q?: string, order?: string, page = 1, size = 10) {
+  async function expectApisListRequest(apis: Api[] = [], q?: string, order?: string, page = 1, size = 10) {
     await fixture.whenStable();
 
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=${page}&perPage=${size}`);

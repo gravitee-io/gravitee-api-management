@@ -96,6 +96,9 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -193,19 +196,7 @@ public class ApisResource extends AbstractResource {
         long totalCount = apis.getTotalElements();
         Integer pageItemsCount = Math.toIntExact(apis.getPageElements());
         return new ApisResponse()
-            .data(
-                ApiMapper.INSTANCE.map(
-                    apis.getContent(),
-                    uriInfo,
-                    api -> {
-                        if (expands == null || expands.isEmpty() || !expands.contains(EXPAND_DEPLOYMENT_STATE)) {
-                            return null;
-                        }
-                        return apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), api);
-                    },
-                    expands
-                )
-            )
+            .data(mapApis(apis.getContent(), expands))
             .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
             .links(computePaginationLinks(totalCount, paginationParam));
     }
@@ -378,16 +369,21 @@ public class ApisResource extends AbstractResource {
         long totalCount = apis.getTotalElements();
         Integer pageItemsCount = Math.toIntExact(apis.getPageElements());
         return new ApisResponse()
-            .data(
-                ApiMapper.INSTANCE.map(
-                    apis.getContent(),
-                    uriInfo,
-                    api -> expandDeploymentState ? apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), api) : null,
-                    expands
-                )
-            )
+            .data(mapApis(apis.getContent(), expands))
             .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
             .links(computePaginationLinks(totalCount, paginationParam));
+    }
+
+    private List<io.gravitee.rest.api.management.v2.rest.model.Api> mapApis(List<GenericApiEntity> apis, Set<String> expands) {
+        // The deployment state compares the API with its deployed definition: compute it before any filtering
+        Map<String, Boolean> synchronizedByApiId = new HashMap<>();
+        if (expands != null && expands.contains(EXPAND_DEPLOYMENT_STATE)) {
+            apis.forEach(api ->
+                synchronizedByApiId.put(api.getId(), apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), api))
+            );
+        }
+        filterSensitiveDataOfApisWithoutDefinitionRead(apis);
+        return ApiMapper.INSTANCE.map(apis, uriInfo, api -> synchronizedByApiId.get(api.getId()), expands);
     }
 
     @POST

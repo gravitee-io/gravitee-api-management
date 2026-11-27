@@ -28,6 +28,7 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.management.rest.model.Pageable;
 import io.gravitee.rest.api.management.rest.model.PagedResult;
 import io.gravitee.rest.api.management.rest.model.wrapper.ApiListItemPagedResult;
@@ -654,7 +655,7 @@ public class ApisResource extends AbstractResource {
         }
 
         if (api.getProxy() != null) {
-            apiItem.setVirtualHosts(api.getProxy().getVirtualHosts());
+            apiItem.setVirtualHosts(virtualHostsVisibleToCaller(api));
         }
 
         if (isRatingServiceEnabled) {
@@ -686,6 +687,23 @@ public class ApisResource extends AbstractResource {
         }
 
         return apiItem;
+    }
+
+    /**
+     * Keeps, for a caller who cannot read the API definition, only the first virtual host without its host, as the
+     * single API read does.
+     */
+    private List<VirtualHost> virtualHostsVisibleToCaller(ApiEntity api) {
+        final List<VirtualHost> virtualHosts = api.getProxy().getVirtualHosts();
+        if (
+            virtualHosts == null ||
+            virtualHosts.isEmpty() ||
+            hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_DEFINITION, api.getId(), RolePermissionAction.READ)
+        ) {
+            return virtualHosts;
+        }
+        final VirtualHost first = virtualHosts.getFirst();
+        return singletonList(new VirtualHost(null, first.getPath(), first.isOverrideEntrypoint()));
     }
 
     @GET
