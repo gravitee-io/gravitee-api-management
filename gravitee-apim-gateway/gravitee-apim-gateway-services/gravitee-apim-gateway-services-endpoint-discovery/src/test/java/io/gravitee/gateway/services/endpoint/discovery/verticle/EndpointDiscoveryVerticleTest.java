@@ -18,6 +18,9 @@ package io.gravitee.gateway.services.endpoint.discovery.verticle;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.event.Event;
@@ -25,11 +28,13 @@ import io.gravitee.common.event.impl.SimpleEvent;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.discovery.api.ServiceDiscovery;
 import io.gravitee.discovery.api.event.EventType;
 import io.gravitee.discovery.api.event.Handler;
 import io.gravitee.discovery.api.service.Service;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.services.endpoint.discovery.factory.ServiceDiscoveryFactory;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
@@ -45,6 +50,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class EndpointDiscoveryVerticleTest {
+
+    private static final String API_ID = "api-id";
 
     @InjectMocks
     EndpointDiscoveryVerticle endpointDiscoveryVerticle;
@@ -104,6 +111,107 @@ public class EndpointDiscoveryVerticleTest {
             expectedServiceName,
             expectedServiceTarget,
             expectedConfiguration
+        );
+    }
+
+    @Test
+    public void should_stop_v2_service_discovery_when_api_is_updated_with_a_v4_definition() throws Exception {
+        ServiceDiscovery serviceDiscovery = deploy(v2ApiWithServiceDiscovery());
+
+        endpointDiscoveryVerticle.onEvent(new SimpleEvent<>(ReactorEvent.UPDATE, v4Api(API_ID)));
+
+        verify(serviceDiscovery).stop();
+    }
+
+    @Test
+    public void should_stop_v2_service_discovery_when_api_is_undeployed_with_a_v4_definition() throws Exception {
+        ServiceDiscovery serviceDiscovery = deploy(v2ApiWithServiceDiscovery());
+
+        endpointDiscoveryVerticle.onEvent(new SimpleEvent<>(ReactorEvent.UNDEPLOY, v4Api(API_ID)));
+
+        verify(serviceDiscovery).stop();
+    }
+
+    @Test
+    public void should_stop_v2_service_discovery_once_when_api_is_updated_then_undeployed_with_a_v4_definition() throws Exception {
+        ServiceDiscovery serviceDiscovery = deploy(v2ApiWithServiceDiscovery());
+
+        endpointDiscoveryVerticle.onEvent(new SimpleEvent<>(ReactorEvent.UPDATE, v4Api(API_ID)));
+        endpointDiscoveryVerticle.onEvent(new SimpleEvent<>(ReactorEvent.UNDEPLOY, v4Api(API_ID)));
+
+        verify(serviceDiscovery, times(1)).stop();
+    }
+
+    @Test
+    public void should_keep_v2_service_discovery_when_another_v4_api_is_undeployed() throws Exception {
+        ServiceDiscovery serviceDiscovery = deploy(v2ApiWithServiceDiscovery());
+
+        endpointDiscoveryVerticle.onEvent(new SimpleEvent<>(ReactorEvent.UNDEPLOY, v4Api("another-api-id")));
+
+        verify(serviceDiscovery, never()).stop();
+    }
+
+    @Test
+    public void should_keep_v2_service_discovery_when_a_v4_api_is_deployed() throws Exception {
+        ServiceDiscovery serviceDiscovery = deploy(v2ApiWithServiceDiscovery());
+
+        endpointDiscoveryVerticle.onEvent(new SimpleEvent<>(ReactorEvent.DEPLOY, v4Api(API_ID)));
+
+        verify(serviceDiscovery, never()).stop();
+    }
+
+    @Test
+    public void should_restart_v2_service_discovery_when_v2_api_is_updated() throws Exception {
+        Api api = v2ApiWithServiceDiscovery();
+        ServiceDiscovery serviceDiscovery = deploy(api);
+
+        endpointDiscoveryVerticle.onEvent(new SimpleEvent<>(ReactorEvent.UPDATE, api));
+
+        verify(serviceDiscovery).stop();
+        verify(serviceDiscovery, times(2)).listen(any());
+    }
+
+    @Test
+    public void should_stop_v2_service_discovery_when_v2_api_is_undeployed() throws Exception {
+        Api api = v2ApiWithServiceDiscovery();
+        ServiceDiscovery serviceDiscovery = deploy(api);
+
+        endpointDiscoveryVerticle.onEvent(new SimpleEvent<>(ReactorEvent.UNDEPLOY, api));
+
+        verify(serviceDiscovery).stop();
+    }
+
+    private static Api v2ApiWithServiceDiscovery() {
+        EndpointDiscoveryService endpointDiscoveryService = new EndpointDiscoveryService();
+        endpointDiscoveryService.setEnabled(true);
+
+        EndpointGroup group = new EndpointGroup();
+        group.getServices().set(Collections.singletonList(endpointDiscoveryService));
+
+        Proxy proxy = new Proxy();
+        proxy.setGroups(Collections.singleton(group));
+
+        io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
+        definition.setId(API_ID);
+        definition.setProxy(proxy);
+        Api api = new Api(definition);
+        api.setEnabled(true);
+        return api;
+    }
+
+    private ServiceDiscovery deploy(Api api) throws Exception {
+        ServiceDiscovery serviceDiscovery = mock(ServiceDiscovery.class);
+        when(serviceDiscoveryFactory.create(any(), any())).thenReturn(serviceDiscovery);
+
+        endpointDiscoveryVerticle.onEvent(new SimpleEvent<>(ReactorEvent.DEPLOY, api));
+
+        verify(serviceDiscovery).listen(any());
+        return serviceDiscovery;
+    }
+
+    private static Reactable v4Api(String apiId) {
+        return new io.gravitee.gateway.reactive.handlers.api.v4.Api(
+            io.gravitee.definition.model.v4.Api.builder().id(apiId).type(ApiType.PROXY).build()
         );
     }
 
