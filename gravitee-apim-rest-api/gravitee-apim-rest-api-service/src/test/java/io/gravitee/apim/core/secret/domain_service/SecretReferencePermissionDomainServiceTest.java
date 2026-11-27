@@ -115,7 +115,7 @@ class SecretReferencePermissionDomainServiceTest {
                 "{#secrets.get(#request.headers['x-secret'][0])}",
                 "{#secrets.get('/gravitee/' + #context.attributes['key'] + ':value?envId=env-id')}",
                 "{#secrets.get('/vau' + #context.attributes['provider'] + '/db:password')}",
-                "{#secrets.get(#context.attributes['provider'] + '/vault/db:password')}",
+                "{#secrets.get('/' + #context.attributes['provider'] + '/db:password')}",
                 "{#secrets.get('/gravitee/db-password')}",
             }
         )
