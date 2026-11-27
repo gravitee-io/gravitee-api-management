@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
-import type { PortalListParams, PortalsResponse, PortalsStats } from '../types/portal';
+import type { Portal, PortalListParams, PortalsResponse, PortalsStats } from '../types/portal';
 
 export function listPortals(
     environmentId: string,
@@ -30,4 +30,8 @@ export function listPortals(
 
 export function getPortalsStats(environmentId: string): Promise<PortalsStats> {
     return apimFetchJsonV2<PortalsStats>(environmentId, '/portals/_stats');
+}
+
+export function createPortal(environmentId: string, name: string): Promise<Portal> {
+    return apimFetchJsonV2<Portal>(environmentId, '/portals', { method: 'POST', body: JSON.stringify({ name }) });
 }
