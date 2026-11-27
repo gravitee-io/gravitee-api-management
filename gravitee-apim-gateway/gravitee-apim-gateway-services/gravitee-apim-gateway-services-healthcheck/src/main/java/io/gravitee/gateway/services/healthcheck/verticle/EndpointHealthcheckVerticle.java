@@ -24,6 +24,7 @@ import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.services.healthcheck.EndpointHealthcheckResolver;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
@@ -51,7 +52,7 @@ import org.springframework.core.env.Environment;
 @CustomLog
 public class EndpointHealthcheckVerticle extends AbstractVerticle implements EventListener<ReactorEvent, Reactable> {
 
-    private final Map<Api, List<EndpointRuleCronHandler>> apiHandlers = new ConcurrentHashMap<>();
+    private final Map<String, List<EndpointRuleCronHandler>> apiHandlers = new ConcurrentHashMap<>();
 
     @Autowired
     private EventManager eventManager;
@@ -85,22 +86,27 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
 
     @Override
     public void onEvent(Event<ReactorEvent, Reactable> event) {
-        Reactable reactable = event.content();
-        if (reactable instanceof Api) {
+        if (event.content() instanceof Api api) {
             switch (event.type()) {
                 case DEPLOY:
-                    startHealthCheck((Api) event.content());
+                    startHealthCheck(api);
                     break;
                 case UNDEPLOY:
-                    stopHealthCheck((Api) event.content());
+                    stopHealthCheck(api);
                     break;
                 case UPDATE:
-                    stopHealthCheck((Api) event.content());
-                    startHealthCheck((Api) event.content());
+                    stopHealthCheck(api);
+                    startHealthCheck(api);
                     break;
             }
-        } else {
-            log.debug("Health check service does not apply to V4 API which now uses a dedicated API service.");
+        } else if (event.content() instanceof ReactableApi<?> api) {
+            // A V2 API migrated to V4 is updated and undeployed with its V4 definition:
+            // stop the V2 health checks still running for that API id.
+            if (event.type() == ReactorEvent.UNDEPLOY || event.type() == ReactorEvent.UPDATE) {
+                stopHealthCheck(api);
+            } else {
+                log.debug("Health check service does not apply to V4 API which now uses a dedicated API service.");
+            }
         }
     }
 
@@ -114,7 +120,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
             .forEach(group -> {
                 final Set<Endpoint> endpoints = group.getEndpoints();
                 if (endpoints instanceof ObservableSet) {
-                    apiHandlers.computeIfAbsent(api, key -> new ArrayList<>());
+                    apiHandlers.computeIfAbsent(api.getId(), key -> new ArrayList<>());
                     ((ObservableSet) endpoints).addListener(new EndpointsListener(api));
                 }
             });
@@ -123,12 +129,12 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
         final List<EndpointRule> healthCheckEndpoints = endpointResolver.resolve(api);
         if (!healthCheckEndpoints.isEmpty()) {
             log.debug("Health-check for API id[{}] name[{}] is enabled", api.getId(), api.getName());
-            apiHandlers.computeIfAbsent(api, key -> new ArrayList<>());
+            apiHandlers.computeIfAbsent(api.getId(), key -> new ArrayList<>());
             healthCheckEndpoints.forEach(rule -> addHandler(api, rule));
         }
     }
 
-    private void stopHealthCheck(Api api) {
+    private void stopHealthCheck(ReactableApi<?> api) {
         removeHandlers(api);
     }
 
@@ -149,7 +155,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
             // computeIfPresent() so the add is atomic with respect to a concurrent removeHandlers():
             // a plain get().add() could attach the handler to a list already evicted by an
             // undeploy, leaving a cron timer running forever.
-            List<EndpointRuleCronHandler> handlers = apiHandlers.computeIfPresent(api, (key, cronHandlers) -> {
+            List<EndpointRuleCronHandler> handlers = apiHandlers.computeIfPresent(api.getId(), (key, cronHandlers) -> {
                 cronHandlers.add(cronHandler);
                 return cronHandlers;
             });
@@ -168,8 +174,8 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
         }
     }
 
-    private void removeHandlers(Api api) {
-        List<EndpointRuleCronHandler> handlers = apiHandlers.remove(api);
+    private void removeHandlers(ReactableApi<?> api) {
+        List<EndpointRuleCronHandler> handlers = apiHandlers.remove(api.getId());
         if (handlers != null) {
             log.debug("Stop health-check for API id[{}] name[{}]", api.getId(), api.getName());
             handlers.forEach(handler -> handler.cancel());
@@ -179,7 +185,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
     private void removeHandler(Api api, Endpoint endpoint) {
         // computeIfPresent() so the lookup + cancel + remove is atomic with respect to
         // concurrent addHandler()/removeHandlers() calls for the same API.
-        apiHandlers.computeIfPresent(api, (key, cronHandlers) -> {
+        apiHandlers.computeIfPresent(api.getId(), (key, cronHandlers) -> {
             cronHandlers
                 .stream()
                 .filter(handler -> handler.getEndpoint().equals(endpoint))
