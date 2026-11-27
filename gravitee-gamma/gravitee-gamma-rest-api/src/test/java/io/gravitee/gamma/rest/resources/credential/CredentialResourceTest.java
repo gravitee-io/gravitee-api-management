@@ -236,6 +236,21 @@ class CredentialResourceTest extends AbstractCredentialResourceTest {
         }
 
         @Test
+        void should_return_409_when_the_secret_to_rotate_no_longer_exists() {
+            var credential = givenAManagedCredential();
+            secretCrudService.reset();
+
+            var response = rootTarget(credential.id()).path("_rotate").request().post(json(Map.of("values", Map.of("token", "sk-new"))));
+
+            assertThat(response.getStatus()).isEqualTo(CONFLICT_409);
+            assertThat(response.readEntity(JsonNode.class).get("message").asText()).isEqualTo(
+                "Credential " +
+                    credential.id() +
+                    " cannot be rotated: the secret of token no longer exists. Delete the credential and create it again."
+            );
+        }
+
+        @Test
         void should_return_403_without_the_update_permission() {
             var credential = givenAManagedCredential();
 

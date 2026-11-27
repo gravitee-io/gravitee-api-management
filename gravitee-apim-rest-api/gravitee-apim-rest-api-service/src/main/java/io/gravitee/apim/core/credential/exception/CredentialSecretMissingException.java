@@ -15,12 +15,12 @@
  */
 package io.gravitee.apim.core.credential.exception;
 
-import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.exception.ConflictDomainException;
 
-public class CredentialSecretMissingException extends TechnicalDomainException {
+public class CredentialSecretMissingException extends ConflictDomainException {
 
-    private CredentialSecretMissingException(String message) {
-        super(message);
+    private CredentialSecretMissingException(String message, String credentialId) {
+        super(message, credentialId);
     }
 
     public static CredentialSecretMissingException whenRotated(String credentialId, String field) {
@@ -29,7 +29,8 @@ public class CredentialSecretMissingException extends TechnicalDomainException {
                 credentialId +
                 " cannot be rotated: the secret of " +
                 field +
-                " no longer exists. Delete the credential and create it again."
+                " no longer exists. Delete the credential and create it again.",
+            credentialId
         );
     }
 
@@ -39,7 +40,8 @@ public class CredentialSecretMissingException extends TechnicalDomainException {
                 credentialId +
                 " cannot be read: the secret of " +
                 field +
-                " no longer exists. Delete the credential and create it again."
+                " no longer exists. Delete the credential and create it again.",
+            credentialId
         );
     }
 }
