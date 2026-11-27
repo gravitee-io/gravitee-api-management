@@ -27,7 +27,8 @@ import java.util.regex.Pattern;
 public record PortalHost(String value) {
     private static final int MAX_LENGTH = 256;
     private static final int MAX_PORT = 65535;
-    private static final Pattern TRAILING_DOT = Pattern.compile("\\.(?=(?::\\d*)?$)");
+    // The dot ending the host, before any port: a dot after the port is not a host and port, so it is left to be refused.
+    private static final Pattern TRAILING_DOT = Pattern.compile("(?<!:\\d{0,5})\\.(?=(?::\\d*)?$)");
     private static final Pattern HOST_AND_PORT = Pattern.compile("^(?:\\[[0-9a-f:.]+]|[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?)(?::(\\d{1,5}))?$");
 
     public static PortalHost of(URL url) {
