@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.secret.domain_service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.POJONode;
@@ -31,12 +32,14 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import jakarta.annotation.Nullable;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -45,10 +48,12 @@ import lombok.RequiredArgsConstructor;
  * in the environment of the definition, and to the secret of a credential only for the owner of that credential or an
  * admin. A reference whose path the gateway works out per request can name any secret, so it needs the read permission too,
  * unless the text the path starts with already names another provider.
- * A save may not add any other use of the {@code #secrets} variable: the gateway rewrites each reference to its internal
- * {@code fromGrant} and {@code fromEL} functions, which resolve any secret of the environment that a deployed context
- * was granted. A reference the definition already had at the same place, with the same {@code enabled} state, is kept
- * whoever saves it, so a save that moves or copies a reference, or enables the step or flow around it, is checked again.
+ * A definition may not use the {@code #secrets} variable in any other way, even where the previous one did: the gateway
+ * rewrites each reference to its internal {@code fromGrant} and {@code fromEL} functions, which resolve any secret of the
+ * environment that a deployed context was granted. A reference the definition already had at the same place, with the same
+ * {@code enabled} state, is kept whoever saves it, so a save that moves or copies a reference, or enables the step or flow
+ * around it, is checked again. An element of a list is placed by its id or name where that is unique among its siblings,
+ * so a reorder keeps its references.
  */
 @DomainService
 @RequiredArgsConstructor
@@ -79,9 +84,7 @@ public class SecretReferencePermissionDomainService {
         @Nullable Object previous,
         Object definition
     ) {
-        var addedInternalCalls = expressions(INTERNAL_SECRETS_CALL, definition);
-        addedInternalCalls.removeAll(expressions(INTERNAL_SECRETS_CALL, previous));
-        if (!addedInternalCalls.isEmpty()) {
+        if (!references(INTERNAL_SECRETS_CALL, definition).isEmpty()) {
             throw new InvalidSecretReferenceException(
                 "This definition calls the gateway's internal secret functions. Reference a secret with {#secrets.get(...)} only."
             );
@@ -184,10 +187,6 @@ public class SecretReferencePermissionDomainService {
         }
     }
 
-    private Set<String> expressions(Pattern pattern, @Nullable Object definition) {
-        return references(pattern, definition).stream().map(Reference::expression).collect(Collectors.toSet());
-    }
-
     private Set<Reference> references(Pattern pattern, @Nullable Object definition) {
         var references = new HashSet<Reference>();
         if (definition != null) {
@@ -196,20 +195,74 @@ public class SecretReferencePermissionDomainService {
         return references;
     }
 
-    private static void collect(JsonNode node, Pattern pattern, String pointer, boolean enabled, Set<Reference> references) {
+    private void collect(JsonNode node, Pattern pattern, String pointer, boolean enabled, Set<Reference> references) {
         if (node.isTextual()) {
-            collect(node.textValue(), pattern, pointer, enabled, references);
+            collectEmbedded(node.textValue(), pattern, pointer, enabled, references);
         } else if (node instanceof POJONode pojo && pojo.getPojo() instanceof RawValue raw) {
             // A plugin configuration is a @JsonRawValue string, which valueToTree keeps unparsed.
-            collect(String.valueOf(raw.rawValue()), pattern, pointer, enabled, references);
+            collectEmbedded(String.valueOf(raw.rawValue()), pattern, pointer, enabled, references);
         } else if (node.isArray()) {
+            var places = placesOf(node);
             for (var i = 0; i < node.size(); i++) {
-                collect(node.get(i), pattern, pointer + "/" + i, enabled, references);
+                collect(node.get(i), pattern, pointer + "/" + places.get(i), enabled, references);
             }
         } else {
             var nodeEnabled = enabled && node.path("enabled").asBoolean(true);
-            node.properties().forEach(field -> collect(field.getValue(), pattern, pointer + "/" + field.getKey(), nodeEnabled, references));
+            node
+                .properties()
+                .forEach(field -> collect(field.getValue(), pattern, pointer + "/" + escaped(field.getKey()), nodeEnabled, references));
         }
+    }
+
+    // A plugin configuration is JSON, so each of its values gets its own place and a reference moved inside it counts as added.
+    private void collectEmbedded(String text, Pattern pattern, String pointer, boolean enabled, Set<Reference> references) {
+        embeddedJson(text).ifPresentOrElse(
+            embedded -> collect(embedded, pattern, pointer, enabled, references),
+            () -> collect(text, pattern, pointer, enabled, references)
+        );
+    }
+
+    private Optional<JsonNode> embeddedJson(String text) {
+        var trimmed = text.trim();
+        if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) {
+            return Optional.empty();
+        }
+        try {
+            return Optional.ofNullable(objectMapper.readTree(trimmed)).filter(JsonNode::isContainerNode);
+        } catch (JsonProcessingException e) {
+            // An expression such as {#secrets.get(...)} starts with { too, and is scanned as text.
+            return Optional.empty();
+        }
+    }
+
+    private static List<String> placesOf(JsonNode array) {
+        return IntStream.range(0, array.size())
+            .mapToObj(index ->
+                uniqueValue(array, index, "id")
+                    .map(id -> "id:" + id)
+                    .or(() -> uniqueValue(array, index, "name").map(name -> "name:" + name))
+                    .orElse(String.valueOf(index))
+            )
+            .toList();
+    }
+
+    private static Optional<String> uniqueValue(JsonNode array, int index, String field) {
+        var value = array.get(index).path(field);
+        if (!value.isTextual() || value.textValue().isEmpty()) {
+            return Optional.empty();
+        }
+        var count = 0;
+        for (var element : array) {
+            if (value.equals(element.path(field))) {
+                count++;
+            }
+        }
+        return count == 1 ? Optional.of(escaped(value.textValue())) : Optional.empty();
+    }
+
+    // RFC 6901 escaping, so a key or a name with a / cannot spell the place of another value.
+    private static String escaped(String segment) {
+        return segment.replace("~", "~0").replace("/", "~1");
     }
 
     private static void collect(String text, Pattern pattern, String pointer, boolean enabled, Set<Reference> references) {
