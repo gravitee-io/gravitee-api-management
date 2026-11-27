@@ -21,6 +21,7 @@ import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.PortalAddressDomainServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import io.gravitee.apim.core.access_point.model.AccessPoint;
+import io.gravitee.apim.core.installation.model.InstallationType;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
@@ -73,6 +74,14 @@ class PortalAddressDomainServiceTest {
                     assertThat(accessPoint.getReferenceType()).isEqualTo(AccessPoint.ReferenceType.ENVIRONMENT);
                     assertThat(accessPoint.getReferenceId()).isEqualTo(ENV_ID);
                 });
+        }
+
+        @Test
+        void should_create_no_access_point_on_a_multi_tenant_installation() {
+            cut.installationType().set(InstallationType.MULTI_TENANT);
+
+            assertThat(cut.sharedAccessPoint(ENV_ID)).isEmpty();
+            assertThat(cut.accessPoints().storage()).isEmpty();
         }
 
         @Test
@@ -208,6 +217,15 @@ class PortalAddressDomainServiceTest {
 
             assertThat(cut.followPortalUrl(ENV_ID, Optional.of(url("http://localhost:4100/next")))).isZero();
             assertThat(portals.storage()).extracting(Portal::getAccessPointId).containsOnly("previous-shared", "partners");
+        }
+
+        @Test
+        void should_move_nothing_on_a_multi_tenant_installation() {
+            installation.withPortalUrl(ENV_ID, "https://portal.acme.io");
+            cut.installationType().set(InstallationType.MULTI_TENANT);
+
+            assertThat(cut.followPortalUrl(ENV_ID, Optional.of(url("http://localhost:4100/next")))).isZero();
+            assertThat(cut.accessPoints().storage()).extracting(AccessPoint::getId).containsOnly("previous-shared", "partners");
         }
 
         @SneakyThrows

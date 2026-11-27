@@ -22,21 +22,34 @@ import io.gravitee.apim.core.portal.domain_service.PortalUrlDomainService;
 public class PortalAddressDomainServiceInMemory extends PortalAddressDomainService {
 
     private final AccessPointQueryServiceInMemory accessPoints;
+    private final InstallationTypeDomainServiceInMemory installationType;
 
     public PortalAddressDomainServiceInMemory(PortalCrudServiceInMemory portals, InstallationAccessQueryServiceInMemory installation) {
-        this(portals, installation, new AccessPointQueryServiceInMemory());
+        this(portals, installation, new AccessPointQueryServiceInMemory(), new InstallationTypeDomainServiceInMemory());
     }
 
     private PortalAddressDomainServiceInMemory(
         PortalCrudServiceInMemory portals,
         InstallationAccessQueryServiceInMemory installation,
-        AccessPointQueryServiceInMemory accessPoints
+        AccessPointQueryServiceInMemory accessPoints,
+        InstallationTypeDomainServiceInMemory installationType
     ) {
-        super(portals, accessPoints, new AccessPointCrudServiceInMemory(accessPoints), new PortalUrlDomainService(installation));
+        super(
+            portals,
+            accessPoints,
+            new AccessPointCrudServiceInMemory(accessPoints),
+            new PortalUrlDomainService(installation),
+            installationType
+        );
         this.accessPoints = accessPoints;
+        this.installationType = installationType;
     }
 
     public AccessPointQueryServiceInMemory accessPoints() {
         return accessPoints;
+    }
+
+    public InstallationTypeDomainServiceInMemory installationType() {
+        return installationType;
     }
 }

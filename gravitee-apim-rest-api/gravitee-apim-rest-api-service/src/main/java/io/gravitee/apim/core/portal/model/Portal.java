@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal.model;
 
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -57,7 +58,10 @@ public class Portal {
     // Before the console could create portals, every portal that is not the default one came from the Automation API.
     private final boolean createdFromConsole;
 
-    /** The access point this portal is served at; null while its environment has no usable portal URL. */
+    /**
+     * The access point this portal is served at; null while its environment has no usable portal URL, and on a
+     * multi-tenant installation, where APIM assigns no access point.
+     */
     private String accessPointId;
 
     private Portal(
@@ -83,22 +87,22 @@ public class Portal {
     }
 
     /** New portal served at this access point, with a random id and no navigation. */
-    public static Portal create(String environmentId, String organizationId, String name, @Nonnull String accessPointId) {
+    public static Portal create(String environmentId, String organizationId, String name, @Nullable String accessPointId) {
         return newPortal(environmentId, organizationId, name, false, accessPointId);
     }
 
     /** New default portal of the environment, served at this access point, with a random id and no navigation. */
-    public static Portal createDefault(String environmentId, String organizationId, String name, @Nonnull String accessPointId) {
+    public static Portal createDefault(String environmentId, String organizationId, String name, @Nullable String accessPointId) {
         return newPortal(environmentId, organizationId, name, true, accessPointId);
     }
 
     /** New portal with a known id (HRID-derived), served at this access point, with no navigation. */
-    public static Portal create(PortalId id, String environmentId, String organizationId, String name, @Nonnull String accessPointId) {
+    public static Portal create(PortalId id, String environmentId, String organizationId, String name, @Nullable String accessPointId) {
         return newPortal(id, environmentId, organizationId, name, false, false, accessPointId);
     }
 
     /** New portal created from the console, served at this access point, with a random id and no navigation: the console manages it. */
-    public static Portal createFromConsole(String environmentId, String organizationId, String name, @Nonnull String accessPointId) {
+    public static Portal createFromConsole(String environmentId, String organizationId, String name, @Nullable String accessPointId) {
         return newPortal(PortalId.random(), environmentId, organizationId, name, false, true, accessPointId);
     }
 
@@ -124,7 +128,7 @@ public class Portal {
             null,
             defaultPortal,
             createdFromConsole,
-            Objects.requireNonNull(accessPointId, "accessPointId")
+            accessPointId
         );
     }
 

@@ -120,7 +120,6 @@ import io.gravitee.apim.core.group.crud_service.GroupCrudService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
-import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.invitation.crud_service.InvitationCrudService;
 import io.gravitee.apim.core.invitation.domain_service.AcceptInvitationDomainService;
@@ -771,11 +770,6 @@ public class ResourceContextConfiguration {
     @Bean
     public CategoryDomainService categoryDomainService() {
         return mock(CategoryDomainService.class);
-    }
-
-    @Bean
-    public InstallationTypeDomainService installationTypeService() {
-        return mock(InstallationTypeDomainService.class);
     }
 
     @Bean

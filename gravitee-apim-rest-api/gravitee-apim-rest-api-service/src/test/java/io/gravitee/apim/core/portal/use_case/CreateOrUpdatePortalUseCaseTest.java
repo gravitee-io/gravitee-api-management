@@ -35,6 +35,7 @@ import inmemory.ThemeQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.installation.model.InstallationType;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationProperties;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalContentOwnershipDomainService;
@@ -280,6 +281,17 @@ class CreateOrUpdatePortalUseCaseTest {
         assertThat(portalCrudService.storage())
             .singleElement()
             .satisfies(saved -> assertThat(saved.getAccessPointId()).isEqualTo(output.portal().getAccessPointId()));
+    }
+
+    @Test
+    void should_create_a_portal_without_access_point_on_a_multi_tenant_installation() {
+        addresses.installationType().set(InstallationType.MULTI_TENANT);
+
+        var output = useCase.execute(inputFor(AUDIT_INFO, PortalFixtures.aPortal()));
+
+        assertThat(output.portal().getAccessPointId()).isNull();
+        assertThat(portalCrudService.storage()).singleElement().extracting(Portal::getAccessPointId).isNull();
+        assertThat(addresses.accessPoints().storage()).isEmpty();
     }
 
     @Test

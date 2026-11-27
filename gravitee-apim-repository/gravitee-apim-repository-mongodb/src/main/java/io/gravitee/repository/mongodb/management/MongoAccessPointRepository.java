@@ -68,10 +68,14 @@ public class MongoAccessPointRepository implements AccessPointRepository {
     @Override
     public Optional<AccessPoint> findByHost(final String host) {
         log.debug("Find access point by host [{}]", host);
-        final AccessPointMongo accessPointMongo = internalRepository.findByHostAndStatus(host, AccessPointStatus.CREATED);
-        AccessPoint res = map(accessPointMongo);
+        // Several access points can share a host, such as a portal one on the host of its environment's portal URL.
+        final Optional<AccessPoint> accessPoint = internalRepository
+            .findAllByHostAndStatus(host, AccessPointStatus.CREATED)
+            .stream()
+            .findFirst()
+            .map(this::map);
         log.debug("Find access point by host value [{}] - Done", host);
-        return Optional.ofNullable(res);
+        return accessPoint;
     }
 
     @Override
