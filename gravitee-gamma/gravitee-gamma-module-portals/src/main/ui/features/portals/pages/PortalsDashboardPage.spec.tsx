@@ -88,7 +88,9 @@ describe('PortalsDashboardPage', () => {
         expect(screen.getByRole('radio', { name: 'Tiles' })).toHaveFocus();
         await user.tab();
         expect(screen.getByRole('button', { name: 'New Portal' })).toHaveFocus();
-        await user.keyboard('{Enter} ');
+        await user.keyboard('{Enter}');
+        expect(screen.getByRole('dialog')).toBeVisible();
+        await user.keyboard('{Escape}');
         expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
         await user.tab();
         expect(screen.getByRole('link', { name: 'View Portal: Developer Portal' })).toHaveFocus();
@@ -421,16 +423,17 @@ describe('PortalsDashboardPage', () => {
         expect(screen.queryByRole('link', { name: /configure/i })).not.toBeInTheDocument();
     });
 
-    it('explains the disabled New Portal action to keyboard users', async () => {
+    it('explains the portal limit to keyboard users', async () => {
+        server.use(
+            http.get(`${TEST_V2_BASE}/portals/_stats`, () => HttpResponse.json(createPortalsStats({ quota: { used: 10, limit: 10 } }))),
+        );
         renderDashboard();
-        await screen.findByText('Developer Portal');
-
-        act(() => screen.getByRole('button', { name: 'New Portal' }).focus());
-
-        expect(screen.getByRole('button', { name: 'New Portal' })).toHaveFocus();
-        expect(screen.getByRole('button', { name: 'New Portal' })).toHaveAccessibleDescription('Creating portals is coming soon.');
-        expect(await screen.findByRole('tooltip')).toHaveTextContent('Creating portals is coming soon.');
-        expect(screen.getByRole('button', { name: 'New Portal' })).toHaveAttribute('aria-disabled', 'true');
+        await screen.findByText('10 / 10');
+        const button = screen.getByRole('button', { name: 'New Portal' });
+        act(() => button.focus());
+        expect(button).toHaveFocus();
+        expect(button).toHaveAccessibleDescription("You've reached your portal limit. Contact support to add more portals.");
+        expect(button).toHaveAttribute('aria-disabled', 'true');
     });
 
     it.each([false, true])('keeps dashboard links inside the module and router basename (federated=%s)', async federated => {
@@ -441,7 +444,7 @@ describe('PortalsDashboardPage', () => {
 
         expect(screen.getByRole('link', { name: 'View all Portals' })).toHaveAttribute('href', `${moduleRoot}/list`);
         expect(screen.getAllByRole('link', { name: /configure/i })[0]).toHaveAttribute('href', `${moduleRoot}/portal-0/overview`);
-        expect(screen.getByRole('button', { name: 'New Portal' })).toHaveAttribute('aria-disabled', 'true');
+        await waitFor(() => expect(screen.getByRole('button', { name: 'New Portal' })).toHaveAttribute('aria-disabled', 'false'));
     });
 
     it('clears previous environment data immediately when the environment changes', async () => {
@@ -491,5 +494,22 @@ describe('PortalsDashboardPage', () => {
         expect(screen.getByRole('radio', { name: 'Tiles' })).toHaveFocus();
         expect(screen.getByRole('radio', { name: 'Tiles' })).toBeChecked();
         expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    });
+    it('creates a portal and opens its returned overview', async () => {
+        const user = userEvent.setup();
+        const post = jest.fn();
+        server.use(
+            http.post(`${TEST_V2_BASE}/portals`, () => {
+                post();
+                return HttpResponse.json(createPortal({ id: 'created-portal' }), { status: 201 });
+            }),
+        );
+        renderDashboard();
+        await screen.findByText('Developer Portal');
+        await waitFor(() => expect(screen.getByRole('button', { name: 'New Portal' })).toHaveAttribute('aria-disabled', 'false'));
+        await user.click(screen.getByRole('button', { name: 'New Portal' }));
+        await user.type(screen.getByRole('textbox', { name: 'Name' }), 'Partners{Enter}');
+        expect(await screen.findByRole('heading', { name: 'Portal overview destination' })).toBeVisible();
+        expect(post).toHaveBeenCalledTimes(1);
     });
 });

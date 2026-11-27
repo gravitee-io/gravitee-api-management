@@ -127,7 +127,7 @@ export function PortalsDashboardPage() {
                                     <LayoutGridIcon aria-hidden="true" />
                                 </ToggleGroupItem>
                             </ToggleGroup>
-                            <NewPortalButton />
+                            <NewPortalButton quota={stats.data?.quota} quotaLoading={stats.isFetching} quotaError={stats.isError} />
                         </div>
                     </CardHeader>
                     <CardContent className="min-w-0">
