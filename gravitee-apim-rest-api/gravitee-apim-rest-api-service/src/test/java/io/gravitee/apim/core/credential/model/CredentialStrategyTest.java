@@ -57,6 +57,20 @@ class CredentialStrategyTest {
             .hasMessageContaining("clientSecret");
     }
 
+    @Test
+    void should_name_the_unknown_fields_when_some_secret_fields_are_needed() {
+        assertThatThrownBy(() -> CredentialStrategy.BASIC.requireSomeSecretFields(Set.of("password", "foo")))
+            .isInstanceOf(InvalidCredentialException.class)
+            .hasMessage("A BASIC credential has no secret field [foo]. Its secret fields are [username, password].");
+    }
+
+    @Test
+    void should_ask_for_a_secret_field_when_none_is_given() {
+        assertThatThrownBy(() -> CredentialStrategy.BASIC.requireSomeSecretFields(Set.of()))
+            .isInstanceOf(InvalidCredentialException.class)
+            .hasMessage("Give one or more of the secret fields [username, password] of a BASIC credential.");
+    }
+
     @Nested
     class Api_key {
 
