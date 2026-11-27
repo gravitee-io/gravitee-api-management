@@ -189,7 +189,7 @@ public class ApiPlansResource extends AbstractResource {
         }
 
         planEntity = planService.update(executionContext, updatePlanEntity);
-        return Response.ok(planEntity).build();
+        return Response.ok(filterSensitiveData(planEntity)).build();
     }
 
     @GET
@@ -217,7 +217,7 @@ public class ApiPlansResource extends AbstractResource {
                     .build();
             }
 
-            return Response.ok(planEntity).build();
+            return Response.ok(filterSensitiveData(planEntity)).build();
         }
         throw new ForbiddenAccessException();
     }
@@ -261,7 +261,7 @@ public class ApiPlansResource extends AbstractResource {
 
         PlanEntity closedPlan = planService.close(executionContext, plan);
 
-        return Response.ok(closedPlan).build();
+        return Response.ok(filterSensitiveData(closedPlan)).build();
     }
 
     @POST
@@ -282,7 +282,7 @@ public class ApiPlansResource extends AbstractResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }
 
-        return Response.ok(planService.publish(executionContext, plan)).build();
+        return Response.ok(filterSensitiveData(planService.publish(executionContext, plan))).build();
     }
 
     @POST
@@ -323,7 +323,7 @@ public class ApiPlansResource extends AbstractResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }
 
-        return Response.ok(planService.deprecate(executionContext, plan)).build();
+        return Response.ok(filterSensitiveData(planService.deprecate(executionContext, plan))).build();
     }
 
     private boolean planDoesNotBelongToApi(PlanEntity planEntity) {
@@ -354,8 +354,10 @@ public class ApiPlansResource extends AbstractResource {
         filtered.setDescription(entity.getDescription());
         filtered.setOrder(entity.getOrder());
         filtered.setSecurity(entity.getSecurity());
-        filtered.setType(filtered.getType());
-        filtered.setValidation(filtered.getValidation());
+        filtered.setType(entity.getType());
+        filtered.setValidation(entity.getValidation());
+        filtered.setStatus(entity.getStatus());
+        filtered.setApi(entity.getApi());
         filtered.setCommentRequired(entity.isCommentRequired());
         filtered.setCommentMessage(entity.getCommentMessage());
         filtered.setGeneralConditions(entity.getGeneralConditions());
