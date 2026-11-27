@@ -103,6 +103,7 @@ public class DeployModelToApiUpdateUseCase {
                     .toBuilder()
                     .referenceId(input.apiId())
                     .referenceType(Plan.ReferenceType.API)
+                    .environmentId(input.auditInfo().environmentId())
                     .needRedeployAt(Date.from(TimeProvider.now().toInstant()))
                     .validation(Plan.PlanValidationType.AUTO)
                     .build()

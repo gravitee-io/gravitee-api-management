@@ -470,7 +470,9 @@ public class DeployModelToApiUpdateUseCaseTest {
             .filter(plan -> plan.getPlanStatus() == PlanStatus.PUBLISHED)
             .toList();
         assertThat(plans).hasSize(1);
-        assertThat(plans.getFirst()).extracting(Plan::getId, Plan::getPlanStatus).containsExactly(RANDOM_ID, PlanStatus.PUBLISHED);
+        assertThat(plans.getFirst())
+            .extracting(Plan::getId, Plan::getPlanStatus, Plan::getEnvironmentId)
+            .containsExactly(RANDOM_ID, PlanStatus.PUBLISHED, ENVIRONMENT_ID);
 
         assertThat(pageCrudService.storage()).hasSize(1);
         assertThat(pageCrudService.storage().getFirst())
@@ -528,7 +530,9 @@ public class DeployModelToApiUpdateUseCaseTest {
             .filter(plan -> plan.getPlanStatus() == PlanStatus.PUBLISHED)
             .toList();
         assertThat(plans).hasSize(1);
-        assertThat(plans.getFirst()).extracting(Plan::getId, Plan::getPlanStatus).containsExactly(RANDOM_ID, PlanStatus.PUBLISHED);
+        assertThat(plans.getFirst())
+            .extracting(Plan::getId, Plan::getPlanStatus, Plan::getEnvironmentId)
+            .containsExactly(RANDOM_ID, PlanStatus.PUBLISHED, ENVIRONMENT_ID);
 
         assertThat(pageCrudService.storage()).hasSize(1);
         assertThat(pageCrudService.storage().getFirst())
