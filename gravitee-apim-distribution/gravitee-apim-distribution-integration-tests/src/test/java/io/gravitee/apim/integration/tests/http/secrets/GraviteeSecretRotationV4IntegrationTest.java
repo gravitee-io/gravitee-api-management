@@ -84,6 +84,8 @@ class GraviteeSecretRotationV4IntegrationTest extends AbstractGatewayTest {
     private static final String REDEPLOY_KEY = "rotation-redeploy-key";
     private static final String REDEPLOY_API = "/apis/v4/http/secrets/gravitee/api-rotation-redeploy.json";
     private static final String DELETE_KEY = "rotation-delete-key";
+    private static final String UNFLAGGED_DELETE_KEY = "rotation-delete-unflagged-key";
+    private static final String UNFLAGGED_DELETE_API = "/apis/v4/http/secrets/gravitee/api-rotation-delete-unflagged.json";
     private static final String BEFORE_ROTATION = "sk-before-rotation";
     private static final String AFTER_ROTATION = "sk-after-rotation";
 
@@ -93,7 +95,16 @@ class GraviteeSecretRotationV4IntegrationTest extends AbstractGatewayTest {
     private final SecretRepository secrets = mock(SecretRepository.class);
     private final OrganizationKeyRepository organizationKeys = mock(OrganizationKeyRepository.class);
     private final Map<String, String> storedValues = new ConcurrentHashMap<>(
-        Map.of(UPDATE_KEY, BEFORE_ROTATION, REDEPLOY_KEY, BEFORE_ROTATION, DELETE_KEY, BEFORE_ROTATION)
+        Map.of(
+            UPDATE_KEY,
+            BEFORE_ROTATION,
+            REDEPLOY_KEY,
+            BEFORE_ROTATION,
+            DELETE_KEY,
+            BEFORE_ROTATION,
+            UNFLAGGED_DELETE_KEY,
+            BEFORE_ROTATION
+        )
     );
 
     @Override
@@ -239,6 +250,25 @@ class GraviteeSecretRotationV4IntegrationTest extends AbstractGatewayTest {
         await()
             .atMost(10, TimeUnit.SECONDS)
             .untilAsserted(() -> assertThat(status(httpClient, "/rotation-delete")).isEqualTo(503));
+    }
+
+    @Test
+    @DeployApi({ UNFLAGGED_DELETE_API, "/apis/v4/http/secrets/gravitee/api-rotation-delete-unflagged-witness.json" })
+    void should_keep_the_old_value_after_a_delete_in_an_api_with_no_reference_that_reloads_on_change_until_the_api_is_redeployed(
+        HttpClient httpClient
+    ) throws IOException {
+        wiremock.stubFor(get("/endpoint").willReturn(ok()));
+        storedValues.remove(UNFLAGGED_DELETE_KEY);
+        deployGenericEvent(secretChanged(UNFLAGGED_DELETE_KEY));
+
+        await()
+            .atMost(10, TimeUnit.SECONDS)
+            .untilAsserted(() -> assertThat(status(httpClient, "/rotation-delete-unflagged-witness")).isEqualTo(503));
+        assertThat(upstreamHeaders(httpClient, "/rotation-delete-unflagged")).containsEntry("X-Plain", BEFORE_ROTATION);
+
+        redeploy(definitionOf(UNFLAGGED_DELETE_API));
+
+        assertThat(status(httpClient, "/rotation-delete-unflagged")).isEqualTo(503);
     }
 
     private Map<String, String> upstreamHeaders(HttpClient httpClient, String path) {
