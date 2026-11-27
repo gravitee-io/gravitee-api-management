@@ -102,7 +102,7 @@ const yarn = {
 };
 
 const orbs = {
-  aikido: '1.0.3',
+  aikido: '1.0.4',
   awsCli: '5.1.2',
   awsS3: '4.1.0',
   github: '1.0.5',
