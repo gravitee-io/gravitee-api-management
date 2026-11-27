@@ -24,7 +24,7 @@ import java.util.regex.PatternSyntaxException;
  * An approval rule as this gateway evaluates it.
  *
  * @param toolPattern the tool names the rule gates, as {@code |} alternatives that may hold {@code *}; {@code null} when
- *     the rule is only anchored on catalog tools
+ *     the rule names no pattern, as when it is only anchored on catalog tools or names no tool at all
  * @param toolBindings the calls the rule gates whatever its pattern: an API and the name it exposes an anchored catalog
  *     tool under, for an API that does not tell the gateway the catalog entity of its tools
  * @param toolEntityIds the catalog entity ids of the tools the rule is anchored on: a call to a tool with one of them

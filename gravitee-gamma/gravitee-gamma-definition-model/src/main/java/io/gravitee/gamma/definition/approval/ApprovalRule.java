@@ -58,7 +58,10 @@ public class ApprovalRule implements Serializable {
     @NotBlank
     private String environmentId;
 
-    /** Tool the rule gates: an exact tool name, a glob such as {@code payments.*}, or alternatives such as {@code a|b}. */
+    /**
+     * Tool the rule gates: an exact tool name, a glob such as {@code payments.*}, or alternatives such as {@code a|b}.
+     * {@code null} when the rule names no pattern. An empty or blank string is not "no pattern": the rule is unreadable.
+     */
     @JsonProperty
     private String toolPattern;
 
@@ -113,13 +116,15 @@ public class ApprovalRule implements Serializable {
     }
 
     /**
-     * The fields that keep the rule from being evaluated, by name; empty when it can be. A rule that sends no selector
-     * matches no call, so it is readable. A rule that sends selectors and has none usable covers calls that cannot be
-     * placed, so it is not.
+     * The fields that keep the rule from being evaluated, by name; empty when it can be. A rule that names no tool sends
+     * exactly the empty lists AIM sends for it, and matches no call, so it is readable. A rule with no selector field
+     * at all may carry one this gateway does not know, and a rule whose selectors are all unusable covers calls that
+     * cannot be placed: neither is readable.
      */
     public List<String> unreadableFields() {
         List<String> unreadable = new ArrayList<>();
-        boolean sendsNoSelector = toolPattern == null && isEmpty(toolBindings) && isEmpty(toolEntityIds);
+        boolean sendsNoSelector =
+            toolPattern == null && toolBindings != null && toolBindings.isEmpty() && toolEntityIds != null && toolEntityIds.isEmpty();
         boolean hasUsableSelector = !isBlank(toolPattern) || !usableToolBindings().isEmpty() || !usableToolEntityIds().isEmpty();
         if (!sendsNoSelector && !hasUsableSelector) {
             unreadable.add("toolPattern, toolBindings or toolEntityIds");
@@ -154,10 +159,6 @@ public class ApprovalRule implements Serializable {
         } catch (DateTimeParseException e) {
             return false;
         }
-    }
-
-    private static boolean isEmpty(List<?> list) {
-        return list == null || list.isEmpty();
     }
 
     private static boolean isBlank(String value) {
