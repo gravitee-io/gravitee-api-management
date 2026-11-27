@@ -43,11 +43,9 @@ import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
-import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -250,26 +248,13 @@ class GetApiForPortalUseCaseTest {
         return new GetApiForPortalUseCase.Input(ENV_ID, ORG_ID, apiId, userId, Optional.of(portalId));
     }
 
-    @SneakyThrows
     private PortalId givenPortal(String environmentId, String organizationId) {
-        return portalCrudService
-            .create(Portal.create(environmentId, organizationId, "Portal", URI.create("https://portal.example.com").toURL()))
-            .getId();
+        return portalCrudService.create(Portal.create(environmentId, organizationId, "Portal", "portal-access-point")).getId();
     }
 
-    @SneakyThrows
     private void givenDefaultPortal(PortalId portalId) {
         portalCrudService.create(
-            Portal.of(
-                portalId,
-                ENV_ID,
-                ORG_ID,
-                "Developer Portal",
-                PortalNavigationStructure.empty(),
-                null,
-                true,
-                URI.create("https://portal.example.com").toURL()
-            )
+            Portal.of(portalId, ENV_ID, ORG_ID, "Developer Portal", PortalNavigationStructure.empty(), null, true, "portal-access-point")
         );
     }
 
