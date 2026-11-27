@@ -223,6 +223,128 @@ public class ApplicationService_UpdateTest {
     }
 
     @Test
+    public void should_invalidate_permission_cache_when_application_groups_change() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(CLIENT_ID);
+        settings.setApp(clientSettings);
+        settings.setTls(TlsSettings.builder().clientCertificate(VALID_PEM_1).build());
+
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        ).thenReturn(true);
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(getConsoleConfigEntity(true));
+
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        lenient().when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+        when(existingApplication.getGroups()).thenReturn(Set.of());
+        lenient()
+            .when(existingApplication.getMetadata())
+            .thenReturn(Map.of(METADATA_CLIENT_CERTIFICATE, Base64.getEncoder().encodeToString(VALID_PEM_1.getBytes())));
+
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(updateApplication.getDescription()).thenReturn("My description");
+        when(updateApplication.getApiKeyMode()).thenReturn(io.gravitee.rest.api.model.ApiKeyMode.SHARED);
+        when(updateApplication.getGroups()).thenReturn(Set.of("APPLICATION_SUPPORT"));
+
+        Application updatedApplication = mock(Application.class);
+        when(updatedApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(updatedApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(updatedApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(updatedApplication.getGroups()).thenReturn(Set.of("APPLICATION_SUPPORT"));
+        when(updatedApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+        when(updatedApplication.getMetadata()).thenReturn(
+            Map.of(METADATA_CLIENT_CERTIFICATE, Base64.getEncoder().encodeToString(VALID_PEM_2.getBytes()))
+        );
+        when(applicationRepository.update(any())).thenReturn(updatedApplication);
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+
+        MembershipEntity po = new MembershipEntity();
+        po.setMemberId(USER_NAME);
+        po.setMemberType(MembershipMemberType.USER);
+        po.setReferenceId(APPLICATION_ID);
+        po.setReferenceType(MembershipReferenceType.APPLICATION);
+        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        verify(membershipService).invalidatePermissionCacheForReferenceAndSendCommand(
+            eq(MembershipReferenceType.APPLICATION.name()),
+            eq(APPLICATION_ID),
+            any()
+        );
+    }
+
+    @Test
+    public void should_not_invalidate_permission_cache_when_application_groups_unchanged() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(CLIENT_ID);
+        settings.setApp(clientSettings);
+        settings.setTls(TlsSettings.builder().clientCertificate(VALID_PEM_1).build());
+
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        ).thenReturn(true);
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(getConsoleConfigEntity(true));
+
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        lenient().when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+        when(existingApplication.getGroups()).thenReturn(Set.of("APPLICATION_SUPPORT"));
+        lenient()
+            .when(existingApplication.getMetadata())
+            .thenReturn(Map.of(METADATA_CLIENT_CERTIFICATE, Base64.getEncoder().encodeToString(VALID_PEM_1.getBytes())));
+
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(updateApplication.getDescription()).thenReturn("My description");
+        when(updateApplication.getApiKeyMode()).thenReturn(io.gravitee.rest.api.model.ApiKeyMode.SHARED);
+        when(updateApplication.getGroups()).thenReturn(Set.of("APPLICATION_SUPPORT"));
+
+        Application updatedApplication = mock(Application.class);
+        when(updatedApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(updatedApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(updatedApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(updatedApplication.getGroups()).thenReturn(Set.of("APPLICATION_SUPPORT"));
+        when(updatedApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+        when(updatedApplication.getMetadata()).thenReturn(
+            Map.of(METADATA_CLIENT_CERTIFICATE, Base64.getEncoder().encodeToString(VALID_PEM_2.getBytes()))
+        );
+        when(applicationRepository.update(any())).thenReturn(updatedApplication);
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+
+        MembershipEntity po = new MembershipEntity();
+        po.setMemberId(USER_NAME);
+        po.setMemberType(MembershipMemberType.USER);
+        po.setReferenceId(APPLICATION_ID);
+        po.setReferenceType(MembershipReferenceType.APPLICATION);
+        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        verify(membershipService, never()).invalidatePermissionCacheForReferenceAndSendCommand(any(), any(), any());
+    }
+
+    @Test
     public void shouldThrowExceptionWhenUserGroupsRequiredButNotPresent() throws TechnicalException {
         ApplicationSettings settings = new ApplicationSettings();
         ConsoleConfigEntity config = getConsoleConfigEntity(true);

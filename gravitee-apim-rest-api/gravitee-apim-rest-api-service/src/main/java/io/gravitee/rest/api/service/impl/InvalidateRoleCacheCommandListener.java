@@ -61,12 +61,16 @@ public class InvalidateRoleCacheCommandListener implements EventListener<Command
             }
 
             if (eventData != null) {
-                membershipService.invalidateRoleCache(
-                    eventData.getReferenceType(),
-                    eventData.getReferenceId(),
-                    eventData.getMemberType(),
-                    eventData.getMemberId()
-                );
+                if (eventData.isInvalidateAllMembers()) {
+                    membershipService.invalidatePermissionCacheForReference(eventData.getReferenceType(), eventData.getReferenceId());
+                } else {
+                    membershipService.invalidateRoleCache(
+                        eventData.getReferenceType(),
+                        eventData.getReferenceId(),
+                        eventData.getMemberType(),
+                        eventData.getMemberId()
+                    );
+                }
             }
         }
     }

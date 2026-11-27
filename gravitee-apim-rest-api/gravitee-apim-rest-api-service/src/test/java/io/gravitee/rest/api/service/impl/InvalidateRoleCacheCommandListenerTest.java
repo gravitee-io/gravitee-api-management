@@ -73,6 +73,21 @@ class InvalidateRoleCacheCommandListenerTest {
     }
 
     @Test
+    void should_invalidate_all_permission_entries_for_reference_when_flagged() {
+        String jsonContent = "{\"referenceType\":\"APPLICATION\",\"referenceId\":\"app-1\",\"invalidateAllMembers\":true}";
+        CommandEntity commandEntity = mock(CommandEntity.class);
+        when(commandEntity.getTags()).thenReturn(List.of(CommandTags.GROUP_DEFAULT_ROLES_UPDATE));
+        when(commandEntity.getContent()).thenReturn(jsonContent);
+        Event<CommandEvent, CommandEntity> event = mock(Event.class);
+        when(event.type()).thenReturn(CommandEvent.TO_PROCESS);
+        when(event.content()).thenReturn(commandEntity);
+
+        listener.onEvent(event);
+
+        verify(membershipService).invalidatePermissionCacheForReference("APPLICATION", "app-1");
+    }
+
+    @Test
     void should_not_invalidate_cache_when_event_is_null() {
         // when
         listener.onEvent(null);
