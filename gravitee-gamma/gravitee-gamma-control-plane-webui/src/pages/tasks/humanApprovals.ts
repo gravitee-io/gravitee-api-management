@@ -26,7 +26,7 @@ import { reloadEnvironmentPermissions } from '../../features/permissions/permiss
 import { gammaApi } from '../../shared/api/api-client';
 import { permissionService, useHasPermission } from '../../shared/permissions';
 
-const HITL_FEATURE = 'hitl';
+const HITL_LICENSED_FEATURE = 'gamma-aim-hitl';
 const PENDING = 'PENDING';
 
 // READ lists the approvals; AIM's `decidable` answers none without UPDATE, so asking without it is a wasted read.
@@ -75,8 +75,11 @@ function readFromAim<T>(environmentId: string, path: string): Promise<T> {
         });
 }
 
+/** A build of AIM from before the license gate sends no `licensedFeatures`: it has no approvals either. */
 function readHitlEnabled(environmentId: string): Promise<boolean> {
-    return readFromAim<{ features: string[] }>(environmentId, '_settings').then(settings => settings.features.includes(HITL_FEATURE));
+    return readFromAim<{ licensedFeatures?: string[] }>(environmentId, '_settings').then(
+        settings => settings.licensedFeatures?.includes(HITL_LICENSED_FEATURE) ?? false,
+    );
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
