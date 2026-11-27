@@ -45,18 +45,7 @@ function totalStat(loading: boolean, humanApprovals: HumanApprovals, totalCount:
 }
 
 export function TasksPage() {
-    const {
-        tasks,
-        totalCount,
-        loading,
-        error,
-        humanApprovals,
-        approvalsOverflow,
-        approvalsEnvironmentName,
-        refreshing,
-        reload,
-        processPromotion,
-    } = useTasks();
+    const { tasks, totalCount, loading, error, humanApprovals, approvalsOverflow, refreshing, reload, processPromotion } = useTasks();
 
     const counts = useMemo(() => countByCategory(tasks), [tasks]);
     const reviews = counts.API_REVIEW + counts.CHANGES_REQUESTED;
@@ -75,7 +64,6 @@ export function TasksPage() {
 
             <TaskStatCards
                 approvals={approvalsStat(humanApprovals)}
-                approvalsEnvironmentName={approvalsEnvironmentName}
                 total={totalStat(loading, humanApprovals, totalCount)}
                 subscriptions={loading ? null : counts.SUBSCRIPTION}
                 reviews={loading ? null : reviews}
