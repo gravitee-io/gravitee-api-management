@@ -30,10 +30,12 @@ import io.gravitee.apim.core.secret.exception.SecretReferenceNotAllowedException
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import jakarta.annotation.Nullable;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -41,7 +43,8 @@ import lombok.RequiredArgsConstructor;
  * so a save may only add references to Gravitee's secret store that its user could read: with {@code ENVIRONMENT_SECRET[READ]},
  * in the environment of the definition, and to the secret of a credential only for the owner of that credential or an
  * admin. A reference whose path the gateway works out per request can name any secret, so it needs the read permission too.
- * The references a definition already had are kept, whoever saves it.
+ * A reference the definition already had at the same place, with the same {@code enabled} state, is kept whoever saves it,
+ * so a save that moves or copies a reference, or enables the step or flow around it, is checked again.
  */
 @DomainService
 @RequiredArgsConstructor
@@ -68,8 +71,12 @@ public class SecretReferencePermissionDomainService {
         @Nullable Object previous,
         Object definition
     ) {
-        var added = references(definition);
-        added.removeAll(references(previous));
+        var stored = references(previous);
+        var added = references(definition)
+            .stream()
+            .filter(reference -> !stored.contains(reference) && !stored.contains(reference.enabledAgain()))
+            .map(Reference::expression)
+            .collect(Collectors.toCollection(TreeSet::new));
         var needsSecretRead = false;
         for (String expression : added) {
             var path = pathUnlessDynamic(expression);
@@ -156,30 +163,42 @@ public class SecretReferencePermissionDomainService {
         }
     }
 
-    private Set<String> references(@Nullable Object definition) {
-        var references = new TreeSet<String>();
+    private Set<Reference> references(@Nullable Object definition) {
+        var references = new HashSet<Reference>();
         if (definition != null) {
-            collect(objectMapper.valueToTree(definition), references);
+            collect(objectMapper.valueToTree(definition), "", true, references);
         }
         return references;
     }
 
-    private static void collect(JsonNode node, Set<String> references) {
+    private static void collect(JsonNode node, String pointer, boolean enabled, Set<Reference> references) {
         if (node.isTextual()) {
-            collect(node.textValue(), references);
+            collect(node.textValue(), pointer, enabled, references);
         } else if (node instanceof POJONode pojo && pojo.getPojo() instanceof RawValue raw) {
             // A plugin configuration is a @JsonRawValue string, which valueToTree keeps unparsed.
-            collect(String.valueOf(raw.rawValue()), references);
+            collect(String.valueOf(raw.rawValue()), pointer, enabled, references);
+        } else if (node.isArray()) {
+            for (var i = 0; i < node.size(); i++) {
+                collect(node.get(i), pointer + "/" + i, enabled, references);
+            }
         } else {
-            node.forEach(child -> collect(child, references));
+            var nodeEnabled = enabled && node.path("enabled").asBoolean(true);
+            node.properties().forEach(field -> collect(field.getValue(), pointer + "/" + field.getKey(), nodeEnabled, references));
         }
     }
 
-    private static void collect(String text, Set<String> references) {
+    private static void collect(String text, String pointer, boolean enabled, Set<Reference> references) {
         // A plugin configuration is JSON held in a string, so its quotes reach this text escaped.
         var matcher = SECRETS_GET.matcher(text.replace("\\\"", "\""));
         while (matcher.find()) {
-            references.add(matcher.group());
+            references.add(new Reference(pointer, matcher.group(), enabled));
+        }
+    }
+
+    private record Reference(String pointer, String expression, boolean enabled) {
+        // The gateway does not resolve a reference in a disabled step or flow, so disabling a stored one needs no check.
+        Reference enabledAgain() {
+            return enabled ? this : new Reference(pointer, expression, true);
         }
     }
 }
