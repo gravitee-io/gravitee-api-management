@@ -50,7 +50,7 @@ function renderApprovals() {
 
 function trackAim() {
     return {
-        settings: trackHandler('get', SETTINGS_URL, { features: ['hitl'] }),
+        settings: trackHandler('get', SETTINGS_URL, { features: [], licensedFeatures: ['gamma-aim-hitl'] }),
         approvals: trackHandler('get', APPROVALS_URL, TEST_HUMAN_APPROVALS_RESPONSE),
     };
 }
@@ -241,7 +241,7 @@ describe('useHumanApprovals', () => {
 
     describe('when AIM cannot answer', () => {
         it('should fail, not read as none, when the approvals answer an error, and not read the settings again to retry', async () => {
-            const settings = trackHandler('get', SETTINGS_URL, { features: ['hitl'] });
+            const settings = trackHandler('get', SETTINGS_URL, { features: [], licensedFeatures: ['gamma-aim-hitl'] });
             respondWith('get', APPROVALS_URL, { message: 'AIM is down' }, 503);
             const { result } = renderApprovals();
 
@@ -264,7 +264,7 @@ describe('useHumanApprovals', () => {
             await waitFor(() => expect(result.current.humanApprovals.status).toBe('failed'));
             expect(approvals.callCount).toBe(0);
 
-            respondWith('get', SETTINGS_URL, { features: ['hitl'] });
+            respondWith('get', SETTINGS_URL, { features: [], licensedFeatures: ['gamma-aim-hitl'] });
             act(() => result.current.refresh());
 
             await waitFor(() => expect(result.current.humanApprovals.status).toBe('loaded'));
@@ -451,7 +451,10 @@ describe('useHumanApprovals', () => {
         });
 
         it('should drop the rows of the old environment, never rendering them under the new one, and not read the settings again', async () => {
-            const settings = trackHandler('get', `${TEST_GAMMA_BASE}/environments/:envId/modules/aim/_settings`, { features: ['hitl'] });
+            const settings = trackHandler('get', `${TEST_GAMMA_BASE}/environments/:envId/modules/aim/_settings`, {
+                features: [],
+                licensedFeatures: ['gamma-aim-hitl'],
+            });
             const secondEnvironment = trackHandler('get', secondEnvironmentApprovals, NO_APPROVALS);
             signIn();
             const renders: HumanApprovals[] = [];
@@ -507,7 +510,7 @@ describe('useHumanApprovals', () => {
         });
 
         it('should drop, on sign-out, the rows and what is known of the settings, so the next user starts from nothing', async () => {
-            const settings = trackHandler('get', SETTINGS_URL, { features: ['hitl'] });
+            const settings = trackHandler('get', SETTINGS_URL, { features: [], licensedFeatures: ['gamma-aim-hitl'] });
             signIn();
             const { result } = renderApprovals();
             await waitFor(() => expect(result.current.humanApprovals.status).toBe('loaded'));
@@ -521,7 +524,7 @@ describe('useHumanApprovals', () => {
         });
 
         it('should let no read made for the user before write anything, before or after its settings are read', async () => {
-            const settings = trackHandler('get', SETTINGS_URL, { features: ['hitl'] });
+            const settings = trackHandler('get', SETTINGS_URL, { features: [], licensedFeatures: ['gamma-aim-hitl'] });
             let answerSettings: ((response: Response) => void) | undefined;
             server.use(http.get(SETTINGS_URL, () => new Promise<Response>(resolve => (answerSettings = resolve)), { once: true }));
             const approvals = holdApprovals();

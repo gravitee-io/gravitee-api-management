@@ -87,8 +87,6 @@ export interface UseTasksResult {
     readonly humanApprovals: HumanApprovals;
     /** Set when AIM holds more approvals than `tasks` lists; the rest are read in its inbox. */
     readonly approvalsOverflow: ApprovalsOverflow | null;
-    /** The environment the approvals are read in, unlike the other tasks, which span every environment. */
-    readonly approvalsEnvironmentName: string | undefined;
     readonly refreshing: boolean;
     readonly reload: () => void;
     readonly processPromotion: (promotionId: string, accepted: boolean) => Promise<void>;
@@ -229,7 +227,6 @@ export function useTasks(): UseTasksResult {
         error,
         humanApprovals,
         approvalsOverflow,
-        approvalsEnvironmentName: environmentName,
         refreshing: reloading || refreshingHumanApprovals,
         reload,
         processPromotion,
