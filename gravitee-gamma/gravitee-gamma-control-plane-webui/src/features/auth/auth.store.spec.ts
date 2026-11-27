@@ -16,12 +16,14 @@
 import type { License } from '@gravitee/gamma-modules-sdk/types';
 import { waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
+import { OidcClient, type SigninRequest } from 'oidc-client-ts';
 
 import { licenseService } from '@gravitee/gamma-modules-sdk';
 
 import { useAuthStore } from './auth.store';
+import type { SocialIdentityProvider } from './auth.types';
 import { TEST_ENVIRONMENTS, TEST_MANAGEMENT_BASE, TEST_MANAGEMENT_V2_ORGANIZATION_BASE, buildUser } from '../../testing/factories';
-import { respondWith, respondWithError, trackHandler } from '../../testing/helpers';
+import { respondWith, respondWithError, seedBootstrap, trackHandler } from '../../testing/helpers';
 import { server } from '../../testing/server';
 import { useEnvironmentStore } from '../environment/environment.store';
 
@@ -283,5 +285,103 @@ describe('authStore', () => {
         expect(useAuthStore.getState().user).toBeNull();
         expect(useEnvironmentStore.getState().environments).toEqual([]);
         expect(useEnvironmentStore.getState().initialized).toBe(false);
+    });
+
+    describe('when signing in with an identity provider', () => {
+        // Each test uses its own provider: the store keeps one UserManager per provider for the whole module.
+        let providerCount = 0;
+        let provider: SocialIdentityProvider;
+
+        const idToken = (claims: Record<string, unknown>): string =>
+            ['{"alg":"none"}', JSON.stringify(claims)].map(part => btoa(part).replace(/=+$/, '')).join('.') + '.signature';
+
+        const pendingSigninStateId = async (): Promise<string> => {
+            for (let attempt = 0; attempt < 50; attempt++) {
+                const key = Object.keys(localStorage).find(k => k.startsWith('oidc.') && !k.startsWith('oidc.user:'));
+                if (key) {
+                    return key.substring('oidc.'.length);
+                }
+                await new Promise(resolve => setTimeout(resolve, 0));
+            }
+            throw new Error('No signin state was stored');
+        };
+
+        const startSignIn = async (idTokenExposed: boolean): Promise<string> => {
+            seedBootstrap({ identityProviders: [provider], idTokenExposed });
+            // The redirect to the identity provider never completes in a test; only the stored state matters.
+            void useAuthStore.getState().loginWithProvider(provider.id, '/apis');
+            return pendingSigninStateId();
+        };
+
+        /** Lands on the redirect URI with an authorization code, as the identity provider does after a sign-in. */
+        const signIn = async (tokenResponse: Record<string, unknown>, idTokenExposed: boolean) => {
+            const stateId = await startSignIn(idTokenExposed);
+            const tokenEndpoint = trackHandler('post', `${TEST_MANAGEMENT_BASE}/auth/oauth2/${provider.id}`, tokenResponse);
+            window.history.replaceState({}, '', `/?code=authorization-code&state=${stateId}`);
+
+            await useAuthStore.getState().initialize();
+
+            return tokenEndpoint;
+        };
+
+        beforeEach(() => {
+            // jsdom reports the redirect to the identity provider as an unimplemented navigation.
+            jest.spyOn(console, 'error').mockImplementation(() => undefined);
+            providerCount += 1;
+            provider = {
+                id: `oidc-idp-${providerCount}`,
+                name: 'OIDC',
+                type: 'OIDC',
+                clientId: 'gamma-client',
+                authorizationEndpoint: 'https://idp.test/oauth/authorize',
+                scopes: ['openid', 'profile'],
+            };
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+            window.history.replaceState({}, '', '/');
+        });
+
+        describe('and the ID token is not exposed', () => {
+            it('should sign the user in with the empty id_token the Management API returns', async () => {
+                const tokenEndpoint = await signIn({ token: 'session', type: 'BEARER', access_token: '', id_token: '' }, false);
+
+                expect(tokenEndpoint.callCount).toBe(1);
+                expect(useAuthStore.getState().user?.displayName).toBe('Test User');
+                expect(useAuthStore.getState().oauthRedirectUrl).toBe('/apis');
+            });
+
+            it('should still reject an ID token without a subject', async () => {
+                const tokenEndpoint = await signIn({ token: 'session', type: 'BEARER', id_token: idToken({ name: 'Test User' }) }, false);
+
+                expect(tokenEndpoint.callCount).toBe(1);
+                expect(useAuthStore.getState().user).toBeNull();
+                expect(useAuthStore.getState().oauthRedirectUrl).toBeNull();
+            });
+
+            it('should sign the user in with a valid ID token', async () => {
+                const tokenEndpoint = await signIn({ token: 'session', type: 'BEARER', id_token: idToken({ sub: 'user-1' }) }, false);
+
+                expect(tokenEndpoint.callCount).toBe(1);
+                expect(useAuthStore.getState().user?.displayName).toBe('Test User');
+            });
+
+            it('should still request the openid scope from the identity provider', async () => {
+                const createSigninRequest = jest.spyOn(OidcClient.prototype, 'createSigninRequest');
+
+                await startSignIn(false);
+
+                const request = (await createSigninRequest.mock.results[0]!.value) as SigninRequest;
+                expect(new URL(request.url).searchParams.get('scope')).toBe('openid profile');
+            });
+        });
+
+        it('should require a valid ID token when the ID token is exposed', async () => {
+            const tokenEndpoint = await signIn({ token: 'session', type: 'BEARER', access_token: '', id_token: '' }, true);
+
+            expect(tokenEndpoint.callCount).toBe(1);
+            expect(useAuthStore.getState().user).toBeNull();
+        });
     });
 });

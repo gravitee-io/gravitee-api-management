@@ -156,6 +156,40 @@ describe('bootstrapStore', () => {
         expect(useBootstrapStore.getState().loginMethodsFetchedAt).toBeNull();
     });
 
+    it('should treat a missing exposeIdToken setting as exposed', async () => {
+        respondWith('get', `${TEST_MANAGEMENT_BASE}/console`, { authentication: { localLogin: { enabled: true } } });
+
+        await useBootstrapStore.getState().initialize();
+
+        expect(useBootstrapStore.getState().config?.idTokenExposed).toBe(true);
+    });
+
+    it('should store idTokenExposed from console settings', async () => {
+        respondWith('get', `${TEST_MANAGEMENT_BASE}/console`, { authentication: { exposeIdToken: { enabled: false } } });
+
+        await useBootstrapStore.getState().initialize();
+
+        expect(useBootstrapStore.getState().config?.idTokenExposed).toBe(false);
+    });
+
+    it('should accept a sign-in without an ID token when console fetch fails', async () => {
+        respondWithError('get', `${TEST_MANAGEMENT_BASE}/console`, 500);
+
+        await useBootstrapStore.getState().initialize();
+
+        expect(useBootstrapStore.getState().config?.idTokenExposed).toBe(false);
+    });
+
+    it('should refresh idTokenExposed without a full reload', async () => {
+        await useBootstrapStore.getState().initialize();
+        useBootstrapStore.setState({ loginMethodsFetchedAt: 0 });
+        respondWith('get', `${TEST_MANAGEMENT_BASE}/console`, { authentication: { exposeIdToken: { enabled: false } } });
+
+        await useBootstrapStore.getState().refreshLoginMethods();
+
+        expect(useBootstrapStore.getState().config?.idTokenExposed).toBe(false);
+    });
+
     it('should refresh the registration settings without a full reload', async () => {
         await useBootstrapStore.getState().initialize();
         useBootstrapStore.setState({ loginMethodsFetchedAt: 0 });

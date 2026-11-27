@@ -29,6 +29,8 @@ export interface BootstrapConfig {
     localLoginEnabled: boolean;
     registrationEnabled: boolean;
     automaticValidationEnabled: boolean;
+    /** Whether the Management API returns the identity provider's ID token after an SSO login. */
+    idTokenExposed: boolean;
 }
 
 interface BootstrapState {
@@ -53,9 +55,15 @@ function organizationManagementUrl(managementBaseURL: string, organizationId: st
     return `${sanitizeBaseURL(managementBaseURL)}/organizations/${organizationId}`;
 }
 
-type ConsoleAccessSettings = Pick<BootstrapConfig, 'localLoginEnabled' | 'registrationEnabled' | 'automaticValidationEnabled'>;
+type ConsoleAccessSettings = Pick<
+    BootstrapConfig,
+    'localLoginEnabled' | 'registrationEnabled' | 'automaticValidationEnabled' | 'idTokenExposed'
+>;
 
 interface RegistrationConsoleSettings {
+    authentication?: {
+        exposeIdToken?: { enabled?: boolean };
+    };
     management?: {
         userCreation?: { enabled?: boolean };
         automaticValidation?: { enabled?: boolean };
@@ -67,6 +75,8 @@ const UNREAD_CONSOLE_ACCESS_SETTINGS: ConsoleAccessSettings = {
     localLoginEnabled: false,
     registrationEnabled: false,
     automaticValidationEnabled: false,
+    // An SSO login must still complete: the sign-in then accepts a response without an ID token.
+    idTokenExposed: false,
 };
 
 /** A body that is not an object counts as unread, like a failed request, so it cannot reopen a gate. */
@@ -74,12 +84,13 @@ function consoleAccessSettingsFrom(consoleJson: unknown): ConsoleAccessSettings 
     if (!consoleJson || typeof consoleJson !== 'object') {
         return undefined;
     }
-    const { management } = consoleJson as RegistrationConsoleSettings;
+    const { authentication, management } = consoleJson as RegistrationConsoleSettings;
     // Unlike local login, registration defaults to off: only an explicit `true` opens sign-up.
     return {
         localLoginEnabled: isLocalLoginEnabled(consoleJson as LocalLoginConsoleSettings),
         registrationEnabled: management?.userCreation?.enabled === true,
         automaticValidationEnabled: management?.automaticValidation?.enabled === true,
+        idTokenExposed: authentication?.exposeIdToken?.enabled !== false,
     };
 }
 
@@ -199,6 +210,7 @@ export const useBootstrapStore = create<BootstrapState>()(
                         localLoginEnabled: consoleSettings?.localLoginEnabled ?? current.localLoginEnabled,
                         registrationEnabled: consoleSettings?.registrationEnabled ?? current.registrationEnabled,
                         automaticValidationEnabled: consoleSettings?.automaticValidationEnabled ?? current.automaticValidationEnabled,
+                        idTokenExposed: consoleSettings?.idTokenExposed ?? current.idTokenExposed,
                     },
                     loginMethodsFetchedAt:
                         identityProviders !== undefined && consoleSettings !== undefined ? Date.now() : get().loginMethodsFetchedAt,
