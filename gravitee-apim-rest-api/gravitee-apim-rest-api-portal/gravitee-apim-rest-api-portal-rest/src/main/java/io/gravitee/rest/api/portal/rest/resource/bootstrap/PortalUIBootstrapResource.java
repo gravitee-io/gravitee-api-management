@@ -15,8 +15,12 @@
  */
 package io.gravitee.rest.api.portal.rest.resource.bootstrap;
 
+import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.portal.domain_service.DefaultPortalDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalAddressDomainService;
+import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalHost;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.bootstrap.PortalUIBootstrapEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
@@ -33,6 +37,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import java.util.Optional;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -63,6 +68,12 @@ public class PortalUIBootstrapResource {
     protected DefaultPortalDomainService defaultPortalDomainService;
 
     @Autowired
+    protected PortalAddressDomainService portalAddressDomainService;
+
+    @Autowired
+    protected InstallationTypeDomainService installationTypeDomainService;
+
+    @Autowired
     private Environment environment;
 
     @GET
@@ -76,11 +87,16 @@ public class PortalUIBootstrapResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response bootstrap(
         @Context final HttpServletRequest httpServletRequest,
-        @QueryParam("environmentId") final String enforceEnvironmentId
+        @QueryParam("environmentId") final String enforceEnvironmentId,
+        @QueryParam("host") final String host
     ) {
+        var addressedPortal = findAddressedPortal(host, enforceEnvironmentId);
         String environmentId;
         String organizationId;
-        if (enforceEnvironmentId != null) {
+        if (addressedPortal.isPresent()) {
+            environmentId = addressedPortal.get().getEnvironmentId();
+            organizationId = addressedPortal.get().getOrganizationId();
+        } else if (enforceEnvironmentId != null) {
             environmentId = enforceEnvironmentId;
             organizationId = environmentService.findById(environmentId).getOrganizationId();
         } else {
@@ -92,12 +108,19 @@ public class PortalUIBootstrapResource {
                 : GraviteeContext.getDefaultOrganization();
         }
 
-        String portalId = defaultPortalDomainService
-            .findDefaultOrOnly(environmentId)
+        String portalId = addressedPortal
+            .or(() -> defaultPortalDomainService.findDefaultOrOnly(environmentId))
             .map(portal -> portal.getId().toString())
             .orElse(null);
-        String portalApiUrl = installationAccessQueryService.getPortalAPIUrl(environmentId);
-        String baseUrl = portalApiUrl != null ? portalApiUrl : portalApiUrlFromRequest(httpServletRequest);
+        // On its own host, the portal calls the Portal API there: the browser does not send back a login cookie set by
+        // the Portal API of another site.
+        String baseUrl = addressedPortal
+            .flatMap(portalAddressDomainService::ownOrigin)
+            .map(origin -> origin + getPortalProxyPath())
+            .orElseGet(() -> {
+                String portalApiUrl = installationAccessQueryService.getPortalAPIUrl(environmentId);
+                return portalApiUrl != null ? portalApiUrl : portalApiUrlFromRequest(httpServletRequest);
+            });
         return Response.ok(
             PortalUIBootstrapEntity.builder()
                 .organizationId(organizationId)
@@ -106,6 +129,24 @@ public class PortalUIBootstrapResource {
                 .baseURL(baseUrl)
                 .build()
         ).build();
+    }
+
+    private Optional<Portal> findAddressedPortal(String rawHost, String enforceEnvironmentId) {
+        if (rawHost == null) {
+            return Optional.empty();
+        }
+        // The host is a hint from the browser: one that cannot be parsed, such as a container name, finds no portal.
+        var parsed = PortalHost.parse(rawHost);
+        if (parsed.isEmpty()) {
+            return Optional.empty();
+        }
+        var host = parsed.get();
+        var scopeEnvironmentId = enforceEnvironmentId != null ? enforceEnvironmentId : GraviteeContext.getCurrentEnvironment();
+        // This endpoint is public: without a resolved environment, a multi-tenant lookup would reveal other tenants' portals.
+        if (scopeEnvironmentId == null && installationTypeDomainService.isMultiTenant()) {
+            return Optional.empty();
+        }
+        return portalAddressDomainService.findByAddress(host, scopeEnvironmentId);
     }
 
     private String portalApiUrlFromRequest(HttpServletRequest httpServletRequest) {

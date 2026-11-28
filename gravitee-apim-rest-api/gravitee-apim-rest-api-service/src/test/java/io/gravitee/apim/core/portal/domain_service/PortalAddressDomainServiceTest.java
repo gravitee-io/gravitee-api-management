@@ -25,6 +25,7 @@ import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.installation.model.InstallationType;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalHost;
 import io.gravitee.apim.core.portal.model.PortalHostTemplate;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
@@ -387,6 +388,96 @@ class PortalAddressDomainServiceTest {
         )
         void should_refuse_a_url_an_access_point_cannot_serve(String url) {
             assertThatThrownBy(() -> cut.validateCustomUrl(PORTAL_ID, url)).isInstanceOf(ValidationDomainException.class);
+        }
+    }
+
+    @Nested
+    class FindByAddress {
+
+        private final PortalHost host = PortalHost.parse("partners.localhost:4100").orElseThrow();
+
+        @Test
+        void should_find_the_only_portal_on_the_host_in_any_environment() {
+            cut.accessPoints().initWith(List.of(aPortalAccessPoint("partners", OTHER_ENV_ID, "partners.localhost:4100", false)));
+            portals.initWith(List.of(aPortal(PORTAL_ID, OTHER_ENV_ID, "partners")));
+
+            assertThat(cut.findByAddress(host, null)).hasValueSatisfying(found -> assertThat(found.getId()).isEqualTo(PORTAL_ID));
+        }
+
+        @Test
+        void should_ignore_a_portal_outside_the_scoped_environment() {
+            cut.accessPoints().initWith(List.of(aPortalAccessPoint("partners", OTHER_ENV_ID, "partners.localhost:4100", false)));
+            portals.initWith(List.of(aPortal(PORTAL_ID, OTHER_ENV_ID, "partners")));
+
+            assertThat(cut.findByAddress(host, ENV_ID)).isEmpty();
+        }
+
+        @Test
+        void should_resolve_a_host_shared_across_environments_inside_the_scoped_one() {
+            cut
+                .accessPoints()
+                .initWith(
+                    List.of(
+                        aPortalAccessPoint("mine", ENV_ID, "partners.localhost:4100", false),
+                        aPortalAccessPoint("theirs", OTHER_ENV_ID, "partners.localhost:4100", false)
+                    )
+                );
+            portals.initWith(List.of(aPortal(PORTAL_ID, ENV_ID, "mine"), aPortal(OTHER_PORTAL_ID, OTHER_ENV_ID, "theirs")));
+
+            assertThat(cut.findByAddress(host, ENV_ID)).hasValueSatisfying(found -> assertThat(found.getId()).isEqualTo(PORTAL_ID));
+        }
+
+        @Test
+        void should_find_nothing_when_portals_share_the_access_point() {
+            cut.accessPoints().initWith(List.of(aPortalAccessPoint("shared", ENV_ID, "partners.localhost:4100", false)));
+            portals.initWith(List.of(aPortal(PORTAL_ID, ENV_ID, "shared"), aPortal(OTHER_PORTAL_ID, ENV_ID, "shared")));
+
+            assertThat(cut.findByAddress(host, null)).isEmpty();
+        }
+
+        @Test
+        void should_ignore_an_access_point_of_another_target() {
+            cut.accessPoints().initWith(List.of(anAccessPoint("console", ENV_ID, AccessPoint.Target.CONSOLE, "partners.localhost:4100")));
+            portals.initWith(List.of(aPortal(PORTAL_ID, ENV_ID, "console")));
+
+            assertThat(cut.findByAddress(host, null)).isEmpty();
+        }
+    }
+
+    @Nested
+    class OwnOrigin {
+
+        @Test
+        void should_return_the_origin_of_the_portal_own_access_point() {
+            cut.accessPoints().initWith(List.of(aPortalAccessPoint("partners", ENV_ID, "partners.localhost:4100", false)));
+
+            assertThat(cut.ownOrigin(aPortal(PORTAL_ID, ENV_ID, "partners"))).contains("http://partners.localhost:4100");
+        }
+
+        @Test
+        void should_return_a_secured_origin_for_a_secured_access_point() {
+            cut.accessPoints().initWith(List.of(aPortalAccessPoint("partners", ENV_ID, "partners-portal.com", true)));
+
+            assertThat(cut.ownOrigin(aPortal(PORTAL_ID, ENV_ID, "partners"))).contains("https://partners-portal.com");
+        }
+
+        @Test
+        void should_return_nothing_for_the_access_point_at_the_environment_portal_url() {
+            cut.accessPoints().initWith(List.of(aPortalAccessPoint("shared", ENV_ID, "localhost:4100", false)));
+
+            assertThat(cut.ownOrigin(aPortal(PORTAL_ID, ENV_ID, "shared"))).isEmpty();
+        }
+
+        @Test
+        void should_return_nothing_for_a_portal_without_access_point() {
+            assertThat(cut.ownOrigin(aPortal(PORTAL_ID, ENV_ID, null))).isEmpty();
+        }
+
+        @Test
+        void should_return_nothing_when_the_environment_portal_url_cannot_be_resolved() {
+            cut.accessPoints().initWith(List.of(aPortalAccessPoint("partners", OTHER_ENV_ID, "partners.localhost:4100", false)));
+
+            assertThat(cut.ownOrigin(aPortal(PORTAL_ID, OTHER_ENV_ID, "partners"))).isEmpty();
         }
     }
 

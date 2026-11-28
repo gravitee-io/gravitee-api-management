@@ -21,22 +21,35 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import inmemory.AccessPointQueryServiceInMemory;
+import inmemory.InstallationTypeDomainServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
+import io.gravitee.apim.core.access_point.model.AccessPoint;
+import io.gravitee.apim.core.installation.model.InstallationType;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalHost;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import lombok.SneakyThrows;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class PortalUIBootstrapResourceTest extends AbstractResourceTest {
@@ -44,17 +57,27 @@ class PortalUIBootstrapResourceTest extends AbstractResourceTest {
     private static final String ORG_ID = "DEFAULT";
     private static final String ENVIRONMENT = "DEFAULT";
     private static final String OTHER_ENV_ID = "env-2";
-    private static final String ACCESS_POINT_ID = "portal-access-point";
+    private static final String OTHER_ORG_ID = "org-2";
+    private static final String NO_ENVIRONMENT_HEADER = "X-Test-No-Environment";
     private static final String PORTAL_API_URL = "https://api.acme.io/portal";
     private static final PortalId DEFAULT_ENV_PORTAL_ID = PortalId.of("11111111-1111-1111-1111-111111111111");
     private static final String REQUEST_URL = "https://apim.acme.io/portal/ui/bootstrap";
     private static final PortalId OTHER_ENV_PORTAL_ID = PortalId.of("22222222-2222-2222-2222-222222222222");
+    private static final PortalId PARTNERS_PORTAL_ID = PortalId.of("33333333-3333-3333-3333-333333333333");
 
     @Autowired
     private PortalCrudServiceInMemory portalCrudService;
 
     @Autowired
     private InstallationAccessQueryService installationAccessQueryService;
+
+    @Autowired
+    private InstallationTypeDomainServiceInMemory installationTypeDomainService;
+
+    @Autowired
+    private AccessPointQueryServiceInMemory accessPointQueryService;
+
+    private final List<AccessPoint> givenAccessPoints = new ArrayList<>();
 
     @Override
     protected String contextPath() {
@@ -77,13 +100,27 @@ class PortalUIBootstrapResourceTest extends AbstractResourceTest {
                 }
             }
         );
+        // Requests run on a server thread, whose context defaults to DEFAULT; GraviteeContextFilter clears it on a path
+        // without an environment.
+        resourceConfig.register(
+            new ContainerRequestFilter() {
+                @Override
+                public void filter(ContainerRequestContext requestContext) {
+                    GraviteeContext.setCurrentEnvironment(
+                        requestContext.getHeaderString(NO_ENVIRONMENT_HEADER) != null ? null : ENVIRONMENT
+                    );
+                }
+            }
+        );
     }
 
     @BeforeEach
     void init() {
         reset(installationAccessQueryService);
+        installationTypeDomainService.reset();
         when(installationAccessQueryService.getPortalAPIUrl(ENVIRONMENT)).thenReturn(PORTAL_API_URL);
         when(installationAccessQueryService.getPortalAPIUrl(OTHER_ENV_ID)).thenReturn(PORTAL_API_URL);
+        when(installationAccessQueryService.getPortalUrl(ENVIRONMENT)).thenReturn("https://portal.acme.io");
         var otherEnvironment = new EnvironmentEntity();
         otherEnvironment.setId(OTHER_ENV_ID);
         otherEnvironment.setOrganizationId(ORG_ID);
@@ -93,6 +130,8 @@ class PortalUIBootstrapResourceTest extends AbstractResourceTest {
     @AfterEach
     void tearDown() {
         portalCrudService.reset();
+        accessPointQueryService.reset();
+        givenAccessPoints.clear();
     }
 
     @Test
@@ -150,7 +189,7 @@ class PortalUIBootstrapResourceTest extends AbstractResourceTest {
                     PortalNavigationStructure.empty(),
                     null,
                     false,
-                    ACCESS_POINT_ID
+                    "only-portal-access-point"
                 )
             )
         );
@@ -176,12 +215,249 @@ class PortalUIBootstrapResourceTest extends AbstractResourceTest {
         assertThat(bootstrap.get("baseURL")).isEqualTo("https://apim.acme.io/portal");
     }
 
+    @Test
+    void should_return_the_portal_on_the_host_with_its_environment_and_organization() {
+        portalCrudService.initWith(
+            List.of(
+                aDefaultPortal(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT),
+                aPortalOn(OTHER_ENV_PORTAL_ID, OTHER_ENV_ID, OTHER_ORG_ID, "http://partners.localhost:4100/next")
+            )
+        );
+
+        var response = bootstrap().queryParam("host", "Partners.localhost:4100").request().header(NO_ENVIRONMENT_HEADER, "true").get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        var bootstrap = response.readEntity(Map.class);
+        assertThat(bootstrap.get("portalId")).isEqualTo(OTHER_ENV_PORTAL_ID.toString());
+        assertThat(bootstrap.get("environmentId")).isEqualTo(OTHER_ENV_ID);
+        assertThat(bootstrap.get("organizationId")).isEqualTo(OTHER_ORG_ID);
+    }
+
+    @Test
+    void should_return_the_default_portal_when_no_portal_is_on_the_host() {
+        portalCrudService.initWith(List.of(aDefaultPortal(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT)));
+
+        var response = bootstrap().queryParam("host", "127.0.0.1:4100").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        assertThat(response.readEntity(Map.class).get("portalId")).isEqualTo(DEFAULT_ENV_PORTAL_ID.toString());
+    }
+
+    @Test
+    void should_return_the_only_portal_when_no_portal_is_on_the_host_and_it_is_not_the_default() {
+        portalCrudService.initWith(List.of(aPortalOn(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT, ORG_ID, "https://portal.acme.io/next")));
+
+        var response = bootstrap().queryParam("host", "127.0.0.1:4100").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        assertThat(response.readEntity(Map.class).get("portalId")).isEqualTo(DEFAULT_ENV_PORTAL_ID.toString());
+    }
+
+    @Test
+    void should_return_the_portal_on_a_host_reported_with_a_trailing_dot() {
+        portalCrudService.initWith(
+            List.of(
+                aDefaultPortal(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT),
+                aPortalOn(OTHER_ENV_PORTAL_ID, ENVIRONMENT, ORG_ID, "http://partners.localhost:4100/next")
+            )
+        );
+
+        var response = bootstrap().queryParam("host", "partners.localhost.:4100").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        assertThat(response.readEntity(Map.class).get("portalId")).isEqualTo(OTHER_ENV_PORTAL_ID.toString());
+    }
+
+    @Test
+    void should_return_the_default_portal_when_the_host_is_ambiguous() {
+        portalCrudService.initWith(
+            List.of(
+                aDefaultPortal(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT),
+                aPortalOn(OTHER_ENV_PORTAL_ID, OTHER_ENV_ID, ORG_ID, "https://portal.acme.io/other")
+            )
+        );
+
+        var response = bootstrap().queryParam("host", "portal.acme.io").request().header(NO_ENVIRONMENT_HEADER, "true").get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        assertThat(response.readEntity(Map.class).get("portalId")).isEqualTo(DEFAULT_ENV_PORTAL_ID.toString());
+    }
+
+    @Test
+    void should_not_leave_the_requested_environment_for_a_portal_on_the_host() {
+        portalCrudService.initWith(
+            List.of(
+                aDefaultPortal(OTHER_ENV_PORTAL_ID, OTHER_ENV_ID),
+                aPortalOn(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT, ORG_ID, "http://partners.localhost:4100/next")
+            )
+        );
+
+        var response = bootstrap().queryParam("environmentId", OTHER_ENV_ID).queryParam("host", "partners.localhost:4100").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        var bootstrap = response.readEntity(Map.class);
+        assertThat(bootstrap.get("portalId")).isEqualTo(OTHER_ENV_PORTAL_ID.toString());
+        assertThat(bootstrap.get("environmentId")).isEqualTo(OTHER_ENV_ID);
+    }
+
+    @Test
+    void should_not_search_other_tenants_when_a_multi_tenant_request_has_no_environment() {
+        installationTypeDomainService.set(InstallationType.MULTI_TENANT);
+        portalCrudService.initWith(
+            List.of(
+                aDefaultPortal(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT),
+                aPortalOn(OTHER_ENV_PORTAL_ID, OTHER_ENV_ID, OTHER_ORG_ID, "http://partners.localhost:4100/next")
+            )
+        );
+
+        var response = bootstrap().queryParam("host", "partners.localhost:4100").request().header(NO_ENVIRONMENT_HEADER, "true").get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        var bootstrap = response.readEntity(Map.class);
+        assertThat(bootstrap.get("portalId")).isEqualTo(DEFAULT_ENV_PORTAL_ID.toString());
+        assertThat(bootstrap.get("organizationId")).isEqualTo(ORG_ID);
+    }
+
+    @Test
+    void should_return_the_portal_on_the_host_of_the_requested_environment_on_a_multi_tenant_installation() {
+        installationTypeDomainService.set(InstallationType.MULTI_TENANT);
+        portalCrudService.initWith(
+            List.of(
+                aDefaultPortal(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT),
+                aPortalOn(OTHER_ENV_PORTAL_ID, OTHER_ENV_ID, OTHER_ORG_ID, "http://partners.localhost:4100/next")
+            )
+        );
+
+        var response = bootstrap().queryParam("environmentId", OTHER_ENV_ID).queryParam("host", "partners.localhost:4100").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        assertThat(response.readEntity(Map.class).get("portalId")).isEqualTo(OTHER_ENV_PORTAL_ID.toString());
+    }
+
+    // The environment of the Portal API access point the request came through scopes the lookup.
+    @Test
+    void should_return_the_portal_on_the_host_of_the_current_environment_on_a_multi_tenant_installation() {
+        installationTypeDomainService.set(InstallationType.MULTI_TENANT);
+        portalCrudService.initWith(
+            List.of(
+                aDefaultPortal(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT),
+                aPortalOn(PARTNERS_PORTAL_ID, ENVIRONMENT, ORG_ID, "http://partners.localhost:4100/next")
+            )
+        );
+
+        var response = bootstrap().queryParam("host", "partners.localhost:4100").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        assertThat(response.readEntity(Map.class).get("portalId")).isEqualTo(PARTNERS_PORTAL_ID.toString());
+    }
+
+    @Test
+    void should_not_return_a_portal_of_another_environment_than_the_current_one_on_a_multi_tenant_installation() {
+        installationTypeDomainService.set(InstallationType.MULTI_TENANT);
+        portalCrudService.initWith(
+            List.of(
+                aDefaultPortal(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT),
+                aPortalOn(OTHER_ENV_PORTAL_ID, OTHER_ENV_ID, OTHER_ORG_ID, "http://partners.localhost:4100/next")
+            )
+        );
+
+        var response = bootstrap().queryParam("host", "partners.localhost:4100").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        var bootstrap = response.readEntity(Map.class);
+        assertThat(bootstrap.get("portalId")).isEqualTo(DEFAULT_ENV_PORTAL_ID.toString());
+        assertThat(bootstrap.get("environmentId")).isEqualTo(ENVIRONMENT);
+    }
+
+    // A cookie the Portal API sets on another site is not sent back from the portal's own domain.
+    @Test
+    void should_call_the_portal_api_on_the_host_of_a_portal_at_its_own_address() {
+        portalCrudService.initWith(
+            List.of(
+                aDefaultPortal(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT),
+                aPortalOn(PARTNERS_PORTAL_ID, ENVIRONMENT, ORG_ID, "http://partners.localhost:4100/next")
+            )
+        );
+
+        var response = bootstrap().queryParam("host", "partners.localhost:4100").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        var bootstrap = response.readEntity(Map.class);
+        assertThat(bootstrap.get("portalId")).isEqualTo(PARTNERS_PORTAL_ID.toString());
+        assertThat(bootstrap.get("baseURL")).isEqualTo("http://partners.localhost:4100/portal");
+    }
+
+    @Test
+    void should_call_the_configured_portal_api_for_a_portal_at_the_environment_portal_url() {
+        portalCrudService.initWith(
+            List.of(
+                aDefaultPortal(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT),
+                aPortalOn(PARTNERS_PORTAL_ID, ENVIRONMENT, ORG_ID, "http://partners.localhost:4100/next")
+            )
+        );
+
+        var response = bootstrap().queryParam("host", "portal.acme.io").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        var bootstrap = response.readEntity(Map.class);
+        assertThat(bootstrap.get("portalId")).isEqualTo(DEFAULT_ENV_PORTAL_ID.toString());
+        assertThat(bootstrap.get("baseURL")).isEqualTo(PORTAL_API_URL);
+    }
+
+    @Test
+    void should_call_the_configured_portal_api_when_no_portal_is_on_the_host() {
+        portalCrudService.initWith(
+            List.of(
+                aDefaultPortal(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT),
+                aPortalOn(PARTNERS_PORTAL_ID, ENVIRONMENT, ORG_ID, "http://partners.localhost:4100/next")
+            )
+        );
+
+        var response = bootstrap().queryParam("host", "unknown.acme.io").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        assertThat(response.readEntity(Map.class).get("baseURL")).isEqualTo(PORTAL_API_URL);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "portal_ui:8080", "portal.acme.io/next" })
+    void should_return_the_default_portal_when_the_host_cannot_be_parsed(String host) {
+        portalCrudService.initWith(List.of(aDefaultPortal(DEFAULT_ENV_PORTAL_ID, ENVIRONMENT)));
+
+        var response = bootstrap().queryParam("host", host).request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        assertThat(response.readEntity(Map.class).get("portalId")).isEqualTo(DEFAULT_ENV_PORTAL_ID.toString());
+    }
+
     // The bootstrap is served at the application root, outside /environments/{envId}.
     private WebTarget bootstrap() {
         return root().path("ui/bootstrap");
     }
 
-    private static Portal aDefaultPortal(PortalId id, String environmentId) {
-        return Portal.of(id, environmentId, ORG_ID, "Developer Portal", PortalNavigationStructure.empty(), null, true, ACCESS_POINT_ID);
+    private Portal aPortalOn(PortalId id, String environmentId, String organizationId, String url) {
+        var accessPointId = givenPortalAccessPoint(id, environmentId, url);
+        return Portal.of(id, environmentId, organizationId, "Partners", PortalNavigationStructure.empty(), null, false, accessPointId);
+    }
+
+    private Portal aDefaultPortal(PortalId id, String environmentId) {
+        var accessPointId = givenPortalAccessPoint(id, environmentId, "https://portal.acme.io/next");
+        return Portal.of(id, environmentId, ORG_ID, "Developer Portal", PortalNavigationStructure.empty(), null, true, accessPointId);
+    }
+
+    @SneakyThrows
+    private String givenPortalAccessPoint(PortalId portalId, String environmentId, String url) {
+        var parsed = URI.create(url).toURL();
+        var accessPoint = AccessPoint.builder()
+            .id("ap-" + portalId + "-" + environmentId)
+            .referenceType(AccessPoint.ReferenceType.ENVIRONMENT)
+            .referenceId(environmentId)
+            .target(AccessPoint.Target.PORTAL_INSTANCE)
+            .host(PortalHost.of(parsed).value())
+            .secured("https".equals(parsed.getProtocol()))
+            .build();
+        givenAccessPoints.add(accessPoint);
+        accessPointQueryService.initWith(givenAccessPoints);
+        return accessPoint.getId();
     }
 }
