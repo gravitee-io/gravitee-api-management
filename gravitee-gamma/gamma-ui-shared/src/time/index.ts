@@ -14,4 +14,5 @@
  * limitations under the License.
  */
 
+export { toDatetimeLocalValue } from './datetimeLocal';
 export { formatAbsoluteDateTime, formatRelativeDateTime } from './formatRelativeDateTime';

@@ -38,8 +38,9 @@ import {
     TooltipTrigger,
 } from '@gravitee/graphene-core';
 import { CalendarIcon, CircleCheckIcon, CircleXIcon, CopyIcon, RefreshCwIcon, XIcon } from '@gravitee/graphene-core/icons';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
+import { currentDatetimeLocalMinute, datetimeLocalToIso, isBeforeCurrentMinute, offsetToDatetimeLocal } from './subscriptionDateTime';
 import { notify } from '../../../../../../shared/notify';
 import { useCustomApiKeyCheck } from '../../../../hooks/useCustomApiKeyCheck';
 import { useCustomApiKeyEnabled } from '../../../../hooks/usePlanSecuritySettings';
@@ -72,7 +73,7 @@ interface ApiKeyRowActionsProps {
     isShared: boolean;
     isFederated: boolean;
     onRevoke: (id: string) => void;
-    onExpire: (id: string) => void;
+    onExpire: (id: string, expireAt?: string) => void;
     onReactivate: (id: string) => void;
     isRevoking: boolean;
     isReactivating: boolean;
@@ -156,7 +157,13 @@ function ApiKeyRowActions({
             </Tooltip>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <Button type="button" variant="ghost" size="icon" className="size-7" onClick={() => onExpire(apiKey.id)}>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="size-7"
+                        onClick={() => onExpire(apiKey.id, apiKey.expireAt)}
+                    >
                         <CalendarIcon className="size-3.5" aria-hidden />
                         <span className="sr-only">Set expiry date</span>
                     </Button>
@@ -178,6 +185,10 @@ export function SubscriptionApiKeysCard({ ctx, subscription, canUpdate, isFedera
     const [page, setPage] = useState(1);
     const [expiringKeyId, setExpiringKeyId] = useState<string | null>(null);
     const [expireDate, setExpireDate] = useState('');
+    const [expireBaseline, setExpireBaseline] = useState('');
+    const [expireIncomplete, setExpireIncomplete] = useState(false);
+    const [expireCheckedAt, setExpireCheckedAt] = useState<Date | null>(null);
+    const expireInputRef = useRef<HTMLInputElement>(null);
     const [renewOpen, setRenewOpen] = useState(false);
     const [renewCustomKey, setRenewCustomKey] = useState('');
     const [reactivatingKeyId, setReactivatingKeyId] = useState<string | null>(null);
@@ -224,10 +235,21 @@ export function SubscriptionApiKeysCard({ ctx, subscription, canUpdate, isFedera
             onError: error => notify.error(error, 'Failed to renew API key.'),
         });
     }, [renewMutation, renewCustomKey, renewKeyCheck.blocked, closeRenew]);
+    const expireInPast = isBeforeCurrentMinute(expireDate, expireCheckedAt ?? undefined);
+
     const handleExpireConfirm = useCallback(() => {
-        if (!expiringKeyId || !expireDate) return;
+        if (!expiringKeyId) return;
+        if (expireInputRef.current?.validity.badInput) {
+            setExpireIncomplete(true);
+            return;
+        }
+        const checkedAt = new Date();
+        if (!expireDate || isBeforeCurrentMinute(expireDate, checkedAt)) {
+            setExpireCheckedAt(checkedAt);
+            return;
+        }
         expireMutation.mutate(
-            { apiKeyId: expiringKeyId, expireAt: new Date(expireDate + 'T23:59:59').toISOString() },
+            { apiKeyId: expiringKeyId, expireAt: datetimeLocalToIso(expireDate) },
             {
                 onSuccess: () => {
                     notify.success('API key expiry updated');
@@ -320,9 +342,13 @@ export function SubscriptionApiKeysCard({ ctx, subscription, canUpdate, isFedera
                                                 isShared={isShared}
                                                 isFederated={isFederated}
                                                 onRevoke={handleRevoke}
-                                                onExpire={id => {
+                                                onExpire={(id, expireAt) => {
                                                     setExpiringKeyId(id);
-                                                    setExpireDate('');
+                                                    const prefilled = offsetToDatetimeLocal(expireAt);
+                                                    setExpireDate(prefilled);
+                                                    setExpireBaseline(prefilled);
+                                                    setExpireIncomplete(false);
+                                                    setExpireCheckedAt(null);
                                                 }}
                                                 onReactivate={setReactivatingKeyId}
                                                 isRevoking={revokeMutation.isPending}
@@ -339,23 +365,48 @@ export function SubscriptionApiKeysCard({ ctx, subscription, canUpdate, isFedera
                 </div>
 
                 {expiringKeyId && (
-                    <div className="flex items-center gap-3 rounded-lg border px-4 py-3 text-sm">
-                        <label htmlFor="expire-date" className="shrink-0 text-muted-foreground">
-                            Set expiry date:
-                        </label>
-                        <Input
-                            id="expire-date"
-                            type="date"
-                            className="flex-1"
-                            value={expireDate}
-                            onChange={e => setExpireDate(e.target.value)}
-                        />
-                        <Button type="button" variant="ghost" size="sm" onClick={() => setExpiringKeyId(null)}>
-                            Cancel
-                        </Button>
-                        <Button type="button" size="sm" disabled={!expireDate || expireMutation.isPending} onClick={handleExpireConfirm}>
-                            {expireMutation.isPending ? 'Saving…' : 'Set'}
-                        </Button>
+                    <div className="space-y-2 rounded-lg border px-4 py-3 text-sm">
+                        <div className="flex items-center gap-3">
+                            <label htmlFor="expire-date" className="shrink-0 text-muted-foreground">
+                                Set expiry date:
+                            </label>
+                            <Input
+                                ref={expireInputRef}
+                                id="expire-date"
+                                type="datetime-local"
+                                className="flex-1"
+                                value={expireDate}
+                                min={currentDatetimeLocalMinute(expireCheckedAt ?? undefined)}
+                                onChange={e => {
+                                    setExpireDate(e.target.value);
+                                    setExpireIncomplete(e.target.validity.badInput);
+                                    setExpireCheckedAt(null);
+                                }}
+                                onBlur={e => setExpireIncomplete(e.currentTarget.validity.badInput)}
+                            />
+                            <Button type="button" variant="ghost" size="sm" onClick={() => setExpiringKeyId(null)}>
+                                Cancel
+                            </Button>
+                            <Button
+                                type="button"
+                                size="sm"
+                                disabled={
+                                    expireMutation.isPending ||
+                                    expireIncomplete ||
+                                    !expireDate ||
+                                    expireDate === expireBaseline ||
+                                    expireInPast
+                                }
+                                onClick={handleExpireConfirm}
+                            >
+                                {expireMutation.isPending ? 'Saving…' : 'Set'}
+                            </Button>
+                        </div>
+                        {expireIncomplete ? (
+                            <p className="text-sm text-destructive">Enter both a date and a time.</p>
+                        ) : expireInPast ? (
+                            <p className="text-sm text-destructive">Date and time must not be earlier than the current minute.</p>
+                        ) : null}
                     </div>
                 )}
             </CardContent>

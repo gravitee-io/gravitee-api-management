@@ -75,7 +75,7 @@ jest.mock('../../../../hooks/useSubscriptionActions', () => ({
     useResumeFailedSubscription: () => ({ mutate: jest.fn(), isPending: false }),
     useCloseSubscription: () => ({ mutate: jest.fn(), isPending: false }),
     useTransferSubscription: () => ({ mutate: jest.fn(), isPending: false }),
-    useUpdateSubscriptionEndDate: () => ({ mutate: jest.fn(), isPending: false }),
+    useUpdateSubscriptionEndDate: jest.fn(() => ({ mutate: jest.fn(), isPending: false })),
 }));
 
 jest.mock('../../../../hooks/useSubscriptions', () => ({
@@ -83,10 +83,13 @@ jest.mock('../../../../hooks/useSubscriptions', () => ({
 }));
 
 import { getTransferablePlans, SubscriptionActionsBar } from './SubscriptionActionsBar';
+import { toDatetimeLocalValue } from '../../../../../../shared/time';
+import { useUpdateSubscriptionEndDate } from '../../../../hooks/useSubscriptionActions';
 import { useApiPlans } from '../../../../hooks/useSubscriptions';
 import type { Plan, Subscription, SubscriptionContext } from '../../../../types/subscription';
 
 const mockUseApiPlans = useApiPlans as jest.Mock;
+const mockUseUpdateEndDate = useUpdateSubscriptionEndDate as jest.Mock;
 
 const CTX: SubscriptionContext = { type: 'api', entityId: 'api-1' };
 
@@ -110,6 +113,13 @@ const PLANS: Plan[] = [
         generalConditions: 'page-1',
     },
 ];
+
+function setDatetimeValidity(input: HTMLInputElement, badInput: boolean) {
+    Object.defineProperty(input, 'validity', {
+        configurable: true,
+        get: () => ({ badInput }) as ValidityState,
+    });
+}
 
 function renderBar(subscription: Subscription, isFederated = false) {
     return render(
@@ -181,8 +191,19 @@ const PAUSED_SUBSCRIPTION: Subscription = {
 };
 
 describe('SubscriptionActionsBar end date', () => {
+    const endingAt = '2026-10-19T18:30:00.000Z';
+    let endDateMutate: jest.Mock;
+
     beforeEach(() => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2026-06-15T10:05:30.000Z'));
         mockUseApiPlans.mockReturnValue({ data: [] });
+        endDateMutate = jest.fn();
+        mockUseUpdateEndDate.mockReturnValue({ mutate: endDateMutate, isPending: false });
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
     });
 
     it('shows Transfer, Change end date, and Resume on a paused non-federated subscription', () => {
@@ -194,24 +215,108 @@ describe('SubscriptionActionsBar end date', () => {
         expect(screen.queryByRole('button', { name: /^pause$/i })).toBeNull();
     });
 
-    it('prefills the local end date and keeps save disabled until that date changes', () => {
-        renderBar({ ...PAUSED_SUBSCRIPTION, endingAt: '2026-10-19T18:30:00.000Z' });
+    it('prefills the local end date and time and keeps save disabled until that value changes', () => {
+        renderBar({ ...PAUSED_SUBSCRIPTION, endingAt });
 
         fireEvent.click(screen.getByRole('button', { name: /change end date/i }));
         const input = screen.getByLabelText(/End date/) as HTMLInputElement;
-        const ending = new Date('2026-10-19T18:30:00.000Z');
-        const today = new Date();
-        const ymd = (date: Date) =>
-            `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        const prefilled = toDatetimeLocalValue(new Date(endingAt));
 
-        expect(input.value).toBe(ymd(ending));
-        expect(input.min).toBe(ymd(today));
+        expect(input.type).toBe('datetime-local');
+        expect(input.value).toBe(prefilled);
+        expect(input.min).toBe(toDatetimeLocalValue(new Date()));
         expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
 
-        fireEvent.change(input, { target: { value: '2026-12-01' } });
+        fireEvent.change(input, { target: { value: '2099-12-01T08:15' } });
         expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
 
-        fireEvent.change(input, { target: { value: ymd(ending) } });
+        fireEvent.change(input, { target: { value: prefilled } });
+        expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+    });
+
+    it('sends the chosen local date and time as an ISO instant', () => {
+        renderBar({ ...PAUSED_SUBSCRIPTION, endingAt });
+
+        fireEvent.click(screen.getByRole('button', { name: /change end date/i }));
+        const chosen = '2099-12-01T08:15';
+        fireEvent.change(screen.getByLabelText(/End date/), { target: { value: chosen } });
+        fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+        expect(endDateMutate).toHaveBeenCalledWith(
+            expect.objectContaining({ endingAt: new Date(chosen).toISOString() }),
+            expect.any(Object),
+        );
+    });
+
+    it('blocks a date and time earlier than the current minute', () => {
+        renderBar(PAUSED_SUBSCRIPTION);
+
+        fireEvent.click(screen.getByRole('button', { name: /change end date/i }));
+        const input = screen.getByLabelText(/End date/) as HTMLInputElement;
+        fireEvent.change(input, { target: { value: '2020-01-01T00:00' } });
+
+        expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+        expect(screen.getByText(/must not be earlier than the current minute/i)).toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+        expect(endDateMutate).not.toHaveBeenCalled();
+
+        fireEvent.change(input, { target: { value: toDatetimeLocalValue(new Date()) } });
+        expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
+    });
+
+    it('sends a null end date when the field is cleared', () => {
+        renderBar({ ...PAUSED_SUBSCRIPTION, endingAt });
+
+        fireEvent.click(screen.getByRole('button', { name: /change end date/i }));
+        fireEvent.change(screen.getByLabelText(/End date/), { target: { value: '' } });
+
+        expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
+        fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+        expect(endDateMutate).toHaveBeenCalledWith(expect.objectContaining({ endingAt: null }), expect.any(Object));
+    });
+
+    it('blocks an empty end date that has only a date typed, even when change does not fire', () => {
+        renderBar(PAUSED_SUBSCRIPTION);
+
+        fireEvent.click(screen.getByRole('button', { name: /change end date/i }));
+        const input = screen.getByLabelText(/End date/) as HTMLInputElement;
+        setDatetimeValidity(input, true);
+        fireEvent.blur(input);
+
+        expect(screen.getByText('Enter both a date and a time.')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+
+        fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+        expect(endDateMutate).not.toHaveBeenCalled();
+    });
+
+    it('blocks a date entered without a time instead of clearing the end date', () => {
+        renderBar({ ...PAUSED_SUBSCRIPTION, endingAt });
+
+        fireEvent.click(screen.getByRole('button', { name: /change end date/i }));
+        const input = screen.getByLabelText(/End date/) as HTMLInputElement;
+        setDatetimeValidity(input, true);
+        fireEvent.change(input, { target: { value: '' } });
+
+        expect(screen.getByText('Enter both a date and a time.')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+        fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+        expect(endDateMutate).not.toHaveBeenCalled();
+    });
+
+    it('shows the past-date error when the chosen minute passes before save', () => {
+        renderBar(PAUSED_SUBSCRIPTION);
+
+        fireEvent.click(screen.getByRole('button', { name: /change end date/i }));
+        const input = screen.getByLabelText(/End date/) as HTMLInputElement;
+        fireEvent.change(input, { target: { value: toDatetimeLocalValue(new Date()) } });
+        expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
+
+        jest.setSystemTime(new Date('2026-06-15T10:07:00.000Z'));
+        fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+        expect(endDateMutate).not.toHaveBeenCalled();
+        expect(screen.getByText(/must not be earlier than the current minute/i)).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
     });
 
@@ -219,7 +324,10 @@ describe('SubscriptionActionsBar end date', () => {
         renderBar(PAUSED_SUBSCRIPTION);
 
         fireEvent.click(screen.getByRole('button', { name: /change end date/i }));
-        expect((screen.getByLabelText(/End date/) as HTMLInputElement).value).toBe('');
+        const input = screen.getByLabelText(/End date/) as HTMLInputElement;
+        expect(input.type).toBe('datetime-local');
+        expect(input.value).toBe('');
+        expect(input.min).toBe(toDatetimeLocalValue(new Date()));
         expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
     });
 });
