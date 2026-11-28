@@ -17,6 +17,15 @@ import { Links } from './links';
 
 export interface DataResponse<T> {
   data?: Array<T>;
-  metadata?: { [key: string]: { [key: string]: object } };
+  metadata?: {
+    pagination?: {
+      current_page?: number;
+      first?: number;
+      last?: number;
+      size?: number;
+      total?: number;
+      total_pages?: number;
+    };
+  };
   links?: Links;
 }

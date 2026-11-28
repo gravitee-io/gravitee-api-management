@@ -294,6 +294,18 @@ describe('ConfigService', () => {
         httpTestingController.expectOne(`/configuration`).flush({ portalNext });
       });
 
+      it('should load the skip login with single IdP setting', done => {
+        const portalNext: ConfigurationPortalNext = {
+          skipLoginWithSingleIdp: { enabled: true },
+        };
+        service.loadConfiguration().subscribe(() => {
+          expect(service.configuration.portalNext).toEqual(portalNext);
+          done();
+        });
+
+        httpTestingController.expectOne(`/configuration`).flush({ portalNext });
+      });
+
       it('should load missing portal next configuration', done => {
         const portalNext: ConfigurationPortalNext = {};
         service.loadConfiguration().subscribe(() => {

@@ -17,6 +17,7 @@
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { APP_BASE_HREF } from '@angular/common';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentRef, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -29,6 +30,7 @@ import { PortalNavigationItem, PortalNavigationLink } from '../../entities/porta
 import { fakeUser } from '../../entities/user/user.fixtures';
 import { ConfigService } from '../../services/config.service';
 import { PortalNavigationItemsService } from '../../services/portal-navigation-items.service';
+import { SignInService } from '../../services/sign-in.service';
 import { AppTestingModule, ConfigServiceStub, TESTING_BASE_URL } from '../../testing/app-testing.module';
 import { DivHarness } from '../../testing/div.harness';
 
@@ -76,6 +78,7 @@ describe('NavBarComponent', () => {
       imports: [NavBarComponent, AppTestingModule],
       providers: [
         { provide: BreakpointObserver, useValue: mockBreakpointObserver },
+        { provide: APP_BASE_HREF, useValue: '/next/' },
         { provide: PortalNavigationItemsService, useValue: portalNavigationItemsServiceMock },
       ],
     }).compileComponents();
@@ -113,6 +116,15 @@ describe('NavBarComponent', () => {
       componentRef.setInput('currentUser', fakeUser());
       logInButton = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'Sign in' }));
       expect(logInButton).toBeFalsy();
+    });
+
+    it('should hand the Sign in click to the shared handler instead of opening the login page', async () => {
+      const signIn = jest.spyOn(TestBed.inject(SignInService), 'signIn').mockReturnValue();
+
+      const logInButton = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Sign in' }));
+      await logInButton.click();
+
+      expect(signIn).toHaveBeenCalledTimes(1);
     });
 
     it('should not show links if user is not connected and login is forced', async () => {
@@ -162,6 +174,32 @@ describe('NavBarComponent', () => {
       const links: NodeList = fixture.debugElement.nativeElement.querySelectorAll('.mobile-menu__link');
       const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
       expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Sign in']);
+    });
+
+    it('should hand the Sign in click to the shared handler and close the menu', async () => {
+      const signIn = jest.spyOn(TestBed.inject(SignInService), 'signIn').mockReturnValue();
+      expectHomePage();
+      fixture.detectChanges();
+
+      const menuButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.mobile-menu__button' }));
+      await menuButton.click();
+      const signInLink: HTMLElement = fixture.debugElement.nativeElement.querySelector('[data-testid="sign-in-button"]');
+      signInLink.click();
+      fixture.detectChanges();
+
+      expect(signIn).toHaveBeenCalledTimes(1);
+      expect(fixture.debugElement.nativeElement.querySelectorAll('.mobile-menu__link')).toHaveLength(0);
+    });
+
+    it('should resolve the Sign in link against the deployed base href', async () => {
+      expectHomePage();
+      fixture.detectChanges();
+
+      const menuButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.mobile-menu__button' }));
+      await menuButton.click();
+      const signInLink: HTMLAnchorElement = fixture.debugElement.nativeElement.querySelector('[data-testid="sign-in-button"]');
+
+      expect(signInLink.getAttribute('href')).toEqual('/next/log-in');
     });
 
     it('should show logout button if user connected', async () => {

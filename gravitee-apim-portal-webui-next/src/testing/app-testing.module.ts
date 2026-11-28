@@ -77,9 +77,13 @@ export class ConfigServiceStub {
 @Injectable()
 export class IdentityProviderServiceStub {
   providers: IdentityProvider[] = [];
+  total?: number;
 
-  getPortalIdentityProviders(): Observable<DataResponse<IdentityProvider[]>> {
-    return of({ data: this.providers } as unknown as DataResponse<IdentityProvider[]>);
+  getPortalIdentityProviders(): Observable<DataResponse<IdentityProvider>> {
+    return of({
+      data: this.providers,
+      metadata: { pagination: { total: this.total ?? this.providers?.length ?? 0 } },
+    });
   }
   getPortalIdentityProvider(): Observable<IdentityProvider> {
     return of();

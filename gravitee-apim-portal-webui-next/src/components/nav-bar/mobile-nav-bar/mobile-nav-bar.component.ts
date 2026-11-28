@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { LocationStrategy } from '@angular/common';
 import { Component, computed, ElementRef, HostListener, inject, input, InputSignal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { isEmpty } from 'lodash';
 import { catchError, map } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
@@ -26,6 +27,9 @@ import { PortalNavigationItem } from '../../../entities/portal-navigation/portal
 import { User } from '../../../entities/user/user';
 import { ConfigService } from '../../../services/config.service';
 import { PortalService } from '../../../services/portal.service';
+import { SignInService } from '../../../services/sign-in.service';
+
+const LOG_IN_ROUTE = '/log-in';
 
 @Component({
   selector: 'app-mobile-nav-bar',
@@ -47,6 +51,14 @@ export class MobileNavBarComponent {
   );
 
   private readonly configService = inject(ConfigService);
+  private readonly signInService = inject(SignInService);
+  private readonly router = inject(Router);
+  protected readonly logInUrl = inject(LocationStrategy).prepareExternalUrl(
+    this.router.serializeUrl(this.router.createUrlTree([LOG_IN_ROUTE])),
+  );
+  protected readonly isOnLogInPage = toSignal(this.router.events.pipe(map(() => this.router.url.startsWith(LOG_IN_ROUTE))), {
+    initialValue: false,
+  });
   protected isLoggedIn = computed(() => {
     return !isEmpty(this.currentUser());
   });
@@ -63,5 +75,11 @@ export class MobileNavBarComponent {
 
   closeMenu() {
     this.isMobileMenuOpened = false;
+  }
+
+  protected signIn(event: MouseEvent): void {
+    event.preventDefault();
+    this.closeMenu();
+    this.signInService.signIn();
   }
 }
