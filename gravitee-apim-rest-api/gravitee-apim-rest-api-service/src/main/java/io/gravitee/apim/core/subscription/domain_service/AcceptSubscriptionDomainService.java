@@ -35,17 +35,17 @@ import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDo
 import io.gravitee.apim.core.metadata.crud_service.MetadataCrudService;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
-import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApiProductHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApplicationHookContext;
+import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApiHookContext;
+import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApplicationHookContext;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
-import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.federation.SubscriptionParameter;
@@ -53,7 +53,6 @@ import io.gravitee.rest.api.model.context.OriginContext;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
@@ -254,7 +253,7 @@ public class AcceptSubscriptionDomainService {
 
         createAudit(subscription, rejected, auditInfo);
 
-        triggerNotifications(auditInfo.organizationId(), auditInfo.environmentId(), rejected);
+        triggerRejectionNotifications(auditInfo.organizationId(), auditInfo.environmentId(), rejected);
 
         return rejected;
     }
@@ -319,13 +318,7 @@ public class AcceptSubscriptionDomainService {
     }
 
     private void triggerNotifications(String organizationId, String environmentId, SubscriptionEntity acceptedSubscription) {
-        var subscriberEmail = userCrudService
-            .findBaseUserById(acceptedSubscription.getSubscribedBy())
-            .map(BaseUserEntity::getEmail)
-            .filter(email -> !email.isEmpty())
-            .map(email -> new Recipient("EMAIL", email));
-
-        var additionalRecipients = subscriberEmail.map(List::of).orElse(Collections.emptyList());
+        var additionalRecipients = SubscriberRecipients.of(userCrudService, acceptedSubscription);
 
         var applicationPrimaryOwner = applicationPrimaryOwnerDomainService.getApplicationPrimaryOwner(
             organizationId,
@@ -369,6 +362,43 @@ public class AcceptSubscriptionDomainService {
                 referenceId,
                 acceptedSubscription.getPlanId(),
                 acceptedSubscription.getId(),
+                applicationPrimaryOwner.id()
+            ),
+            additionalRecipients
+        );
+    }
+
+    private void triggerRejectionNotifications(String organizationId, String environmentId, SubscriptionEntity rejectedSubscription) {
+        var additionalRecipients = SubscriberRecipients.of(userCrudService, rejectedSubscription);
+
+        var applicationPrimaryOwner = applicationPrimaryOwnerDomainService.getApplicationPrimaryOwner(
+            organizationId,
+            rejectedSubscription.getApplicationId()
+        );
+
+        // only a federated plan reaches this path, and a federated plan always belongs to an API
+        String referenceId = rejectedSubscription.getReferenceId();
+        triggerNotificationDomainService.triggerApiSubscriptionNotification(
+            organizationId,
+            environmentId,
+            referenceId,
+            new SubscriptionRejectedApiHookContext(
+                referenceId,
+                rejectedSubscription.getApplicationId(),
+                rejectedSubscription.getPlanId(),
+                rejectedSubscription.getId(),
+                applicationPrimaryOwner.id()
+            )
+        );
+        triggerNotificationDomainService.triggerApplicationNotification(
+            organizationId,
+            environmentId,
+            new SubscriptionRejectedApplicationHookContext(
+                rejectedSubscription.getApplicationId(),
+                rejectedSubscription.getReferenceType(),
+                referenceId,
+                rejectedSubscription.getPlanId(),
+                rejectedSubscription.getId(),
                 applicationPrimaryOwner.id()
             ),
             additionalRecipients

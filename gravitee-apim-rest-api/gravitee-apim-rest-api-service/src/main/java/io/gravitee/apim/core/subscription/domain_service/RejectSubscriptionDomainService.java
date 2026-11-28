@@ -25,7 +25,6 @@ import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
-import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApiProductHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApplicationHookContext;
@@ -33,9 +32,7 @@ import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
-import io.gravitee.apim.core.user.model.BaseUserEntity;
 import java.util.Collections;
-import java.util.List;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -71,13 +68,7 @@ public class RejectSubscriptionDomainService {
     }
 
     private void triggerNotifications(String organizationId, String environmentId, SubscriptionEntity rejectedSubscriptionEntity) {
-        var subscriberEmail = userCrudService
-            .findBaseUserById(rejectedSubscriptionEntity.getSubscribedBy())
-            .map(BaseUserEntity::getEmail)
-            .filter(email -> !email.isEmpty())
-            .map(email -> new Recipient("EMAIL", email));
-
-        var additionalRecipients = subscriberEmail.map(List::of).orElse(Collections.emptyList());
+        var additionalRecipients = SubscriberRecipients.of(userCrudService, rejectedSubscriptionEntity);
 
         var applicationPrimaryOwner = applicationPrimaryOwnerDomainService.getApplicationPrimaryOwner(
             organizationId,
