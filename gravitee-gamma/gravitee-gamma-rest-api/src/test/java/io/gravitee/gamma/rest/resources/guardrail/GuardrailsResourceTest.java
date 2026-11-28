@@ -176,7 +176,7 @@ class GuardrailsResourceTest extends AbstractResourceTest {
 
     private void givenGuardrailsLicensed(boolean licensed) {
         License license = mock(License.class);
-        when(license.isFeatureEnabled("apim-guardians")).thenReturn(licensed);
+        when(license.isFeatureEnabled("gamma-aim-guardrails")).thenReturn(licensed);
         when(licenseManager.getPlatformLicense()).thenReturn(license);
     }
 

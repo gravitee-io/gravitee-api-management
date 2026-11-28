@@ -64,7 +64,7 @@ class ResourcePluginResourceTest extends AbstractResourceTest {
 
     private static final String TYPE = "ai-model-token-classification";
     private static final String FEATURE = "apim-ai-resource-model-token-classification";
-    private static final String GUARDRAILS_FEATURE = "apim-guardians";
+    private static final String GUARDRAILS_FEATURE = "gamma-aim-guardrails";
 
     @Inject
     private ConfigurablePluginManager<ResourcePlugin<?>> resourcePluginManager;
