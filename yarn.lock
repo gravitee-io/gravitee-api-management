@@ -14053,10 +14053,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:4.17.25":
-  version: 4.17.25
-  resolution: "@types/lodash@npm:4.17.25"
-  checksum: 10c0/ca2049f16bf527e04d6e27702e3912a484faaff587de77a5c58e0d243b9292a655e1d7f7e5bdf2ffdf49a76da10673097f8dd4901990679058d47ccd99051877
+"@types/lodash@npm:4.17.28":
+  version: 4.17.28
+  resolution: "@types/lodash@npm:4.17.28"
+  checksum: 10c0/f1f4277e33628bb1cadb88dfff8086ce2ef89d4b8755a3f63319ccc34b8fed006c9b4aa0b9d5ebcde1eb687cc041f502dd62313512b8c5a5518a1a07a71c3d46
   languageName: node
   linkType: hard
 
@@ -21626,7 +21626,7 @@ __metadata:
     "@types/diff": "npm:5.2.3"
     "@types/jest": "npm:30.0.0"
     "@types/jquery": "npm:3.5.34"
-    "@types/lodash": "npm:4.17.25"
+    "@types/lodash": "npm:4.17.28"
     "@types/node": "npm:24.13.4"
     "@types/react": "npm:19.3.0"
     "@types/react-dom": "npm:19.3.0"
