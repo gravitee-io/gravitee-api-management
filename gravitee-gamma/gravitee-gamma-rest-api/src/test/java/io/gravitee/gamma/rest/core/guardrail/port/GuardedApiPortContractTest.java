@@ -111,6 +111,28 @@ public abstract class GuardedApiPortContractTest {
         assertThat(port().findByGuardrail(ENVIRONMENT_ID, "guardrail-2", 1, 10).getContent()).as("APIs running guardrail-2").isEmpty();
     }
 
+    /**
+     * The page number reaches the caller as it is, and the caller counts pages from one: a page numbered from zero
+     * makes it expect a whole page and tell of APIs it may not read where there are none.
+     */
+    @Test
+    void should_number_the_page_it_serves_from_one() {
+        givenApi(ENVIRONMENT_ID, API_ID, API_NAME, running("guardrail-1"));
+        givenApi(ENVIRONMENT_ID, "api-2", "Triage assistant", running("guardrail-1"));
+        givenApi(ENVIRONMENT_ID, "api-3", "Writing assistant", running("guardrail-1"));
+
+        var page = port().findByGuardrail(ENVIRONMENT_ID, "guardrail-1", 2, 2);
+
+        assertSoftly(softly -> {
+            softly.assertThat(page.getPageNumber()).as("page number").isEqualTo(2);
+            softly
+                .assertThat(page.getContent())
+                .as("APIs of the second page")
+                .containsExactly(new ApiReference("api-3", "Writing assistant"));
+            softly.assertThat(page.getTotalElements()).as("APIs running guardrail-1").isEqualTo(3);
+        });
+    }
+
     /** Turning a Guardrail off stops the API from holding it back, with no second write to make that true. */
     @Test
     void should_stop_listing_an_api_the_port_itself_turned_the_guardrail_off_on() {

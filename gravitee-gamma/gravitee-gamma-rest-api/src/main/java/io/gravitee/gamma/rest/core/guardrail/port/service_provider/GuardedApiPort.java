@@ -38,6 +38,7 @@ public interface GuardedApiPort {
      * One page of the APIs of the environment whose definition runs this Guardrail, by name.
      *
      * @param pageNumber 1-based
+     * @return the page, numbered as it was asked
      */
     Page<ApiReference> findByGuardrail(String environmentId, String guardrailId, int pageNumber, int pageSize);
 
