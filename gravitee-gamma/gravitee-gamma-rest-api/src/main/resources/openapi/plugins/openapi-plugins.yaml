@@ -26,13 +26,13 @@ tags:
       description: |
           The installed policy plugins and the flows they can run in. Every operation requires the
           `ORGANIZATION_POLICIES` permission with the `READ` action on the organization of the path,
-          and the `apim-guardians` license feature.
+          and the `gamma-aim-guardrails` license feature.
     - name: Resources
       description: |
           The installed resource plugins. Every one listed as `deployed` is a type a Guardrail resource
           may be of: the catalog is not narrowed to the types a guardrail policy is known to use. Every operation
           requires the `ORGANIZATION_POLICIES` permission with the `READ` action on the organization
-          of the path, and the `apim-guardians` license feature.
+          of the path, and the `gamma-aim-guardrails` license feature.
 
 paths:
     /organizations/{orgId}/plugins/policies:
@@ -306,7 +306,7 @@ components:
         Forbidden:
             description: |
                 The caller lacks the `ORGANIZATION_POLICIES` permission with the `READ` action, or the license
-                does not enable the `apim-guardians` feature.
+                does not enable the `gamma-aim-guardrails` feature.
             content:
                 application/json:
                     schema:
