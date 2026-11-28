@@ -3285,7 +3285,7 @@ components:
         description:
           type: string
           description: A description for the step
-          maxLength: 256
+          maxLength: 4000
         enabled:
           type: boolean
           description: To enable the step globally.
