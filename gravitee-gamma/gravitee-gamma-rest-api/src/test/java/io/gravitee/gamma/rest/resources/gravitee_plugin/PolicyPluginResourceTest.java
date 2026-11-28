@@ -63,8 +63,8 @@ import org.springframework.test.context.ContextConfiguration;
 class PolicyPluginResourceTest extends AbstractResourceTest {
 
     private static final ObjectMapper JSON = new ObjectMapper();
-    private static final String FEATURE = "apim-guardian-policy-rule";
-    private static final String GUARDRAILS_FEATURE = "apim-guardians";
+    private static final String FEATURE = "gamma-aim-guardrails-policy-llm-rule";
+    private static final String GUARDRAILS_FEATURE = "gamma-aim-guardrails";
 
     @Inject
     private ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager;

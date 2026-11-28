@@ -90,7 +90,7 @@ class GuardrailDeploymentsResourceTest extends AbstractResourceTest {
         env.setOrganizationId(ORGANIZATION);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(env);
         License license = mock(License.class);
-        when(license.isFeatureEnabled("apim-guardians")).thenReturn(true);
+        when(license.isFeatureEnabled("gamma-aim-guardrails")).thenReturn(true);
         when(licenseManager.getPlatformLicense()).thenReturn(license);
     }
 
