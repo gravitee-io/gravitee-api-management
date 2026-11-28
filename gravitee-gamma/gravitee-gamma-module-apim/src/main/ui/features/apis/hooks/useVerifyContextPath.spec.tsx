@@ -53,20 +53,10 @@ describe('useVerifyContextPath', () => {
     });
 
     it('does not call the API when contextPath is empty', async () => {
-        renderHook(() => useHook(), { wrapper });
-
-        await act(async () => {
-            jest.runAllTimers();
-        });
-
-        expect(mockVerifyContextPath).not.toHaveBeenCalled();
-    });
-
-    it('does not call the API when contextPath fails local validation (too short)', async () => {
         const { result } = renderHook(() => useHook(), { wrapper });
 
         act(() => {
-            result.current.dispatch({ type: 'UPDATE_FORM', patch: { contextPath: '/ab' } });
+            result.current.dispatch({ type: 'UPDATE_FORM', patch: { contextPath: '' } });
         });
 
         await act(async () => {
@@ -75,6 +65,21 @@ describe('useVerifyContextPath', () => {
 
         expect(mockVerifyContextPath).not.toHaveBeenCalled();
         expect(result.current.state.isPathVerifying).toBe(false);
+    });
+
+    it.each(['/', '/ab'])('verifies the short context path %s against the API', async contextPath => {
+        const { result } = renderHook(() => useHook(), { wrapper });
+
+        act(() => {
+            result.current.dispatch({ type: 'UPDATE_FORM', patch: { contextPath } });
+        });
+
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        expect(mockVerifyContextPath).toHaveBeenCalledTimes(1);
+        expect(mockVerifyContextPath).toHaveBeenCalledWith('env-1', [{ path: contextPath }]);
     });
 
     it('does not call the API when contextPath contains invalid characters', async () => {

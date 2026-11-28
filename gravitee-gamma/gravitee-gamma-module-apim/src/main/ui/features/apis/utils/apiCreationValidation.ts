@@ -32,7 +32,6 @@ function validateTargetUrl(value: string): string | null {
 export function validateContextPath(value: string): string | null {
     const pathError = validateVirtualHostPath(value);
     if (pathError) return pathError;
-    if (value.length <= 3) return 'Context path has to be more than 3 characters long.';
     return null;
 }
 

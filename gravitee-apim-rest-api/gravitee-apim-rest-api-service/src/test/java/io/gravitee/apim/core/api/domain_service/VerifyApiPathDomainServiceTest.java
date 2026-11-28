@@ -134,6 +134,18 @@ class VerifyApiPathDomainServiceTest {
         assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [invalid>path] is invalid")));
     }
 
+    @Test
+    public void should_accept_root_path_as_only_path() {
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
+
+        var result = service.validateAndSanitize(
+            new VerifyApiPathDomainService.Input(ENVIRONMENT_ID, API_ID, List.of(Path.builder().path("/").build()))
+        );
+
+        assertThat(result.severe()).isEmpty();
+        assertThat(result.value().map(VerifyApiPathDomainService.Input::paths).orElseThrow().get(0).getPath()).isEqualTo("/");
+    }
+
     @ParameterizedTest
     @MethodSource("sanitizeHostParams")
     public void should_check_domain_restrictions_if_host_is_present(String host, String expectedHost) {
