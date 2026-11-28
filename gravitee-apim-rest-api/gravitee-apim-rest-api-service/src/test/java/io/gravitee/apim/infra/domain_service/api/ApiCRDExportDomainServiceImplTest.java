@@ -231,7 +231,7 @@ class ApiCRDExportDomainServiceImplTest {
             soft.assertThat(spec.getListeners()).hasSize(1);
             soft.assertThat(spec.getEndpointGroups()).hasSize(1);
             soft.assertThat(spec.getPlans()).hasSize(1);
-            soft.assertThat(spec.getPlans()).containsKey("plan-name");
+            soft.assertThat(spec.getPlans()).containsKey("plan-hrid");
         });
     }
 
@@ -257,7 +257,7 @@ class ApiCRDExportDomainServiceImplTest {
             soft.assertThat(spec.getListeners()).hasSize(1);
             soft.assertThat(spec.getEndpointGroups()).hasSize(1);
             soft.assertThat(spec.getPlans()).hasSize(1);
-            soft.assertThat(spec.getPlans()).containsKey("plan-name");
+            soft.assertThat(spec.getPlans()).containsKey("plan-hrid");
         });
     }
 
@@ -379,7 +379,7 @@ class ApiCRDExportDomainServiceImplTest {
             soft.assertThat(spec.getHrid()).isEqualTo("api-hrid");
             soft.assertThat(spec.getPlans()).hasSize(1);
             soft
-                .assertThat(spec.getPlans().get("plan-name"))
+                .assertThat(spec.getPlans().get("plan-hrid"))
                 .isInstanceOfSatisfying(PlanCRD.class, plan -> {
                     soft.assertThat(plan.getId()).isNull();
                     soft.assertThat(plan.getHrid()).isNotNull();
@@ -417,7 +417,7 @@ class ApiCRDExportDomainServiceImplTest {
             soft.assertThat(spec.getHrid()).isNull();
             soft.assertThat(spec.getPlans()).hasSize(1);
             soft
-                .assertThat(spec.getPlans().get("plan-name"))
+                .assertThat(spec.getPlans().get("plan-hrid"))
                 .isInstanceOfSatisfying(PlanCRD.class, plan -> {
                     soft.assertThat(plan.getId()).isEqualTo("plan-id");
                     soft.assertThat(plan.getHrid()).isNull();
