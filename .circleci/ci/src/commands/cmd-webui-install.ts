@@ -17,6 +17,7 @@ import { commands, parameters, reusable } from '../circleci-config';
 
 export class WebuiInstallCommand {
   private static commandName = 'cmd-webui-install';
+  private static nodeVersionFile = '/tmp/node-version';
 
   private static customParametersList = new parameters.CustomParametersList([
     new parameters.CustomParameter('apim-ui-project', 'string', '', 'the name of the UI project to build'),
@@ -27,11 +28,17 @@ export class WebuiInstallCommand {
     return new reusable.ReusableCommand(
       WebuiInstallCommand.commandName,
       [
+        // Jobs on different images share this cache, so the key carries the Node they run: the native
+        // addons built at install time depend on it.
+        new commands.Run({
+          name: 'Record the Node version for the Yarn cache key',
+          command: `node --version > ${WebuiInstallCommand.nodeVersionFile}`,
+        }),
         new commands.cache.Restore({
           name: 'Restore Yarn cache',
           keys: [
-            '<< parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project-workdir >>/yarn.lock" }}',
-            '<< parameters.apim-ui-project >>-cache-v1-{{ .Branch }}',
+            `<< parameters.apim-ui-project >>-cache-v1-{{ checksum "${WebuiInstallCommand.nodeVersionFile}" }}-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project-workdir >>/yarn.lock" }}`,
+            `<< parameters.apim-ui-project >>-cache-v1-{{ checksum "${WebuiInstallCommand.nodeVersionFile}" }}-{{ .Branch }}`,
           ],
         }),
         new commands.Run({
@@ -41,8 +48,13 @@ export class WebuiInstallCommand {
         }),
         new commands.cache.Save({
           name: 'Save Yarn cache',
-          key: '<< parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project-workdir >>/yarn.lock" }}',
-          paths: ['./<< parameters.apim-ui-project-workdir >>/node_modules'],
+          key: `<< parameters.apim-ui-project >>-cache-v1-{{ checksum "${WebuiInstallCommand.nodeVersionFile}" }}-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project-workdir >>/yarn.lock" }}`,
+          // node_modules alone is not enough: without install-state.gz yarn takes every package as
+          // never built and runs all their install scripts again.
+          paths: [
+            './<< parameters.apim-ui-project-workdir >>/node_modules',
+            './<< parameters.apim-ui-project-workdir >>/.yarn/install-state.gz',
+          ],
         }),
       ],
       WebuiInstallCommand.customParametersList,

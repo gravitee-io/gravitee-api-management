@@ -129,13 +129,36 @@ jobs:
                                 printf 'export GIT_COMMON_COMMIT_HASH=%q\n' "${COMMON_COMMIT}" >> $BASH_ENV
                                 echo "The common commit hash is ${COMMON_COMMIT}"
 
-            - node/install-packages:
-                  app-dir: .circleci/ci
-                  override-ci-command: npm install
+            # `node_modules` itself is cached, not `~/.npm`: with the npm cache restored, `npm install`
+            # still took about 50 seconds here. The lockfile is the key, so a hit is the tree `npm ci`
+            # would build, and installing is skipped.
+            - restore_cache:
+                  keys:
+                      - ci-node-modules-v1-{{ arch }}-{{ checksum ".circleci/ci/package-lock.json" }}
+            - run:
+                  name: Install CI Project dependencies
+                  working_directory: .circleci/ci
+                  command: |
+                      if [ -d node_modules ]; then
+                        echo "node_modules restored from the cache, nothing to install."
+                      else
+                        npm ci --prefer-offline --no-audit --no-fund
+                      fi
+            - save_cache:
+                  key: ci-node-modules-v1-{{ arch }}-{{ checksum ".circleci/ci/package-lock.json" }}
+                  paths:
+                      - .circleci/ci/node_modules
             - run:
                   name: Lint & Test CI Project
                   working_directory: .circleci/ci
                   command: |
+                      # Same reference and three-dot diff as the generator. No reference means master, a
+                      # support branch or a tag, and a failing diff exits non-zero: both run the checks.
+                      DIFF_REF="${GIT_COMMON_COMMIT_HASH:-${GIT_BASE_BRANCH:-}}"
+                      if [ -n "${DIFF_REF}" ] && git diff --quiet "${DIFF_REF}...HEAD" -- ':/.circleci'; then
+                        echo "Nothing changed under .circleci/ since ${DIFF_REF}, skipping."
+                        exit 0
+                      fi
                       npm run lint && npm run test
             - run:
                   name: Generate config

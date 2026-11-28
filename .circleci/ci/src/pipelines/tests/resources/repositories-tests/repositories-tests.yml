@@ -71,6 +71,21 @@ commands:
           command: |-
             corepack enable || sudo corepack enable
                     yarn set version 4.1.1
+  cmd-restore-yarn-workspace-cache:
+    steps:
+      - restore_cache:
+          name: Restore Yarn workspace cache
+          keys:
+            - gravitee-api-management-v16-yarn-workspace-openjdk-25.0.3-{{ .Branch }}-{{ checksum "yarn.lock" }}
+            - gravitee-api-management-v16-yarn-workspace-openjdk-25.0.3-{{ .Branch }}
+  cmd-save-yarn-workspace-cache:
+    steps:
+      - save_cache:
+          name: Save Yarn workspace cache
+          key: gravitee-api-management-v16-yarn-workspace-openjdk-25.0.3-{{ .Branch }}-{{ checksum "yarn.lock" }}
+          paths:
+            - ./node_modules
+            - ./.yarn/install-state.gz
   cmd-azure-artifacts-token:
     steps:
       - keeper/install
@@ -207,6 +222,7 @@ jobs:
       - cmd-restore-maven-job-cache:
           jobName: job-build
       - cmd-install-yarn
+      - cmd-restore-yarn-workspace-cache
       - cmd-azure-artifacts-token
       - run:
           name: Build core
@@ -216,6 +232,7 @@ jobs:
             BUILD_NUMBER: "1234"
             GIT_COMMIT: 784ff35ca
             MAVEN_OPTS: -Xmx2048m
+      - cmd-save-yarn-workspace-cache
       - run:
           name: Build distribution
           command: mvn -s .gravitee.settings.xml -f gravitee-apim-distribution/pom.xml clean install --no-transfer-progress -nsu -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8 -Dbundle=dev -Pintegration-tests-modules -Dapim.core.version=4.2.0 -DwithJavadoc

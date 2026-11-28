@@ -15,7 +15,14 @@
  */
 import { Command, Config, Job, commands, reusable } from '../../circleci-config';
 import { OpenJdkNodeExecutor } from '../../executors';
-import { InstallYarnCommand, NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
+import {
+  InstallYarnCommand,
+  NotifyOnFailureCommand,
+  RestoreMavenJobCacheCommand,
+  RestoreYarnWorkspaceCacheCommand,
+  SaveMavenJobCacheCommand,
+  SaveYarnWorkspaceCacheCommand,
+} from '../../commands';
 import { CircleCIEnvironment } from '../../pipelines';
 import { computeApimVersion, mavenParallelism } from '../../utils';
 
@@ -29,19 +36,25 @@ export class CommunityBuildBackendJob {
     // The root build runs the Gamma UI's `yarn install`; with the image's yarn 1 it would ignore the
     // berry lockfile and let swagger-ui's React 18 into the shared React.
     const installYarnCmd = InstallYarnCommand.get();
+    const restoreYarnWorkspaceCacheCmd = RestoreYarnWorkspaceCacheCommand.get(environment);
+    const saveYarnWorkspaceCacheCmd = SaveYarnWorkspaceCacheCommand.get();
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(saveMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
     dynamicConfig.addReusableCommand(installYarnCmd);
+    dynamicConfig.addReusableCommand(restoreYarnWorkspaceCacheCmd);
+    dynamicConfig.addReusableCommand(saveYarnWorkspaceCacheCmd);
 
     const steps: Command[] = [
       new commands.Checkout(),
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: jobName }),
       new reusable.ReusedCommand(installYarnCmd),
+      new reusable.ReusedCommand(restoreYarnWorkspaceCacheCmd),
       new commands.Run({
         name: 'Build project',
         command: `mvn clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false ${mavenParallelism('large')}`,
       }),
+      new reusable.ReusedCommand(saveYarnWorkspaceCacheCmd),
       new commands.Run({
         // The distribution left the product reactor, so the root build above no longer reaches it.
         // Without this step the job stopped answering the question it exists for — whether an

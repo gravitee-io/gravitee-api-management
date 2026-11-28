@@ -54,9 +54,10 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <executions>
-                    <!-- Single workspace install at repo root before submodules run Nx (avoids parallel yarn install on the same tree). Use -am when building a single UI module so this reactor project runs first. -->
+                    <!-- Single workspace install at repo root before submodules run Nx (avoids parallel yarn install on the same tree). Use -am when building a single UI module so this reactor project runs first. Not inherited: every submodule has this POM as parent and would run the install again. -->
                     <execution>
                         <id>yarn-workspace-install</id>
+                        <inherited>false</inherited>
                         <phase>generate-resources</phase>
                         <goals><goal>exec</goal></goals>
                         <configuration>
