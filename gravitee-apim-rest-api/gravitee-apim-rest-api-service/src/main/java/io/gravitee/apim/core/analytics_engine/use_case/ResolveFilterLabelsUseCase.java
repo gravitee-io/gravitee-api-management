@@ -85,6 +85,9 @@ public class ResolveFilterLabelsUseCase {
         var resolved = entries
             .stream()
             .map(entry -> {
+                if (isEndUser(entry)) {
+                    return new ResolvedEntry(entry.filterName(), endUserLabels(input.auditInfo().environmentId(), entry.ids()));
+                }
                 if (!isResolvable(entry)) {
                     log.warn("Ignoring unsupported observability filter label resolution request for filter [{}]", entry.filterName());
                     return new ResolvedEntry(entry.filterName(), Map.of());
@@ -185,6 +188,21 @@ public class ResolveFilterLabelsUseCase {
             .stream()
             .filter(label -> ids.contains(label.getKey()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    /**
+     * An end user is shown as the plan reported it, with no name to look up: only the key of the calls without one has
+     * a label, the one its facet bucket shows.
+     */
+    private Map<String, String> endUserLabels(String environmentId, List<String> ids) {
+        if (ids == null || !ids.contains(FilterSpec.NO_END_USER_VALUE)) {
+            return Map.of();
+        }
+        return filterValueNameResolver.resolveNames(environmentId, FilterSpec.Name.USER, List.of(FilterSpec.NO_END_USER_VALUE));
+    }
+
+    private static boolean isEndUser(Entry entry) {
+        return parseFilterName(entry.filterName()) == FilterSpec.Name.USER;
     }
 
     private static boolean isResolvable(Entry entry) {

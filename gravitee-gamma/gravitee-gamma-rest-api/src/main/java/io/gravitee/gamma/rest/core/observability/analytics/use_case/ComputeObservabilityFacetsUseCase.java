@@ -65,6 +65,7 @@ public class ComputeObservabilityFacetsUseCase {
             input.filters,
             input.metrics.stream().map(AnalyticsFacetMetricQuery::metricName).toList()
         );
+        pipeline.requireEndUserDisplayed(input.organizationId, input.filters, metricConditions, input.facets);
         var kind = pipeline.dataKindOf(input.filters, metricConditions, input.facets);
         var scope = pipeline
             .prepare(

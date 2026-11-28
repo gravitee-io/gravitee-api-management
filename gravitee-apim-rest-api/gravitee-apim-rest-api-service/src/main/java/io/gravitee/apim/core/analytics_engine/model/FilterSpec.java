@@ -38,6 +38,12 @@ public record FilterSpec(
     Set<Signal> signals
 ) {
     /**
+     * The {@code USER} key of the calls without an end user, in a facet bucket as in a condition. The repository writes it
+     * as {@code EndUser.NONE}, which core may not import: a test pins the two equal.
+     */
+    public static final String NO_END_USER_VALUE = "__no_end_user__";
+
+    /**
      * Normalises the optional {@code signals} entry of the definition file — see {@link Signal#DEFAULT}.
      *
      * <p>Done here rather than in the accessor so the record stays consistent with itself: {@code equals} and
@@ -80,6 +86,7 @@ public record FilterSpec(
         GEO_IP_CITY,
         GEO_IP_CONTINENT,
         CONSUMER_IP,
+        USER,
         HTTP_USER_AGENT_OS_NAME,
         HTTP_USER_AGENT_DEVICE,
         MESSAGE_CONNECTOR_TYPE,
@@ -140,7 +147,7 @@ public record FilterSpec(
 
         /** Holds a person or a client identifier: a query using it, as condition or facet, reads the requests themselves. */
         public boolean isIdentifying() {
-            return this == CONSUMER_IP || this == NATIVE_CLIENT_ID || this == AUTHZ_SUBJECT_ID;
+            return this == CONSUMER_IP || this == USER || this == NATIVE_CLIENT_ID || this == AUTHZ_SUBJECT_ID;
         }
     }
 

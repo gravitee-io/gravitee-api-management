@@ -50,8 +50,9 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
     }
 
     /**
-     * Facets whose bucket keys are entity ids, named through the same resolver as the filter labels so a chart and a
-     * filter chip always show the same name for the same id.
+     * Facets whose bucket keys are named through the same resolver as the filter labels, so a chart and a filter chip
+     * always show the same name for the same key: entity ids, and for {@code USER} the key of the calls without an end
+     * user (the other users keep their raw value).
      */
     private static final Map<FacetSpec.Name, FilterSpec.Name> ID_FACETS = Map.of(
         FacetSpec.Name.API,
@@ -61,7 +62,9 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
         FacetSpec.Name.PLAN,
         FilterSpec.Name.PLAN,
         FacetSpec.Name.API_PRODUCT,
-        FilterSpec.Name.API_PRODUCT
+        FilterSpec.Name.API_PRODUCT,
+        FacetSpec.Name.USER,
+        FilterSpec.Name.USER
     );
 
     private final FilterValueNameResolver filterValueNameResolver;

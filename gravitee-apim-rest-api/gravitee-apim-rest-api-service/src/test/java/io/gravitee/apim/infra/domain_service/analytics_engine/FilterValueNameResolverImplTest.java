@@ -33,10 +33,12 @@ import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.repository.analytics.engine.api.query.EndUser;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -97,6 +99,19 @@ class FilterValueNameResolverImplTest {
             var result = resolver.resolveNames(ENVIRONMENT_ID, FilterSpec.Name.API, Collections.emptyList());
 
             assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_name_the_no_end_user_key_and_leave_end_users_as_they_are() {
+            var result = resolver.resolveNames(ENVIRONMENT_ID, FilterSpec.Name.USER, List.of("alice@example.com", EndUser.NONE));
+
+            assertThat(result).containsExactly(Map.entry(EndUser.NONE, "No end user"));
+        }
+
+        /** Core labels the key without importing the repository: its own copy must stay the one the repository writes. */
+        @Test
+        void should_label_the_no_end_user_key_that_core_names() {
+            assertThat(FilterSpec.NO_END_USER_VALUE).isEqualTo(EndUser.NONE);
         }
 
         @Test

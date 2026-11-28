@@ -140,6 +140,29 @@ class SearchMetricsResponseAdapterTest extends AbstractAdapterTest {
     }
 
     @Nested
+    class EndUser {
+
+        @Test
+        void should_map_the_end_user_from_v4_metrics_hit() {
+            var searchResponse = buildSearchHit("api-proxy-v4-metrics-with-user.json");
+
+            var result = SearchMetricsResponseAdapter.adapt(searchResponse);
+
+            assertThat(result.data()).singleElement().extracting(Metrics::getUser).isEqualTo("idp-subject-42");
+        }
+
+        @Test
+        void should_map_the_end_user_from_v2_request_index_hit() {
+            // The v2 request document names the field the same way.
+            var searchResponse = buildSearchHitWithIndex("api-proxy-v4-metrics-with-user.json", "gravitee-request-2025.01.01");
+
+            var result = SearchMetricsResponseAdapter.adapt(searchResponse);
+
+            assertThat(result.data()).singleElement().extracting(Metrics::getUser).isEqualTo("idp-subject-42");
+        }
+    }
+
+    @Nested
     class BasicFieldMapping {
 
         @Test

@@ -49,6 +49,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
               - MCP_PROXY_METHOD
@@ -80,6 +81,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
               - MCP_PROXY_METHOD
@@ -120,6 +122,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
               - MCP_PROXY_METHOD
@@ -151,6 +154,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
               - MCP_PROXY_METHOD
@@ -195,6 +199,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
               - MCP_PROXY_METHOD
@@ -225,6 +230,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
               - MCP_PROXY_METHOD
@@ -269,6 +275,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
               - MCP_PROXY_METHOD
@@ -299,6 +306,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
               - MCP_PROXY_METHOD
@@ -343,6 +351,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
               - MCP_PROXY_METHOD
@@ -373,6 +382,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
               - MCP_PROXY_METHOD
@@ -417,6 +427,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
           filters:
@@ -442,6 +453,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
               - MCP_PROXY_METHOD
@@ -486,6 +498,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
               - MCP_PROXY_METHOD
@@ -516,6 +529,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
               - MCP_PROXY_METHOD
@@ -553,11 +567,13 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
           filters:
               - API
               - APPLICATION
+              - USER
               - PLAN
               - GATEWAY
               - TENANT
@@ -608,6 +624,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
           filters:
@@ -632,6 +649,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
 
@@ -664,6 +682,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
           filters:
@@ -688,6 +707,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
 
@@ -720,6 +740,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
           filters:
@@ -744,6 +765,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
 
@@ -776,6 +798,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
           filters:
@@ -800,6 +823,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
 
@@ -832,6 +856,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
           filters:
@@ -856,6 +881,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
 
@@ -1002,6 +1028,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
               - MCP_PROXY_METHOD
@@ -1033,6 +1060,7 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - USER
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
               - MCP_PROXY_METHOD
@@ -1948,6 +1976,13 @@ spec:
               - EQ
               - IN
 
+        - name: USER
+          label: End user
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
         - name: HTTP_USER_AGENT_OS_NAME
           label: User Agent OS
           type: KEYWORD
@@ -2468,6 +2503,10 @@ spec:
 
         - name: CONSUMER_IP
           label: Consumer IP
+          type: KEYWORD
+
+        - name: USER
+          label: End user
           type: KEYWORD
 
         - name: HTTP_USER_AGENT_OS_NAME
