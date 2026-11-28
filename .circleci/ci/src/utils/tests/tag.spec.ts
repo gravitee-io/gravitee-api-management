@@ -13,10 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { computeImagesTag } from '../tags';
+import { computeImagesTag, computeLineImagesTag } from '../tags';
 
 describe('tags', () => {
   it('should compute docker images tag', () => {
     expect(computeImagesTag('apim-1234-toto')).toStrictEqual('apim-1234-toto-latest');
+  });
+
+  it.each`
+    baseBranch          | expected
+    ${'master'}         | ${'master-latest'}
+    ${'origin/master'}  | ${'master-latest'}
+    ${'4.13.x'}         | ${'4.13.x-latest'}
+    ${'origin/4.13.x'}  | ${'4.13.x-latest'}
+    ${'APIM-1234-base'} | ${'master-latest'}
+  `('should compute the line images tag $expected for base branch $baseBranch', ({ baseBranch, expected }) => {
+    expect(computeLineImagesTag(baseBranch)).toStrictEqual(expected);
   });
 });

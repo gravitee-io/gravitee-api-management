@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { sanitizeBranch } from './branch';
+import { isSupportBranchOrMaster, sanitizeBranch } from './branch';
 
 /**
  * Computes a Docker tag suffix based on the provided SHA1 hash.
@@ -29,4 +29,13 @@ export function computeDockerTagSuffix(sha1?: string): string {
 
 export function computeImagesTag(branch: string, sha1?: string): string {
   return `${sanitizeBranch(branch)}-${computeDockerTagSuffix(sha1)}`;
+}
+
+/**
+ * The images tag of the line a pull request targets: what its CI publishes for that branch head
+ * (`master-latest`, `4.13.x-latest`). A base that is not a line falls back to master's.
+ */
+export function computeLineImagesTag(baseBranch: string): string {
+  const base = baseBranch.replace(/^origin\//, '');
+  return computeImagesTag(isSupportBranchOrMaster(base) ? base : 'master');
 }
