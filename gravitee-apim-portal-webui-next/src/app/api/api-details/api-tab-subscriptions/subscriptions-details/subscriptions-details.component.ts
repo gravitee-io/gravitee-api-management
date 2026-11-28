@@ -16,7 +16,7 @@
 
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, Input, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -28,6 +28,7 @@ import { of } from 'rxjs/internal/observable/of';
 
 import { SubscriptionConsumerConfigurationComponent } from './subscription-consumer-configuration';
 import { ApiAccessComponent } from '../../../../../components/api-access/api-access.component';
+import { BannerComponent } from '../../../../../components/banner/banner.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../../../../components/confirm-dialog/confirm-dialog.component';
 import { LoaderComponent } from '../../../../../components/loader/loader.component';
 import { SubscriptionInfoComponent } from '../../../../../components/subscription-info/subscription-info.component';
@@ -73,6 +74,7 @@ interface SubscriptionDetailsData {
   apiName?: string;
   hasDocumentationAccess: boolean;
   canManageApiKey: boolean;
+  canCloseSubscription: boolean;
   documentationNavigationTarget?: ApiDocumentationNavigationTarget;
   consumerConfiguration?: SubscriptionConsumerConfiguration;
 }
@@ -87,6 +89,7 @@ interface SubscriptionDetailsData {
     ReactiveFormsModule,
     AsyncPipe,
     ApiAccessComponent,
+    BannerComponent,
     SubscriptionInfoComponent,
     LoaderComponent,
     SubscriptionConsumerConfigurationComponent,
@@ -108,6 +111,8 @@ export class SubscriptionsDetailsComponent implements OnInit {
   subscriptionDetails$: Observable<SubscriptionDetailsVM> = of();
 
   isLoadingStatus: boolean = true;
+
+  readonly hasCloseSubscriptionFailed = signal(false);
 
   constructor(
     private subscriptionService: SubscriptionService,
@@ -140,12 +145,13 @@ export class SubscriptionsDetailsComponent implements OnInit {
       .afterClosed()
       .pipe(
         filter(confirmed => !!confirmed),
+        tap(() => this.hasCloseSubscriptionFailed.set(false)),
         switchMap(() => this.subscriptionService.close(this.subscriptionId)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: _ => this._subscriptionDetails.next(true),
-        error: err => console.error(err),
+        error: () => this.hasCloseSubscriptionFailed.set(true),
       });
   }
 
@@ -166,6 +172,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
   }
 
   reloadSubscriptionDetails() {
+    this.hasCloseSubscriptionFailed.set(false);
     this._subscriptionDetails.next(true);
   }
 
@@ -195,6 +202,11 @@ export class SubscriptionsDetailsComponent implements OnInit {
 
   private canRevokeApiKey(apiPermissions?: UserApiPermissions, applicationPermissions?: UserApplicationPermissions): boolean {
     return !!apiPermissions?.SUBSCRIPTION?.includes('U') || !!applicationPermissions?.SUBSCRIPTION?.includes('U');
+  }
+
+  // The Portal API closes a subscription only with the application SUBSCRIPTION delete permission; API permissions do not grant it.
+  private canCloseSubscription(applicationPermissions?: UserApplicationPermissions): boolean {
+    return !!applicationPermissions?.SUBSCRIPTION?.includes('D');
   }
 
   private loadDetails() {
@@ -252,6 +264,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
             entrypointUrls: api?.entrypoints ?? [],
             hasDocumentationAccess,
             canManageApiKey,
+            canCloseSubscription: this.canCloseSubscription(applicationPermissions),
             documentationNavigationTarget: documentationNavigationTarget ?? undefined,
           };
 

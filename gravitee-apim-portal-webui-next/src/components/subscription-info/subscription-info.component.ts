@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, input, Input, OnInit, Output } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -74,6 +74,8 @@ export class SubscriptionInfoComponent implements OnInit {
 
   @Input()
   isLoadingStatus: boolean = false;
+
+  canClose = input(false);
 
   @Input()
   consumerStatus: SubscriptionConsumerStatusEnum = SubscriptionConsumerStatusEnum.STARTED;
