@@ -366,6 +366,28 @@ public class ApiCrudServiceImplTest {
 
         @Test
         @SneakyThrows
+        void should_keep_the_stored_sync_from_of_a_kubernetes_origin_api_it_read() {
+            var stored = io.gravitee.repository.management.model.Api.builder()
+                .id(API_ID)
+                .origin("kubernetes")
+                .mode("fully_managed")
+                .syncFrom("MANAGEMENT")
+                .definitionVersion(DefinitionVersion.V4)
+                .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4()))
+                .apiLifecycleState(ApiLifecycleState.PUBLISHED)
+                .lifecycleState(LifecycleState.STARTED)
+                .build();
+            when(apiRepository.findById(API_ID)).thenReturn(Optional.of(stored));
+
+            service.update(service.get(API_ID));
+
+            var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.Api.class);
+            verify(apiRepository).update(captor.capture());
+            assertThat(captor.getValue().getSyncFrom()).isEqualTo("MANAGEMENT");
+        }
+
+        @Test
+        @SneakyThrows
         void should_update_an_existing_v4_api() {
             var plan = ApiFixtures.aProxyApiV4()
                 .toBuilder()

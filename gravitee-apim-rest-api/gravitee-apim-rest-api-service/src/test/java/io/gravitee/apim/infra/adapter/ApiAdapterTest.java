@@ -57,7 +57,9 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiAdapterTest {
@@ -273,8 +275,37 @@ class ApiAdapterTest {
 
             var apiWithKubernetesContext = ApiAdapter.INSTANCE.toCoreModel(apiV4().origin("kubernetes").mode("fully_managed").build());
             assertThat(apiWithKubernetesContext).hasOriginContext(
-                new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED)
+                new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED, "MANAGEMENT")
             );
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "MANAGEMENT", "KUBERNETES", "management", "kubernetes" })
+        void should_keep_the_stored_sync_from_of_a_kubernetes_origin_api(String syncFrom) {
+            var api = ApiAdapter.INSTANCE.toCoreModel(apiV4().origin("kubernetes").mode("fully_managed").syncFrom(syncFrom).build());
+
+            assertThat(api).hasOriginContext(
+                new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED, syncFrom.toUpperCase())
+            );
+        }
+
+        @Test
+        void should_read_a_missing_sync_from_of_a_kubernetes_origin_api_as_management() {
+            var api = ApiAdapter.INSTANCE.toCoreModel(apiV4().origin("kubernetes").mode("fully_managed").syncFrom(null).build());
+
+            assertThat(api).hasOriginContext(new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED, "MANAGEMENT"));
+        }
+
+        @ParameterizedTest
+        @CsvSource(
+            { "MANAGEMENT, MANAGEMENT", "KUBERNETES, KUBERNETES", "management, MANAGEMENT", "kubernetes, KUBERNETES", ", MANAGEMENT" }
+        )
+        void should_write_back_the_sync_from_it_read_of_a_kubernetes_origin_api_upper_cased(String syncFrom, String expected) {
+            var stored = apiV4().origin("kubernetes").mode("fully_managed").syncFrom(syncFrom).build();
+
+            var saved = ApiAdapter.INSTANCE.toRepository(ApiAdapter.INSTANCE.toCoreModel(stored));
+
+            assertThat(saved.getSyncFrom()).isEqualTo(expected);
         }
     }
 
@@ -662,20 +693,16 @@ class ApiAdapterTest {
          * <ul>
          *   <li>{@code definition} is re-serialized from the typed model, so the two strings differ by field order
          *       and by the fields the model leaves out; the test above compares it as a typed definition instead.
-         *   <li>{@code syncFrom} survives no origin, and on a Kubernetes-managed API it is worse than dropped: the
-         *       context is rebuilt through {@code OriginContext.Kubernetes(Mode)}, whose single argument forces the
-         *       literal {@code KUBERNETES}, so a stored {@code MANAGEMENT} — the value that has such an API
-         *       deployed by a plain store sync instead of from a config map — comes back overwritten.
-         *   <li>{@code mode} travels on a Kubernetes-managed API only and {@code integrationId} on an integration
-         *       one only; the other origins hold no room for them.
+         *   <li>{@code syncFrom} and {@code mode} travel on a Kubernetes-managed API only and {@code integrationId}
+         *       on an integration one only; the other origins hold no room for them.
          * </ul>
          *
-         * <p>None of the three reaches the gateways.
+         * <p>None of these fields reaches the gateways.
          */
         private static String[] acceptedLossesOf(OriginContext.Origin origin) {
             return switch (origin) {
                 case MANAGEMENT -> new String[] { "definition", "syncFrom", "mode", "integrationId" };
-                case KUBERNETES -> new String[] { "definition", "syncFrom", "integrationId" };
+                case KUBERNETES -> new String[] { "definition", "integrationId" };
                 case INTEGRATION -> new String[] { "definition", "syncFrom", "mode" };
             };
         }
