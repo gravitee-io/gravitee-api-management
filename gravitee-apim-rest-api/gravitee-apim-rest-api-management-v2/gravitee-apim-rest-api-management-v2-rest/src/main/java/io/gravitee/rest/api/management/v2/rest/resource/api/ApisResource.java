@@ -277,9 +277,17 @@ public class ApisResource extends AbstractResource {
             );
 
             boolean isSynchronized = apiStateDomainService.isSynchronized(importOutput.apiWithFlows(), audit);
+            GenericApi.DeploymentStateEnum deploymentState = isSynchronized
+                ? GenericApi.DeploymentStateEnum.DEPLOYED
+                : GenericApi.DeploymentStateEnum.NEED_REDEPLOY;
 
             return Response.created(this.getLocationHeader(importOutput.apiWithFlows().getId()))
-                .entity(ApiMapper.INSTANCE.map(importOutput.apiWithFlows(), uriInfo, isSynchronized))
+                .entity(
+                    new ApiV4SwaggerImportResponse(
+                        ApiMapper.INSTANCE.mapToV4(importOutput.apiWithFlows().toApi(), uriInfo, deploymentState),
+                        importOutput.skippedPaths()
+                    )
+                )
                 .build();
         } catch (InvalidPathsException e) {
             throw new InvalidPathException("Cannot import API with invalid paths", e);

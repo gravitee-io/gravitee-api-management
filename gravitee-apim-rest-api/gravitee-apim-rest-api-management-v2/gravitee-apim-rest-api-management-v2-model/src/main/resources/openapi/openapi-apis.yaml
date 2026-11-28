@@ -129,7 +129,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/ApiV4"
+                                $ref: "#/components/schemas/ApiV4SwaggerImport"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -5066,6 +5066,18 @@ components:
                 withPathMapping:
                     type: boolean
                     description: Create the path mapping for analytics from the paths of the specification. On update, replaces the existing path mappings.
+
+        ApiV4SwaggerImport:
+            allOf:
+                - $ref: "#/components/schemas/ApiV4"
+                - type: object
+                  properties:
+                      skippedPaths:
+                          type: array
+                          description: OpenAPI paths that were not imported because they are not valid HTTP flow selectors. Present only on this import response. Not stored on the API.
+                          items:
+                              type: string
+                          uniqueItems: true
 
         ImportApiPathMappings:
             type: object

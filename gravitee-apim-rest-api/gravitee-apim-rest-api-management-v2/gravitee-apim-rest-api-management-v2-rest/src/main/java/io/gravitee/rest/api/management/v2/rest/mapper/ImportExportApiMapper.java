@@ -188,6 +188,7 @@ public interface ImportExportApiMapper {
 
     @Mapping(target = "apiExport", expression = "java(buildApiExport(exportApiV4))")
     @Mapping(target = "plans", expression = "java(buildPlans(exportApiV4))")
+    @Mapping(target = "skippedPaths", ignore = true)
     ImportDefinition toImportDefinition(ExportApiV4 exportApiV4);
 
     @Mapping(target = "type", constant = "USER")

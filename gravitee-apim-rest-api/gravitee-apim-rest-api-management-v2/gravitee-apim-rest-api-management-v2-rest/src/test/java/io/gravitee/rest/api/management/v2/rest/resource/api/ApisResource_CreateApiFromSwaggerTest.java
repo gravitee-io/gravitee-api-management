@@ -24,6 +24,8 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import fixtures.core.model.ApiFixtures;
@@ -41,7 +43,6 @@ import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
-import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.ImportSwaggerDescriptor;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -153,9 +154,48 @@ public class ApisResource_CreateApiFromSwaggerTest extends AbstractResourceTest 
 
         // Then
         assertThat(response.getStatus()).isEqualTo(CREATED_201);
-        var body = response.readEntity(ApiV4.class);
-        assertThat(body.getResources()).isNotNull().hasSize(1);
-        assertThat(body.getResources().getFirst().getName()).isEqualTo("cache-resource");
+        JsonNode body = new ObjectMapper().readTree(response.readEntity(String.class));
+        assertThat(body.has("skippedPaths")).isFalse();
+        assertThat(body.get("resources")).isNotNull().hasSize(1);
+        assertThat(body.get("resources").get(0).get("name").asText()).isEqualTo("cache-resource");
+    }
+
+    @Test
+    @SneakyThrows
+    public void should_list_skipped_paths_for_both_path_mapping_flags() {
+        when(oaiDomainService.convert(any(), any(), any(), anyBoolean(), anyBoolean())).thenReturn(
+            ImportDefinition.builder()
+                .skippedPaths(List.of("/a/**"))
+                .apiExport(
+                    ApiExport.builder()
+                        .definitionVersion(DefinitionVersion.V4)
+                        .listeners(List.of(HttpListener.builder().paths(List.of(Path.builder().path("/pets").build())).build()))
+                        .build()
+                )
+                .build()
+        );
+        var baseApi = ApiFixtures.aProxyApiV4();
+        var createdApi = baseApi.toBuilder().id("imported-api-id").environmentId(ENVIRONMENT_ID).build();
+        when(createApiDomainService.create(any(), any(), any(), any(), any())).thenReturn(new ApiWithFlows(createdApi, List.of()));
+
+        var swagger = Resources.toString(
+            Resources.getResource("io/gravitee/rest/api/management/v2/rest/resource/api/openapi-withExtensions.json"),
+            Charsets.UTF_8
+        );
+
+        for (boolean withPathMapping : List.of(true, false)) {
+            var response = rootTarget()
+                .request()
+                .post(Entity.json(new ImportSwaggerDescriptor().payload(swagger).withPathMapping(withPathMapping)));
+
+            assertThat(response.getStatus()).isEqualTo(CREATED_201);
+            JsonNode body = new ObjectMapper().readTree(response.readEntity(String.class));
+            assertThat(body.get("id").asText()).isEqualTo("imported-api-id");
+            assertThat(body.get("definitionVersion").asText()).isEqualTo("V4");
+            assertThat(body.get("skippedPaths")).isNotNull();
+            assertThat(body.get("skippedPaths")).extracting(JsonNode::asText).containsExactly("/a/**");
+            assertThat(body.has("listeners")).isTrue();
+        }
     }
 
     @Test

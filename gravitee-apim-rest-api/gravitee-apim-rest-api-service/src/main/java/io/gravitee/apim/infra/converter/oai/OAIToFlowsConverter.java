@@ -49,13 +49,17 @@ public class OAIToFlowsConverter {
     public static OAIToFlowsConverter INSTANCE = new OAIToFlowsConverter();
     private static final Pattern PATH_PARAMS_PATTERN = Pattern.compile("\\{(.[^/\\}]*)\\}");
 
-    List<Flow> convert(OpenAPI specification, Collection<? extends OAIOperationVisitor> visitors) {
+    record FlowsConversion(List<Flow> flows, List<String> skippedPaths) {}
+
+    FlowsConversion convert(OpenAPI specification, Collection<? extends OAIOperationVisitor> visitors) {
         List<Flow> flows = new ArrayList<>();
+        List<String> skippedPaths = new ArrayList<>();
         specification
             .getPaths()
             .forEach((key, pathItem) -> {
                 String path = PATH_PARAMS_PATTERN.matcher(key).replaceAll(":$1");
                 if (FlowValidationDomainService.hasInvalidWildcardPath(path)) {
+                    skippedPaths.add(path);
                     log.info("Skipping OpenAPI path [{}] because it is not a valid HTTP flow selector", OpenApiPathLog.singleLine(path));
                     return;
                 }
@@ -80,7 +84,7 @@ public class OAIToFlowsConverter {
                     flows.add(flow);
                 });
             });
-        return flows;
+        return new FlowsConversion(flows, List.copyOf(skippedPaths));
     }
 
     private Flow mapFlow(String path, Set<HttpMethod> methods) {
