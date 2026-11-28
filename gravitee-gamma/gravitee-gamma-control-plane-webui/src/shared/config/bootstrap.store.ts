@@ -29,6 +29,7 @@ export interface BootstrapConfig {
     localLoginEnabled: boolean;
     registrationEnabled: boolean;
     automaticValidationEnabled: boolean;
+    managementTitle?: string;
 }
 
 interface BootstrapState {
@@ -55,8 +56,11 @@ function organizationManagementUrl(managementBaseURL: string, organizationId: st
 
 type ConsoleAccessSettings = Pick<BootstrapConfig, 'localLoginEnabled' | 'registrationEnabled' | 'automaticValidationEnabled'>;
 
-interface RegistrationConsoleSettings {
+type ConsoleSettings = ConsoleAccessSettings & Pick<BootstrapConfig, 'managementTitle'>;
+
+interface ManagementConsoleSettings {
     management?: {
+        title?: unknown;
         userCreation?: { enabled?: boolean };
         automaticValidation?: { enabled?: boolean };
     };
@@ -74,13 +78,30 @@ function consoleAccessSettingsFrom(consoleJson: unknown): ConsoleAccessSettings 
     if (!consoleJson || typeof consoleJson !== 'object') {
         return undefined;
     }
-    const { management } = consoleJson as RegistrationConsoleSettings;
+    const { management } = consoleJson as ManagementConsoleSettings;
     // Unlike local login, registration defaults to off: only an explicit `true` opens sign-up.
     return {
         localLoginEnabled: isLocalLoginEnabled(consoleJson as LocalLoginConsoleSettings),
         registrationEnabled: management?.userCreation?.enabled === true,
         automaticValidationEnabled: management?.automaticValidation?.enabled === true,
     };
+}
+
+function managementTitleFrom(json: unknown): string | undefined {
+    if (!json || typeof json !== 'object') {
+        return undefined;
+    }
+    const title = (json as ManagementConsoleSettings).management?.title;
+    return typeof title === 'string' ? title : undefined;
+}
+
+function consoleSettingsFrom(consoleJson: unknown): ConsoleSettings | undefined {
+    const access = consoleAccessSettingsFrom(consoleJson);
+    if (!access) {
+        return undefined;
+    }
+    const managementTitle = managementTitleFrom(consoleJson);
+    return managementTitle === undefined ? access : { ...access, managementTitle };
 }
 
 async function fetchIdentityProviders(managementBaseURL: string, organizationId: string): Promise<SocialIdentityProvider[] | undefined> {
@@ -95,11 +116,11 @@ async function fetchIdentityProviders(managementBaseURL: string, organizationId:
     return undefined;
 }
 
-async function fetchConsoleAccessSettings(managementBaseURL: string, organizationId: string): Promise<ConsoleAccessSettings | undefined> {
+async function fetchConsoleSettings(managementBaseURL: string, organizationId: string): Promise<ConsoleSettings | undefined> {
     try {
         const consoleRes = await fetch(`${organizationManagementUrl(managementBaseURL, organizationId)}/console`);
         if (consoleRes.ok) {
-            return consoleAccessSettingsFrom(await consoleRes.json());
+            return consoleSettingsFrom(await consoleRes.json());
         }
     } catch {
         // Non-fatal: keep the previous values, or leave local login and registration off until a successful read.
@@ -110,10 +131,10 @@ async function fetchConsoleAccessSettings(managementBaseURL: string, organizatio
 async function loadLoginMethods(
     managementBaseURL: string,
     organizationId: string,
-): Promise<{ identityProviders: SocialIdentityProvider[] | undefined; consoleSettings: ConsoleAccessSettings | undefined }> {
+): Promise<{ identityProviders: SocialIdentityProvider[] | undefined; consoleSettings: ConsoleSettings | undefined }> {
     const [identityProviders, consoleSettings] = await Promise.all([
         fetchIdentityProviders(managementBaseURL, organizationId),
-        fetchConsoleAccessSettings(managementBaseURL, organizationId),
+        fetchConsoleSettings(managementBaseURL, organizationId),
     ]);
     return { identityProviders, consoleSettings };
 }
@@ -181,7 +202,7 @@ export const useBootstrapStore = create<BootstrapState>()(
                 const requestId = ++latestLoginMethodsRefreshId;
                 const [identityProviders, consoleSettings] = await Promise.all([
                     fetchIdentityProviders(config.managementBaseURL, config.organizationId),
-                    fetchConsoleAccessSettings(config.managementBaseURL, config.organizationId),
+                    fetchConsoleSettings(config.managementBaseURL, config.organizationId),
                 ]);
                 if (requestId !== latestLoginMethodsRefreshId) {
                     return;
@@ -192,6 +213,7 @@ export const useBootstrapStore = create<BootstrapState>()(
                     return;
                 }
 
+                const managementTitle = consoleSettings?.managementTitle ?? current.managementTitle;
                 set({
                     config: {
                         ...current,
@@ -199,6 +221,7 @@ export const useBootstrapStore = create<BootstrapState>()(
                         localLoginEnabled: consoleSettings?.localLoginEnabled ?? current.localLoginEnabled,
                         registrationEnabled: consoleSettings?.registrationEnabled ?? current.registrationEnabled,
                         automaticValidationEnabled: consoleSettings?.automaticValidationEnabled ?? current.automaticValidationEnabled,
+                        ...(managementTitle !== undefined ? { managementTitle } : {}),
                     },
                     loginMethodsFetchedAt:
                         identityProviders !== undefined && consoleSettings !== undefined ? Date.now() : get().loginMethodsFetchedAt,
