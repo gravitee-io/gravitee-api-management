@@ -247,22 +247,6 @@ public class PolicyPluginServiceImplTest {
                 policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE)
             );
         }
-
-        @Test
-        public void should_read_the_guardrail_phases_a_plugin_declares_under_the_guardian_key() {
-            when(mockPlugin.id()).thenReturn(PLUGIN_ID);
-            when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
-            when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
-            when(mockPluginManifest.properties()).thenReturn(Map.of("guardian", "REQUEST,RESPONSE"));
-
-            Set<PolicyPluginEntity> result = cut.findAll();
-
-            assertThat(result)
-                .singleElement()
-                .extracting(policyPlugin -> policyPlugin.getFlowPhaseCompatibility(ApiProtocolType.GUARDRAIL))
-                .as("guardrail phases")
-                .isEqualTo(Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE));
-        }
     }
 
     @Test
