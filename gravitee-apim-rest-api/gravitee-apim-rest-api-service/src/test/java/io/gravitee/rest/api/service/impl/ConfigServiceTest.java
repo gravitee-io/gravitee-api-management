@@ -49,6 +49,7 @@ import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_APPLICATIONS
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_INVITATIONS_ENABLED;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_TRANSFER_OWNERSHIP_ENABLED;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_SEARCH_FUZZY;
+import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_SKIP_LOGIN_WITH_SINGLE_IDP_ENABLED;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_SCHEDULER_NOTIFICATIONS;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_URL;
 import static io.gravitee.rest.api.model.parameters.Key.USER_GROUP_REQUIRED_ENABLED;
@@ -515,6 +516,7 @@ class ConfigServiceTest {
         params.put(PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_ENABLED.key(), singletonList("true"));
         params.put(PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_TRANSFER_OWNERSHIP_ENABLED.key(), singletonList("true"));
         params.put(PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_INVITATIONS_ENABLED.key(), singletonList("true"));
+        params.put(PORTAL_NEXT_SKIP_LOGIN_WITH_SINGLE_IDP_ENABLED.key(), singletonList("true"));
 
         when(
             mockParameterService.findAll(
@@ -538,6 +540,9 @@ class ConfigServiceTest {
             .isTrue();
         assertThat(portalSettings.getPortalNext().getApplications().getMembership().getInvitations().isEnabled())
             .as("portalNext applications.membership.invitations enabled")
+            .isTrue();
+        assertThat(portalSettings.getPortalNext().getSkipLoginWithSingleIdp().isEnabled())
+            .as("portalNext skipLoginWithSingleIdp enabled")
             .isTrue();
     }
 
@@ -566,6 +571,9 @@ class ConfigServiceTest {
         assertThat(portalSettings.getPortalNext().getApplications().getMembership().getInvitations().isEnabled())
             .as("portalNext applications.membership.invitations disabled by default")
             .isFalse();
+        assertThat(portalSettings.getPortalNext().getSkipLoginWithSingleIdp().isEnabled())
+            .as("portalNext skipLoginWithSingleIdp disabled by default")
+            .isFalse();
     }
 
     @Test
@@ -574,6 +582,7 @@ class ConfigServiceTest {
         portalSettingsEntity.getPortalNext().getApplications().getMembership().setEnabled(true);
         portalSettingsEntity.getPortalNext().getApplications().getMembership().setTransferOwnership(new Enabled(false));
         portalSettingsEntity.getPortalNext().getApplications().getMembership().setInvitations(new Enabled(true));
+        portalSettingsEntity.getPortalNext().setSkipLoginWithSingleIdp(new Enabled(true));
 
         configService.save(GraviteeContext.getExecutionContext(), portalSettingsEntity);
 
@@ -595,6 +604,26 @@ class ConfigServiceTest {
             GraviteeContext.getExecutionContext(),
             PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_INVITATIONS_ENABLED,
             "true",
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
+        verify(mockParameterService, times(1)).save(
+            GraviteeContext.getExecutionContext(),
+            PORTAL_NEXT_SKIP_LOGIN_WITH_SINGLE_IDP_ENABLED,
+            "true",
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
+    }
+
+    @Test
+    void should_save_skip_login_with_single_idp_as_null_when_not_set() {
+        configService.save(GraviteeContext.getExecutionContext(), new PortalSettingsEntity());
+
+        verify(mockParameterService).save(
+            GraviteeContext.getExecutionContext(),
+            PORTAL_NEXT_SKIP_LOGIN_WITH_SINGLE_IDP_ENABLED,
+            (String) null,
             "DEFAULT",
             ParameterReferenceType.ENVIRONMENT
         );

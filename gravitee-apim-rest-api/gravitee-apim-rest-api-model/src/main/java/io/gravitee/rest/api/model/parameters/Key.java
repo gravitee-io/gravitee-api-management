@@ -150,6 +150,11 @@ public enum Key {
         Boolean.FALSE.toString(),
         new HashSet<>(singletonList(ENVIRONMENT))
     ),
+    PORTAL_NEXT_SKIP_LOGIN_WITH_SINGLE_IDP_ENABLED(
+        "portal.next.skipLoginWithSingleIdp.enabled",
+        Boolean.FALSE.toString(),
+        new HashSet<>(singletonList(ENVIRONMENT))
+    ),
     PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_ENABLED(
         "portal.next.applications.membership.enabled",
         Boolean.FALSE.toString(),

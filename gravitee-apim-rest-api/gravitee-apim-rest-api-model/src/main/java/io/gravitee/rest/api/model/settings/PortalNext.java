@@ -46,6 +46,9 @@ public class PortalNext {
     @ParameterKey(Key.PORTAL_NEXT_AI_WORKSPACES_ENABLED)
     private Enabled aiWorkspaces;
 
+    @ParameterKey(Key.PORTAL_NEXT_SKIP_LOGIN_WITH_SINGLE_IDP_ENABLED)
+    private Enabled skipLoginWithSingleIdp;
+
     private Applications applications;
 
     private Banner banner;

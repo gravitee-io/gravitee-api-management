@@ -64,6 +64,9 @@ public class ConfigurationMapper {
         if (portalNext.getAiWorkspaces() != null) {
             configuration.setAiWorkspaces(convert(portalNext.getAiWorkspaces()));
         }
+        if (portalNext.getSkipLoginWithSingleIdp() != null) {
+            configuration.setSkipLoginWithSingleIdp(convert(portalNext.getSkipLoginWithSingleIdp()));
+        }
         if (portalNext.getApplications() != null) {
             configuration.setApplications(convert(portalNext.getApplications()));
         }

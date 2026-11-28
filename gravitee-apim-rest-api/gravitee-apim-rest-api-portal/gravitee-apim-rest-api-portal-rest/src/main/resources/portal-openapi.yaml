@@ -8336,6 +8336,8 @@ components:
                     $ref: "#/components/schemas/Enabled"
                 aiWorkspaces:
                     $ref: "#/components/schemas/Enabled"
+                skipLoginWithSingleIdp:
+                    $ref: "#/components/schemas/Enabled"
                 applications:
                     $ref: "#/components/schemas/ConfigurationPortalNextApplications"
         ConfigurationPortalNextApplications:

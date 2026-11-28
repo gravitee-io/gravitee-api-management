@@ -252,6 +252,26 @@ public class ConfigurationMapperTest {
     }
 
     @Test
+    public void should_map_skip_login_with_single_idp() {
+        PortalNext portalNext = new PortalNext();
+        portalNext.setAccess(new Enabled(false));
+
+        portalNext.setSkipLoginWithSingleIdp(new Enabled(true));
+        ConfigurationPortalNext result = configurationMapper.convert(portalNext);
+        Assertions.assertNotNull(result.getSkipLoginWithSingleIdp());
+        Assertions.assertEquals(Boolean.TRUE, result.getSkipLoginWithSingleIdp().getEnabled());
+
+        portalNext.setSkipLoginWithSingleIdp(new Enabled(false));
+        result = configurationMapper.convert(portalNext);
+        Assertions.assertNotNull(result.getSkipLoginWithSingleIdp());
+        Assertions.assertEquals(Boolean.FALSE, result.getSkipLoginWithSingleIdp().getEnabled());
+
+        portalNext.setSkipLoginWithSingleIdp(null);
+        result = configurationMapper.convert(portalNext);
+        Assertions.assertNull(result.getSkipLoginWithSingleIdp());
+    }
+
+    @Test
     public void convertPortalNextShouldMapApplicationsMembershipEnabled() {
         PortalNext portalNext = new PortalNext();
         portalNext.setAccess(new Enabled(false));
