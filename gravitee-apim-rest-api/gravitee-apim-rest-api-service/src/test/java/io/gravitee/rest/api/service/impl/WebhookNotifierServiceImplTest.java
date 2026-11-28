@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import io.gravitee.apim.core.notification.model.*;
@@ -27,19 +31,21 @@ import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notifiers.WebNotifierService;
+import io.gravitee.rest.api.service.notifiers.WebhookNotifierPolicy;
 import io.gravitee.rest.api.service.notifiers.impl.WebhookNotifierServiceImpl;
 import java.util.HashMap;
 import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
+import org.springframework.mock.env.MockEnvironment;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.WARN)
 public class WebhookNotifierServiceImplTest {
 
     private static final String ORGANIZATION_ID = "DEFAULT";
@@ -49,6 +55,15 @@ public class WebhookNotifierServiceImplTest {
 
     @InjectMocks
     private WebhookNotifierServiceImpl webhookNotifierService;
+
+    @BeforeEach
+    void setUp() {
+        useWebhookPolicy(new MockEnvironment().withProperty("notifiers.webhook.whitelist[0]", "http://example.com/webhook"));
+    }
+
+    private void useWebhookPolicy(MockEnvironment environment) {
+        ReflectionTestUtils.setField(webhookNotifierService, "webhookNotifierPolicy", new WebhookNotifierPolicy(environment));
+    }
 
     @Test
     public void shouldCallWebNotifierServiceWithCreatedJsonFromParamsWithNotificationData() {
@@ -172,5 +187,38 @@ public class WebhookNotifierServiceImplTest {
             expectedBody,
             false
         );
+    }
+
+    @Test
+    public void shouldNotSendWebhookOutsideOfTheWhitelist() {
+        GenericNotificationConfig genericNotificationConfig = new GenericNotificationConfig();
+        genericNotificationConfig.setId("123");
+        genericNotificationConfig.setNotifier("default-webhook");
+        genericNotificationConfig.setConfig("https://forbidden.example.com/hooks/not-allowed");
+
+        webhookNotifierService.trigger(ORGANIZATION_ID, ApiHook.API_STARTED, genericNotificationConfig, new HashMap<>());
+
+        verify(webNotifierService, never()).request(anyString(), any(), anyString(), any(), anyString(), anyBoolean());
+    }
+
+    @Nested
+    class WithWebhookNotifiersDisabled {
+
+        @BeforeEach
+        void setUp() {
+            useWebhookPolicy(new MockEnvironment().withProperty("notifiers.webhook.enabled", "false"));
+        }
+
+        @Test
+        public void shouldNotSendWebhook() {
+            GenericNotificationConfig genericNotificationConfig = new GenericNotificationConfig();
+            genericNotificationConfig.setId("123");
+            genericNotificationConfig.setNotifier("default-webhook");
+            genericNotificationConfig.setConfig("http://example.com/webhook");
+
+            webhookNotifierService.trigger(ORGANIZATION_ID, ApiHook.API_STARTED, genericNotificationConfig, new HashMap<>());
+
+            verify(webNotifierService, never()).request(anyString(), any(), anyString(), any(), anyString(), anyBoolean());
+        }
     }
 }
