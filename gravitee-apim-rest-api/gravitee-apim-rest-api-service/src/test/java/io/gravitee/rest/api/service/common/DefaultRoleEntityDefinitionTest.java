@@ -15,11 +15,17 @@
  */
 package io.gravitee.rest.api.service.common;
 
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
+import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.DEFAULT_ROLE_API_USER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.DEFAULT_ROLE_ENVIRONMENT_USER;
+import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_API_OWNER;
+import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_API_REVIEWER;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -35,5 +41,19 @@ class DefaultRoleEntityDefinitionTest {
             EnvironmentPermission.HITL_RULES.getName(),
             EnvironmentPermission.HITL_NOTIFICATIONS.getName()
         );
+    }
+
+    @Test
+    void only_the_api_owner_role_grants_crud_on_live_sessions() {
+        String liveSession = ApiPermission.LIVE_SESSION.getName();
+
+        assertThat(ROLE_API_OWNER.getPermissions().get(liveSession)).containsExactlyInAnyOrder(
+            CREATE.getId(),
+            READ.getId(),
+            UPDATE.getId(),
+            DELETE.getId()
+        );
+        assertThat(DEFAULT_ROLE_API_USER.getPermissions()).doesNotContainKey(liveSession);
+        assertThat(ROLE_API_REVIEWER.getPermissions()).doesNotContainKey(liveSession);
     }
 }

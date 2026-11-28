@@ -109,6 +109,7 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
             "EVENT",
             "GATEWAY_DEFINITION",
             "HEALTH",
+            "LIVE_SESSION",
             "LOG",
             "MEMBER",
             "MESSAGE",

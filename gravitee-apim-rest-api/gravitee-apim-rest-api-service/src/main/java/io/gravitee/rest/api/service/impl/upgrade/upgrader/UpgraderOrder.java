@@ -103,4 +103,5 @@ public class UpgraderOrder {
     public static final int CREDENTIAL_PERMISSION_UPGRADER = 967;
     public static final int GAMMA_HITL_PERMISSIONS_UPGRADER = 968;
     public static final int GUARDRAIL_STEPS_UPGRADER = 969;
+    public static final int LIVE_SESSION_PERMISSION_UPGRADER = 970;
 }
