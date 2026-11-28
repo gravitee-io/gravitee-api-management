@@ -238,21 +238,56 @@ class ApiProcessorChainFactoryTest {
     }
 
     @Test
-    void shouldReturnPathMappingsPatternBeforeApiExecutionChainWithHttpListenerAndPathMappingsPattern() {
+    void shouldReturnPathMappingsPatternBeforeSecurityChainWithHttpListenerAndPathMappingsPattern() {
+        io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPathMappings(Set.of("/test"));
+        apiModel.setListeners(List.of(httpListener));
+        Api api = new Api(apiModel);
+        ProcessorChain processorChain = apiProcessorChainFactory.beforeSecurityChain(api);
+        assertThat(processorChain.getId()).isEqualTo("before-security-chain");
+        Flowable<Processor> processors = extractProcessorChain(processorChain);
+        processors
+            .test()
+            .assertComplete()
+            .assertValueCount(1)
+            .assertValueAt(0, processor -> processor instanceof PathMappingProcessor);
+    }
+
+    @Test
+    void shouldReturnPathMappingBeforeCorsOnBeforeSecurityChain() {
+        io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPathMappings(Set.of("/test"));
+        Cors cors = new Cors();
+        cors.setEnabled(true);
+        httpListener.setCors(cors);
+        apiModel.setListeners(List.of(httpListener));
+        Api api = new Api(apiModel);
+        ProcessorChain processorChain = apiProcessorChainFactory.beforeSecurityChain(api);
+        Flowable<Processor> processors = extractProcessorChain(processorChain);
+        processors
+            .test()
+            .assertComplete()
+            .assertValueCount(2)
+            .assertValueAt(0, processor -> processor instanceof PathMappingProcessor)
+            .assertValueAt(1, processor -> processor instanceof CorsPreflightRequestProcessor);
+    }
+
+    @Test
+    void shouldNotReturnPathMappingOnBeforeApiExecutionWhenPathMappingsAreSet() {
         io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
         HttpListener httpListener = new HttpListener();
         httpListener.setPathMappings(Set.of("/test"));
         apiModel.setListeners(List.of(httpListener));
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api);
-        assertThat(processorChain.getId()).isEqualTo("before-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
             .test()
             .assertComplete()
-            .assertValueCount(2)
-            .assertValueAt(0, processor -> processor instanceof SubscriptionProcessor)
-            .assertValueAt(1, processor -> processor instanceof PathMappingProcessor);
+            .assertValueCount(1)
+            .assertValueAt(0, processor -> processor instanceof SubscriptionProcessor);
     }
 
     @Test

@@ -101,6 +101,7 @@ public class ApiProcessorChainFactory {
 
     /**
      * Return the chain of processors to execute before executing security chain.
+     * Path mapping runs here so requests rejected by security (HTTP 401/403) still get a mapped-path.
      *
      * @param api the api to create the processor chain for.
      *
@@ -110,6 +111,10 @@ public class ApiProcessorChainFactory {
         final List<Processor> processors = new ArrayList<>();
 
         getHttpListener(api).ifPresent(httpListener -> {
+            if (isNotEmpty(httpListener.getPathMappingsPattern())) {
+                processors.add(PathMappingProcessor.instance());
+            }
+
             final RequestValidation requestValidation = httpListener.getRequestValidation();
             if (requestValidation != null && requestValidation.isRejectNullByte()) {
                 processors.add(NullByteRequestProcessor.instance());
@@ -144,12 +149,6 @@ public class ApiProcessorChainFactory {
             }
 
             processors.add(SubscriptionProcessor.instance(clientIdentifierHeader));
-
-            getHttpListener(api).ifPresent(httpListener -> {
-                if (isNotEmpty(httpListener.getPathMappingsPattern())) {
-                    processors.add(PathMappingProcessor.instance());
-                }
-            });
         }
 
         return new ProcessorChain("before-api-execution", processors, List.of());
