@@ -55,13 +55,12 @@ class PolicyFlowTypeTest {
     }
 
     @Test
-    void should_fall_back_on_the_deprecated_keys_of_the_http_and_guardrail_flows_only() {
+    void should_fall_back_on_the_deprecated_keys_of_the_http_flows_only() {
         SoftAssertions.assertSoftly(softly -> {
             for (var flow : PolicyFlowType.values()) {
                 var expected = switch (flow) {
                     case HTTP_PROXY -> Optional.of("proxy");
                     case HTTP_MESSAGE -> Optional.of("message");
-                    case GUARDRAIL -> Optional.of("guardian");
                     default -> Optional.<String>empty();
                 };
                 softly.assertThat(flow.deprecatedManifestKey()).as("deprecated key of %s", flow).isEqualTo(expected);

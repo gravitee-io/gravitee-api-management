@@ -34,8 +34,7 @@ public enum PolicyFlowType {
     MCP_PROXY(null, ApiType.MCP_PROXY, "MCP"),
     LLM_PROXY(null, ApiType.LLM_PROXY, "LLM"),
     A2A_PROXY(null, ApiType.A2A_PROXY, "A2A"),
-    // TODO(AIAM-1913): drop the deprecated key once the guardrail policy plugins declare the guardrail flow
-    GUARDRAIL("guardian", null, null);
+    GUARDRAIL(null, null, null);
 
     private final String deprecatedManifestKey;
     private final ApiType guardrailPolicyApiType;

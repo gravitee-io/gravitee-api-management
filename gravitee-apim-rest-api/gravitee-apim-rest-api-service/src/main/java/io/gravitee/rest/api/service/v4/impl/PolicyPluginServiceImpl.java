@@ -111,10 +111,6 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         if (httpMessageFlowPhase.isEmpty()) {
             httpMessageFlowPhase = getDeprecatedFlowPhase(plugin, "message");
         }
-        if (guardrailFlowPhase.isEmpty()) {
-            // TODO(AIAM-1913): drop once the guardrail policy plugins declare the guardrail flow
-            guardrailFlowPhase = getDeprecatedFlowPhase(plugin, "guardian");
-        }
 
         entity.putFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY, httpProxyFlowPhase);
         entity.putFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE, httpMessageFlowPhase);
