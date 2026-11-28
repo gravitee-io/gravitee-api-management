@@ -106,7 +106,7 @@ public class ApplicationClientCertificatesResource extends AbstractResource {
     @ApiResponse(
         responseCode = "201",
         description = "Client certificate successfully created",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CreateClientCertificate.class))
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ClientCertificate.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.CREATE) })
