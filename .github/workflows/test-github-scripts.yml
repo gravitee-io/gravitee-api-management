@@ -1,5 +1,4 @@
-# The scripts under .github/scripts run inside other repos' release pipelines,
-# so their tests must go red here, on the PR, and not there.
+# Unit tests for the scripts under .github/scripts, run on the PR that changes them.
 name: Test GitHub scripts
 
 on:
