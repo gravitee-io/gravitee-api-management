@@ -269,7 +269,7 @@
     <!-- Gamma plugins -->
     <gravitee-gamma-module-aim.version>6.0.0-alpha.35</gravitee-gamma-module-aim.version>
     <gravitee-gamma-module-authz.version>3.25.2</gravitee-gamma-module-authz.version>
-    <gravitee-gamma-module-edge.version>3.0.0-alpha.17</gravitee-gamma-module-edge.version>
+    <gravitee-gamma-module-edge.version>3.0.0-alpha.18</gravitee-gamma-module-edge.version>
     <gravitee-gamma-module-esm.version>2.0.0</gravitee-gamma-module-esm.version>
 
     <!-- Authz plugins -->
