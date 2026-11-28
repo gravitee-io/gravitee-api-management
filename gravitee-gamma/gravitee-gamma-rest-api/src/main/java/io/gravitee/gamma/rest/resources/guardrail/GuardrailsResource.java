@@ -60,15 +60,14 @@ import jakarta.ws.rs.core.UriInfo;
  * <h2>Authorization</h2>
  * Declarative {@code ENVIRONMENT_GUARDRAIL} with per-verb ACLs. CREATE and READ stay distinct so
  * holding read rights never grants creation. The Guardrail endpoints also require the
- * {@code apim-guardians} license feature and answer 403 without it.
+ * {@code gamma-aim-guardrails} license feature and answer 403 without it.
  *
  * @author GraviteeSource Team
  */
 @Produces(MediaType.APPLICATION_JSON)
 public class GuardrailsResource {
 
-    // TODO(AIAM-1913): the license feature keeps its Guardian name until gravitee-node renames it
-    public static final String GUARDRAILS_LICENSE_FEATURE = "apim-guardians";
+    public static final String GUARDRAILS_LICENSE_FEATURE = "gamma-aim-guardrails";
 
     @Context
     private ResourceContext resourceContext;
